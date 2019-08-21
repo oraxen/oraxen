@@ -1,0 +1,44 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'com.github.johnrengelman.shadow' version '5.0.0'
+}
+
+group 'io.th0rgal'
+def pluginVersion = '0.0.0'
+sourceCompatibility = 1.8
+
+repositories {
+    mavenCentral()
+    mavenLocal()
+    //Spigot
+    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    //Because Spigot depends on Bungeecord ChatComponent-API
+    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+    //CodeMc (bstats)
+    maven { url = 'https://repo.codemc.org/repository/maven-public' }
+}
+
+dependencies {
+    compileOnly group: 'org.spigotmc', name: 'spigot', version: '1.14.4-R0.1-SNAPSHOT' // The Spigot API with no shadowing. Requires the OSS repo.
+    compileOnly group: 'org.bukkit', name: 'bukkit', version: '1.14.4-R0.1-SNAPSHOT'
+    compileOnly group: 'io.netty', name: 'netty-all', version: '4.0.4.Final'
+    compileOnly group: 'commons-io', name: 'commons-io', version: '2.6'
+
+    implementation group: 'org.bstats', name: 'bstats-bukkit', version: '+'
+}
+
+processResources {
+    filesNotMatching(["**/*.png"]) {
+        expand projectVersion: pluginVersion
+    }
+}
+
+tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
+
+shadowJar {
+    relocate 'org.bstats.bukkit', 'io.th0rgal.oraxen.bstats'
+    minimize { exclude('io.th0rgal.oraxen.api.*') }
+}
+
+task buildJar(dependsOn: [clean, shadowJar])

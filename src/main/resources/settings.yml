@@ -1,0 +1,15 @@
+Plugin:
+  name: "Oraxen"
+  prefix: "&8&l[&bOraxen&8&l] §7"
+
+Pack:
+  url: "https://www.dropbox.com/s/maolwgdpl3ec9g0/alGoblinMc_v3.5.0.zip?dl=1"
+  SHA1: "B0F261B029FE1F70FDFA7E50EA3B4AFB"
+  send: false
+  generate: true
+  compression: BEST_COMPRESSION # see Deflater.class
+  comment: "The content of this texture pack
+   \nbelongs to the owner of the Oraxen
+   \nplugin and any complete or partial
+   \nuse must comply with the terms and
+   \nconditions of Oraxen."

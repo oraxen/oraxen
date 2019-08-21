@@ -1,0 +1,9 @@
+main: io.th0rgal.oraxen.Core
+name: Oraxen
+version: ${projectVersion}
+author: Th0rgal
+api-version: 1.14
+commands:
+  oraxen:
+    description: Main command of Oraxen.
+    aliases: [o, oxn]
