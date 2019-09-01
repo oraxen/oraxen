@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.listeners;
 
-import io.th0rgal.oraxen.utils.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
@@ -12,7 +11,7 @@ public class EventsManager {
 
     Plugin plugin;
     PluginManager pluginManager;
-    Set<Listener> customListeners = new HashSet<>();
+    static Set<Listener> customListeners = new HashSet<>();
 
     public EventsManager(Plugin plugin) {
         this.plugin = plugin;
@@ -24,16 +23,14 @@ public class EventsManager {
     }
 
     public void addEvents(Listener... listeners) {
-        Logs.log(listeners.toString());
         customListeners.addAll(Arrays.asList(listeners));
-
     }
 
     public void registerEvents() {
         registerNativeEvents();
-        for (Listener listener : customListeners) {
+        for (Listener listener : customListeners)
             pluginManager.registerEvents(listener, plugin);
-        }
+
     }
 
 }
