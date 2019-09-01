@@ -13,6 +13,7 @@ public abstract class Mechanic {
     public Mechanic(ConfigurationSection section, ItemModifier... modifiers) {
         this.section = section;
         this.itemModifiers = modifiers;
+        MechanicsManager.addItemMechanic(getItemID(), this);
     }
 
     public abstract Set<String> getItems();

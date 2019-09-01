@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.commands.subcommands.Debug;
 import io.th0rgal.oraxen.commands.subcommands.Give;
 import io.th0rgal.oraxen.commands.subcommands.InventoryVisualizer;
 import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.items.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.listeners.EventsManager;
 import io.th0rgal.oraxen.utils.Logs;
 import io.th0rgal.oraxen.utils.pack.ResourcePack;
@@ -31,6 +32,7 @@ public class Core extends JavaPlugin {
     }
 
     public void onEnable() {
+        MechanicsManager.registerNativeMechanics();
         OraxenItems.loadItems();
         new ResourcePack().generate();
         registerCommands();

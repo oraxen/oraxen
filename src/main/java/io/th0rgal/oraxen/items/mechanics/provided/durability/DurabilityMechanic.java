@@ -24,6 +24,8 @@ public class DurabilityMechanic extends Mechanic {
 
     public DurabilityMechanic(ConfigurationSection section) {
         super(section, new DurabilityModifier(new DurabilitySettings(section).getValue()));
+
+        //this call in the constructor is safe because EventsManager is using a set so registering the same class two times is not possible
         new EventsManager(Core.get()).addEvents(new Events());
     }
 
