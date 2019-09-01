@@ -8,6 +8,7 @@ public enum Message {
 
     NOT_A_PLAYER_ERROR(ChatColor.RED.toString() + "You must be a player to use this command!"),
     COMMAND_DOES_NOT_EXIST_ERROR(ChatColor.RED.toString() + "This command doesn't exist, check the doc!"),
+    MECHANIC_DOESNT_EXIST(ChatColor.RED.toString() + "The mechanic {mechanic} doesn't exist"),
     WRONG_TYPE(ChatColor.RED.toString() + "You are using an invalid type"),;
 
     private String message;

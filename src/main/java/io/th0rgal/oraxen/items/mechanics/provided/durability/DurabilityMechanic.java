@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.items.mechanics.provided.durability;
 
-import io.th0rgal.oraxen.Core;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.ItemUtils;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.items.mechanics.Mechanic;
@@ -26,7 +26,7 @@ public class DurabilityMechanic extends Mechanic {
         super(section, new DurabilityModifier(new DurabilitySettings(section).getValue()));
 
         //this call in the constructor is safe because EventsManager is using a set so registering the same class two times is not possible
-        new EventsManager(Core.get()).addEvents(new Events());
+        new EventsManager(OraxenPlugin.get()).addEvents(new Events());
     }
 
     @Override
@@ -36,7 +36,7 @@ public class DurabilityMechanic extends Mechanic {
 
     @Override
     public final String getMechanicID() {
-        return "durability";
+        return "Durability";
     }
 
     public static boolean implementsDurabilityMechanic(String id) {
@@ -68,7 +68,7 @@ class Events implements Listener {
         if (durabilitySettings.isVanillaDamagesEnabled()) {
             Damageable damageableMeta = (Damageable) event.getItem().getItemMeta();
             damageableMeta.setDamage(item.getType().getMaxDurability() / durabilitySettings.getValue()
-                    * (int) ItemUtils.getFieldContent(item, "durability"));
+                    * (int) ItemUtils.getFieldContent(item, "Durability"));
             item.setItemMeta((ItemMeta) damageableMeta);
         }
 

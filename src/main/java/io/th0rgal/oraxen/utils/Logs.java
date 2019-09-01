@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.Core;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.settings.Plugin;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -11,12 +11,12 @@ import java.util.logging.Level;
 
 public class Logs {
 
-    private static CustomLogger logger = new CustomLogger(Core.get());
+    private static CustomLogger logger = new CustomLogger(OraxenPlugin.get());
 
     public static void enableFilter() throws NoSuchFieldException, IllegalAccessException {
         Field field = JavaPlugin.class.getDeclaredField("logger");
         field.setAccessible(true);
-        field.set(Core.get(), logger);
+        field.set(OraxenPlugin.get(), logger);
     }
 
     public static void log(String message) {

@@ -1,4 +1,4 @@
-main: io.th0rgal.oraxen.Core
+main: io.th0rgal.oraxen.OraxenPlugin
 name: Oraxen
 version: ${projectVersion}
 author: Th0rgal

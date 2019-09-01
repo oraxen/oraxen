@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.items.mechanics;
 
 import io.th0rgal.oraxen.items.mechanics.provided.durability.DurabilityMechanic;
+import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.utils.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.lang.reflect.InvocationTargetException;
@@ -18,14 +20,20 @@ public class MechanicsManager {
     }
 
     public static void registerNativeMechanics() {
-        register("durability", DurabilityMechanic.class);
+        register("Durability", DurabilityMechanic.class);
     }
-
 
     private static Map<String, List<Mechanic>> mechanicsByItemID = new HashMap<>();
 
     public static void addItemMechanic(String itemID, ConfigurationSection mechanicSection) {
+
         String mechanicID = mechanicSection.getName();
+
+        if (!mechanicsClassByID.containsKey(mechanicID)) {
+            Logs.logInfo(Message.MECHANIC_DOESNT_EXIST.toString().replace("{mechanic}", mechanicID));
+            return;
+        }
+
         Class<?>  mechanicClass = mechanicsClassByID.get(mechanicID);
         try {
             //Mechanic constructor will automatically call addItemMechanic with Mechanic object

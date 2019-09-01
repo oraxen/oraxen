@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.utils.pack;
 
-import io.th0rgal.oraxen.Core;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.Item;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.Pack;
@@ -28,7 +28,7 @@ public class ResourcePack {
     private File pack;
 
     public ResourcePack() {
-        this.packFolder = new File(Core.get().getDataFolder(), "pack");
+        this.packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
         if (!this.packFolder.exists())
             this.packFolder.mkdirs();
 
@@ -36,7 +36,7 @@ public class ResourcePack {
         if (!this.texturesFolder.exists()) {
             this.texturesFolder.mkdirs();
             try {
-                Enumeration<URL> urls = Core.class.getClassLoader().getResources("/pack/textures");
+                Enumeration<URL> urls = OraxenPlugin.class.getClassLoader().getResources("/pack/textures");
                 while (urls.hasMoreElements())
                     Logs.log(urls.nextElement().toString());
 
@@ -63,10 +63,10 @@ public class ResourcePack {
             pack.delete();
 
         if (!new File(packFolder, "pack.mcmeta").exists())
-            Core.get().saveResource("pack" + File.separator + "pack.mcmeta", false);
+            OraxenPlugin.get().saveResource("pack" + File.separator + "pack.mcmeta", false);
 
         if (!new File(packFolder, "pack.png").exists())
-            Core.get().saveResource("pack" + File.separator + "pack.png", false);
+            OraxenPlugin.get().saveResource("pack" + File.separator + "pack.png", false);
 
         // Sorting items to keep only one with models (and generate it if needed)
         Map<Material, List<Item>> texturedItems = new HashMap<>();
@@ -147,7 +147,6 @@ public class ResourcePack {
         } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
             e.printStackTrace();
         }
-
     }
 
 }

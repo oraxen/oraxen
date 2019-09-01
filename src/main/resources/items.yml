@@ -58,9 +58,6 @@ anubis_head:
   Pack:
     generate_model: false
     model: anubis_head # .json extension is not mandatory
-  Mechanics:
-    BlockInteract: true
-    Hat: true
 
 crown:
   displayname: "&6Crown"
@@ -70,9 +67,6 @@ crown:
   Pack:
     generate_model: false
     model: crown
-  Mechanics:
-    BlockInteract: true
-    Hat: true
 
 pharaoh_head:
   displayname: "&6Pharaoh Head"
@@ -82,9 +76,6 @@ pharaoh_head:
   Pack:
     generate_model: false
     model: pharaoh_head
-  Mechanics:
-    BlockInteract: true
-    Hat: true
 
 witch_hat:
   displayname: "&5Witch Hat"
@@ -94,9 +85,7 @@ witch_hat:
   Pack:
     generate_model: false
     model: witch_hat
-  Mechanics:
-    BlockInteract: true
-    Hat: true
+
 
 ##################################################
 #################### MYSTIQUE ####################

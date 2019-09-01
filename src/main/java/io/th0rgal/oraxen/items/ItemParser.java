@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.items;
 
+import io.th0rgal.oraxen.items.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.settings.Message;
 
 import org.bukkit.Bukkit;
@@ -32,7 +33,7 @@ public class ItemParser {
         if (section.contains("NBTTags")) {
 
             @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
-            List<LinkedHashMap<String, ?>> tagsList = (List<LinkedHashMap<String, ?>>) section.getList("NBTTags");
+                    List<LinkedHashMap<String, ?>> tagsList = (List<LinkedHashMap<String, ?>>) section.getList("NBTTags");
 
             for (LinkedHashMap<String, ?> tag : tagsList) {
                 String type = tag.get("type").toString();
@@ -58,6 +59,12 @@ public class ItemParser {
                 }
 
             }
+        }
+
+        if (section.isConfigurationSection("Mechanics")) {
+            ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
+            for (String mechanicID : mechanicsSection.getKeys(false))
+                MechanicsManager.addItemMechanic(section.getName(), mechanicsSection.getConfigurationSection(mechanicID));
         }
 
         if (section.isConfigurationSection("Pack")) {

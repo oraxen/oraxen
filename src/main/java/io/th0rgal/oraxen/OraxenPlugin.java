@@ -13,11 +13,11 @@ import io.th0rgal.oraxen.utils.pack.ResourcePack;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class Core extends JavaPlugin {
+public class OraxenPlugin extends JavaPlugin {
 
-    private static Core instance;
+    private static OraxenPlugin instance;
 
-    public Core() throws Exception {
+    public OraxenPlugin() throws Exception {
         instance = this;
         Logs.enableFilter();
     }
@@ -44,7 +44,7 @@ public class Core extends JavaPlugin {
         Logs.log(ChatColor.GREEN + "Successfully unloaded");
     }
 
-    public static Core get() {
+    public static OraxenPlugin get() {
         return instance;
     }
 
