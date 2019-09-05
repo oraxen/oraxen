@@ -59,7 +59,7 @@ class Events implements Listener {
     public void onItemDamaged(PlayerItemDamageEvent event) {
         ItemStack item = event.getItem();
         String itemID = OraxenItems.getIdByItem(item);
-        if (itemID == null || DurabilityMechanic.implementsDurabilityMechanic(itemID))
+        if (itemID == null || !DurabilityMechanic.implementsDurabilityMechanic(itemID))
             return;
 
         DurabilitySettings durabilitySettings = DurabilityMechanic.getDurabilitySettingsByID(itemID);
