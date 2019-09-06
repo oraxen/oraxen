@@ -10,6 +10,7 @@ public enum NMS {
     ITEM_STACK(Type.NMS, "ItemStack"),
     NBT_TAG_COMPOUND(Type.NMS, "NBTTagCompound"),
     NBT_BASE(Type.NMS, "NBTBase"),
+    NBT_TAG_STRING(Type.NMS, "NBTTagString"),
     NBT_TAG_INT(Type.NMS, "NBTTagInt"),
     PACKET_PLAY_OUT_RESOURCE_PACK_SEND(Type.NMS, "PacketPlayOutResourcePackSend"),
 

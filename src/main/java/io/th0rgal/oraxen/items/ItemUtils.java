@@ -10,13 +10,17 @@ public class ItemUtils {
     private static Class<?> CraftItemStack = NMS.CRAFT_ITEM_STACK.toClass();
     private static Class<?> NMSItemStack = NMS.ITEM_STACK.toClass();
     private static Class<?> NBTTagCompound = NMS.NBT_TAG_COMPOUND.toClass();
+    public static  Class<?> getNBTTagCompoundClass() {
+        return NBTTagCompound;
+    }
 
     public static String getStringField(ItemStack itemStack, String field) {
-        Object result = getFieldContent(itemStack, field);
-        if (result == null)
-            return null;
-        else
-            return result.toString();
+        Object NBTBase = getFieldContent(itemStack, field);
+        try {
+            return (String) NMS.NBT_TAG_STRING.toClass().getMethod("asString").invoke(NBTBase);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw (new RuntimeException());
+        }
     }
 
     public static Object getFieldContent(ItemStack itemStack, String field) {
