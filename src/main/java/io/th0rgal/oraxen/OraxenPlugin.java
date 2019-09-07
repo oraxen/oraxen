@@ -23,18 +23,18 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     public void registerCommands() {
-        CommandHandler handler = new CommandHandler();
-        handler.register("oraxen", new BaseCommand());
-        handler.register("debug", new Debug());
-        handler.register("inv", new InventoryVisualizer());
-        handler.register("give", new Give());
+        CommandHandler handler = new CommandHandler()
+                .register("oraxen", new BaseCommand())
+                .register("debug", new Debug())
+                .register("inv", new InventoryVisualizer())
+                .register("give", new Give());
         getCommand("oraxen").setExecutor(handler);
     }
 
     public void onEnable() {
         MechanicsManager.registerNativeMechanics();
         OraxenItems.loadItems();
-        new ResourcePack().generate();
+        ResourcePack.generate();
         registerCommands();
         Logs.log(ChatColor.GREEN + "Successfully loaded");
         new EventsManager(this).registerEvents();

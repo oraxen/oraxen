@@ -16,10 +16,11 @@ public class CommandHandler implements CommandExecutor {
     private static HashMap<String, CommandInterface> commands = new HashMap<String, CommandInterface>();
 
     //Register method. When we register commands in our onEnable() we will use this.
-    public void register(String name, CommandInterface cmd) {
+    public CommandHandler register(String name, CommandInterface cmd) {
 
         //When we register the command, this is what actually will put the command in the hashmap.
         commands.put(name, cmd);
+        return this;
     }
 
     //This will be used to check if a string exists or not.

@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.Item;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.Pack;
-import io.th0rgal.oraxen.utils.Logs;
 import io.th0rgal.oraxen.utils.NMS;
 
 import org.bukkit.Material;
@@ -22,40 +21,26 @@ import java.util.*;
 
 public class ResourcePack {
 
-    private File packFolder;
-    private File texturesFolder;
-    private File modelsFolder;
-    private File pack;
+    private static File modelsFolder;
 
-    public ResourcePack() {
-        this.packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
-        if (!this.packFolder.exists())
-            this.packFolder.mkdirs();
+    public static void generate() {
 
-        this.texturesFolder = new File(packFolder, "textures");
-        if (!this.texturesFolder.exists()) {
-            this.texturesFolder.mkdirs();
+        File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
+        if (!packFolder.exists())
+            packFolder.mkdirs();
+
+        File texturesFolder = new File(packFolder, "textures");
+        modelsFolder = new File(packFolder, "models");
+        if (!modelsFolder.exists()) {
             try {
-                Enumeration<URL> urls = OraxenPlugin.class.getClassLoader().getResources("/pack/textures");
-                while (urls.hasMoreElements())
-                    Logs.log(urls.nextElement().toString());
-
+                UnzipUtils.unpackArchive(new URL("http://oraxen.gouv.airforce/pack/default.zip"), packFolder);
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            //todo: extract default textures
         }
 
-        this.modelsFolder = new File(packFolder, "models");
-        if (!this.modelsFolder.exists()) {
-            this.modelsFolder.mkdirs();
-            //todo: extract default models
-        }
+        File pack = new File(packFolder, packFolder.getName() + ".zip");
 
-        this.pack = new File(packFolder, packFolder.getName() + ".zip");
-    }
-
-    public void generate() {
         if (!Boolean.parseBoolean(Pack.GENERATE.toString()))
             return;
 
@@ -116,7 +101,7 @@ public class ResourcePack {
         }
     }
 
-    public void generatePredicates(Map<Material, List<Item>> texturedItems) {
+    private static void generatePredicates(Map<Material, List<Item>> texturedItems) {
         File itemsFolder = new File(modelsFolder, "item");
         if (!itemsFolder.exists())
             itemsFolder.mkdirs();
@@ -128,7 +113,7 @@ public class ResourcePack {
         }
     }
 
-    private void writeStringToFile(File file, String content) {
+    private static void writeStringToFile(File file, String content) {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             writer.write(content);

@@ -1,6 +1,5 @@
-package io.th0rgal.oraxen.items;
+package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.utils.NMS;
 import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.InvocationTargetException;
