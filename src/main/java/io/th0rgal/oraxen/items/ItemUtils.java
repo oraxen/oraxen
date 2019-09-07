@@ -10,21 +10,30 @@ public class ItemUtils {
     private static Class<?> CraftItemStack = NMS.CRAFT_ITEM_STACK.toClass();
     private static Class<?> NMSItemStack = NMS.ITEM_STACK.toClass();
     private static Class<?> NBTTagCompound = NMS.NBT_TAG_COMPOUND.toClass();
-    public static  Class<?> getNBTTagCompoundClass() {
+
+    public static Class<?> getNBTTagCompoundClass() {
         return NBTTagCompound;
     }
 
-    public static String getStringField(ItemStack itemStack, String field) {
-        Object NBTBase = getFieldContent(itemStack, field);
+    public static Object getFieldContent(ItemStack itemStack, String field) {
+        return getNBTBase(getNBTTagCompound(getNMSCopy(itemStack)), field);
+    }
+
+    public static byte getNBTBaseTypeID(Object NBTBase) {
         try {
-            return (String) NMS.NBT_TAG_STRING.toClass().getMethod("asString").invoke(NBTBase);
+            return (byte) NMS.NBT_BASE.toClass().getMethod("getTypeId").invoke(NBTBase);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw (new RuntimeException());
         }
     }
 
-    public static Object getFieldContent(ItemStack itemStack, String field) {
-        return getNBTBase(getNBTTagCompound(getNMSCopy(itemStack)), field);
+    public static int getIntField(ItemStack itemStack, String field) {
+        Object NBTBase = getFieldContent(itemStack, field);
+        try {
+            return (int) NMS.NBT_TAG_INT.toClass().getMethod("asInt").invoke(NBTBase);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            throw (new RuntimeException());
+        }
     }
 
     public static void setIntNBTTag(Object itemTag, String field, int value) {
@@ -33,6 +42,17 @@ public class ItemUtils {
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
+    }
+
+    public static String getStringField(ItemStack itemStack, String field) {
+        Object NBTBase = getFieldContent(itemStack, field);
+        if (NBTBase != null && getNBTBaseTypeID(NBTBase) == 8)
+            try {
+                return (String) NMS.NBT_TAG_STRING.toClass().getMethod("asString").invoke(NBTBase);
+            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                throw (new RuntimeException());
+            }
+        else return null;
     }
 
     public static void setStringNBTTag(Object itemTag, String field, String value) {

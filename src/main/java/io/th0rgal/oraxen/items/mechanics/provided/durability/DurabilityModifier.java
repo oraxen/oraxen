@@ -9,7 +9,6 @@ public class DurabilityModifier extends ItemModifier {
 
     DurabilityModifier(int durability) {
         this.durability = durability;
-
     }
 
     @Override

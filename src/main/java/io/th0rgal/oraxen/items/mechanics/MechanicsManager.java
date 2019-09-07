@@ -1,15 +1,13 @@
 package io.th0rgal.oraxen.items.mechanics;
 
 import io.th0rgal.oraxen.items.mechanics.provided.durability.DurabilityMechanic;
+import io.th0rgal.oraxen.items.modifiers.ItemModifier;
 import io.th0rgal.oraxen.settings.Message;
 import io.th0rgal.oraxen.utils.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class MechanicsManager {
 
@@ -34,10 +32,10 @@ public class MechanicsManager {
             return;
         }
 
-        Class<?>  mechanicClass = mechanicsClassByID.get(mechanicID);
+        Class<?> mechanicClass = mechanicsClassByID.get(mechanicID);
         try {
             //Mechanic constructor will automatically call addItemMechanic with Mechanic object
-            Mechanic mechanic = (Mechanic)mechanicClass.getConstructor(ConfigurationSection.class).newInstance(mechanicSection);
+            Mechanic mechanic = (Mechanic) mechanicClass.getConstructor(ConfigurationSection.class).newInstance(mechanicSection);
         } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
@@ -51,8 +49,15 @@ public class MechanicsManager {
         mechanicsByItemID.put(itemID, itemMechanics);
     }
 
-    public List<Mechanic> getMechanicsByItemID(String itemID) {
+    public static List<Mechanic> getMechanicsByItemID(String itemID) {
         return mechanicsByItemID.getOrDefault(itemID, new ArrayList<>());
+    }
+
+    public static Set<ItemModifier> getModifiersByItemID(String itemID) {
+        Set<ItemModifier> modifiers = new HashSet<>();
+        for (Mechanic mechanic : getMechanicsByItemID(itemID))
+            modifiers.addAll(Arrays.asList(mechanic.getItemModifiers()));
+        return modifiers;
     }
 
 

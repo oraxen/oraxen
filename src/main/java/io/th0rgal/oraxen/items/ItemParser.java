@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.items.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.items.modifiers.ItemModifier;
 import io.th0rgal.oraxen.settings.Message;
 
 import org.bukkit.Bukkit;
@@ -65,6 +66,11 @@ public class ItemParser {
             ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
             for (String mechanicID : mechanicsSection.getKeys(false))
                 MechanicsManager.addItemMechanic(section.getName(), mechanicsSection.getConfigurationSection(mechanicID));
+        }
+
+        //apply item modifiers
+        for (ItemModifier itemModifier : MechanicsManager.getModifiersByItemID(section.getName())) {
+            item = itemModifier.getItem(item);
         }
 
         if (section.isConfigurationSection("Pack")) {
