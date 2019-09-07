@@ -1,14 +1,11 @@
 package io.th0rgal.oraxen.items.mechanics.provided.durability;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.items.Item;
 import io.th0rgal.oraxen.items.ItemUtils;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.items.mechanics.Mechanic;
 import io.th0rgal.oraxen.listeners.EventsManager;
-import io.th0rgal.oraxen.utils.Logs;
 import io.th0rgal.oraxen.utils.NMS;
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
