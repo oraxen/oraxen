@@ -5,44 +5,26 @@ import org.bukkit.entity.Player;
 
 public enum NMS {
 
-    PACKET(Type.NMS, "Packet"),
-    ENTITY_PLAYER(Type.NMS, "EntityPlayer"),
-    ITEM_STACK(Type.NMS, "ItemStack"),
-    NBT_TAG_COMPOUND(Type.NMS, "NBTTagCompound"),
-    NBT_BASE(Type.NMS, "NBTBase"),
-    NBT_TAG_STRING(Type.NMS, "NBTTagString"),
-    NBT_TAG_INT(Type.NMS, "NBTTagInt"),
-    PACKET_PLAY_OUT_RESOURCE_PACK_SEND(Type.NMS, "PacketPlayOutResourcePackSend"),
+    PACKET(NMS.getNMSClass("Packet")),
+    ENTITY_PLAYER(NMS.getNMSClass("EntityPlayer")),
+    ITEM_STACK(NMS.getNMSClass("ItemStack")),
+    NBT_TAG_COMPOUND(NMS.getNMSClass("NBTTagCompound")),
+    NBT_BASE(NMS.getNMSClass("NBTBase")),
+    NBT_TAG_STRING(NMS.getNMSClass("NBTTagString")),
+    NBT_TAG_INT(NMS.getNMSClass("NBTTagInt")),
+    PACKET_PLAY_OUT_RESOURCE_PACK_SEND(NMS.getNMSClass("PacketPlayOutResourcePackSend")),
 
-    CRAFT_PLAYER(Type.CB, "entity.CraftPlayer"),
-    CRAFT_ITEM_STACK(Type.CB, "inventory.CraftItemStack");
+    CRAFT_PLAYER(NMS.getCBClass("entity.CraftPlayer")),
+    CRAFT_ITEM_STACK(NMS.getCBClass("inventory.CraftItemStack"));
 
-    private Type type;
-    private String className;
+    private final Class<?> clazz;
 
-    NMS(Type type, String className) {
-        this.type = type;
-        this.className = className;
+    NMS(Class<?> clazz) {
+        this.clazz = clazz;
     }
 
     public Class<?> toClass() {
-        switch (this.type) {
-
-            case NMS:
-                return NMS.getNMSClass(className);
-
-            case CB:
-                return NMS.getCBClass(className);
-
-            default:
-                try {
-                    return Class.forName(className);
-                } catch (ClassNotFoundException e) {
-                    e.printStackTrace();
-                    return null;
-                }
-
-        }
+        return this.clazz;
     }
 
     public static String nmsProtocol;
@@ -65,7 +47,7 @@ public enum NMS {
         }
     }
 
-    public static Class<?> getNMSClass(String name) {
+    private static Class<?> getNMSClass(String name) {
         if (nmsProtocol == null)
             nmsProtocol = NMS.getVersion();
 
@@ -76,7 +58,7 @@ public enum NMS {
         }
     }
 
-    public static Class<?> getCBClass(String name) {
+    private static Class<?> getCBClass(String name) {
         if (nmsProtocol == null)
             nmsProtocol = NMS.getVersion();
 
@@ -94,13 +76,5 @@ public enum NMS {
     public static short getSubVersion() {
         return Short.parseShort(getVersion().substring(2));
     }
-
-}
-
-enum Type {
-
-    NMS,
-    CB,
-    OTHER
 
 }
