@@ -22,7 +22,7 @@ partial or modified code from this package.
 
 
 ## ORAXEN LICENSE
-## TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+### TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 
 1. Do whatever you like with the original work, as long as you keep it for yourself or have the Copyright
 Holder's permission.
