@@ -91,6 +91,7 @@ witch_hat:
 #################### MYSTICAL ####################
 ##################################################
 legendary_hammer:
+  displayname: "&6Legendary Hammer"
   material: DIAMOND_PICKAXE
   NBTTags:
     - {type: int, name: "CustomModelData", value: 1}
@@ -103,6 +104,7 @@ legendary_hammer:
       vanilla_damages: true
 
 magical_wand:
+  displayname: "&bMagical Wand"
   material: WOODEN_HOE
   NBTTags:
     - {type: int, name: "CustomModelData", value: 5}
@@ -111,6 +113,7 @@ magical_wand:
     model: magical_wand
 
 magical_axe:
+  displayname: "&aMagical Axe"
   material: DIAMOND_AXE
   NBTTags:
     - {type: int, name: "CustomModelData", value: 1}
@@ -127,6 +130,7 @@ magical_axe:
 ##################### TOOLS #####################
 ##################################################
 upgraded_stone_pickaxe:
+  displayname: "&7Upgraded Stone Pickaxe"
   material: STONE_PICKAXE
   unbreakable: true
   NBTTags:
@@ -136,6 +140,7 @@ upgraded_stone_pickaxe:
     model: stone_pickaxe
 
 withooker:
+  displayname: "&bWithooker"
   material: WOODEN_HOE
   unbreakable: true
   NBTTags:
@@ -149,6 +154,7 @@ withooker:
 #################### WEAPONS #####################
 ##################################################
 storm_sword:
+  displayname: "&bStorm Sword"
   material: DIAMOND_SWORD
   NBTTags:
     - {type: int, name: "CustomModelData", value: 1}
@@ -157,6 +163,7 @@ storm_sword:
     model: storm_sword
 
 energy_crystal_sword:
+  displayname: "&bEnergy Crystal Sword"
   material: DIAMOND_SWORD
   NBTTags:
     - {type: int, name: "CustomModelData", value: 2}
@@ -165,6 +172,7 @@ energy_crystal_sword:
     model: energy_crystal_sword
 
 dagger:
+  displayname: "&cDagger"
   material: DIAMOND_SWORD
   NBTTags:
     - {type: int, name: "CustomModelData", value: 3}
@@ -173,6 +181,7 @@ dagger:
     model: dagger
 
 blood_sword:
+  displayname: "&cBlood Sword"
   material: DIAMOND_SWORD
   NBTTags:
     - {type: int, name: "CustomModelData", value: 4}
@@ -181,6 +190,7 @@ blood_sword:
     model: blood_sword
 
 katana:
+  displayname: "&eKatana"
   material: DIAMOND_SWORD
   NBTTags:
     - {type: int, name: "CustomModelData", value: 5}
@@ -189,6 +199,7 @@ katana:
     model: katana
 
 octavia_sword:
+  displayname: "&7Octavia Sword"
   material: DIAMOND_SWORD
   NBTTags:
     - {type: int, name: "CustomModelData", value: 6}
@@ -201,6 +212,7 @@ octavia_sword:
 ##################### BLOCKS #####################
 ##################################################
 caveblock:
+  displayname: "&7Cave Block"
   material: WOODEN_HOE
   NBTTags:
     - {type: int, name: "CustomModelData", value: 7}
