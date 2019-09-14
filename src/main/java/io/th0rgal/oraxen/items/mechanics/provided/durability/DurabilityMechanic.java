@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.listeners.EventsManager;
 import io.th0rgal.oraxen.utils.NMS;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
@@ -57,7 +58,7 @@ public class DurabilityMechanic extends Mechanic {
 
 class Events implements Listener {
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemDamaged(PlayerItemDamageEvent event) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
         ItemStack item = event.getItem();
         String itemID = OraxenItems.getIdByItem(item);
@@ -65,20 +66,27 @@ class Events implements Listener {
             return;
 
         DurabilitySettings durabilitySettings = DurabilityMechanic.getDurabilitySettingsByID(itemID);
-        event.setCancelled(true);
 
         if (durabilitySettings.isVanillaDamagesEnabled()) {
             Object nmsItem = ItemUtils.getNMSCopy(item);
             Object itemTag = ItemUtils.getNBTTagCompound(nmsItem);
             Object nbtBase = ItemUtils.getNBTBase(itemTag, "Durability");
+
             int realDurability = (int) NMS.NBT_TAG_INT.toClass().getMethod("asInt").invoke(nbtBase) - event.getDamage();
-            ItemUtils.setIntNBTTag(itemTag, "Durability", realDurability);
-            ItemUtils.setNBTTagCompound(nmsItem, itemTag);
-            Damageable damageableMeta = (Damageable) ItemUtils.fromNMS(nmsItem).getItemMeta();
-            damageableMeta.setDamage((int) (item.getType().getMaxDurability() - ((float) item.getType().getMaxDurability() / (float) durabilitySettings.getValue()
-                    * (float) realDurability)));
-            item.setItemMeta((ItemMeta) damageableMeta);
+
+            if (realDurability > 0) {
+                event.setCancelled(true);
+                ItemUtils.setIntNBTTag(itemTag, "Durability", realDurability);
+                ItemUtils.setNBTTagCompound(nmsItem, itemTag);
+                Damageable damageableMeta = (Damageable) ItemUtils.fromNMS(nmsItem).getItemMeta();
+                damageableMeta.setDamage((int) (item.getType().getMaxDurability() - ((float) item.getType().getMaxDurability() / (float) durabilitySettings.getValue()
+                        * (float) realDurability)));
+                item.setItemMeta((ItemMeta) damageableMeta);
+            } else {
+                item.setAmount(0);
+            }
         }
+
 
     }
 
