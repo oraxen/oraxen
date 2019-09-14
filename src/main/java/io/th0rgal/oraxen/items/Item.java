@@ -1,10 +1,13 @@
 package io.th0rgal.oraxen.items;
 
+import com.google.common.collect.Multimap;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.OfflinePlayer;
+import org.bukkit.attribute.Attribute;
+import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.ItemFlag;
@@ -37,6 +40,10 @@ public class Item {
     private String displayName;
     private boolean unbreakable;
     private Set<ItemFlag> itemFlags;
+    private boolean hasAttributeModifiers;
+    private Multimap<Attribute, AttributeModifier> attributeModifiers;
+    private boolean hasCustomModelData;
+    private int customModelData;
     private List<String> lore;
     private Map<Enchantment, Integer> enchantments;
 
@@ -83,8 +90,16 @@ public class Item {
 
         this.unbreakable = itemMeta.isUnbreakable();
 
-        if (itemMeta.getItemFlags().isEmpty())
+        if (!itemMeta.getItemFlags().isEmpty())
             this.itemFlags = itemMeta.getItemFlags();
+
+        this.hasAttributeModifiers = itemMeta.hasAttributeModifiers();
+        if (hasAttributeModifiers)
+            this.attributeModifiers = itemMeta.getAttributeModifiers();
+
+        this.hasCustomModelData = itemMeta.hasCustomModelData();
+        if (itemMeta.hasCustomModelData())
+            this.customModelData = itemMeta.getCustomModelData();
 
         if (itemMeta.hasLore())
             this.lore = itemMeta.getLore();
@@ -105,11 +120,6 @@ public class Item {
         return this;
     }
 
-    public Item setDurability(int durability) {
-        this.durability = durability;
-        return this;
-    }
-
     public Item setDisplayName(String displayName) {
         this.displayName = displayName;
         return this;
@@ -125,8 +135,71 @@ public class Item {
         return this;
     }
 
+    public Item setDurability(int durability) {
+        this.durability = durability;
+        return this;
+    }
+
+    public Item setColor(Color color) {
+        this.color = color;
+        return this;
+    }
+
+    public Item setBasePotionData(PotionData potionData) {
+        this.potionData = potionData;
+        return this;
+    }
+
+    public Item addPotionEffect(PotionEffect potionEffect) {
+        if (this.potionEffects == null)
+            this.potionEffects = new ArrayList<>();
+        this.potionEffects.add(potionEffect);
+        return this;
+    }
+
+    public Item setOwningPlayer(OfflinePlayer owningPlayer) {
+        this.owningPlayer = owningPlayer;
+        return this;
+    }
+
+    public Item setCustomModelData(int customModelData) {
+        if (!this.hasCustomModelData)
+            this.hasCustomModelData = true;
+        this.customModelData = customModelData;
+        return this;
+    }
+
     public Item addItemFlags(ItemFlag... itemFlags) {
         this.itemFlags.addAll(Arrays.asList(itemFlags));
+        return this;
+    }
+
+    public Item addAttributeModifiers(Attribute attribute, AttributeModifier attributeModifier) {
+        if (!this.hasAttributeModifiers)
+            this.hasAttributeModifiers = true;
+        this.attributeModifiers.put(attribute, attributeModifier);
+        return this;
+    }
+
+    public Item addAllAttributeModifiers(Multimap<Attribute, AttributeModifier> attributeModifiers) {
+        if (!this.hasAttributeModifiers)
+            this.hasAttributeModifiers = true;
+        this.attributeModifiers.putAll(attributeModifiers);
+        return this;
+    }
+
+    public Item setTropicalFishBucketBodyColor(DyeColor bodyColor) {
+        this.bodyColor = bodyColor;
+        return this;
+    }
+
+    public Item setTropicalFishBucketPattern(TropicalFish.Pattern pattern) {
+        this.pattern = pattern;
+        return this;
+    }
+
+    public Item setTropicalFishBucketPatternColor(DyeColor patternColor) {
+        this.patternColor = patternColor;
         return this;
     }
 
