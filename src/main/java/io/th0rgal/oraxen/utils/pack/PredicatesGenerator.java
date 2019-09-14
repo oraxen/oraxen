@@ -40,11 +40,7 @@ public class PredicatesGenerator {
         for (Item item : items) {
             JsonObject override = new JsonObject();
             JsonObject predicate = new JsonObject();
-            try {
-                predicate.addProperty("custom_model_data", (int) NBT_TAG_TO_INT.invoke(item.getNBTBase("CustomModelData")));
-            } catch (IllegalAccessException | InvocationTargetException e) {
-                e.printStackTrace();
-            }
+            predicate.addProperty("custom_model_data", item.getPackInfos().getCustomModelData());
             override.add("predicate", predicate);
             override.addProperty("model", item.getPackInfos().getModelName());
             overrides.add(override);

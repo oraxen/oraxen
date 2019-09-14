@@ -334,11 +334,15 @@ public class Item {
             itemMeta.setDisplayName(this.displayName);
 
         itemMeta.setUnbreakable(this.unbreakable);
-        itemMeta.addItemFlags(this.itemFlags.toArray(new ItemFlag[0]));
+        if (this.itemFlags != null)
+            itemMeta.addItemFlags(this.itemFlags.toArray(new ItemFlag[0]));
 
         if (this.enchantments.size() > 0)
             for (Map.Entry<Enchantment, Integer> enchant : this.enchantments.entrySet())
                 itemMeta.addEnchant(enchant.getKey(), enchant.getValue(), true);
+
+        if (this.hasCustomModelData)
+            itemMeta.setCustomModelData(this.customModelData);
 
         itemMeta.setLore(this.lore);
 
