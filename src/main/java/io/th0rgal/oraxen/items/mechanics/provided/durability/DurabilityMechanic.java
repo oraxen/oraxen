@@ -20,7 +20,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-
 public class DurabilityMechanic extends Mechanic {
 
     private static Map<String, DurabilitySettings> settingsByItemID = new HashMap<>();
@@ -86,7 +85,6 @@ class Events implements Listener {
                 item.setAmount(0);
             }
         }
-
 
     }
 
