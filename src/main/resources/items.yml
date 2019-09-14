@@ -88,6 +88,21 @@ witch_hat:
 
 
 ##################################################
+##################### ARMORS #####################
+##################################################
+emerald_helmet:
+  displayname: "&aEmerald Helmet"
+  material: LEATHER_HELMET
+  NBTTags:
+    - {type: int, name: "CustomModelData", value: 1}
+    - {type: String, name: "color", value: 1048498}
+  Mechanics:
+    Durability:
+      value: 10000 #diamond sword is 1561
+      vanilla_damages: true
+
+
+##################################################
 #################### MYSTICAL ####################
 ##################################################
 legendary_hammer:

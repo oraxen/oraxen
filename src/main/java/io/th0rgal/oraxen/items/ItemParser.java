@@ -18,8 +18,8 @@ public class ItemParser {
     public ItemParser(ConfigurationSection section) {
         this.item = new Item(Material.valueOf(section.getString("material")));
 
-        if (section.contains("data"))
-            item.setDurability((short) section.getInt("data"));
+        if (section.contains("durability"))
+            item.setDurability((short) section.getInt("durability"));
 
         if (section.contains("displayname"))
             item.setDisplayName(ChatColor.translateAlternateColorCodes('&', section.getString("displayname")));
