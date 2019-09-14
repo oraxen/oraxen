@@ -76,11 +76,10 @@ public class ItemParser {
         if (section.contains("AttributeModifiers")) {
 
             @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
-                    List<LinkedHashMap<String, Object>> attributes= (List<LinkedHashMap<String, Object>>) section.getList("AttributeModifiers");
-
-            for (LinkedHashMap<String, Object> attributeJson: attributes) {
+                    List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section.getList("AttributeModifiers");
+            for (LinkedHashMap<String, Object> attributeJson : attributes) {
                 AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
-                Attribute attribute = Attribute.valueOf((String)attributeJson.get("attribute"));
+                Attribute attribute = Attribute.valueOf((String) attributeJson.get("attribute"));
                 item.addAttributeModifiers(attribute, attributeModifier);
             }
         }

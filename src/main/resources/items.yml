@@ -47,10 +47,9 @@ example_sword:
     # - name: You don't really care about the name but it can be useful for some developers
     # - attribute: Get the list here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
     # - operations: 0 for ADD_NUMBER, 1 for ADD_SCALAR, 2 for MULTIPLY_SCALAR_1;
-    # - uuid: use a different uuid for every slot to get the effects to stack, by convention HAND: 0, OFF_HAND: 1,
-    #   FEET: 2, LEGS: 3, CHEST: 4, HEAD: 5
+    # - uuid: put a random uuid
     # - equipment_slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
-    - {name: "oraxen_speed", attribute: GENERIC_MOVEMENT_SPEED, amount: 0.1, operation: 0, uuid: 0, equipment_slot: HAND}
+    - {name: "oraxen_speed", attribute: GENERIC_MOVEMENT_SPEED, amount: 0.1, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, equipment_slot: HAND}
 
 
 ##################################################
