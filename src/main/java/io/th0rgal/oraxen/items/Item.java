@@ -208,14 +208,14 @@ public class Item {
         return this;
     }
 
-    public Item addEnchant(Map.Entry<Enchantment, Integer> enchant) {
-        this.enchantments.put(enchant.getKey(), enchant.getValue());
+    public Item addEnchant(Enchantment enchant, int level) {
+        this.enchantments.put(enchant, level);
         return this;
     }
 
     public Item addEnchants(Map<Enchantment, Integer> enchants) {
         for (Map.Entry<Enchantment, Integer> enchant : enchants.entrySet())
-            addEnchant(enchant);
+            addEnchant(enchant.getKey(), enchant.getValue());
         return this;
     }
 

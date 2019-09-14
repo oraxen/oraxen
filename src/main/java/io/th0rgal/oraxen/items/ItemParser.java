@@ -7,9 +7,12 @@ import io.th0rgal.oraxen.settings.Message;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemFlag;
 
 import java.util.*;
@@ -82,6 +85,12 @@ public class ItemParser {
                 Attribute attribute = Attribute.valueOf((String) attributeJson.get("attribute"));
                 item.addAttributeModifiers(attribute, attributeModifier);
             }
+        }
+
+        if (section.contains("Enchantments")) {
+            ConfigurationSection enchantSection = section.getConfigurationSection("Enchantments");
+            for (String enchant : enchantSection.getKeys(false))
+                item.addEnchant(EnchantmentWrapper.getByKey(NamespacedKey.minecraft(enchant)), enchantSection.getInt(enchant));
         }
 
         if (section.isConfigurationSection("Mechanics")) {

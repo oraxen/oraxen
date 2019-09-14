@@ -51,6 +51,11 @@ example_sword:
     # - equipment_slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
     - {name: "oraxen_speed", attribute: GENERIC_MOVEMENT_SPEED, amount: 0.1, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, equipment_slot: HAND}
 
+  Enchantments:
+    protection: 4
+    flame: 34
+    sharpness: 18
+
 
 ##################################################
 ##################### ITEMS ######################
