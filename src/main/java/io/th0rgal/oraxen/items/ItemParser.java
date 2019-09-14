@@ -21,6 +21,9 @@ public class ItemParser {
         if (section.contains("durability"))
             item.setDurability((short) section.getInt("durability"));
 
+        if (section.contains("custom_model_data"))
+            item.setCustomModelData(section.getInt("custom_model_data"));
+
         if (section.contains("displayname"))
             item.setDisplayName(ChatColor.translateAlternateColorCodes('&', section.getString("displayname")));
 

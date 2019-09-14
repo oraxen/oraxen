@@ -38,8 +38,7 @@ example_sword:
 amethyst:
   displayname: "&dAmethyst"
   material: DIAMOND
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 1}
+  custom_model_data: 1
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -53,8 +52,7 @@ amethyst:
 anubis_head:
   displayname: "&9Anubis Head"
   material: WOODEN_HOE
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 1}
+  custom_model_data: 1
   Pack:
     generate_model: false
     model: anubis_head # .json extension is not mandatory
@@ -62,8 +60,7 @@ anubis_head:
 crown:
   displayname: "&6Crown"
   material: WOODEN_HOE
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 2}
+  custom_model_data: 2
   Pack:
     generate_model: false
     model: crown
@@ -71,8 +68,7 @@ crown:
 pharaoh_head:
   displayname: "&6Pharaoh Head"
   material: WOODEN_HOE
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 3}
+  custom_model_data: 3
   Pack:
     generate_model: false
     model: pharaoh_head
@@ -80,8 +76,7 @@ pharaoh_head:
 witch_hat:
   displayname: "&5Witch Hat"
   material: WOODEN_HOE
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 4}
+  custom_model_data: 4
   Pack:
     generate_model: false
     model: witch_hat
@@ -93,9 +88,7 @@ witch_hat:
 emerald_helmet:
   displayname: "&aEmerald Helmet"
   material: LEATHER_HELMET
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 1}
-    - {type: String, name: "color", value: 1048498}
+  custom_model_data: 1
   Mechanics:
     Durability:
       value: 10000 #diamond sword is 1561
@@ -108,8 +101,7 @@ emerald_helmet:
 legendary_hammer:
   displayname: "&6Legendary Hammer"
   material: DIAMOND_PICKAXE
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 1}
+  custom_model_data: 1
   Pack:
     generate_model: false
     model: legendary_hammer
@@ -121,8 +113,7 @@ legendary_hammer:
 magical_wand:
   displayname: "&bMagical Wand"
   material: WOODEN_HOE
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 5}
+  custom_model_data: 5
   Pack:
     generate_model: false
     model: magical_wand
@@ -130,8 +121,7 @@ magical_wand:
 magical_axe:
   displayname: "&aMagical Axe"
   material: DIAMOND_AXE
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 1}
+  custom_model_data: 1
   Pack:
     generate_model: false
     model: magical_axe
@@ -148,8 +138,7 @@ upgraded_stone_pickaxe:
   displayname: "&7Upgraded Stone Pickaxe"
   material: STONE_PICKAXE
   unbreakable: true
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 1}
+  custom_model_data: 1
   Pack:
     generate_model: false
     model: stone_pickaxe
@@ -158,8 +147,7 @@ withooker:
   displayname: "&bWithooker"
   material: WOODEN_HOE
   unbreakable: true
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 6}
+  custom_model_data: 6
   Pack:
     generate_model: false
     model: withooker
@@ -171,8 +159,7 @@ withooker:
 storm_sword:
   displayname: "&bStorm Sword"
   material: DIAMOND_SWORD
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 1}
+  custom_model_data: 1
   Pack:
     generate_model: false
     model: storm_sword
@@ -180,8 +167,7 @@ storm_sword:
 energy_crystal_sword:
   displayname: "&bEnergy Crystal Sword"
   material: DIAMOND_SWORD
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 2}
+  custom_model_data: 2
   Pack:
     generate_model: false
     model: energy_crystal_sword
@@ -189,8 +175,7 @@ energy_crystal_sword:
 dagger:
   displayname: "&cDagger"
   material: DIAMOND_SWORD
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 3}
+  custom_model_data: 3
   Pack:
     generate_model: false
     model: dagger
@@ -198,8 +183,7 @@ dagger:
 blood_sword:
   displayname: "&cBlood Sword"
   material: DIAMOND_SWORD
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 4}
+  custom_model_data: 4
   Pack:
     generate_model: false
     model: blood_sword
@@ -207,8 +191,7 @@ blood_sword:
 katana:
   displayname: "&eKatana"
   material: DIAMOND_SWORD
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 5}
+  custom_model_data: 5
   Pack:
     generate_model: false
     model: katana
@@ -216,8 +199,7 @@ katana:
 octavia_sword:
   displayname: "&7Octavia Sword"
   material: DIAMOND_SWORD
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 6}
+  custom_model_data: 6
   Pack:
     generate_model: false
     model: octavia_sword
@@ -229,8 +211,7 @@ octavia_sword:
 caveblock:
   displayname: "&7Cave Block"
   material: WOODEN_HOE
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 7}
+  custom_model_data: 7
   Pack:
     generate_model: false # because this is a block, a 2nd model pointing to specified one will be generated anyway
     model: caveblock
@@ -244,8 +225,7 @@ caveblock:
 ##################################################
 goblin_beetle:
   material: WOODEN_HOE
-  NBTTags:
-    - {type: int, name: "CustomModelData", value: 8}
+  custom_model_data: 8
   Pack:
     generate_model: false
     model: goblin_beetle
