@@ -15,7 +15,9 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemFlag;
 
+import java.awt.*;
 import java.util.*;
+import java.util.List;
 
 public class ItemParser {
 
@@ -38,6 +40,11 @@ public class ItemParser {
 
         if (section.contains("unbreakable"))
             item.setUnbreakable(section.getBoolean("unbreakable"));
+
+        if (section.contains("color")) {
+            Color color = Color.decode(section.getString("color"));
+            item.setColor(org.bukkit.Color.fromRGB(color.getRGB()));
+        }
 
         if (!section.contains("injectID") || section.getBoolean("injectId"))
             item.setStringNBTTag("OxnId", section.getName());

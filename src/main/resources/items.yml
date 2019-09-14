@@ -114,6 +114,7 @@ witch_hat:
 emerald_helmet:
   displayname: "&aEmerald Helmet"
   material: LEATHER_HELMET
+  color: "#13ba05"
   custom_model_data: 1
   Mechanics:
     Durability:
