@@ -172,7 +172,7 @@ public class Item {
 
     public Item addItemFlags(ItemFlag... itemFlags) {
         if (this.itemFlags == null)
-            this.itemFlags = new HashSet<ItemFlag>();
+            this.itemFlags = new HashSet<>();
         this.itemFlags.addAll(Arrays.asList(itemFlags));
         return this;
     }
