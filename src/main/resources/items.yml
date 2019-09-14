@@ -34,7 +34,6 @@ example_sword:
 
   NBTTags: # you'll probably never have to use it, it allows your to store datas in itemStacks
     - {type: int, name: "randomName", value: 123}
-    - itemFlags
 
   ItemFlags:
     - HIDE_ENCHANTS
