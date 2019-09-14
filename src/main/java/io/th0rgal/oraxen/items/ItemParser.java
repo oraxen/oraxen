@@ -42,8 +42,8 @@ public class ItemParser {
             item.setUnbreakable(section.getBoolean("unbreakable"));
 
         if (section.contains("color")) {
-            Color color = Color.decode(section.getString("color"));
-            item.setColor(org.bukkit.Color.fromRGB(color.getRGB()));
+            String[] colors = section.getString("color").split(", ");
+            item.setColor(org.bukkit.Color.fromRGB(Integer.parseInt(colors[0]), Integer.parseInt(colors[1]), Integer.parseInt(colors[2])));
         }
 
         if (!section.contains("injectID") || section.getBoolean("injectId"))

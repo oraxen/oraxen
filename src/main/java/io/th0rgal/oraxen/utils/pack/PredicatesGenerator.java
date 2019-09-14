@@ -5,6 +5,10 @@ import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.items.Item;
 import io.th0rgal.oraxen.utils.NMS;
 import org.bukkit.Material;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -31,6 +35,12 @@ public class PredicatesGenerator {
         //textures
         JsonObject textures = new JsonObject();
         textures.addProperty("layer0", getVanillaTextureName(material));
+
+        //to support colored leather armors + potions
+        ItemMeta exampleMeta = new ItemStack(material).getItemMeta();
+        if (exampleMeta instanceof LeatherArmorMeta || exampleMeta instanceof PotionMeta)
+            textures.addProperty("layer1", getVanillaTextureName(material) + "_overlay");
+
         json.add("textures", textures);
 
         //overrides

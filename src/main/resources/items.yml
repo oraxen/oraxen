@@ -114,13 +114,66 @@ witch_hat:
 emerald_helmet:
   displayname: "&aEmerald Helmet"
   material: LEATHER_HELMET
-  color: "#13ba05"
+  color: 19, 186, 5 #rgb
   custom_model_data: 1
   Mechanics:
     Durability:
       value: 10000 #diamond sword is 1561
       vanilla_damages: true
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    layers:
+      - custom_helmet.png # .png extension is not mandatory
+      - custom_helmet_overlay.png
 
+emerald_chestplate:
+  displayname: "&aEmerald Chestplate"
+  material: LEATHER_CHESTPLATE
+  color: 19, 186, 5 #rgb
+  custom_model_data: 1
+  Mechanics:
+    Durability:
+      value: 10000 #diamond sword is 1561
+      vanilla_damages: true
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    layers:
+      - custom_chestplate.png # .png extension is not mandatory
+      - custom_chestplate_overlay.png
+
+emerald_leggings:
+  displayname: "&aEmerald Leggings"
+  material: LEATHER_LEGGINGS
+  color: 19, 186, 5 #rgb
+  custom_model_data: 1
+  Mechanics:
+    Durability:
+      value: 10000 #diamond sword is 1561
+      vanilla_damages: true
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    layers:
+      - custom_leggings.png # .png extension is not mandatory
+      - custom_leggings_overlay.png
+
+emerald_boots:
+  displayname: "&aEmerald Boots"
+  material: LEATHER_HELMET
+  color: 19, 186, 5 #rgb
+  custom_model_data: 1
+  Mechanics:
+    Durability:
+      value: 10000 #diamond sword is 1561
+      vanilla_damages: true
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    layers:
+      - custom_boots.png # .png extension is not mandatory
+      - custom_boots_overlay.png
 
 ##################################################
 #################### MYSTICAL ####################
