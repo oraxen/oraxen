@@ -114,7 +114,7 @@ witch_hat:
 emerald_helmet:
   displayname: "&aEmerald Helmet"
   material: LEATHER_HELMET
-  color: 19, 186, 5 #rgb
+  color: 3, 252, 136 #rgb
   custom_model_data: 1
   Mechanics:
     Durability:
@@ -130,7 +130,7 @@ emerald_helmet:
 emerald_chestplate:
   displayname: "&aEmerald Chestplate"
   material: LEATHER_CHESTPLATE
-  color: 19, 186, 5 #rgb
+  color: 3, 252, 136 #rgb
   custom_model_data: 1
   Mechanics:
     Durability:
@@ -146,7 +146,7 @@ emerald_chestplate:
 emerald_leggings:
   displayname: "&aEmerald Leggings"
   material: LEATHER_LEGGINGS
-  color: 19, 186, 5 #rgb
+  color: 3, 252, 136 #rgb
   custom_model_data: 1
   Mechanics:
     Durability:
@@ -161,8 +161,8 @@ emerald_leggings:
 
 emerald_boots:
   displayname: "&aEmerald Boots"
-  material: LEATHER_HELMET
-  color: 19, 186, 5 #rgb
+  material: LEATHER_BOOTS
+  color: 3, 252, 136 #rgb
   custom_model_data: 1
   Mechanics:
     Durability:
