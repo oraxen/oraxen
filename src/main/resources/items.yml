@@ -25,10 +25,12 @@
 ##################################################
 
 example_sword:
+  displayname: "&c&lMy Custom Sword"
   material: WOODEN_SWORD
   injectID: false # allow Oraxen to recognise the item if true or not set
   durability: 10
-  displayname: "&c&lMy Custom Sword"
+  NBTTags: # you'll probably never have to use it
+    - {type: int, name: "randomName", value: 123}
 
 
 ##################################################

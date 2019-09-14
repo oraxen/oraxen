@@ -8,6 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemFlag;
 
 import java.util.*;
 
@@ -26,6 +27,8 @@ public class ItemParser {
 
         if (section.contains("displayname"))
             item.setDisplayName(ChatColor.translateAlternateColorCodes('&', section.getString("displayname")));
+
+
 
         if (section.contains("unbreakable"))
             item.setUnbreakable(section.getBoolean("unbreakable"));
