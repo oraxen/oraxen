@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.items;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.Color;
@@ -177,8 +178,10 @@ public class Item {
     }
 
     public Item addAttributeModifiers(Attribute attribute, AttributeModifier attributeModifier) {
-        if (!this.hasAttributeModifiers)
+        if (!this.hasAttributeModifiers) {
             this.hasAttributeModifiers = true;
+            this.attributeModifiers = HashMultimap.create();
+        }
         this.attributeModifiers.put(attribute, attributeModifier);
         return this;
     }
