@@ -1,5 +1,6 @@
 # Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
 # EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
 
 # Color codes (put & behind the code):
 # 0 black         # f white
@@ -25,12 +26,32 @@
 ##################################################
 
 example_sword:
+
   displayname: "&c&lMy Custom Sword"
   material: WOODEN_SWORD
   injectID: false # allow Oraxen to recognise the item if true or not set
   durability: 10
+
   NBTTags: # you'll probably never have to use it, it allows your to store datas in itemStacks
     - {type: int, name: "randomName", value: 123}
+    - itemFlags
+
+  ItemFlags:
+    - HIDE_ENCHANTS
+    - HIDE_ATTRIBUTES
+    - HIDE_UNBREAKABLE
+    - HIDE_DESTROYS
+    - HIDE_PLACED_ON
+    - HIDE_POTION_EFFECTS
+
+  AttributeModifiers:
+    # - name: You don't really care about the name but it can be useful for some developers
+    # - attribute: Get the list here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+    # - operations: 0 for ADD_NUMBER, 1 for ADD_SCALAR, 2 for MULTIPLY_SCALAR_1;
+    # - uuid: use a different uuid for every slot to get the effects to stack, by convention HAND: 0, OFF_HAND: 1,
+    #   FEET: 2, LEGS: 3, CHEST: 4, HEAD: 5
+    # - equipment_slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
+    - {name: "oraxen_speed", attribute: GENERIC_MOVEMENT_SPEED, amount: 0.1, operation: 0, uuid: 0, equipment_slot: HAND}
 
 
 ##################################################
