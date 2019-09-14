@@ -27,7 +27,7 @@
 example_sword:
   material: WOODEN_SWORD
   injectID: false # allow Oraxen to recognise the item if true or not set
-  data: 10
+  durability: 10
   displayname: "&c&lMy Custom Sword"
 
 
