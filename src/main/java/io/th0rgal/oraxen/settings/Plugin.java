@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.settings;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.ChatColor;
 
 public enum Plugin implements ConfigEnum {
@@ -10,7 +11,7 @@ public enum Plugin implements ConfigEnum {
     private Object value;
 
     Plugin(String section) {
-        this.value = ConfigsManager.getSettings().get(section);
+        this.value = new ConfigsManager(OraxenPlugin.get()).getSettings().get(section);
     }
 
     public Object getValue() {

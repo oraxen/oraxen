@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.items;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.settings.ConfigsManager;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.configuration.ConfigurationSection;
@@ -18,7 +19,7 @@ public class OraxenItems {
 
     public static void loadItems() {
 
-        YamlConfiguration config = ConfigsManager.getItems();
+        YamlConfiguration config = new ConfigsManager(OraxenPlugin.get()).getItems();
 
         for (String itemSectionName : config.getKeys(false)) {
             ConfigurationSection itemSection = config.getConfigurationSection(itemSectionName);

@@ -1,35 +1,36 @@
 package io.th0rgal.oraxen.settings;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 
 public class ConfigsManager {
 
-    private static File settingsFile = new File(OraxenPlugin.get().getDataFolder(), "settings.yml");
-    private static YamlConfiguration settings;
+    JavaPlugin plugin;
+    public ConfigsManager (JavaPlugin plugin) {
+        this.plugin = plugin;
+    }
 
-    public static YamlConfiguration getSettings() {
-        if (settings == null) {
-            if (!settingsFile.exists())
-                OraxenPlugin.get().saveResource("settings.yml", false);
-            settings = YamlConfiguration.loadConfiguration(settingsFile);
-        }
+    private YamlConfiguration settings;
+    public YamlConfiguration getSettings() {
+        if (settings == null)
+            settings = getConfiguration("settings.yml", settings);
         return settings;
     }
 
-
-    private static File itemsFile = new File(OraxenPlugin.get().getDataFolder(), "items.yml");
-    private static YamlConfiguration items;
-
-    public static YamlConfiguration getItems() {
-        if (items == null) {
-            if (!itemsFile.exists())
-                OraxenPlugin.get().saveResource("items.yml", false);
-            items = YamlConfiguration.loadConfiguration(itemsFile);
-        }
+    private YamlConfiguration items;
+    public YamlConfiguration getItems() {
+        if (items == null)
+            items = getConfiguration("items.yml", items);
         return items;
+    }
+
+    public YamlConfiguration getConfiguration(String fileName, YamlConfiguration yamlConfiguration) {
+        File itemsFile = new File(this.plugin.getDataFolder(), fileName);
+        if (!itemsFile.exists())
+            this.plugin.saveResource(fileName, false);
+        return YamlConfiguration.loadConfiguration(itemsFile);
     }
 
 }
