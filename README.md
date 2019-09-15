@@ -6,7 +6,7 @@
 Oraxen is a minecraft plugin allowing to easily exploit 1.14 new features in order to create new items. One of its key features is to be able to generate the texture pack automatically from the configuration, which greatly simplifies the work of administrators. Its vocation is also to be used by developers to be able to increase its functionalities via its API.
 
 ![Demo image for animation](https://oraxen.com/thread/animation_demo.png)
-![Demo image for some items](https://oraxen.com/thread/demo.png)
+![Demo image for some items](https://oraxen.com/thread/full_demo.png)
 
 # Features
 - Automatically generate the resource-pack
