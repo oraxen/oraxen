@@ -1,4 +1,4 @@
-[![Spigot button](https://oraxen.com/thread/button_spigot.svg | width=100)](https://oraxen.com/) [![Website button](https://oraxen.com/thread/button_website.svg | width=100)](https://oraxen.com/) [![Docs button](https://oraxen.com/thread/button_docs.svg | width=100)](https://docs.oraxen.com) [![Trello button](https://oraxen.com/thread/button_trello.svg | width=100)](https://todo.oraxen.com/)
+[![Spigot button]<img src="https://oraxen.com/thread/button_spigot.svg" width="100">](https://oraxen.com/) [![Website button](https://oraxen.com/thread/button_website.svg | width=100)](https://oraxen.com/) [![Docs button](https://oraxen.com/thread/button_docs.svg | width=100)](https://docs.oraxen.com) [![Trello button](https://oraxen.com/thread/button_trello.svg | width=100)](https://todo.oraxen.com/)
 
 ![Header](https://oraxen.com/thread/header_vector.svg)
 
