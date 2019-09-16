@@ -16,6 +16,10 @@ Oraxen is a minecraft plugin allowing to easily exploit 1.14 new features in ord
 - Support custom items, weapons, armors, blocks [coming soon], entities [coming soon] and more
 - Modular mechanics system to empower your items
 
+# Configuration
+## Creating a new item is super easy
+![Demo image for item configuration](https://oraxen.com/thread/demo_conf.svg)
+
 # License
 *Click here to read [the entire license](https://github.com/Th0rgal/Oraxen/blob/master/LICENSE.md).* 
 
