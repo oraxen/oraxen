@@ -16,7 +16,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import java.net.URL;
 import java.util.*;
 
 public class ResourcePack {
@@ -32,11 +31,7 @@ public class ResourcePack {
         File texturesFolder = new File(packFolder, "textures");
         modelsFolder = new File(packFolder, "models");
         if (!modelsFolder.exists()) {
-            try {
-                UnzipUtils.unpackArchive(new URL("http://oraxen.gouv.airforce/pack/default.zip"), packFolder);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+
         }
 
         File pack = new File(packFolder, packFolder.getName() + ".zip");

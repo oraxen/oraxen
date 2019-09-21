@@ -4,11 +4,16 @@ import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.settings.Server;
 
 import java.io.*;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 public class ZipUtils {
@@ -76,5 +81,58 @@ public class ZipUtils {
         fis.close();
     }
 
+    private final static int BUFFER_SIZE = 2048;
+    private final static String ZIP_FILE = "/home/anton/test/test.zip";
+    private final static String DESTINATION_DIRECTORY = "/home/anton/test/";
+    private final static String ZIP_EXTENSION = ".zip";
 
+    public static boolean unzipToFile(File file, File outputDirectory) {
+        try {
+            BufferedInputStream bufIS = null;
+
+            outputDirectory.mkdirs();
+
+            // open archive for reading
+            ZipFile zipFile = new ZipFile(file, ZipFile.OPEN_READ);
+
+            //for every zip archive entry do
+            Enumeration<? extends ZipEntry> zipFileEntries = zipFile.entries();
+            while (zipFileEntries.hasMoreElements()) {
+                ZipEntry entry = zipFileEntries.nextElement();
+                System.out.println("\tExtracting entry: " + entry);
+
+                //create destination file
+                File destFile = new File(outputDirectory, entry.getName());
+
+                //create parent directories if needed
+                File parentDestFile = destFile.getParentFile();
+                parentDestFile.mkdirs();
+
+                if (!entry.isDirectory()) {
+                    bufIS = new BufferedInputStream(
+                            zipFile.getInputStream(entry));
+                    int currentByte;
+
+                    // buffer for writing file
+                    byte[] data = new byte[BUFFER_SIZE];
+
+                    // write the current file to disk
+                    FileOutputStream fOS = new FileOutputStream(destFile);
+                    BufferedOutputStream bufOS = new BufferedOutputStream(fOS, BUFFER_SIZE);
+
+                    while ((currentByte = bufIS.read(data, 0, BUFFER_SIZE)) != -1)
+                        bufOS.write(data, 0, currentByte);
+
+                    // close BufferedOutputStream
+                    bufOS.flush();
+                    bufOS.close();
+                }
+            }
+            bufIS.close();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+    }
 }
