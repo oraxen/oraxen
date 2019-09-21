@@ -29,9 +29,18 @@ public class ResourcePack {
             packFolder.mkdirs();
 
         File texturesFolder = new File(packFolder, "textures");
+        if (!texturesFolder.exists()) {
+            OraxenPlugin.get().saveResource("pack/textures.zip", true);
+            File tempTexturesZip = new File(packFolder, "textures.zip");
+            ZipUtils.unzipToFile(tempTexturesZip, texturesFolder);
+            tempTexturesZip.deleteOnExit();
+        }
         modelsFolder = new File(packFolder, "models");
         if (!modelsFolder.exists()) {
-
+            OraxenPlugin.get().saveResource("pack/models.zip", true);
+            File tempModelsZip = new File(packFolder, "models.zip");
+            ZipUtils.unzipToFile(tempModelsZip, modelsFolder);
+            new File(packFolder, "models.zip").delete();
         }
 
         File pack = new File(packFolder, packFolder.getName() + ".zip");
@@ -43,10 +52,10 @@ public class ResourcePack {
             pack.delete();
 
         if (!new File(packFolder, "pack.mcmeta").exists())
-            OraxenPlugin.get().saveResource("pack" + File.separator + "pack.mcmeta", false);
+            OraxenPlugin.get().saveResource("pack/pack.mcmeta", true);
 
         if (!new File(packFolder, "pack.png").exists())
-            OraxenPlugin.get().saveResource("pack" + File.separator + "pack.png", false);
+            OraxenPlugin.get().saveResource("pack/pack.png", true);
 
         // Sorting items to keep only one with models (and generate it if needed)
         Map<Material, List<Item>> texturedItems = new HashMap<>();

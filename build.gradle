@@ -22,13 +22,12 @@ repositories {
 dependencies {
     compileOnly group: 'org.spigotmc', name: 'spigot', version: '1.14.4-R0.1-SNAPSHOT' // The Spigot API with no shadowing. Requires the OSS repo.
     compileOnly group: 'org.bukkit', name: 'bukkit', version: '1.14.4-R0.1-SNAPSHOT'
-    compileOnly group: 'commons-io', name: 'commons-io', version: '2.6'
 
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '+'
 }
 
 processResources {
-    filesNotMatching(["**/*.png"]) {
+    filesNotMatching(["**/*.png", "**/*.zip"]) {
         expand projectVersion: pluginVersion
     }
 }
