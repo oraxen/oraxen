@@ -341,6 +341,9 @@ public class Item {
             for (Map.Entry<Enchantment, Integer> enchant : this.enchantments.entrySet())
                 itemMeta.addEnchant(enchant.getKey(), enchant.getValue(), true);
 
+        if (this.hasAttributeModifiers)
+            itemMeta.setAttributeModifiers(this.attributeModifiers);
+
         if (this.hasCustomModelData)
             itemMeta.setCustomModelData(this.customModelData);
 
