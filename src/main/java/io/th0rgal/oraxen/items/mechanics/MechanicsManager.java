@@ -23,7 +23,8 @@ public class MechanicsManager {
             ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection("durability");
             if (mechanicsConfig.getBoolean("durability.enabled"))
                 try {
-                    MechanicFactory mechanic = mechanicFactoryClass.getConstructor(ConfigurationSection.class).newInstance(factorySection);
+                    MechanicFactory factory = mechanicFactoryClass.getConstructor(ConfigurationSection.class).newInstance(factorySection);
+                    factoriesByMechanicID.put(mechanicID, factory);
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                     e.printStackTrace();
                 }
