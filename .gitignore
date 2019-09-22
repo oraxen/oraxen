@@ -1,6 +1,6 @@
 # Default resources
-models.zip
-textures.zip
+**/models/**
+
 
 # Created by https://www.gitignore.io/api/java,gradle,intellij+all
 # Edit at https://www.gitignore.io/?templates=java,gradle,intellij+all
