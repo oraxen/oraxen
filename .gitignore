@@ -1,5 +1,5 @@
 # Default resources
-src/main/resources/pack/models
+src/main/resources/pack/models/**
 
 
 # Created by https://www.gitignore.io/api/java,gradle,intellij+all
