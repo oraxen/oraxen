@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.items;
 
+import io.th0rgal.oraxen.items.mechanics.Mechanic;
+import io.th0rgal.oraxen.items.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.items.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.items.modifiers.ItemModifier;
 import io.th0rgal.oraxen.settings.Message;
@@ -99,13 +101,15 @@ public class ItemParser {
 
         if (section.isConfigurationSection("Mechanics")) {
             ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
-            for (String mechanicID : mechanicsSection.getKeys(false))
-                MechanicsManager.addItemMechanic(section.getName(), mechanicsSection.getConfigurationSection(mechanicID));
-        }
-
-        //apply item modifiers
-        for (ItemModifier itemModifier : MechanicsManager.getModifiersByItemID(section.getName())) {
-            item = itemModifier.getItem(item);
+            for (String mechanicID : mechanicsSection.getKeys(false)) {
+                MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
+                if (factory != null) {
+                    Mechanic mechanic = factory.parse(mechanicsSection.getConfigurationSection(mechanicID));
+                    // Apply item modifiers
+                    for (ItemModifier itemModifier : mechanic.getItemModifiers())
+                        item = itemModifier.getItem(item);
+                }
+            }
         }
 
         if (section.isConfigurationSection("Pack")) {

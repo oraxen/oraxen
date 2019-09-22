@@ -1,64 +1,37 @@
 package io.th0rgal.oraxen.items.mechanics;
 
-import io.th0rgal.oraxen.items.mechanics.provided.durability.DurabilityMechanic;
-import io.th0rgal.oraxen.items.modifiers.ItemModifier;
-import io.th0rgal.oraxen.settings.Message;
-import io.th0rgal.oraxen.utils.Logs;
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.items.mechanics.provided.durability.DurabilityMechanicFactory;
+import io.th0rgal.oraxen.settings.ResourcesManager;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class MechanicsManager {
 
-    private static Map<String, Class<?>> mechanicsClassByID = new HashMap<>();
-
-    public static void register(String id, Class<?> clazz) {
-        mechanicsClassByID.put(id, clazz);
-    }
+    private static Map<String, MechanicFactory> factoriesByMechanicID = new HashMap<>();
 
     public static void registerNativeMechanics() {
-        register("Durability", DurabilityMechanic.class);
+        registerMechanicFactory("durability", DurabilityMechanicFactory.class);
     }
 
-    private static Map<String, List<Mechanic>> mechanicsByItemID = new HashMap<>();
-
-    public static void addItemMechanic(String itemID, ConfigurationSection mechanicSection) {
-
-        String mechanicID = mechanicSection.getName();
-
-        if (!mechanicsClassByID.containsKey(mechanicID)) {
-            Logs.logInfo(Message.MECHANIC_DOESNT_EXIST.toString().replace("{mechanic}", mechanicID));
-            return;
+    public static void registerMechanicFactory(String mechanicID, Class<? extends MechanicFactory> mechanicFactoryClass) {
+        YamlConfiguration mechanicsConfig = new ResourcesManager(OraxenPlugin.get()).getMechanics();
+        if (mechanicsConfig.getKeys(false).contains("durability")) {
+            ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection("durability");
+            if (mechanicsConfig.getBoolean("durability.enabled"))
+                try {
+                    MechanicFactory mechanic = mechanicFactoryClass.getConstructor(ConfigurationSection.class).newInstance(factorySection);
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+                    e.printStackTrace();
+                }
         }
-
-        Class<?> mechanicClass = mechanicsClassByID.get(mechanicID);
-        try {
-            //Mechanic constructor will automatically call addItemMechanic with Mechanic object
-            Mechanic mechanic = (Mechanic) mechanicClass.getConstructor(ConfigurationSection.class).newInstance(mechanicSection);
-        } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-            e.printStackTrace();
-        }
-
     }
 
-    //will get called automatically
-    public static void addItemMechanic(String itemID, Mechanic mechanic) {
-        List<Mechanic> itemMechanics = mechanicsByItemID.getOrDefault(itemID, new ArrayList<>());
-        itemMechanics.add(mechanic);
-        mechanicsByItemID.put(itemID, itemMechanics);
+    public static MechanicFactory getMechanicFactory(String mechanicID) {
+        return factoriesByMechanicID.get(mechanicID);
     }
-
-    public static List<Mechanic> getMechanicsByItemID(String itemID) {
-        return mechanicsByItemID.getOrDefault(itemID, new ArrayList<>());
-    }
-
-    public static Set<ItemModifier> getModifiersByItemID(String itemID) {
-        Set<ItemModifier> modifiers = new HashSet<>();
-        for (Mechanic mechanic : getMechanicsByItemID(itemID))
-            modifiers.addAll(Arrays.asList(mechanic.getItemModifiers()));
-        return modifiers;
-    }
-
 
 }

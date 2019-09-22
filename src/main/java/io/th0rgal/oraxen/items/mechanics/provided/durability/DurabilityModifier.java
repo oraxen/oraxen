@@ -7,7 +7,7 @@ public class DurabilityModifier extends ItemModifier {
 
     private int durability;
 
-    DurabilityModifier(int durability) {
+    public DurabilityModifier(int durability) {
         this.durability = durability;
     }
 

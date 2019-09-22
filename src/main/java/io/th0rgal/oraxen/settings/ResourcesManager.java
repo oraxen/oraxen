@@ -61,7 +61,6 @@ public class ResourcesManager {
         }
     }
 
-
     public static ZipInputStream browse() {
         CodeSource src = OraxenPlugin.class.getProtectionDomain().getCodeSource();
         if (src != null) {
@@ -77,6 +76,5 @@ public class ResourcesManager {
         }
         throw new RuntimeException();
     }
-
 
 }
