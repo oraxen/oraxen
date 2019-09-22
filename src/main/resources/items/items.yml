@@ -54,7 +54,7 @@ example_sword:
     sharpness: 18
 
   Mechanics:
-    Durability:
+    durability:
       value: 10
 
 amethyst:

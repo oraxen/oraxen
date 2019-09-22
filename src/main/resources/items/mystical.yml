@@ -30,7 +30,7 @@ legendary_hammer:
     generate_model: false
     model: legendary_hammer
   Mechanics:
-    Durability:
+    durability:
       value: 10000 #diamond sword is 1561
 
 magical_wand:
@@ -49,5 +49,5 @@ magical_axe:
     generate_model: false
     model: magical_axe
   Mechanics:
-    Durability:
+    durability:
       value: 10 #diamond sword is 1561
