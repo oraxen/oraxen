@@ -35,8 +35,8 @@ emerald_helmet:
     # - attribute: Get the list here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
     # - operations: 0 for ADD_NUMBER, 1 for ADD_SCALAR, 2 for MULTIPLY_SCALAR_1;
     # - uuid: put a random uuid
-    # - equipment_slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
-    - {name: "oraxen", attribute: GENERIC_MAX_HEALTH, amount: 4, operation: 0, uuid: 00000000-0000-0000-0000-000000000000, equipment_slot: HEAD}
+    # - slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
+    - {name: "oraxen", attribute: GENERIC_MAX_HEALTH, amount: 4, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD}
   Pack:
     generate_model: true
     parent_model: "item/generated"
