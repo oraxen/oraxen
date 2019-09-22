@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.items.mechanics.Mechanic;
 import io.th0rgal.oraxen.items.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.items.modifiers.ItemModifier;
 import io.th0rgal.oraxen.listeners.EventsManager;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.NMS;
@@ -29,7 +30,7 @@ public class DurabilityMechanicFactory extends MechanicFactory implements Listen
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         Mechanic mechanic = new DurabilityMechanic(this, itemMechanicConfiguration);
         addToImplemented(mechanic);
-        return  mechanic;
+        return mechanic;
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -39,26 +40,24 @@ public class DurabilityMechanicFactory extends MechanicFactory implements Listen
         if (!this.isImplementedIn(itemID))
             return;
 
-        DurabilityMechanic durabilityMechanic = (DurabilityMechanic)getMechanic(itemID);
+        DurabilityMechanic durabilityMechanic = (DurabilityMechanic) getMechanic(itemID);
 
-        if (durabilityMechanic.isVanillaDamagesEnabled()) {
-            Object nmsItem = ItemUtils.getNMSCopy(item);
-            Object itemTag = ItemUtils.getNBTTagCompound(nmsItem);
-            Object nbtBase = ItemUtils.getNBTBase(itemTag, "Durability");
+        Object nmsItem = ItemUtils.getNMSCopy(item);
+        Object itemTag = ItemUtils.getNBTTagCompound(nmsItem);
+        Object nbtBase = ItemUtils.getNBTBase(itemTag, "Durability");
 
-            int realDurability = (int) NMS.NBT_TAG_INT.toClass().getMethod("asInt").invoke(nbtBase) - event.getDamage();
+        int realDurability = (int) NMS.NBT_TAG_INT.toClass().getMethod("asInt").invoke(nbtBase) - event.getDamage();
 
-            if (realDurability > 0) {
-                event.setCancelled(true);
-                ItemUtils.setIntNBTTag(itemTag, "Durability", realDurability);
-                ItemUtils.setNBTTagCompound(nmsItem, itemTag);
-                Damageable damageableMeta = (Damageable) ItemUtils.fromNMS(nmsItem).getItemMeta();
-                damageableMeta.setDamage((int) (item.getType().getMaxDurability() - ((float) item.getType().getMaxDurability() / (float) durabilityMechanic.getItemDurability()
-                        * (float) realDurability)));
-                item.setItemMeta((ItemMeta) damageableMeta);
-            } else {
-                item.setAmount(0);
-            }
+        if (realDurability > 0) {
+            event.setCancelled(true);
+            ItemUtils.setIntNBTTag(itemTag, "Durability", realDurability);
+            ItemUtils.setNBTTagCompound(nmsItem, itemTag);
+            Damageable damageableMeta = (Damageable) ItemUtils.fromNMS(nmsItem).getItemMeta();
+            damageableMeta.setDamage((int) (item.getType().getMaxDurability() - ((float) item.getType().getMaxDurability() / (float) durabilityMechanic.getItemDurability()
+                    * (float) realDurability)));
+            item.setItemMeta((ItemMeta) damageableMeta);
+        } else {
+            item.setAmount(0);
         }
 
     }
@@ -68,7 +67,6 @@ public class DurabilityMechanicFactory extends MechanicFactory implements Listen
 class DurabilityMechanic extends Mechanic {
 
     private int itemDurability;
-    private boolean vanillaDamagesEnabled;
 
     public DurabilityMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         /* We give:
@@ -78,14 +76,9 @@ class DurabilityMechanic extends Mechanic {
          */
         super(mechanicFactory, section, new DurabilityModifier(section.getInt("value")));
         this.itemDurability = section.getInt("value");
-        this.vanillaDamagesEnabled = section.getBoolean("vanilla_damages");
     }
 
     public int getItemDurability() {
         return itemDurability;
-    }
-
-    public boolean isVanillaDamagesEnabled() {
-        return vanillaDamagesEnabled;
     }
 }

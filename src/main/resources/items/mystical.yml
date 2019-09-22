@@ -32,7 +32,6 @@ legendary_hammer:
   Mechanics:
     Durability:
       value: 10000 #diamond sword is 1561
-      vanilla_damages: true
 
 magical_wand:
   displayname: "&bMagical Wand"
@@ -52,4 +51,3 @@ magical_axe:
   Mechanics:
     Durability:
       value: 10 #diamond sword is 1561
-      vanilla_damages: true
