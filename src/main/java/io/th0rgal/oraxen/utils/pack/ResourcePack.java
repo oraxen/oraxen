@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.utils.pack;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.Item;
 import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.settings.Message;
 import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.utils.NMS;
 
@@ -16,7 +17,11 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import java.net.URL;
+import java.security.CodeSource;
 import java.util.*;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 
 public class ResourcePack {
 
@@ -28,6 +33,30 @@ public class ResourcePack {
         if (!packFolder.exists())
             packFolder.mkdirs();
 
+
+        CodeSource src = OraxenPlugin.class.getProtectionDomain().getCodeSource();
+        if (src != null) {
+            URL jar = src.getLocation();
+            ZipInputStream zip;
+            try {
+                zip = new ZipInputStream(jar.openStream());
+                while (true) {
+                    ZipEntry e = zip.getNextEntry();
+                    if (e == null)
+                        break;
+                    String name = e.getName();
+                    if (name.startsWith("path/to/your/dir/")) {
+                        /* Do something with this entry. */
+
+                    }
+                }
+            } catch (IOException e) {
+                Message.ZIP_BROWSE_ERROR.logError();
+                e.printStackTrace();
+            }
+        } else {
+            Message.ZIP_BROWSE_ERROR.logError();
+        }
         File texturesFolder = new File(packFolder, "textures");
         if (!texturesFolder.exists()) {
             OraxenPlugin.get().saveResource("pack/textures.zip", true);

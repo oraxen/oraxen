@@ -68,7 +68,7 @@ public class ItemParser {
                         item.setStringNBTTag(field, tag.get("value").toString());
                         break;
                     default:
-                        Message.WRONG_TYPE.send(Bukkit.getConsoleSender());
+                        Message.WRONG_TYPE.log();
                         break;
                 }
 
