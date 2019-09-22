@@ -13,6 +13,6 @@ public class DurabilityModifier extends ItemModifier {
 
     @Override
     public Item getItem(Item item) {
-        return item.setIntNBTTag("Durability", durability);
+        return item.setIntNBTTag("durability", durability);
     }
 }

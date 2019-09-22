@@ -44,13 +44,13 @@ public class DurabilityMechanicFactory extends MechanicFactory implements Listen
 
         Object nmsItem = ItemUtils.getNMSCopy(item);
         Object itemTag = ItemUtils.getNBTTagCompound(nmsItem);
-        Object nbtBase = ItemUtils.getNBTBase(itemTag, "Durability");
+        Object nbtBase = ItemUtils.getNBTBase(itemTag, "durability");
 
         int realDurability = (int) NMS.NBT_TAG_INT.toClass().getMethod("asInt").invoke(nbtBase) - event.getDamage();
 
         if (realDurability > 0) {
             event.setCancelled(true);
-            ItemUtils.setIntNBTTag(itemTag, "Durability", realDurability);
+            ItemUtils.setIntNBTTag(itemTag, "durability", realDurability);
             ItemUtils.setNBTTagCompound(nmsItem, itemTag);
             Damageable damageableMeta = (Damageable) ItemUtils.fromNMS(nmsItem).getItemMeta();
             damageableMeta.setDamage((int) (item.getType().getMaxDurability() - ((float) item.getType().getMaxDurability() / (float) durabilityMechanic.getItemDurability()
