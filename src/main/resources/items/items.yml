@@ -53,6 +53,10 @@ example_sword:
     flame: 34
     sharpness: 18
 
+  Mechanics:
+    Durability:
+      value: 10
+
 amethyst:
   displayname: "&dAmethyst"
   material: DIAMOND
