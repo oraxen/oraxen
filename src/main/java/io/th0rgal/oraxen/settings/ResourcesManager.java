@@ -20,11 +20,17 @@ public class ResourcesManager {
     }
 
     private YamlConfiguration settings;
-
     public YamlConfiguration getSettings() {
         if (settings == null)
             settings = getConfiguration("settings.yml");
         return settings;
+    }
+
+    private YamlConfiguration mechanics;
+    public YamlConfiguration getMechanics() {
+        if (mechanics == null)
+            mechanics = getConfiguration("mechanics.yml");
+        return mechanics;
     }
 
     public File extractConfiguration(String fileName) {
