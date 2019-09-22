@@ -82,9 +82,6 @@ public class ZipUtils {
     }
 
     private final static int BUFFER_SIZE = 2048;
-    private final static String ZIP_FILE = "/home/anton/test/test.zip";
-    private final static String DESTINATION_DIRECTORY = "/home/anton/test/";
-    private final static String ZIP_EXTENSION = ".zip";
 
     public static boolean unzipToFile(File file, File outputDirectory) {
         try {
