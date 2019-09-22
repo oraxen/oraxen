@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.items.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.items.modifiers.ItemModifier;
 import io.th0rgal.oraxen.settings.Message;
 
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
