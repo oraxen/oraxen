@@ -33,43 +33,36 @@ public class ResourcePack {
         if (!packFolder.exists())
             packFolder.mkdirs();
 
-
-        CodeSource src = OraxenPlugin.class.getProtectionDomain().getCodeSource();
-        if (src != null) {
-            URL jar = src.getLocation();
-            ZipInputStream zip;
-            try {
-                zip = new ZipInputStream(jar.openStream());
-                while (true) {
-                    ZipEntry e = zip.getNextEntry();
-                    if (e == null)
-                        break;
-                    String name = e.getName();
-                    if (name.startsWith("path/to/your/dir/")) {
-                        /* Do something with this entry. */
-
-                    }
-                }
-            } catch (IOException e) {
-                Message.ZIP_BROWSE_ERROR.logError();
-                e.printStackTrace();
-            }
-        } else {
-            Message.ZIP_BROWSE_ERROR.logError();
-        }
         File texturesFolder = new File(packFolder, "textures");
-        if (!texturesFolder.exists()) {
-            OraxenPlugin.get().saveResource("pack/textures.zip", true);
-            File tempTexturesZip = new File(packFolder, "textures.zip");
-            ZipUtils.unzipToFile(tempTexturesZip, texturesFolder);
-            tempTexturesZip.deleteOnExit();
-        }
         modelsFolder = new File(packFolder, "models");
-        if (!modelsFolder.exists()) {
-            OraxenPlugin.get().saveResource("pack/models.zip", true);
-            File tempModelsZip = new File(packFolder, "models.zip");
-            ZipUtils.unzipToFile(tempModelsZip, modelsFolder);
-            new File(packFolder, "models.zip").delete();
+
+        boolean extractModels = !modelsFolder.exists();
+        boolean extractTextures = !texturesFolder.exists();
+        if (extractModels || extractTextures) {
+            CodeSource src = OraxenPlugin.class.getProtectionDomain().getCodeSource();
+            if (src != null) {
+                URL jar = src.getLocation();
+                ZipInputStream zip;
+                try {
+                    zip = new ZipInputStream(jar.openStream());
+                    while (true) {
+                        ZipEntry e = zip.getNextEntry();
+                        if (e == null)
+                            break;
+                        String name = e.getName();
+                        if (!e.isDirectory())
+                            if (extractModels && name.startsWith("pack/models"))
+                                OraxenPlugin.get().saveResource(name, true);
+                            else if (extractTextures && name.startsWith("pack/textures"))
+                                OraxenPlugin.get().saveResource(name, true);
+                    }
+                } catch (IOException e) {
+                    Message.ZIP_BROWSE_ERROR.logError();
+                    e.printStackTrace();
+                }
+            } else {
+                Message.ZIP_BROWSE_ERROR.logError();
+            }
         }
 
         File pack = new File(packFolder, packFolder.getName() + ".zip");
