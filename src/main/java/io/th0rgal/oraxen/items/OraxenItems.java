@@ -1,12 +1,13 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.settings.ConfigsManager;
+import io.th0rgal.oraxen.settings.ResourcesManager;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -19,12 +20,20 @@ public class OraxenItems {
 
     public static void loadItems() {
 
-        YamlConfiguration config = new ConfigsManager(OraxenPlugin.get()).getItems();
-
-        for (String itemSectionName : config.getKeys(false)) {
-            ConfigurationSection itemSection = config.getConfigurationSection(itemSectionName);
-            map.put(itemSectionName, new ItemParser(itemSection).buildItem());
+        File itemsFolder = new File(OraxenPlugin.get().getDataFolder(), "items");
+        if (!itemsFolder.exists()) {
+            itemsFolder.mkdirs();
+            new ResourcesManager(OraxenPlugin.get()).extractItemsConfigs();
         }
+
+        for (File file : itemsFolder.listFiles())
+            if (file.getName().endsWith(".yml")) {
+                YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
+                for (String itemSectionName : config.getKeys(false)) {
+                    ConfigurationSection itemSection = config.getConfigurationSection(itemSectionName);
+                    map.put(itemSectionName, new ItemParser(itemSection).buildItem());
+                }
+            }
     }
 
     public static String getIdByItem(Item item) {

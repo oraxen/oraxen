@@ -11,7 +11,7 @@ public enum Plugin implements ConfigEnum {
     private Object value;
 
     Plugin(String section) {
-        this.value = new ConfigsManager(OraxenPlugin.get()).getSettings().get(section);
+        this.value = new ResourcesManager(OraxenPlugin.get()).getSettings().get(section);
     }
 
     public Object getValue() {

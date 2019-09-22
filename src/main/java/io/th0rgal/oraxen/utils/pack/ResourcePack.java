@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.items.Item;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.Message;
 import io.th0rgal.oraxen.settings.Pack;
+import io.th0rgal.oraxen.settings.ResourcesManager;
 import io.th0rgal.oraxen.utils.NMS;
 
 import org.bukkit.Material;
@@ -39,29 +40,21 @@ public class ResourcePack {
         boolean extractModels = !modelsFolder.exists();
         boolean extractTextures = !texturesFolder.exists();
         if (extractModels || extractTextures) {
-            CodeSource src = OraxenPlugin.class.getProtectionDomain().getCodeSource();
-            if (src != null) {
-                URL jar = src.getLocation();
-                ZipInputStream zip;
-                try {
-                    zip = new ZipInputStream(jar.openStream());
-                    while (true) {
-                        ZipEntry e = zip.getNextEntry();
-                        if (e == null)
-                            break;
-                        String name = e.getName();
-                        if (!e.isDirectory())
-                            if (extractModels && name.startsWith("pack/models"))
-                                OraxenPlugin.get().saveResource(name, true);
-                            else if (extractTextures && name.startsWith("pack/textures"))
-                                OraxenPlugin.get().saveResource(name, true);
-                    }
-                } catch (IOException e) {
-                    Message.ZIP_BROWSE_ERROR.logError();
-                    e.printStackTrace();
+            ZipInputStream zip = ResourcesManager.browse();
+            try {
+                ZipEntry e = zip.getNextEntry();
+                while (e != null) {
+                    String name = e.getName();
+                    if (!e.isDirectory())
+                        if (extractModels && name.startsWith("pack/models"))
+                            OraxenPlugin.get().saveResource(name, true);
+                        else if (extractTextures && name.startsWith("pack/textures"))
+                            OraxenPlugin.get().saveResource(name, true);
+                    e = zip.getNextEntry();
                 }
-            } else {
-                Message.ZIP_BROWSE_ERROR.logError();
+                zip.closeEntry();
+            } catch (IOException ex) {
+                ex.printStackTrace();
             }
         }
 

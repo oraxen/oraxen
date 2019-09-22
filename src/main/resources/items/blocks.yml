@@ -1,0 +1,33 @@
+# Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+
+# Color codes (put & behind the code):
+# 0 black         # f white
+# 1 dark_blue     # 9 blue
+# 2 dark_green    # a green
+# 3 dark_aqua     # b aqua
+# 4 dark_red      # c red
+# 5 dark_purple   # d light_purple (pink)
+# 6 gold          # e yellow
+# 7 gray
+# 8 dark_gray
+
+# Formating codes (like color codes):
+# k obfuscated (changing randomly)
+# l bold
+# m strikethrough
+# n underline
+# o italic
+# r reset (reset format and color)
+
+caveblock:
+  displayname: "&7Cave Block"
+  material: WOODEN_HOE
+  custom_model_data: 7
+  Pack:
+    generate_model: false # because this is a block, a 2nd model pointing to specified one will be generated anyway
+    model: caveblock
+  Mechanics:
+    Block:
+      Loots: {caveblock: 100.0} # item_section: percentage of loot

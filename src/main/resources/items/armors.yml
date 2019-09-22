@@ -1,0 +1,93 @@
+# Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+
+# Color codes (put & behind the code):
+# 0 black         # f white
+# 1 dark_blue     # 9 blue
+# 2 dark_green    # a green
+# 3 dark_aqua     # b aqua
+# 4 dark_red      # c red
+# 5 dark_purple   # d light_purple (pink)
+# 6 gold          # e yellow
+# 7 gray
+# 8 dark_gray
+
+# Formating codes (like color codes):
+# k obfuscated (changing randomly)
+# l bold
+# m strikethrough
+# n underline
+# o italic
+# r reset (reset format and color)
+
+emerald_helmet:
+  displayname: "&aEmerald Helmet"
+  material: LEATHER_HELMET
+  color: 3, 252, 136 #rgb
+  custom_model_data: 1
+  Mechanics:
+    Durability:
+      value: 10000 #diamond sword is 1561
+      vanilla_damages: true
+  AttributeModifiers:
+    # - name: You don't really care about the name but it can be useful for some developers
+    # - attribute: Get the list here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+    # - operations: 0 for ADD_NUMBER, 1 for ADD_SCALAR, 2 for MULTIPLY_SCALAR_1;
+    # - uuid: put a random uuid
+    # - equipment_slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
+    - {name: "oraxen", attribute: GENERIC_MAX_HEALTH, amount: 4, operation: 0, uuid: 00000000-0000-0000-0000-000000000000, equipment_slot: HEAD}
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    layers:
+      - custom_helmet.png # .png extension is not mandatory
+      - custom_helmet_overlay.png
+
+emerald_chestplate:
+  displayname: "&aEmerald Chestplate"
+  material: LEATHER_CHESTPLATE
+  color: 3, 252, 136 #rgb
+  custom_model_data: 1
+  Mechanics:
+    Durability:
+      value: 10000 #diamond sword is 1561
+      vanilla_damages: true
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    layers:
+      - custom_chestplate.png # .png extension is not mandatory
+      - custom_chestplate_overlay.png
+
+emerald_leggings:
+  displayname: "&aEmerald Leggings"
+  material: LEATHER_LEGGINGS
+  color: 3, 252, 136 #rgb
+  custom_model_data: 1
+  Mechanics:
+    Durability:
+      value: 10000 #diamond sword is 1561
+      vanilla_damages: true
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    layers:
+      - custom_leggings.png # .png extension is not mandatory
+      - custom_leggings_overlay.png
+
+emerald_boots:
+  displayname: "&aEmerald Boots"
+  material: LEATHER_BOOTS
+  color: 3, 252, 136 #rgb
+  custom_model_data: 1
+  Mechanics:
+    Durability:
+      value: 10000 #diamond sword is 1561
+      vanilla_damages: true
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    layers:
+      - custom_boots.png # .png extension is not mandatory
+      - custom_boots_overlay.png
