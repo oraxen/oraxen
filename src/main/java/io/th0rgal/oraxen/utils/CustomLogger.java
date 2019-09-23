@@ -8,7 +8,7 @@ import java.util.logging.LogRecord;
 
 public class CustomLogger extends PluginLogger {
 
-    public CustomLogger(Plugin context) {
+    CustomLogger(Plugin context) {
         super(context);
     }
 
@@ -20,7 +20,7 @@ public class CustomLogger extends PluginLogger {
         }
     }
 
-    public void newLog(Level level, String message) {
+    void newLog(Level level, String message) {
         super.log(new LogRecord(level, message));
     }
 

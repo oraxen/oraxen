@@ -22,7 +22,7 @@ public class OraxenPlugin extends JavaPlugin {
         Logs.enableFilter();
     }
 
-    public void registerCommands() {
+    private void registerCommands() {
         CommandHandler handler = new CommandHandler()
                 .register("oraxen", new BaseCommand())
                 .register("debug", new Debug())

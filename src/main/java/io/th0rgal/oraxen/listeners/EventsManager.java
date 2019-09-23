@@ -9,10 +9,10 @@ import java.util.*;
 
 public class EventsManager {
 
-    Plugin plugin;
-    PluginManager pluginManager;
-    static Set<Listener> customListeners = new HashSet<>();
-    static Set<Class<?>> customListenersClasses = new HashSet<>();
+    private Plugin plugin;
+    private PluginManager pluginManager;
+    private static Set<Listener> customListeners = new HashSet<>();
+    private static Set<Class<?>> customListenersClasses = new HashSet<>();
 
     public EventsManager(Plugin plugin) {
         this.plugin = plugin;
