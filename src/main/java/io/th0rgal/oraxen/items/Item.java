@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.items;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
@@ -23,7 +22,6 @@ public class Item {
 
     private ItemStack itemStack;
     private PackInfos packInfos;
-    private Object itemTag;
 
     private Material type;
     private int amount;
@@ -106,8 +104,6 @@ public class Item {
             this.lore = itemMeta.getLore();
 
         this.enchantments = new HashMap<>();
-
-        this.itemTag = ItemUtils.getNBTTagCompound(ItemUtils.getNMSCopy(itemStack));
 
     }
 
@@ -219,25 +215,6 @@ public class Item {
         return this;
     }
 
-    public Item setIntNBTTag(String field, int value) {
-        ItemUtils.setIntNBTTag(this.itemTag, field, value);
-        return this;
-    }
-
-    public Item setStringNBTTag(String field, String value) {
-        ItemUtils.setStringNBTTag(this.itemTag, field, value);
-        return this;
-    }
-
-    public Item setBooleanNBTTag(String field, boolean value) {
-        ItemUtils.setBooleanNBTTag(this.itemTag, field, value);
-        return this;
-    }
-
-    public Object getNBTBase(String field) {
-        return ItemUtils.getNBTBase(this.itemTag, field);
-    }
-
     public void setPackInfos(PackInfos itemResources) {
         this.packInfos = itemResources;
     }
@@ -253,12 +230,6 @@ public class Item {
     private ItemStack finalItemStack;
 
     public Item regen() {
-        /*
-         CHANGING NBT
-         */
-        Object NMSitemStack = ItemUtils.getNMSCopy(this.itemStack);
-        ItemUtils.setNBTTagCompound(NMSitemStack, itemTag);
-        this.itemStack = ItemUtils.fromNMS(NMSitemStack);
 
         /*
          CHANGING ITEM
