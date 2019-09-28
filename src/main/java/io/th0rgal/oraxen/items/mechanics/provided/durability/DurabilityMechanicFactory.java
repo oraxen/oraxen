@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.items.mechanics.provided.durability;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.items.Item;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.items.mechanics.Mechanic;
 import io.th0rgal.oraxen.items.mechanics.MechanicFactory;
@@ -80,5 +81,19 @@ class DurabilityMechanic extends Mechanic {
 
     public int getItemDurability() {
         return itemDurability;
+    }
+}
+
+class DurabilityModifier extends ItemModifier {
+
+    private int durability;
+
+    public DurabilityModifier(int durability) {
+        this.durability = durability;
+    }
+
+    @Override
+    public Item getItem(Item item) {
+        return item.setIntNBTTag("durability", durability);
     }
 }
