@@ -12,7 +12,6 @@ public class EventsManager {
     private Plugin plugin;
     private PluginManager pluginManager;
     private static Set<Listener> customListeners = new HashSet<>();
-    private static Set<Class<?>> customListenersClasses = new HashSet<>();
 
     public EventsManager(Plugin plugin) {
         this.plugin = plugin;
@@ -24,20 +23,13 @@ public class EventsManager {
     }
 
     public void addEvents(Listener... listeners) {
-        for (Listener listener : listeners) {
-            if (customListenersClasses.contains(listener.getClass()))
-                return;
-
-            customListenersClasses.add(listener.getClass());
-            customListeners.add(listener);
-        }
+        customListeners.addAll(Arrays.asList(listeners));
     }
 
     public void registerEvents() {
         registerNativeEvents();
         for (Listener listener : customListeners)
             pluginManager.registerEvents(listener, plugin);
-
     }
 
 }
