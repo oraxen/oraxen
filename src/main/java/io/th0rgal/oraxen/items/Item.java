@@ -2,10 +2,7 @@ package io.th0rgal.oraxen.items;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import org.bukkit.Color;
-import org.bukkit.DyeColor;
-import org.bukkit.Material;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.enchantments.Enchantment;
@@ -13,6 +10,8 @@ import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 
@@ -44,6 +43,7 @@ public class Item {
     private boolean hasCustomModelData;
     private int customModelData;
     private List<String> lore;
+    private PersistentDataContainer persistentDataContainer;
     private Map<Enchantment, Integer> enchantments;
 
     public Item(Material material) {
@@ -103,6 +103,8 @@ public class Item {
         if (itemMeta.hasLore())
             this.lore = itemMeta.getLore();
 
+        this.persistentDataContainer = itemMeta.getPersistentDataContainer();
+
         this.enchantments = new HashMap<>();
 
     }
@@ -157,6 +159,15 @@ public class Item {
     public Item setOwningPlayer(OfflinePlayer owningPlayer) {
         this.owningPlayer = owningPlayer;
         return this;
+    }
+
+    public <T, Z> Item setCustomTag(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType, Z data) {
+        this.persistentDataContainer.set(namespacedKey, dataType, data);
+        return this;
+    }
+
+    public boolean hasCustomTag() {
+        return !this.persistentDataContainer.isEmpty();
     }
 
     public Item setCustomModelData(int customModelData) {
