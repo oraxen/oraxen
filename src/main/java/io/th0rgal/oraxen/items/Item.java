@@ -168,6 +168,7 @@ public class Item {
         return this;
     }
 
+    @SuppressWarnings("unchecked")
     public <T, Z> Z getCustomTag(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType) {
         for (Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
             if (dataSpace.getKey().getNamespacedKey().equals(namespacedKey) && dataSpace.getKey().getDataType().equals(dataType))
@@ -249,6 +250,7 @@ public class Item {
 
     private ItemStack finalItemStack;
 
+    @SuppressWarnings("unchecked")
     public Item regen() {
 
         /*
