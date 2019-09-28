@@ -20,11 +20,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-public class DurabilityMechanicFactory extends MechanicFactory implements Listener {
+public class DurabilityMechanicFactory extends MechanicFactory {
 
     public DurabilityMechanicFactory(ConfigurationSection section) {
         super(section);
-        new EventsManager(OraxenPlugin.get()).addEvents(this);
+        new EventsManager(OraxenPlugin.get()).addEvents(new DurabilityMechanicsManager(this));
     }
 
     @Override
@@ -34,14 +34,24 @@ public class DurabilityMechanicFactory extends MechanicFactory implements Listen
         return mechanic;
     }
 
+}
+
+class DurabilityMechanicsManager implements Listener {
+
+    private DurabilityMechanicFactory factory;
+
+    public DurabilityMechanicsManager(DurabilityMechanicFactory factory) {
+        this.factory = factory;
+    }
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemDamaged(PlayerItemDamageEvent event) {
         ItemStack item = event.getItem();
         String itemID = OraxenItems.getIdByItem(item);
-        if (!this.isImplementedIn(itemID))
+        if (!factory.isImplementedIn(itemID))
             return;
 
-        DurabilityMechanic durabilityMechanic = (DurabilityMechanic) getMechanic(itemID);
+        DurabilityMechanic durabilityMechanic = (DurabilityMechanic) factory.getMechanic(itemID);
 
         ItemMeta itemMeta = item.getItemMeta();
         PersistentDataContainer persistentDataContainer = itemMeta.getPersistentDataContainer();
