@@ -7,8 +7,8 @@ import io.th0rgal.oraxen.items.mechanics.Mechanic;
 import io.th0rgal.oraxen.items.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.items.modifiers.ItemModifier;
 import io.th0rgal.oraxen.listeners.EventsManager;
-import io.th0rgal.oraxen.utils.ItemUtils;
-import io.th0rgal.oraxen.utils.NMS;
+import io.th0rgal.oraxen.utils.Logs;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -17,8 +17,8 @@ import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
-
-import java.lang.reflect.InvocationTargetException;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 public class DurabilityMechanicFactory extends MechanicFactory implements Listener {
 
@@ -35,7 +35,7 @@ public class DurabilityMechanicFactory extends MechanicFactory implements Listen
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onItemDamaged(PlayerItemDamageEvent event) throws NoSuchMethodException, InvocationTargetException, IllegalAccessException {
+    public void onItemDamaged(PlayerItemDamageEvent event) {
         ItemStack item = event.getItem();
         String itemID = OraxenItems.getIdByItem(item);
         if (!this.isImplementedIn(itemID))
@@ -43,20 +43,16 @@ public class DurabilityMechanicFactory extends MechanicFactory implements Listen
 
         DurabilityMechanic durabilityMechanic = (DurabilityMechanic) getMechanic(itemID);
 
-        Object nmsItem = ItemUtils.getNMSCopy(item);
-        Object itemTag = ItemUtils.getNBTTagCompound(nmsItem);
-        Object nbtBase = ItemUtils.getNBTBase(itemTag, "durability");
+        ItemMeta itemMeta = item.getItemMeta();
+        PersistentDataContainer persistentDataContainer = itemMeta.getPersistentDataContainer();
+        int realDurabilityLeft = persistentDataContainer.get(DurabilityModifier.NAMESPACED_KEY, PersistentDataType.INTEGER) - event.getDamage();
 
-        int realDurability = (int) NMS.NBT_TAG_INT.toClass().getMethod("asInt").invoke(nbtBase) - event.getDamage();
-
-        if (realDurability > 0) {
-            event.setCancelled(true);
-            ItemUtils.setIntNBTTag(itemTag, "durability", realDurability);
-            ItemUtils.setNBTTagCompound(nmsItem, itemTag);
-            Damageable damageableMeta = (Damageable) ItemUtils.fromNMS(nmsItem).getItemMeta();
-            damageableMeta.setDamage((int) (item.getType().getMaxDurability() - ((float) item.getType().getMaxDurability() / (float) durabilityMechanic.getItemDurability()
-                    * (float) realDurability)));
-            item.setItemMeta((ItemMeta) damageableMeta);
+        if (realDurabilityLeft > 0) {
+            double realMaxDurability = durabilityMechanic.getItemMaxDurability(); //because int rounded values suck
+            Logs.logWarning("realdura:" + realDurabilityLeft + " realmax:" + realMaxDurability);
+            persistentDataContainer.set(DurabilityModifier.NAMESPACED_KEY, PersistentDataType.INTEGER, realDurabilityLeft);
+            ((Damageable) itemMeta).setDamage((int) (item.getType().getMaxDurability() - realDurabilityLeft / realMaxDurability * item.getType().getMaxDurability()));
+            item.setItemMeta(itemMeta);
         } else {
             item.setAmount(0);
         }
@@ -79,13 +75,14 @@ class DurabilityMechanic extends Mechanic {
         this.itemDurability = section.getInt("value");
     }
 
-    public int getItemDurability() {
+    public int getItemMaxDurability() {
         return itemDurability;
     }
 }
 
 class DurabilityModifier extends ItemModifier {
 
+    public static final NamespacedKey NAMESPACED_KEY = new NamespacedKey(OraxenPlugin.get(), "durability");
     private int durability;
 
     public DurabilityModifier(int durability) {
@@ -94,6 +91,6 @@ class DurabilityModifier extends ItemModifier {
 
     @Override
     public Item getItem(Item item) {
-        return item.setIntNBTTag("durability", durability);
+        return item.setCustomTag(NAMESPACED_KEY, PersistentDataType.INTEGER, durability);
     }
 }

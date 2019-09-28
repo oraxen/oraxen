@@ -15,6 +15,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 
+import javax.xml.stream.events.Namespace;
 import java.util.*;
 
 public class Item {
@@ -40,6 +41,7 @@ public class Item {
     private Set<ItemFlag> itemFlags;
     private boolean hasAttributeModifiers;
     private Multimap<Attribute, AttributeModifier> attributeModifiers;
+    private Map<PersistentDataSpace, Object> persistentDataMap = new HashMap<>();
     private boolean hasCustomModelData;
     private int customModelData;
     private List<String> lore;
@@ -162,8 +164,15 @@ public class Item {
     }
 
     public <T, Z> Item setCustomTag(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType, Z data) {
-        this.persistentDataContainer.set(namespacedKey, dataType, data);
+        this.persistentDataMap.put(new PersistentDataSpace(namespacedKey, dataType), data);
         return this;
+    }
+
+    public <T, Z> Z getCustomTag(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType) {
+        for (Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
+            if (dataSpace.getKey().getNamespacedKey().equals(namespacedKey) && dataSpace.getKey().getDataType().equals(dataType))
+                return (Z) persistentDataMap.get(dataSpace);
+        return null;
     }
 
     public boolean hasCustomTag() {
@@ -329,6 +338,12 @@ public class Item {
         if (this.hasCustomModelData)
             itemMeta.setCustomModelData(this.customModelData);
 
+        if (!this.persistentDataMap.isEmpty())
+            for (Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
+                itemMeta.getPersistentDataContainer().set(dataSpace.getKey().getNamespacedKey(),
+                        (PersistentDataType<?, Object>) dataSpace.getKey().getDataType(),
+                        dataSpace.getValue());
+
         itemMeta.setLore(this.lore);
 
         this.itemStack.setItemMeta(itemMeta);
@@ -346,6 +361,26 @@ public class Item {
     public String toString() {
         //todo
         return super.toString();
+    }
+
+}
+
+class PersistentDataSpace {
+
+    private NamespacedKey namespacedKey;
+    private PersistentDataType<?, ?> dataType;
+
+    public <T, Z> PersistentDataSpace(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType) {
+        this.namespacedKey = namespacedKey;
+        this.dataType = dataType;
+    }
+
+    public NamespacedKey getNamespacedKey() {
+        return namespacedKey;
+    }
+
+    public PersistentDataType<?, ?> getDataType() {
+        return dataType;
     }
 
 }

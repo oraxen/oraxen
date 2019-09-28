@@ -2,10 +2,12 @@ package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.settings.ResourcesManager;
-import io.th0rgal.oraxen.utils.ItemUtils;
+
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.io.File;
 import java.util.Collection;
@@ -17,6 +19,7 @@ public class OraxenItems {
 
     //configuration sections : their OraxenItem wrapper
     private static Map<String, Item> map = new HashMap<>();
+    public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
 
     public static void loadItems() {
 
@@ -37,11 +40,13 @@ public class OraxenItems {
     }
 
     public static String getIdByItem(Item item) {
-        return item.getNBTBase("OxnId").toString();
+        return item.getCustomTag(ITEM_ID, PersistentDataType.STRING);
     }
 
     public static String getIdByItem(ItemStack item) {
-        return ItemUtils.getStringField(item, "OxnId");
+        return item.getItemMeta()
+                .getPersistentDataContainer()
+                .get(ITEM_ID, PersistentDataType.STRING);
     }
 
     public static Item getItemById(String id) {

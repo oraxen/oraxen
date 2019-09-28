@@ -17,15 +17,6 @@ import java.util.List;
 public class PredicatesGenerator {
 
     private JsonObject json = new JsonObject();
-    private static final Method NBT_TAG_TO_INT;
-
-    static {
-        try {
-            NBT_TAG_TO_INT = NMS.NBT_TAG_INT.toClass().getMethod("asInt");
-        } catch (NoSuchMethodException e) {
-            throw (new RuntimeException());
-        }
-    }
 
     public PredicatesGenerator(Material material, List<Item> items) {
 

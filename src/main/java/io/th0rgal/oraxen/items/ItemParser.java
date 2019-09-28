@@ -1,10 +1,10 @@
 package io.th0rgal.oraxen.items;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.mechanics.Mechanic;
 import io.th0rgal.oraxen.items.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.items.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.items.modifiers.ItemModifier;
-import io.th0rgal.oraxen.settings.Message;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -14,6 +14,7 @@ import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.*;
 import java.util.List;
@@ -46,35 +47,7 @@ public class ItemParser {
         }
 
         if (!section.contains("injectID") || section.getBoolean("injectId"))
-            item.setStringNBTTag("OxnId", section.getName());
-
-        if (section.contains("NBTTags")) {
-
-            @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
-                    List<LinkedHashMap<String, ?>> tagsList = (List<LinkedHashMap<String, ?>>) section.getList("NBTTags");
-
-            for (LinkedHashMap<String, ?> tag : tagsList) {
-                String type = tag.get("type").toString();
-                String field = tag.get("name").toString();
-
-                switch (type) {
-                    case "boolean":
-                        item.setBooleanNBTTag(field, Boolean.parseBoolean(tag.get("value").toString()));
-                        break;
-                    case "int":
-                        int value = Integer.parseInt(tag.get("value").toString());
-                        item.setIntNBTTag(field, value);
-                        break;
-                    case "String":
-                        item.setStringNBTTag(field, tag.get("value").toString());
-                        break;
-                    default:
-                        Message.WRONG_TYPE.log();
-                        break;
-                }
-
-            }
-        }
+            item.setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING, section.getName());
 
         if (section.contains("ItemFlags")) {
             List<String> itemFlags = section.getStringList("ItemFlags");

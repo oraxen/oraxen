@@ -20,15 +20,8 @@ public class Debug implements CommandInterface {
         if (sender instanceof Player) {
             Player player = (Player) sender;
             ItemStack item = player.getInventory().getItemInMainHand();
-            Object nmsItem = ItemUtils.getNMSCopy(item);
-            Object itemTag = ItemUtils.getNBTTagCompound(nmsItem);
-            Object nbtBase = ItemUtils.getNBTBase(itemTag, "durability");
-            try {
-                player.sendMessage("durability:" + NMS.NBT_TAG_INT.toClass().getMethod("asInt").invoke(nbtBase));
-                player.sendMessage("id" + OraxenItems.getIdByItem(item));
-            } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
-                e.printStackTrace();
-            }
+            player.sendMessage("id" + OraxenItems.getIdByItem(item));
+
         }
 
         return false;
