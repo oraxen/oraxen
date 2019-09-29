@@ -115,7 +115,7 @@ class BedrockbreakMechanicsManager implements Listener {
                                 bukkitTask.cancel();
                             }
                         }
-                    }, 20L, 20L);
+                    }, mechanic.delay, mechanic.period);
 
                 } else {
                     locations.remove(location);
