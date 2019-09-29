@@ -36,10 +36,12 @@ import java.util.function.Consumer;
 public class BedrockbreakMechanicFactory extends MechanicFactory {
 
     private boolean disabledOnFirstLayer;
+    private int durabilityCost;
 
     public BedrockbreakMechanicFactory(ConfigurationSection section) {
         super(section);
-        disabledOnFirstLayer = section.getBoolean("disableOnFirstLayer");
+        disabledOnFirstLayer = section.getBoolean("disable_on_first_layer");
+        durabilityCost = section.getInt("durability_cost");
         new EventsManager(OraxenPlugin.get()).addEvents(new BedrockbreakMechanicsManager(this));
     }
 
@@ -52,6 +54,10 @@ public class BedrockbreakMechanicFactory extends MechanicFactory {
 
     public boolean isDisabledOnFirstLayer() {
         return disabledOnFirstLayer;
+    }
+
+    public int getDurabilityCost() {
+        return durabilityCost;
     }
 }
 
@@ -98,7 +104,8 @@ class BedrockbreakMechanicsManager implements Listener {
                 BedrockbreakMechanic mechanic = (BedrockbreakMechanic) factory.getMechanic(itemID);
 
                 Location location = block.getLocation();
-                if (((BedrockbreakMechanicFactory) mechanic.getFactory()).isDisabledOnFirstLayer() && location.getBlockY() == 0)
+                BedrockbreakMechanicFactory factory = (BedrockbreakMechanicFactory) mechanic.getFactory();
+                if (factory.isDisabledOnFirstLayer() && location.getBlockY() == 0)
                     return;
                 if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
                     locations.add(location);
@@ -127,7 +134,7 @@ class BedrockbreakMechanicsManager implements Listener {
                                     block.breakNaturally();
                                 }
 
-                                PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item, 500);
+                                PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item, factory.getDurabilityCost());
                                 Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
 
                                 bukkitTask.cancel();

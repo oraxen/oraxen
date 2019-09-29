@@ -3,4 +3,5 @@ durability:
 
 bedrockbreak:
   enabled: true
-  disableOnFirstLayer: false #set it on true to avoid player breaking the ground ...completely
+  disable_on_first_layer: false #set it on true to avoid player breaking the ground ...completely
+  durability_cost: 500
