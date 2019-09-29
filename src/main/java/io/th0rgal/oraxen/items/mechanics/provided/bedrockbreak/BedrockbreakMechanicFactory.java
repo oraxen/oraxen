@@ -16,9 +16,7 @@ import io.th0rgal.oraxen.items.mechanics.Mechanic;
 import io.th0rgal.oraxen.items.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.listeners.EventsManager;
 
-import org.bukkit.Bukkit;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -97,7 +95,8 @@ class BedrockbreakMechanicsManager implements Listener {
                 EnumWrappers.PlayerDigType type = data.getValues().get(0);
 
                 BlockPosition pos = dataTemp.getValues().get(0);
-                Block block = player.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ());
+                World world = player.getWorld();
+                Block block = world.getBlockAt(pos.getX(), pos.getY(), pos.getZ());
                 if (!block.getType().equals(Material.BEDROCK))
                     return;
 
@@ -129,8 +128,9 @@ class BedrockbreakMechanicsManager implements Listener {
                                 Bukkit.getPluginManager().callEvent(blockBreakEvent);
                                 if (!blockBreakEvent.isCancelled()) {
                                     if (mechanic.bernouilliTest())
-                                        player.getWorld().dropItemNaturally(location, new ItemStack(Material.BEDROCK));
-
+                                        world.dropItemNaturally(location, new ItemStack(Material.BEDROCK));
+                                    world.playSound(location, Sound.ENTITY_WITHER_BREAK_BLOCK, 1F, 0.05F); // nice song lol
+                                    world.spawnParticle(Particle.BLOCK_CRACK, location, 25, 0.5D, 0.5D, 0.5D, block.getBlockData());
                                     block.breakNaturally();
                                 }
 
