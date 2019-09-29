@@ -25,11 +25,17 @@
 upgraded_stone_pickaxe:
   displayname: "&7Upgraded Stone Pickaxe"
   material: STONE_PICKAXE
-  unbreakable: true
   custom_model_data: 1
   Pack:
     generate_model: false
     model: stone_pickaxe
+  Mechanics:
+    durability:
+      value: 10 #diamond sword is 1561
+    bedrockbreak:
+      delay: 0
+      period: 10
+      probability: 0.5
 
 withooker:
   displayname: "&bWithooker"

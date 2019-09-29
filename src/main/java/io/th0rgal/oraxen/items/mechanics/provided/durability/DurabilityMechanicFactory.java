@@ -48,7 +48,7 @@ class DurabilityMechanicsManager implements Listener {
     public void onItemDamaged(PlayerItemDamageEvent event) {
         ItemStack item = event.getItem();
         String itemID = OraxenItems.getIdByItem(item);
-        if (!factory.isImplementedIn(itemID))
+        if (factory.isNotImplementedIn(itemID))
             return;
 
         DurabilityMechanic durabilityMechanic = (DurabilityMechanic) factory.getMechanic(itemID);
@@ -59,7 +59,6 @@ class DurabilityMechanicsManager implements Listener {
 
         if (realDurabilityLeft > 0) {
             double realMaxDurability = durabilityMechanic.getItemMaxDurability(); //because int rounded values suck
-            Logs.logWarning("realdura:" + realDurabilityLeft + " realmax:" + realMaxDurability);
             persistentDataContainer.set(DurabilityModifier.NAMESPACED_KEY, PersistentDataType.INTEGER, realDurabilityLeft);
             ((Damageable) itemMeta).setDamage((int) (item.getType().getMaxDurability() - realDurabilityLeft / realMaxDurability * item.getType().getMaxDurability()));
             item.setItemMeta(itemMeta);

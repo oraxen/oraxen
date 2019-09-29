@@ -1,2 +1,5 @@
 durability:
   enabled: true
+
+bedrockbreak:
+  enabled: true

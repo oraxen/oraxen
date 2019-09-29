@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.items.mechanics;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.items.mechanics.provided.bedrockbreak.BedrockbreakMechanicFactory;
 import io.th0rgal.oraxen.items.mechanics.provided.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import org.bukkit.configuration.ConfigurationSection;
@@ -15,6 +16,7 @@ public class MechanicsManager {
 
     public static void registerNativeMechanics() {
         registerMechanicFactory("durability", DurabilityMechanicFactory.class);
+        registerMechanicFactory("bedrockbreak", BedrockbreakMechanicFactory.class);
     }
 
     public static void registerMechanicFactory(String mechanicID, Class<? extends MechanicFactory> mechanicFactoryClass) {

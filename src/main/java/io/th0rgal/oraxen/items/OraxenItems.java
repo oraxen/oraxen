@@ -44,9 +44,12 @@ public class OraxenItems {
     }
 
     public static String getIdByItem(ItemStack item) {
-        return item.getItemMeta()
-                .getPersistentDataContainer()
-                .get(ITEM_ID, PersistentDataType.STRING);
+        if (!item.hasItemMeta() || item.getItemMeta().getPersistentDataContainer().isEmpty())
+            return null;
+        else
+            return item.getItemMeta()
+                    .getPersistentDataContainer()
+                    .get(ITEM_ID, PersistentDataType.STRING);
     }
 
     public static Item getItemById(String id) {
