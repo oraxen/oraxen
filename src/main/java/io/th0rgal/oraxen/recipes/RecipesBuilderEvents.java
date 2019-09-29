@@ -10,8 +10,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 
 public class RecipesBuilderEvents implements Listener {
-
-
+    
     @EventHandler(priority = EventPriority.HIGH)
     @SuppressWarnings("deprecation") // because we must use setCursor
     private void onItemDamaged(InventoryClickEvent event) {
