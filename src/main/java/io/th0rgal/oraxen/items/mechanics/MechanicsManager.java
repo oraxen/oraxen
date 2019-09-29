@@ -19,8 +19,8 @@ public class MechanicsManager {
 
     public static void registerMechanicFactory(String mechanicID, Class<? extends MechanicFactory> mechanicFactoryClass) {
         YamlConfiguration mechanicsConfig = new ResourcesManager(OraxenPlugin.get()).getMechanics();
-        if (mechanicsConfig.getKeys(false).contains("durability")) {
-            ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection("durability");
+        if (mechanicsConfig.getKeys(false).contains(mechanicID)) {
+            ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicID);
             if (mechanicsConfig.getBoolean("durability.enabled"))
                 try {
                     MechanicFactory factory = mechanicFactoryClass.getConstructor(ConfigurationSection.class).newInstance(factorySection);
