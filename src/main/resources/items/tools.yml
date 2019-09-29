@@ -31,7 +31,7 @@ upgraded_stone_pickaxe:
     model: stone_pickaxe
   Mechanics:
     durability:
-      value: 10 #diamond sword is 1561
+      value: 5000 #diamond sword is 1561
     bedrockbreak:
       delay: 0
       period: 10
