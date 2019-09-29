@@ -29,8 +29,8 @@ public abstract class MechanicFactory {
         return mechanicByItem.keySet();
     }
 
-    public boolean isImplementedIn(String itemID) {
-        return mechanicByItem.containsKey(itemID);
+    public boolean isNotImplementedIn(String itemID) {
+        return !mechanicByItem.containsKey(itemID);
     }
 
     public Mechanic getMechanic(String itemID) {
