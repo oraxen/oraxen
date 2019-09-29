@@ -7,7 +7,7 @@ import io.th0rgal.oraxen.items.mechanics.Mechanic;
 import io.th0rgal.oraxen.items.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.items.modifiers.ItemModifier;
 import io.th0rgal.oraxen.listeners.EventsManager;
-import io.th0rgal.oraxen.utils.Logs;
+
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;

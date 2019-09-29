@@ -23,6 +23,7 @@ import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
@@ -33,8 +34,11 @@ import java.util.function.Consumer;
 
 public class BedrockbreakMechanicFactory extends MechanicFactory {
 
+    private boolean disabledOnFirstLayer;
+
     public BedrockbreakMechanicFactory(ConfigurationSection section) {
         super(section);
+        disabledOnFirstLayer = section.getBoolean("disableOnFirstLayer");
         new EventsManager(OraxenPlugin.get()).addEvents(new BedrockbreakMechanicsManager(this));
     }
 
@@ -45,6 +49,9 @@ public class BedrockbreakMechanicFactory extends MechanicFactory {
         return mechanic;
     }
 
+    public boolean isDisabledOnFirstLayer() {
+        return disabledOnFirstLayer;
+    }
 }
 
 class BedrockbreakMechanicsManager implements Listener {
@@ -67,7 +74,7 @@ class BedrockbreakMechanicsManager implements Listener {
     public BedrockbreakMechanicsManager(BedrockbreakMechanicFactory factory) {
 
         this.protocolManager = ProtocolLibrary.getProtocolManager();
-        protocolManager.addPacketListener(new PacketAdapter(OraxenPlugin.get(), ListenerPriority.HIGH, PacketType.Play.Client.BLOCK_DIG) {
+        protocolManager.addPacketListener(new PacketAdapter(OraxenPlugin.get(), ListenerPriority.LOW, PacketType.Play.Client.BLOCK_DIG) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 PacketContainer packet = event.getPacket();
@@ -108,10 +115,14 @@ class BedrockbreakMechanicsManager implements Listener {
                             sendBlockBreak(player, location, value);
 
                             if (value >= 10) {
-                                if (mechanic.bernouilliTest())
-                                    player.getWorld().dropItemNaturally(location, new ItemStack(Material.BEDROCK));
-                                block.breakNaturally();
+                                BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
+                                Bukkit.getPluginManager().callEvent(blockBreakEvent);
+                                if (!blockBreakEvent.isCancelled()) {
+                                    if (mechanic.bernouilliTest())
+                                        player.getWorld().dropItemNaturally(location, new ItemStack(Material.BEDROCK));
 
+                                    block.breakNaturally();
+                                }
                                 bukkitTask.cancel();
                             }
                         }
