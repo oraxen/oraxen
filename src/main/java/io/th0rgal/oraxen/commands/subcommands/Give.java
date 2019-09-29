@@ -24,7 +24,7 @@ public class Give implements CommandInterface {
             Message.NOT_A_PLAYER_ERROR.send(sender);
         }
 
-        return false;
+        return true;
     }
 
 }

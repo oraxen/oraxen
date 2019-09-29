@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.listeners;
 
+import io.th0rgal.oraxen.recipes.RecipesBuilderEvents;
 import org.bukkit.Bukkit;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
@@ -20,6 +21,7 @@ public class EventsManager {
 
     private void registerNativeEvents() {
         pluginManager.registerEvents(new PlayerListener(), plugin);
+        pluginManager.registerEvents(new RecipesBuilderEvents(), plugin);
     }
 
     public void addEvents(Listener... listeners) {

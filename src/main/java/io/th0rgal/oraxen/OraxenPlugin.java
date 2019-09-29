@@ -5,11 +5,13 @@ import io.th0rgal.oraxen.commands.CommandHandler;
 import io.th0rgal.oraxen.commands.subcommands.Debug;
 import io.th0rgal.oraxen.commands.subcommands.Give;
 import io.th0rgal.oraxen.commands.subcommands.InventoryVisualizer;
+import io.th0rgal.oraxen.commands.subcommands.Recipes;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.items.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.listeners.EventsManager;
 import io.th0rgal.oraxen.utils.Logs;
 import io.th0rgal.oraxen.utils.pack.ResourcePack;
+
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -26,6 +28,7 @@ public class OraxenPlugin extends JavaPlugin {
         CommandHandler handler = new CommandHandler()
                 .register("oraxen", new BaseCommand())
                 .register("debug", new Debug())
+                .register("recipes", new Recipes())
                 .register("inv", new InventoryVisualizer())
                 .register("give", new Give());
         getCommand("oraxen").setExecutor(handler);
