@@ -10,12 +10,12 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.ItemStack;
 
 public class RecipesBuilderEvents implements Listener {
-    
+
     @EventHandler(priority = EventPriority.HIGH)
     @SuppressWarnings("deprecation") // because we must use setCursor
     private void onItemDamaged(InventoryClickEvent event) {
 
-        ShapedBuilder shapedBuilder = ShapedBuilder.getShapedBuilder(event.getWhoClicked().getUniqueId());
+        RecipeBuilder shapedBuilder = ShapedBuilder.get(event.getWhoClicked().getUniqueId());
         if (shapedBuilder == null || !event.getView().getTitle().equals(shapedBuilder.getInventoryTitle()))
             return;
 
@@ -30,10 +30,10 @@ public class RecipesBuilderEvents implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     private void onInventoryClosed(InventoryCloseEvent event) {
-        ShapedBuilder shapedBuilder = ShapedBuilder.getShapedBuilder(event.getPlayer().getUniqueId());
+        RecipeBuilder shapedBuilder = ShapedBuilder.get(event.getPlayer().getUniqueId());
         if (shapedBuilder == null || !event.getView().getTitle().equals(shapedBuilder.getInventoryTitle()))
             return;
 
-        shapedBuilder.setInventory(event.getPlayer().getUniqueId(), event.getInventory());
+        shapedBuilder.setInventory(event.getInventory());
     }
 }

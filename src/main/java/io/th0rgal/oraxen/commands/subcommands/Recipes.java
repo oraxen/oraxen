@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.commands.subcommands;
 
 import io.th0rgal.oraxen.commands.CommandInterface;
+import io.th0rgal.oraxen.recipes.RecipeBuilder;
 import io.th0rgal.oraxen.recipes.ShapedBuilder;
 import io.th0rgal.oraxen.settings.Message;
 
@@ -18,18 +19,24 @@ public class Recipes implements CommandInterface {
 
         } else if (sender instanceof Player) {
             Player player = (Player) sender;
+            RecipeBuilder currentBuilder = RecipeBuilder.get(player.getUniqueId());
 
             switch (args[1]) {
+
                 case "open":
-                    if (args.length > 2) {
-                        createRecipe(player, args[2]);
-                    } else {
+
+                    if (currentBuilder != null)
+                        currentBuilder.open();
+                    else if (args.length > 2)
+                        buildAndOpen(player, args[2]);
+                    else
                         sender.sendMessage("$recipeslist");
-                    }
                     break;
+
                 case "save":
-                    ShapedBuilder.saveRecipe(player.getUniqueId());
+                    currentBuilder.saveRecipe();
                     break;
+
                 default:
                     break;
             }
@@ -42,10 +49,15 @@ public class Recipes implements CommandInterface {
     }
 
 
-    private void createRecipe (Player player, String recipeType) {
+    private void buildAndOpen(Player player, String recipeType) {
         switch (recipeType.toLowerCase()) {
             case "shapedbuilder":
                 new ShapedBuilder(player);
+                break;
+
+            default:
+                player.sendMessage("error");
+                break;
         }
     }
 
