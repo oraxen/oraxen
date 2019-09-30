@@ -27,7 +27,11 @@ public abstract class RecipeBuilder {
 
     abstract Inventory createInventory(Player player, String inventoryTitle);
 
-    public abstract void saveRecipe();
+    public abstract void saveRecipe(String name);
+
+    protected Inventory getInventory() {
+        return this.inventory;
+    }
 
     public void setInventory(Inventory inventory) {
         this.inventory = inventory;

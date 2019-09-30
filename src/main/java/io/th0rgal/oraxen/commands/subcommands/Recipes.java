@@ -34,7 +34,10 @@ public class Recipes implements CommandInterface {
                     break;
 
                 case "save":
-                    currentBuilder.saveRecipe();
+                    if (args.length > 2)
+                        currentBuilder.saveRecipe(args[2]);
+                    else
+                        sender.sendMessage("o recipes save <recipe_name>");
                     break;
 
                 default:
