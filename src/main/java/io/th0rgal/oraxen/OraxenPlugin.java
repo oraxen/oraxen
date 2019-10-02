@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.commands.subcommands.Recipes;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.items.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.listeners.EventsManager;
+import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.utils.Logs;
 import io.th0rgal.oraxen.utils.pack.ResourcePack;
 
@@ -37,8 +38,9 @@ public class OraxenPlugin extends JavaPlugin {
     public void onEnable() {
         this.saveConfig();
         MechanicsManager.registerNativeMechanics();
-        OraxenItems.loadItems();
-        ResourcePack.generate();
+        OraxenItems.loadItems(this);
+        ResourcePack.generate(this);
+        RecipesManager.load(this);
         registerCommands();
         Logs.log(ChatColor.GREEN + "Successfully loaded");
         new EventsManager(this).registerEvents();

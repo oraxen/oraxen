@@ -8,6 +8,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.util.Collection;
@@ -21,12 +22,12 @@ public class OraxenItems {
     private static Map<String, Item> map = new HashMap<>();
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
 
-    public static void loadItems() {
+    public static void loadItems(JavaPlugin plugin) {
 
-        File itemsFolder = new File(OraxenPlugin.get().getDataFolder(), "items");
+        File itemsFolder = new File(plugin.getDataFolder(), "items");
         if (!itemsFolder.exists()) {
             itemsFolder.mkdirs();
-            new ResourcesManager(OraxenPlugin.get()).extractItemsConfigs();
+            new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
         }
 
         for (File file : itemsFolder.listFiles())

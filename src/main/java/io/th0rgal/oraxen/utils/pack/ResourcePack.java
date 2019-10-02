@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.utils.NMS;
 
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -28,9 +29,9 @@ public class ResourcePack {
 
     private static File modelsFolder;
 
-    public static void generate() {
+    public static void generate(JavaPlugin plugin) {
 
-        File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
+        File packFolder = new File(plugin.getDataFolder(), "pack");
         if (!packFolder.exists())
             packFolder.mkdirs();
 
@@ -47,9 +48,9 @@ public class ResourcePack {
                     String name = e.getName();
                     if (!e.isDirectory())
                         if (extractModels && name.startsWith("pack/models"))
-                            OraxenPlugin.get().saveResource(name, true);
+                            plugin.saveResource(name, true);
                         else if (extractTextures && name.startsWith("pack/textures"))
-                            OraxenPlugin.get().saveResource(name, true);
+                            plugin.saveResource(name, true);
                     e = zip.getNextEntry();
                 }
                 zip.closeEntry();
@@ -67,10 +68,10 @@ public class ResourcePack {
             pack.delete();
 
         if (!new File(packFolder, "pack.mcmeta").exists())
-            OraxenPlugin.get().saveResource("pack/pack.mcmeta", true);
+            plugin.saveResource("pack/pack.mcmeta", true);
 
         if (!new File(packFolder, "pack.png").exists())
-            OraxenPlugin.get().saveResource("pack/pack.png", true);
+            plugin.saveResource("pack/pack.png", true);
 
         // Sorting items to keep only one with models (and generate it if needed)
         Map<Material, List<Item>> texturedItems = new HashMap<>();

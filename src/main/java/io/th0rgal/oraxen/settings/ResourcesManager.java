@@ -44,14 +44,14 @@ public class ResourcesManager {
         return YamlConfiguration.loadConfiguration(extractConfiguration(fileName));
     }
 
-    public void extractItemsConfigs() {
+    public void extractConfigsInFolder(String folder, String fileExtension) {
         ZipInputStream zip = browse();
         try {
             ZipEntry e = zip.getNextEntry();
             while (e != null) {
                 String name = e.getName();
                 if (!e.isDirectory())
-                    if (name.startsWith("items/") && name.endsWith(".yml"))
+                    if (name.startsWith(folder + "/") && name.endsWith("." + fileExtension))
                         plugin.saveResource(name, true);
                 e = zip.getNextEntry();
             }
