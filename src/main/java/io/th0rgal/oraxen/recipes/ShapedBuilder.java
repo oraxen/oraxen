@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.recipes;
 
 import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
@@ -28,8 +29,9 @@ public class ShapedBuilder extends RecipeBuilder {
         for (int i = 1; i < content.length; i++)
             output.add(getSerializedItem(content[i]));
 
-        getConfig().set(name + ".input", getSerializedItem(content[0]));
-        getConfig().set(name + ".output", output);
+        ConfigurationSection newCraftSection = getConfig().createSection(name);
+        newCraftSection.set("input", getSerializedItem(content[0]));
+        newCraftSection.set("output", output);
         saveConfig();
     }
 

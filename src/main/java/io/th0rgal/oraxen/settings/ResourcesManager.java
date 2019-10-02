@@ -33,7 +33,7 @@ public class ResourcesManager {
         return mechanics;
     }
 
-    private File extractConfiguration(String fileName) {
+    public File extractConfiguration(String fileName) {
         File itemsFile = new File(this.plugin.getDataFolder(), fileName);
         if (!itemsFile.exists())
             this.plugin.saveResource(fileName, false);

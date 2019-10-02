@@ -17,6 +17,7 @@ public abstract class RecipeBuilder {
     private static Map<UUID, RecipeBuilder> map = new HashMap<>();
 
     private Inventory inventory;
+    private File configFile;
     private YamlConfiguration config;
     private final String inventoryTitle;
     private final Player player;
@@ -42,14 +43,16 @@ public abstract class RecipeBuilder {
     }
 
     public YamlConfiguration getConfig() {
-        if (config == null)
-            config = new ResourcesManager(OraxenPlugin.get()).getConfiguration("recipes/" + builderName + ".yml");
+        if (configFile == null) {
+            configFile = new ResourcesManager(OraxenPlugin.get()).extractConfiguration("recipes/" + builderName + ".yml");
+            config = YamlConfiguration.loadConfiguration(configFile);
+        }
         return config;
     }
 
     public void saveConfig() {
         try {
-            config.save( new File("recipes/" + builderName + ".yml"));
+            config.save(configFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
