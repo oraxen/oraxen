@@ -53,6 +53,10 @@ public class OraxenItems {
                     .get(ITEM_ID, PersistentDataType.STRING);
     }
 
+    public static boolean isAnItem(String itemID) {
+        return map.containsKey(itemID);
+    }
+
     public static Item getItemById(String id) {
         return map.get(id);
     }

@@ -4,8 +4,20 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public abstract class RecipeLoader {
 
-    public RecipeLoader (ConfigurationSection section) {
+    private ConfigurationSection section;
 
+    public RecipeLoader(ConfigurationSection section) {
+        this.section = section;
     }
+
+    protected ConfigurationSection getSection() {
+        return section;
+    }
+
+    protected String getRecipeName() {
+        return section.getName();
+    }
+
+    public abstract void registerRecipe();
 
 }
