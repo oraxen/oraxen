@@ -7,6 +7,8 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
+
 public class ShapedBuilder extends RecipeBuilder {
 
     public ShapedBuilder(Player player) {
@@ -22,24 +24,31 @@ public class ShapedBuilder extends RecipeBuilder {
     public void saveRecipe(String name) {
 
         ItemStack[] content = getInventory().getContents();
-        Object[] output = new Object[content.length];
-        for (int i = 0; i < content.length; i++) {
-            ItemStack itemStack = content[i];
+        ArrayList<Object> output = new ArrayList<>();
+        for (int i = 1; i < content.length; i++)
+            output.add(getSerializedItem(content[i]));
 
+        getConfig().set(name + ".input", getSerializedItem(content[0]));
+        getConfig().set(name + ".output", output);
+        saveConfig();
+    }
+
+    private Object getSerializedItem(ItemStack itemStack) {
+
+        String itemID = OraxenItems.getIdByItem(itemStack);
+
+        if (itemStack != null)
             //if our itemstack is made using oraxen and is not modified
-            String itemID = OraxenItems.getIdByItem(itemStack);
-            if (itemID != null && OraxenItems.getItemById(itemID).getItem().equals(itemStack)) {
-                output[i] = itemID;
+            if (itemID != null && OraxenItems.getItemById(itemID).getItem().equals(itemStack))
+                return itemID;
 
                 //if our itemstack is an unmodified vanilla item
-            } else if (itemStack.equals(new ItemStack(itemStack.getType()))) {
-                output[i] = itemStack.getType();
+            else if (itemStack != null && itemStack.equals(new ItemStack(itemStack.getType())))
+                return itemStack.getType();
 
-            } else {
-                output[i] = itemStack;
-            }
-        }
+        return itemStack;
 
     }
+
 
 }

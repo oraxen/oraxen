@@ -1,1 +1,12 @@
-bedrock_breaking_pickaxe
+bedrock_pickaxe:
+  output: bedrock_pickaxe
+  input:
+    - DIAMOND_BLOCK
+    - DIAMOND_BLOCK
+    - DIAMOND_BLOCK
+    - OBSIDIAN
+    - STICK
+    - OBSIDIAN
+    - NETHER_STAR
+    - STICK
+    - NETHER_STAR

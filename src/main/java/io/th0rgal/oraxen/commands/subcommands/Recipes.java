@@ -54,7 +54,7 @@ public class Recipes implements CommandInterface {
 
     private void buildAndOpen(Player player, String recipeType) {
         switch (recipeType.toLowerCase()) {
-            case "shapedbuilder":
+            case "shaped":
                 new ShapedBuilder(player);
                 break;
 

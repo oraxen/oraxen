@@ -1,8 +1,13 @@
 package io.th0rgal.oraxen.recipes;
 
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.settings.ResourcesManager;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -12,11 +17,14 @@ public abstract class RecipeBuilder {
     private static Map<UUID, RecipeBuilder> map = new HashMap<>();
 
     private Inventory inventory;
+    private YamlConfiguration config;
     private final String inventoryTitle;
     private final Player player;
+    private final String builderName;
 
     public RecipeBuilder(Player player, String builderName) {
         this.player = player;
+        this.builderName = builderName;
         this.inventoryTitle = player.getName() + " " + builderName + " builder§o§r§a§x§e§n"; // watermark
         inventory = map.containsKey(player.getUniqueId())
                 ? map.get(player.getUniqueId()).inventory
@@ -31,6 +39,20 @@ public abstract class RecipeBuilder {
 
     protected Inventory getInventory() {
         return this.inventory;
+    }
+
+    public YamlConfiguration getConfig() {
+        if (config == null)
+            config = new ResourcesManager(OraxenPlugin.get()).getConfiguration("recipes/" + builderName + ".yml");
+        return config;
+    }
+
+    public void saveConfig() {
+        try {
+            config.save( new File("recipes/" + builderName + ".yml"));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void setInventory(Inventory inventory) {
