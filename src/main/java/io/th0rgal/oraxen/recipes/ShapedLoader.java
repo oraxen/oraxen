@@ -7,7 +7,10 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapedRecipe;
+
+import java.util.List;
 
 public class ShapedLoader extends RecipeLoader {
 
@@ -35,10 +38,12 @@ public class ShapedLoader extends RecipeLoader {
 
         ShapedRecipe recipe = new ShapedRecipe(new NamespacedKey(OraxenPlugin.get(), getRecipeName()), output);
 
-        recipe.shape("ABCDEFGHI");
+        List<?> inputs = getSection().getList("input");
+        String shape = "ABCDEFGHI";
+        recipe.shape(shape);
 
-        for (Object object : getSection().getList("input")) {
-            //recipe.setIngredient() todo: use recipe choices
+        for (int i = 0; i < inputs.size(); i++) {
+            recipe.setIngredient(shape.toCharArray()[i], new RecipeChoice.ExactChoice(new ItemStack(Material.STICK)));
 
         }
 
