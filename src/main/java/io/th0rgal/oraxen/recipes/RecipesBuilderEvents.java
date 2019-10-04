@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.recipes;
 
+import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
+
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -15,25 +17,26 @@ public class RecipesBuilderEvents implements Listener {
     @SuppressWarnings("deprecation") // because we must use setCursor
     private void onItemDamaged(InventoryClickEvent event) {
 
-        RecipeBuilder shapedBuilder = ShapedBuilder.get(event.getWhoClicked().getUniqueId());
-        if (shapedBuilder == null || !event.getView().getTitle().equals(shapedBuilder.getInventoryTitle()))
+        RecipeBuilder recipeBuilder = RecipeBuilder.get(event.getWhoClicked().getUniqueId());
+        if (recipeBuilder == null
+                || !event.getView().getTitle().equals(recipeBuilder.getInventoryTitle())
+                || !event.getInventory().getType().equals(InventoryType.WORKBENCH)
+                || event.getSlotType() != InventoryType.SlotType.RESULT)
             return;
 
-        if (event.getSlotType() == InventoryType.SlotType.RESULT) {
-            event.setCancelled(true);
-            ItemStack currentResult = event.getCurrentItem() != null ? event.getCurrentItem().clone() : new ItemStack(Material.AIR);
-            ItemStack currentCursor = event.getCursor() != null ? event.getCursor().clone() : new ItemStack(Material.AIR);
-            event.setCurrentItem(currentCursor);
-            event.setCursor(currentResult);
-        }
+        event.setCancelled(true);
+        ItemStack currentResult = event.getCurrentItem() != null ? event.getCurrentItem().clone() : new ItemStack(Material.AIR);
+        ItemStack currentCursor = event.getCursor() != null ? event.getCursor().clone() : new ItemStack(Material.AIR);
+        event.setCurrentItem(currentCursor);
+        event.setCursor(currentResult);
     }
 
     @EventHandler(priority = EventPriority.HIGH)
     private void onInventoryClosed(InventoryCloseEvent event) {
-        RecipeBuilder shapedBuilder = ShapedBuilder.get(event.getPlayer().getUniqueId());
-        if (shapedBuilder == null || !event.getView().getTitle().equals(shapedBuilder.getInventoryTitle()))
+        RecipeBuilder recipeBuilder = RecipeBuilder.get(event.getPlayer().getUniqueId());
+        if (recipeBuilder == null || !event.getView().getTitle().equals(recipeBuilder.getInventoryTitle()))
             return;
 
-        shapedBuilder.setInventory(event.getInventory());
+        recipeBuilder.setInventory(event.getInventory());
     }
 }

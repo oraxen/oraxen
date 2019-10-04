@@ -1,10 +1,12 @@
-package io.th0rgal.oraxen.recipes;
+package io.th0rgal.oraxen.recipes.builders;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.io.IOException;
@@ -40,6 +42,22 @@ public abstract class RecipeBuilder {
 
     protected Inventory getInventory() {
         return this.inventory;
+    }
+
+    protected Object getSerializedItem(ItemStack itemStack) {
+
+        String itemID = OraxenItems.getIdByItem(itemStack);
+
+        //if our itemstack is made using oraxen and is not modified
+        if (itemID != null && OraxenItems.getItemById(itemID).getItem().equals(itemStack))
+            return itemID;
+
+        //if our itemstack is an unmodified vanilla item
+        if (itemStack != null && itemStack.equals(new ItemStack(itemStack.getType())))
+            return itemStack.getType().toString();
+
+        return itemStack;
+
     }
 
     public YamlConfiguration getConfig() {

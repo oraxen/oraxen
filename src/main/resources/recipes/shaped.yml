@@ -1,6 +1,6 @@
 bedrock_pickaxe:
-  output: bedrock_pickaxe
-  input:
+  result: bedrock_pickaxe
+  ingredients:
     - DIAMOND_BLOCK
     - DIAMOND_BLOCK
     - DIAMOND_BLOCK

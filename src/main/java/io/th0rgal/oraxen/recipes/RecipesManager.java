@@ -20,7 +20,7 @@ public class RecipesManager {
             YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
             for (String recipeSetting : config.getKeys(false)) {
                 //todo: be able to support different kind of recipes
-                new ShapedLoader(config.getConfigurationSection(recipeSetting)).registerRecipe();
+                new loaders.ShapedLoader(config.getConfigurationSection(recipeSetting)).registerRecipe();
             }
         }
     }
