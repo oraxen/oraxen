@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.recipes;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -18,9 +19,9 @@ public class ShapedLoader extends RecipeLoader {
         super(section);
     }
 
+    @SuppressWarnings("deprecation") //because we are using RecipeChoice
     @Override
     public void registerRecipe() {
-
 
         ItemStack output;
         if (getSection().isString("output")) {
@@ -43,10 +44,23 @@ public class ShapedLoader extends RecipeLoader {
         recipe.shape(shape);
 
         for (int i = 0; i < inputs.size(); i++) {
-            recipe.setIngredient(shape.toCharArray()[i], new RecipeChoice.ExactChoice(new ItemStack(Material.STICK)));
+
+            char shapeLetter = shape.toCharArray()[i];
+            Object input = inputs.get(i);
+            if (input instanceof String) {
+                String stringInput = (String) input;
+                if (OraxenItems.isAnItem(stringInput)) {
+                    recipe.setIngredient(shapeLetter, new RecipeChoice.ExactChoice(OraxenItems.getItemById(stringInput).getItem()));
+                } else {
+                    recipe.setIngredient(shapeLetter, Material.getMaterial(stringInput));
+                }
+            } else {
+                recipe.setIngredient(shapeLetter, new RecipeChoice.ExactChoice((ItemStack) input));
+            }
 
         }
 
+        Bukkit.addRecipe(recipe);
 
     }
 
