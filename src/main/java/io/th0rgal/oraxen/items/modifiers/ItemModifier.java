@@ -1,11 +1,11 @@
 package io.th0rgal.oraxen.items.modifiers;
 
-import io.th0rgal.oraxen.items.Item;
+import io.th0rgal.oraxen.items.ItemBuilder;
 
 public abstract class ItemModifier {
 
-    protected Item item;
+    protected ItemBuilder item;
 
-    public abstract Item getItem(Item item);
+    public abstract ItemBuilder getItem(ItemBuilder item);
 
 }

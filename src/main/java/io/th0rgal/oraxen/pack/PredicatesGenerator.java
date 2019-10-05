@@ -2,7 +2,7 @@ package io.th0rgal.oraxen.pack;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.th0rgal.oraxen.items.Item;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -15,7 +15,7 @@ public class PredicatesGenerator {
 
     private JsonObject json = new JsonObject();
 
-    public PredicatesGenerator(Material material, List<Item> items) {
+    public PredicatesGenerator(Material material, List<ItemBuilder> items) {
 
         //parent
         json.addProperty("parent", getParent(material));
@@ -35,7 +35,7 @@ public class PredicatesGenerator {
         JsonArray overrides = new JsonArray();
 
         //custom items
-        for (Item item : items) {
+        for (ItemBuilder item : items) {
             JsonObject override = new JsonObject();
             JsonObject predicate = new JsonObject();
             predicate.addProperty("custom_model_data", item.getPackInfos().getCustomModelData());

@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.pack;
 
-import io.th0rgal.oraxen.items.Item;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.settings.ResourcesManager;
@@ -71,16 +71,16 @@ public class ResourcePack {
             plugin.saveResource("pack/pack.png", true);
 
         // Sorting items to keep only one with models (and generate it if needed)
-        Map<Material, List<Item>> texturedItems = new HashMap<>();
-        for (Map.Entry<String, Item> entry : OraxenItems.getEntries()) {
-            Item item = entry.getValue();
+        Map<Material, List<ItemBuilder>> texturedItems = new HashMap<>();
+        for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
+            ItemBuilder item = entry.getValue();
             if (item.hasPackInfos()) {
                 if (item.getPackInfos().shouldGenerateModel()) {
                     writeStringToFile(
                             new File(modelsFolder, item.getPackInfos().getModelName() + ".json"),
                             new ModelGenerator(item.getPackInfos()).getJson().toString());
                 }
-                List<Item> items = texturedItems.getOrDefault(item.getItem().getType(), new ArrayList<>());
+                List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
                 //todo: could be improved by using items.get(i).getPackInfos().getCustomModelData() when items.add(customModelData, item) with catch when not possible
                 if (items.isEmpty())
                     items.add(item);
@@ -93,7 +93,7 @@ public class ResourcePack {
                             items.add(item);
                             break;
                         }
-                texturedItems.put(item.getItem().getType(), items);
+                texturedItems.put(item.build().getType(), items);
             }
         }
         generatePredicates(texturedItems);
@@ -118,11 +118,11 @@ public class ResourcePack {
         }
     }
 
-    private static void generatePredicates(Map<Material, List<Item>> texturedItems) {
+    private static void generatePredicates(Map<Material, List<ItemBuilder>> texturedItems) {
         File itemsFolder = new File(modelsFolder, "item");
         if (!itemsFolder.exists())
             itemsFolder.mkdirs();
-        for (Map.Entry<Material, List<Item>> texturedItemsEntry : texturedItems.entrySet()) {
+        for (Map.Entry<Material, List<ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
             PredicatesGenerator predicatesGenerator = new PredicatesGenerator(texturedItemsEntry.getKey(), texturedItemsEntry.getValue());
             writeStringToFile(
                     new File(modelsFolder, predicatesGenerator.getVanillaModelName(texturedItemsEntry.getKey()) + ".json"),

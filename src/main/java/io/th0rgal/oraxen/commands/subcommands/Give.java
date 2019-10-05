@@ -21,7 +21,7 @@ public class Give implements CommandInterface {
         if (sender instanceof Player) {
 
             Player player = (Player)sender;
-            player.getInventory().addItem(OraxenItems.getItemById(args[1]).getItem());
+            player.getInventory().addItem(OraxenItems.getItemById(args[1]).build());
 
 
         } else {

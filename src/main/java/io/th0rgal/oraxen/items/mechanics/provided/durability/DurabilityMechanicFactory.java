@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.items.mechanics.provided.durability;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.items.Item;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.items.mechanics.Mechanic;
 import io.th0rgal.oraxen.items.mechanics.MechanicFactory;
@@ -99,7 +99,7 @@ class DurabilityModifier extends ItemModifier {
     }
 
     @Override
-    public Item getItem(Item item) {
+    public ItemBuilder getItem(ItemBuilder item) {
         return item.setCustomTag(NAMESPACED_KEY, PersistentDataType.INTEGER, durability);
     }
 }

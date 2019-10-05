@@ -19,7 +19,7 @@ import java.util.Set;
 public class OraxenItems {
 
     //configuration sections : their OraxenItem wrapper
-    private static Map<String, Item> map = new HashMap<>();
+    private static Map<String, ItemBuilder> map = new HashMap<>();
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
 
     public static void loadItems(JavaPlugin plugin) {
@@ -40,7 +40,7 @@ public class OraxenItems {
             }
     }
 
-    public static String getIdByItem(Item item) {
+    public static String getIdByItem(ItemBuilder item) {
         return item.getCustomTag(ITEM_ID, PersistentDataType.STRING);
     }
 
@@ -57,15 +57,15 @@ public class OraxenItems {
         return map.containsKey(itemID);
     }
 
-    public static Item getItemById(String id) {
+    public static ItemBuilder getItemById(String id) {
         return map.get(id);
     }
 
-    public static Collection<Item> getItems() {
+    public static Collection<ItemBuilder> getItems() {
         return map.values();
     }
 
-    public static Set<Map.Entry<String, Item>> getEntries() {
+    public static Set<Map.Entry<String, ItemBuilder>> getEntries() {
         return map.entrySet();
     }
 

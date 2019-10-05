@@ -50,7 +50,7 @@ public abstract class RecipeBuilder {
         String itemID = OraxenItems.getIdByItem(itemStack);
 
         //if our itemstack is made using oraxen and is not modified
-        if (itemID != null && OraxenItems.getItemById(itemID).getItem().equals(itemStack))
+        if (itemID != null && OraxenItems.getItemById(itemID).build().equals(itemStack))
             section.set("oraxen_item", itemID);
 
             //if our itemstack is an unmodified vanilla item

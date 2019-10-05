@@ -21,10 +21,10 @@ import java.util.List;
 
 public class ItemParser {
 
-    Item item;
+    ItemBuilder item;
 
     public ItemParser(ConfigurationSection section) {
-        this.item = new Item(Material.getMaterial(section.getString("material")));
+        this.item = new ItemBuilder(Material.getMaterial(section.getString("material")));
 
         if (section.contains("durability"))
             item.setDurability((short) section.getInt("durability"));
@@ -91,7 +91,7 @@ public class ItemParser {
 
     }
 
-    public Item buildItem() {
+    public ItemBuilder buildItem() {
         return item;
     }
 

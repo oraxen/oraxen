@@ -25,7 +25,7 @@ public abstract class RecipeLoader {
         ConfigurationSection resultSection = getSection().getConfigurationSection("result");
 
         if (resultSection.isString("oraxen_item"))
-            return OraxenItems.getItemById(resultSection.getString("oraxen_item")).getItem();
+            return OraxenItems.getItemById(resultSection.getString("oraxen_item")).build();
 
         if (resultSection.isString("minecraft_type"))
             return new ItemStack(Material.getMaterial(resultSection.getString("minecraft_type")));
@@ -38,7 +38,7 @@ public abstract class RecipeLoader {
     protected RecipeChoice getRecipeChoice(ConfigurationSection ingredientSection) {
 
         if (ingredientSection.isString("oraxen_item"))
-            return new RecipeChoice.ExactChoice(OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).getItem());
+            return new RecipeChoice.ExactChoice(OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build());
 
         if (ingredientSection.isString("minecraft_type"))
             return new RecipeChoice.MaterialChoice(Material.getMaterial(ingredientSection.getString("minecraft_type")));

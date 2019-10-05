@@ -17,7 +17,7 @@ import org.bukkit.potion.PotionEffect;
 
 import java.util.*;
 
-public class Item {
+public class ItemBuilder {
 
     private ItemStack itemStack;
     private PackInfos packInfos;
@@ -47,11 +47,11 @@ public class Item {
     private PersistentDataContainer persistentDataContainer;
     private Map<Enchantment, Integer> enchantments;
 
-    public Item(Material material) {
+    public ItemBuilder(Material material) {
         this(new ItemStack(material));
     }
 
-    public Item(ItemStack itemStack) {
+    public ItemBuilder(ItemStack itemStack) {
 
         this.itemStack = itemStack;
 
@@ -110,59 +110,59 @@ public class Item {
 
     }
 
-    public Item setType(Material type) {
+    public ItemBuilder setType(Material type) {
         this.type = type;
         return this;
     }
 
-    public Item setAmount(int amount) {
+    public ItemBuilder setAmount(int amount) {
         this.amount = amount;
         return this;
     }
 
-    public Item setDisplayName(String displayName) {
+    public ItemBuilder setDisplayName(String displayName) {
         this.displayName = displayName;
         return this;
     }
 
-    public Item setLore(List<String> lore) {
+    public ItemBuilder setLore(List<String> lore) {
         this.lore = lore;
         return this;
     }
 
-    public Item setUnbreakable(boolean unbreakable) {
+    public ItemBuilder setUnbreakable(boolean unbreakable) {
         this.unbreakable = unbreakable;
         return this;
     }
 
-    public Item setDurability(int durability) {
+    public ItemBuilder setDurability(int durability) {
         this.durability = durability;
         return this;
     }
 
-    public Item setColor(Color color) {
+    public ItemBuilder setColor(Color color) {
         this.color = color;
         return this;
     }
 
-    public Item setBasePotionData(PotionData potionData) {
+    public ItemBuilder setBasePotionData(PotionData potionData) {
         this.potionData = potionData;
         return this;
     }
 
-    public Item addPotionEffect(PotionEffect potionEffect) {
+    public ItemBuilder addPotionEffect(PotionEffect potionEffect) {
         if (this.potionEffects == null)
             this.potionEffects = new ArrayList<>();
         this.potionEffects.add(potionEffect);
         return this;
     }
 
-    public Item setOwningPlayer(OfflinePlayer owningPlayer) {
+    public ItemBuilder setOwningPlayer(OfflinePlayer owningPlayer) {
         this.owningPlayer = owningPlayer;
         return this;
     }
 
-    public <T, Z> Item setCustomTag(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType, Z data) {
+    public <T, Z> ItemBuilder setCustomTag(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType, Z data) {
         this.persistentDataMap.put(new PersistentDataSpace(namespacedKey, dataType), data);
         return this;
     }
@@ -179,21 +179,21 @@ public class Item {
         return !this.persistentDataContainer.isEmpty();
     }
 
-    public Item setCustomModelData(int customModelData) {
+    public ItemBuilder setCustomModelData(int customModelData) {
         if (!this.hasCustomModelData)
             this.hasCustomModelData = true;
         this.customModelData = customModelData;
         return this;
     }
 
-    public Item addItemFlags(ItemFlag... itemFlags) {
+    public ItemBuilder addItemFlags(ItemFlag... itemFlags) {
         if (this.itemFlags == null)
             this.itemFlags = new HashSet<>();
         this.itemFlags.addAll(Arrays.asList(itemFlags));
         return this;
     }
 
-    public Item addAttributeModifiers(Attribute attribute, AttributeModifier attributeModifier) {
+    public ItemBuilder addAttributeModifiers(Attribute attribute, AttributeModifier attributeModifier) {
         if (!this.hasAttributeModifiers) {
             this.hasAttributeModifiers = true;
             this.attributeModifiers = HashMultimap.create();
@@ -202,34 +202,34 @@ public class Item {
         return this;
     }
 
-    public Item addAllAttributeModifiers(Multimap<Attribute, AttributeModifier> attributeModifiers) {
+    public ItemBuilder addAllAttributeModifiers(Multimap<Attribute, AttributeModifier> attributeModifiers) {
         if (!this.hasAttributeModifiers)
             this.hasAttributeModifiers = true;
         this.attributeModifiers.putAll(attributeModifiers);
         return this;
     }
 
-    public Item setTropicalFishBucketBodyColor(DyeColor bodyColor) {
+    public ItemBuilder setTropicalFishBucketBodyColor(DyeColor bodyColor) {
         this.bodyColor = bodyColor;
         return this;
     }
 
-    public Item setTropicalFishBucketPattern(TropicalFish.Pattern pattern) {
+    public ItemBuilder setTropicalFishBucketPattern(TropicalFish.Pattern pattern) {
         this.pattern = pattern;
         return this;
     }
 
-    public Item setTropicalFishBucketPatternColor(DyeColor patternColor) {
+    public ItemBuilder setTropicalFishBucketPatternColor(DyeColor patternColor) {
         this.patternColor = patternColor;
         return this;
     }
 
-    public Item addEnchant(Enchantment enchant, int level) {
+    public ItemBuilder addEnchant(Enchantment enchant, int level) {
         this.enchantments.put(enchant, level);
         return this;
     }
 
-    public Item addEnchants(Map<Enchantment, Integer> enchants) {
+    public ItemBuilder addEnchants(Map<Enchantment, Integer> enchants) {
         for (Map.Entry<Enchantment, Integer> enchant : enchants.entrySet())
             addEnchant(enchant.getKey(), enchant.getValue());
         return this;
@@ -250,7 +250,7 @@ public class Item {
     private ItemStack finalItemStack;
 
     @SuppressWarnings("unchecked")
-    public Item regen() {
+    public ItemBuilder regen() {
 
         /*
          CHANGING ITEM
@@ -261,7 +261,7 @@ public class Item {
             this.itemStack.setAmount(this.amount);
 
         /*
-         CHANGING ITEM META
+         CHANGING ItemBuilder META
          */
         ItemMeta itemMeta = this.itemStack.getItemMeta();
 
@@ -352,7 +352,7 @@ public class Item {
         return this;
     }
 
-    public ItemStack getItem() {
+    public ItemStack build() {
         if (finalItemStack == null)
             regen();
         return this.finalItemStack;
