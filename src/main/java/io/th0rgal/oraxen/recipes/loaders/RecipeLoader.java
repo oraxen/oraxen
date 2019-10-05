@@ -34,6 +34,7 @@ public abstract class RecipeLoader {
 
     }
 
+    @SuppressWarnings("deprecation")
     protected RecipeChoice getRecipeChoice(ConfigurationSection ingredientSection) {
 
         if (ingredientSection.isString("oraxen_item"))
