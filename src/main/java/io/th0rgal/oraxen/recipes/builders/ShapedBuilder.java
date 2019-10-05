@@ -1,9 +1,8 @@
 package io.th0rgal.oraxen.recipes.builders;
 
-import io.th0rgal.oraxen.recipes.WorkbenchBuilder;
-
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;

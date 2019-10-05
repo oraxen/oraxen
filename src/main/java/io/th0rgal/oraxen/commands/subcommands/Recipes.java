@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.commands.subcommands;
 import io.th0rgal.oraxen.commands.CommandInterface;
 import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
 import io.th0rgal.oraxen.recipes.builders.ShapedBuilder;
+import io.th0rgal.oraxen.recipes.builders.ShapelessBuilder;
 import io.th0rgal.oraxen.settings.Message;
 
 import org.bukkit.command.Command;
@@ -56,6 +57,10 @@ public class Recipes implements CommandInterface {
         switch (recipeType.toLowerCase()) {
             case "shaped":
                 new ShapedBuilder(player);
+                break;
+
+            case "shapeless":
+                new ShapelessBuilder(player);
                 break;
 
             default:

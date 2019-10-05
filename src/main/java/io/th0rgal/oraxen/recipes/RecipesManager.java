@@ -1,8 +1,11 @@
 package io.th0rgal.oraxen.recipes;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.recipes.loaders.ShapedLoader;
+import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 
+import io.th0rgal.oraxen.utils.Logs;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -19,8 +22,19 @@ public class RecipesManager {
         for (File configFile : recipesFolder.listFiles()) {
             YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
             for (String recipeSetting : config.getKeys(false)) {
-                //todo: be able to support different kind of recipes
-                new loaders.ShapedLoader(config.getConfigurationSection(recipeSetting)).registerRecipe();
+
+                switch (configFile.getName()) {
+                    case "shaped.yml":
+                        new ShapedLoader(config.getConfigurationSection(recipeSetting)).registerRecipe();
+                        break;
+                    case "shapeless.yml":
+                        new ShapelessLoader(config.getConfigurationSection(recipeSetting)).registerRecipe();
+                        break;
+                    default:
+                        Logs.logError(configFile.getName());
+                }
+
+
             }
         }
     }

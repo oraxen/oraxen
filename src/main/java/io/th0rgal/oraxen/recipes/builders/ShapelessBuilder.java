@@ -1,7 +1,5 @@
 package io.th0rgal.oraxen.recipes.builders;
 
-import io.th0rgal.oraxen.recipes.WorkbenchBuilder;
-
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -18,15 +16,22 @@ public class ShapelessBuilder extends WorkbenchBuilder {
     @Override
     public void saveRecipe(String name) {
 
-
         Map<ItemStack, Integer> items = new HashMap<>();
-        for (ItemStack item : getInventory().getContents())
-            items.put(item, items.getOrDefault(item, 0)+1);
+        ItemStack[] content = getInventory().getContents();
+        for (int i = 1; i < content.length; i++)
+            items.put(content[i], items.getOrDefault(content[i], 0) + 1);
 
         ConfigurationSection newCraftSection = getConfig().createSection(name);
-        //newCraftSection.set("result", getSerializedItem(content[0]));
-        //newCraftSection.set("ingredients", input);
+        newCraftSection.set("result", getSerializedItem(content[0]));
+
+        ConfigurationSection ingredients = newCraftSection.createSection("ingredients");
+        for (int i = 1; i < items.keySet().size(); i++) {
+            items.get(items.keySet().toArray()[i]);
+            ingredients.set(String.valueOf((char) 64 + i), getSerializedItem(content[i]));
+        }
+
         saveConfig();
     }
+
 
 }
