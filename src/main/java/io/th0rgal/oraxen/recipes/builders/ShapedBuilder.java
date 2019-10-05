@@ -1,7 +1,5 @@
 package io.th0rgal.oraxen.recipes.builders;
 
-import io.th0rgal.oraxen.utils.Logs;
-
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -18,24 +16,24 @@ public class ShapedBuilder extends WorkbenchBuilder {
     public void saveRecipe(String name) {
 
         Map<ItemStack, Character> letterByItem = new HashMap<>();
-        char lastChar = 64; //65 is A
+        char letter = 'A';
         String[] shapes = new String[3];
         StringBuilder shape = new StringBuilder();
 
         for (int i = 1; i < getInventory().getSize(); i++) {
             ItemStack item = getInventory().getItem(i);
-            if (item == null) {
+            if (item == null)
                 shape.append("_");
-            } else if (letterByItem.containsKey(item)) {
+            else if (letterByItem.containsKey(item))
                 shape.append(letterByItem.get(item));
-            } else {
-                lastChar++;
-                shape.append(lastChar);
-                letterByItem.put(getInventory().getItem(i), lastChar);
+            else {
+                shape.append(letter);
+                letterByItem.put(getInventory().getItem(i), letter);
+                letter++;
             }
 
             if (shape.length() == 3) {
-                shapes[(i+1)/3-1] = shape.toString();
+                shapes[(i + 1) / 3 - 1] = shape.toString();
                 shape = new StringBuilder();
             }
         }
