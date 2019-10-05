@@ -25,7 +25,7 @@ public class ShapedLoader extends RecipeLoader {
 
         for (int i = 0; i < inputs.size(); i++) {
             char shapeLetter = shape.toCharArray()[i];
-            recipe.setIngredient(shapeLetter, new RecipeChoice.ExactChoice(getItemStack(inputs.get(i))));
+            //recipe.setIngredient(shapeLetter, new RecipeChoice.ExactChoice(getItemStack(inputs.get(i))));
         }
 
         Bukkit.addRecipe(recipe);
