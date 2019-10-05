@@ -24,7 +24,7 @@ public class ItemParser {
     Item item;
 
     public ItemParser(ConfigurationSection section) {
-        this.item = new Item(Material.valueOf(section.getString("material")));
+        this.item = new Item(Material.getMaterial(section.getString("material")));
 
         if (section.contains("durability"))
             item.setDurability((short) section.getInt("durability"));

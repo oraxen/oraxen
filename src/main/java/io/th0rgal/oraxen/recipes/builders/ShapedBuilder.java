@@ -1,11 +1,8 @@
 package io.th0rgal.oraxen.recipes.builders;
 
-import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
+import io.th0rgal.oraxen.utils.Logs;
 
-import java.util.ArrayList;
+import org.bukkit.entity.Player;
 
 public class ShapedBuilder extends WorkbenchBuilder {
 
@@ -16,15 +13,9 @@ public class ShapedBuilder extends WorkbenchBuilder {
     @Override
     public void saveRecipe(String name) {
 
-        ItemStack[] content = getInventory().getContents();
-        ArrayList<Object> input = new ArrayList<>();
-        for (int i = 1; i < content.length; i++)
-            input.add(getSerializedItem(content[i]));
+        for (int i = 0; i < getInventory().getSize(); i++)
+            Logs.log("item" + getInventory().getItem(i));
 
-        ConfigurationSection newCraftSection = getConfig().createSection(name);
-        newCraftSection.set("result", getSerializedItem(content[0]));
-        newCraftSection.set("ingredients", input);
-        saveConfig();
     }
 
 }

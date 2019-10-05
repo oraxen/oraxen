@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.recipes.builders;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.ResourcesManager;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
@@ -44,19 +45,20 @@ public abstract class RecipeBuilder {
         return this.inventory;
     }
 
-    protected Object getSerializedItem(ItemStack itemStack) {
+    protected void setSerializedItem(ConfigurationSection section, ItemStack itemStack) {
 
         String itemID = OraxenItems.getIdByItem(itemStack);
 
         //if our itemstack is made using oraxen and is not modified
         if (itemID != null && OraxenItems.getItemById(itemID).getItem().equals(itemStack))
-            return itemID;
+            section.set("oraxen_item", itemID);
 
-        //if our itemstack is an unmodified vanilla item
-        if (itemStack != null && itemStack.equals(new ItemStack(itemStack.getType())))
-            return itemStack.getType().toString();
+            //if our itemstack is an unmodified vanilla item
+        else if (itemStack != null && itemStack.equals(new ItemStack(itemStack.getType())))
+            section.set("minecraft_type", itemStack.getType().toString());
 
-        return itemStack;
+        else
+            section.set("minecraft_item", itemStack);
 
     }
 

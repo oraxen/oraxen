@@ -25,11 +25,10 @@ public class Recipes implements CommandInterface {
             switch (args[1]) {
 
                 case "open":
-
-                    if (currentBuilder != null)
-                        currentBuilder.open();
-                    else if (args.length > 2)
+                    if (args.length > 2)
                         buildAndOpen(player, args[2]);
+                    else if (currentBuilder != null)
+                        currentBuilder.open();
                     else
                         sender.sendMessage("$recipeslist");
                     break;
