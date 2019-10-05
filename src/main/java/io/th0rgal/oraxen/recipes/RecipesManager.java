@@ -12,7 +12,7 @@ public class RecipesManager {
 
     public static void load(JavaPlugin plugin) {
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
-        if (recipesFolder.exists()) {
+        if (!recipesFolder.exists()) {
             recipesFolder.mkdirs();
             new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
         }
