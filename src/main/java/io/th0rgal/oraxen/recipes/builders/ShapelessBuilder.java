@@ -22,12 +22,13 @@ public class ShapelessBuilder extends WorkbenchBuilder {
             items.put(content[i], items.getOrDefault(content[i], 0) + 1);
 
         ConfigurationSection newCraftSection = getConfig().createSection(name);
-        newCraftSection.set("result", getSerializedItem(content[0]));
-
+        setSerializedItem(newCraftSection.createSection("result"), content[0]);
         ConfigurationSection ingredients = newCraftSection.createSection("ingredients");
+
         for (int i = 1; i < items.keySet().size(); i++) {
-            items.get(items.keySet().toArray()[i]);
-            ingredients.set(String.valueOf((char) 64 + i), getSerializedItem(content[i]));
+            ConfigurationSection ingredientSection = ingredients.createSection(String.valueOf((char) (64 + i)));
+            ingredientSection.set("amount", items.get(items.keySet().toArray()[i]));
+            setSerializedItem(ingredientSection, content[i]);
         }
 
         saveConfig();
