@@ -8,3 +8,29 @@ commands:
   oraxen:
     description: Main command of Oraxen.
     aliases: [o, oxn]
+permissions:
+  oraxen.command.*:
+    description: Gives access to all oraxen commands
+    children:
+      oraxen.command.base: true
+      oraxen.command.give: true
+      oraxen.command.recipes: true
+      oraxen.command.inv.*: true
+      oraxen.command.inv.debug: true
+  oraxen.command.base:
+    description: Give access to the base command
+  oraxen.command.give:
+    description: Allows to give any oraxen items
+  oraxen.command.recipes:
+    description: Allows to create new recipes
+  oraxen.command.inv.*:
+      description: Allows to use all inventory visualizer featutres
+      children:
+        oraxen.command.inv.view: true
+        oraxen.command.inv.give: true
+  oraxen.command.inv.view:
+    description: Allows to view the inventory visualizer
+  oraxen.command.inv.give:
+    description: Allows to get item from the inventory visualizer
+  oraxen.command.debug:
+    description: Allows to view some debug informations

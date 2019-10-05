@@ -15,7 +15,11 @@ public class InventoryVisualizer implements CommandInterface {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
-        //We don't have to check if the args length is equal to one, but you will have to check if it is greater than 1.
+        if (!sender.hasPermission("oraxen.command.inv")) {
+            Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.inv");
+            return false;
+        }
+
         if (args.length > 1) return false;
 
         if (sender instanceof Player) {

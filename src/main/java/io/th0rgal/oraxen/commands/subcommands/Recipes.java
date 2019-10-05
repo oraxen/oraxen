@@ -15,6 +15,11 @@ public class Recipes implements CommandInterface {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
+        if (!sender.hasPermission("oraxen.command.recipes")) {
+            Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.recipes");
+            return false;
+        }
+
         if (args.length == 1) {
             sender.sendMessage("$help");
 

@@ -12,6 +12,10 @@ public class Give implements CommandInterface {
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
+        if (!sender.hasPermission("oraxen.command.give")) {
+            Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.give");
+            return false;
+        }
         if (args.length != 2) return false;
 
         if (sender instanceof Player) {

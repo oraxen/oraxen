@@ -1,15 +1,19 @@
 package io.th0rgal.oraxen.commands;
 
+import io.th0rgal.oraxen.settings.Message;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 
-//This class implements the Command Interface.
 public class BaseCommand implements CommandInterface {
 
-    //The command should be automatically created.
     @Override
     public boolean onCommand(CommandSender sender, Command cmd,
                              String commandLabel, String[] args) {
+
+        if (!sender.hasPermission("oraxen.command.base")) {
+            Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.base");
+            return false;
+        }
 
         sender.sendMessage("help");
 
