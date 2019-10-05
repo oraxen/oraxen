@@ -13,6 +13,7 @@ public class ShapelessLoader extends RecipeLoader {
 
     @Override
     public void registerRecipe() {
+        /* TODO: REWRITE IT
         ShapelessRecipe recipe = new ShapelessRecipe(getNamespacedKey(), getResult());
         ConfigurationSection ingredientsSection = getSection().getConfigurationSection("ingredients");
         for (String ingredientLetter : ingredientsSection.getKeys(false)) {
@@ -20,6 +21,6 @@ public class ShapelessLoader extends RecipeLoader {
             RecipeChoice recipeChoice = getRecipeChoice(subSection);
             recipe.addIngredient(recipeChoice);
         }
-        Bukkit.addRecipe(recipe);
+        Bukkit.addRecipe(recipe);*/
     }
 }
