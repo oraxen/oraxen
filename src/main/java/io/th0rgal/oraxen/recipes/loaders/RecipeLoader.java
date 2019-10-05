@@ -40,7 +40,7 @@ public abstract class RecipeLoader {
             return new RecipeChoice.ExactChoice(OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).getItem());
 
         if (ingredientSection.isString("minecraft_type"))
-            return null;
+            return new RecipeChoice.MaterialChoice(Material.getMaterial(ingredientSection.getString("minecraft_type")));
 
         return new RecipeChoice.ExactChoice(ingredientSection.getItemStack("minecraft_item"));
 

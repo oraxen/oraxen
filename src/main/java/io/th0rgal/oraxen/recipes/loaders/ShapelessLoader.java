@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
+import io.th0rgal.oraxen.utils.Logs;
 import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapelessRecipe;
@@ -19,12 +19,9 @@ public class ShapelessLoader extends RecipeLoader {
         for (String ingredientLetter : ingredientsSection.getKeys(false)) {
             ConfigurationSection subSection = ingredientsSection.getConfigurationSection(ingredientLetter);
             RecipeChoice recipeChoice = getRecipeChoice(subSection);
-            if (subSection == null)
-                recipe.addIngredient(subSection.getInt("amount"), Material.getMaterial(subSection.getString("minecraft_type")));
-            else
-                for (int i = 0; i < subSection.getInt("amount"); i++)
-                    recipe.addIngredient(recipeChoice);
+            recipe.addIngredient(recipeChoice);
         }
+        Logs.log("adding the recipe");
         Bukkit.addRecipe(recipe);
     }
 }
