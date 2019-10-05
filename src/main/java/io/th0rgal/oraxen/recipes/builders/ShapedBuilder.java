@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.recipes.builders;
 
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.*;
@@ -19,16 +20,17 @@ public class ShapedBuilder extends WorkbenchBuilder {
         char letter = 'A';
         String[] shapes = new String[3];
         StringBuilder shape = new StringBuilder();
-
-        for (int i = 1; i < getInventory().getSize(); i++) {
-            ItemStack item = getInventory().getItem(i);
+        Inventory inventory = getInventory();
+        
+        for (int i = 1; i < inventory.getSize(); i++) {
+            ItemStack item = inventory.getItem(i);
             if (item == null)
                 shape.append("_");
             else if (letterByItem.containsKey(item))
                 shape.append(letterByItem.get(item));
             else {
                 shape.append(letter);
-                letterByItem.put(getInventory().getItem(i), letter);
+                letterByItem.put(inventory.getItem(i), letter);
                 letter++;
             }
 
@@ -40,7 +42,7 @@ public class ShapedBuilder extends WorkbenchBuilder {
 
         ConfigurationSection newCraftSection = getConfig().createSection(name);
         newCraftSection.set("shape", shapes);
-        setSerializedItem(newCraftSection.createSection("result"), getInventory().getItem(0));
+        setSerializedItem(newCraftSection.createSection("result"), inventory.getItem(0));
         ConfigurationSection ingredients = newCraftSection.createSection("ingredients");
         for (Map.Entry<ItemStack, Character> entry : letterByItem.entrySet()) {
             ConfigurationSection ingredientSection = ingredients.createSection(String.valueOf(entry.getValue()));
