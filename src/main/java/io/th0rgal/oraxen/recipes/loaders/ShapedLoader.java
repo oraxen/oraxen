@@ -5,7 +5,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ShapedRecipe;
 
-import java.util.Arrays;
 import java.util.List;
 
 public class ShapedLoader extends RecipeLoader {
@@ -26,7 +25,6 @@ public class ShapedLoader extends RecipeLoader {
                     getRecipeChoice(ingredientsSection
                             .getConfigurationSection(ingredientLetter)));
         }
-        Logs.log("adding the recipe");
         Bukkit.addRecipe(recipe);
     }
 }

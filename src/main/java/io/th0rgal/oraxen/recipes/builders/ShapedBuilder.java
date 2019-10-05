@@ -32,14 +32,12 @@ public class ShapedBuilder extends WorkbenchBuilder {
                 lastChar++;
                 shape.append(lastChar);
                 letterByItem.put(getInventory().getItem(i), lastChar);
-                Logs.log("char:" + lastChar);
             }
 
             if (shape.length() == 3) {
                 shapes[(i+1)/3-1] = shape.toString();
                 shape = new StringBuilder();
             }
-
         }
 
         ConfigurationSection newCraftSection = getConfig().createSection(name);
