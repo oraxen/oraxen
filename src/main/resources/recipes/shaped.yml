@@ -1,0 +1,16 @@
+bedrock_pickaxe:
+  shape:
+    - AAA
+    - BCB
+    - _D_
+  result:
+    oraxen_item: bedrock_pickaxe
+  ingredients:
+    D:
+      minecraft_type: STICK
+    B:
+      minecraft_type: OBSIDIAN
+    C:
+      minecraft_type: NETHER_STAR
+    A:
+      minecraft_type: DIAMOND_BLOCK
