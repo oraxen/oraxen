@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.RecipeChoice;
@@ -24,6 +25,6 @@ public class ShapelessLoader extends RecipeLoader {
                 for (int i = 0; i < subSection.getInt("amount"); i++)
                     recipe.addIngredient(recipeChoice);
         }
-
+        Bukkit.addRecipe(recipe);
     }
 }
