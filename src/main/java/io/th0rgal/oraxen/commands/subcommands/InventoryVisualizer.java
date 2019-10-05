@@ -23,10 +23,7 @@ public class InventoryVisualizer implements CommandInterface {
         if (args.length > 1) return false;
 
         if (sender instanceof Player) {
-
             Logs.log(Arrays.toString(args));
-
-
 
         } else {
             Message.NOT_A_PLAYER_ERROR.send(sender);
