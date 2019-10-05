@@ -1,17 +1,14 @@
-package io.th0rgal.oraxen.utils.pack;
+package io.th0rgal.oraxen.pack;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.items.Item;
-import io.th0rgal.oraxen.utils.NMS;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.List;
 
 public class PredicatesGenerator {

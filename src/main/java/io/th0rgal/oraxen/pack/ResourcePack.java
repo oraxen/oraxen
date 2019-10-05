@@ -1,13 +1,12 @@
-package io.th0rgal.oraxen.utils.pack;
+package io.th0rgal.oraxen.pack;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.Item;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.settings.Message;
 import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import io.th0rgal.oraxen.utils.NMS;
 
+import io.th0rgal.oraxen.utils.ZipUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -19,8 +18,6 @@ import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
-import java.net.URL;
-import java.security.CodeSource;
 import java.util.*;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;

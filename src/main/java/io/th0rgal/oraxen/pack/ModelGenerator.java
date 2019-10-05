@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.utils.pack;
+package io.th0rgal.oraxen.pack;
 
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.items.PackInfos;

@@ -1,19 +1,14 @@
-package io.th0rgal.oraxen.utils.pack;
+package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.settings.Server;
 
 import java.io.*;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Enumeration;
 import java.util.List;
 import java.util.Map;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipFile;
 import java.util.zip.ZipOutputStream;
 
 public class ZipUtils {

@@ -11,7 +11,7 @@ import io.th0rgal.oraxen.items.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.listeners.EventsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.utils.Logs;
-import io.th0rgal.oraxen.utils.pack.ResourcePack;
+import io.th0rgal.oraxen.pack.ResourcePack;
 
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
