@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.commands.subcommands;
 
 import io.th0rgal.oraxen.commands.CommandInterface;
 import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.utils.ItemsInventory;
 import io.th0rgal.oraxen.utils.Logs;
 
 import org.bukkit.command.Command;
@@ -23,8 +24,8 @@ public class InventoryVisualizer implements CommandInterface {
         if (args.length > 1) return false;
 
         if (sender instanceof Player) {
-
-
+            Player player = (Player) sender;
+            new ItemsInventory(0).open(player);
 
         } else {
             Message.NOT_A_PLAYER_ERROR.send(sender);

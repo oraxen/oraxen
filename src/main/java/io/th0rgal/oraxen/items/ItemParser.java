@@ -1,9 +1,9 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.items.mechanics.Mechanic;
-import io.th0rgal.oraxen.items.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.items.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.Mechanic;
+import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.items.modifiers.ItemModifier;
 
 import org.bukkit.ChatColor;
