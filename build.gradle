@@ -24,7 +24,7 @@ repositories {
 
 dependencies {
     compileOnly group: 'org.spigotmc', name: 'spigot', version: '1.14.4-R0.1-SNAPSHOT' // The Spigot API with no shadowing. Requires the OSS repo.
-    compileOnly group: 'org.bukkit', name: 'bukkit', version: '1.14.4-R0.1-SNAPSHOT'
+    compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.14.4-R0.1-SNAPSHOT'
     compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "+";
 
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '+'
