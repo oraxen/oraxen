@@ -11,15 +11,12 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 public class OraxenItems {
 
     //configuration sections : their OraxenItem wrapper
-    private static Map<String, ItemBuilder> map = new HashMap<>();
+    private static Map<String, ItemBuilder> map = new LinkedHashMap<>();
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
 
     public static void loadItems(JavaPlugin plugin) {

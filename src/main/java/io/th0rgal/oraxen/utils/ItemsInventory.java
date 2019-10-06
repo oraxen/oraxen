@@ -19,11 +19,14 @@ public class ItemsInventory extends FastInv {
     public ItemsInventory(int page) {
         super(6 * 9, "Oraxen items visualizer");
 
+        boolean lastPage = false;
         // Just add a random item
         Collection<ItemBuilder> collection = OraxenItems.getItems();
         for (int i = page * 5 * 9; i < (page + 1) * 5 * 9; i++) {
-            if (i >= collection.size())
+            if (i >= collection.size()) {
+                lastPage = true;
                 break;
+            }
             ItemStack item = Iterables.get(collection, i).build();
             setItem(i, item, e -> giveItem(e.getWhoClicked(), item));
         }
@@ -35,19 +38,21 @@ public class ItemsInventory extends FastInv {
                         .build(),
                 e -> e.getWhoClicked().closeInventory());
 
-        setItem(getInventory().getSize() - 6,
-                new ItemBuilder(Material.ARROW)
-                        .setAmount(page - 1)
-                        .setDisplayName(ChatColor.YELLOW + "previous page")
-                        .build(),
-                e -> new ItemsInventory(page - 1).open((Player) e.getWhoClicked()));
+        if (page > 0)
+            setItem(getInventory().getSize() - 6,
+                    new ItemBuilder(Material.ARROW)
+                            .setAmount(page)
+                            .setDisplayName(ChatColor.YELLOW + "open page " + page)
+                            .build(),
+                    e -> new ItemsInventory(page - 1).open((Player) e.getWhoClicked()));
 
-        setItem(getInventory().getSize() - 4,
-                new ItemBuilder(Material.ARROW)
-                        .setAmount(page + 1)
-                        .setDisplayName(ChatColor.RED + "next page")
-                        .build(),
-                e -> new ItemsInventory(page + 1).open((Player) e.getWhoClicked()));
+        if (!lastPage)
+            setItem(getInventory().getSize() - 4,
+                    new ItemBuilder(Material.ARROW)
+                            .setAmount(page + 2)
+                            .setDisplayName(ChatColor.RED + "open page " + (page + 1))
+                            .build(),
+                    e -> new ItemsInventory(page + 1).open((Player) e.getWhoClicked()));
 
     }
 

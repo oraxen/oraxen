@@ -25,7 +25,10 @@ public class InventoryVisualizer implements CommandInterface {
 
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            new ItemsInventory(0).open(player);
+            if (player.hasPermission("oraxen.command.inv.view"))
+                new ItemsInventory(0).open(player);
+            else
+                Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.inv.view");
 
         } else {
             Message.NOT_A_PLAYER_ERROR.send(sender);
