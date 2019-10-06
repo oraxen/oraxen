@@ -3,13 +3,10 @@ package io.th0rgal.oraxen.commands.subcommands;
 import io.th0rgal.oraxen.commands.CommandInterface;
 import io.th0rgal.oraxen.settings.Message;
 import io.th0rgal.oraxen.utils.ItemsInventory;
-import io.th0rgal.oraxen.utils.Logs;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-
-import java.util.Arrays;
 
 public class InventoryVisualizer implements CommandInterface {
 
