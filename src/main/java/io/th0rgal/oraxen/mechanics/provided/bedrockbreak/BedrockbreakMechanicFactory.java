@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.items.mechanics.provided.bedrockbreak;
+package io.th0rgal.oraxen.mechanics.provided.bedrockbreak;
 
 import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
@@ -12,8 +12,8 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.items.mechanics.Mechanic;
-import io.th0rgal.oraxen.items.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.Mechanic;
+import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.listeners.EventsManager;
 
 import org.bukkit.*;

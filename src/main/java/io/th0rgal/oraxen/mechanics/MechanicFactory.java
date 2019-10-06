@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.items.mechanics;
+package io.th0rgal.oraxen.mechanics;
 
 import org.bukkit.configuration.ConfigurationSection;
 

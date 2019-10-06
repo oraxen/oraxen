@@ -1,8 +1,8 @@
-package io.th0rgal.oraxen.items.mechanics;
+package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.items.mechanics.provided.bedrockbreak.BedrockbreakMechanicFactory;
-import io.th0rgal.oraxen.items.mechanics.provided.durability.DurabilityMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.bedrockbreak.BedrockbreakMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;

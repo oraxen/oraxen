@@ -1,10 +1,10 @@
-package io.th0rgal.oraxen.items.mechanics.provided.durability;
+package io.th0rgal.oraxen.mechanics.provided.durability;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.items.mechanics.Mechanic;
-import io.th0rgal.oraxen.items.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.Mechanic;
+import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.items.modifiers.ItemModifier;
 import io.th0rgal.oraxen.listeners.EventsManager;
 
