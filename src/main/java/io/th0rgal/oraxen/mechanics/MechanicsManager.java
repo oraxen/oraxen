@@ -23,7 +23,7 @@ public class MechanicsManager {
         YamlConfiguration mechanicsConfig = new ResourcesManager(OraxenPlugin.get()).getMechanics();
         if (mechanicsConfig.getKeys(false).contains(mechanicID)) {
             ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicID);
-            if (mechanicsConfig.getBoolean("durability.enabled"))
+            if (factorySection.getBoolean("enabled"))
                 try {
                     MechanicFactory factory = mechanicFactoryClass.getConstructor(ConfigurationSection.class).newInstance(factorySection);
                     factoriesByMechanicID.put(mechanicID, factory);
