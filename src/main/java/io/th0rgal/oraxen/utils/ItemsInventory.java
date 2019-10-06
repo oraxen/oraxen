@@ -25,7 +25,7 @@ public class ItemsInventory extends FastInv {
             if (i >= collection.size())
                 break;
             ItemStack item = Iterables.get(collection, i).build();
-            setItem(i, item, e -> e.getWhoClicked().sendMessage("You clicked on the sword"));
+            setItem(i, item, e -> giveItem(e.getWhoClicked(), item));
         }
 
         //close item
