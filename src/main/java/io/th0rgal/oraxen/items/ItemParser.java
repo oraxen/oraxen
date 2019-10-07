@@ -21,19 +21,32 @@ import java.util.List;
 
 public class ItemParser {
 
-    ItemBuilder item;
+    private ConfigurationSection section;
+    private boolean hasCustomModelData = false;
+    private int customModelData; //item.setCustomModelData(customModelData);
+    private Material type;
 
     public ItemParser(ConfigurationSection section) {
-        this.item = new ItemBuilder(Material.getMaterial(section.getString("material")));
+        this.section = section;
+
+        if (section.contains("custom_model_data")) {
+            customModelData = section.getInt("custom_model_data");
+            hasCustomModelData = true;
+        } else if (!section.contains("inject_custom_model_data")
+                || section.getBoolean("inject_custom_model_data")) {
+            hasCustomModelData = true;
+        }
+
+    }
+
+    public ItemBuilder buildItem() {
+
+
+
+        ItemBuilder item = new ItemBuilder(Material.getMaterial(section.getString("material")));
 
         if (section.contains("durability"))
             item.setDurability((short) section.getInt("durability"));
-
-        int customModelData = -1;
-        if (section.contains("custom_model_data")) {
-            customModelData = section.getInt("custom_model_data");
-            item.setCustomModelData(customModelData);
-        }
 
         if (section.contains("displayname"))
             item.setDisplayName(ChatColor.translateAlternateColorCodes('&', section.getString("displayname")));
@@ -89,9 +102,8 @@ public class ItemParser {
             item.setPackInfos(new PackInfos(section.getConfigurationSection("Pack"), customModelData));
         }
 
-    }
 
-    public ItemBuilder buildItem() {
+
         return item;
     }
 
