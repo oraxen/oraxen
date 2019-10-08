@@ -27,14 +27,19 @@ public class OraxenItems {
             new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
         }
 
+        Map<String, ItemParser> parseMap = new LinkedHashMap<>();
         for (File file : itemsFolder.listFiles())
             if (file.getName().endsWith(".yml")) {
                 YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
                 for (String itemSectionName : config.getKeys(false)) {
                     ConfigurationSection itemSection = config.getConfigurationSection(itemSectionName);
-                    map.put(itemSectionName, new ItemParser(itemSection).buildItem());
+                    parseMap.put(itemSectionName, new ItemParser(itemSection));
                 }
             }
+        // because we must have parse all the items before building them to be able to use available models
+        for (Map.Entry<String, ItemParser> entry : parseMap.entrySet())
+            map.put(entry.getKey(), entry.getValue().buildItem());
+
     }
 
     public static String getIdByItem(ItemBuilder item) {
