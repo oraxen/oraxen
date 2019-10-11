@@ -40,7 +40,7 @@ public final class FastInvManager {
         Bukkit.getPluginManager().registerEvents(new Listener() {
 
             @EventHandler(priority = EventPriority.LOW)
-            public void onInventoryClick(InventoryClickEvent e) {
+            private void onInventoryClick(InventoryClickEvent e) {
                 if (e.getInventory().getHolder() instanceof FastInv && e.getClickedInventory() != null) {
                     FastInv inv = (FastInv) e.getInventory().getHolder();
 
@@ -57,7 +57,7 @@ public final class FastInvManager {
             }
 
             @EventHandler
-            public void onInventoryOpen(InventoryOpenEvent e) {
+            private void onInventoryOpen(InventoryOpenEvent e) {
                 if (e.getInventory().getHolder() instanceof FastInv) {
                     FastInv inv = (FastInv) e.getInventory().getHolder();
 
@@ -66,7 +66,7 @@ public final class FastInvManager {
             }
 
             @EventHandler
-            public void onInventoryClose(InventoryCloseEvent e) {
+            private void onInventoryClose(InventoryCloseEvent e) {
                 if (e.getInventory().getHolder() instanceof FastInv) {
                     FastInv inv = (FastInv) e.getInventory().getHolder();
 

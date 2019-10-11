@@ -10,7 +10,7 @@ public class PlayerListener implements Listener {
 
 
     @EventHandler
-    public void onJoin(PlayerJoinEvent e) {
+    private void onJoin(PlayerJoinEvent e) {
         if (Boolean.parseBoolean(Pack.SEND.toString()))
         ResourcePack.send(e.getPlayer());
     }
