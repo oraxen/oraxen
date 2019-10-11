@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.listeners.EventsManager;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 
-import io.th0rgal.oraxen.utils.ConfigUtils;
 import io.th0rgal.oraxen.utils.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
@@ -55,7 +54,7 @@ class BlockMechanicsManager implements Listener {
 
 class BlockMechanic extends Mechanic {
 
-    Map<ItemStack, Double> loots;
+    List<LinkedHashMap<String, Object>> loots;
     boolean defaultBreakAnimation;
 
     @SuppressWarnings("unchecked")
@@ -65,10 +64,7 @@ class BlockMechanic extends Mechanic {
         - the section used to configure the mechanic
          */
         super(mechanicFactory, section);
-        loots = new HashMap<>();
-        List<LinkedHashMap<String, Object>> lootsConfig = (List<LinkedHashMap<String, Object>>)section.getList("loots");
-        for (LinkedHashMap<String, Object> loot : lootsConfig)
-            loots.put(ConfigUtils.parseToItemStack(loot), (Double)loot.get("probability"));
+        loots = (List<LinkedHashMap<String, Object>>) section.getList("loots");
 
         if (!section.isConfigurationSection("break_animation")) {
             defaultBreakAnimation = true;
@@ -78,7 +74,7 @@ class BlockMechanic extends Mechanic {
         }
     }
 
-    public Map<ItemStack, Double> getLoots() {
+    public List<LinkedHashMap<String, Object>> getLoots() {
         return loots;
     }
 
