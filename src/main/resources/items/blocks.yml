@@ -30,5 +30,8 @@ caveblock:
     generate_model: false # because this is a block, a 2nd model pointing to specified one will be generated anyway
     model: caveblock
   Mechanics:
-    Block:
-      Loots: {caveblock: 100.0} # item_section: percentage of loot
+    block:
+      loots:
+        - {oraxen_item: caveblock, probability: 1.0} # item_section: probability of loot
+      break_animation:
+        default: true
