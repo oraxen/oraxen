@@ -51,7 +51,6 @@ class BlockMechanicsManager implements Listener {
         Logs.log("success");
     }
 
-
 }
 
 class BlockMechanic extends Mechanic {
