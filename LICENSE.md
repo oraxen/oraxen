@@ -27,8 +27,7 @@ partial or modified code from this package.
 1. Do whatever you like with the original work, as long as you keep it for yourself or have the Copyright
 Holder's permission.
 
-2. You are not allowed to redistribute full, partial or modified versions of the package, regardless of 
-whether you distribute the sources or a binary built with them
+2. You are not allowed to redistribute full, partial or modified versions of the package
 
 3. Code is provided with no warranty. You have the right (and are even encouraged) to propose improvements
-to the package.
+to the package as long as you don't use it as a way to circumvent the restrictions of the license.
