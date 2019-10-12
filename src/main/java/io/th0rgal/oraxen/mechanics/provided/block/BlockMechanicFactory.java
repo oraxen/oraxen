@@ -1,12 +1,17 @@
 package io.th0rgal.oraxen.mechanics.provided.block;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.pack.modifiers.PackFilesInjector;
+import io.th0rgal.oraxen.pack.modifiers.PackModifier;
+import io.th0rgal.oraxen.pack.ResourcePack;
+import io.th0rgal.oraxen.utils.Utils;
 
-import io.th0rgal.oraxen.pack.PackModifier;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -28,7 +33,27 @@ public class BlockMechanicFactory extends MechanicFactory {
 
     public BlockMechanicFactory(ConfigurationSection section) {
         super(section);
+
+        ResourcePack.addModifiers(getPackModifiers());
         MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicsManager(this));
+    }
+
+    private PackModifier[] getPackModifiers() {
+        JsonObject mushroomStem = new JsonObject();
+        JsonArray multipart = new JsonArray();
+        JsonObject content = new JsonObject();
+        JsonObject model = new JsonObject();
+        model.addProperty("model", "mushroom_stem");
+        content.add("apply", model);
+        content.add("when", Utils.getBlockstateWhenFields(15));
+        multipart.add(content);
+        mushroomStem.add("multipart", multipart);
+
+        return new PackModifier[]{
+                new PackFilesInjector(
+                        new File("blockstates"),
+                        "mushroom_stem.json",
+                        mushroomStem.toString())};
     }
 
     @Override
@@ -40,13 +65,6 @@ public class BlockMechanicFactory extends MechanicFactory {
 
 }
 
-class NewBlocksPackModifier extends PackModifier {
-
-    @Override
-    public void update(File packDirectoy) {
-
-    }
-}
 
 class BlockMechanicsManager implements Listener {
 

@@ -2,18 +2,18 @@ package io.th0rgal.oraxen.pack;
 
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.pack.modifiers.PackModifier;
 import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import io.th0rgal.oraxen.utils.NMS;
 
+import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.ZipUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -77,7 +77,7 @@ public class ResourcePack {
             ItemBuilder item = entry.getValue();
             if (item.hasPackInfos()) {
                 if (item.getPackInfos().shouldGenerateModel()) {
-                    writeStringToFile(
+                    Utils.writeStringToFile(
                             new File(modelsFolder, item.getPackInfos().getModelName() + ".json"),
                             new ModelGenerator(item.getPackInfos()).getJson().toString());
                 }
@@ -107,8 +107,9 @@ public class ResourcePack {
             ZipUtils.getFilesInFolder(packFolder, rootFolder, packFolder.getName() + ".zip");
 
             List<File> subfolders = new ArrayList<>();
-            ZipUtils.getAllFiles(texturesFolder, subfolders);
-            ZipUtils.getAllFiles(modelsFolder, subfolders);
+            for (File folder : packFolder.listFiles())
+                if (folder.isDirectory())
+                    ZipUtils.getAllFiles(folder, subfolders);
 
             Map<String, List<File>> fileListByZipDirectory = new HashMap<>();
             fileListByZipDirectory.put("assets/minecraft", subfolders);
@@ -131,21 +132,13 @@ public class ResourcePack {
             itemsFolder.mkdirs();
         for (Map.Entry<Material, List<ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
             PredicatesGenerator predicatesGenerator = new PredicatesGenerator(texturedItemsEntry.getKey(), texturedItemsEntry.getValue());
-            writeStringToFile(
+            Utils.writeStringToFile(
                     new File(modelsFolder, predicatesGenerator.getVanillaModelName(texturedItemsEntry.getKey()) + ".json"),
                     predicatesGenerator.toJSON().toString());
         }
     }
 
-    private static void writeStringToFile(File file, String content) {
-        try {
-            BufferedWriter writer = new BufferedWriter(new FileWriter(file));
-            writer.write(content);
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+
 
     public static void send(Player player) {
         Class<?> PacketClass = NMS.PACKET_PLAY_OUT_RESOURCE_PACK_SEND.toClass();
