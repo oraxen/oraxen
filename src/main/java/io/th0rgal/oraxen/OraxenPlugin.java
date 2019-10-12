@@ -37,7 +37,6 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     public void onEnable() {
-        this.saveConfig();
         MechanicsManager.registerNativeMechanics();
         OraxenItems.loadItems(this);
         ResourcePack.generate(this);
