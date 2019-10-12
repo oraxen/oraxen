@@ -14,8 +14,8 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.listeners.EventsManager;
 
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
@@ -40,7 +40,7 @@ public class BedrockbreakMechanicFactory extends MechanicFactory {
         super(section);
         disabledOnFirstLayer = section.getBoolean("disable_on_first_layer");
         durabilityCost = section.getInt("durability_cost");
-        new EventsManager(OraxenPlugin.get()).addEvents(new BedrockbreakMechanicsManager(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new BedrockbreakMechanicsManager(this));
     }
 
     @Override

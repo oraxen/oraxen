@@ -6,8 +6,8 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.items.modifiers.ItemModifier;
-import io.th0rgal.oraxen.listeners.EventsManager;
 
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
@@ -24,7 +24,7 @@ public class DurabilityMechanicFactory extends MechanicFactory {
 
     public DurabilityMechanicFactory(ConfigurationSection section) {
         super(section);
-        new EventsManager(OraxenPlugin.get()).addEvents(new DurabilityMechanicsManager(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new DurabilityMechanicsManager(this));
     }
 
     @Override

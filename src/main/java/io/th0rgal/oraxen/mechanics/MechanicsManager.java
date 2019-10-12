@@ -5,8 +5,12 @@ import io.th0rgal.oraxen.mechanics.provided.bedrockbreak.BedrockbreakMechanicFac
 import io.th0rgal.oraxen.mechanics.provided.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.settings.ResourcesManager;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.*;
@@ -33,6 +37,19 @@ public class MechanicsManager {
                     e.printStackTrace();
                 }
         }
+    }
+
+    private static List<Listener> mechanicsListeners = new ArrayList<>();
+    public static void registerListeners(JavaPlugin plugin, Listener... listeners) {
+        for (Listener listener : listeners) {
+            Bukkit.getPluginManager().registerEvents(listener, plugin);
+            mechanicsListeners.add(listener);
+        }
+    }
+
+    public static void unloadListeners() {
+        for (Listener listener : mechanicsListeners)
+            HandlerList.unregisterAll(listener);
     }
 
     public static MechanicFactory getMechanicFactory(String mechanicID) {

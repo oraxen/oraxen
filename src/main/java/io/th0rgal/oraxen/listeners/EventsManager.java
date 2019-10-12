@@ -12,26 +12,14 @@ public class EventsManager {
 
     private Plugin plugin;
     private PluginManager pluginManager;
-    private static Set<Listener> customListeners = new HashSet<>();
 
     public EventsManager(Plugin plugin) {
         this.plugin = plugin;
         pluginManager = Bukkit.getPluginManager();
     }
 
-    private void registerNativeEvents() {
+    public void registerNativeEvents() {
         pluginManager.registerEvents(new PlayerListener(), plugin);
         pluginManager.registerEvents(new RecipesBuilderEvents(), plugin);
     }
-
-    public void addEvents(Listener... listeners) {
-        customListeners.addAll(Arrays.asList(listeners));
-    }
-
-    public void registerEvents() {
-        registerNativeEvents();
-        for (Listener listener : customListeners)
-            pluginManager.registerEvents(listener, plugin);
-    }
-
 }

@@ -2,10 +2,10 @@ package io.th0rgal.oraxen.mechanics.provided.block;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.listeners.EventsManager;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
@@ -20,7 +20,7 @@ public class BlockMechanicFactory extends MechanicFactory {
 
     public BlockMechanicFactory(ConfigurationSection section) {
         super(section);
-        new EventsManager(OraxenPlugin.get()).addEvents(new BlockMechanicsManager(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicsManager(this));
     }
 
     @Override

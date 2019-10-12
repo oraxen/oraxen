@@ -44,7 +44,7 @@ public class OraxenPlugin extends JavaPlugin {
         FastInvManager.register(this);
         registerCommands();
         Logs.log(ChatColor.GREEN + "Successfully loaded");
-        new EventsManager(this).registerEvents();
+        new EventsManager(this).registerNativeEvents();
     }
 
     public void onDisable() {
