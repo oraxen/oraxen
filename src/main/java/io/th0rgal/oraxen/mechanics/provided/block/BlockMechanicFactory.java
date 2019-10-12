@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 
+import io.th0rgal.oraxen.pack.PackModifier;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
@@ -20,6 +21,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.File;
 import java.util.*;
 
 public class BlockMechanicFactory extends MechanicFactory {
@@ -38,6 +40,14 @@ public class BlockMechanicFactory extends MechanicFactory {
 
 }
 
+class NewBlocksPackModifier extends PackModifier {
+
+    @Override
+    public void update(File packDirectoy) {
+
+    }
+}
+
 class BlockMechanicsManager implements Listener {
 
     private MechanicFactory factory;
@@ -50,7 +60,7 @@ class BlockMechanicsManager implements Listener {
     private void onPlacingCustomBlock(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
-        
+
         ItemStack item = event.getItem();
         String itemID = OraxenItems.getIdByItem(item);
         if (factory.isNotImplementedIn(itemID))

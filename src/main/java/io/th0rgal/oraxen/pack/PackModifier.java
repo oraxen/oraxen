@@ -4,8 +4,6 @@ import java.io.File;
 
 public abstract class PackModifier {
 
-    protected File packDirectoy;
-
     public abstract void update(File packDirectoy);
 
 }
