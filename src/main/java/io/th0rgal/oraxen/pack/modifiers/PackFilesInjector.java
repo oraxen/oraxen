@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.pack.modifiers;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.Utils;
 
 import java.io.File;
@@ -23,13 +24,16 @@ public class PackFilesInjector extends PackModifier {
         this.contentByFiles = contentByFiles;
     }
 
-    public PackFilesInjector(File folder, String fileName, String content) {
+    public PackFilesInjector(String folderName, String fileName, String content) {
+        File folder = new File(OraxenPlugin.get().getDataFolder(), folderName);
         if (!folder.exists())
             folder.mkdirs();
+        contentByFiles = new HashMap<>();
         contentByFiles.put(new File(folder, fileName), content);
     }
 
     public PackFilesInjector(File file, String content) {
+        contentByFiles = new HashMap<>();
         contentByFiles.put(file, content);
     }
 

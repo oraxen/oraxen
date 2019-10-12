@@ -56,7 +56,6 @@ public class PredicatesGenerator {
         return "item/" + material
                 .toString()
                 .toLowerCase();
-
     }
 
     String[] tools = new String[]{"PICKAXE", "SWORD", "HOE", "AXE", "SHOVEL"};

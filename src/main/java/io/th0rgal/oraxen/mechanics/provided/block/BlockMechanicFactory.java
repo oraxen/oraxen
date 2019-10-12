@@ -26,7 +26,6 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.io.File;
 import java.util.*;
 
 public class BlockMechanicFactory extends MechanicFactory {
@@ -51,7 +50,7 @@ public class BlockMechanicFactory extends MechanicFactory {
 
         return new PackModifier[]{
                 new PackFilesInjector(
-                        new File("blockstates"),
+                        "pack/blockstates",
                         "mushroom_stem.json",
                         mushroomStem.toString())};
     }
@@ -64,7 +63,6 @@ public class BlockMechanicFactory extends MechanicFactory {
     }
 
 }
-
 
 class BlockMechanicsManager implements Listener {
 
