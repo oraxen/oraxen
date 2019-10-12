@@ -4,13 +4,18 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.utils.Logs;
+
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -41,13 +46,36 @@ class BlockMechanicsManager implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    private void onPlayerPlacesCustomBlock(PlayerInteractEvent event) {
+    private void onPlacingCustomBlock(PlayerInteractEvent event) {
         ItemStack item = event.getItem();
         String itemID = OraxenItems.getIdByItem(item);
         if (factory.isNotImplementedIn(itemID))
             return;
 
-        Logs.log("success");
+        Player player = event.getPlayer();
+        Block placedAgainst = event.getClickedBlock();
+        Block target;
+        Material type = placedAgainst.getType();
+        if (!type.equals(Material.SNOW)
+                && !type.equals(Material.GRASS_BLOCK)
+                && !type.equals(Material.VINE)
+                && !type.equals(Material.TALL_GRASS))
+            target = placedAgainst.getRelative(event.getBlockFace());
+        else
+            target = placedAgainst;
+
+        BlockPlaceEvent blockBreakEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, event.getHand());
+        Bukkit.getPluginManager().callEvent(blockBreakEvent);
+
+        if (target.getLocation().distance(player.getLocation()) > 1 && target.getLocation().distance(player.getLocation()) > 1) {
+            if (blockBreakEvent.canBuild() && !blockBreakEvent.isCancelled()) {
+
+                event.setCancelled(true);
+                target.setType(Material.BROWN_TERRACOTTA);
+                if (!player.getGameMode().equals(GameMode.CREATIVE))
+                    item.setAmount(item.getAmount() - 1);
+            }
+        }
     }
 
 }
