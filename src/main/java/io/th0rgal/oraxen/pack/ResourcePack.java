@@ -25,6 +25,7 @@ import java.util.zip.ZipInputStream;
 public class ResourcePack {
 
     private static File modelsFolder;
+    private static List<PackModifier> packModifiers = new ArrayList<>();
 
     public static void generate(JavaPlugin plugin) {
 
@@ -97,6 +98,8 @@ public class ResourcePack {
             }
         }
         generatePredicates(texturedItems);
+        for (PackModifier packModifier : packModifiers)
+            packModifier.update(packFolder);
 
         //zipping resourcepack
         try {
@@ -116,6 +119,10 @@ public class ResourcePack {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public static void addModifiers(PackModifier... modifiers) {
+        packModifiers.addAll(Arrays.asList(modifiers));
     }
 
     private static void generatePredicates(Map<Material, List<ItemBuilder>> texturedItems) {
