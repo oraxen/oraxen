@@ -16,10 +16,11 @@ import java.util.*;
 public class OraxenItems {
 
     //configuration sections : their OraxenItem wrapper
-    private static Map<String, ItemBuilder> map = new LinkedHashMap<>();
+    private static Map<String, ItemBuilder> map;
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
 
     public static void loadItems(JavaPlugin plugin) {
+        map = new LinkedHashMap<>();
 
         File itemsFolder = new File(plugin.getDataFolder(), "items");
         if (!itemsFolder.exists()) {

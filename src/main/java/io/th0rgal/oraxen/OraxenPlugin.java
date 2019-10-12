@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.commands.subcommands.Give;
 import io.th0rgal.oraxen.commands.subcommands.InventoryVisualizer;
 import io.th0rgal.oraxen.commands.subcommands.Recipes;
 import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.listeners.EventsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
@@ -48,6 +49,8 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     public void onDisable() {
+        MechanicsManager.unloadListeners();
+
         Logs.log(ChatColor.GREEN + "Successfully unloaded");
     }
 
