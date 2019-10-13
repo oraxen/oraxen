@@ -1,16 +1,19 @@
 package io.th0rgal.oraxen.mechanics;
 
-import io.th0rgal.oraxen.items.modifiers.ItemModifier;
+import io.th0rgal.oraxen.items.ItemBuilder;
+
 import org.bukkit.configuration.ConfigurationSection;
+import java.util.function.Function;
 
 public abstract class Mechanic {
 
     private MechanicFactory mechanicFactory;
     private ConfigurationSection section;
-    private ItemModifier[] itemModifiers;
+    private Function<ItemBuilder, ItemBuilder>[] itemModifiers;
     private String itemID;
 
-    public Mechanic(MechanicFactory mechanicFactory, ConfigurationSection section, ItemModifier... modifiers) {
+    @SafeVarargs
+    public Mechanic(MechanicFactory mechanicFactory, ConfigurationSection section, Function<ItemBuilder, ItemBuilder>... modifiers) {
         this.mechanicFactory = mechanicFactory;
         this.section = section;
         this.itemModifiers = modifiers;
@@ -21,7 +24,7 @@ public abstract class Mechanic {
         return itemID;
     }
 
-    public ItemModifier[] getItemModifiers() {
+    public Function<ItemBuilder, ItemBuilder>[] getItemModifiers() {
         return itemModifiers;
     }
 

@@ -138,8 +138,6 @@ public class ResourcePack {
         }
     }
 
-
-
     public static void send(Player player) {
         Class<?> PacketClass = NMS.PACKET_PLAY_OUT_RESOURCE_PACK_SEND.toClass();
         try {
