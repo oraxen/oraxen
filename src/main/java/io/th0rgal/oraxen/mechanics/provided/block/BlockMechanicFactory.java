@@ -7,8 +7,6 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.pack.modifiers.PackFilesInjector;
-import io.th0rgal.oraxen.pack.modifiers.PackModifier;
 import io.th0rgal.oraxen.pack.ResourcePack;
 import io.th0rgal.oraxen.utils.Utils;
 
@@ -26,18 +24,20 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.File;
 import java.util.*;
+import java.util.function.Consumer;
 
 public class BlockMechanicFactory extends MechanicFactory {
 
     public BlockMechanicFactory(ConfigurationSection section) {
         super(section);
 
-        ResourcePack.addModifiers(getPackModifiers());
+        ResourcePack.addModifiers(getPackModifier());
         MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicsManager(this));
     }
 
-    private PackModifier[] getPackModifiers() {
+    private Consumer<File> getPackModifier() {
         JsonObject mushroomStem = new JsonObject();
         JsonArray multipart = new JsonArray();
         JsonObject content = new JsonObject();
@@ -48,11 +48,14 @@ public class BlockMechanicFactory extends MechanicFactory {
         multipart.add(content);
         mushroomStem.add("multipart", multipart);
 
-        return new PackModifier[]{
-                new PackFilesInjector(
-                        "pack/blockstates",
-                        "mushroom_stem.json",
-                        mushroomStem.toString())};
+        Utils.writeStringToFile(new File(OraxenPlugin.get().getDataFolder(),
+                "pack/blockstates/mushroom_stem.json"), mushroomStem.toString());
+
+        return packFolder -> {
+            File file = new File(packFolder, "blockstates/mushroom_stem.json");
+            Utils.writeStringToFile(file, mushroomStem.toString());
+        };
+
     }
 
     @Override
