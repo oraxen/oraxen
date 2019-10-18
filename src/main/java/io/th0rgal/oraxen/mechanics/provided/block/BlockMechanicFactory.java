@@ -26,18 +26,26 @@ import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.util.*;
-import java.util.function.Consumer;
 
 public class BlockMechanicFactory extends MechanicFactory {
 
+    private static JsonObject mushroomStemBlockstate;
+
     public BlockMechanicFactory(ConfigurationSection section) {
         super(section);
-
-        ResourcePack.addModifiers(getPackModifier());
+        mushroomStemBlockstate = getDefaultBlockstate();
+        ResourcePack.addModifiers(packFolder -> {
+            File file = new File(packFolder, "blockstates/mushroom_stem.json");
+            Utils.writeStringToFile(file, mushroomStemBlockstate.toString());
+        });
         MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicsManager(this));
     }
 
-    private Consumer<File> getPackModifier() {
+    public static void addBlock(ConfigurationSection mechanicSection) {
+        
+    }
+
+    private JsonObject getDefaultBlockstate() {
         JsonObject mushroomStem = new JsonObject();
         JsonArray multipart = new JsonArray();
         JsonObject content = new JsonObject();
@@ -47,15 +55,7 @@ public class BlockMechanicFactory extends MechanicFactory {
         content.add("when", Utils.getBlockstateWhenFields(15));
         multipart.add(content);
         mushroomStem.add("multipart", multipart);
-
-        Utils.writeStringToFile(new File(OraxenPlugin.get().getDataFolder(),
-                "pack/blockstates/mushroom_stem.json"), mushroomStem.toString());
-
-        return packFolder -> {
-            File file = new File(packFolder, "blockstates/mushroom_stem.json");
-            Utils.writeStringToFile(file, mushroomStem.toString());
-        };
-
+        return mushroomStem;
     }
 
     @Override
