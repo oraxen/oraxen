@@ -55,6 +55,8 @@ public class BlockMechanicsListener implements Listener {
         if (target.getLocation().distance(player.getLocation()) > 1 && target.getLocation().distance(player.getLocation()) > 1) {
             if (blockBreakEvent.canBuild() && !blockBreakEvent.isCancelled()) {
 
+                String[] properties = new String[]{"EAST", "WEST", "SOUTH", "NORTH", "DOWN", "UP"};
+
                 event.setCancelled(true);
                 MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(Material.MUSHROOM_STEM);
                 Logs.log("face" + newBlockData.getFaces());
