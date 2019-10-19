@@ -2,10 +2,14 @@ package io.th0rgal.oraxen.mechanics.provided.block;
 
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -52,7 +56,15 @@ public class BlockMechanicsListener implements Listener {
             if (blockBreakEvent.canBuild() && !blockBreakEvent.isCancelled()) {
 
                 event.setCancelled(true);
-                target.setType(Material.BROWN_TERRACOTTA);
+                MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(Material.MUSHROOM_STEM);
+                Logs.log("face" + newBlockData.getFaces());
+                newBlockData.setFace(BlockFace.UP, false);
+                newBlockData.setFace(BlockFace.DOWN, false);
+                newBlockData.setFace(BlockFace.NORTH, false);
+                newBlockData.setFace(BlockFace.SOUTH, false);
+                newBlockData.setFace(BlockFace.WEST, false);
+                newBlockData.setFace(BlockFace.EAST, true);
+                target.setBlockData(newBlockData);
                 if (!player.getGameMode().equals(GameMode.CREATIVE))
                     item.setAmount(item.getAmount() - 1);
             }
