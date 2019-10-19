@@ -42,7 +42,6 @@ public class BlockMechanicFactory extends MechanicFactory {
         multipart.add(getBlockstateOverride("mushroom_stem", 15));
         for (JsonObject override : mushroomStemBlockstateOverrides)
             multipart.add(override);
-        Logs.log(multipart.toString());
         mushroomStem.add("multipart", multipart);
         return mushroomStem.toString();
     }
@@ -61,7 +60,6 @@ public class BlockMechanicFactory extends MechanicFactory {
         BlockMechanic mechanic = new BlockMechanic(this, itemMechanicConfiguration);
         mushroomStemBlockstateOverrides.add
                 (getBlockstateOverride(mechanic.getModel(), mechanic.getCustomVariation()));
-        Logs.log("new mushroom stem:" + mushroomStemBlockstateOverrides.toString());
         addToImplemented(mechanic);
         return mechanic;
     }
