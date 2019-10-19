@@ -27,7 +27,6 @@ public class BlockMechanicFactory extends MechanicFactory {
             File blockstatesFolder = new File(packFolder, "blockstates");
             if (!blockstatesFolder.exists())
                 blockstatesFolder.mkdirs();
-            Logs.log("used blockstates:" + getBlockstateContent());
             File file = new File(blockstatesFolder, "mushroom_stem.json");
             Utils.writeStringToFile(file, getBlockstateContent());
         });
