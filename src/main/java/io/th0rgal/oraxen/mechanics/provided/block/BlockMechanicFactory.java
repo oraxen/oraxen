@@ -42,7 +42,7 @@ public class BlockMechanicFactory extends MechanicFactory {
     }
 
     public static void addBlock(ConfigurationSection mechanicSection) {
-        
+
     }
 
     private JsonObject getDefaultBlockstate() {
