@@ -24,8 +24,8 @@
 
 caveblock:
   displayname: "&7Cave Block"
-  material: WOODEN_HOE
-  custom_model_data: 7
+  material: DIAMOND
+  custom_model_data: 2
   Pack:
     generate_model: false # because this is a block, a 2nd model pointing to specified one will be generated anyway
     model: caveblock
