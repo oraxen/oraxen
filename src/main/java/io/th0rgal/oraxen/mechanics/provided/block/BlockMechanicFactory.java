@@ -27,21 +27,12 @@ public class BlockMechanicFactory extends MechanicFactory {
             File blockstatesFolder = new File(packFolder, "blockstates");
             if (!blockstatesFolder.exists())
                 blockstatesFolder.mkdirs();
-            Logs.log("used blockstates:" + mushroomStemBlockstateOverrides);
+            Logs.log("used blockstates:" + getBlockstateContent());
             File file = new File(blockstatesFolder, "mushroom_stem.json");
             Utils.writeStringToFile(file, getBlockstateContent());
         });
 
         MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicsManager(this));
-    }
-
-    public static JsonObject getBlockstateOverride(String modelName, int when) {
-        JsonObject content = new JsonObject();
-        JsonObject model = new JsonObject();
-        model.addProperty("model", modelName);
-        content.add("apply", model);
-        content.add("when", Utils.getBlockstateWhenFields(when));
-        return content;
     }
 
     private String getBlockstateContent() {
@@ -54,6 +45,15 @@ public class BlockMechanicFactory extends MechanicFactory {
         Logs.log(multipart.toString());
         mushroomStem.add("multipart", multipart);
         return mushroomStem.toString();
+    }
+
+    public static JsonObject getBlockstateOverride(String modelName, int when) {
+        JsonObject content = new JsonObject();
+        JsonObject model = new JsonObject();
+        model.addProperty("model", modelName);
+        content.add("apply", model);
+        content.add("when", Utils.getBlockstateWhenFields(when));
+        return content;
     }
 
     @Override
