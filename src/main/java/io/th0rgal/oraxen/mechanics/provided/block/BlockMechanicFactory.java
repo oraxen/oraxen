@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.ResourcePack;
+import io.th0rgal.oraxen.utils.Logs;
 import io.th0rgal.oraxen.utils.Utils;
 
 import org.bukkit.Bukkit;
@@ -122,35 +123,4 @@ class BlockMechanicsManager implements Listener {
         }
     }
 
-}
-
-class BlockMechanic extends Mechanic {
-
-    List<LinkedHashMap<String, Object>> loots;
-    boolean defaultBreakAnimation;
-
-    @SuppressWarnings("unchecked")
-    public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
-        /* We give:
-        - an instance of the Factory which created the mechanic
-        - the section used to configure the mechanic
-         */
-        super(mechanicFactory, section);
-        loots = (List<LinkedHashMap<String, Object>>) section.getList("loots");
-
-        if (!section.isConfigurationSection("break_animation")) {
-            defaultBreakAnimation = true;
-        } else {
-            ConfigurationSection breakAnimation = section.getConfigurationSection("break_animation");
-            defaultBreakAnimation = !breakAnimation.isBoolean("default") || breakAnimation.getBoolean("default");
-        }
-    }
-
-    public List<LinkedHashMap<String, Object>> getLoots() {
-        return loots;
-    }
-
-    public boolean isDefaultBreakAnimation() {
-        return defaultBreakAnimation;
-    }
 }
