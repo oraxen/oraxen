@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.items.modifiers.ItemModifier;
 
 import io.th0rgal.oraxen.utils.Logs;
 import org.bukkit.ChatColor;
@@ -19,6 +18,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.*;
 import java.util.List;
+import java.util.function.Function;
 
 class ModelData {
 
@@ -153,8 +153,8 @@ public class ItemParser {
                 if (factory != null) {
                     Mechanic mechanic = factory.parse(mechanicsSection.getConfigurationSection(mechanicID));
                     // Apply item modifiers
-                    for (ItemModifier itemModifier : mechanic.getItemModifiers())
-                        item = itemModifier.getItem(item);
+                    for (Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers())
+                        item = itemModifier.apply(item);
                 }
             }
         }

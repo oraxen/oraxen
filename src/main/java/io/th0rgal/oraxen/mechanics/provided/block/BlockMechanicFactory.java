@@ -7,8 +7,6 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.pack.modifiers.PackFilesInjector;
-import io.th0rgal.oraxen.pack.modifiers.PackModifier;
 import io.th0rgal.oraxen.pack.ResourcePack;
 import io.th0rgal.oraxen.utils.Utils;
 
@@ -26,18 +24,28 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.File;
 import java.util.*;
 
 public class BlockMechanicFactory extends MechanicFactory {
 
+    private static JsonObject mushroomStemBlockstate;
+
     public BlockMechanicFactory(ConfigurationSection section) {
         super(section);
-
-        ResourcePack.addModifiers(getPackModifiers());
+        mushroomStemBlockstate = getDefaultBlockstate();
+        ResourcePack.addModifiers(packFolder -> {
+            File file = new File(packFolder, "blockstates/mushroom_stem.json");
+            Utils.writeStringToFile(file, mushroomStemBlockstate.toString());
+        });
         MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicsManager(this));
     }
 
-    private PackModifier[] getPackModifiers() {
+    public static void addBlock(ConfigurationSection mechanicSection) {
+
+    }
+
+    private JsonObject getDefaultBlockstate() {
         JsonObject mushroomStem = new JsonObject();
         JsonArray multipart = new JsonArray();
         JsonObject content = new JsonObject();
@@ -47,12 +55,7 @@ public class BlockMechanicFactory extends MechanicFactory {
         content.add("when", Utils.getBlockstateWhenFields(15));
         multipart.add(content);
         mushroomStem.add("multipart", multipart);
-
-        return new PackModifier[]{
-                new PackFilesInjector(
-                        "pack/blockstates",
-                        "mushroom_stem.json",
-                        mushroomStem.toString())};
+        return mushroomStem;
     }
 
     @Override

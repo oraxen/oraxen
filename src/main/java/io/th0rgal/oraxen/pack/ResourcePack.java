@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.pack;
 
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.pack.modifiers.PackModifier;
 import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import io.th0rgal.oraxen.utils.NMS;
@@ -19,13 +18,14 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
 import java.util.*;
+import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class ResourcePack {
 
     private static File modelsFolder;
-    private static List<PackModifier> packModifiers = new ArrayList<>();
+    private static List<Consumer<File>> packModifiers = new ArrayList<>();
 
     public static void generate(JavaPlugin plugin) {
 
@@ -98,8 +98,8 @@ public class ResourcePack {
             }
         }
         generatePredicates(texturedItems);
-        for (PackModifier packModifier : packModifiers)
-            packModifier.update(packFolder);
+        for (Consumer<File> packModifier : packModifiers)
+            packModifier.accept(packFolder);
 
         //zipping resourcepack
         try {
@@ -122,7 +122,8 @@ public class ResourcePack {
         }
     }
 
-    public static void addModifiers(PackModifier... modifiers) {
+    @SafeVarargs
+    public static void addModifiers(Consumer<File>... modifiers) {
         packModifiers.addAll(Arrays.asList(modifiers));
     }
 
@@ -137,8 +138,6 @@ public class ResourcePack {
                     predicatesGenerator.toJSON().toString());
         }
     }
-
-
 
     public static void send(Player player) {
         Class<?> PacketClass = NMS.PACKET_PLAY_OUT_RESOURCE_PACK_SEND.toClass();
