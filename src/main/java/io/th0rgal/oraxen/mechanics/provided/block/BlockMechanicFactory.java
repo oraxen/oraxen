@@ -29,33 +29,41 @@ import java.util.*;
 
 public class BlockMechanicFactory extends MechanicFactory {
 
-    private static JsonObject mushroomStemBlockstate;
+    private static List<JsonObject> mushroomStemBlockstateOverrides = new ArrayList<>();
 
     public BlockMechanicFactory(ConfigurationSection section) {
         super(section);
-        mushroomStemBlockstate = getDefaultBlockstate();
         ResourcePack.addModifiers(packFolder -> {
             File file = new File(packFolder, "blockstates/mushroom_stem.json");
-            Utils.writeStringToFile(file, mushroomStemBlockstate.toString());
+            Utils.writeStringToFile(file, getBlockstateContent());
         });
         MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicsManager(this));
     }
 
     public static void addBlock(ConfigurationSection mechanicSection) {
-
+        // todo: use the itemstack model if block model isn't set
+        mushroomStemBlockstateOverrides.add(getBlockstateOverride(mechanicSection.getString("model"),
+                mechanicSection.getInt("custom_variation")));
     }
 
-    private JsonObject getDefaultBlockstate() {
-        JsonObject mushroomStem = new JsonObject();
-        JsonArray multipart = new JsonArray();
+    public static JsonObject getBlockstateOverride(String modelName, int when) {
         JsonObject content = new JsonObject();
         JsonObject model = new JsonObject();
-        model.addProperty("model", "mushroom_stem");
+        model.addProperty("model", modelName);
         content.add("apply", model);
-        content.add("when", Utils.getBlockstateWhenFields(15));
-        multipart.add(content);
+        content.add("when", Utils.getBlockstateWhenFields(when));
+        return content;
+    }
+
+    private String getBlockstateContent() {
+        JsonObject mushroomStem = new JsonObject();
+        JsonArray multipart = new JsonArray();
+        //adds default override
+        multipart.add(getBlockstateOverride("mushroom_stem", 15));
+        for (JsonObject override : mushroomStemBlockstateOverrides)
+            multipart.add(override);
         mushroomStem.add("multipart", multipart);
-        return mushroomStem;
+        return mushroomStem.toString();
     }
 
     @Override
