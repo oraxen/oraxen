@@ -40,13 +40,14 @@ public class BlockMechanicsListener implements Listener {
         Block placedAgainst = event.getClickedBlock();
         Block target;
         Material type = placedAgainst.getType();
-        if (!type.equals(Material.SNOW)
-                && !type.equals(Material.GRASS_BLOCK)
-                && !type.equals(Material.VINE)
-                && !type.equals(Material.TALL_GRASS))
-            target = placedAgainst.getRelative(event.getBlockFace());
-        else
+        if (type.equals(Material.SNOW)
+                || type.equals(Material.VINE)
+                || type.equals(Material.GRASS)
+                || type.equals(Material.TALL_GRASS)
+                || type.equals(Material.SEAGRASS))
             target = placedAgainst;
+        else
+            target = placedAgainst.getRelative(event.getBlockFace());
 
         BlockPlaceEvent blockBreakEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, event.getHand());
         Bukkit.getPluginManager().callEvent(blockBreakEvent);
