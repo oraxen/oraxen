@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.ResourcePack;
-import io.th0rgal.oraxen.utils.Logs;
 import io.th0rgal.oraxen.utils.Utils;
 
 import org.bukkit.configuration.ConfigurationSection;
@@ -21,7 +20,6 @@ public class BlockMechanicFactory extends MechanicFactory {
 
     public BlockMechanicFactory(ConfigurationSection section) {
         super(section);
-
         // this modifier should be executed when all the items have been parsed, just before zipping the pack
         ResourcePack.addModifiers(packFolder -> {
             File blockstatesFolder = new File(packFolder, "blockstates");
@@ -30,8 +28,7 @@ public class BlockMechanicFactory extends MechanicFactory {
             File file = new File(blockstatesFolder, "mushroom_stem.json");
             Utils.writeStringToFile(file, getBlockstateContent());
         });
-
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicsManager(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicsListener(this));
     }
 
     private String getBlockstateContent() {

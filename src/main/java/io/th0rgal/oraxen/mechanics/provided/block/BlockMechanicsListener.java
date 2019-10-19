@@ -15,11 +15,11 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
-public class BlockMechanicsManager implements Listener {
+public class BlockMechanicsListener implements Listener {
 
     private MechanicFactory factory;
 
-    public BlockMechanicsManager(BlockMechanicFactory factory) {
+    public BlockMechanicsListener(BlockMechanicFactory factory) {
         this.factory = factory;
     }
 
