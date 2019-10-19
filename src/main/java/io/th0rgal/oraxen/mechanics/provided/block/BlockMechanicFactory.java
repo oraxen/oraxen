@@ -34,7 +34,10 @@ public class BlockMechanicFactory extends MechanicFactory {
     public BlockMechanicFactory(ConfigurationSection section) {
         super(section);
         ResourcePack.addModifiers(packFolder -> {
-            File file = new File(packFolder, "blockstates/mushroom_stem.json");
+            File blockstatesFolder = new File(packFolder, "blockstates");
+            if (!blockstatesFolder.exists())
+                blockstatesFolder.mkdirs();
+            File file = new File(blockstatesFolder, "mushroom_stem.json");
             Utils.writeStringToFile(file, getBlockstateContent());
         });
         MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicsManager(this));
