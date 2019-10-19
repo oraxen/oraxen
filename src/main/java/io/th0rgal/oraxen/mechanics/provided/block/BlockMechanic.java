@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.block;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.utils.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.LinkedHashMap;
@@ -10,8 +9,10 @@ import java.util.List;
 
 public class BlockMechanic extends Mechanic {
 
-    List<LinkedHashMap<String, Object>> loots;
-    boolean defaultBreakAnimation;
+    private List<LinkedHashMap<String, Object>> loots;
+    private boolean defaultBreakAnimation;
+    private String model;
+    private int customVariation;
 
     @SuppressWarnings("unchecked")
     public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -20,8 +21,7 @@ public class BlockMechanic extends Mechanic {
         - the section used to configure the mechanic
          */
         super(mechanicFactory, section);
-        Logs.log("test");
-        loots = (List<LinkedHashMap<String, Object>>) section.getList("loots");
+        this.loots = (List<LinkedHashMap<String, Object>>) section.getList("loots");
 
         if (!section.isConfigurationSection("break_animation")) {
             defaultBreakAnimation = true;
@@ -29,6 +29,18 @@ public class BlockMechanic extends Mechanic {
             ConfigurationSection breakAnimation = section.getConfigurationSection("break_animation");
             defaultBreakAnimation = !breakAnimation.isBoolean("default") || breakAnimation.getBoolean("default");
         }
+
+        // todo: use the itemstack model if block model isn't set
+        this.model = section.getString("model");
+        this.customVariation = section.getInt("custom_variation");
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public int getCustomVariation() {
+        return customVariation;
     }
 
     public List<LinkedHashMap<String, Object>> getLoots() {
