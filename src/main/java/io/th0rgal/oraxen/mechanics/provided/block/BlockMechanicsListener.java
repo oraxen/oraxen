@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.mechanics.provided.block;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.utils.Logs;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -17,13 +16,9 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockCanBuildEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
