@@ -17,11 +17,13 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.block.BlockCanBuildEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitScheduler;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
@@ -33,6 +35,23 @@ public class BlockMechanicsListener implements Listener {
         this.factory = factory;
     }
 
+    //todo: improve performances
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    private void onPlacingMushroomBlock(BlockPlaceEvent event) {
+
+        if (event.getBlockPlaced().getType() != Material.MUSHROOM_STEM
+                || OraxenItems.isAnItem(OraxenItems.getIdByItem(event.getItemInHand())))
+            return;
+
+        Set<Block> browseStartingPoint = new HashSet<>();
+        browseStartingPoint.add(event.getBlock());
+        Map<Block, BlockData> blocksToFix = browse(browseStartingPoint, new HashMap<>());
+
+        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
+            for (Map.Entry<Block, BlockData> blockDataEntry : blocksToFix.entrySet())
+                blockDataEntry.getKey().setBlockData(blockDataEntry.getValue());
+        }, 0);
+    }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     private void onPrePlacingCustomBlock(PlayerInteractEvent event) {
@@ -58,7 +77,6 @@ public class BlockMechanicsListener implements Listener {
             target = placedAgainst.getRelative(event.getBlockFace());
 
         if (target.getLocation().distance(player.getLocation()) > 1 && target.getLocation().distance(player.getLocation()) > 1) {
-
             BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, event.getHand());
             Bukkit.getPluginManager().callEvent(blockPlaceEvent);
             if (blockPlaceEvent.canBuild() && !blockPlaceEvent.isCancelled()) {
