@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.block;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Logs;
@@ -20,6 +21,9 @@ import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
+
+import java.util.*;
 
 public class BlockMechanicsListener implements Listener {
 
@@ -60,13 +64,48 @@ public class BlockMechanicsListener implements Listener {
             if (blockPlaceEvent.canBuild() && !blockPlaceEvent.isCancelled()) {
                 event.setCancelled(true);
                 MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(Material.MUSHROOM_STEM);
-                Utils.setBlockFacing(newBlockData, ((BlockMechanic) factory.getMechanic(itemID)).getCustomVariation());
+                int customVariation = ((BlockMechanic) factory.getMechanic(itemID)).getCustomVariation();
+                Utils.setBlockFacing(newBlockData, customVariation);
+
+                Set<Block> browseStartingPoint = new HashSet<>();
+                browseStartingPoint.add(target);
+                Map<Block, BlockData> blocksToFix = browse(browseStartingPoint, new HashMap<>());
 
                 target.setBlockData(newBlockData);
+
+                for (Map.Entry<Block, BlockData> blockDataEntry : blocksToFix.entrySet())
+                    blockDataEntry.getKey().setBlockData(blockDataEntry.getValue());
+
                 if (!player.getGameMode().equals(GameMode.CREATIVE))
                     item.setAmount(item.getAmount() - 1);
             }
         }
+    }
+
+    public Map<Block, BlockData> browse(Set<Block> input, Map<Block, BlockData> output) {
+
+        BlockFace[] adjacents = {BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH,
+                BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
+
+        Set<Block> nextInput = new HashSet<>();
+
+        for (Block inputBlock : input) {
+            for (BlockFace adjacentBlockFace : adjacents) {
+                Block adjacentBlock = inputBlock.getRelative(adjacentBlockFace);
+                if (adjacentBlock.getType() == Material.MUSHROOM_STEM
+                        && !output.containsKey(adjacentBlock))
+                    nextInput.add(adjacentBlock);
+            }
+        }
+        //todo: improve logic
+        for (Block block : nextInput)
+            output.put(block, block.getBlockData());
+
+        if (nextInput.isEmpty())
+            return output;
+        else
+            return browse(nextInput, output);
+
     }
 
 }

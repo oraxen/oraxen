@@ -22,8 +22,6 @@ public class Debug implements CommandInterface {
 
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            ItemStack item = player.getInventory().getItemInMainHand();
-            player.sendMessage("id" + OraxenItems.getIdByItem(item));
 
         }
 
