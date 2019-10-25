@@ -27,7 +27,6 @@ example_sword:
   displayname: "&c&lMy Custom Sword"
   material: WOODEN_SWORD
   injectID: false # allow Oraxen to recognise the item if true or not set
-  inject_custom_model_data: false
   durability: 10
 
   ItemFlags:
@@ -58,8 +57,8 @@ example_sword:
 amethyst:
   displayname: "&dAmethyst"
   material: DIAMOND
-  custom_model_data: 1
   Pack:
+    custom_model_data: 1
     generate_model: true
     parent_model: "item/generated"
     layers:

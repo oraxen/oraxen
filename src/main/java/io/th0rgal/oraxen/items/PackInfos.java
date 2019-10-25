@@ -12,8 +12,7 @@ public class PackInfos {
     private String parentModel;
     private boolean generate_model;
 
-    public PackInfos(ConfigurationSection configurationSection, int customModelData) {
-        this.customModelData = customModelData;
+    public PackInfos(ConfigurationSection configurationSection) {
         this.modelName = configurationSection.getString("model");
         if (modelName == null)
             this.modelName = configurationSection.getParent().getName();
@@ -29,6 +28,10 @@ public class PackInfos {
 
         this.generate_model = configurationSection.getBoolean("generate_model");
         this.parentModel = configurationSection.getString("parent_model");
+    }
+
+    public void setCustomModelData(int customModelData) {
+        this.customModelData = customModelData;
     }
 
     public int getCustomModelData() {

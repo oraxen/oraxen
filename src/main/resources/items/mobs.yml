@@ -24,8 +24,8 @@
 
 goblin_beetle:
   material: WOODEN_HOE
-  custom_model_data: 8
   Pack:
+    custom_model_data: 8
     generate_model: false
     model: goblin_beetle
   Mechanics:

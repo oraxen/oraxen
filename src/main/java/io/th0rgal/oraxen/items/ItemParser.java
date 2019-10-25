@@ -24,13 +24,13 @@ class ModelData {
 
     private Material type;
     private int durability;
-    private static Map<Material, List<Integer>> datas = new HashMap<>();
+    private static Map<Material, Map<String, Integer>> datas = new HashMap<>();
 
-    public ModelData(Material type, int durability) {
+    public ModelData(Material type, String model, int durability) {
         this.type = type;
         this.durability = durability;
-        List<Integer> usedDurabilities = datas.getOrDefault(type, new ArrayList<>());
-        usedDurabilities.add(durability);
+        Map<String, Integer> usedDurabilities = datas.getOrDefault(type, new HashMap<>());
+        usedDurabilities.put(model, durability);
         datas.put(type, usedDurabilities);
     }
 
@@ -42,27 +42,29 @@ class ModelData {
         return durability;
     }
 
-    public static int generateId(Material type) {
-        List<Integer> usedDurabilities;
+    public static int generateId(String model, Material type) {
+        Map<String, Integer> usedDurabilities;
         if (!datas.containsKey(type)) {
-            usedDurabilities = new ArrayList<>();
-            usedDurabilities.add(0);
+            usedDurabilities = new HashMap<>();
+            usedDurabilities.put(model, 0);
             datas.put(type, usedDurabilities);
             return 0;
         } else
-            usedDurabilities = datas.get(type);;
+            usedDurabilities = datas.get(type);
 
-        int currentMaxDurability = Collections.max(usedDurabilities);
+        if (usedDurabilities.containsKey(model))
+            return usedDurabilities.get(model);
+        int currentMaxDurability = Collections.max(usedDurabilities.values());
         for (int i = 0; i < currentMaxDurability; i++) {
-            if (usedDurabilities.indexOf(i) == -1) { // if the id is available
-                usedDurabilities.add(i);
+            if (!usedDurabilities.containsValue(i)) { // if the id is available
+                usedDurabilities.put(model, i);
                 datas.put(type, usedDurabilities);
                 return i;
             }
         }
         //if no durability was available between the choosed, let's create a new one bigger
         int newMaxDurability = currentMaxDurability + 1;
-        usedDurabilities.add(newMaxDurability);
+        usedDurabilities.put(model, newMaxDurability);
         datas.put(type, usedDurabilities);
         return newMaxDurability;
     }
@@ -71,40 +73,29 @@ class ModelData {
 public class ItemParser {
 
     private static Map<String, ModelData> modelDatasByID = new HashMap<>();
+
+    private PackInfos packInfos;
     private ConfigurationSection section;
-    private boolean hasCustomModelData = false;
     private Material type;
 
     public ItemParser(ConfigurationSection section) {
         this.section = section;
         this.type = Material.getMaterial(section.getString("material"));
 
-        if (section.contains("custom_model_data")) {
-            hasCustomModelData = true;
+        if (section.isConfigurationSection("Pack")) {
+            ConfigurationSection packSection = section.getConfigurationSection("Pack");
+            this.packInfos = new PackInfos(packSection);
             modelDatasByID.put(section.getName(), new ModelData(
                     type,
-                    section.getInt("custom_model_data")));
-        } else if (!section.contains("inject_custom_model_data")
-                || section.getBoolean("inject_custom_model_data")) {
-            hasCustomModelData = true;
+                    packInfos.getModelName(),
+                    packSection.getInt("custom_model_data")));
         }
-
     }
 
     public ItemBuilder buildItem() {
 
 
         ItemBuilder item = new ItemBuilder(type);
-        int customModelData = -1;
-        if (hasCustomModelData) {
-            if (modelDatasByID.containsKey(section.getName())) {
-                customModelData = modelDatasByID.get(section.getName()).getDurability();
-            } else {
-                customModelData = ModelData.generateId(type);
-                Logs.log("generating new id for " + section.getName() + ":" + customModelData);
-            }
-            item.setCustomModelData(customModelData);
-        }
 
         if (section.contains("durability"))
             item.setDurability((short) section.getInt("durability"));
@@ -159,8 +150,20 @@ public class ItemParser {
             }
         }
 
-        if (section.isConfigurationSection("Pack"))
-            item.setPackInfos(new PackInfos(section.getConfigurationSection("Pack"), customModelData));
+
+        if (packInfos != null) {
+            int customModelData;
+            if (modelDatasByID.containsKey(section.getName())) {
+                customModelData = modelDatasByID.get(section.getName()).getDurability();
+            } else {
+                customModelData = ModelData.generateId(section.getString("Pack.model"), type);
+                Logs.log("generated: " + customModelData + ":" + section.getString("Pack.model") + ":" + type);
+            }
+            item.setCustomModelData(customModelData);
+            packInfos.setCustomModelData(customModelData);
+            item.setPackInfos(packInfos);
+
+        }
 
         return item;
     }

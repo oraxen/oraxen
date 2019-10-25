@@ -25,34 +25,34 @@
 storm_sword:
   displayname: "&bStorm Sword"
   material: DIAMOND_SWORD
-  custom_model_data: 1
   AttributeModifiers:
     # diamond sword has an attack damage of 7
     - {name: "oraxen", attribute: GENERIC_ATTACK_DAMAGE, amount: 10, operation: 0, uuid: d1fe3908-8aa8-49bb-8c1f-907b765a43ab, slot: HAND}
     # it has two times more full-strength attacks per second than diamond sword
     - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 3.2, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
   Pack:
+    custom_model_data: 1
     generate_model: false
     model: storm_sword
 
 energy_crystal_sword:
   displayname: "&bEnergy Crystal Sword"
   material: DIAMOND_SWORD
-  custom_model_data: 2
   AttributeModifiers:
     # diamond sword has an attack damage of 7
     - {name: "oraxen", attribute: GENERIC_ATTACK_DAMAGE, amount: 10, operation: 0, uuid: d1fe3908-8aa8-49bb-8c1f-907b765a43ab, slot: HAND}
     # it has as much full-strength attacks per second than diamond sword
     - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
   Pack:
+    custom_model_data: 2
     generate_model: false
     model: energy_crystal_sword
 
 dagger:
   displayname: "&cDagger"
   material: DIAMOND_SWORD
-  custom_model_data: 3
   Pack:
+    custom_model_data: 3
     generate_model: false
     model: dagger
   Mechanics:
@@ -62,13 +62,13 @@ dagger:
 blood_sword:
   displayname: "&cBlood Sword"
   material: DIAMOND_SWORD
-  custom_model_data: 4
   AttributeModifiers:
     # diamond sword has an attack damage of 7
     - {name: "oraxen", attribute: GENERIC_ATTACK_DAMAGE, amount: 8, operation: 0, uuid: d1fe3908-8aa8-49bb-8c1f-907b765a43ab, slot: HAND}
     # it has as much full-strength attacks per second than diamond sword
     - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
   Pack:
+    custom_model_data: 4
     generate_model: false
     model: blood_sword
   Mechanics:
@@ -78,13 +78,13 @@ blood_sword:
 katana:
   displayname: "&eKatana"
   material: DIAMOND_SWORD
-  custom_model_data: 5
   AttributeModifiers:
     # diamond sword has an attack damage of 7
     - {name: "oraxen", attribute: GENERIC_ATTACK_DAMAGE, amount: 5, operation: 0, uuid: d1fe3908-8aa8-49bb-8c1f-907b765a43ab, slot: HAND}
     # it has as 5 full-strength attacks per second
     - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 5, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
   Pack:
+    custom_model_data: 5
     generate_model: false
     model: katana
   Mechanics:
@@ -94,8 +94,8 @@ katana:
 octavia_sword:
   displayname: "&7Octavia Sword"
   material: DIAMOND_SWORD
-  custom_model_data: 6
   Pack:
+    custom_model_data: 6
     generate_model: false
     model: octavia_sword
   Mechanics:

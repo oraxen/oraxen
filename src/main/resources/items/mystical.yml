@@ -44,8 +44,8 @@ magical_wand:
 magical_axe:
   displayname: "&aMagical Axe"
   material: DIAMOND_AXE
-  custom_model_data: 1
   Pack:
+    custom_model_data: 1
     generate_model: false
     model: magical_axe
   Mechanics:

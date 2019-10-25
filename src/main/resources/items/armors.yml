@@ -26,7 +26,6 @@ emerald_helmet:
   displayname: "&aEmerald Helmet"
   material: LEATHER_HELMET
   color: 3, 252, 136 #rgb
-  custom_model_data: 1
   Mechanics:
     durability:
       value: 437 # 20% than diamond helmet
@@ -40,6 +39,7 @@ emerald_helmet:
     - {name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD}
     - {name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD}
   Pack:
+    custom_model_data: 1
     generate_model: true
     parent_model: "item/generated"
     layers:
@@ -69,7 +69,6 @@ emerald_leggings:
   displayname: "&aEmerald Leggings"
   material: LEATHER_LEGGINGS
   color: 3, 252, 136
-  custom_model_data: 1
   Mechanics:
     durability:
       value: 595
@@ -78,6 +77,7 @@ emerald_leggings:
     - {name: "oraxen", attribute: GENERIC_ARMOR, amount: 6, operation: 0, uuid: 389ad53a-76be-4101-9ed1-e8da4845d5d2, slot: LEGS}
     - {name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 389ad53a-76be-4101-9ed1-e8da4845d5d2, slot: LEGS}
   Pack:
+    custom_model_data: 1
     generate_model: true
     parent_model: "item/generated"
     layers:
@@ -88,7 +88,6 @@ emerald_boots:
   displayname: "&aEmerald Boots"
   material: LEATHER_BOOTS
   color: 3, 252, 136
-  custom_model_data: 1
   Mechanics:
     durability:
       value: 516
@@ -97,6 +96,7 @@ emerald_boots:
     - {name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 7bfcf804-b75a-40a5-97f5-f23282703d0e, slot: FEET}
     - {name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 7bfcf804-b75a-40a5-97f5-f23282703d0e, slot: FEET}
   Pack:
+    custom_model_data: 1
     generate_model: true
     parent_model: "item/generated"
     layers:

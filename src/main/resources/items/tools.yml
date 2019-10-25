@@ -25,8 +25,8 @@
 bedrock_pickaxe:
   displayname: "&bBedrock Pickaxe"
   material: STONE_PICKAXE
-  custom_model_data: 1
   Pack:
+    custom_model_data: 1
     generate_model: false
     model: stone_pickaxe
   Mechanics:
@@ -41,7 +41,7 @@ withooker:
   displayname: "&bWithooker"
   material: WOODEN_HOE
   unbreakable: true
-  custom_model_data: 6
   Pack:
+    custom_model_data: 6
     generate_model: false
     model: withooker
