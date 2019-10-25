@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.bedrockbreak.BedrockbreakMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.block.BlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.commands.CommandsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import org.bukkit.Bukkit;
@@ -23,6 +24,7 @@ public class MechanicsManager {
         registerMechanicFactory("durability", DurabilityMechanicFactory.class);
         registerMechanicFactory("bedrockbreak", BedrockbreakMechanicFactory.class);
         registerMechanicFactory("block", BlockMechanicFactory.class);
+        registerMechanicFactory("commands", CommandsMechanicFactory.class);
     }
 
     public static void registerMechanicFactory(String mechanicID, Class<? extends MechanicFactory> mechanicFactoryClass) {
