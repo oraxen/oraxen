@@ -31,7 +31,6 @@ storm_sword:
     # it has two times more full-strength attacks per second than diamond sword
     - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 3.2, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
   Pack:
-    custom_model_data: 1
     generate_model: false
     model: storm_sword
 
@@ -44,7 +43,6 @@ energy_crystal_sword:
     # it has as much full-strength attacks per second than diamond sword
     - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
   Pack:
-    custom_model_data: 2
     generate_model: false
     model: energy_crystal_sword
 
@@ -52,7 +50,6 @@ dagger:
   displayname: "&cDagger"
   material: DIAMOND_SWORD
   Pack:
-    custom_model_data: 3
     generate_model: false
     model: dagger
   Mechanics:
@@ -68,7 +65,6 @@ blood_sword:
     # it has as much full-strength attacks per second than diamond sword
     - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
   Pack:
-    custom_model_data: 4
     generate_model: false
     model: blood_sword
   Mechanics:
@@ -84,7 +80,6 @@ katana:
     # it has as 5 full-strength attacks per second
     - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 5, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
   Pack:
-    custom_model_data: 5
     generate_model: false
     model: katana
   Mechanics:
@@ -95,7 +90,6 @@ octavia_sword:
   displayname: "&7Octavia Sword"
   material: DIAMOND_SWORD
   Pack:
-    custom_model_data: 6
     generate_model: false
     model: octavia_sword
   Mechanics:

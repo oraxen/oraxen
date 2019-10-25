@@ -26,14 +26,12 @@ anubis_head:
   displayname: "&9Anubis Head"
   material: WOODEN_HOE
   Pack:
-    custom_model_data: 1
     generate_model: false
     model: anubis_head # .json extension is not mandatory
 
 crown:
   displayname: "&6Crown"
   material: WOODEN_HOE
-  custom_model_data: 2
   Pack:
     generate_model: false
     model: crown
@@ -41,7 +39,6 @@ crown:
 pharaoh_head:
   displayname: "&6Pharaoh Head"
   material: WOODEN_HOE
-  custom_model_data: 3
   Pack:
     generate_model: false
     model: pharaoh_head
@@ -49,7 +46,6 @@ pharaoh_head:
 witch_hat:
   displayname: "&5Witch Hat"
   material: WOODEN_HOE
-  custom_model_data: 4
   Pack:
     generate_model: false
     model: witch_hat

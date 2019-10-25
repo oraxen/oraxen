@@ -31,7 +31,6 @@ caveblock:
     model: caveblock
   Mechanics:
     block:
-      custom_variation: 1
       model: caveblock
       loots:
         - {oraxen_item: caveblock, probability: 1.0} # item_section: probability of loot

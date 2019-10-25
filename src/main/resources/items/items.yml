@@ -58,7 +58,6 @@ amethyst:
   displayname: "&dAmethyst"
   material: DIAMOND
   Pack:
-    custom_model_data: 1
     generate_model: true
     parent_model: "item/generated"
     layers:

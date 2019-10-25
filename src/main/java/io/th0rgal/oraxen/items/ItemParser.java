@@ -85,15 +85,15 @@ public class ItemParser {
         if (section.isConfigurationSection("Pack")) {
             ConfigurationSection packSection = section.getConfigurationSection("Pack");
             this.packInfos = new PackInfos(packSection);
-            modelDatasByID.put(section.getName(), new ModelData(
-                    type,
-                    packInfos.getModelName(),
-                    packSection.getInt("custom_model_data")));
+            if (packSection.isInt("custom_model_data"))
+                modelDatasByID.put(section.getName(), new ModelData(
+                        type,
+                        packInfos.getModelName(),
+                        packSection.getInt("custom_model_data")));
         }
     }
 
     public ItemBuilder buildItem() {
-
 
         ItemBuilder item = new ItemBuilder(type);
 
@@ -156,8 +156,7 @@ public class ItemParser {
             if (modelDatasByID.containsKey(section.getName())) {
                 customModelData = modelDatasByID.get(section.getName()).getDurability();
             } else {
-                customModelData = ModelData.generateId(section.getString("Pack.model"), type);
-                Logs.log("generated: " + customModelData + ":" + section.getString("Pack.model") + ":" + type);
+                customModelData = ModelData.generateId(packInfos.getModelName(), type);
             }
             item.setCustomModelData(customModelData);
             packInfos.setCustomModelData(customModelData);

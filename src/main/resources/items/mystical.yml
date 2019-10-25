@@ -25,7 +25,6 @@
 legendary_hammer:
   displayname: "&6Legendary Hammer"
   material: DIAMOND_PICKAXE
-  custom_model_data: 1
   Pack:
     generate_model: false
     model: legendary_hammer
@@ -36,7 +35,6 @@ legendary_hammer:
 magical_wand:
   displayname: "&bMagical Wand"
   material: WOODEN_HOE
-  custom_model_data: 5
   Pack:
     generate_model: false
     model: magical_wand
@@ -45,7 +43,6 @@ magical_axe:
   displayname: "&aMagical Axe"
   material: DIAMOND_AXE
   Pack:
-    custom_model_data: 1
     generate_model: false
     model: magical_axe
   Mechanics:
