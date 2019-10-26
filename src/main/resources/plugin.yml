@@ -24,7 +24,7 @@ permissions:
   oraxen.command.recipes:
     description: Allows to create new recipes
   oraxen.command.inv.*:
-      description: Allows to use all inventory visualizer featutres
+      description: Allows to use all inventory visualizer features
       children:
         oraxen.command.inv.view: true
         oraxen.command.inv.give: true
