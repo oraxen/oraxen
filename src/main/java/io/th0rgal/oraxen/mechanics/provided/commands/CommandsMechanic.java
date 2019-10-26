@@ -24,8 +24,6 @@ public class CommandsMechanic extends Mechanic {
 
         if (section.isList("opped_player"))
             this.oppedPlayerCommands = section.getStringList("opped_player");
-
-        Logs.logError("Z:" + oppedPlayerCommands);
     }
 
     public boolean hasConsoleCommands() {

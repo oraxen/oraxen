@@ -14,14 +14,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class CommandsMechanicFactory extends MechanicFactory {
 
     public CommandsMechanicFactory(ConfigurationSection section) {
         super(section);
-        Logs.logError("X");
         MechanicsManager.registerListeners(OraxenPlugin.get(), new CommandsItemListener(this));
     }
 
@@ -43,26 +41,19 @@ class CommandsItemListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     private void onInteract(PlayerInteractEvent event) {
-        Logs.logError("-1");
         if (event.getAction() != Action.LEFT_CLICK_AIR
                 && event.getAction() != Action.RIGHT_CLICK_AIR
                 && event.getAction() != Action.LEFT_CLICK_BLOCK
                 && event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
 
-        Logs.logError("0");
-
         ItemStack item = event.getItem();
         if (item == null)
             return;
 
-        Logs.logError("1");
-
         String itemID = OraxenItems.getIdByItem(item);
         if (factory.isNotImplementedIn(itemID))
             return;
-
-        Logs.logError("2");
 
         CommandsMechanic mechanic = (CommandsMechanic) factory.getMechanic(itemID);
         Player player = event.getPlayer();
