@@ -33,6 +33,6 @@ caveblock:
     block:
       model: caveblock
       loots:
-        - {oraxen_item: caveblock, probability: 1.0} # item_section: probability of loot
+        - {oraxen_item: caveblock, probability: 1.0, max_amount: 1} # item_section: probability of loot
       break_animation:
         default: true

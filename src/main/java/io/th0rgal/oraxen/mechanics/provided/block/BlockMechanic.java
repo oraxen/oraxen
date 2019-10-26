@@ -2,14 +2,16 @@ package io.th0rgal.oraxen.mechanics.provided.block;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.Loot;
 import org.bukkit.configuration.ConfigurationSection;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
 public class BlockMechanic extends Mechanic {
 
-    private List<LinkedHashMap<String, Object>> loots;
+    private List<Loot> loots;
     private boolean defaultBreakAnimation;
     private String model;
     private int customVariation;
@@ -21,7 +23,11 @@ public class BlockMechanic extends Mechanic {
         - the section used to configure the mechanic
          */
         super(mechanicFactory, section);
-        this.loots = (List<LinkedHashMap<String, Object>>) section.getList("loots");
+        loots = new ArrayList<>();
+        for (LinkedHashMap<String, Object> lootConfig
+                : (List<LinkedHashMap<String, Object>>) section.getList("loots")) {
+            loots.add(new Loot(lootConfig));
+        }
 
         if (!section.isConfigurationSection("break_animation")) {
             defaultBreakAnimation = true;
@@ -43,7 +49,7 @@ public class BlockMechanic extends Mechanic {
         return customVariation;
     }
 
-    public List<LinkedHashMap<String, Object>> getLoots() {
+    public List<Loot> getLoots() {
         return loots;
     }
 
