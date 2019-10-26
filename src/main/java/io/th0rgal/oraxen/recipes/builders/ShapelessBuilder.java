@@ -15,7 +15,11 @@ public class ShapelessBuilder extends WorkbenchBuilder {
 
     @Override
     public void saveRecipe(String name) {
+        saveRecipe(name, null);
+    }
 
+    @Override
+    public void saveRecipe(String name, String permission) {
         Map<ItemStack, Integer> items = new HashMap<>();
         ItemStack[] content = getInventory().getContents();
         for (int i = 1; i < content.length; i++)
@@ -30,7 +34,8 @@ public class ShapelessBuilder extends WorkbenchBuilder {
             ingredientSection.set("amount", items.get(items.keySet().toArray()[i]));
             setSerializedItem(ingredientSection, content[i]);
         }
-
+        if (permission != null)
+            newCraftSection.set("permission", permission);
         saveConfig();
     }
 

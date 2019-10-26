@@ -15,13 +15,18 @@ public class ShapedBuilder extends WorkbenchBuilder {
 
     @Override
     public void saveRecipe(String name) {
+        saveRecipe(name, null);
+    }
+
+    @Override
+    public void saveRecipe(String name, String permission) {
 
         Map<ItemStack, Character> letterByItem = new HashMap<>();
         char letter = 'A';
         String[] shapes = new String[3];
         StringBuilder shape = new StringBuilder();
         Inventory inventory = getInventory();
-        
+
         for (int i = 1; i < inventory.getSize(); i++) {
             ItemStack item = inventory.getItem(i);
             if (item == null)
@@ -48,7 +53,8 @@ public class ShapedBuilder extends WorkbenchBuilder {
             ConfigurationSection ingredientSection = ingredients.createSection(String.valueOf(entry.getValue()));
             setSerializedItem(ingredientSection, entry.getKey());
         }
-
+        if (permission != null)
+            newCraftSection.set("permission", permission);
         saveConfig();
     }
 

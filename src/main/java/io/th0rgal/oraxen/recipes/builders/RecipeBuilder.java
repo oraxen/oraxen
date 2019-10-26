@@ -41,6 +41,8 @@ public abstract class RecipeBuilder {
 
     public abstract void saveRecipe(String name);
 
+    public abstract void saveRecipe(String name, String permission);
+
     protected Inventory getInventory() {
         return this.inventory;
     }
