@@ -31,7 +31,15 @@ public class BlockMechanicsListener implements Listener {
     public BlockMechanicsListener(BlockMechanicFactory factory) {
         this.factory = factory;
     }
-    
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    private void onBreakingCustomBlock(BlockBreakEvent event) {
+        if (event.getBlock().getType() != Material.MUSHROOM_STEM)
+            return;
+
+
+    }
+
     //todo: improve performances
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     private void onPlacingMushroomBlock(BlockPlaceEvent event) {
@@ -43,8 +51,8 @@ public class BlockMechanicsListener implements Listener {
         Set<Block> browseStartingPoint = new HashSet<>();
         Block block = event.getBlock();
         BlockData blockData = block.getBlockData();
-        Utils.setBlockFacing((MultipleFacing) blockData, 3);
-
+        Utils.setBlockFacing((MultipleFacing) blockData, 15);
+        block.setBlockData(blockData);
         browseStartingPoint.add(block);
         Map<Block, BlockData> blocksToFix = browse(browseStartingPoint, new HashMap<>());
 
