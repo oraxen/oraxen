@@ -16,9 +16,11 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BlockDataMeta;
 
 import java.util.*;
 
@@ -29,7 +31,7 @@ public class BlockMechanicsListener implements Listener {
     public BlockMechanicsListener(BlockMechanicFactory factory) {
         this.factory = factory;
     }
-
+    
     //todo: improve performances
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     private void onPlacingMushroomBlock(BlockPlaceEvent event) {
@@ -39,7 +41,11 @@ public class BlockMechanicsListener implements Listener {
             return;
 
         Set<Block> browseStartingPoint = new HashSet<>();
-        browseStartingPoint.add(event.getBlock());
+        Block block = event.getBlock();
+        BlockData blockData = block.getBlockData();
+        Utils.setBlockFacing((MultipleFacing) blockData, 3);
+
+        browseStartingPoint.add(block);
         Map<Block, BlockData> blocksToFix = browse(browseStartingPoint, new HashMap<>());
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
