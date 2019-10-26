@@ -13,20 +13,13 @@ public class Loot {
     ItemStack itemStack;
     int probability;
     int maxAmount;
+    LinkedHashMap<String, Object> config;
 
     public Loot(LinkedHashMap<String, Object> config) {
-        if (config.containsKey("oraxen_item")) {
-            this.itemStack = OraxenItems.getItemById((String) config.get("oraxen_item")).build();
-        } else if (config.containsKey("minecraft_type")) {
-            this.itemStack = new ItemStack(Material.getMaterial((String) config.get("minecraft_type")));
-        } else {
-            this.itemStack = (ItemStack) config.get("minecraft_item");
-        }
-
         this.probability = (int) (1D / (double) config.get("probability"));
-
         this.maxAmount = config.containsValue("max_amount")
                 ? (int) config.get("max_amount") : 1;
+        this.config = config;
     }
 
     public Loot(ItemStack itemStack, double probability) {
@@ -41,10 +34,25 @@ public class Loot {
         this.maxAmount = maxAmount;
     }
 
+    private ItemStack getItemStack() {
+        if (this.itemStack != null) {
+            return this.itemStack;
+        } else {
+            if (config.containsKey("oraxen_item")) {
+                this.itemStack = OraxenItems.getItemById((String) config.get("oraxen_item")).build();
+            } else if (config.containsKey("minecraft_type")) {
+                this.itemStack = new ItemStack(Material.getMaterial((String) config.get("minecraft_type")));
+            } else {
+                this.itemStack = (ItemStack) config.get("minecraft_item");
+            }
+        }
+        return this.itemStack;
+    }
+
     public void dropNaturally(Location location) {
         if (new Random().nextInt(probability) == 0)
             for (int i = 0; i < maxAmount; i++)
-                location.getWorld().dropItemNaturally(location, this.itemStack);
+                location.getWorld().dropItemNaturally(location, getItemStack());
     }
 
 
