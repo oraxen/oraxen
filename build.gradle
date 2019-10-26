@@ -41,6 +41,7 @@ tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
 shadowJar {
     relocate 'org.bstats.bukkit', 'io.th0rgal.oraxen.bstats'
     minimize { exclude('io.th0rgal.oraxen.api.*') }
+    archiveClassifier.set(pluginVersion)
 }
 
 task buildJar(dependsOn: [clean, shadowJar])
