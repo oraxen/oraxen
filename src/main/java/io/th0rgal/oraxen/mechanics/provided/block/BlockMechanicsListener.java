@@ -37,6 +37,11 @@ public class BlockMechanicsListener implements Listener {
         if (event.getBlock().getType() != Material.MUSHROOM_STEM)
             return;
 
+        MultipleFacing blockFacing = (MultipleFacing)event.getBlock().getBlockData();
+        for (BlockFace blockFace : blockFacing.getFaces()) {
+            //blockFace.get
+        }
+
 
     }
 

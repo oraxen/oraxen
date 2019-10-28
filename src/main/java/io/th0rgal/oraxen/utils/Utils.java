@@ -11,6 +11,12 @@ import java.io.IOException;
 
 public class Utils {
 
+    public static int getCode(MultipleFacing blockData) {
+        final String[] properties = new String[]{"EAST", "WEST", "SOUTH", "NORTH", "DOWN", "UP"};
+        //for (blockData.getFaces()
+        return  0;
+    }
+
     public static JsonObject getBlockstateWhenFields(int code) {
         JsonObject whenJson = new JsonObject();
         final String[] properties = new String[]{"up", "down", "north", "south", "west", "east"};
