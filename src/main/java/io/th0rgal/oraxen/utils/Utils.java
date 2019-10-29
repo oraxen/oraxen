@@ -8,30 +8,34 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 public class Utils {
 
     public static int getCode(MultipleFacing blockData) {
-        final BlockFace[] properties = new BlockFace[]{BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
-        //for (blockData.getFaces()
-
-        return  0;
+        final List<BlockFace> properties = Arrays.asList
+                (BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST);
+        int sum = 0;
+        for (BlockFace blockFace : blockData.getFaces())
+            sum += Math.pow(2, properties.indexOf(blockFace));
+        return sum;
     }
 
     public static JsonObject getBlockstateWhenFields(int code) {
         JsonObject whenJson = new JsonObject();
         final String[] properties = new String[]{"up", "down", "north", "south", "west", "east"};
-        for (int i = 0; i < properties.length; i++) {
-            int flag = 0x1 << i;
-            whenJson.addProperty(properties[properties.length - 1 - i], (code & flag) != 0);
-        }
+        for (int i = 0; i < properties.length; i++)
+            whenJson.addProperty(properties[properties.length - 1 - i], (code & 0x1 << i) != 0);
         return whenJson;
     }
 
     public static void setBlockFacing(MultipleFacing blockData, int code) {
-        final String[] properties = new String[]{"EAST", "WEST", "SOUTH", "NORTH", "DOWN", "UP"};
-        for (int i = 0; i < properties.length; i++)
-            blockData.setFace(BlockFace.valueOf(properties[i]), ((code & (0x1 << i)) != 0));
+        final BlockFace[] properties = new BlockFace[]
+                {BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP};
+        for (int i = 0; i < properties.length; i++) {
+            blockData.setFace(properties[i], (code & 0x1 << i) != 0);
+        }
     }
 
     public static void writeStringToFile(File file, String content) {
