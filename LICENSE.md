@@ -31,3 +31,6 @@ Holder's permission.
 
 3. Code is provided with no warranty. You have the right (and are even encouraged) to propose improvements
 to the package as long as you don't use it as a way to circumvent the restrictions of the license.
+
+4. By proposing a modification you agree to assign all your rights on your code to the Copyright Holder.
+You must therefore own the modifications you propose or have the permissionto assign their rights.
