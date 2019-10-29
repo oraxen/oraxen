@@ -12,8 +12,9 @@ import java.io.IOException;
 public class Utils {
 
     public static int getCode(MultipleFacing blockData) {
-        final String[] properties = new String[]{"EAST", "WEST", "SOUTH", "NORTH", "DOWN", "UP"};
+        final BlockFace[] properties = new BlockFace[]{BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
         //for (blockData.getFaces()
+
         return  0;
     }
 

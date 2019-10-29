@@ -38,9 +38,7 @@ public class BlockMechanicsListener implements Listener {
             return;
 
         MultipleFacing blockFacing = (MultipleFacing)event.getBlock().getBlockData();
-        for (BlockFace blockFace : blockFacing.getFaces()) {
-            //blockFace.get
-        }
+        Utils.getCode(blockFacing);
 
 
     }
