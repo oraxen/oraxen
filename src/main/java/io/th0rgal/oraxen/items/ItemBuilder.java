@@ -171,7 +171,7 @@ public class ItemBuilder {
     public <T, Z> Z getCustomTag(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType) {
         for (Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
             if (dataSpace.getKey().getNamespacedKey().equals(namespacedKey) && dataSpace.getKey().getDataType().equals(dataType))
-                return (Z) persistentDataMap.get(dataSpace);
+                return (Z) dataSpace.getValue();
         return null;
     }
 
