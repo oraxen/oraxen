@@ -15,7 +15,7 @@ public class Utils {
 
     public static int getCode(MultipleFacing blockData) {
         final List<BlockFace> properties = Arrays.asList
-                (BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST);
+                (BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
         int sum = 0;
         for (BlockFace blockFace : blockData.getFaces())
             sum += Math.pow(2, properties.indexOf(blockFace));

@@ -16,6 +16,7 @@ import java.util.*;
 public class BlockMechanicFactory extends MechanicFactory {
 
     private static List<JsonObject> mushroomStemBlockstateOverrides = new ArrayList<>();
+    private static Map<Integer, BlockMechanic> blockPerVariation = new HashMap<>();
 
     public BlockMechanicFactory(ConfigurationSection section) {
         super(section);
@@ -55,8 +56,13 @@ public class BlockMechanicFactory extends MechanicFactory {
         BlockMechanic mechanic = new BlockMechanic(this, itemMechanicConfiguration);
         mushroomStemBlockstateOverrides.add
                 (getBlockstateOverride(mechanic.getModel(), mechanic.getCustomVariation()));
+        blockPerVariation.put(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
+    }
+
+    public static BlockMechanic getBlockMechanic(int customVariation) {
+        return  blockPerVariation.get(customVariation);
     }
 
 }
