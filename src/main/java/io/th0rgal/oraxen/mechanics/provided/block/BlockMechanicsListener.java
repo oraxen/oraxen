@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.mechanics.provided.block;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.utils.Logs;
 import io.th0rgal.oraxen.utils.Loot;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Bukkit;

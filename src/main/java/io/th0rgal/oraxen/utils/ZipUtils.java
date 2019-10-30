@@ -44,7 +44,6 @@ public class ZipUtils {
                 for (File file : inZipDirectoryFiles.getValue())
                     if (!file.isDirectory()) // we only zip files, not directories
                         addToZip(directoryToZip, file, inZipDirectoryFiles.getKey(), zos);
-
             zos.close();
             fos.close();
         } catch (IOException | NoSuchFieldException | IllegalAccessException e) {
