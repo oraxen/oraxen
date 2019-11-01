@@ -15,7 +15,7 @@ public class BaseCommand implements CommandInterface {
             return false;
         }
 
-        sender.sendMessage("help");
+        Message.CMD_HELP.send(sender);
 
         return false;
     }
