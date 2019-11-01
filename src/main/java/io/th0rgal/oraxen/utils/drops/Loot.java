@@ -17,7 +17,7 @@ public class Loot {
 
     public Loot(LinkedHashMap<String, Object> config) {
         this.probability = config.containsValue("max_amount")
-                ? (int) (1D / (double) config.get("probability")) : 0;
+                ? (int) (1D / (double) config.get("probability")) : 1;
         this.maxAmount = config.containsValue("max_amount")
                 ? (int) config.get("max_amount") : 1;
         this.config = config;
