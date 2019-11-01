@@ -3,9 +3,9 @@ Plugin:
   prefix: "&8&l[&bOraxen&8&l] §7"
 
 Pack:
-  url: "https://www.dropbox.com/s/maolwgdpl3ec9g0/alGoblinMc_v3.5.0.zip?dl=1"
-  SHA1: "B0F261B029FE1F70FDFA7E50EA3B4AFB"
-  send: false
+  url: "oraxen.com/packs/0.2.0.zip" # uploads your own if you made changes to the configuration
+  SHA1: "B2F640887E7C53D43C7CC695CD57EF92"
+  send: true
   generate: true
   compression: BEST_COMPRESSION # see Deflater.class
   comment: "The content of this texture pack
