@@ -34,7 +34,7 @@ bedrock_pickaxe:
     bedrockbreak:
       delay: 0
       period: 10
-      probability: 0.5
+      probability: 1
 
 withooker:
   displayname: "&bWithooker"
