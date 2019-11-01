@@ -2,6 +2,7 @@ package io.th0rgal.oraxen;
 
 import io.th0rgal.oraxen.commands.BaseCommand;
 import io.th0rgal.oraxen.commands.CommandHandler;
+import io.th0rgal.oraxen.commands.brigadier.BrigadierManager;
 import io.th0rgal.oraxen.commands.subcommands.Debug;
 import io.th0rgal.oraxen.commands.subcommands.Give;
 import io.th0rgal.oraxen.commands.subcommands.InventoryVisualizer;
@@ -15,7 +16,10 @@ import io.th0rgal.oraxen.utils.Logs;
 import io.th0rgal.oraxen.pack.ResourcePack;
 
 import io.th0rgal.oraxen.utils.fastinv.FastInvManager;
+import me.lucko.commodore.Commodore;
+import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.ChatColor;
+import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class OraxenPlugin extends JavaPlugin {
@@ -34,7 +38,11 @@ public class OraxenPlugin extends JavaPlugin {
                 .register("recipes", new Recipes())
                 .register("inv", new InventoryVisualizer())
                 .register("give", new Give());
-        getCommand("oraxen").setExecutor(handler);
+        PluginCommand command = getCommand("oraxen");
+        command.setExecutor(handler);
+        // use brigadier if supported
+        if (CommodoreProvider.isSupported())
+            BrigadierManager.registerCompletions(CommodoreProvider.getCommodore(this), command);
     }
 
     public void onEnable() {
