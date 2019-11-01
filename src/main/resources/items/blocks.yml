@@ -39,4 +39,4 @@ caveblock:
         silktouch: false # enable if you want to cancel loots and drop the block when a silktouch pickaxe is used
         minimal_tool: STONE_PICKAXE
         loots:
-          - {oraxen_item: caveblock, probability: 1.0, max_amount: 1} # item_section: probability of loot
+          - {oraxen_item: caveblock, probability: 1.0} # item_section: probability of loot
