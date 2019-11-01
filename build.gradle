@@ -1,33 +1,36 @@
 plugins {
-    id 'java'
-    id 'idea'
-    id 'com.github.johnrengelman.shadow' version '5.1.0'
+    id "java"
+    id "idea"
+    id "com.github.johnrengelman.shadow" version "5.1.0"
 }
 
-group 'io.th0rgal'
-def pluginVersion = '0.2.0'
+group "io.th0rgal"
+def pluginVersion = "0.2.0"
 sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
     mavenLocal()
     //Spigot
-    maven { url = 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
+    maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
     //Because Spigot depends on Bungeecord ChatComponent-API
-    maven { url = 'https://oss.sonatype.org/content/repositories/snapshots' }
+    maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
     //CodeMc (bstats)
-    maven { url = 'https://repo.codemc.org/repository/maven-public' }
+    maven { url "https://repo.codemc.org/repository/maven-public" }
     //ProtocolLib
     maven { url "http://repo.dmulloy2.net/nexus/repository/public/" }
+    //Minecraft repo (commodore)
+    maven { url "https://libraries.minecraft.net/" }
     jcenter() // needed for building shadow from protocolLib 4.5.0
 }
 
 dependencies {
-    compileOnly group: 'org.spigotmc', name: 'spigot', version: '1.14.4-R0.1-SNAPSHOT' // The Spigot API with no shadowing. Requires the OSS repo.
-    compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.14.4-R0.1-SNAPSHOT'
-    compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "+";
+    compileOnly group: "org.spigotmc", name: "spigot", version: "1.14.4-R0.1-SNAPSHOT" // The Spigot API with no shadowing. Requires the OSS repo.
+    compileOnly group: "org.spigotmc", name: "spigot-api", version: "1.14.4-R0.1-SNAPSHOT"
+    compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "+"
 
-    implementation group: 'org.bstats', name: 'bstats-bukkit', version: '+'
+    implementation group: "me.lucko", name: "commodore", version: "1.3"
+    implementation group: "org.bstats", name: "bstats-bukkit", version: "+"
 }
 
 processResources {
@@ -36,11 +39,12 @@ processResources {
     }
 }
 
-tasks.withType(JavaCompile) { options.encoding = 'UTF-8' }
+tasks.withType(JavaCompile) { options.encoding = "UTF-8" }
 
 shadowJar {
-    relocate 'org.bstats.bukkit', 'io.th0rgal.oraxen.bstats'
-    minimize { exclude('io.th0rgal.oraxen.api.*') }
+    relocate "org.bstats.bukkit", "io.th0rgal.oraxen.bstats"
+    relocate "me.lucko:commodore", "io.th0rgal.oraxen.utils.commodore"
+    minimize { exclude("io.th0rgal.oraxen.api.*") }
     archiveClassifier.set(pluginVersion)
 }
 
