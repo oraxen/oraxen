@@ -24,6 +24,13 @@ repositories {
     jcenter() // needed for building shadow from protocolLib 4.5.0
 }
 
+compileJava {
+    options.compilerArgs += ["-parameters"]
+    options.fork = true
+    options.forkOptions.executable = 'javac'
+    options.encoding = "UTF-8"
+}
+
 dependencies {
     compileOnly group: "org.spigotmc", name: "spigot", version: "1.14.4-R0.1-SNAPSHOT" // The Spigot API with no shadowing. Requires the OSS repo.
     compileOnly group: "org.spigotmc", name: "spigot-api", version: "1.14.4-R0.1-SNAPSHOT"
@@ -39,11 +46,9 @@ processResources {
     }
 }
 
-tasks.withType(JavaCompile) { options.encoding = "UTF-8" }
-
 shadowJar {
     relocate "org.bstats.bukkit", "io.th0rgal.oraxen.bstats"
-    relocate "me.lucko:commodore", "io.th0rgal.oraxen.utils.commodore"
+    relocate "me.lucko:commodore", "io.th0rgal.oraxen.commodore"
     minimize { exclude("io.th0rgal.oraxen.api.*") }
     archiveClassifier.set(pluginVersion)
 }
