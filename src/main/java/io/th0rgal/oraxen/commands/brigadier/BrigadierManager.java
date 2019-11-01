@@ -12,9 +12,9 @@ public class BrigadierManager {
     public static void registerCompletions(Commodore commodore, PluginCommand command) {
         commodore.register(command, LiteralArgumentBuilder.literal("oraxen")
                 .then(LiteralArgumentBuilder.literal("give")
-                        .then(RequiredArgumentBuilder.argument("<player>", StringArgumentType.string())
-                                .then(RequiredArgumentBuilder.argument("<itemID>", StringArgumentType.string())
-                                        .then(RequiredArgumentBuilder.argument("<amount>", IntegerArgumentType.integer())))))
+                        .then(RequiredArgumentBuilder.argument("player", StringArgumentType.string())
+                                .then(RequiredArgumentBuilder.argument("itemID", StringArgumentType.string())
+                                        .then(RequiredArgumentBuilder.argument("amount", IntegerArgumentType.integer())))))
                 .then(LiteralArgumentBuilder.literal("inv"))
                 .then(LiteralArgumentBuilder.literal("recipes")
                         .then(LiteralArgumentBuilder.literal("open"))
