@@ -48,14 +48,14 @@ class ModelData {
             usedDurabilities = new HashMap<>();
             usedDurabilities.put(model, 0);
             datas.put(type, usedDurabilities);
-            return 0;
+            return 1;
         } else
             usedDurabilities = datas.get(type);
 
         if (usedDurabilities.containsKey(model))
             return usedDurabilities.get(model);
         int currentMaxDurability = Collections.max(usedDurabilities.values());
-        for (int i = 0; i < currentMaxDurability; i++) {
+        for (int i = 1; i < currentMaxDurability; i++) {
             if (!usedDurabilities.containsValue(i)) { // if the id is available
                 usedDurabilities.put(model, i);
                 datas.put(type, usedDurabilities);
