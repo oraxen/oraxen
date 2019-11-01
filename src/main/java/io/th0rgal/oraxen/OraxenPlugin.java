@@ -8,7 +8,6 @@ import io.th0rgal.oraxen.commands.subcommands.Give;
 import io.th0rgal.oraxen.commands.subcommands.InventoryVisualizer;
 import io.th0rgal.oraxen.commands.subcommands.Recipes;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.listeners.EventsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
@@ -16,7 +15,6 @@ import io.th0rgal.oraxen.utils.Logs;
 import io.th0rgal.oraxen.pack.ResourcePack;
 
 import io.th0rgal.oraxen.utils.fastinv.FastInvManager;
-import me.lucko.commodore.Commodore;
 import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
