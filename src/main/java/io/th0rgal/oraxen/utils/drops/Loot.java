@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.utils;
+package io.th0rgal.oraxen.utils.drops;
 
 import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.Location;

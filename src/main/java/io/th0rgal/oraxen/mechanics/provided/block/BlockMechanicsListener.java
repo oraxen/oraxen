@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.block;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.utils.Loot;
+import io.th0rgal.oraxen.utils.drops.Loot;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -38,12 +38,12 @@ public class BlockMechanicsListener implements Listener {
             return;
 
         MultipleFacing blockFacing = (MultipleFacing) event.getBlock().getBlockData();
-
-        for (Loot loot : BlockMechanicFactory
-                .getBlockMechanic
-                        (Utils.getCode(blockFacing))
-                .getLoots())
-            loot.dropNaturally(event.getBlock().getLocation());
+        BlockMechanicFactory
+                .getBlockMechanic(Utils.getCode(blockFacing))
+                .getDrop()
+                .spawns(event.getBlock().getLocation(),
+                        event.getPlayer().getInventory()
+                                .getItemInMainHand());
     }
 
     //todo: improve performances

@@ -2,7 +2,9 @@ package io.th0rgal.oraxen.mechanics.provided.block;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.utils.Loot;
+import io.th0rgal.oraxen.utils.drops.Drop;
+import io.th0rgal.oraxen.utils.drops.Loot;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
@@ -11,10 +13,10 @@ import java.util.List;
 
 public class BlockMechanic extends Mechanic {
 
-    private List<Loot> loots;
     private boolean defaultBreakAnimation;
     private String model;
     private int customVariation;
+    private Drop drop;
 
     @SuppressWarnings("unchecked")
     public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -23,11 +25,6 @@ public class BlockMechanic extends Mechanic {
         - the section used to configure the mechanic
          */
         super(mechanicFactory, section);
-        loots = new ArrayList<>();
-        for (LinkedHashMap<String, Object> lootConfig
-                : (List<LinkedHashMap<String, Object>>) section.getList("loots")) {
-            loots.add(new Loot(lootConfig));
-        }
 
         if (!section.isConfigurationSection("break_animation")) {
             defaultBreakAnimation = true;
@@ -39,6 +36,19 @@ public class BlockMechanic extends Mechanic {
         // todo: use the itemstack model if block model isn't set
         this.model = section.getString("model");
         this.customVariation = section.getInt("custom_variation");
+
+        List<Loot> loots = new ArrayList<>();
+        ConfigurationSection drop = section.getConfigurationSection("drop");
+        for (LinkedHashMap<String, Object> lootConfig
+                : (List<LinkedHashMap<String, Object>>) drop.getList("loots")) {
+            loots.add(new Loot(lootConfig));
+        }
+        if (drop.isString("minimal_tool"))
+            this.drop = new Drop(loots, drop.getBoolean("silktouch"),
+                    getItemID(),
+                    Material.getMaterial(drop.getString("minimal_tool")));
+        else
+            this.drop = new Drop(loots, drop.getBoolean("silktouch"), getItemID());
     }
 
     public String getModel() {
@@ -49,8 +59,8 @@ public class BlockMechanic extends Mechanic {
         return customVariation;
     }
 
-    public List<Loot> getLoots() {
-        return loots;
+    public Drop getDrop() {
+        return drop;
     }
 
     public boolean isDefaultBreakAnimation() {
