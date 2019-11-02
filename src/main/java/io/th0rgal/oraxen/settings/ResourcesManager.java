@@ -47,18 +47,27 @@ public class ResourcesManager {
     public void extractConfigsInFolder(String folder, String fileExtension) {
         ZipInputStream zip = browse();
         try {
-            ZipEntry e = zip.getNextEntry();
-            while (e != null) {
-                String name = e.getName();
-                if (!e.isDirectory())
-                    if (name.startsWith(folder + "/") && name.endsWith("." + fileExtension))
-                        plugin.saveResource(name, true);
-                e = zip.getNextEntry();
-            }
-            zip.closeEntry();
+            extractConfigsInFolder(zip, folder, fileExtension);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    private void extractConfigsInFolder(ZipInputStream zip, String folder, String fileExtension) throws IOException {
+        ZipEntry entry = zip.getNextEntry();
+        while (entry != null) {
+            extractFileAccordingToExtension(entry, folder, fileExtension);
+            entry = zip.getNextEntry();
+        }
+        zip.closeEntry();
+    }
+
+    private void extractFileAccordingToExtension(ZipEntry entry, String folder, String fileExtension) {
+        String name = entry.getName();
+        if (entry.isDirectory())
+            return;
+        if (name.startsWith(folder + "/") && name.endsWith("." + fileExtension))
+            plugin.saveResource(name, true);
     }
 
     public static ZipInputStream browse() {
