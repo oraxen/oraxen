@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.listeners.EventsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
+import io.th0rgal.oraxen.settings.Server;
 import io.th0rgal.oraxen.utils.Logs;
 import io.th0rgal.oraxen.pack.ResourcePack;
 
@@ -50,7 +51,7 @@ public class OraxenPlugin extends JavaPlugin {
         RecipesManager.load(this);
         FastInvManager.register(this);
         registerCommands();
-        Logs.log(ChatColor.GREEN + "Successfully loaded");
+        Logs.log(ChatColor.GREEN + "Successfully loaded on " + Server.OS_NAME);
         new EventsManager(this).registerNativeEvents();
     }
 
