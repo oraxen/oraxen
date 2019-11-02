@@ -47,34 +47,53 @@ public class ResourcesManager {
     public void extractConfigsInFolder(String folder, String fileExtension) {
         ZipInputStream zip = browse();
         try {
-            ZipEntry e = zip.getNextEntry();
-            while (e != null) {
-                String name = e.getName();
-                if (!e.isDirectory())
-                    if (name.startsWith(folder + "/") && name.endsWith("." + fileExtension))
-                        plugin.saveResource(name, true);
-                e = zip.getNextEntry();
-            }
-            zip.closeEntry();
+            extractConfigsInFolder(zip, folder, fileExtension);
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    private void extractConfigsInFolder(ZipInputStream zip, String folder, String fileExtension) throws IOException {
+        ZipEntry entry = zip.getNextEntry();
+        while (entry != null) {
+            extractFileAccordingToExtension(entry, folder, fileExtension);
+            entry = zip.getNextEntry();
+        }
+        zip.closeEntry();
+    }
+
+    public void extractFileIfTrue(ZipEntry entry, String name, boolean isSuitable) {
+        if (entry.isDirectory())
+            return;
+        if (isSuitable)
+            plugin.saveResource(name, true);
+    }
+
+    private void extractFileAccordingToExtension(ZipEntry entry, String folder, String fileExtension) {
+        String name = entry.getName();
+        boolean isSuitable = name.startsWith(folder + "/") && name.endsWith("." + fileExtension);
+        extractFileIfTrue(entry, name, isSuitable);
     }
 
     public static ZipInputStream browse() {
         CodeSource src = OraxenPlugin.class.getProtectionDomain().getCodeSource();
         if (src != null) {
             URL jar = src.getLocation();
-            try {
-                return new ZipInputStream(jar.openStream());
-            } catch (IOException e) {
-                Message.ZIP_BROWSE_ERROR.logError();
-                e.printStackTrace();
-            }
+            return tryToBrowse(jar);
         } else {
             Message.ZIP_BROWSE_ERROR.logError();
+            throw new RuntimeException();
         }
-        throw new RuntimeException();
+    }
+
+    private static ZipInputStream tryToBrowse(URL jar) {
+        try {
+            return new ZipInputStream(jar.openStream());
+        } catch (IOException e) {
+            Message.ZIP_BROWSE_ERROR.logError();
+            e.printStackTrace();
+            throw new RuntimeException();
+        }
     }
 
 }
