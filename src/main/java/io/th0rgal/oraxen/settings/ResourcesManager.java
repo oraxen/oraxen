@@ -62,12 +62,17 @@ public class ResourcesManager {
         zip.closeEntry();
     }
 
-    private void extractFileAccordingToExtension(ZipEntry entry, String folder, String fileExtension) {
-        String name = entry.getName();
+    public void extractFileIfTrue(ZipEntry entry, String name, boolean isSuitable) {
         if (entry.isDirectory())
             return;
-        if (name.startsWith(folder + "/") && name.endsWith("." + fileExtension))
+        if (isSuitable)
             plugin.saveResource(name, true);
+    }
+
+    private void extractFileAccordingToExtension(ZipEntry entry, String folder, String fileExtension) {
+        String name = entry.getName();
+        boolean isSuitable = name.startsWith(folder + "/") && name.endsWith("." + fileExtension);
+        extractFileIfTrue(entry, name, isSuitable);
     }
 
     public static ZipInputStream browse() {
