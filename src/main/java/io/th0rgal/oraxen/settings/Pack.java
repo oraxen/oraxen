@@ -12,19 +12,20 @@ public enum Pack implements ConfigEnum {
     COMPRESSION("compression"),
     COMMENT("comment");
 
-    private Object value;
+    private String section;
+    private static ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
 
     Pack(String section) {
-        this.value = new ResourcesManager(OraxenPlugin.get()).getSettings().getConfigurationSection("Pack").get(section);
+        this.section = section;
     }
 
     public Object getValue() {
-        return this.value;
+        return resourcesManager.getSettings().getConfigurationSection("Pack").get(section);
     }
 
     @Override
     public String toString() {
-        return ChatColor.translateAlternateColorCodes('&', this.value.toString());
+        return ChatColor.translateAlternateColorCodes('&', this.getValue().toString());
     }
 
 }
