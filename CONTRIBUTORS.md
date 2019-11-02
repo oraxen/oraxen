@@ -2,8 +2,6 @@
 
 ## Special thanks for all the people who had helped this project so far:
 
-> Here is a list of people who helped the project with their names and Github profiles (when I know it).  Other additional info may fit.
-
 ### Code improvement
 > Developers who have contributed to the source code
 * [AntoineJT](https://github.com/AntoineJT): Active contributor, who contributed refactors.
