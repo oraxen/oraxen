@@ -29,7 +29,9 @@ public class OraxenItems {
         }
 
         Map<String, ItemParser> parseMap = new LinkedHashMap<>();
-        for (File file : itemsFolder.listFiles())
+        File[] itemsConfig = itemsFolder.listFiles();
+        Arrays.sort(itemsConfig);
+        for (File file : itemsConfig)
             if (file.getName().endsWith(".yml")) {
                 YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
                 for (String itemSectionName : config.getKeys(false)) {
