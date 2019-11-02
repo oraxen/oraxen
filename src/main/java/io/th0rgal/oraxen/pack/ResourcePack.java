@@ -31,8 +31,7 @@ public class ResourcePack {
     public static void generate(JavaPlugin plugin) {
 
         File packFolder = new File(plugin.getDataFolder(), "pack");
-        if (!packFolder.exists())
-            packFolder.mkdirs();
+        makeDirsIfNotExists(packFolder);
 
         File texturesFolder = new File(packFolder, "textures");
         modelsFolder = new File(packFolder, "models");
@@ -68,37 +67,32 @@ public class ResourcePack {
         if (pack.exists())
             pack.delete();
 
-        if (!new File(packFolder, "pack.mcmeta").exists())
-            plugin.saveResource("pack/pack.mcmeta", true);
-
-        if (!new File(packFolder, "pack.png").exists())
-            plugin.saveResource("pack/pack.png", true);
+        extractInPackIfNotExists(plugin, new File(packFolder, "pack.mcmeta"));
+        extractInPackIfNotExists(plugin, new File(packFolder, "pack.png"));
 
         // Sorting items to keep only one with models (and generate it if needed)
         Map<Material, List<ItemBuilder>> texturedItems = new HashMap<>();
         for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
             ItemBuilder item = entry.getValue();
-            if (item.hasPackInfos()) {
-                if (item.getPackInfos().shouldGenerateModel()) {
-                    Utils.writeStringToFile(
-                            new File(modelsFolder, item.getPackInfos().getModelName() + ".json"),
-                            new ModelGenerator(item.getPackInfos()).getJson().toString());
-                }
-                List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
-                //todo: could be improved by using items.get(i).getPackInfos().getCustomModelData() when items.add(customModelData, item) with catch when not possible
-                if (items.isEmpty())
-                    items.add(item);
-                else
-                    for (int i = 0; i < items.size(); i++)
-                        if (items.get(i).getPackInfos().getCustomModelData() > item.getPackInfos().getCustomModelData()) {
-                            items.add(i, item);
-                            break;
-                        } else if (i == items.size() - 1) {
-                            items.add(item);
-                            break;
-                        }
-                texturedItems.put(item.build().getType(), items);
+            if (!item.hasPackInfos())
+                break;
+            if (item.getPackInfos().shouldGenerateModel()) {
+                Utils.writeStringToFile(
+                        new File(modelsFolder, item.getPackInfos().getModelName() + ".json"),
+                        new ModelGenerator(item.getPackInfos()).getJson().toString());
             }
+            List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
+            //todo: could be improved by using items.get(i).getPackInfos().getCustomModelData() when items.add(customModelData, item) with catch when not possible
+            if (items.isEmpty())
+                items.add(item);
+            else
+                for (int i = 0; i < items.size(); i++)
+                    if (items.get(i).getPackInfos().getCustomModelData() > item.getPackInfos().getCustomModelData()) {
+                        items.add(i, item);
+                    } else if (i == items.size() - 1) {
+                        items.add(item);
+                    }
+            texturedItems.put(item.build().getType(), items);
         }
         generatePredicates(texturedItems);
         for (Consumer<File> packModifier : packModifiers)
@@ -110,9 +104,18 @@ public class ResourcePack {
             ZipUtils.getFilesInFolder(packFolder, rootFolder, packFolder.getName() + ".zip");
 
             List<File> subfolders = new ArrayList<>();
-            for (File folder : packFolder.listFiles())
-                if (folder.isDirectory())
-                    ZipUtils.getAllFiles(folder, subfolders);
+            /*
+            Arrays.stream(packFolder.listFiles())
+                    .filter(File::isDirectory)
+                    .forEach(folder -> ZipUtils.getAllFiles(folder, subfolders));
+                    // not sure about that : maybe can introduce bugs or performance issues
+                    // TODO to try
+             */
+            for (File folder : packFolder.listFiles()) {
+                if (!folder.isDirectory())
+                    break;
+                ZipUtils.getAllFiles(folder, subfolders);
+            }
 
             Map<String, List<File>> fileListByZipDirectory = new HashMap<>();
             fileListByZipDirectory.put("assets/minecraft", subfolders);
@@ -125,6 +128,17 @@ public class ResourcePack {
         }
     }
 
+    private static void extractInPackIfNotExists(JavaPlugin plugin, File file) {
+        if (!file.exists())
+            plugin.saveResource("pack/" + file.getName(), true);
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void makeDirsIfNotExists(File folder) {
+        if (!folder.exists())
+            folder.mkdirs();
+    }
+
     @SafeVarargs
     public static void addModifiers(Consumer<File>... modifiers) {
         packModifiers.addAll(Arrays.asList(modifiers));
@@ -132,12 +146,15 @@ public class ResourcePack {
 
     private static void generatePredicates(Map<Material, List<ItemBuilder>> texturedItems) {
         File itemsFolder = new File(modelsFolder, "item");
-        if (!itemsFolder.exists())
-            itemsFolder.mkdirs();
+        makeDirsIfNotExists(itemsFolder);
+
         for (Map.Entry<Material, List<ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
-            PredicatesGenerator predicatesGenerator = new PredicatesGenerator(texturedItemsEntry.getKey(), texturedItemsEntry.getValue());
+            Material entryMaterial = texturedItemsEntry.getKey();
+            PredicatesGenerator predicatesGenerator = new PredicatesGenerator(entryMaterial, texturedItemsEntry.getValue());
+            String vanillaModelName = predicatesGenerator.getVanillaModelName(entryMaterial) + ".json";
+
             Utils.writeStringToFile(
-                    new File(modelsFolder, predicatesGenerator.getVanillaModelName(texturedItemsEntry.getKey()) + ".json"),
+                    new File(modelsFolder, vanillaModelName),
                     predicatesGenerator.toJSON().toString());
         }
     }
