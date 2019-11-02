@@ -79,16 +79,21 @@ public class ResourcesManager {
         CodeSource src = OraxenPlugin.class.getProtectionDomain().getCodeSource();
         if (src != null) {
             URL jar = src.getLocation();
-            try {
-                return new ZipInputStream(jar.openStream());
-            } catch (IOException e) {
-                Message.ZIP_BROWSE_ERROR.logError();
-                e.printStackTrace();
-            }
+            return tryToBrowse(jar);
         } else {
             Message.ZIP_BROWSE_ERROR.logError();
+            throw new RuntimeException();
         }
-        throw new RuntimeException();
+    }
+
+    private static ZipInputStream tryToBrowse(URL jar) {
+        try {
+            return new ZipInputStream(jar.openStream());
+        } catch (IOException e) {
+            Message.ZIP_BROWSE_ERROR.logError();
+            e.printStackTrace();
+            throw new RuntimeException();
+        }
     }
 
 }
