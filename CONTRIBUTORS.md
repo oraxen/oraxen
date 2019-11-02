@@ -18,6 +18,7 @@
 5. [REjoin](https://www.spigotmc.org/members/rejoin.666599/)
 6. [Roy0510](https://www.spigotmc.org/members/roy0510.139065/)
 7. [espen96](https://www.spigotmc.org/members/espen96.56603/)
+8. [DurchDrehen](https://www.spigotmc.org/members/durchdrehen.267467/)
 
 ### Idea givers
 > People who have given ideas to improve Oraxen
