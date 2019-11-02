@@ -12,7 +12,7 @@ public class PackSender implements Listener {
     @EventHandler
     private void onJoin(PlayerJoinEvent e) {
         if (Boolean.parseBoolean(Pack.SEND.toString()))
-        ResourcePack.send(e.getPlayer());
+            ResourcePack.send(e.getPlayer());
     }
 
 
