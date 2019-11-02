@@ -30,6 +30,3 @@ I'm currently looking for contributions for the following:
 - [ ] Refactors
 - [ ] Configs improvements
 - [ ] Ideas (even if we already have a ton to implement)
-
-
-#TODO: For more information, please refer to our [CONTRIBUTING](CONTRIBUTING.md) guide.
