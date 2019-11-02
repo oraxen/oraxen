@@ -4,8 +4,8 @@
 
 ### Code improvement
 > Developers who have contributed to the source code
-* [AntoineJT](https://github.com/AntoineJT): Active contributor, who contributed refactors.
-* [MrMicky](https://github.com/MrMicky-FR): Developer of [FastInv](https://github.com/MrMicky-FR/FastInv) (used in this plugin)
+* [AntoineJT](https://github.com/AntoineJT): active contributor, who contributed refactors.
+* [MrMicky](https://github.com/MrMicky-FR): developer of [FastInv](https://github.com/MrMicky-FR/FastInv) (used in this plugin)
 
 ### Early supporters
 > Users who bought the plugin during its beta (version 0.x) and decided to trust me and support the project while it was not yet finished.
@@ -20,7 +20,7 @@
 
 ### Idea givers
 > People who have given ideas to improve Oraxen
-* [MiniDigger](https://www.spigotmc.org/members/minidigger.6039/): Suggested to generate custom models id automatically
+* [MiniDigger](https://www.spigotmc.org/members/minidigger.6039/): suggested to generate custom models id automatically
 
 ## I would like to join this list. How can I help the project?
 
