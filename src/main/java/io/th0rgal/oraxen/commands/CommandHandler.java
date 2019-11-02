@@ -1,8 +1,6 @@
 package io.th0rgal.oraxen.commands;
 
 import io.th0rgal.oraxen.settings.Message;
-import io.th0rgal.oraxen.settings.Plugin;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
