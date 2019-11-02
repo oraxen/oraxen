@@ -1,3 +1,5 @@
+import java.text.SimpleDateFormat
+
 plugins {
     id "java"
     id "idea"
@@ -51,6 +53,17 @@ shadowJar {
     relocate "me.lucko:commodore", "io.th0rgal.oraxen.commodore"
     minimize { exclude("io.th0rgal.oraxen.api.*") }
     archiveClassifier.set(pluginVersion)
+
+    manifest {
+        attributes(
+                'Built-By': System.properties['user.name'],
+                'Version': pluginVersion,
+                'Build-Timestamp': new SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss.SSSZ").format(new Date()),
+                'Created-By': "Gradle ${gradle.gradleVersion}",
+                'Build-Jdk': "${System.properties['java.version']} (${System.properties['java.vendor']} ${System.properties['java.vm.version']})",
+                'Build-OS': "${System.properties['os.name']} ${System.properties['os.arch']} ${System.properties['os.version']}"
+        )
+    }
 }
 
 task buildJar(dependsOn: [clean, shadowJar])
