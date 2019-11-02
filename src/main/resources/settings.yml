@@ -3,7 +3,7 @@ Plugin:
   prefix: "&8&l[&bOraxen&8&l] §7"
 
 Pack:
-  url: "oraxen.com/packs/0.3.0.zip" # uploads your own if you made changes to the configuration
+  url: "https://oraxen.com/packs/0.3.0.zip" # uploads your own if you made changes to the configuration
   SHA1: "B2F640887E7C53D43C7CC695CD57EF92"
   send: true
   generate: true
