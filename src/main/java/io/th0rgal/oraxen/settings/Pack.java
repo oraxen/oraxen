@@ -5,17 +5,17 @@ import org.bukkit.ChatColor;
 
 public enum Pack implements ConfigEnum {
 
-    URL("Pack.url"),
-    SHA1("Pack.SHA1"),
-    SEND("Pack.send"),
-    GENERATE("Pack.generate"),
-    COMPRESSION("Pack.compression"),
-    COMMENT("Pack.comment");
+    URL("url"),
+    SHA1("SHA1"),
+    SEND("send"),
+    GENERATE("generate"),
+    COMPRESSION("compression"),
+    COMMENT("comment");
 
     private Object value;
 
     Pack(String section) {
-        this.value = new ResourcesManager(OraxenPlugin.get()).getSettings().get(section);
+        this.value = new ResourcesManager(OraxenPlugin.get()).getSettings().getConfigurationSection("Pack").get(section);
     }
 
     public Object getValue() {
