@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 
 import io.th0rgal.oraxen.utils.Logs;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -19,24 +20,33 @@ public class RecipesManager {
             recipesFolder.mkdirs();
             new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
         }
+        registerAllConfigRecipesFromFolder(recipesFolder);
+    }
+    
+    private static void registerAllConfigRecipesFromFolder(File recipesFolder) {
         for (File configFile : recipesFolder.listFiles()) {
-            YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
-            for (String recipeSetting : config.getKeys(false)) {
-
-                switch (configFile.getName()) {
-                    case "shaped.yml":
-                        new ShapedLoader(config.getConfigurationSection(recipeSetting)).registerRecipe();
-                        break;
-                    case "shapeless.yml":
-                        new ShapelessLoader(config.getConfigurationSection(recipeSetting)).registerRecipe();
-                        break;
-                    default:
-                        Logs.logError(configFile.getName());
-                }
-
-
-            }
+            registerConfigRecipes(configFile);
         }
     }
 
+    private static void registerConfigRecipes(File configFile) {
+        YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+        for (String recipeSetting : config.getKeys(false)) {
+            ConfigurationSection recipeSection = config.getConfigurationSection(recipeSetting);
+            registerRecipeByType(configFile, recipeSection);
+        }
+    }
+
+    private static void registerRecipeByType(File configFile, ConfigurationSection recipeSection) {
+        switch (configFile.getName()) {
+            case "shaped.yml":
+                new ShapedLoader(recipeSection).registerRecipe();
+                break;
+            case "shapeless.yml":
+                new ShapelessLoader(recipeSection).registerRecipe();
+                break;
+            default:
+                Logs.logError(configFile.getName());
+        }
+    }
 }
