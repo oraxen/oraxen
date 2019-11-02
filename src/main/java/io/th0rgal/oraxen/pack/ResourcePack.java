@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.pack;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.Pack;
@@ -38,18 +39,20 @@ public class ResourcePack {
 
         boolean extractModels = !modelsFolder.exists();
         boolean extractTextures = !texturesFolder.exists();
+
         if (extractModels || extractTextures) {
             ZipInputStream zip = ResourcesManager.browse();
             try {
-                ZipEntry e = zip.getNextEntry();
-                while (e != null) {
-                    String name = e.getName();
-                    if (!e.isDirectory())
-                        if (extractModels && name.startsWith("pack/models"))
-                            plugin.saveResource(name, true);
-                        else if (extractTextures && name.startsWith("pack/textures"))
-                            plugin.saveResource(name, true);
-                    e = zip.getNextEntry();
+                ZipEntry entry = zip.getNextEntry();
+                ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
+
+                while (entry != null) {
+                    String name = entry.getName();
+                    boolean isSuitable = (extractModels && name.startsWith("pack/models"))
+                            || (extractTextures && name.startsWith("pack/textures"));
+
+                    resourcesManager.extractFileIfTrue(entry, name, isSuitable);
+                    entry = zip.getNextEntry();
                 }
                 zip.closeEntry();
             } catch (IOException ex) {
