@@ -58,7 +58,7 @@ public class ZipUtils {
         // we want the zipEntry's path to be a relative path that is relative
         // to the directory being zipped, so chop off the rest of the path
         String zipFilePath = file.getCanonicalPath().substring(directoryToZip.getCanonicalPath().length() + 1);
-        if (Server.isIsUsingWindows())
+        if (Server.isUsingWindows())
             zipFilePath = zipFilePath.replace("\\", "/");
         if (!inZipDirectory.isEmpty())
             zipFilePath = inZipDirectory + "/" + zipFilePath;
