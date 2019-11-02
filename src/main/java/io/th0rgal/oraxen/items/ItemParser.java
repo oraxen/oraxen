@@ -46,7 +46,7 @@ class ModelData {
         Map<String, Integer> usedDurabilities;
         if (!datas.containsKey(type)) {
             usedDurabilities = new HashMap<>();
-            usedDurabilities.put(model, 0);
+            usedDurabilities.put(model, 1);
             datas.put(type, usedDurabilities);
             return 1;
         } else
