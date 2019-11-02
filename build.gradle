@@ -5,7 +5,7 @@ plugins {
 }
 
 group "io.th0rgal"
-def pluginVersion = "0.4.0"
+def pluginVersion = "0.5.0"
 sourceCompatibility = 1.8
 
 repositories {
