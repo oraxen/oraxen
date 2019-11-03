@@ -96,23 +96,23 @@ public class BedrockBreakMechanicsManager implements Listener {
 
                             sendBlockBreak(player, location, value);
 
-                            if (value >= 10) {
-                                BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
-                                Bukkit.getPluginManager().callEvent(blockBreakEvent);
-                                if (!blockBreakEvent.isCancelled()) {
-                                    if (mechanic.bernouilliTest())
-                                        world.dropItemNaturally(location, new ItemStack(Material.BEDROCK));
-                                    world.playSound(location, Sound.ENTITY_WITHER_BREAK_BLOCK, 1F, 0.05F); // nice song lol
-                                    world.spawnParticle(Particle.BLOCK_CRACK, location, 25, 0.5D, 0.5D, 0.5D, block.getBlockData());
-                                    block.breakNaturally();
-                                }
+                            if (value < 10)
+                                return;
 
-                                PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item, factory.getDurabilityCost());
-                                Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
-
-                                bukkitTask.cancel();
-
+                            BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
+                            Bukkit.getPluginManager().callEvent(blockBreakEvent);
+                            if (!blockBreakEvent.isCancelled()) {
+                                if (mechanic.bernouilliTest())
+                                    world.dropItemNaturally(location, new ItemStack(Material.BEDROCK));
+                                world.playSound(location, Sound.ENTITY_WITHER_BREAK_BLOCK, 1F, 0.05F); // nice song lol
+                                world.spawnParticle(Particle.BLOCK_CRACK, location, 25, 0.5D, 0.5D, 0.5D, block.getBlockData());
+                                block.breakNaturally();
                             }
+
+                            PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item, factory.getDurabilityCost());
+                            Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
+
+                            bukkitTask.cancel();
                         }
                     }, mechanic.delay, mechanic.period);
 
