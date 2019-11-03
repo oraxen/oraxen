@@ -6,12 +6,12 @@ import java.lang.reflect.InvocationTargetException;
 
 public class ItemUtils {
 
-    private static Class<?> CraftItemStack = NMS.CRAFT_ITEM_STACK.toClass();
-    private static Class<?> NMSItemStack = NMS.ITEM_STACK.toClass();
-    private static Class<?> NBTTagCompound = NMS.NBT_TAG_COMPOUND.toClass();
+    private static final Class<?> CRAFT_ITEM_STACK = NMS.CRAFT_ITEM_STACK.toClass();
+    private static final Class<?> NMS_ITEM_STACK = NMS.ITEM_STACK.toClass();
+    private static final Class<?> NBT_TAG_COMPOUND = NMS.NBT_TAG_COMPOUND.toClass();
 
     public static Class<?> getNBTTagCompoundClass() {
-        return NBTTagCompound;
+        return NBT_TAG_COMPOUND;
     }
 
     public static Object getFieldContent(ItemStack itemStack, String field) {
@@ -37,7 +37,7 @@ public class ItemUtils {
 
     public static void setIntNBTTag(Object itemTag, String field, int value) {
         try {
-            NBTTagCompound.getMethod("setInt", String.class, int.class).invoke(itemTag, field, value);
+            NBT_TAG_COMPOUND.getMethod("setInt", String.class, int.class).invoke(itemTag, field, value);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
@@ -56,7 +56,7 @@ public class ItemUtils {
 
     public static void setStringNBTTag(Object itemTag, String field, String value) {
         try {
-            NBTTagCompound.getMethod("setString", String.class, String.class).invoke(itemTag, field, value);
+            NBT_TAG_COMPOUND.getMethod("setString", String.class, String.class).invoke(itemTag, field, value);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
@@ -64,7 +64,7 @@ public class ItemUtils {
 
     public static void setBooleanNBTTag(Object itemTag, String field, boolean value) {
         try {
-            NBTTagCompound.getMethod("setBoolean", String.class, boolean.class).invoke(itemTag, field, value);
+            NBT_TAG_COMPOUND.getMethod("setBoolean", String.class, boolean.class).invoke(itemTag, field, value);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
@@ -72,7 +72,7 @@ public class ItemUtils {
 
     public static Object getNBTBase(Object itemTag, String field) {
         try {
-            return NBTTagCompound.getMethod("get", String.class).invoke(itemTag, field);
+            return NBT_TAG_COMPOUND.getMethod("get", String.class).invoke(itemTag, field);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw (new RuntimeException());
         }
@@ -80,7 +80,7 @@ public class ItemUtils {
 
     public static Object getNMSCopy(ItemStack itemStack) {
         try {
-            return CraftItemStack.getMethod("asNMSCopy", ItemStack.class).invoke(CraftItemStack, itemStack);
+            return CRAFT_ITEM_STACK.getMethod("asNMSCopy", ItemStack.class).invoke(CRAFT_ITEM_STACK, itemStack);
 
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw (new RuntimeException());
@@ -89,7 +89,7 @@ public class ItemUtils {
 
     public static ItemStack fromNMS(Object NMSitemStack) {
         try {
-            return (ItemStack) CraftItemStack.getMethod("asCraftMirror", NMSItemStack).invoke(CraftItemStack, NMSitemStack);
+            return (ItemStack) CRAFT_ITEM_STACK.getMethod("asCraftMirror", NMS_ITEM_STACK).invoke(CRAFT_ITEM_STACK, NMSitemStack);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             throw (new RuntimeException());
         }
@@ -97,9 +97,9 @@ public class ItemUtils {
 
     public static Object getNBTTagCompound(Object NMSitemStack) {
         try {
-            return ((boolean) NMSItemStack.getMethod("hasTag").invoke(NMSitemStack) ?
-                    NMSItemStack.getMethod("getTag").invoke(NMSitemStack) :
-                    NBTTagCompound.newInstance());
+            return ((boolean) NMS_ITEM_STACK.getMethod("hasTag").invoke(NMSitemStack) ?
+                    NMS_ITEM_STACK.getMethod("getTag").invoke(NMSitemStack) :
+                    NBT_TAG_COMPOUND.newInstance());
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
             throw (new RuntimeException());
         }
@@ -107,7 +107,7 @@ public class ItemUtils {
 
     public static void setNBTTagCompound(Object NMSitemStack, Object itemTag) {
         try {
-            NMSItemStack.getMethod("setTag", NBTTagCompound).invoke(NMSitemStack, itemTag);
+            NMS_ITEM_STACK.getMethod("setTag", NBT_TAG_COMPOUND).invoke(NMSitemStack, itemTag);
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
             e.printStackTrace();
         }
