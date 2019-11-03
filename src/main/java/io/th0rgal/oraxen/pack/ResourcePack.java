@@ -86,11 +86,14 @@ public class ResourcePack {
             if (items.isEmpty())
                 items.add(item);
             else
+                // for some reason those breaks are needed to avoid some nasty "memory leak"
                 for (int i = 0; i < items.size(); i++)
                     if (items.get(i).getPackInfos().getCustomModelData() > item.getPackInfos().getCustomModelData()) {
                         items.add(i, item);
+                        break;
                     } else if (i == items.size() - 1) {
                         items.add(item);
+                        break;
                     }
             texturedItems.put(item.build().getType(), items);
         }
