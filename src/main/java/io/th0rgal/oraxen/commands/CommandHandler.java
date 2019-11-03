@@ -7,35 +7,24 @@ import org.bukkit.command.CommandSender;
 
 import java.util.HashMap;
 
-//The class will implement CommandExecutor.
 public class CommandHandler implements CommandExecutor {
 
-    //This is where we will store the commands
     private static HashMap<String, CommandInterface> commands = new HashMap<>();
 
-    //Register method. When we register commands in our onEnable() we will use this.
     public CommandHandler register(String name, CommandInterface cmd) {
-
-        //When we register the command, this is what actually will put the command in the hashmap.
         commands.put(name, cmd);
         return this;
     }
 
-    //This will be used to check if a string exists or not.
     public boolean exists(String name) {
-
-        //To actually check if the string exists, we will return the hashmap
         return commands.containsKey(name);
     }
 
-    //Getter method for the Executor.
     public CommandInterface getExecutor(String name) {
-
-        //Returns a command in the hashmap of the same name.
         return commands.get(name);
     }
 
-    //This will be a template. All commands will have this in common.
+    //All commands will have this in common.
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
 
