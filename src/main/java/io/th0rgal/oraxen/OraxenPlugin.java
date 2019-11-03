@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.pack.ResourcePack;
 
 import io.th0rgal.oraxen.utils.fastinv.FastInvManager;
 import me.lucko.commodore.CommodoreProvider;
+import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -52,6 +53,7 @@ public class OraxenPlugin extends JavaPlugin {
         FastInvManager.register(this);
         registerCommands();
         Logs.log(ChatColor.GREEN + "Successfully loaded on " + Server.OS_NAME);
+        new Metrics(this);
         new EventsManager(this).registerNativeEvents();
     }
 
