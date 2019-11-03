@@ -107,13 +107,6 @@ public class ResourcePack {
             ZipUtils.getFilesInFolder(packFolder, rootFolder, packFolder.getName() + ".zip");
 
             List<File> subfolders = new ArrayList<>();
-            /*
-            Arrays.stream(packFolder.listFiles())
-                    .filter(File::isDirectory)
-                    .forEach(folder -> ZipUtils.getAllFiles(folder, subfolders));
-                    // not sure about that : maybe can introduce bugs or performance issues
-                    // TODO to try
-             */
             for (File folder : packFolder.listFiles())
                 if (folder.isDirectory())
                     ZipUtils.getAllFiles(folder, subfolders);
