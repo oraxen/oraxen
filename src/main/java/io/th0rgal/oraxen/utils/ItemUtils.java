@@ -70,6 +70,14 @@ public class ItemUtils {
         }
     }
 
+    public static void setNBTBase(Object itemTag, String field, Object nbtBase) {
+        try {
+            NBT_TAG_COMPOUND.getMethod("set", String.class, NMS.NBT_BASE.toClass()).invoke(itemTag, field, nbtBase);
+        } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
+            e.printStackTrace();
+        }
+    }
+
     public static Object getNBTBase(Object itemTag, String field) {
         try {
             return NBT_TAG_COMPOUND.getMethod("get", String.class).invoke(itemTag, field);
