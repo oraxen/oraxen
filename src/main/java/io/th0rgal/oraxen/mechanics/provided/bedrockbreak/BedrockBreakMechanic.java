@@ -1,0 +1,34 @@
+package io.th0rgal.oraxen.mechanics.provided.bedrockbreak;
+
+import io.th0rgal.oraxen.mechanics.Mechanic;
+import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import org.bukkit.configuration.ConfigurationSection;
+
+import java.util.Random;
+
+public class BedrockBreakMechanic extends Mechanic {
+
+    long delay;
+    long period;
+    int probability;
+
+    public BedrockBreakMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
+        /* We give:
+        - an instance of the Factory which created the mechanic
+        - the section used to configure the mechanic
+         */
+        super(mechanicFactory, section);
+        this.delay = section.getLong("delay");
+        this.period = section.getLong("period");
+        this.probability = (int) (1D / section.getDouble("probability"));
+    }
+
+    public long getPeriod() {
+        return period;
+    }
+
+    public boolean bernouilliTest() {
+        return new Random().nextInt(probability) == 0;
+    }
+}
+

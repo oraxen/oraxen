@@ -365,23 +365,3 @@ public class ItemBuilder {
     }
 
 }
-
-class PersistentDataSpace {
-
-    private NamespacedKey namespacedKey;
-    private PersistentDataType<?, ?> dataType;
-
-    public <T, Z> PersistentDataSpace(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType) {
-        this.namespacedKey = namespacedKey;
-        this.dataType = dataType;
-    }
-
-    public NamespacedKey getNamespacedKey() {
-        return namespacedKey;
-    }
-
-    public PersistentDataType<?, ?> getDataType() {
-        return dataType;
-    }
-
-}

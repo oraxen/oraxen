@@ -107,9 +107,10 @@ public class ResourcePack {
             ZipUtils.getFilesInFolder(packFolder, rootFolder, packFolder.getName() + ".zip");
 
             List<File> subfolders = new ArrayList<>();
-            for (File folder : packFolder.listFiles())
-                if (folder.isDirectory())
-                    ZipUtils.getAllFiles(folder, subfolders);
+            // needs to be ordered, forEach cannot be used
+            Arrays.stream(packFolder.listFiles())
+                    .filter(File::isDirectory)
+                    .forEachOrdered(folder -> ZipUtils.getAllFiles(folder, subfolders));
 
             Map<String, List<File>> fileListByZipDirectory = new HashMap<>();
             fileListByZipDirectory.put("assets/minecraft", subfolders);
