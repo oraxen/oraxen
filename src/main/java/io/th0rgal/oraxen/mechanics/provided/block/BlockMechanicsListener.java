@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.utils.Utils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -22,7 +23,12 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class BlockMechanicsListener implements Listener {
 
@@ -34,14 +40,15 @@ public class BlockMechanicsListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     private void onBreakingCustomBlock(BlockBreakEvent event) {
-        if (event.getBlock().getType() != Material.MUSHROOM_STEM)
+        Block block = event.getBlock();
+        if (block.getType() != Material.MUSHROOM_STEM)
             return;
 
-        MultipleFacing blockFacing = (MultipleFacing) event.getBlock().getBlockData();
+        MultipleFacing blockFacing = (MultipleFacing) block.getBlockData();
         BlockMechanicFactory
                 .getBlockMechanic(Utils.getCode(blockFacing))
                 .getDrop()
-                .spawns(event.getBlock().getLocation(),
+                .spawns(block.getLocation(),
                         event.getPlayer().getInventory()
                                 .getItemInMainHand());
     }
@@ -68,6 +75,8 @@ public class BlockMechanicsListener implements Listener {
         }, 0);
     }
 
+    private List<Material> replaceableBlocks = Arrays.asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS);
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     private void onPrePlacingCustomBlock(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
@@ -82,16 +91,13 @@ public class BlockMechanicsListener implements Listener {
         Block placedAgainst = event.getClickedBlock();
         Block target;
         Material type = placedAgainst.getType();
-        if (type.equals(Material.SNOW)
-                || type.equals(Material.VINE)
-                || type.equals(Material.GRASS)
-                || type.equals(Material.TALL_GRASS)
-                || type.equals(Material.SEAGRASS))
+        if (replaceableBlocks.contains(type))
             target = placedAgainst;
         else
             target = placedAgainst.getRelative(event.getBlockFace());
 
-        if (target.getLocation().distance(player.getLocation()) > 1 && target.getLocation().distance(player.getLocation()) > 1) {
+        Location playerLocation = player.getLocation();
+        if (target.getLocation().distance(playerLocation) > 1) {
             BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, event.getHand());
             Bukkit.getPluginManager().callEvent(blockPlaceEvent);
             if (blockPlaceEvent.canBuild() && !blockPlaceEvent.isCancelled()) {

@@ -9,6 +9,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class PredicatesGenerator {
@@ -58,18 +59,16 @@ public class PredicatesGenerator {
                 .toLowerCase();
     }
 
-    String[] tools = new String[]{"PICKAXE", "SWORD", "HOE", "AXE", "SHOVEL"};
+    private String[] tools = new String[]{"PICKAXE", "SWORD", "HOE", "AXE", "SHOVEL"};
 
     private String getParent(Material material) {
         if (material.isBlock())
             return "block/cube_all";
-        for (String tool : tools)
-            if (material.toString().contains(tool))
-                return "item/handheld";
+        if (Arrays.stream(tools).anyMatch(tool -> material.toString().contains(tool)))
+            return "item/handheld";
         if (material == Material.FISHING_ROD)
             return "item/handheld_rod";
-        else
-            return "item/generated";
+        return "item/generated";
     }
 
     public JsonObject toJSON() {

@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.commands;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.utils.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.List;

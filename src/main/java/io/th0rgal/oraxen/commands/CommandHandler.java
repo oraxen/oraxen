@@ -1,8 +1,6 @@
 package io.th0rgal.oraxen.commands;
 
 import io.th0rgal.oraxen.settings.Message;
-import io.th0rgal.oraxen.settings.Plugin;
-import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -13,7 +11,7 @@ import java.util.HashMap;
 public class CommandHandler implements CommandExecutor {
 
     //This is where we will store the commands
-    private static HashMap<String, CommandInterface> commands = new HashMap<String, CommandInterface>();
+    private static HashMap<String, CommandInterface> commands = new HashMap<>();
 
     //Register method. When we register commands in our onEnable() we will use this.
     public CommandHandler register(String name, CommandInterface cmd) {
@@ -48,22 +46,20 @@ public class CommandHandler implements CommandExecutor {
         }
 
         //What if there are arguments in the command? Such as /example args
-        if (args.length > 0) {
+        // implicit if (args.length > 0)
 
-            //If that argument exists in our registration in the onEnable();
-            if (exists(args[0])) {
+        //If that argument exists in our registration in the onEnable();
+        if (exists(args[0])) {
 
-                //Get The executor with the name of args[0].
-                getExecutor(args[0]).onCommand(sender, cmd, commandLabel, args);
-                return true;
-            } else {
-                //We want to send a message to the sender if the command doesn't exist.
-                Message.COMMAND_DOES_NOT_EXIST_ERROR.send(sender);
-                return true;
-            }
+            //Get The executor with the name of args[0].
+            getExecutor(args[0]).onCommand(sender, cmd, commandLabel, args);
+            return true;
+        } else {
+            //We want to send a message to the sender if the command doesn't exist.
+            Message.COMMAND_DOES_NOT_EXIST_ERROR.send(sender);
+            return true;
         }
 
-        return false;
     }
 
 }

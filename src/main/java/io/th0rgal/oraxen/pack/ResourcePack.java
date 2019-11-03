@@ -31,8 +31,7 @@ public class ResourcePack {
     public static void generate(JavaPlugin plugin) {
 
         File packFolder = new File(plugin.getDataFolder(), "pack");
-        if (!packFolder.exists())
-            packFolder.mkdirs();
+        makeDirsIfNotExists(packFolder);
 
         File texturesFolder = new File(packFolder, "textures");
         modelsFolder = new File(packFolder, "models");
@@ -68,11 +67,8 @@ public class ResourcePack {
         if (pack.exists())
             pack.delete();
 
-        if (!new File(packFolder, "pack.mcmeta").exists())
-            plugin.saveResource("pack/pack.mcmeta", true);
-
-        if (!new File(packFolder, "pack.png").exists())
-            plugin.saveResource("pack/pack.png", true);
+        extractInPackIfNotExists(plugin, new File(packFolder, "pack.mcmeta"));
+        extractInPackIfNotExists(plugin, new File(packFolder, "pack.png"));
 
         // Sorting items to keep only one with models (and generate it if needed)
         Map<Material, List<ItemBuilder>> texturedItems = new HashMap<>();
@@ -89,6 +85,7 @@ public class ResourcePack {
                 if (items.isEmpty())
                     items.add(item);
                 else
+                    // for some reason those breaks are needed to avoid some nasty "memory leak"
                     for (int i = 0; i < items.size(); i++)
                         if (items.get(i).getPackInfos().getCustomModelData() > item.getPackInfos().getCustomModelData()) {
                             items.add(i, item);
@@ -110,6 +107,13 @@ public class ResourcePack {
             ZipUtils.getFilesInFolder(packFolder, rootFolder, packFolder.getName() + ".zip");
 
             List<File> subfolders = new ArrayList<>();
+            /*
+            Arrays.stream(packFolder.listFiles())
+                    .filter(File::isDirectory)
+                    .forEach(folder -> ZipUtils.getAllFiles(folder, subfolders));
+                    // not sure about that : maybe can introduce bugs or performance issues
+                    // TODO to try
+             */
             for (File folder : packFolder.listFiles())
                 if (folder.isDirectory())
                     ZipUtils.getAllFiles(folder, subfolders);
@@ -125,6 +129,17 @@ public class ResourcePack {
         }
     }
 
+    private static void extractInPackIfNotExists(JavaPlugin plugin, File file) {
+        if (!file.exists())
+            plugin.saveResource("pack/" + file.getName(), true);
+    }
+
+    @SuppressWarnings("ResultOfMethodCallIgnored")
+    private static void makeDirsIfNotExists(File folder) {
+        if (!folder.exists())
+            folder.mkdirs();
+    }
+
     @SafeVarargs
     public static void addModifiers(Consumer<File>... modifiers) {
         packModifiers.addAll(Arrays.asList(modifiers));
@@ -132,12 +147,15 @@ public class ResourcePack {
 
     private static void generatePredicates(Map<Material, List<ItemBuilder>> texturedItems) {
         File itemsFolder = new File(modelsFolder, "item");
-        if (!itemsFolder.exists())
-            itemsFolder.mkdirs();
+        makeDirsIfNotExists(itemsFolder);
+
         for (Map.Entry<Material, List<ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
-            PredicatesGenerator predicatesGenerator = new PredicatesGenerator(texturedItemsEntry.getKey(), texturedItemsEntry.getValue());
+            Material entryMaterial = texturedItemsEntry.getKey();
+            PredicatesGenerator predicatesGenerator = new PredicatesGenerator(entryMaterial, texturedItemsEntry.getValue());
+            String vanillaModelName = predicatesGenerator.getVanillaModelName(entryMaterial) + ".json";
+
             Utils.writeStringToFile(
-                    new File(modelsFolder, predicatesGenerator.getVanillaModelName(texturedItemsEntry.getKey()) + ".json"),
+                    new File(modelsFolder, vanillaModelName),
                     predicatesGenerator.toJSON().toString());
         }
     }
