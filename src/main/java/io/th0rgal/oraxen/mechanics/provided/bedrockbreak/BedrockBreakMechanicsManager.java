@@ -32,7 +32,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class BedrockbreakMechanicsManager implements Listener {
+public class BedrockBreakMechanicsManager implements Listener {
 
     private Set<Location> locations = new HashSet<>();
     private ProtocolManager protocolManager;
@@ -49,7 +49,7 @@ public class BedrockbreakMechanicsManager implements Listener {
         }
     }
 
-    public BedrockbreakMechanicsManager(BedrockbreakMechanicFactory factory) {
+    public BedrockBreakMechanicsManager(BedrockBreakMechanicFactory factory) {
 
         this.protocolManager = ProtocolLibrary.getProtocolManager();
         protocolManager.addPacketListener(new PacketAdapter(OraxenPlugin.get(), ListenerPriority.LOW, PacketType.Play.Client.BLOCK_DIG) {
@@ -73,10 +73,10 @@ public class BedrockbreakMechanicsManager implements Listener {
                 if (!block.getType().equals(Material.BEDROCK))
                     return;
 
-                BedrockbreakMechanic mechanic = (BedrockbreakMechanic) factory.getMechanic(itemID);
+                BedrockBreakMechanic mechanic = (BedrockBreakMechanic) factory.getMechanic(itemID);
 
                 Location location = block.getLocation();
-                BedrockbreakMechanicFactory factory = (BedrockbreakMechanicFactory) mechanic.getFactory();
+                BedrockBreakMechanicFactory factory = (BedrockBreakMechanicFactory) mechanic.getFactory();
                 if (factory.isDisabledOnFirstLayer() && location.getBlockY() == 0)
                     return;
                 if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {

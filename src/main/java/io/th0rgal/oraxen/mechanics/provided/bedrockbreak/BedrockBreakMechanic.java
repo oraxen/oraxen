@@ -6,13 +6,13 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.Random;
 
-public class BedrockbreakMechanic extends Mechanic {
+public class BedrockBreakMechanic extends Mechanic {
 
     long delay;
     long period;
     int probability;
 
-    public BedrockbreakMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
+    public BedrockBreakMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         /* We give:
         - an instance of the Factory which created the mechanic
         - the section used to configure the mechanic
