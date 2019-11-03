@@ -74,28 +74,28 @@ public class ResourcePack {
         Map<Material, List<ItemBuilder>> texturedItems = new HashMap<>();
         for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
             ItemBuilder item = entry.getValue();
-            if (!item.hasPackInfos())
-                break;
-            if (item.getPackInfos().shouldGenerateModel()) {
-                Utils.writeStringToFile(
-                        new File(modelsFolder, item.getPackInfos().getModelName() + ".json"),
-                        new ModelGenerator(item.getPackInfos()).getJson().toString());
+            if (item.hasPackInfos()) {
+                if (item.getPackInfos().shouldGenerateModel()) {
+                    Utils.writeStringToFile(
+                            new File(modelsFolder, item.getPackInfos().getModelName() + ".json"),
+                            new ModelGenerator(item.getPackInfos()).getJson().toString());
+                }
+                List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
+                //todo: could be improved by using items.get(i).getPackInfos().getCustomModelData() when items.add(customModelData, item) with catch when not possible
+                if (items.isEmpty())
+                    items.add(item);
+                else
+                    // for some reason those breaks are needed to avoid some nasty "memory leak"
+                    for (int i = 0; i < items.size(); i++)
+                        if (items.get(i).getPackInfos().getCustomModelData() > item.getPackInfos().getCustomModelData()) {
+                            items.add(i, item);
+                            break;
+                        } else if (i == items.size() - 1) {
+                            items.add(item);
+                            break;
+                        }
+                texturedItems.put(item.build().getType(), items);
             }
-            List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
-            //todo: could be improved by using items.get(i).getPackInfos().getCustomModelData() when items.add(customModelData, item) with catch when not possible
-            if (items.isEmpty())
-                items.add(item);
-            else
-                // for some reason those breaks are needed to avoid some nasty "memory leak"
-                for (int i = 0; i < items.size(); i++)
-                    if (items.get(i).getPackInfos().getCustomModelData() > item.getPackInfos().getCustomModelData()) {
-                        items.add(i, item);
-                        break;
-                    } else if (i == items.size() - 1) {
-                        items.add(item);
-                        break;
-                    }
-            texturedItems.put(item.build().getType(), items);
         }
         generatePredicates(texturedItems);
         for (Consumer<File> packModifier : packModifiers)
@@ -114,11 +114,9 @@ public class ResourcePack {
                     // not sure about that : maybe can introduce bugs or performance issues
                     // TODO to try
              */
-            for (File folder : packFolder.listFiles()) {
-                if (!folder.isDirectory())
-                    break;
-                ZipUtils.getAllFiles(folder, subfolders);
-            }
+            for (File folder : packFolder.listFiles())
+                if (folder.isDirectory())
+                    ZipUtils.getAllFiles(folder, subfolders);
 
             Map<String, List<File>> fileListByZipDirectory = new HashMap<>();
             fileListByZipDirectory.put("assets/minecraft", subfolders);
