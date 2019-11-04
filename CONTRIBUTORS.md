@@ -24,6 +24,10 @@
 > People who have given ideas to improve Oraxen
 * [MiniDigger](https://www.spigotmc.org/members/minidigger.6039/): suggested to generate custom models id automatically
 
+### Correctors
+> Persons who have identified spelling errors (including in the doc)
+- Jeroen
+
 ## I would like to join this list. How can I help the project?
 
 I'm currently looking for contributions for the following:
