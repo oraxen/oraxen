@@ -26,7 +26,7 @@
 
 ### Correctors
 > Persons who have identified spelling errors (including in the doc)
-- Jeroen
+* Jeroen
 
 ## I would like to join this list. How can I help the project?
 
