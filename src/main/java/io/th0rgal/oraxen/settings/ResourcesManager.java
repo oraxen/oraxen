@@ -13,7 +13,7 @@ import java.util.zip.ZipInputStream;
 
 public class ResourcesManager {
 
-    JavaPlugin plugin;
+    final JavaPlugin plugin;
 
     public ResourcesManager(JavaPlugin plugin) {
         this.plugin = plugin;

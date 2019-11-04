@@ -15,8 +15,8 @@ import java.util.*;
 
 public class BlockMechanicFactory extends MechanicFactory {
 
-    private static List<JsonObject> mushroomStemBlockstateOverrides = new ArrayList<>();
-    private static Map<Integer, BlockMechanic> blockPerVariation = new HashMap<>();
+    private static final List<JsonObject> mushroomStemBlockstateOverrides = new ArrayList<>();
+    private static final Map<Integer, BlockMechanic> blockPerVariation = new HashMap<>();
 
     public BlockMechanicFactory(ConfigurationSection section) {
         super(section);

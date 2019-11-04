@@ -16,7 +16,7 @@ public enum Message {
     MECHANIC_DOESNT_EXIST(ChatColor.RED, "The mechanic %s doesn't exist"),
     WRONG_TYPE(ChatColor.RED, "You are using an invalid type");
 
-    private String message;
+    private final String message;
 
     Message(ChatColor color, String message) {
         this.message = color + message;

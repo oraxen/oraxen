@@ -17,7 +17,7 @@ import java.util.UUID;
 
 public abstract class RecipeBuilder {
 
-    private static Map<UUID, RecipeBuilder> map = new HashMap<>();
+    private static final Map<UUID, RecipeBuilder> map = new HashMap<>();
 
     private Inventory inventory;
     private File configFile;

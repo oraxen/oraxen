@@ -8,7 +8,7 @@ public enum Plugin implements ConfigEnum {
     NAME("Plugin.name"),
     PREFIX("Plugin.prefix");
 
-    private Object value;
+    private final Object value;
 
     Plugin(String section) {
         this.value = new ResourcesManager(OraxenPlugin.get()).getSettings().get(section);

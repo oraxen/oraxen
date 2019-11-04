@@ -8,9 +8,9 @@ public class PackInfos {
 
     private int customModelData;
     private String modelName;
-    private List<String> layers;
-    private String parentModel;
-    private boolean generate_model;
+    private final List<String> layers;
+    private final String parentModel;
+    private final boolean generate_model;
 
     public PackInfos(ConfigurationSection configurationSection) {
         this.modelName = configurationSection.getString("model");

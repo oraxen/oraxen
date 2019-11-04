@@ -22,11 +22,11 @@ import java.util.function.Function;
 
 public class ItemParser {
 
-    private static Map<String, ModelData> modelDatasByID = new HashMap<>();
+    private static final Map<String, ModelData> modelDatasByID = new HashMap<>();
 
     private PackInfos packInfos;
-    private ConfigurationSection section;
-    private Material type;
+    private final ConfigurationSection section;
+    private final Material type;
 
     public ItemParser(ConfigurationSection section) {
         this.section = section;

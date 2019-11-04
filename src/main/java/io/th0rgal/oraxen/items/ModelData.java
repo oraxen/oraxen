@@ -8,9 +8,9 @@ import java.util.Map;
 
 public class ModelData {
 
-    private Material type;
-    private int durability;
-    private static Map<Material, Map<String, Integer>> datas = new HashMap<>();
+    private final Material type;
+    private final int durability;
+    private static final Map<Material, Map<String, Integer>> datas = new HashMap<>();
 
     public ModelData(Material type, String model, int durability) {
         this.type = type;

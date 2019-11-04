@@ -8,8 +8,8 @@ import java.util.Set;
 
 public abstract class MechanicFactory {
 
-    private Map<String, Mechanic> mechanicByItem = new HashMap<>();
-    private ConfigurationSection section;
+    private final Map<String, Mechanic> mechanicByItem = new HashMap<>();
+    private final ConfigurationSection section;
 
     public MechanicFactory(ConfigurationSection section) {
         this.section = section;

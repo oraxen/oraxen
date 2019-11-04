@@ -32,7 +32,7 @@ import java.util.Set;
 
 public class BlockMechanicsListener implements Listener {
 
-    private MechanicFactory factory;
+    private final MechanicFactory factory;
 
     public BlockMechanicsListener(BlockMechanicFactory factory) {
         this.factory = factory;
@@ -75,7 +75,8 @@ public class BlockMechanicsListener implements Listener {
         }, 0);
     }
 
-    private List<Material> replaceableBlocks = Arrays.asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS);
+    // not static here because only instanciated once I think
+    private final List<Material> replaceableBlocks = Arrays.asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS);
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrePlacingCustomBlock(PlayerInteractEvent event) {
