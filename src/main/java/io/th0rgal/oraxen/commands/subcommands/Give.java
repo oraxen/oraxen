@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.commands.subcommands;
 
 import io.th0rgal.oraxen.commands.CommandInterface;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.Message;
 import org.bukkit.Bukkit;
@@ -8,6 +9,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 public class Give implements CommandInterface {
 
@@ -22,23 +24,26 @@ public class Give implements CommandInterface {
         if (args.length < 2)
             return false;
 
-        else if (args.length == 2)
+        if (args.length == 2) {
             if (sender instanceof Player) {
                 Player player = (Player) sender;
-                player.getInventory().addItem(OraxenItems.getItemById(args[1]).build());
-            } else
-                Message.NOT_A_PLAYER_ERROR.send(sender);
-
-        else {
-            Player target = Bukkit.getPlayer(args[1]);
-            ItemStack itemStack = OraxenItems.getItemById(args[2]).build();
-            if (args.length == 4)
-                itemStack.setAmount(Integer.parseInt(args[3]));
-            target.getInventory().addItem(itemStack);
+                addItemToInventory(player.getInventory(), OraxenItems.getItemById(args[1]).build());
+                return true;
+            }
+            Message.NOT_A_PLAYER_ERROR.send(sender);
+            return true;
         }
+
+        Player target = Bukkit.getPlayer(args[1]);
+        ItemStack itemStack = OraxenItems.getItemById(args[2]).build();
+        if (args.length == 4)
+            itemStack.setAmount(Integer.parseInt(args[3]));
+        addItemToInventory(target.getInventory(), itemStack);
 
         return true;
     }
 
+    private void addItemToInventory(PlayerInventory inventory, ItemStack itemStack) {
+        inventory.addItem(itemStack);
+    }
 }
-
