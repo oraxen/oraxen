@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.commands.subcommands;
 
 import io.th0rgal.oraxen.commands.CommandInterface;
-import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.Message;
 import org.bukkit.Bukkit;
