@@ -29,9 +29,9 @@ public class ShapelessBuilder extends WorkbenchBuilder {
         setSerializedItem(newCraftSection.createSection("result"), content[0]);
         ConfigurationSection ingredients = newCraftSection.createSection("ingredients");
 
-        for (int i = 1; i < items.keySet().size(); i++) {
+        for (int i = 1; i < items.size(); i++) {
             ConfigurationSection ingredientSection = ingredients.createSection(String.valueOf((char) (64 + i)));
-            ingredientSection.set("amount", items.get(items.keySet().toArray()[i]));
+            ingredientSection.set("amount", items.values().toArray()[i]);
             setSerializedItem(ingredientSection, content[i]);
         }
         if (permission != null)
