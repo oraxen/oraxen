@@ -13,13 +13,7 @@ public class PackInfos {
     private final boolean generate_model;
 
     public PackInfos(ConfigurationSection configurationSection) {
-        this.modelName = configurationSection.getString("model");
-        if (modelName == null)
-            this.modelName = configurationSection.getParent().getName();
-        else
-        if (modelName.endsWith(".json"))
-            this.modelName = modelName.substring(0, modelName.length() - 5);
-
+        this.modelName = readModelName(configurationSection);
         this.layers = configurationSection.getStringList("layers");
         layers.stream()
                 .filter(layer -> layer.endsWith(".png"))
@@ -27,6 +21,16 @@ public class PackInfos {
 
         this.generate_model = configurationSection.getBoolean("generate_model");
         this.parentModel = configurationSection.getString("parent_model");
+    }
+
+    // this is maybe not a really good function name
+    private String readModelName(ConfigurationSection configurationSection) {
+        String modelName = configurationSection.getString("model");
+        if (modelName == null)
+            return configurationSection.getParent().getName();
+        if (modelName.endsWith(".json"))
+            return modelName.substring(0, modelName.length() - 5);
+        return modelName;
     }
 
     public void setCustomModelData(int customModelData) {
