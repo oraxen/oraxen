@@ -16,15 +16,14 @@ public class PackInfos {
         this.modelName = configurationSection.getString("model");
         if (modelName == null)
             this.modelName = configurationSection.getParent().getName();
+        else
         if (modelName.endsWith(".json"))
             this.modelName = modelName.substring(0, modelName.length() - 5);
 
         this.layers = configurationSection.getStringList("layers");
-        for (int i = 0; i < layers.size(); i++) {
-            String layer = layers.get(i);
-            if (layer.endsWith(".png"))
-                layers.set(i, layer.substring(0, layer.length() - 4));
-        }
+        layers.stream()
+                .filter(layer -> layer.endsWith(".png"))
+                .forEachOrdered(layer -> layers.add(layer.substring(0, layer.length() - 4)));
 
         this.generate_model = configurationSection.getBoolean("generate_model");
         this.parentModel = configurationSection.getString("parent_model");
