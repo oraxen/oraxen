@@ -12,6 +12,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class OraxenItems {
 
@@ -28,21 +30,22 @@ public class OraxenItems {
             new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
         }
 
-        Map<String, ItemParser> parseMap = new LinkedHashMap<>();
         File[] itemsConfig = itemsFolder.listFiles();
         Arrays.sort(itemsConfig);
-        for (File file : itemsConfig)
-            if (file.getName().endsWith(".yml")) {
-                YamlConfiguration config = YamlConfiguration.loadConfiguration(file);
-                for (String itemSectionName : config.getKeys(false)) {
-                    ConfigurationSection itemSection = config.getConfigurationSection(itemSectionName);
-                    parseMap.put(itemSectionName, new ItemParser(itemSection));
-                }
+        Map<String, ItemParser> parseMap = new LinkedHashMap<>();
+        // TODO Check impact on RAM consumption (if too big, revert commit)
+        List<YamlConfiguration> configs = Arrays.stream(itemsConfig)
+                .filter(file -> file.getName().endsWith(".yml"))
+                .map(YamlConfiguration::loadConfiguration)
+                .collect(Collectors.toList());
+        for (YamlConfiguration config : configs)
+            for (String itemSectionName : config.getKeys(false)) {
+                ConfigurationSection itemSection = config.getConfigurationSection(itemSectionName);
+                parseMap.put(itemSectionName, new ItemParser(itemSection));
             }
         // because we must have parse all the items before building them to be able to use available models
         for (Map.Entry<String, ItemParser> entry : parseMap.entrySet())
             map.put(entry.getKey(), entry.getValue().buildItem());
-
     }
 
     public static String getIdByItem(ItemBuilder item) {
