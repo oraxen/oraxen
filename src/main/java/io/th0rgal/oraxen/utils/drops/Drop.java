@@ -52,13 +52,11 @@ public class Drop {
         if (!isToolEnough(itemInHand))
             return;
 
-        if (silktouch)
+        if (silktouch) {
             location.getWorld().dropItemNaturally(location, OraxenItems.getItemById(sourceID).build());
-        else {
-            for (Loot loot : loots)
-                loot.dropNaturally(location);
+            return;
         }
-
+        for (Loot loot : loots)
+            loot.dropNaturally(location);
     }
-
 }
