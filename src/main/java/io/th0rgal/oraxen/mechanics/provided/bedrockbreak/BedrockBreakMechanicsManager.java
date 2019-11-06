@@ -20,7 +20,6 @@ import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
@@ -32,7 +31,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class BedrockBreakMechanicsManager implements Listener {
+public class BedrockBreakMechanicsManager {
 
     private Set<Location> locations = new HashSet<>();
     private ProtocolManager protocolManager;
