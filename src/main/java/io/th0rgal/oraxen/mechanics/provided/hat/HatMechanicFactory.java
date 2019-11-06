@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 
-import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanic;
 import org.bukkit.configuration.ConfigurationSection;
 
 public class HatMechanicFactory extends MechanicFactory {
