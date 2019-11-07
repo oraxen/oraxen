@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.recipes.builders;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.ResourcesManager;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -30,11 +31,12 @@ public abstract class RecipeBuilder {
         this.player = player;
         this.builderName = builderName;
         this.inventoryTitle = player.getName() + " " + builderName + " builder§o§r§a§x§e§n"; // watermark
-        inventory = map.containsKey(player.getUniqueId())
-                ? map.get(player.getUniqueId()).inventory
+        UUID playerId = player.getUniqueId();
+        inventory = map.containsKey(playerId)
+                ? map.get(playerId).inventory
                 : createInventory(player, inventoryTitle);
         player.openInventory(inventory);
-        map.put(player.getUniqueId(), this);
+        map.put(playerId, this);
     }
 
     abstract Inventory createInventory(Player player, String inventoryTitle);
@@ -56,10 +58,11 @@ public abstract class RecipeBuilder {
             section.set("oraxen_item", itemID);
             return;
         }
-        
+
         //if our itemstack is an unmodified vanilla item
-        if (itemStack != null && itemStack.equals(new ItemStack(itemStack.getType()))) {
-            section.set("minecraft_type", itemStack.getType().toString());
+        Material itemType = itemStack.getType();
+        if (itemStack != null && itemStack.equals(new ItemStack(itemType))) {
+            section.set("minecraft_type", itemType.toString());
             return;
         }
         section.set("minecraft_item", itemStack);
@@ -83,15 +86,15 @@ public abstract class RecipeBuilder {
 
     public void setInventory(Inventory inventory) {
         this.inventory = inventory;
-        map.put(this.player.getUniqueId(), this);
+        map.put(player.getUniqueId(), this);
     }
 
     public String getInventoryTitle() {
-        return this.inventoryTitle;
+        return inventoryTitle;
     }
 
     public void open() {
-        player.openInventory(this.inventory);
+        player.openInventory(inventory);
     }
 
     public static RecipeBuilder get(UUID playerUUID) {
