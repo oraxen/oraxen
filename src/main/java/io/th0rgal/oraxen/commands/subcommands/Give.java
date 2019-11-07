@@ -20,7 +20,8 @@ public class Give implements CommandInterface {
             return false;
         }
 
-        if (args.length < 2)
+        // TODO Check with Uxon if he wants to check > 4 or not 
+        if (args.length < 2 || args.length > 4)
             return false;
 
         if (args.length == 2) {
