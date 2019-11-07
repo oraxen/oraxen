@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.hat;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 
+import io.th0rgal.oraxen.utils.Logs;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -21,7 +22,7 @@ public class HatMechanicsListener implements Listener {
         this.factory = factory;
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL)
     private void onInventoryHatPut(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
