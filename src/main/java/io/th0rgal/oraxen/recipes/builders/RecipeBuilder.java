@@ -52,16 +52,17 @@ public abstract class RecipeBuilder {
         String itemID = OraxenItems.getIdByItem(itemStack);
 
         //if our itemstack is made using oraxen and is not modified
-        if (itemID != null && OraxenItems.getItemById(itemID).build().equals(itemStack))
+        if (itemID != null && OraxenItems.getItemById(itemID).build().equals(itemStack)) {
             section.set("oraxen_item", itemID);
-
-            //if our itemstack is an unmodified vanilla item
-        else if (itemStack != null && itemStack.equals(new ItemStack(itemStack.getType())))
+            return;
+        }
+        
+        //if our itemstack is an unmodified vanilla item
+        if (itemStack != null && itemStack.equals(new ItemStack(itemStack.getType()))) {
             section.set("minecraft_type", itemStack.getType().toString());
-
-        else
-            section.set("minecraft_item", itemStack);
-
+            return;
+        }
+        section.set("minecraft_item", itemStack);
     }
 
     public YamlConfiguration getConfig() {
