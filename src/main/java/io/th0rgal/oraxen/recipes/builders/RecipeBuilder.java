@@ -60,9 +60,8 @@ public abstract class RecipeBuilder {
         }
 
         //if our itemstack is an unmodified vanilla item
-        Material itemType = itemStack.getType();
-        if (itemStack != null && itemStack.equals(new ItemStack(itemType))) {
-            section.set("minecraft_type", itemType.toString());
+        if (itemStack != null && itemStack.equals(new ItemStack(itemStack.getType()))) {
+            section.set("minecraft_type", itemStack.getType().toString());
             return;
         }
         section.set("minecraft_item", itemStack);
