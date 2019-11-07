@@ -17,7 +17,7 @@ import org.bukkit.inventory.PlayerInventory;
 
 public class HatMechanicsListener implements Listener {
 
-    private MechanicFactory factory;
+    private final MechanicFactory factory;
 
     public HatMechanicsListener(HatMechanicFactory factory) {
         this.factory = factory;
