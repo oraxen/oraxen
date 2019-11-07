@@ -28,6 +28,9 @@ anubis_head:
   Pack:
     generate_model: false
     model: anubis_head # .json extension is not mandatory
+  Mechanics:
+    hat:
+      enabled: true
 
 crown:
   displayname: "&6Crown"
@@ -35,6 +38,9 @@ crown:
   Pack:
     generate_model: false
     model: crown
+  Mechanics:
+    hat:
+      enabled: true
 
 pharaoh_head:
   displayname: "&6Pharaoh Head"
@@ -42,6 +48,9 @@ pharaoh_head:
   Pack:
     generate_model: false
     model: pharaoh_head
+  Mechanics:
+    hat:
+      enabled: true
 
 witch_hat:
   displayname: "&5Witch Hat"
@@ -49,3 +58,6 @@ witch_hat:
   Pack:
     generate_model: false
     model: witch_hat
+  Mechanics:
+    hat:
+      enabled: true
