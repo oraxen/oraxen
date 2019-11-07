@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.mechanics.provided.hat;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 
-import io.th0rgal.oraxen.utils.Logs;
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
