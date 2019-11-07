@@ -11,7 +11,9 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 public class HatMechanicsListener implements Listener {
 
@@ -28,34 +30,40 @@ public class HatMechanicsListener implements Listener {
 
         ItemStack item = event.getItem();
         String itemID = OraxenItems.getIdByItem(item);
+
         if (factory.isNotImplementedIn(itemID))
             return;
 
-        if (event.getPlayer().getInventory().getHelmet() == null) {
-            event.getPlayer().getInventory().setHelmet(item);
+        PlayerInventory inventory = event.getPlayer().getInventory();
+        if (inventory.getHelmet() == null) {
+            inventory.setHelmet(item);
             item.setAmount(0);
         }
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void OnPlaceHatOnHelmetSlot(InventoryClickEvent e) {
-        if (e.getClickedInventory() == null
-                || !e.getClickedInventory().getType().equals(InventoryType.PLAYER)
+        Inventory clickedInventory = e.getClickedInventory();
+        ItemStack cursor = e.getCursor();
+
+        if (clickedInventory == null
+                || !clickedInventory.getType().equals(InventoryType.PLAYER)
                 || e.getSlotType() != InventoryType.SlotType.ARMOR
                 || e.getSlot() != 39
-                || e.getCursor() == null)
+                || cursor == null)
             return;
 
-        ItemStack clone = e.getCursor().clone();
-
+        ItemStack clone = cursor.clone();
         String itemID = OraxenItems.getIdByItem(clone);
+
         if (factory.isNotImplementedIn(itemID))
             return;
 
-        if (e.getCurrentItem() == null || e.getCurrentItem().getType() == Material.AIR) {
+        ItemStack currentItem = e.getCurrentItem();
+        if (currentItem == null || currentItem.getType() == Material.AIR) {
             e.setCancelled(true);
             e.getWhoClicked().getInventory().setHelmet(clone);
-            e.getCursor().setAmount(0);
+            cursor.setAmount(0);
         }
 
     }
