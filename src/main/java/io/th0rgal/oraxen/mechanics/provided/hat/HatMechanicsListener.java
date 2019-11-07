@@ -22,7 +22,7 @@ public class HatMechanicsListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
-    private void onInventoryHatPut(PlayerInteractEvent event) {
+    public void onInventoryHatPut(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
 

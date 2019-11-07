@@ -39,7 +39,7 @@ public class BlockMechanicsListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    private void onBreakingCustomBlock(BlockBreakEvent event) {
+    public void onBreakingCustomBlock(BlockBreakEvent event) {
         Block block = event.getBlock();
         if (block.getType() != Material.MUSHROOM_STEM)
             return;
@@ -55,7 +55,7 @@ public class BlockMechanicsListener implements Listener {
 
     //todo: improve performances
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    private void onPlacingMushroomBlock(BlockPlaceEvent event) {
+    public void onPlacingMushroomBlock(BlockPlaceEvent event) {
 
         if (event.getBlockPlaced().getType() != Material.MUSHROOM_STEM
                 || OraxenItems.isAnItem(OraxenItems.getIdByItem(event.getItemInHand())))
@@ -78,7 +78,7 @@ public class BlockMechanicsListener implements Listener {
     private List<Material> replaceableBlocks = Arrays.asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS);
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    private void onPrePlacingCustomBlock(PlayerInteractEvent event) {
+    public void onPrePlacingCustomBlock(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
 

@@ -20,7 +20,7 @@ public class DurabilityMechanicsManager implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    private void onItemDamaged(PlayerItemDamageEvent event) {
+    public void onItemDamaged(PlayerItemDamageEvent event) {
         ItemStack item = event.getItem();
         String itemID = OraxenItems.getIdByItem(item);
         if (factory.isNotImplementedIn(itemID))

@@ -19,7 +19,7 @@ public class CommandsItemListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
-    private void onInteract(PlayerInteractEvent event) {
+    public void onInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.LEFT_CLICK_AIR
                 && event.getAction() != Action.RIGHT_CLICK_AIR
                 && event.getAction() != Action.LEFT_CLICK_BLOCK

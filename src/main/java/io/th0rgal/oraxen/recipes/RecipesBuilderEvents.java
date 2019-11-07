@@ -15,7 +15,7 @@ public class RecipesBuilderEvents implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH)
     @SuppressWarnings("deprecation") // because we must use setCursor
-    private void onItemDamaged(InventoryClickEvent event) {
+    public void onItemDamaged(InventoryClickEvent event) {
 
         RecipeBuilder recipeBuilder = RecipeBuilder.get(event.getWhoClicked().getUniqueId());
         if (recipeBuilder == null
@@ -32,7 +32,7 @@ public class RecipesBuilderEvents implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH)
-    private void onInventoryClosed(InventoryCloseEvent event) {
+    public void onInventoryClosed(InventoryCloseEvent event) {
         RecipeBuilder recipeBuilder = RecipeBuilder.get(event.getPlayer().getUniqueId());
         if (recipeBuilder == null || !event.getView().getTitle().equals(recipeBuilder.getInventoryTitle()))
             return;
