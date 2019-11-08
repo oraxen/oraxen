@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.utils;
+package io.th0rgal.oraxen.utils.logs;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.settings.Plugin;

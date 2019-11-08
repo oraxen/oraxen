@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.settings;
 
-import io.th0rgal.oraxen.utils.Logs;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 

@@ -12,7 +12,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.listeners.EventsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.settings.Server;
-import io.th0rgal.oraxen.utils.Logs;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.pack.ResourcePack;
 
 import io.th0rgal.oraxen.utils.fastinv.FastInvManager;

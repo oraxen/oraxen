@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.utils;
+package io.th0rgal.oraxen.utils.logs;
 
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginLogger;
