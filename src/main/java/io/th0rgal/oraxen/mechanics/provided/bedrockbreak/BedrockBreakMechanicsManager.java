@@ -33,8 +33,8 @@ import java.util.function.Consumer;
 
 public class BedrockBreakMechanicsManager {
 
-    private Set<Location> locations = new HashSet<>();
-    private ProtocolManager protocolManager;
+    private final Set<Location> locations = new HashSet<>();
+    private final ProtocolManager protocolManager;
 
 
     private void sendBlockBreak(Player player, Location location, int stage) {

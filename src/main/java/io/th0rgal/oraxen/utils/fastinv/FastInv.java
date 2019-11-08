@@ -35,7 +35,7 @@ public class FastInv implements InventoryHolder {
     private Set<Consumer<InventoryClickEvent>> clickHandlers;
 
     private Predicate<Player> closeFilter;
-    private Inventory inventory;
+    private final Inventory inventory;
 
     /**
      * Create a new FastInv with a custom size.

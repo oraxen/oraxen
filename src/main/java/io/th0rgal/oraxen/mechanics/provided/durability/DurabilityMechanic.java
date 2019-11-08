@@ -9,7 +9,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 public class DurabilityMechanic extends Mechanic {
 
-    private int itemDurability;
+    private final int itemDurability;
     public static final NamespacedKey NAMESPACED_KEY = new NamespacedKey(OraxenPlugin.get(), "durability");
 
     public DurabilityMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {

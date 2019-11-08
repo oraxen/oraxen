@@ -17,7 +17,7 @@ import java.util.UUID;
 
 public abstract class RecipeBuilder {
 
-    private static Map<UUID, RecipeBuilder> map = new HashMap<>();
+    private static final Map<UUID, RecipeBuilder> map = new HashMap<>();
 
     private Inventory inventory;
     private File configFile;
@@ -30,11 +30,12 @@ public abstract class RecipeBuilder {
         this.player = player;
         this.builderName = builderName;
         this.inventoryTitle = player.getName() + " " + builderName + " builder§o§r§a§x§e§n"; // watermark
-        inventory = map.containsKey(player.getUniqueId())
-                ? map.get(player.getUniqueId()).inventory
+        UUID playerId = player.getUniqueId();
+        inventory = map.containsKey(playerId)
+                ? map.get(playerId).inventory
                 : createInventory(player, inventoryTitle);
         player.openInventory(inventory);
-        map.put(player.getUniqueId(), this);
+        map.put(playerId, this);
     }
 
     abstract Inventory createInventory(Player player, String inventoryTitle);
@@ -52,16 +53,17 @@ public abstract class RecipeBuilder {
         String itemID = OraxenItems.getIdByItem(itemStack);
 
         //if our itemstack is made using oraxen and is not modified
-        if (itemID != null && OraxenItems.getItemById(itemID).build().equals(itemStack))
+        if (itemID != null && OraxenItems.getItemById(itemID).build().equals(itemStack)) {
             section.set("oraxen_item", itemID);
+            return;
+        }
 
-            //if our itemstack is an unmodified vanilla item
-        else if (itemStack != null && itemStack.equals(new ItemStack(itemStack.getType())))
+        //if our itemstack is an unmodified vanilla item
+        if (itemStack != null && itemStack.equals(new ItemStack(itemStack.getType()))) {
             section.set("minecraft_type", itemStack.getType().toString());
-
-        else
-            section.set("minecraft_item", itemStack);
-
+            return;
+        }
+        section.set("minecraft_item", itemStack);
     }
 
     public YamlConfiguration getConfig() {
@@ -82,15 +84,15 @@ public abstract class RecipeBuilder {
 
     public void setInventory(Inventory inventory) {
         this.inventory = inventory;
-        map.put(this.player.getUniqueId(), this);
+        map.put(player.getUniqueId(), this);
     }
 
     public String getInventoryTitle() {
-        return this.inventoryTitle;
+        return inventoryTitle;
     }
 
     public void open() {
-        player.openInventory(this.inventory);
+        player.openInventory(inventory);
     }
 
     public static RecipeBuilder get(UUID playerUUID) {

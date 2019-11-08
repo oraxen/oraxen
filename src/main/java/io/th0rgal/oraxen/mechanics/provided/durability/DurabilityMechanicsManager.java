@@ -13,7 +13,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 public class DurabilityMechanicsManager implements Listener {
 
-    private DurabilityMechanicFactory factory;
+    private final DurabilityMechanicFactory factory;
 
     public DurabilityMechanicsManager(DurabilityMechanicFactory factory) {
         this.factory = factory;

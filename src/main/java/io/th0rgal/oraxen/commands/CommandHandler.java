@@ -9,7 +9,7 @@ import java.util.HashMap;
 
 public class CommandHandler implements CommandExecutor {
 
-    private static HashMap<String, CommandInterface> commands = new HashMap<>();
+    private static final HashMap<String, CommandInterface> commands = new HashMap<>();
 
     public CommandHandler register(String name, CommandInterface cmd) {
         commands.put(name, cmd);

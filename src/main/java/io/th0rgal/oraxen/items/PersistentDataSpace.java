@@ -5,8 +5,8 @@ import org.bukkit.persistence.PersistentDataType;
 
 public class PersistentDataSpace {
 
-    private NamespacedKey namespacedKey;
-    private PersistentDataType<?, ?> dataType;
+    private final NamespacedKey namespacedKey;
+    private final PersistentDataType<?, ?> dataType;
 
     public <T, Z> PersistentDataSpace(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType) {
         this.namespacedKey = namespacedKey;

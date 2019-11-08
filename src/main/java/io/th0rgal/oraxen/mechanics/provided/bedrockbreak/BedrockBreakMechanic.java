@@ -8,9 +8,9 @@ import java.util.Random;
 
 public class BedrockBreakMechanic extends Mechanic {
 
-    long delay;
-    long period;
-    int probability;
+    final long delay;
+    final long period;
+    final int probability;
 
     public BedrockBreakMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         /* We give:

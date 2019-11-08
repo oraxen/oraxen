@@ -14,7 +14,7 @@ import java.util.List;
 
 public class PredicatesGenerator {
 
-    private JsonObject json = new JsonObject();
+    private final JsonObject json = new JsonObject();
 
     public PredicatesGenerator(Material material, List<ItemBuilder> items) {
 
@@ -59,7 +59,8 @@ public class PredicatesGenerator {
                 .toLowerCase();
     }
 
-    private String[] tools = new String[]{"PICKAXE", "SWORD", "HOE", "AXE", "SHOVEL"};
+    // not static here because only instanciated once I think
+    private final String[] tools = new String[]{"PICKAXE", "SWORD", "HOE", "AXE", "SHOVEL"};
 
     private String getParent(Material material) {
         if (material.isBlock())

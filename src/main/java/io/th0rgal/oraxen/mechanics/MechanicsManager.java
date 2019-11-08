@@ -19,7 +19,7 @@ import java.util.*;
 
 public class MechanicsManager {
 
-    private static Map<String, MechanicFactory> factoriesByMechanicID = new HashMap<>();
+    private static final Map<String, MechanicFactory> factoriesByMechanicID = new HashMap<>();
 
     public static void registerNativeMechanics() {
         registerMechanicFactory("durability", DurabilityMechanicFactory.class);
@@ -43,7 +43,7 @@ public class MechanicsManager {
         }
     }
 
-    private static List<Listener> mechanicsListeners = new ArrayList<>();
+    private static final List<Listener> mechanicsListeners = new ArrayList<>();
     public static void registerListeners(JavaPlugin plugin, Listener... listeners) {
         for (Listener listener : listeners) {
             Bukkit.getPluginManager().registerEvents(listener, plugin);

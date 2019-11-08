@@ -21,7 +21,7 @@ import java.util.*;
 
 public class ItemBuilder {
 
-    private ItemStack itemStack;
+    private final ItemStack itemStack;
     private PackInfos packInfos;
 
     private Material type;
@@ -42,13 +42,13 @@ public class ItemBuilder {
     private Set<ItemFlag> itemFlags;
     private boolean hasAttributeModifiers;
     private Multimap<Attribute, AttributeModifier> attributeModifiers;
-    private Map<PersistentDataSpace, Object> persistentDataMap = new HashMap<>();
-    private Map<String, Object> nbtTags = new HashMap<>();
+    private final Map<PersistentDataSpace, Object> persistentDataMap = new HashMap<>();
+    private final Map<String, Object> nbtTags = new HashMap<>();
     private boolean hasCustomModelData;
     private int customModelData;
     private List<String> lore;
-    private PersistentDataContainer persistentDataContainer;
-    private Map<Enchantment, Integer> enchantments;
+    private final PersistentDataContainer persistentDataContainer;
+    private final Map<Enchantment, Integer> enchantments;
 
     public ItemBuilder(Material material) {
         this(new ItemStack(material));

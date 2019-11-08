@@ -7,10 +7,10 @@ import java.util.function.Function;
 
 public abstract class Mechanic {
 
-    private MechanicFactory mechanicFactory;
-    private ConfigurationSection section;
-    private Function<ItemBuilder, ItemBuilder>[] itemModifiers;
-    private String itemID;
+    private final MechanicFactory mechanicFactory;
+    private final ConfigurationSection section;
+    private final Function<ItemBuilder, ItemBuilder>[] itemModifiers;
+    private final String itemID;
 
     @SafeVarargs
     public Mechanic(MechanicFactory mechanicFactory, ConfigurationSection section, Function<ItemBuilder, ItemBuilder>... modifiers) {

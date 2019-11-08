@@ -11,8 +11,8 @@ import java.util.Random;
 public class Loot {
 
     ItemStack itemStack;
-    int probability;
-    int maxAmount;
+    final int probability;
+    final int maxAmount;
     LinkedHashMap<String, Object> config;
 
     public Loot(LinkedHashMap<String, Object> config) {

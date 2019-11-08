@@ -16,7 +16,7 @@ public enum Message {
     MECHANIC_DOESNT_EXIST(ChatColor.RED, "The mechanic %s doesn't exist"),
     WRONG_TYPE(ChatColor.RED, "You are using an invalid type");
 
-    private String message;
+    private final String message;
 
     Message(ChatColor color, String message) {
         this.message = color + message;
@@ -35,8 +35,10 @@ public enum Message {
         sender.sendMessage(toString());
     }
 
+    @SuppressWarnings("RedundantCast")
     public void send(CommandSender sender, String... arguments) {
-        sender.sendMessage(String.format(toString(), (Object[])arguments));
+        // the cast is here to indicates to compiler a non-varargs call
+        sender.sendMessage(String.format(toString(), (Object[]) arguments));
     }
 
     public void log() {

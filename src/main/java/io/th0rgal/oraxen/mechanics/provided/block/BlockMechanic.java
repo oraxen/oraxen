@@ -13,10 +13,10 @@ import java.util.List;
 
 public class BlockMechanic extends Mechanic {
 
-    private boolean defaultBreakAnimation;
-    private String model;
-    private int customVariation;
-    private Drop drop;
+    private final boolean defaultBreakAnimation;
+    private final String model;
+    private final int customVariation;
+    private final Drop drop;
 
     @SuppressWarnings("unchecked")
     public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {

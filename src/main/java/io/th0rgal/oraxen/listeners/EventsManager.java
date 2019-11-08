@@ -7,8 +7,8 @@ import org.bukkit.plugin.PluginManager;
 
 public class EventsManager {
 
-    private Plugin plugin;
-    private PluginManager pluginManager;
+    private final Plugin plugin;
+    private final PluginManager pluginManager;
 
     public EventsManager(Plugin plugin) {
         this.plugin = plugin;

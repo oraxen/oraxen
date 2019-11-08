@@ -14,7 +14,6 @@ import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -23,11 +22,11 @@ import java.util.function.Function;
 
 public class ItemParser {
 
-    private static Map<String, ModelData> modelDatasByID = new HashMap<>();
+    private static final Map<String, ModelData> modelDatasByID = new HashMap<>();
 
     private PackInfos packInfos;
-    private ConfigurationSection section;
-    private Material type;
+    private final ConfigurationSection section;
+    private final Material type;
 
     public ItemParser(ConfigurationSection section) {
         this.section = section;
@@ -74,7 +73,7 @@ public class ItemParser {
         if (section.contains("AttributeModifiers")) {
 
             @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
-                    List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section.getList("AttributeModifiers");
+            List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section.getList("AttributeModifiers");
             for (LinkedHashMap<String, Object> attributeJson : attributes) {
                 AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
                 Attribute attribute = Attribute.valueOf((String) attributeJson.get("attribute"));

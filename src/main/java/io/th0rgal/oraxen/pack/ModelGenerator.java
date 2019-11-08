@@ -7,7 +7,7 @@ import java.util.List;
 
 public class ModelGenerator {
 
-    private JsonObject json = new JsonObject();
+    private final JsonObject json = new JsonObject();
 
     public ModelGenerator(PackInfos packInfos) {
 

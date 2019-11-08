@@ -11,7 +11,7 @@ import org.bukkit.inventory.RecipeChoice;
 
 public abstract class RecipeLoader {
 
-    private ConfigurationSection section;
+    private final ConfigurationSection section;
 
     public RecipeLoader(ConfigurationSection section) {
         this.section = section;

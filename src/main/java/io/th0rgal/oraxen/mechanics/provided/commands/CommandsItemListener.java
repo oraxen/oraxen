@@ -12,7 +12,7 @@ import org.bukkit.inventory.ItemStack;
 
 public class CommandsItemListener implements Listener {
 
-    private CommandsMechanicFactory factory;
+    private final CommandsMechanicFactory factory;
 
     public CommandsItemListener(CommandsMechanicFactory factory) {
         this.factory = factory;

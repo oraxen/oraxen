@@ -26,7 +26,7 @@ import java.util.zip.ZipInputStream;
 public class ResourcePack {
 
     private static File modelsFolder;
-    private static List<Consumer<File>> packModifiers = new ArrayList<>();
+    private static final List<Consumer<File>> packModifiers = new ArrayList<>();
 
     public static void generate(JavaPlugin plugin) {
 

@@ -12,8 +12,8 @@ public enum Pack implements ConfigEnum {
     COMPRESSION("compression"),
     COMMENT("comment");
 
-    private String section;
-    private static ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
+    private final String section;
+    private static final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
 
     Pack(String section) {
         this.section = section;

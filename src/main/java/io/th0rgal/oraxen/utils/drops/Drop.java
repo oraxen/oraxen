@@ -10,11 +10,11 @@ import java.util.List;
 
 public class Drop {
 
-    private List<Loot> loots;
-    boolean silktouch;
-    private boolean hasMinimalTool;
+    private final List<Loot> loots;
+    final boolean silktouch;
+    private final boolean hasMinimalTool;
     String minimalTool;
-    String sourceID;
+    final String sourceID;
 
     public Drop(List<Loot> loots, boolean silktouch, String sourceID, Material minimalTool) {
         this.loots = loots;
@@ -31,7 +31,7 @@ public class Drop {
         hasMinimalTool = false;
     }
 
-    List<String> types = Arrays.asList("WOODEN", "STONE", "GOLDEN", "DIAMOND");
+    final List<String> types = Arrays.asList("WOODEN", "STONE", "GOLDEN", "DIAMOND");
 
     public boolean isToolEnough(ItemStack itemInHand) {
         if (!hasMinimalTool)
@@ -52,13 +52,11 @@ public class Drop {
         if (!isToolEnough(itemInHand))
             return;
 
-        if (silktouch)
+        if (silktouch) {
             location.getWorld().dropItemNaturally(location, OraxenItems.getItemById(sourceID).build());
-        else {
-            for (Loot loot : loots)
-                loot.dropNaturally(location);
+            return;
         }
-
+        for (Loot loot : loots)
+            loot.dropNaturally(location);
     }
-
 }

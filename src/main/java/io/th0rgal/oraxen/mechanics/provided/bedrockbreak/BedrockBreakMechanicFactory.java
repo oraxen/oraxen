@@ -7,8 +7,8 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class BedrockBreakMechanicFactory extends MechanicFactory {
 
-    private boolean disabledOnFirstLayer;
-    private int durabilityCost;
+    private final boolean disabledOnFirstLayer;
+    private final int durabilityCost;
 
     public BedrockBreakMechanicFactory(ConfigurationSection section) {
         super(section);
