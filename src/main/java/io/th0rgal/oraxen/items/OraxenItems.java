@@ -32,7 +32,6 @@ public class OraxenItems {
         File[] itemsConfig = itemsFolder.listFiles();
         Arrays.sort(itemsConfig);
         Map<String, ItemParser> parseMap = new LinkedHashMap<>();
-        // TODO Check impact on RAM consumption (if too big, revert commit)
         List<YamlConfiguration> configs = Arrays.stream(itemsConfig)
                 .filter(file -> file.getName().endsWith(".yml"))
                 .map(YamlConfiguration::loadConfiguration)
