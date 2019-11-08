@@ -15,10 +15,12 @@ public class PackInfos {
     public PackInfos(ConfigurationSection configurationSection) {
         this.modelName = readModelName(configurationSection);
         this.layers = configurationSection.getStringList("layers");
-        layers.stream()
-                .filter(layer -> layer.endsWith(".png"))
-                .forEachOrdered(layer -> layers.add(layer.substring(0, layer.length() - 4)));
-
+        // can't be refactored with for each or stream because it'll throw ConcurrentModificationException
+        for (int i = 0; i < layers.size(); i++) {
+            String layer = layers.get(i);
+            if (layer.endsWith(".png"))
+                layers.set(i, layer.substring(0, layer.length() - 4));
+        }
         this.generate_model = configurationSection.getBoolean("generate_model");
         this.parentModel = configurationSection.getString("parent_model");
     }
