@@ -33,7 +33,7 @@ public class ZipUtils {
     public static void writeZipFile(File outputFile, File directoryToZip, Map<String, List<File>> fileListByZipDirectory) {
 
         try {
-            FileOutputStream fos = new FileOutputStream(outputFile.getPath() + File.separator + directoryToZip.getName() + ".zip");
+            FileOutputStream fos = new FileOutputStream(outputFile);
             ZipOutputStream zos = new ZipOutputStream(fos);
 
             int compressionLevel = Deflater.class.getDeclaredField(Pack.COMPRESSION.toString()).getInt(null);

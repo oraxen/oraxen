@@ -114,7 +114,7 @@ public class ResourcePack {
         fileListByZipDirectory.put("assets/minecraft", subfolders);
         fileListByZipDirectory.put("", rootFolder);
 
-        ZipUtils.writeZipFile(packFolder, packFolder, fileListByZipDirectory);
+        ZipUtils.writeZipFile(pack, packFolder, fileListByZipDirectory);
         return pack;
 
     }
