@@ -16,7 +16,9 @@ public class ThorMechanicFactory extends MechanicFactory {
 
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        return null;
+        Mechanic mechanic = new ThorMechanic(this, itemMechanicConfiguration);
+        addToImplemented(mechanic);
+        return mechanic;
     }
 
 }
