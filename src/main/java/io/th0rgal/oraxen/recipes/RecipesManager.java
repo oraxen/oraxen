@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.recipes;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.listeners.PackSender;
 import io.th0rgal.oraxen.recipes.loaders.ShapedLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
 import io.th0rgal.oraxen.settings.ResourcesManager;
@@ -17,7 +16,7 @@ import java.io.File;
 public class RecipesManager {
 
     public static void load(JavaPlugin plugin) {
-        Bukkit.getPluginManager().registerEvents(new PackSender(), plugin);
+        Bukkit.getPluginManager().registerEvents(new RecipesBuilderEvents(), plugin);
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {
             recipesFolder.mkdirs();
