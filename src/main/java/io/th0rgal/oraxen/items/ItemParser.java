@@ -22,7 +22,7 @@ import java.util.function.Function;
 
 public class ItemParser {
 
-    private static final Map<String, ModelData> modelDatasByID = new HashMap<>();
+    private static final Map<String, ModelData> MODEL_DATAS_BY_ID = new HashMap<>();
 
     private PackInfos packInfos;
     private final ConfigurationSection section;
@@ -36,7 +36,7 @@ public class ItemParser {
             ConfigurationSection packSection = section.getConfigurationSection("Pack");
             this.packInfos = new PackInfos(packSection);
             if (packSection.isInt("custom_model_data"))
-                modelDatasByID.put(section.getName(), new ModelData(
+                MODEL_DATAS_BY_ID.put(section.getName(), new ModelData(
                         type,
                         packInfos.getModelName(),
                         packSection.getInt("custom_model_data")));
@@ -103,8 +103,8 @@ public class ItemParser {
 
         if (packInfos != null) {
             int customModelData;
-            if (modelDatasByID.containsKey(section.getName())) {
-                customModelData = modelDatasByID.get(section.getName()).getDurability();
+            if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
+                customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getDurability();
             } else {
                 customModelData = ModelData.generateId(packInfos.getModelName(), type);
             }

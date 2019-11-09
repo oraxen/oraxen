@@ -11,12 +11,12 @@ import java.util.logging.Level;
 
 public class Logs {
 
-    private static final CustomLogger logger = new CustomLogger(OraxenPlugin.get());
+    private static final CustomLogger LOGGER = new CustomLogger(OraxenPlugin.get());
 
     public static void enableFilter() throws NoSuchFieldException, IllegalAccessException {
         Field field = JavaPlugin.class.getDeclaredField("logger");
         field.setAccessible(true);
-        field.set(OraxenPlugin.get(), logger);
+        field.set(OraxenPlugin.get(), LOGGER);
     }
 
     public static void log(String message) {
@@ -32,11 +32,11 @@ public class Logs {
     }
 
     public static void logError(String message) {
-        logger.newLog(Level.SEVERE, message);
+        LOGGER.newLog(Level.SEVERE, message);
     }
 
     public static void logWarning(String message) {
-        logger.newLog(Level.WARNING, message);
+        LOGGER.newLog(Level.WARNING, message);
     }
 
 

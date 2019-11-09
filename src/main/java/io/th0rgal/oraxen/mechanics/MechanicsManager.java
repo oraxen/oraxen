@@ -19,7 +19,7 @@ import java.util.*;
 
 public class MechanicsManager {
 
-    private static final Map<String, MechanicFactory> factoriesByMechanicID = new HashMap<>();
+    private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
 
     public static void registerNativeMechanics() {
         registerMechanicFactory("durability", DurabilityMechanicFactory.class);
@@ -36,28 +36,28 @@ public class MechanicsManager {
             if (factorySection.getBoolean("enabled"))
                 try {
                     MechanicFactory factory = mechanicFactoryClass.getConstructor(ConfigurationSection.class).newInstance(factorySection);
-                    factoriesByMechanicID.put(mechanicID, factory);
+                    FACTORIES_BY_MECHANIC_ID.put(mechanicID, factory);
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                     e.printStackTrace();
                 }
         }
     }
 
-    private static final List<Listener> mechanicsListeners = new ArrayList<>();
+    private static final List<Listener> MECHANICS_LISTENERS = new ArrayList<>();
     public static void registerListeners(JavaPlugin plugin, Listener... listeners) {
         for (Listener listener : listeners) {
             Bukkit.getPluginManager().registerEvents(listener, plugin);
-            mechanicsListeners.add(listener);
+            MECHANICS_LISTENERS.add(listener);
         }
     }
 
     public static void unloadListeners() {
-        for (Listener listener : mechanicsListeners)
+        for (Listener listener : MECHANICS_LISTENERS)
             HandlerList.unregisterAll(listener);
     }
 
     public static MechanicFactory getMechanicFactory(String mechanicID) {
-        return factoriesByMechanicID.get(mechanicID);
+        return FACTORIES_BY_MECHANIC_ID.get(mechanicID);
     }
 
 }

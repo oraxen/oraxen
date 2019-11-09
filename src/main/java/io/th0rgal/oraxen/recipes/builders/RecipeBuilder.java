@@ -17,7 +17,7 @@ import java.util.UUID;
 
 public abstract class RecipeBuilder {
 
-    private static final Map<UUID, RecipeBuilder> map = new HashMap<>();
+    private static final Map<UUID, RecipeBuilder> MAP = new HashMap<>();
 
     private Inventory inventory;
     private File configFile;
@@ -31,11 +31,11 @@ public abstract class RecipeBuilder {
         this.builderName = builderName;
         this.inventoryTitle = player.getName() + " " + builderName + " builder§o§r§a§x§e§n"; // watermark
         UUID playerId = player.getUniqueId();
-        inventory = map.containsKey(playerId)
-                ? map.get(playerId).inventory
+        inventory = MAP.containsKey(playerId)
+                ? MAP.get(playerId).inventory
                 : createInventory(player, inventoryTitle);
         player.openInventory(inventory);
-        map.put(playerId, this);
+        MAP.put(playerId, this);
     }
 
     abstract Inventory createInventory(Player player, String inventoryTitle);
@@ -84,7 +84,7 @@ public abstract class RecipeBuilder {
 
     public void setInventory(Inventory inventory) {
         this.inventory = inventory;
-        map.put(player.getUniqueId(), this);
+        MAP.put(player.getUniqueId(), this);
     }
 
     public String getInventoryTitle() {
@@ -96,6 +96,6 @@ public abstract class RecipeBuilder {
     }
 
     public static RecipeBuilder get(UUID playerUUID) {
-        return map.get(playerUUID);
+        return MAP.get(playerUUID);
     }
 }

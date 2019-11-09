@@ -9,19 +9,19 @@ import java.util.HashMap;
 
 public class CommandHandler implements CommandExecutor {
 
-    private static final HashMap<String, CommandInterface> commands = new HashMap<>();
+    private static final HashMap<String, CommandInterface> COMMANDS = new HashMap<>();
 
     public CommandHandler register(String name, CommandInterface cmd) {
-        commands.put(name, cmd);
+        COMMANDS.put(name, cmd);
         return this;
     }
 
     public boolean exists(String name) {
-        return commands.containsKey(name);
+        return COMMANDS.containsKey(name);
     }
 
     public CommandInterface getExecutor(String name) {
-        return commands.get(name);
+        return COMMANDS.get(name);
     }
 
     //All commands will have this in common.

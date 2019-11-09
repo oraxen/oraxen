@@ -15,8 +15,8 @@ import java.util.*;
 
 public class BlockMechanicFactory extends MechanicFactory {
 
-    private static final List<JsonObject> mushroomStemBlockstateOverrides = new ArrayList<>();
-    private static final Map<Integer, BlockMechanic> blockPerVariation = new HashMap<>();
+    private static final List<JsonObject> MUSHROOM_STEM_BLOCKSTATE_OVERRIDES = new ArrayList<>();
+    private static final Map<Integer, BlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
 
     public BlockMechanicFactory(ConfigurationSection section) {
         super(section);
@@ -36,7 +36,7 @@ public class BlockMechanicFactory extends MechanicFactory {
         JsonArray multipart = new JsonArray();
         //adds default override
         multipart.add(getBlockstateOverride("mushroom_stem", 15));
-        for (JsonObject override : mushroomStemBlockstateOverrides)
+        for (JsonObject override : MUSHROOM_STEM_BLOCKSTATE_OVERRIDES)
             multipart.add(override);
         mushroomStem.add("multipart", multipart);
         return mushroomStem.toString();
@@ -54,15 +54,15 @@ public class BlockMechanicFactory extends MechanicFactory {
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         BlockMechanic mechanic = new BlockMechanic(this, itemMechanicConfiguration);
-        mushroomStemBlockstateOverrides.add
+        MUSHROOM_STEM_BLOCKSTATE_OVERRIDES.add
                 (getBlockstateOverride(mechanic.getModel(), mechanic.getCustomVariation()));
-        blockPerVariation.put(mechanic.getCustomVariation(), mechanic);
+        BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
     }
 
     public static BlockMechanic getBlockMechanic(int customVariation) {
-        return  blockPerVariation.get(customVariation);
+        return  BLOCK_PER_VARIATION.get(customVariation);
     }
 
 }
