@@ -3,10 +3,10 @@ Plugin:
   prefix: "&8&l[&bOraxen&8&l] §7"
 
 Pack:
-  url: "http://oraxen.com/packs/${projectVersion}.zip" # uploads your own if you made changes to the configuration
-  SHA1: "B2F640887E7C53D43C7CC695CD57EF92"
-  send: true
   generate: true
+  upload: true
+  send: true
+
   compression: BEST_COMPRESSION # see Deflater.class
   comment: "The content of this texture pack
    \nbelongs to the owner of the Oraxen

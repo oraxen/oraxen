@@ -4,23 +4,21 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.ChatColor;
 
 public enum Pack implements ConfigEnum {
-
-    URL("url"),
-    SHA1("SHA1"),
-    SEND("send"),
     GENERATE("generate"),
+    UPLOAD("upload"),
+    SEND("send"),
     COMPRESSION("compression"),
     COMMENT("comment");
 
     private final String section;
-    private static final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
+    private static final ResourcesManager RESOURCES_MANAGER = new ResourcesManager(OraxenPlugin.get());
 
     Pack(String section) {
         this.section = section;
     }
 
     public Object getValue() {
-        return resourcesManager.getSettings().getConfigurationSection("Pack").get(section);
+        return RESOURCES_MANAGER.getSettings().getConfigurationSection("Pack").get(section);
     }
 
     @Override

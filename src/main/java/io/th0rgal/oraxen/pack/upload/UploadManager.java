@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.pack.upload;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.pack.upload.hosts.TransferDotSh;
+import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -15,7 +16,7 @@ public class UploadManager {
     HostingProvider hostingProvider;
 
     public UploadManager() {
-        this.enabled = true;
+        this.enabled = (boolean)Pack.UPLOAD.getValue();
         this.hostingProvider = getHostingProvider();
     }
 
