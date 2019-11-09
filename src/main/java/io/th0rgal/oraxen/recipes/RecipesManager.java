@@ -1,11 +1,13 @@
 package io.th0rgal.oraxen.recipes;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.listeners.PackSender;
 import io.th0rgal.oraxen.recipes.loaders.ShapedLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -15,6 +17,7 @@ import java.io.File;
 public class RecipesManager {
 
     public static void load(JavaPlugin plugin) {
+        Bukkit.getPluginManager().registerEvents(new PackSender(), plugin);
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {
             recipesFolder.mkdirs();

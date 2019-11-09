@@ -9,7 +9,6 @@ import io.th0rgal.oraxen.commands.subcommands.InventoryVisualizer;
 import io.th0rgal.oraxen.commands.subcommands.Recipes;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.listeners.EventsManager;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.settings.Server;
@@ -58,7 +57,6 @@ public class OraxenPlugin extends JavaPlugin {
         Logs.log(ChatColor.GREEN + "Successfully loaded on " + Server.OS_NAME);
         new UploadManager().uploadAsyncIfEnabled(resourcePack);
         new Metrics(this);
-        new EventsManager(this).registerNativeEvents();
     }
 
     public void onDisable() {
