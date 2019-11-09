@@ -5,18 +5,14 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.settings.ResourcesManager;
-import io.th0rgal.oraxen.utils.NMS;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.ZipUtils;
 
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
@@ -147,17 +143,6 @@ public class ResourcePack {
             Utils.writeStringToFile(
                     new File(modelsFolder, vanillaModelName),
                     predicatesGenerator.toJSON().toString());
-        }
-    }
-
-    public static void send(Player player) {
-        Class<?> PacketClass = NMS.PACKET_PLAY_OUT_RESOURCE_PACK_SEND.toClass();
-        try {
-            Constructor<?> packetConstructor = PacketClass.getConstructor(String.class, String.class);
-            Object packet = packetConstructor.newInstance(Pack.URL.toString(), Pack.SHA1.toString());
-            NMS.sendPacket(player, packet);
-        } catch (NoSuchMethodException | InstantiationException | IllegalAccessException | InvocationTargetException e) {
-            e.printStackTrace();
         }
     }
 
