@@ -36,18 +36,18 @@ public class Loot {
     }
 
     private ItemStack getItemStack() {
-        if (this.itemStack != null) {
-            return this.itemStack;
+        if (itemStack != null) {
+            return itemStack;
         } else {
             if (config.containsKey("oraxen_item")) {
-                this.itemStack = OraxenItems.getItemById((String) config.get("oraxen_item")).build();
+                itemStack = OraxenItems.getItemById((String) config.get("oraxen_item")).build();
             } else if (config.containsKey("minecraft_type")) {
-                this.itemStack = new ItemStack(Material.getMaterial((String) config.get("minecraft_type")));
+                itemStack = new ItemStack(Material.getMaterial((String) config.get("minecraft_type")));
             } else {
-                this.itemStack = (ItemStack) config.get("minecraft_item");
+                itemStack = (ItemStack) config.get("minecraft_item");
             }
         }
-        return this.itemStack;
+        return itemStack;
     }
 
     public void dropNaturally(Location location) {
