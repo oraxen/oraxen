@@ -38,15 +38,16 @@ public class Loot {
     private ItemStack getItemStack() {
         if (itemStack != null) {
             return itemStack;
-        } else {
-            if (config.containsKey("oraxen_item")) {
-                itemStack = OraxenItems.getItemById((String) config.get("oraxen_item")).build();
-            } else if (config.containsKey("minecraft_type")) {
-                itemStack = new ItemStack(Material.getMaterial((String) config.get("minecraft_type")));
-            } else {
-                itemStack = (ItemStack) config.get("minecraft_item");
-            }
         }
+        if (config.containsKey("oraxen_item")) {
+            itemStack = OraxenItems.getItemById((String) config.get("oraxen_item")).build();
+            return itemStack;
+        }
+        if (config.containsKey("minecraft_type")) {
+            itemStack = new ItemStack(Material.getMaterial((String) config.get("minecraft_type")));
+            return itemStack;
+        }
+        itemStack = (ItemStack) config.get("minecraft_item");
         return itemStack;
     }
 
