@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.pack;
+package io.th0rgal.oraxen.pack.generation;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

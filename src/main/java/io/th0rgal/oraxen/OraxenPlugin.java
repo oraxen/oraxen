@@ -13,7 +13,7 @@ import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.settings.Server;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import io.th0rgal.oraxen.pack.ResourcePack;
+import io.th0rgal.oraxen.pack.generation.ResourcePack;
 
 import io.th0rgal.oraxen.utils.fastinv.FastInvManager;
 import me.lucko.commodore.CommodoreProvider;
@@ -55,7 +55,7 @@ public class OraxenPlugin extends JavaPlugin {
         FastInvManager.register(this);
         registerCommands();
         Logs.log(ChatColor.GREEN + "Successfully loaded on " + Server.OS_NAME);
-        new UploadManager().uploadAsyncIfEnabled(resourcePack);
+        new UploadManager(this).uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this);
     }
 

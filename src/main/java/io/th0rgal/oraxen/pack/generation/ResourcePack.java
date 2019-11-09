@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.pack;
+package io.th0rgal.oraxen.pack.generation;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.ItemBuilder;

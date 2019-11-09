@@ -6,7 +6,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.pack.ResourcePack;
+import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.utils.Utils;
 
 import org.bukkit.configuration.ConfigurationSection;
