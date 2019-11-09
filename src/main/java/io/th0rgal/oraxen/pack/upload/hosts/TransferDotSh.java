@@ -56,7 +56,7 @@ public class TransferDotSh implements HostingProvider {
                 buffer.flush();
                 byte[] byteArray = buffer.toByteArray();
 
-                this.packURL = new String(byteArray, StandardCharsets.UTF_8);
+                this.packURL = new String(byteArray, StandardCharsets.UTF_8).replace("https://transfer.sh/", "https://transfer.sh/get/");
             } else {
                 throw new RuntimeException();
             }
