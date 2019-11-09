@@ -154,9 +154,9 @@ public class ItemBuilder {
     }
 
     public ItemBuilder addPotionEffect(PotionEffect potionEffect) {
-        if (this.potionEffects == null)
-            this.potionEffects = new ArrayList<>();
-        this.potionEffects.add(potionEffect);
+        if (potionEffects == null)
+            potionEffects = new ArrayList<>();
+        potionEffects.add(potionEffect);
         return this;
     }
 
@@ -166,7 +166,7 @@ public class ItemBuilder {
     }
 
     public <T, Z> ItemBuilder setCustomTag(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType, Z data) {
-        this.persistentDataMap.put(new PersistentDataSpace(namespacedKey, dataType), data);
+        persistentDataMap.put(new PersistentDataSpace(namespacedKey, dataType), data);
         return this;
     }
 
@@ -179,12 +179,12 @@ public class ItemBuilder {
     }
 
     public boolean hasCustomTag() {
-        return !this.persistentDataContainer.isEmpty();
+        return !persistentDataContainer.isEmpty();
     }
 
     public ItemBuilder setCustomModelData(int customModelData) {
-        if (!this.hasCustomModelData)
-            this.hasCustomModelData = true;
+        if (!hasCustomModelData)
+            hasCustomModelData = true;
         this.customModelData = customModelData;
         return this;
     }
@@ -195,7 +195,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setNBTBase(String field, Object nbtBase) {
-        this.nbtTags.put(field, nbtBase);
+        nbtTags.put(field, nbtBase);
         return this;
     }
 
@@ -207,17 +207,17 @@ public class ItemBuilder {
     }
 
     public ItemBuilder addAttributeModifiers(Attribute attribute, AttributeModifier attributeModifier) {
-        if (!this.hasAttributeModifiers) {
-            this.hasAttributeModifiers = true;
-            this.attributeModifiers = HashMultimap.create();
+        if (!hasAttributeModifiers) {
+            hasAttributeModifiers = true;
+            attributeModifiers = HashMultimap.create();
         }
-        this.attributeModifiers.put(attribute, attributeModifier);
+        attributeModifiers.put(attribute, attributeModifier);
         return this;
     }
 
     public ItemBuilder addAllAttributeModifiers(Multimap<Attribute, AttributeModifier> attributeModifiers) {
-        if (!this.hasAttributeModifiers)
-            this.hasAttributeModifiers = true;
+        if (!hasAttributeModifiers)
+            hasAttributeModifiers = true;
         this.attributeModifiers.putAll(attributeModifiers);
         return this;
     }
@@ -238,7 +238,7 @@ public class ItemBuilder {
     }
 
     public ItemBuilder addEnchant(Enchantment enchant, int level) {
-        this.enchantments.put(enchant, level);
+        enchantments.put(enchant, level);
         return this;
     }
 
@@ -253,11 +253,11 @@ public class ItemBuilder {
     }
 
     public boolean hasPackInfos() {
-        return this.packInfos != null;
+        return packInfos != null;
     }
 
     public PackInfos getPackInfos() {
-        return this.packInfos;
+        return packInfos;
     }
 
     private ItemStack finalItemStack;
@@ -269,19 +269,19 @@ public class ItemBuilder {
          CHANGING ITEM
          */
         if (type != null)
-            this.itemStack.setType(this.type);
+            itemStack.setType(this.type);
         if (amount != itemStack.getAmount())
-            this.itemStack.setAmount(this.amount);
+            itemStack.setAmount(this.amount);
 
         /*
          CHANGING ItemBuilder META
          */
-        ItemMeta itemMeta = this.itemStack.getItemMeta();
+        ItemMeta itemMeta = itemStack.getItemMeta();
 
         //durability
         if (itemMeta instanceof Damageable) {
             Damageable damageable = (Damageable) itemMeta;
-            if (this.durability != damageable.getDamage()) {
+            if (durability != damageable.getDamage()) {
                 damageable.setDamage(durability);
                 itemMeta = (ItemMeta) damageable;
             }
@@ -289,8 +289,8 @@ public class ItemBuilder {
 
         if (itemMeta instanceof LeatherArmorMeta) {
             LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
-            if (!this.color.equals(leatherArmorMeta.getColor())) {
-                leatherArmorMeta.setColor(this.color);
+            if (!color.equals(leatherArmorMeta.getColor())) {
+                leatherArmorMeta.setColor(color);
                 itemMeta = leatherArmorMeta;
             }
         }
@@ -298,14 +298,14 @@ public class ItemBuilder {
         if (itemMeta instanceof PotionMeta) {
             PotionMeta potionMeta = (PotionMeta) itemMeta;
 
-            if (!this.color.equals(potionMeta.getColor()))
-                potionMeta.setColor(this.color);
+            if (!color.equals(potionMeta.getColor()))
+                potionMeta.setColor(color);
 
-            if (!this.potionData.equals(potionMeta.getBasePotionData()))
+            if (!potionData.equals(potionMeta.getBasePotionData()))
                 potionMeta.setBasePotionData(potionData);
 
-            if (!this.potionEffects.equals(potionMeta.getCustomEffects()))
-                for (PotionEffect potionEffect : this.potionEffects)
+            if (!potionEffects.equals(potionMeta.getCustomEffects()))
+                for (PotionEffect potionEffect : potionEffects)
                     potionMeta.addCustomEffect(potionEffect, true);
 
             itemMeta = potionMeta;
@@ -313,8 +313,8 @@ public class ItemBuilder {
 
         if (itemMeta instanceof SkullMeta) {
             SkullMeta skullMeta = (SkullMeta) itemMeta;
-            if (!this.owningPlayer.equals(skullMeta.getOwningPlayer())) {
-                skullMeta.setOwningPlayer(this.owningPlayer);
+            if (!owningPlayer.equals(skullMeta.getOwningPlayer())) {
+                skullMeta.setOwningPlayer(owningPlayer);
                 itemMeta = skullMeta;
             }
         }
@@ -322,53 +322,53 @@ public class ItemBuilder {
         if (itemMeta instanceof TropicalFishBucketMeta) {
             TropicalFishBucketMeta tropicalFishBucketMeta = (TropicalFishBucketMeta) itemMeta;
 
-            if (!this.bodyColor.equals(tropicalFishBucketMeta.getBodyColor()))
-                tropicalFishBucketMeta.setBodyColor(this.bodyColor);
+            if (!bodyColor.equals(tropicalFishBucketMeta.getBodyColor()))
+                tropicalFishBucketMeta.setBodyColor(bodyColor);
 
-            if (!this.pattern.equals(tropicalFishBucketMeta.getPattern()))
-                tropicalFishBucketMeta.setPattern(this.pattern);
+            if (!pattern.equals(tropicalFishBucketMeta.getPattern()))
+                tropicalFishBucketMeta.setPattern(pattern);
 
-            if (!this.patternColor.equals(tropicalFishBucketMeta.getPatternColor()))
-                tropicalFishBucketMeta.setPatternColor(this.patternColor);
+            if (!patternColor.equals(tropicalFishBucketMeta.getPatternColor()))
+                tropicalFishBucketMeta.setPatternColor(patternColor);
 
             itemMeta = tropicalFishBucketMeta;
         }
 
 
-        if (this.displayName != null)
-            itemMeta.setDisplayName(this.displayName);
+        if (displayName != null)
+            itemMeta.setDisplayName(displayName);
 
-        itemMeta.setUnbreakable(this.unbreakable);
-        if (this.itemFlags != null)
-            itemMeta.addItemFlags(this.itemFlags.toArray(new ItemFlag[0]));
+        itemMeta.setUnbreakable(unbreakable);
+        if (itemFlags != null)
+            itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
 
-        if (this.enchantments.size() > 0)
-            for (Map.Entry<Enchantment, Integer> enchant : this.enchantments.entrySet())
+        if (enchantments.size() > 0)
+            for (Map.Entry<Enchantment, Integer> enchant : enchantments.entrySet())
                 itemMeta.addEnchant(enchant.getKey(), enchant.getValue(), true);
 
-        if (this.hasAttributeModifiers)
-            itemMeta.setAttributeModifiers(this.attributeModifiers);
+        if (hasAttributeModifiers)
+            itemMeta.setAttributeModifiers(attributeModifiers);
 
-        if (this.hasCustomModelData)
-            itemMeta.setCustomModelData(this.customModelData);
+        if (hasCustomModelData)
+            itemMeta.setCustomModelData(customModelData);
 
-        if (!this.persistentDataMap.isEmpty())
+        if (!persistentDataMap.isEmpty())
             for (Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
                 itemMeta.getPersistentDataContainer().set(dataSpace.getKey().getNamespacedKey(),
                         (PersistentDataType<?, Object>) dataSpace.getKey().getDataType(),
                         dataSpace.getValue());
-        itemMeta.setLore(this.lore);
+        itemMeta.setLore(lore);
 
-        this.itemStack.setItemMeta(itemMeta);
-        if (!this.nbtTags.isEmpty()) {
+        itemStack.setItemMeta(itemMeta);
+        if (!nbtTags.isEmpty()) {
             Object nmsItem = ItemUtils.getNMSCopy(itemStack);
             Object nbtTagCompound = ItemUtils.getNBTTagCompound(nmsItem);
-            for (Map.Entry<String, Object> nbtTagByPath : this.nbtTags.entrySet())
+            for (Map.Entry<String, Object> nbtTagByPath : nbtTags.entrySet())
                 ItemUtils.setNBTBase(nbtTagCompound, nbtTagByPath.getKey(), nbtTagByPath.getValue());
             ItemUtils.setNBTTagCompound(nmsItem, nbtTagCompound);
-            this.finalItemStack = ItemUtils.fromNMS(nmsItem);
+            finalItemStack = ItemUtils.fromNMS(nmsItem);
         } else
-            this.finalItemStack = this.itemStack;
+            finalItemStack = itemStack;
 
         return this;
     }
@@ -376,7 +376,7 @@ public class ItemBuilder {
     public ItemStack build() {
         if (finalItemStack == null)
             regen();
-        return this.finalItemStack;
+        return finalItemStack;
     }
 
     @Override
