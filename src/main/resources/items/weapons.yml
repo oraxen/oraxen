@@ -33,6 +33,10 @@ storm_sword:
   Pack:
     generate_model: false
     model: storm_sword
+  Mechanics:
+    thor:
+      lightning_bolts_amount: 5
+      random_location_variation: 1.5
 
 energy_crystal_sword:
   displayname: "&bEnergy Crystal Sword"
