@@ -14,7 +14,9 @@ public enum Message {
     ZIP_BROWSE_ERROR(ChatColor.RED, "An error occured browsing the zip"),
     DONT_HAVE_PERMISSION(ChatColor.RED, "You need the permission %s to do this"),
     MECHANIC_DOESNT_EXIST(ChatColor.RED, "The mechanic %s doesn't exist"),
-    WRONG_TYPE(ChatColor.RED, "You are using an invalid type");
+    WRONG_TYPE(ChatColor.RED, "You are using an invalid type"),
+
+    DELAY(ChatColor.GREEN, "Wait another %s seconds");
 
     private final String message;
 

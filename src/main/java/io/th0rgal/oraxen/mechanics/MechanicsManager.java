@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.provided.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.commands.CommandsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.hat.HatMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.thor.ThorMechanicFactory;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -26,6 +27,7 @@ public class MechanicsManager {
         registerMechanicFactory("commands", CommandsMechanicFactory.class);
         registerMechanicFactory("block", BlockMechanicFactory.class);
         registerMechanicFactory("hat", HatMechanicFactory.class);
+        registerMechanicFactory("thor", ThorMechanicFactory.class);
         registerMechanicFactory("bedrockbreak", BedrockBreakMechanicFactory.class);
     }
 
