@@ -10,10 +10,10 @@ import java.util.Random;
 
 public class Loot {
 
-    ItemStack itemStack;
-    final int probability;
-    final int maxAmount;
-    LinkedHashMap<String, Object> config;
+    private ItemStack itemStack;
+    private final int probability;
+    private final int maxAmount;
+    private LinkedHashMap<String, Object> config;
 
     public Loot(LinkedHashMap<String, Object> config) {
         this.probability = config.containsValue("max_amount")
