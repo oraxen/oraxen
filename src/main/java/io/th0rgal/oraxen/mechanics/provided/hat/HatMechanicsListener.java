@@ -19,7 +19,7 @@ public class HatMechanicsListener implements Listener {
 
     private final MechanicFactory factory;
 
-    public HatMechanicsListener(HatMechanicFactory factory) {
+    public HatMechanicsListener(MechanicFactory factory) {
         this.factory = factory;
     }
 
