@@ -10,7 +10,7 @@ Oraxen is a minecraft plugin allowing to easily exploit 1.14 new features in ord
 
 # Features
 - Automatically generate the resource-pack
-- [coming soon] Automatically upload the resource-pack
+- Automatically upload the resource-pack
 - Automatically send the resource-pack to your players
 - Allow to create new items in a few lines of configuration
 - Support custom items, weapons, armors, blocks [coming soon], entities [coming soon] and more
