@@ -6,9 +6,9 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import io.th0rgal.oraxen.utils.NMS;
-
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.ZipUtils;
+
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
@@ -28,7 +27,7 @@ public class ResourcePack {
     private static File modelsFolder;
     private static final List<Consumer<File>> packModifiers = new ArrayList<>();
 
-    public static void generate(JavaPlugin plugin) {
+    public static File generate(JavaPlugin plugin) {
 
         File packFolder = new File(plugin.getDataFolder(), "pack");
         makeDirsIfNotExists(packFolder);
@@ -62,7 +61,7 @@ public class ResourcePack {
         File pack = new File(packFolder, packFolder.getName() + ".zip");
 
         if (!Boolean.parseBoolean(Pack.GENERATE.toString()))
-            return;
+            return null;
 
         if (pack.exists())
             pack.delete();
@@ -102,25 +101,22 @@ public class ResourcePack {
             packModifier.accept(packFolder);
 
         //zipping resourcepack
-        try {
-            List<File> rootFolder = new ArrayList<>();
-            ZipUtils.getFilesInFolder(packFolder, rootFolder, packFolder.getName() + ".zip");
+        List<File> rootFolder = new ArrayList<>();
+        ZipUtils.getFilesInFolder(packFolder, rootFolder, packFolder.getName() + ".zip");
 
-            List<File> subfolders = new ArrayList<>();
-            // needs to be ordered, forEach cannot be used
-            Arrays.stream(packFolder.listFiles())
-                    .filter(File::isDirectory)
-                    .forEachOrdered(folder -> ZipUtils.getAllFiles(folder, subfolders));
+        List<File> subfolders = new ArrayList<>();
+        // needs to be ordered, forEach cannot be used
+        Arrays.stream(packFolder.listFiles())
+                .filter(File::isDirectory)
+                .forEachOrdered(folder -> ZipUtils.getAllFiles(folder, subfolders));
 
-            Map<String, List<File>> fileListByZipDirectory = new HashMap<>();
-            fileListByZipDirectory.put("assets/minecraft", subfolders);
-            fileListByZipDirectory.put("", rootFolder);
+        Map<String, List<File>> fileListByZipDirectory = new HashMap<>();
+        fileListByZipDirectory.put("assets/minecraft", subfolders);
+        fileListByZipDirectory.put("", rootFolder);
 
-            ZipUtils.writeZipFile(packFolder, packFolder, fileListByZipDirectory);
+        ZipUtils.writeZipFile(packFolder, packFolder, fileListByZipDirectory);
+        return pack;
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
     private static void extractInPackIfNotExists(JavaPlugin plugin, File file) {

@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.commands.subcommands.Recipes;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.listeners.EventsManager;
+import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.settings.Server;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -21,6 +22,8 @@ import org.bstats.bukkit.Metrics;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.io.File;
 
 public class OraxenPlugin extends JavaPlugin {
 
@@ -48,11 +51,12 @@ public class OraxenPlugin extends JavaPlugin {
     public void onEnable() {
         MechanicsManager.registerNativeMechanics();
         OraxenItems.loadItems(this);
-        ResourcePack.generate(this);
+        File resourcePack = ResourcePack.generate(this);
         RecipesManager.load(this);
         FastInvManager.register(this);
         registerCommands();
         Logs.log(ChatColor.GREEN + "Successfully loaded on " + Server.OS_NAME);
+        new UploadManager().uploadAsyncIfEnabled(resourcePack);
         new Metrics(this);
         new EventsManager(this).registerNativeEvents();
     }
