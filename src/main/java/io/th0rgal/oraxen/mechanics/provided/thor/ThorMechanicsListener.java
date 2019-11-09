@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.thor;
 
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -29,8 +30,14 @@ public class ThorMechanicsListener implements Listener {
         if (factory.isNotImplementedIn(itemID))
             return;
 
+        ThorMechanic mechanic = (ThorMechanic) factory.getMechanic(itemID);
+
         Player player = event.getPlayer();
-        player.getWorld().strikeLightning(event.getPlayer().getTargetBlock(null, 50).getLocation());
+        for (int i = 0; i < mechanic.getLightningBoltsAmount(); i++) {
+            Location target = event.getPlayer().getTargetBlock(null, 50).getLocation();
+            player.getWorld().strikeLightning(mechanic.getRandomizedLocation(target));
+        }
+
     }
 
 }
