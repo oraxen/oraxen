@@ -48,7 +48,7 @@ public class OraxenPlugin extends JavaPlugin {
     public void onEnable() {
         MechanicsManager.registerNativeMechanics();
         OraxenItems.loadItems(this);
-        File resourcePack = ResourcePack.generate(this);
+        ResourcePack resourcePack = new ResourcePack(this);
         RecipesManager.load(this);
         FastInvManager.register(this);
         registerCommands();

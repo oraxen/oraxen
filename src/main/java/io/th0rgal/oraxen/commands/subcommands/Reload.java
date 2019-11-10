@@ -10,8 +10,6 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-
 public class Reload implements CommandInterface {
 
     @Override
@@ -31,7 +29,7 @@ public class Reload implements CommandInterface {
 
             case "pack":
                 Message.REGENERATED.send(sender, "resourcepack");
-                File resourcePack = ResourcePack.generate(plugin);
+                ResourcePack resourcePack = new ResourcePack(plugin);
                 new UploadManager(plugin).uploadAsyncAndSendToPlayers(resourcePack);
                 break;
 

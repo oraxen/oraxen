@@ -9,15 +9,15 @@ import org.bukkit.event.player.PlayerJoinEvent;
 public class PackSender implements Listener {
 
     private final String url;
-    public PackSender(String url) {
+    private final byte[] sha1;
+    public PackSender(String url, byte[] sha1) {
         this.url = url;
+        this.sha1 = sha1;
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPlayerConnect(PlayerJoinEvent event) {
-        event.getPlayer().setResourcePack(url);
+        event.getPlayer().setResourcePack(url, sha1);
     }
-
-
 
 }
