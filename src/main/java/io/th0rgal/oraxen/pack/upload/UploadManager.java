@@ -14,9 +14,9 @@ import org.bukkit.plugin.Plugin;
 
 public class UploadManager {
 
-    Plugin plugin;
-    boolean enabled;
-    HostingProvider hostingProvider;
+    private Plugin plugin;
+    private boolean enabled;
+    private HostingProvider hostingProvider;
 
     public UploadManager(Plugin plugin) {
         this.plugin = plugin;

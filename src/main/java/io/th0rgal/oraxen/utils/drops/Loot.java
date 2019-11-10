@@ -10,10 +10,10 @@ import java.util.Random;
 
 public class Loot {
 
-    ItemStack itemStack;
-    final int probability;
-    final int maxAmount;
-    LinkedHashMap<String, Object> config;
+    private ItemStack itemStack;
+    private final int probability;
+    private final int maxAmount;
+    private LinkedHashMap<String, Object> config;
 
     public Loot(LinkedHashMap<String, Object> config) {
         this.probability = config.containsValue("max_amount")
@@ -36,25 +36,31 @@ public class Loot {
     }
 
     private ItemStack getItemStack() {
-        if (this.itemStack != null) {
-            return this.itemStack;
-        } else {
-            if (config.containsKey("oraxen_item")) {
-                this.itemStack = OraxenItems.getItemById((String) config.get("oraxen_item")).build();
-            } else if (config.containsKey("minecraft_type")) {
-                this.itemStack = new ItemStack(Material.getMaterial((String) config.get("minecraft_type")));
-            } else {
-                this.itemStack = (ItemStack) config.get("minecraft_item");
-            }
+        if (itemStack != null) {
+            return itemStack;
         }
-        return this.itemStack;
+        if (config.containsKey("oraxen_item")) {
+            String itemId = (String) config.get("oraxen_item");
+            itemStack = OraxenItems.getItemById(itemId).build();
+            return itemStack;
+        }
+        if (config.containsKey("minecraft_type")) {
+            String itemType = (String) config.get("minecraft_type");
+            Material material = Material.getMaterial(itemType);
+            itemStack = new ItemStack(material);
+            return itemStack;
+        }
+        itemStack = (ItemStack) config.get("minecraft_item");
+        return itemStack;
     }
 
     public void dropNaturally(Location location) {
         if (new Random().nextInt(probability) == 0)
-            for (int i = 0; i < maxAmount; i++)
-                location.getWorld().dropItemNaturally(location, getItemStack());
+            dropItems(location);
     }
 
-
+    private void dropItems(Location location) {
+        for (int i = 0; i < maxAmount; i++)
+            location.getWorld().dropItemNaturally(location, getItemStack());
+    }
 }

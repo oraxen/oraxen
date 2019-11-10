@@ -21,6 +21,7 @@ import java.util.*;
 public class MechanicsManager {
 
     private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
+    private static final List<Listener> MECHANICS_LISTENERS = new ArrayList<>();
 
     public static void registerNativeMechanics() {
         registerMechanicFactory("durability", DurabilityMechanicFactory.class);
@@ -45,7 +46,6 @@ public class MechanicsManager {
         }
     }
 
-    private static final List<Listener> MECHANICS_LISTENERS = new ArrayList<>();
     public static void registerListeners(JavaPlugin plugin, Listener... listeners) {
         for (Listener listener : listeners) {
             Bukkit.getPluginManager().registerEvents(listener, plugin);

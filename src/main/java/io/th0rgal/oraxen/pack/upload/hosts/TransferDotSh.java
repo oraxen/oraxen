@@ -1,5 +1,8 @@
 package io.th0rgal.oraxen.pack.upload.hosts;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
+import org.bukkit.ChatColor;
+
 import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
@@ -18,12 +21,13 @@ public class TransferDotSh implements HostingProvider {
         String boundary = Long.toHexString(System.currentTimeMillis()); // Just generate some unique random value.
         String CRLF = "\r\n"; // Line separator required by multipart/form-data.
 
-        HttpURLConnection connection = null;
+        HttpURLConnection connection;
         try {
             connection = (HttpURLConnection) new URL(url).openConnection();
             connection.setRequestMethod("PUT");
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
+            Logs.log(ChatColor.RED, "Can't connect to transfer.sh! Resource pack not uploaded!");
+            return;
         }
 
         connection.setDoOutput(true);

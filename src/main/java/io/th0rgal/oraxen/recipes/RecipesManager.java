@@ -49,6 +49,7 @@ public class RecipesManager {
                 break;
             default:
                 Logs.logError(configFile.getName());
+                break;
         }
     }
 }
