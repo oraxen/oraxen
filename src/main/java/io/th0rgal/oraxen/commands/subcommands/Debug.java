@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.commands.subcommands;
 
 import io.th0rgal.oraxen.commands.CommandInterface;
 import io.th0rgal.oraxen.settings.Message;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -18,7 +19,7 @@ public class Debug implements CommandInterface {
 
         if (sender instanceof Player) {
             Player player = (Player) sender;
-
+            player.sendMessage("modeldata:" +player.getInventory().getItemInMainHand().getItemMeta().getCustomModelData());
         }
 
         return false;
