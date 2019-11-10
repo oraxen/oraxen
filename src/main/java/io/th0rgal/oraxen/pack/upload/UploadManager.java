@@ -34,7 +34,7 @@ public class UploadManager {
             Logs.log(ChatColor.GREEN, "Resourcepack uploaded on url "
                     + hostingProvider.getPackURL() + " in " + (System.currentTimeMillis() - time) + "ms");
             if ((boolean) Pack.SEND.getValue())
-                Bukkit.getPluginManager().registerEvents(new PackSender(hostingProvider.getPackURL(), resourcePack.getSHA1()), plugin);
+                Bukkit.getPluginManager().registerEvents(new PackSender(hostingProvider.getPackURL()), plugin);
         });
     }
 

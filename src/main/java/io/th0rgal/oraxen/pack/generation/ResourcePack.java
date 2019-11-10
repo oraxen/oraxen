@@ -12,8 +12,6 @@ import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
@@ -115,38 +113,10 @@ public class ResourcePack {
         fileListByZipDirectory.put("", rootFolder);
 
         ZipUtils.writeZipFile(pack, packFolder, fileListByZipDirectory);
-        this.sha1 = generateSHA1();
     }
 
     public File getFile() {
         return pack;
-    }
-
-    public byte[] getSHA1() {
-        return sha1;
-    }
-
-    private byte[] generateSHA1() {
-        if (this.sha1 == null) {
-            MessageDigest sha1 = null;
-            try {
-                sha1 = MessageDigest.getInstance("SHA-1");
-            } catch (NoSuchAlgorithmException e) {
-                e.printStackTrace();
-            }
-            try (InputStream input = new FileInputStream(getFile())) {
-                byte[] buffer = new byte[8192];
-                int len = input.read(buffer);
-                while (len != -1) {
-                    sha1.update(buffer, 0, len);
-                    len = input.read(buffer);
-                }
-                this.sha1 = sha1.digest();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-        return this.sha1;
     }
 
     private void extractInPackIfNotExists(JavaPlugin plugin, File file) {
