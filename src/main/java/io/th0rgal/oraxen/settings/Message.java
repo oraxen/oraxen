@@ -16,6 +16,9 @@ public enum Message {
     MECHANIC_DOESNT_EXIST(ChatColor.RED, "The mechanic %s doesn't exist"),
     WRONG_TYPE(ChatColor.RED, "You are using an invalid type"),
 
+    RELOAD(ChatColor.GREEN, "%s successfully reloaded"),
+    REGENERATED(ChatColor.GREEN, "%s successfully regenerated"),
+
     DELAY(ChatColor.GREEN, "Wait another %s seconds");
 
     private final String message;
