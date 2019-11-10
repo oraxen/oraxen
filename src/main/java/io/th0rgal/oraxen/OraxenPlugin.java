@@ -3,10 +3,7 @@ package io.th0rgal.oraxen;
 import io.th0rgal.oraxen.commands.BaseCommand;
 import io.th0rgal.oraxen.commands.CommandHandler;
 import io.th0rgal.oraxen.commands.brigadier.BrigadierManager;
-import io.th0rgal.oraxen.commands.subcommands.Debug;
-import io.th0rgal.oraxen.commands.subcommands.Give;
-import io.th0rgal.oraxen.commands.subcommands.InventoryVisualizer;
-import io.th0rgal.oraxen.commands.subcommands.Recipes;
+import io.th0rgal.oraxen.commands.subcommands.*;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
@@ -37,6 +34,7 @@ public class OraxenPlugin extends JavaPlugin {
         CommandHandler handler = new CommandHandler()
                 .register("oraxen", new BaseCommand())
                 .register("debug", new Debug())
+                .register("reload", new Reload())
                 .register("recipes", new Recipes())
                 .register("inv", new InventoryVisualizer())
                 .register("give", new Give());

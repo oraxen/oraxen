@@ -32,5 +32,7 @@ permissions:
     description: Allows to view the inventory visualizer
   oraxen.command.inv.give:
     description: Allows to get item from the inventory visualizer
+  oraxen.command.reload:
+    description: Allows to reload components of the plugin
   oraxen.command.debug:
     description: Allows to view some debug informations
