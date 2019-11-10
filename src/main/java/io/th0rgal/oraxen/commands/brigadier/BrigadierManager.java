@@ -19,6 +19,9 @@ public class BrigadierManager {
                 .then(LiteralArgumentBuilder.literal("recipes")
                         .then(LiteralArgumentBuilder.literal("open"))
                         .then(LiteralArgumentBuilder.literal("save")))
+                .then(LiteralArgumentBuilder.literal("reload")
+                        .then(LiteralArgumentBuilder.literal("items"))
+                        .then(LiteralArgumentBuilder.literal("pack")))
         );
     }
 }
