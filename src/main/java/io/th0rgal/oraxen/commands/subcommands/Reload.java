@@ -21,16 +21,18 @@ public class Reload implements CommandInterface {
         }
         JavaPlugin plugin = OraxenPlugin.get();
 
+        if (args.length <= 1) {
+            reloadItems(plugin, sender);
+            reloadPack(plugin, sender);
+        }
+
         switch (args[1]) {
             case "items":
-                Message.RELOAD.send(sender, "items");
-                OraxenItems.loadItems(plugin);
+                reloadItems(plugin, sender);
                 break;
 
             case "pack":
-                Message.REGENERATED.send(sender, "resourcepack");
-                ResourcePack resourcePack = new ResourcePack(plugin);
-                new UploadManager(plugin).uploadAsyncAndSendToPlayers(resourcePack);
+                reloadPack(plugin, sender);
                 break;
 
             default:
@@ -39,4 +41,17 @@ public class Reload implements CommandInterface {
 
         return false;
     }
+
+    private void reloadItems(JavaPlugin plugin, CommandSender sender) {
+        Message.RELOAD.send(sender, "items");
+        OraxenItems.loadItems(plugin);
+    }
+
+    private void reloadPack(JavaPlugin plugin, CommandSender sender) {
+        Message.REGENERATED.send(sender, "resourcepack");
+        ResourcePack resourcePack = new ResourcePack(plugin);
+        new UploadManager(plugin).uploadAsyncAndSendToPlayers(resourcePack);
+    }
+
 }
+
