@@ -12,7 +12,11 @@ public enum NMS {
     NBT_BASE(NMS.getNMSClass("NBTBase")),
     NBT_TAG_STRING(NMS.getNMSClass("NBTTagString")),
     NBT_TAG_INT(NMS.getNMSClass("NBTTagInt")),
+
     PACKET_PLAY_OUT_RESOURCE_PACK_SEND(NMS.getNMSClass("PacketPlayOutResourcePackSend")),
+    ENUM_HAND(NMS.getNMSClass("EnumHand")),
+    CRAFT_META_BOOK(NMS.getNMSClass("CraftMetaBook")),
+    CHAT_SERIALIZER(NMS.getNMSClass("IChatBaseComponent$ChatSerializer")),
 
     CRAFT_PLAYER(NMS.getCBClass("entity.CraftPlayer")),
     CRAFT_ITEM_STACK(NMS.getCBClass("inventory.CraftItemStack"));
