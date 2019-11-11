@@ -3,13 +3,20 @@ Plugin:
   prefix: "&8&l[&bOraxen&8&l] §7"
 
 Pack:
-  generate: true
-  upload: true
-  send: true
+  generation:
+    generate: true
+    compression: BEST_COMPRESSION # see Deflater.class
+    comment: "The content of this texture pack
+     \nbelongs to the owner of the Oraxen
+     \nplugin and any complete or partial
+     \nuse must comply with the terms and
+     \nconditions of Oraxen."
 
-  compression: BEST_COMPRESSION # see Deflater.class
-  comment: "The content of this texture pack
-   \nbelongs to the owner of the Oraxen
-   \nplugin and any complete or partial
-   \nuse must comply with the terms and
-   \nconditions of Oraxen."
+  upload:
+    enabled: true
+
+  dispatch:
+    send_pack: false
+    send_pack_menu: true
+    #menu_json: "[[\"\",{\"text\":\"Server Specific resources\",\"bold\":true},{\"text\":\"\\n\\nTo see the new items you need to use a resourcepack\\n\\nTo try to load it directly from the game, \",\"color\":\"reset\"},{\"text\":\"CLICK HERE\",\"bold\":true,\"underlined\":true,\"color\":\"red\",\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/commande\"}},{\"text\":\"\\n\\nTo download it from the internet,\\n\",\"color\":\"reset\"},{\"text\":\"CLICK HERE\",\"bold\":true,\"underlined\":true,\"color\":\"green\",\"clickEvent\":{\"action\":\"open_url\",\"value\":\"https://oraxen.com\"}},{\"text\":\"\\n \",\"color\":\"reset\"}]]"
+    # ^ not working atm
