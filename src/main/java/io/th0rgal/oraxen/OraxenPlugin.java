@@ -35,6 +35,7 @@ public class OraxenPlugin extends JavaPlugin {
                 .register("oraxen", new BaseCommand())
                 .register("debug", new Debug())
                 .register("reload", new Reload())
+                .register("pack", new Pack())
                 .register("recipes", new Recipes())
                 .register("inv", new InventoryVisualizer())
                 .register("give", new Give());
