@@ -17,13 +17,14 @@ public class Reload implements CommandInterface {
 
         if (!sender.hasPermission("oraxen.command.reload")) {
             Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.reload");
-            return false;
+            return true;
         }
         JavaPlugin plugin = OraxenPlugin.get();
 
         if (args.length <= 1) {
             reloadItems(plugin, sender);
             reloadPack(plugin, sender);
+            return true;
         }
 
         switch (args[1]) {
