@@ -30,7 +30,8 @@ public class UploadManager {
         long time = System.currentTimeMillis();
         Logs.log(ChatColor.GREEN, "Automatic upload of the resource pack is enabled, uploading...");
         Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
-            hostingProvider.uploadPack(resourcePack.getFile());
+            if (!hostingProvider.uploadPack(resourcePack.getFile()))
+                return;
             Logs.log(ChatColor.GREEN, "Resourcepack uploaded on url "
                     + hostingProvider.getPackURL() + " in " + (System.currentTimeMillis() - time) + "ms");
             if ((boolean) Pack.SEND.getValue())

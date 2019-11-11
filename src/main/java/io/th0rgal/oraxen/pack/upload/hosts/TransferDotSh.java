@@ -15,7 +15,7 @@ public class TransferDotSh implements HostingProvider {
     private String packURL;
 
     @Override
-    public void uploadPack(File resourcePack) {
+    public boolean uploadPack(File resourcePack) {
         String url = "https://transfer.sh/pack.zip";
         String charset = "UTF-8";
         String boundary = Long.toHexString(System.currentTimeMillis()); // Just generate some unique random value.
@@ -27,7 +27,7 @@ public class TransferDotSh implements HostingProvider {
             connection.setRequestMethod("PUT");
         } catch (IOException ignored) {
             Logs.log(ChatColor.RED, "Can't connect to transfer.sh! Resource pack not uploaded!");
-            return;
+            return false;
         }
 
         connection.setDoOutput(true);
@@ -65,9 +65,11 @@ public class TransferDotSh implements HostingProvider {
                 throw new RuntimeException();
             }
 
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (IOException ignored) {
+            Logs.log(ChatColor.RED, "Can't connect to transfer.sh! Resource pack not uploaded!");
+            return false;
         }
+        return true;
     }
 
     @Override
