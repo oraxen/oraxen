@@ -289,7 +289,7 @@ public class ItemBuilder {
 
         if (itemMeta instanceof LeatherArmorMeta) {
             LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
-            if (!color.equals(leatherArmorMeta.getColor())) {
+            if (color != null && !color.equals(leatherArmorMeta.getColor())) {
                 leatherArmorMeta.setColor(color);
                 itemMeta = leatherArmorMeta;
             }
@@ -298,7 +298,7 @@ public class ItemBuilder {
         if (itemMeta instanceof PotionMeta) {
             PotionMeta potionMeta = (PotionMeta) itemMeta;
 
-            if (!color.equals(potionMeta.getColor()))
+            if (color != null && !color.equals(potionMeta.getColor()))
                 potionMeta.setColor(color);
 
             if (!potionData.equals(potionMeta.getBasePotionData()))
