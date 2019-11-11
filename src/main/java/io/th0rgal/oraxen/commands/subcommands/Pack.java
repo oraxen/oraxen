@@ -12,20 +12,53 @@ public class Pack implements CommandInterface {
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (!sender.hasPermission("oraxen.command.reload")) {
-            Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.reload");
-            return true;
-        }
 
         Player target;
-        if (args.length == 1) {
-            target = (Player)sender;
-        } else {
-            target = Bukkit.getPlayer(args[1]);
-        }
+        if (args.length == 3) {
 
-        PackDispatcher.sendMenu(target);
-        return true;
+            if (!sender.hasPermission("oraxen.command.pack")) {
+                Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.pack");
+                return true;
+            }
+
+            target = Bukkit.getPlayer(args[2]);
+
+            switch (args[1]) {
+
+                case "sendmenu":
+                    PackDispatcher.sendMenu(target);
+                    return true;
+
+                case "sendpack":
+                    PackDispatcher.sendPack(target);
+                    return true;
+
+                default:
+                    return false;
+            }
+
+        } else {
+            target = (Player) sender;
+
+            if (args.length == 2) {
+                switch (args[1]) {
+
+                    case "getmenu":
+                        PackDispatcher.sendMenu(target);
+                        return true;
+
+                    case "getpack":
+                        PackDispatcher.sendPack(target);
+                        return true;
+
+                    default:
+                        return false;
+                }
+            }
+
+            PackDispatcher.sendMenu(target);
+            return true;
+        }
     }
 
 }
