@@ -323,13 +323,16 @@ public class ItemBuilder {
         if (itemMeta instanceof TropicalFishBucketMeta) {
             TropicalFishBucketMeta tropicalFishBucketMeta = (TropicalFishBucketMeta) itemMeta;
 
-            if (!bodyColor.equals(tropicalFishBucketMeta.getBodyColor()))
+            DyeColor defaultColor = tropicalFishBucketMeta.getBodyColor();
+            if (!bodyColor.equals(defaultColor))
                 tropicalFishBucketMeta.setBodyColor(bodyColor);
 
-            if (!pattern.equals(tropicalFishBucketMeta.getPattern()))
+            TropicalFish.Pattern defaultPattern = tropicalFishBucketMeta.getPattern();
+            if (!pattern.equals(defaultPattern))
                 tropicalFishBucketMeta.setPattern(pattern);
 
-            if (!patternColor.equals(tropicalFishBucketMeta.getPatternColor()))
+            DyeColor defaultPatternColor = tropicalFishBucketMeta.getPatternColor();
+            if (!patternColor.equals(defaultPatternColor))
                 tropicalFishBucketMeta.setPatternColor(patternColor);
 
             itemMeta = tropicalFishBucketMeta;
