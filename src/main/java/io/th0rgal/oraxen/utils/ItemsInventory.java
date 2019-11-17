@@ -20,7 +20,6 @@ public class ItemsInventory extends FastInv {
         super(6 * 9, "Oraxen items visualizer");
 
         boolean lastPage = false;
-        // Just add a random item
         Collection<ItemBuilder> collection = OraxenItems.getItems();
         for (int i = page * 5 * 9; i < (page + 1) * 5 * 9; i++) {
             if (i >= collection.size()) {
@@ -28,7 +27,7 @@ public class ItemsInventory extends FastInv {
                 break;
             }
             ItemStack item = Iterables.get(collection, i).build();
-            setItem(i, item, e -> giveItem(e.getWhoClicked(), item));
+            setItem(i - page * 5 * 9, item, e -> giveItem(e.getWhoClicked(), item));
         }
 
         //close item
