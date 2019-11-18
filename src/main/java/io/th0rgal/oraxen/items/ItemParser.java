@@ -100,7 +100,6 @@ public class ItemParser {
             }
         }
 
-
         if (packInfos != null) {
             int customModelData;
             if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
