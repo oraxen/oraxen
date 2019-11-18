@@ -1,3 +1,5 @@
+settings_version: 0.0.0
+
 Plugin:
   name: "Oraxen"
   prefix: "&8&l[&bOraxen&8&l] §7"
