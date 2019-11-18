@@ -11,6 +11,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -41,9 +42,23 @@ public class OraxenItems {
                 ConfigurationSection itemSection = config.getConfigurationSection(itemSectionName);
                 parseMap.put(itemSectionName, new ItemParser(itemSection));
             }
+        boolean configUpdated = false;
         // because we must have parse all the items before building them to be able to use available models
-        for (Map.Entry<String, ItemParser> entry : parseMap.entrySet())
-            map.put(entry.getKey(), entry.getValue().buildItem());
+        for (Map.Entry<String, ItemParser> entry : parseMap.entrySet()) {
+            ItemParser itemParser = entry.getValue();
+            if (itemParser.isConfigUpdated())
+                configUpdated = true;
+            map.put(entry.getKey(), itemParser.buildItem());
+        }
+        if (configUpdated)
+            for (int i = 0; i < itemsConfig.length; i++) {
+                try {
+                    configs.get(i).save(itemsConfig[i]);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
     }
 
     public static String getIdByItem(ItemBuilder item) {
