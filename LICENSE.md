@@ -6,8 +6,8 @@
 
 ## Definitions
 
-"Package" refers to the collection of files distributed by the Copyright Holder, and derivatives of that 
-collection of files created through textual modification.
+"Package" refers to the collection of files (unless something else is indicated inside the file) distributed
+by the Copyright Holder, and derivatives of that collection of files created through textual modification.
 
 "Copyright Holder" is whoever is named in the copyright or copyrights for the package.
 
