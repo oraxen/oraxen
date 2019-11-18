@@ -5,6 +5,9 @@ Plugin:
   prefix: "&8&l[&bOraxen&8&l] §7"
 
 Pack:
+  # Nice for production servers, automatically set model ID in settings so
+  # that you can other items without destroying the others already created
+  automatically_set_model_id: true
   generation:
     generate: true
     compression: BEST_COMPRESSION # see Deflater.class
