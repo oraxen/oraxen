@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.items;
 
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -53,5 +54,9 @@ public class ModelData {
         usedDurabilities.put(model, newMaxDurability);
         DATAS.put(type, usedDurabilities);
         return newMaxDurability;
+    }
+
+    public static void setModelData(ConfigurationSection section, int value) {
+        section.set("custom_model_data", value);
     }
 }

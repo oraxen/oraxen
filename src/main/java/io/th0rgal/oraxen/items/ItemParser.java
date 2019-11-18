@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.settings.Pack;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -27,6 +28,7 @@ public class ItemParser {
     private PackInfos packInfos;
     private final ConfigurationSection section;
     private final Material type;
+    private boolean configUpdated = false;
 
     public ItemParser(ConfigurationSection section) {
         this.section = section;
@@ -73,7 +75,7 @@ public class ItemParser {
         if (section.contains("AttributeModifiers")) {
 
             @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
-            List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section.getList("AttributeModifiers");
+                    List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section.getList("AttributeModifiers");
             for (LinkedHashMap<String, Object> attributeJson : attributes) {
                 AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
                 Attribute attribute = Attribute.valueOf((String) attributeJson.get("attribute"));
@@ -106,6 +108,10 @@ public class ItemParser {
                 customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getDurability();
             } else {
                 customModelData = ModelData.generateId(packInfos.getModelName(), type);
+                if ((boolean) Pack.SET_MODEL_ID.getValue()) {
+                    this.configUpdated = true;
+                    ModelData.setModelData(section, customModelData);
+                }
             }
             item.setCustomModelData(customModelData);
             packInfos.setCustomModelData(customModelData);
@@ -114,6 +120,10 @@ public class ItemParser {
         }
 
         return item;
+    }
+
+    public boolean isConfigUpdated() {
+        return configUpdated;
     }
 
 }
