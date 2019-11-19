@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.block;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
@@ -10,7 +9,7 @@ import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
+import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.entity.Player;
@@ -19,16 +18,13 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 public class BlockMechanicsListener implements Listener {
 
@@ -36,6 +32,14 @@ public class BlockMechanicsListener implements Listener {
 
     public BlockMechanicsListener(BlockMechanicFactory factory) {
         this.factory = factory;
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onMushroomPhysics(BlockPhysicsEvent event) {
+        if (event.getChangedType() == Material.MUSHROOM_STEM) {
+            event.setCancelled(true);
+            event.getBlock().getState().update(true, false);
+        }
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -53,7 +57,6 @@ public class BlockMechanicsListener implements Listener {
                                 .getItemInMainHand());
     }
 
-    //todo: improve performances
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingMushroomBlock(BlockPlaceEvent event) {
 
@@ -61,18 +64,10 @@ public class BlockMechanicsListener implements Listener {
                 || OraxenItems.isAnItem(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
 
-        Set<Block> browseStartingPoint = new HashSet<>();
         Block block = event.getBlock();
         BlockData blockData = block.getBlockData();
         Utils.setBlockFacing((MultipleFacing) blockData, 15);
-        block.setBlockData(blockData);
-        browseStartingPoint.add(block);
-        Map<Block, BlockData> blocksToFix = browse(browseStartingPoint, new HashMap<>());
-
-        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
-            for (Map.Entry<Block, BlockData> blockDataEntry : blocksToFix.entrySet())
-                blockDataEntry.getKey().setBlockData(blockDataEntry.getValue());
-        }, 0);
+        block.setBlockData(blockData, false);
     }
 
     // not static here because only instanciated once I think
@@ -98,54 +93,38 @@ public class BlockMechanicsListener implements Listener {
             target = placedAgainst.getRelative(event.getBlockFace());
 
         Location playerLocation = player.getLocation();
-        if (target.getLocation().distance(playerLocation) > 1) {
-            BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, event.getHand());
-            Bukkit.getPluginManager().callEvent(blockPlaceEvent);
-            if (blockPlaceEvent.canBuild() && !blockPlaceEvent.isCancelled()) {
-                event.setCancelled(true);
-                MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(Material.MUSHROOM_STEM);
-                int customVariation = ((BlockMechanic) factory.getMechanic(itemID)).getCustomVariation();
-                Utils.setBlockFacing(newBlockData, customVariation);
+        if (target.getType() != Material.AIR || isStandingInside(player, target))
+            return;
 
-                Set<Block> browseStartingPoint = new HashSet<>();
-                browseStartingPoint.add(target);
-                Map<Block, BlockData> blocksToFix = browse(browseStartingPoint, new HashMap<>());
+        // determines the old informations of the block
+        BlockData curentBlockData = target.getBlockData();
+        BlockState currentBlockState = target.getState();
 
-                target.setBlockData(newBlockData);
+        // determines the new block data of the block
+        MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(Material.MUSHROOM_STEM);
+        int customVariation = ((BlockMechanic) factory.getMechanic(itemID)).getCustomVariation();
+        Utils.setBlockFacing(newBlockData, customVariation);
 
-                for (Map.Entry<Block, BlockData> blockDataEntry : blocksToFix.entrySet())
-                    blockDataEntry.getKey().setBlockData(blockDataEntry.getValue());
+        //set the new block
+        target.setBlockData(newBlockData); // false to cancel physic
 
-                if (!player.getGameMode().equals(GameMode.CREATIVE))
-                    item.setAmount(item.getAmount() - 1);
-            }
+        BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, event.getHand());
+        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
+        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
+            target.setBlockData(curentBlockData, false); // false to cancel physic
         }
+        event.setCancelled(true);
+        if (!player.getGameMode().equals(GameMode.CREATIVE))
+            item.setAmount(item.getAmount() - 1);
+
     }
 
-    public Map<Block, BlockData> browse(Set<Block> input, Map<Block, BlockData> output) {
-
-        BlockFace[] adjacents = {BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH,
-                BlockFace.SOUTH, BlockFace.WEST, BlockFace.EAST};
-
-        Set<Block> nextInput = new HashSet<>();
-
-        for (Block inputBlock : input) {
-            for (BlockFace adjacentBlockFace : adjacents) {
-                Block adjacentBlock = inputBlock.getRelative(adjacentBlockFace);
-                if (adjacentBlock.getType() == Material.MUSHROOM_STEM
-                        && !output.containsKey(adjacentBlock))
-                    nextInput.add(adjacentBlock);
-            }
-        }
-        //todo: improve logic
-        for (Block block : nextInput)
-            output.put(block, block.getBlockData());
-
-        if (nextInput.isEmpty())
-            return output;
-        else
-            return browse(nextInput, output);
-
+    private boolean isStandingInside(Player player, Block block) {
+        Location playerLocation = player.getLocation();
+        Location blockLocation = block.getLocation();
+        return playerLocation.getBlockX() == blockLocation.getBlockX()
+                && (playerLocation.getBlockY() == blockLocation.getBlockY() || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
+                && playerLocation.getBlockZ() == blockLocation.getBlockZ();
     }
 
 }
