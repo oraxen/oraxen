@@ -110,7 +110,7 @@ public class ItemParser {
                 customModelData = ModelData.generateId(packInfos.getModelName(), type);
                 if ((boolean) Pack.SET_MODEL_ID.getValue()) {
                     this.configUpdated = true;
-                    ModelData.setModelData(section, customModelData);
+                    section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
                 }
             }
             item.setCustomModelData(customModelData);

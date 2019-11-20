@@ -56,7 +56,4 @@ public class ModelData {
         return newMaxDurability;
     }
 
-    public static void setModelData(ConfigurationSection section, int value) {
-        section.set("custom_model_data", value);
-    }
 }

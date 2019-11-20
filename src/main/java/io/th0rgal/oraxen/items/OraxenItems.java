@@ -46,9 +46,9 @@ public class OraxenItems {
         // because we must have parse all the items before building them to be able to use available models
         for (Map.Entry<String, ItemParser> entry : parseMap.entrySet()) {
             ItemParser itemParser = entry.getValue();
+            map.put(entry.getKey(), itemParser.buildItem());
             if (itemParser.isConfigUpdated())
                 configUpdated = true;
-            map.put(entry.getKey(), itemParser.buildItem());
         }
         if (configUpdated)
             for (int i = 0; i < itemsConfig.length; i++) {
