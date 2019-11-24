@@ -19,8 +19,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-
 public class OraxenPlugin extends JavaPlugin {
 
     private static OraxenPlugin instance;
