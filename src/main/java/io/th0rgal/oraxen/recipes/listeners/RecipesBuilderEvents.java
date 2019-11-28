@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.recipes;
+package io.th0rgal.oraxen.recipes.listeners;
 
 import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
 
