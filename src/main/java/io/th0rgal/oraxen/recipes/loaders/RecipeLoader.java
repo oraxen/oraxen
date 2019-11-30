@@ -3,10 +3,12 @@ package io.th0rgal.oraxen.recipes.loaders;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 
+import io.th0rgal.oraxen.recipes.listeners.PermissionRecipesManager;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.RecipeChoice;
 
 public abstract class RecipeLoader {
@@ -19,6 +21,13 @@ public abstract class RecipeLoader {
 
     protected ConfigurationSection getSection() {
         return section;
+    }
+
+    protected void managesPermission(Recipe recipe) {
+        if (getSection().isString("permission")) {
+            String permission = getSection().getString("permission");
+            PermissionRecipesManager.get().addRecipe(recipe, permission);
+        }
     }
 
     protected ItemStack getResult() {
