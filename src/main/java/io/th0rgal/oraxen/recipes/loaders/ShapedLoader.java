@@ -25,5 +25,6 @@ public class ShapedLoader extends RecipeLoader {
                             .getConfigurationSection(ingredientLetter)));
         }
         Bukkit.addRecipe(recipe);
+        managesPermission(recipe);
     }
 }
