@@ -27,13 +27,13 @@ public class PackDispatcher {
 
         BaseComponent page = new TextComponent("§8§lRESOURCE PACK\nTo see the new items you need to use a resourcepack\n\nTo try to load it directly from the game, ");
         BaseComponent clic = new TextComponent("§a§l§nCLICK HERE");
-        clic.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Clique here to download the resourcepack from the website").create()));
-        clic.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
+        clic.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click here to load directly the resourcepack from the game").create()));
+        clic.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/oraxen pack getpack"));
         page.addExtra(clic);
         page.addExtra("\nTo download it from the internet, ");
         BaseComponent cmd = new TextComponent("§r§c§l§nCLICK HERE");
-        cmd.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Click here to load directly the resourcepack from the game").create()));
-        cmd.setClickEvent(new ClickEvent(ClickEvent.Action.RUN_COMMAND, "/oraxen pack getpack"));
+        cmd.setHoverEvent(new HoverEvent(HoverEvent.Action.SHOW_TEXT, new ComponentBuilder("Clique here to download the resourcepack from the website").create()));
+        cmd.setClickEvent(new ClickEvent(ClickEvent.Action.OPEN_URL, url));
         page.addExtra(cmd);
 
         meta.spigot().addPage(new BaseComponent[]{page});
