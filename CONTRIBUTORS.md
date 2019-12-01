@@ -47,6 +47,13 @@
 36. [MeanieKitty](https://www.spigotmc.org/members/meaniekitty.404460/)
 37. [LordSiix](https://www.spigotmc.org/members/lordsiix.799172/)
 38. [Zenith15PL](https://www.spigotmc.org/members/zenith15pl.659919/)
+39. [DrPerform](https://www.spigotmc.org/members/drperform.485374/)
+40. [OnoxAwaken](https://www.spigotmc.org/members/onoxawaken.678172/)
+41. [MAURIJN](https://www.spigotmc.org/members/maurijn.120111/)
+42. [Westwoods](https://www.spigotmc.org/members/westwoods.709878/)
+43. [bgfjhf](https://www.spigotmc.org/members/bgfjhf.821627/)
+44. [WeepyKnight](https://www.spigotmc.org/members/weepyknight.638958/)
+45. [Banit](https://www.spigotmc.org/members/banit.686595/)
 
 ### Idea givers
 > People who have given ideas to improve Oraxen
