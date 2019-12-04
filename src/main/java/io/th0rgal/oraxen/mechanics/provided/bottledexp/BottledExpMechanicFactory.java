@@ -8,8 +8,11 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class BottledExpMechanicFactory extends MechanicFactory {
 
+    private final int durabilityCost;
+
     public BottledExpMechanicFactory(ConfigurationSection section) {
         super(section);
+        durabilityCost = section.getInt("durability_cost");
         MechanicsManager.registerListeners(OraxenPlugin.get(),
                 new BottledExpMechanicListener(this));
     }
@@ -19,6 +22,10 @@ public class BottledExpMechanicFactory extends MechanicFactory {
         Mechanic mechanic = new BottledExpMechanic(this, itemMechanicConfiguration);
         addToImplemented(mechanic);
         return mechanic;
+    }
+
+    public int getDurabilityCost() {
+        return durabilityCost;
     }
 
 }
