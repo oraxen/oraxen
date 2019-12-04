@@ -13,6 +13,10 @@ hat:
 thor:
   enabled: true
 
+bottledexp:
+  enabled: true
+  durability_cost: 1
+
 bedrockbreak:
   enabled: true
   disable_on_first_layer: false #set it on true to avoid player breaking the ground ...completely
