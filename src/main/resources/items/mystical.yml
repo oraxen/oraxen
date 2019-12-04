@@ -47,4 +47,6 @@ magical_axe:
     model: magical_axe
   Mechanics:
     durability:
-      value: 10 #diamond sword is 1561
+      value: 10 #because exp converting is cheated
+    bottledexp:
+      ratio: 0.95 # So you'll lose 1/20 of your exp by converting it
