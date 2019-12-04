@@ -13,8 +13,8 @@ public class BottledExpMechanic extends Mechanic {
         this.ratio = section.getDouble("ratio");
     }
 
-    public double getRatio() {
-        return  ratio;
+    public int getBottleEquivalent(float xp) {
+        return (int) Math.ceil(xp * ratio / 10.0f);
     }
 
 }
