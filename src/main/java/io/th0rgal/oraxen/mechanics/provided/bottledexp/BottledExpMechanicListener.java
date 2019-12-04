@@ -1,16 +1,20 @@
 package io.th0rgal.oraxen.mechanics.provided.bottledexp;
 
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.mechanics.MechanicFactory;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public class BottledExpMechanicListener implements Listener {
 
-    private final MechanicFactory factory;
+    private final BottledExpMechanicFactory factory;
 
     public BottledExpMechanicListener(BottledExpMechanicFactory factory) {
         this.factory = factory;
@@ -33,6 +37,14 @@ public class BottledExpMechanicListener implements Listener {
             return;
 
         BottledExpMechanic mechanic = (BottledExpMechanic) factory.getMechanic(itemID);
+        Player player = event.getPlayer();
+        ItemStack bottlesStack = new ItemStack(Material.EXPERIENCE_BOTTLE,
+                mechanic.getBottleEquivalent(player.getExp()));
+        Inventory inventory = player.getInventory();
+        player.getWorld().dropItem(player.getLocation(), bottlesStack);
+
+        PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item, factory.getDurabilityCost());
+        Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
     }
 
 }
