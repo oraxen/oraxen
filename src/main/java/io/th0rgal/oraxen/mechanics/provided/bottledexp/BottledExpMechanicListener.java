@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -20,6 +21,7 @@ public class BottledExpMechanicListener implements Listener {
         this.factory = factory;
     }
 
+    @EventHandler
     public void onRightClick(PlayerInteractEvent event) {
         Action action = event.getAction();
         if (action != Action.LEFT_CLICK_AIR
