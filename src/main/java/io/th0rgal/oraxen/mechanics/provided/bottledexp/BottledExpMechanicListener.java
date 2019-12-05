@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.bottledexp;
 
 import io.th0rgal.oraxen.items.OraxenItems;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -40,10 +41,11 @@ public class BottledExpMechanicListener implements Listener {
 
         BottledExpMechanic mechanic = (BottledExpMechanic) factory.getMechanic(itemID);
         Player player = event.getPlayer();
-        ItemStack bottlesStack = new ItemStack(Material.EXPERIENCE_BOTTLE,
-                mechanic.getBottleEquivalent(player.getExp()));
+        ItemStack bottlesStack = new ItemStack(Material.EXPERIENCE_BOTTLE);
+        Logs.log("eq:" + mechanic.getBottleEquivalent(player.getExp()));
         Inventory inventory = player.getInventory();
         player.getWorld().dropItem(player.getLocation(), bottlesStack);
+        player.setExp(0);
 
         PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item, factory.getDurabilityCost());
         Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
