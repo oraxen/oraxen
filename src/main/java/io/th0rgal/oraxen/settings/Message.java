@@ -19,6 +19,7 @@ public enum Message {
     RELOAD(ChatColor.GREEN, "%s successfully reloaded"),
     REGENERATED(ChatColor.GREEN, "%s successfully regenerated"),
 
+    NOT_ENOUGH_EXP(ChatColor.GREEN, "You need more experience to do this"),
     DELAY(ChatColor.GREEN, "Wait another %s seconds");
 
     private final String message;
