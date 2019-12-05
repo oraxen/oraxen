@@ -41,10 +41,13 @@ public class BottledExpMechanicListener implements Listener {
 
         BottledExpMechanic mechanic = (BottledExpMechanic) factory.getMechanic(itemID);
         Player player = event.getPlayer();
-        ItemStack bottlesStack = new ItemStack(Material.EXPERIENCE_BOTTLE);
-        Logs.log("eq:" + mechanic.getBottleEquivalent(player.getExp()));
+        ItemStack bottlesStack = new ItemStack(Material.EXPERIENCE_BOTTLE, mechanic.getBottleEquivalent(player.getLevel(), player.getExp()));
+        if (bottlesStack.getAmount() <= 0)
+            return;
+
         Inventory inventory = player.getInventory();
         player.getWorld().dropItem(player.getLocation(), bottlesStack);
+        player.setLevel(0);
         player.setExp(0);
 
         PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item, factory.getDurabilityCost());
