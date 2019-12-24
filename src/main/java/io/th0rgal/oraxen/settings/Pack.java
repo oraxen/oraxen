@@ -18,6 +18,8 @@ public enum Pack implements ConfigEnum {
     UPLOAD_TYPE("upload.type"),
     UPLOAD("upload.enabled"),
 
+    POLYMATH_SERVER("upload.polymath.server"),
+
     SEND_PACK("dispatch.send_pack"),
     SEND_WELCOME_MESSAGE("dispatch.send_welcome_message"),
     WELCOME_MESSAGE("dispatch.welcome_message");
@@ -36,7 +38,6 @@ public enum Pack implements ConfigEnum {
     public BaseComponent[] toMiniMessage() {
         ConfigurationSection config = RESOURCES_MANAGER.getSettings().getConfigurationSection("Pack");
         String message;
-        Logs.log("a:" + config.get(section));
         if (config.isList(section))
             message = String.join("\n", config.getStringList(section));
         else

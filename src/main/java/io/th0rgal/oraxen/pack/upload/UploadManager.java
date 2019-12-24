@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.pack.dispatch.PackDispatcher;
 import io.th0rgal.oraxen.pack.dispatch.PackSender;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
+import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
 import io.th0rgal.oraxen.pack.upload.hosts.TransferDotSh;
 import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -31,8 +32,10 @@ public class UploadManager {
         long time = System.currentTimeMillis();
         Logs.log(ChatColor.GREEN, "Automatic upload of the resource pack is enabled, uploading...");
         Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
-            if (!hostingProvider.uploadPack(resourcePack.getFile()))
+            if (!hostingProvider.uploadPack(resourcePack.getFile())) {
+                Logs.log(ChatColor.RED, "Resourcepack not uploaded");
                 return;
+            }
             Logs.log(ChatColor.GREEN, "Resourcepack uploaded on url "
                     + hostingProvider.getPackURL() + " in " + (System.currentTimeMillis() - time) + "ms");
             PackDispatcher.setPackURL(hostingProvider.getPackURL());
@@ -42,7 +45,15 @@ public class UploadManager {
     }
 
     private HostingProvider getHostingProvider() {
-        return new TransferDotSh();
+        switch (Pack.UPLOAD_TYPE.toString().toLowerCase()) {
+            case "transfer.sh":
+                return new TransferDotSh();
+            case "polymath":
+                return new Polymath(Pack.POLYMATH_SERVER.toString());
+            default:
+                throw new RuntimeException();
+        }
+
     }
 
 }
