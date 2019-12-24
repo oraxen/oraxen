@@ -15,6 +15,7 @@ public enum Pack implements ConfigEnum {
     COMPRESSION("generation.compression"),
     COMMENT("generation.comment"),
 
+    UPLOAD_TYPE("upload.type"),
     UPLOAD("upload.enabled"),
 
     SEND_PACK("dispatch.send_pack"),
