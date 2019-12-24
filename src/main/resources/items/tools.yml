@@ -43,3 +43,15 @@ withooker:
   Pack:
     generate_model: false
     model: withooker
+
+emerald_hammer:
+  displayname: "&aEmerald Hammer"
+  material: DIAMOND_PICKAXE
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    layers:
+      - emerald_hammer.png
+  Mechanics:
+    bigmining:
+      size: 3
