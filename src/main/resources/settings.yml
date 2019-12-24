@@ -24,8 +24,8 @@ Pack:
       server: hestia.oraxen.com:8080 # you can also host your own polymath instance
 
   dispatch:
-    send_pack: false
-    send_welcome_message: true
+    send_pack: true
+    send_welcome_message: false
     welcome_message:
       - "<dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>"
       - ""
