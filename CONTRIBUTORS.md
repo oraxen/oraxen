@@ -6,6 +6,7 @@
 > Developers who have contributed to the source code
 * [AntoineJT](https://github.com/AntoineJT): active contributor, who contributed refactors.
 * [MrMicky](https://github.com/MrMicky-FR): developer of [FastInv](https://github.com/MrMicky-FR/FastInv) (used in this plugin)
+* [MiniDigger](https://github.com/MiniDigger): developer of [MiniMessage](https://github.com/MiniDigger/MiniMessage) (used in this plugin)
 
 ### Early supporters
 > Users who bought the plugin during its beta (version 0.x) and decided to trust me and support the project while it was not yet finished.
