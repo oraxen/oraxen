@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.bedrockbreak.BedrockBreakMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.bigmining.BigMiningMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.bottledexp.BottledExpMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.commands.CommandsMechanicFactory;
@@ -29,7 +30,9 @@ public class MechanicsManager {
         registerMechanicFactory("commands", CommandsMechanicFactory.class);
         registerMechanicFactory("block", BlockMechanicFactory.class);
         registerMechanicFactory("hat", HatMechanicFactory.class);
+
         registerMechanicFactory("thor", ThorMechanicFactory.class);
+        registerMechanicFactory("bigmining", BigMiningMechanicFactory.class);
         registerMechanicFactory("bottledexp", BottledExpMechanicFactory.class);
         registerMechanicFactory("bedrockbreak", BedrockBreakMechanicFactory.class);
     }
