@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
 import io.th0rgal.oraxen.settings.Pack;
-import net.md_5.bungee.chat.ComponentSerializer;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.entity.Player;
 
 public class PackDispatcher {
@@ -16,8 +16,9 @@ public class PackDispatcher {
         player.setResourcePack(url);
     }
 
-    public static void sendMenu(Player player) {
-        player.spigot().sendMessage(ComponentSerializer.parse(Pack.MENU_JSON.toString()));
+    public static void sendWelcomeMessage(Player player) {
+        BaseComponent[] components = Pack.WELCOME_MESSAGE.toMiniMessage();
+        player.spigot().sendMessage(components);
     }
 
 }

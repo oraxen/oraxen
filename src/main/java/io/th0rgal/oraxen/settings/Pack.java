@@ -1,7 +1,11 @@
 package io.th0rgal.oraxen.settings;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.utils.minimessage.MiniMessageParser;
+import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.ConfigurationSection;
 
 public enum Pack implements ConfigEnum {
 
@@ -14,8 +18,8 @@ public enum Pack implements ConfigEnum {
     UPLOAD("upload.enabled"),
 
     SEND_PACK("dispatch.send_pack"),
-    SEND_PACK_MENU("dispatch.send_pack_menu"),
-    MENU_JSON("dispatch.menu_json");
+    SEND_WELCOME_MESSAGE("dispatch.send_welcome_message"),
+    WELCOME_MESSAGE("dispatch.welcome_message");
 
     private final String section;
     private static final ResourcesManager RESOURCES_MANAGER = new ResourcesManager(OraxenPlugin.get());
@@ -26,6 +30,17 @@ public enum Pack implements ConfigEnum {
 
     public Object getValue() {
         return RESOURCES_MANAGER.getSettings().getConfigurationSection("Pack").get(section);
+    }
+
+    public BaseComponent[] toMiniMessage() {
+        ConfigurationSection config = RESOURCES_MANAGER.getSettings().getConfigurationSection("Pack");
+        String message;
+        Logs.log("a:" + config.get(section));
+        if (config.isList(section))
+            message = String.join("\n", config.getStringList(section));
+        else
+            message = config.getString(section);
+        return MiniMessageParser.parseFormat(message);
     }
 
     @Override

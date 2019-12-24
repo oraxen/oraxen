@@ -26,7 +26,7 @@ public class Pack implements CommandInterface {
             switch (args[1]) {
 
                 case "sendmenu":
-                    PackDispatcher.sendMenu(target);
+                    PackDispatcher.sendWelcomeMessage(target);
                     return true;
 
                 case "sendpack":
@@ -44,7 +44,7 @@ public class Pack implements CommandInterface {
                 switch (args[1]) {
 
                     case "getmenu":
-                        PackDispatcher.sendMenu(target);
+                        PackDispatcher.sendWelcomeMessage(target);
                         return true;
 
                     case "getpack":
@@ -56,7 +56,7 @@ public class Pack implements CommandInterface {
                 }
             }
 
-            PackDispatcher.sendMenu(target);
+            PackDispatcher.sendWelcomeMessage(target);
             return true;
         }
     }
