@@ -22,5 +22,12 @@ Pack:
 
   dispatch:
     send_pack: false
-    send_pack_menu: true
-    menu_json: "{\"extra\":[{\"clickEvent\":{\"action\":\"run_command\",\"value\":\"/oraxen pack getpack\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":[{\"text\":\"\u0026cClick here to load directly the resourcepack from the game\"}]},\"text\":\"\u0026c\u0026l\u0026nCLICK HERE\"},{\"text\":\"\n\u00267To download it from the internet, \"},{\"clickEvent\":{\"action\":\"open_url\",\"value\":\"http://transfer.sh/get/q6PTq/pack.zip\"},\"hoverEvent\":{\"action\":\"show_text\",\"value\":[{\"text\":\"\u0026aClick here to download the resourcepack from the website\"}]},\"text\":\"\u0026r\u0026a\u0026l\u0026nCLICK HERE\"}],\"text\":\"\n\u00268\u0026m\u0026l                         \u00268\u0026l{ \u0026bORΛXEN\u00268\u0026l }\u0026m                         \n\u00267This server is using a custom resourcepack to create new \u00267items. You can use your own pack in addition to server one.\n\n\u00267To try to load it directly from the game, \"}"
+    send_welcome_message: true
+    welcome_message:
+      - "<dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>"
+      - ""
+      - "<gray><bold>To see the new items you need to use a special resourcepack (but don't worry, this doesn't prevent you from using yours at the same time).</bold>"
+      - ""
+      - "<dark_gray>»<gray> To try to load it directly from the game, <click:run_command:/oraxen pack getpack><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click>"
+      - ""
+      - "<dark_gray>»<gray> To download it from the internet, <click:open_url:%url%><hover:show_text:\"<green>/!\\ install it from Options/ResourcePacks in your game\"><green><bold>CLICK HERE</bold></hover></click>"
