@@ -54,6 +54,16 @@
 43. [bgfjhf](https://www.spigotmc.org/members/bgfjhf.821627/)
 44. [WeepyKnight](https://www.spigotmc.org/members/weepyknight.638958/)
 45. [Banit](https://www.spigotmc.org/members/banit.686595/)
+46. [Spartan9802](https://www.spigotmc.org/members/spartan9802.31988/)
+47. [LadyHaley](https://www.spigotmc.org/members/ladyhaley.159098/)
+48. [Friedrich_](https://www.spigotmc.org/members/friedrich_.651068/)
+49. [Ignisflame](https://www.spigotmc.org/members/ignisflame.53405/)
+50. [Blankball](https://www.spigotmc.org/members/blankball.702851/)
+51. [milo2015](https://www.spigotmc.org/members/milo2015.572506/)
+52. [jingjung](https://www.spigotmc.org/members/jingjung.15555/)
+53. [larsy13](https://www.spigotmc.org/members/larsy13.182710/)
+54. [LeoZL](https://www.spigotmc.org/members/leozl.787388/)
+55. [feixiangtian](https://www.spigotmc.org/members/feixiangtian.837890/)
 
 ### Idea givers
 > People who have given ideas to improve Oraxen
