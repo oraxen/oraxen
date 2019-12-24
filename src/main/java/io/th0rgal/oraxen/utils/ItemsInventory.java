@@ -49,7 +49,7 @@ public class ItemsInventory extends FastInv {
             setItem(getInventory().getSize() - 4,
                     new ItemBuilder(Material.ARROW)
                             .setAmount(page + 2)
-                            .setDisplayName(ChatColor.RED + "open page " + (page + 1))
+                            .setDisplayName(ChatColor.RED + "open page " + (page + 2))
                             .build(),
                     e -> new ItemsInventory(page + 1).open((Player) e.getWhoClicked()));
 
