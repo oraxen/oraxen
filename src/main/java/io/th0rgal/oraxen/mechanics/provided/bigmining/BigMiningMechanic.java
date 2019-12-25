@@ -6,8 +6,15 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class BigMiningMechanic extends Mechanic {
 
+    private int radius;
+
     public BigMiningMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
+        radius = section.getInt("radius");
+    }
+
+    public int getRadius() {
+        return this.radius;
     }
 
 }

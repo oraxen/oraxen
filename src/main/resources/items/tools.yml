@@ -54,4 +54,4 @@ emerald_hammer:
       - emerald_hammer.png
   Mechanics:
     bigmining:
-      size: 3
+      radius: 1
