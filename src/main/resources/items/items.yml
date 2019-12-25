@@ -95,4 +95,4 @@ fire:
   material: DIAMOND
   Pack:
     generate_model: false
-    model: block/fire_side0 # so we use the already existing fire model
+    model: block/fire_floor0 # so we use the already existing fire model
