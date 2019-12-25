@@ -55,3 +55,4 @@ emerald_hammer:
   Mechanics:
     bigmining:
       radius: 1
+      depth: 1
