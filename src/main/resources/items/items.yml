@@ -63,14 +63,14 @@ amethyst:
     layers:
       - amethyst.png # .png extension is not mandatory
 
-orax:
-  displayname: "&bOrax"
+ruby:
+  displayname: "&cRuby"
   material: DIAMOND
   Pack:
     generate_model: true
     parent_model: "item/generated"
     layers:
-      - orax.png # .png extension is not mandatory
+      - ruby.png # .png extension is not mandatory
 
 onyx:
   displayname: "&8Onyx"
@@ -80,6 +80,15 @@ onyx:
     parent_model: "item/generated"
     layers:
       - onyx.png # .png extension is not mandatory
+
+orax:
+  displayname: "&bOrax"
+  material: DIAMOND
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    layers:
+      - orax.png # .png extension is not mandatory
 
 fire:
   displayname: "&6Fire"
