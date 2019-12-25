@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.mechanics.provided.bigmining;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -53,18 +52,18 @@ public class BigMiningMechanicsListener implements Listener {
 
         int iterations = mechanic.getDepth();
 
-        Block initialBlock = event.getBlock();
+        Location initialLocation = event.getBlock().getLocation();
         Vector locationModifier = firstBlock.getLocation().toVector().subtract(secondBlock.getLocation().toVector());
-        Location processedLocation = initialBlock.getLocation().clone();
+        Location processedLocation = initialLocation.clone();
         while (iterations >= 1) {
             for (double relativeX = -mechanic.getRadius(); relativeX <= mechanic.getRadius(); relativeX++)
                 for (double relativeY = -mechanic.getRadius(); relativeY <= mechanic.getRadius(); relativeY++) {
                     Location tempLocation = transpose(processedLocation, blockFace, relativeX, relativeY);
-                    if (tempLocation.equals(initialBlock.getLocation()))
+                    if (tempLocation.equals(initialLocation))
                         continue;
 
                     Block block = tempLocation.getBlock();
-                    blocksToProcess += 1; // to avoir this method to call itself
+                    blocksToProcess += 1; // to avoid this method to call itself
                     BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
                     Bukkit.getPluginManager().callEvent(blockBreakEvent);
                     if (!blockBreakEvent.isCancelled())
