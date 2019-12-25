@@ -13,6 +13,9 @@ hat:
 thor:
   enabled: true
 
+bigmining:
+  enabled: true
+
 bottledexp:
   enabled: true
   durability_cost: 1
