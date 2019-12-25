@@ -109,8 +109,9 @@ fire_hammer:
     layers:
       - fire_hammer.png
   Mechanics:
+    # todo: melting
     durability:
       value: 4683
     bigmining:
-      radius: 2
-      depth: 2
+      radius: 1
+      depth: 1
