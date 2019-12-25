@@ -8,7 +8,7 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
-import io.th0rgal.oraxen.settings.Server;
+import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 
@@ -51,7 +51,7 @@ public class OraxenPlugin extends JavaPlugin {
         RecipesManager.load(this);
         FastInvManager.register(this);
         registerCommands();
-        Logs.log(ChatColor.GREEN + "Successfully loaded on " + Server.OS_NAME);
+        Logs.log(ChatColor.GREEN + "Successfully loaded on " + OS.getOs().getPlatformName());
         new UploadManager(this).uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this);
     }

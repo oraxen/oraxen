@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.settings.Pack;
-import io.th0rgal.oraxen.settings.Server;
 
 import java.io.*;
 import java.util.Arrays;
@@ -58,7 +57,7 @@ public class ZipUtils {
         // we want the zipEntry's path to be a relative path that is relative
         // to the directory being zipped, so chop off the rest of the path
         String zipFilePath = file.getCanonicalPath().substring(directoryToZip.getCanonicalPath().length() + 1);
-        if (Server.isUsingWindows())
+        if (OS.getOs().getName().startsWith("Windows"))
             zipFilePath = zipFilePath.replace("\\", "/");
         if (!inZipDirectory.isEmpty())
             zipFilePath = inZipDirectory + "/" + zipFilePath;
