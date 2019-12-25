@@ -8,4 +8,6 @@ public interface HostingProvider {
 
     String getPackURL();
 
+    byte[] getSHA1();
+
 }

@@ -77,4 +77,9 @@ public class TransferDotSh implements HostingProvider {
         return packURL;
     }
 
+    @Override
+    public byte[] getSHA1() {
+        return null;
+    }
+
 }
