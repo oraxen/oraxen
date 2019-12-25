@@ -62,3 +62,28 @@ amethyst:
     parent_model: "item/generated"
     layers:
       - amethyst.png # .png extension is not mandatory
+
+orax:
+  displayname: "&bOrax"
+  material: DIAMOND
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    layers:
+      - orax.png # .png extension is not mandatory
+
+onyx:
+  displayname: "&8Onyx"
+  material: DIAMOND
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    layers:
+      - onyx.png # .png extension is not mandatory
+
+fire:
+  displayname: "&6Fire"
+  material: DIAMOND
+  Pack:
+    generate_model: false
+    model: block/fire_side0 # so we use the already existing fire model
