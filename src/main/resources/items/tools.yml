@@ -56,3 +56,61 @@ emerald_hammer:
     bigmining:
       radius: 1
       depth: 1
+
+amethyst_hammer:
+  displayname: "&dAmethyst Hammer"
+  material: DIAMOND_PICKAXE
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    layers:
+      - amethyst_hammer.png
+  Mechanics:
+    bigmining:
+      radius: 1
+      depth: 2
+
+onyx_hammer:
+  displayname: "&8Onyx Hammer"
+  material: DIAMOND_PICKAXE
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    layers:
+      - onyx_hammer.png
+  Mechanics:
+    durability:
+      value: 3122
+    bigmining:
+      radius: 1
+      depth: 2
+
+orax_hammer:
+  displayname: "&bOrax Hammer"
+  material: DIAMOND_PICKAXE
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    layers:
+      - orax_hammer.png
+  Mechanics:
+    durability:
+      value: 4683
+    bigmining:
+      radius: 2
+      depth: 2
+
+fire_hammer:
+  displayname: "&6Fire Hammer"
+  material: DIAMOND_PICKAXE
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    layers:
+      - fire_hammer.png
+  Mechanics:
+    durability:
+      value: 4683
+    bigmining:
+      radius: 2
+      depth: 2
