@@ -11,9 +11,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
-
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.util.Vector;
 
 import java.util.List;
 
@@ -46,47 +44,41 @@ public class BigMiningMechanicsListener implements Listener {
 
         Player player = event.getPlayer();
         List<Block> lastTwoTargetBlocks = player.getLastTwoTargetBlocks(null, 5);
-        Block firstBlock = lastTwoTargetBlocks.get(0);
-        Block secondBlock = lastTwoTargetBlocks.get(1);
-        BlockFace blockFace = secondBlock.getFace(firstBlock);
-
-        int iterations = mechanic.getDepth();
+        BlockFace blockFace = lastTwoTargetBlocks.get(1).getFace(lastTwoTargetBlocks.get(0));
 
         Location initialLocation = event.getBlock().getLocation();
-        Vector locationModifier = firstBlock.getLocation().toVector().subtract(secondBlock.getLocation().toVector());
-        Location processedLocation = initialLocation.clone();
-        while (iterations >= 1) {
-            for (double relativeX = -mechanic.getRadius(); relativeX <= mechanic.getRadius(); relativeX++)
-                for (double relativeY = -mechanic.getRadius(); relativeY <= mechanic.getRadius(); relativeY++) {
-                    Location tempLocation = transpose(processedLocation, blockFace, relativeX, relativeY);
+
+        for (double relativeX = -mechanic.getRadius(); relativeX <= mechanic.getRadius(); relativeX++)
+            for (double relativeY = -mechanic.getRadius(); relativeY <= mechanic.getRadius(); relativeY++)
+                for (double relativeDepth = 0; relativeDepth <= mechanic.getDepth(); relativeDepth++) {
+                    Location tempLocation = transpose(initialLocation, blockFace, relativeX, relativeY, relativeDepth);
                     if (tempLocation.equals(initialLocation))
                         continue;
-
-                    Block block = tempLocation.getBlock();
-                    if (block.isLiquid() || block.getType() == Material.BEDROCK || block.getType() == Material.BARRIER)
-                        continue;
-                    blocksToProcess += 1; // to avoid this method to call itself
-                    BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
-                    Bukkit.getPluginManager().callEvent(blockBreakEvent);
-                    if (!blockBreakEvent.isCancelled())
-                        block.breakNaturally();
+                    breakBlock(player, tempLocation.getBlock());
                 }
-            iterations -= 1;
-            processedLocation = processedLocation.subtract(locationModifier);
-        }
+    }
+
+    private void breakBlock(Player player, Block block) {
+        if (block.isLiquid() || block.getType() == Material.BEDROCK || block.getType() == Material.BARRIER)
+            return;
+        blocksToProcess += 1; // to avoid this method to call itself <- need other way to handle players using the same tool at the same time
+        BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
+        Bukkit.getPluginManager().callEvent(blockBreakEvent);
+        if (!blockBreakEvent.isCancelled())
+            block.breakNaturally();
     }
 
     /*
         It converts a relative location in 2d into another location in 3d on a certain axis
      */
-    private Location transpose(Location location, BlockFace blockFace, double relative_x, double relative_y) {
+    private Location transpose(Location location, BlockFace blockFace, double relativeX, double relativeY, double relativeDepth) {
         location = location.clone();
         if (blockFace == BlockFace.WEST || blockFace == BlockFace.EAST)  // WEST_EAST axis != X
-            location.add(0, relative_x, relative_y);
+            location.add(relativeDepth, relativeX, relativeY);
         else if (blockFace == BlockFace.DOWN || blockFace == BlockFace.UP)  // DOWN_UP axis != Y
-            location.add(relative_x, 0, relative_y);
+            location.add(relativeX, relativeDepth, relativeY);
         else  // NORTH_SOUTH axis != Z
-            location.add(relative_x, relative_y, 0);
+            location.add(relativeX, relativeY, relativeDepth);
         return location;
     }
 }
