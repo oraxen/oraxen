@@ -63,6 +63,8 @@ public class BigMiningMechanicsListener implements Listener {
                         continue;
 
                     Block block = tempLocation.getBlock();
+                    if (block.isLiquid() || block.getType() == Material.BEDROCK || block.getType() == Material.BARRIER)
+                        continue;
                     blocksToProcess += 1; // to avoid this method to call itself
                     BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
                     Bukkit.getPluginManager().callEvent(blockBreakEvent);
