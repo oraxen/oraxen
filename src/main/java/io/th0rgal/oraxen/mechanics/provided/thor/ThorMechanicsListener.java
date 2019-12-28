@@ -44,6 +44,7 @@ public class ThorMechanicsListener implements Listener {
             return;
         }
 
+        playerTimer.reset();
         for (int i = 0; i < mechanic.getLightningBoltsAmount(); i++) {
             Location target = event.getPlayer().getTargetBlock(null, 50).getLocation();
             player.getWorld().strikeLightning(mechanic.getRandomizedLocation(target));
