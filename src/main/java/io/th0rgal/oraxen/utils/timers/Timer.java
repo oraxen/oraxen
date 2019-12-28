@@ -21,4 +21,8 @@ public class Timer {
         return System.currentTimeMillis() >= lastUsage + delay;
     }
 
+    public long getRemainingTimeMillis() {
+        return  lastUsage + delay - System.currentTimeMillis();
+    }
+
 }
