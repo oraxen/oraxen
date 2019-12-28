@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.thor;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.utils.timers.Timer;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -17,7 +18,8 @@ import java.text.DecimalFormat;
 public class ThorMechanicsListener implements Listener {
 
     private final MechanicFactory factory;
-    private static final DecimalFormat decimalFormat = new DecimalFormat("##.##");
+    private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("##.##");
+
     public ThorMechanicsListener(MechanicFactory factory) {
         this.factory = factory;
     }
@@ -35,10 +37,10 @@ public class ThorMechanicsListener implements Listener {
 
         ThorMechanic mechanic = (ThorMechanic) factory.getMechanic(itemID);
         Player player = event.getPlayer();
+        Timer playerTimer = mechanic.getTimer(player);
 
-        long remainingTime = mechanic.getRemainingTime();
-        if (remainingTime > 0) {
-            Message.DELAY.send(player, decimalFormat.format(remainingTime/1000D));
+        if (!playerTimer.isFinished()) {
+            Message.DELAY.send(player, DECIMAL_FORMAT.format(playerTimer.getRemainingTimeMillis() / 1000D));
             return;
         }
 

@@ -2,8 +2,11 @@ package io.th0rgal.oraxen.mechanics.provided.thor;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.timers.Timer;
+import io.th0rgal.oraxen.utils.timers.TimersFactory;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 
 import java.util.Random;
 
@@ -12,13 +15,13 @@ public class ThorMechanic extends Mechanic {
     private long nextAllowedUsageTime = 0;
     private int lightningBoltsAmount;
     private double randomLocationVariation;
-    private int delay;
+    private TimersFactory timersFactory;
 
     public ThorMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
         this.lightningBoltsAmount = section.getInt("lightning_bolts_amount");
         this.randomLocationVariation = section.getDouble("random_location_variation");
-        this.delay = section.getInt("delay");
+        this.timersFactory = new TimersFactory(section.getLong("delay"));
     }
 
     public int getLightningBoltsAmount() {
@@ -32,11 +35,7 @@ public class ThorMechanic extends Mechanic {
         return location;
     }
 
-    public long getRemainingTime() { // returns the remaining time before next usage
-        long remainingTime = nextAllowedUsageTime - System.currentTimeMillis();
-        if (remainingTime > 0)
-            return remainingTime;
-        nextAllowedUsageTime = System.currentTimeMillis() + delay;
-        return remainingTime;
+    public Timer getTimer(Player player) {
+        return  timersFactory.getTimer(player);
     }
 }
