@@ -30,6 +30,7 @@ public class Polymath implements HostingProvider {
             return true;
 
         } catch (Exception exception) { //if upload failed
+            exception.printStackTrace();
             return false;
         }
     }
