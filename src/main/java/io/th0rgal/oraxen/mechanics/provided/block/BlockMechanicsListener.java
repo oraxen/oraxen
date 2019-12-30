@@ -71,7 +71,7 @@ public class BlockMechanicsListener implements Listener {
     }
 
     // not static here because only instanciated once I think
-    private final List<Material> replaceableBlocks = Arrays.asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS);
+    private final List<Material> replaceableBlocks = Arrays.asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN, Material.LARGE_FERN);
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrePlacingCustomBlock(PlayerInteractEvent event) {
@@ -93,7 +93,7 @@ public class BlockMechanicsListener implements Listener {
             target = placedAgainst.getRelative(event.getBlockFace());
 
         Location playerLocation = player.getLocation();
-        if (target.getType() != Material.AIR || isStandingInside(player, target))
+        if (target.getType() == Material.AIR || isStandingInside(player, target))
             return;
 
         // determines the old informations of the block
