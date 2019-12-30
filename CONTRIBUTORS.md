@@ -73,6 +73,7 @@
 ### Correctors
 > Persons who have identified spelling errors (including in the doc)
 * Jeroen
+* [craterhater](https://www.spigotmc.org/members/craterhater.49025/)
 
 ## I would like to join this list. How can I help the project?
 
