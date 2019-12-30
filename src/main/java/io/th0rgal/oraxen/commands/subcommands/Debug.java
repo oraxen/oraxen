@@ -47,7 +47,7 @@ public class Debug implements CommandInterface {
 
         sender.sendMessage(report.toString());
 
-        return false;
+        return true;
     }
 
 }
