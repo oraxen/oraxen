@@ -40,7 +40,7 @@ magical_wand:
     model: magical_wand
 
 magical_axe:
-  displayname: "&aMagical Axe"
+  displayname: "&aAxe of Experience"
   material: DIAMOND_AXE
   Pack:
     generate_model: false
