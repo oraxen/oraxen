@@ -1,3 +1,5 @@
+# MISCELLANEOUS
+
 durability:
   enabled: true
 
@@ -10,8 +12,17 @@ block:
 hat:
   enabled: true
 
+
+# COMBAT
+
 thor:
   enabled: true
+
+lifeleech:
+  enabled: true
+
+
+# FARMING
 
 bigmining:
   enabled: true
