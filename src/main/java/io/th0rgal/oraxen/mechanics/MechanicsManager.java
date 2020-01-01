@@ -33,7 +33,7 @@ public class MechanicsManager {
         registerMechanicFactory("block", BlockMechanicFactory.class);
         registerMechanicFactory("hat", HatMechanicFactory.class);
 
-        //weapons
+        //combat
         registerMechanicFactory("thor", ThorMechanicFactory.class);
         registerMechanicFactory("lifeleech", LifeLeechMechanicFactory.class);
 
