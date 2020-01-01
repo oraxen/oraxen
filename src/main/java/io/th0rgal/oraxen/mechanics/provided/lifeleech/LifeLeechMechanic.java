@@ -6,8 +6,15 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class LifeLeechMechanic extends Mechanic {
 
+    private final int amount;
+
     public LifeLeechMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
+        this.amount = section.getInt("amount");
+    }
+
+    public int getAmount() {
+        return amount;
     }
 
 }
