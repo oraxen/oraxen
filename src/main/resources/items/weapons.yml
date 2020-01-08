@@ -73,6 +73,8 @@ blood_sword:
     generate_model: false
     model: blood_sword
   Mechanics:
+    lifeleech:
+      amount: 2 # the amount of 1/2 hearts that you'll steal to your opponents
     durability:
       value: 500 #diamond sword is 1561
 

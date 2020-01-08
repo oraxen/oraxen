@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.mechanics.provided.bottledexp.BottledExpMechanicFactory
 import io.th0rgal.oraxen.mechanics.provided.commands.CommandsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.hat.HatMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.lifeleech.LifeLeechMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.thor.ThorMechanicFactory;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import org.bukkit.Bukkit;
@@ -26,12 +27,17 @@ public class MechanicsManager {
     private static final List<Listener> MECHANICS_LISTENERS = new ArrayList<>();
 
     public static void registerNativeMechanics() {
+        //misc
         registerMechanicFactory("durability", DurabilityMechanicFactory.class);
         registerMechanicFactory("commands", CommandsMechanicFactory.class);
         registerMechanicFactory("block", BlockMechanicFactory.class);
         registerMechanicFactory("hat", HatMechanicFactory.class);
 
+        //combat
         registerMechanicFactory("thor", ThorMechanicFactory.class);
+        registerMechanicFactory("lifeleech", LifeLeechMechanicFactory.class);
+
+        //farming
         registerMechanicFactory("bigmining", BigMiningMechanicFactory.class);
         registerMechanicFactory("bottledexp", BottledExpMechanicFactory.class);
         registerMechanicFactory("bedrockbreak", BedrockBreakMechanicFactory.class);
