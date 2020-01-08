@@ -41,11 +41,13 @@ public class Recipes implements CommandInterface {
                 case "save":
                     if (currentBuilder == null)
                         sender.sendMessage("Builder is null! You need to create a new one");
-                    else if (args.length == 3)
+                    else if (args.length == 3) {
                         currentBuilder.saveRecipe(args[2]);
-                    else if (args.length == 4)
+                        Message.SAVE_RECIPE.send(sender, args[2]);
+                    } else if (args.length == 4) {
                         currentBuilder.saveRecipe(args[2], args[3]);
-                    else
+                        Message.SAVE_RECIPE.send(sender, args[2]);
+                    } else
                         sender.sendMessage("o recipes save <recipe_name>");
                     break;
 
