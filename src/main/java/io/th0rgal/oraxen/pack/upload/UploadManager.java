@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.pack.dispatch.PackSender;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
-import io.th0rgal.oraxen.pack.upload.hosts.TransferDotSh;
 import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
@@ -47,8 +46,6 @@ public class UploadManager {
 
     private HostingProvider getHostingProvider() {
         switch (Pack.UPLOAD_TYPE.toString().toLowerCase()) {
-            case "transfer.sh":
-                return new TransferDotSh();
             case "polymath":
                 return new Polymath(Pack.POLYMATH_SERVER.toString());
             default:
