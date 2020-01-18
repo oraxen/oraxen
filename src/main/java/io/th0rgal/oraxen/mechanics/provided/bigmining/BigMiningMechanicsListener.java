@@ -44,14 +44,19 @@ public class BigMiningMechanicsListener implements Listener {
 
         Player player = event.getPlayer();
         List<Block> lastTwoTargetBlocks = player.getLastTwoTargetBlocks(null, 5);
-        BlockFace blockFace = lastTwoTargetBlocks.get(1).getFace(lastTwoTargetBlocks.get(0));
+        Block nearestBlock = lastTwoTargetBlocks.get(0);
+        Block secondBlock = lastTwoTargetBlocks.get(1);
+        BlockFace blockFace = secondBlock.getFace(nearestBlock);
+        Location secondMinusNearest = secondBlock.getLocation().subtract(nearestBlock.getLocation());
+        int modifier = secondMinusNearest.getBlockX() + secondMinusNearest.getBlockY() + secondMinusNearest.getBlockZ();
 
         Location initialLocation = event.getBlock().getLocation();
 
+        Location tempLocation;
         for (double relativeX = -mechanic.getRadius(); relativeX <= mechanic.getRadius(); relativeX++)
             for (double relativeY = -mechanic.getRadius(); relativeY <= mechanic.getRadius(); relativeY++)
                 for (double relativeDepth = 0; relativeDepth <= mechanic.getDepth(); relativeDepth++) {
-                    Location tempLocation = transpose(initialLocation, blockFace, relativeX, relativeY, relativeDepth);
+                    tempLocation = transpose(initialLocation, blockFace, relativeX, relativeY, relativeDepth*modifier);
                     if (tempLocation.equals(initialLocation))
                         continue;
                     breakBlock(player, tempLocation.getBlock());
