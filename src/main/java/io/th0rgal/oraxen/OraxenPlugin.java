@@ -53,7 +53,7 @@ public class OraxenPlugin extends JavaPlugin {
         registerCommands();
         Logs.log(ChatColor.GREEN + "Successfully loaded on " + OS.getOs().getPlatformName());
         new UploadManager(this).uploadAsyncAndSendToPlayers(resourcePack);
-        new Metrics(this);
+        new Metrics(this, 5371);
     }
 
     public void onDisable() {

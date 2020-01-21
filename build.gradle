@@ -40,7 +40,7 @@ dependencies {
 
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
     implementation group: "me.lucko", name: "commodore", version: "1.3"
-    implementation group: "org.bstats", name: "bstats-bukkit", version: "+"
+    implementation group: 'org.bstats', name: 'bstats-bukkit', version: '+'
 }
 
 processResources {
