@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
+import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -49,11 +50,14 @@ public class SmeltingMechanicsListener implements Listener {
             loot.setAmount(1 + new Random().nextInt(item.getItemMeta().getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
         }
         event.setDropItems(false);
-        Location location = event.getBlock().getLocation();
-        location.getWorld().dropItemNaturally(location, loot);
+        event.setCancelled(false);
+        Block block = event.getBlock();
+        Location location = block.getLocation();
+        block.breakNaturally();
+        block.getWorld().dropItemNaturally(location, loot);
         SmeltingMechanic mechanic = (SmeltingMechanic) factory.getMechanic(itemID);
         if (mechanic.playSound()) {
-            location.getWorld().playSound(location, Sound.ENTITY_GUARDIAN_ATTACK, 0.10f, 0.8f);
+            block.getWorld().playSound(location, Sound.ENTITY_GUARDIAN_ATTACK, 0.10f, 0.8f);
         }
     }
 
