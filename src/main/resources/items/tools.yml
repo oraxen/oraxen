@@ -109,7 +109,9 @@ fire_hammer:
     layers:
       - fire_hammer.png
   Mechanics:
-    # todo: melting
+    smelting:
+      enabled: true
+      play_sound: true
     durability:
       value: 4683
     bigmining:
