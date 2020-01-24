@@ -56,7 +56,7 @@ public class BigMiningMechanicsListener implements Listener {
         for (double relativeX = -mechanic.getRadius(); relativeX <= mechanic.getRadius(); relativeX++)
             for (double relativeY = -mechanic.getRadius(); relativeY <= mechanic.getRadius(); relativeY++)
                 for (double relativeDepth = 0; relativeDepth <= mechanic.getDepth(); relativeDepth++) {
-                    tempLocation = transpose(initialLocation, blockFace, relativeX, relativeY, relativeDepth*modifier);
+                    tempLocation = transpose(initialLocation, blockFace, relativeX, relativeY, relativeDepth * modifier);
                     if (tempLocation.equals(initialLocation))
                         continue;
                     breakBlock(player, tempLocation.getBlock());
@@ -70,7 +70,10 @@ public class BigMiningMechanicsListener implements Listener {
         BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
         Bukkit.getPluginManager().callEvent(blockBreakEvent);
         if (!blockBreakEvent.isCancelled())
-            block.breakNaturally();
+            if (blockBreakEvent.isDropItems())
+                block.breakNaturally();
+            else
+                block.setType(Material.AIR);
     }
 
     /*
