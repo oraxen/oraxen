@@ -27,6 +27,9 @@ lifeleech:
 bigmining:
   enabled: true
 
+smelting:
+  enabled: true
+
 bottledexp:
   enabled: true
   durability_cost: 1
