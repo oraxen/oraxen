@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.mechanics.provided.commands.CommandsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.hat.HatMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.lifeleech.LifeLeechMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.smelting.SmeltingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.thor.ThorMechanicFactory;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import org.bukkit.Bukkit;
@@ -39,6 +40,7 @@ public class MechanicsManager {
 
         //farming
         registerMechanicFactory("bigmining", BigMiningMechanicFactory.class);
+        registerMechanicFactory("smelting", SmeltingMechanicFactory.class);
         registerMechanicFactory("bottledexp", BottledExpMechanicFactory.class);
         registerMechanicFactory("bedrockbreak", BedrockBreakMechanicFactory.class);
     }
