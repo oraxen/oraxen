@@ -71,20 +71,20 @@ public class ResourcePack {
         Map<Material, List<ItemBuilder>> texturedItems = new HashMap<>();
         for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
             ItemBuilder item = entry.getValue();
-            if (item.hasPackInfos()) {
-                if (item.getPackInfos().shouldGenerateModel()) {
+            if (item.hasOraxenMeta()) {
+                if (item.getOraxenMeta().shouldGenerateModel()) {
                     Utils.writeStringToFile(
-                            new File(modelsFolder, item.getPackInfos().getModelName() + ".json"),
-                            new ModelGenerator(item.getPackInfos()).getJson().toString());
+                            new File(modelsFolder, item.getOraxenMeta().getModelName() + ".json"),
+                            new ModelGenerator(item.getOraxenMeta()).getJson().toString());
                 }
                 List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
-                //todo: could be improved by using items.get(i).getPackInfos().getCustomModelData() when items.add(customModelData, item) with catch when not possible
+                //todo: could be improved by using items.get(i).getOraxenMeta().getCustomModelData() when items.add(customModelData, item) with catch when not possible
                 if (items.isEmpty())
                     items.add(item);
                 else
                     // for some reason those breaks are needed to avoid some nasty "memory leak"
                     for (int i = 0; i < items.size(); i++)
-                        if (items.get(i).getPackInfos().getCustomModelData() > item.getPackInfos().getCustomModelData()) {
+                        if (items.get(i).getOraxenMeta().getCustomModelData() > item.getOraxenMeta().getCustomModelData()) {
                             items.add(i, item);
                             break;
                         } else if (i == items.size() - 1) {

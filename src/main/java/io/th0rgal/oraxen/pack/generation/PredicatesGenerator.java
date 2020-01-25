@@ -39,9 +39,9 @@ public class PredicatesGenerator {
         for (ItemBuilder item : items) {
             JsonObject override = new JsonObject();
             JsonObject predicate = new JsonObject();
-            predicate.addProperty("custom_model_data", item.getPackInfos().getCustomModelData());
+            predicate.addProperty("custom_model_data", item.getOraxenMeta().getCustomModelData());
             override.add("predicate", predicate);
-            override.addProperty("model", item.getPackInfos().getModelName());
+            override.addProperty("model", item.getOraxenMeta().getModelName());
             overrides.add(override);
         }
 

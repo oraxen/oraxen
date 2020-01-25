@@ -25,7 +25,7 @@ public class ItemParser {
 
     private static final Map<String, ModelData> MODEL_DATAS_BY_ID = new HashMap<>();
 
-    private PackInfos packInfos;
+    private OraxenMeta oraxenMeta;
     private final ConfigurationSection section;
     private final Material type;
     private boolean configUpdated = false;
@@ -36,11 +36,11 @@ public class ItemParser {
 
         if (section.isConfigurationSection("Pack")) {
             ConfigurationSection packSection = section.getConfigurationSection("Pack");
-            this.packInfos = new PackInfos(packSection);
+            this.oraxenMeta = new OraxenMeta(packSection);
             if (packSection.isInt("custom_model_data"))
                 MODEL_DATAS_BY_ID.put(section.getName(), new ModelData(
                         type,
-                        packInfos.getModelName(),
+                        oraxenMeta.getModelName(),
                         packSection.getInt("custom_model_data")));
         }
     }
@@ -62,6 +62,9 @@ public class ItemParser {
             String[] colors = section.getString("color").split(", ");
             item.setColor(org.bukkit.Color.fromRGB(Integer.parseInt(colors[0]), Integer.parseInt(colors[1]), Integer.parseInt(colors[2])));
         }
+
+        if (!section.contains("injectID") || section.getBoolean("injectId"))
+            item.setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING, section.getName());
 
         if (!section.contains("injectID") || section.getBoolean("injectId"))
             item.setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING, section.getName());
@@ -102,20 +105,20 @@ public class ItemParser {
             }
         }
 
-        if (packInfos != null) {
+        if (oraxenMeta != null) {
             int customModelData;
             if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
                 customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getDurability();
             } else {
-                customModelData = ModelData.generateId(packInfos.getModelName(), type);
+                customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
                 if ((boolean) Pack.SET_MODEL_ID.getValue()) {
                     this.configUpdated = true;
                     section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
                 }
             }
             item.setCustomModelData(customModelData);
-            packInfos.setCustomModelData(customModelData);
-            item.setPackInfos(packInfos);
+            oraxenMeta.setCustomModelData(customModelData);
+            item.setOraxenMeta(oraxenMeta);
 
         }
 

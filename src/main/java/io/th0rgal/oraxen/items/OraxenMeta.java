@@ -4,7 +4,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.List;
 
-public class PackInfos {
+public class OraxenMeta {
 
     private int customModelData;
     private String modelName;
@@ -12,7 +12,7 @@ public class PackInfos {
     private final String parentModel;
     private final boolean generate_model;
 
-    public PackInfos(ConfigurationSection configurationSection) {
+    public OraxenMeta(ConfigurationSection configurationSection) {
         this.modelName = readModelName(configurationSection);
         this.layers = configurationSection.getStringList("layers");
         // can't be refactored with for each or stream because it'll throw ConcurrentModificationException

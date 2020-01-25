@@ -22,7 +22,7 @@ import java.util.*;
 public class ItemBuilder {
 
     private final ItemStack itemStack;
-    private PackInfos packInfos;
+    private OraxenMeta oraxenMeta;
 
     private Material type;
     private int amount;
@@ -248,16 +248,16 @@ public class ItemBuilder {
         return this;
     }
 
-    public void setPackInfos(PackInfos itemResources) {
-        this.packInfos = itemResources;
+    public void setOraxenMeta(OraxenMeta itemResources) {
+        this.oraxenMeta = itemResources;
     }
 
-    public boolean hasPackInfos() {
-        return packInfos != null;
+    public boolean hasOraxenMeta() {
+        return oraxenMeta != null;
     }
 
-    public PackInfos getPackInfos() {
-        return packInfos;
+    public OraxenMeta getOraxenMeta() {
+        return oraxenMeta;
     }
 
     private ItemStack finalItemStack;
