@@ -54,9 +54,15 @@ public class PredicatesGenerator {
     }
 
     public String getVanillaTextureName(Material material) {
-        return "item/" + material
-                .toString()
-                .toLowerCase();
+        if (material.isBlock()) {
+            return "block/" + material
+                    .toString()
+                    .toLowerCase();
+        } else {
+            return "item/" + material
+                    .toString()
+                    .toLowerCase();
+        }
     }
 
     // not static here because only instanciated once I think

@@ -138,6 +138,8 @@ public class ResourcePack {
     private void generatePredicates(Map<Material, List<ItemBuilder>> texturedItems) {
         File itemsFolder = new File(modelsFolder, "item");
         makeDirsIfNotExists(itemsFolder);
+        File blocksFolder = new File(modelsFolder, "block");
+        makeDirsIfNotExists(blocksFolder);
 
         for (Map.Entry<Material, List<ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
             Material entryMaterial = texturedItemsEntry.getKey();
