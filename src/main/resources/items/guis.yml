@@ -1,6 +1,6 @@
 example_upper_section:
   displayname: "&0"
-  material: BLACK_STAINED_GLASS
+  material: BLACK_STAINED_GLASS_PANE
   excludeFromInventory: true
   Pack:
     generate_model: false
@@ -8,7 +8,7 @@ example_upper_section:
 
 example_lower_section:
   displayname: "&0"
-  material: BLACK_STAINED_GLASS
+  material: BLACK_STAINED_GLASS_PANE
   excludeFromInventory: true
   Pack:
     generate_model: false
