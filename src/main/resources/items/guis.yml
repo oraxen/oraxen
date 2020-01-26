@@ -1,0 +1,15 @@
+example_upper_section:
+  displayname: "&0"
+  material: BLACK_STAINED_GLASS
+  excludeFromInventory: true
+  Pack:
+    generate_model: false
+    model: upper_section
+
+example_lower_section:
+  displayname: "&0"
+  material: BLACK_STAINED_GLASS
+  excludeFromInventory: true
+  Pack:
+    generate_model: false
+    model: lower_section
