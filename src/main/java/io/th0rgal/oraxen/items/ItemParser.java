@@ -63,7 +63,7 @@ public class ItemParser {
             item.setColor(org.bukkit.Color.fromRGB(Integer.parseInt(colors[0]), Integer.parseInt(colors[1]), Integer.parseInt(colors[2])));
         }
 
-        if (section.contains("exclude-from-inventory") && section.getBoolean("exclude-from-inventory"))
+        if (section.contains("excludeFromInventory") && section.getBoolean("excludeFromInventory"))
             oraxenMeta.setExcludedFromInventory();
 
         if (!section.contains("injectID") || section.getBoolean("injectId"))

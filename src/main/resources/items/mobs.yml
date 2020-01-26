@@ -24,7 +24,7 @@
 
 goblin_beetle:
   material: WOODEN_HOE
-  exclude-from-inventory: true
+  excludeFromInventory: true
   Pack:
     generate_model: false
     model: goblin_beetle
