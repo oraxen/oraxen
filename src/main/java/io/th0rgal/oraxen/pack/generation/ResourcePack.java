@@ -71,7 +71,7 @@ public class ResourcePack {
         Map<Material, List<ItemBuilder>> texturedItems = new HashMap<>();
         for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
             ItemBuilder item = entry.getValue();
-            if (item.hasOraxenMeta()) {
+            if (item.getOraxenMeta().hasPackInfos()) {
                 if (item.getOraxenMeta().shouldGenerateModel()) {
                     Utils.writeStringToFile(
                             new File(modelsFolder, item.getOraxenMeta().getModelName() + ".json"),
