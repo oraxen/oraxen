@@ -86,6 +86,14 @@ public class OraxenItems {
         return map.values();
     }
 
+    public static List<ItemBuilder> getUnexcludedItems() {
+        List<ItemBuilder> unexcludedItems = new ArrayList<>();
+        for (ItemBuilder itemBuilder : getItems())
+            if (!itemBuilder.getOraxenMeta().isExcludedFromInventory())
+                unexcludedItems.add(itemBuilder);
+            return unexcludedItems;
+    }
+
     public static Set<Map.Entry<String, ItemBuilder>> getEntries() {
         return map.entrySet();
     }

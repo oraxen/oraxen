@@ -33,10 +33,10 @@ public class ItemParser {
     public ItemParser(ConfigurationSection section) {
         this.section = section;
         this.type = Material.getMaterial(section.getString("material"));
-
+        this.oraxenMeta = new OraxenMeta();
         if (section.isConfigurationSection("Pack")) {
             ConfigurationSection packSection = section.getConfigurationSection("Pack");
-            this.oraxenMeta = new OraxenMeta(packSection);
+            this.oraxenMeta.setPackInfos(packSection);
             if (packSection.isInt("custom_model_data"))
                 MODEL_DATAS_BY_ID.put(section.getName(), new ModelData(
                         type,
@@ -63,8 +63,8 @@ public class ItemParser {
             item.setColor(org.bukkit.Color.fromRGB(Integer.parseInt(colors[0]), Integer.parseInt(colors[1]), Integer.parseInt(colors[2])));
         }
 
-        if (!section.contains("injectID") || section.getBoolean("injectId"))
-            item.setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING, section.getName());
+        if (section.contains("exclude-from-inventory") && section.getBoolean("exclude-from-inventory"))
+            oraxenMeta.setExcludedFromInventory();
 
         if (!section.contains("injectID") || section.getBoolean("injectId"))
             item.setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING, section.getName());
@@ -105,7 +105,7 @@ public class ItemParser {
             }
         }
 
-        if (oraxenMeta != null) {
+        if (oraxenMeta.hasPackInfos()) {
             int customModelData;
             if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
                 customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getDurability();
@@ -118,9 +118,8 @@ public class ItemParser {
             }
             item.setCustomModelData(customModelData);
             oraxenMeta.setCustomModelData(customModelData);
-            item.setOraxenMeta(oraxenMeta);
-
         }
+        item.setOraxenMeta(oraxenMeta);
 
         return item;
     }

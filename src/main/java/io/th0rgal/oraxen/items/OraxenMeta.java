@@ -8,11 +8,26 @@ public class OraxenMeta {
 
     private int customModelData;
     private String modelName;
-    private final List<String> layers;
-    private final String parentModel;
-    private final boolean generate_model;
+    private List<String> layers;
+    private String parentModel;
+    private boolean generate_model;
+    private boolean hasPackInfos = false;
+    private boolean excludedFromInventory = false;
 
-    public OraxenMeta(ConfigurationSection configurationSection) {
+    public OraxenMeta () {
+
+    }
+
+    public void setExcludedFromInventory() {
+        this.excludedFromInventory = true;
+    }
+
+    public boolean isExcludedFromInventory () {
+        return  excludedFromInventory;
+    }
+
+    public void setPackInfos(ConfigurationSection configurationSection) {
+        this.hasPackInfos = true;
         this.modelName = readModelName(configurationSection);
         this.layers = configurationSection.getStringList("layers");
         // can't be refactored with for each or stream because it'll throw ConcurrentModificationException
@@ -33,6 +48,10 @@ public class OraxenMeta {
         if (modelName.endsWith(".json"))
             return modelName.substring(0, modelName.length() - 5);
         return modelName;
+    }
+
+    public boolean hasPackInfos() {
+        return hasPackInfos;
     }
 
     public void setCustomModelData(int customModelData) {

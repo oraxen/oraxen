@@ -20,7 +20,7 @@ public class ItemsInventory extends FastInv {
         super(6 * 9, "Oraxen items visualizer");
 
         boolean lastPage = false;
-        Collection<ItemBuilder> collection = OraxenItems.getItems();
+        Collection<ItemBuilder> collection = OraxenItems.getUnexcludedItems();
         for (int i = page * 5 * 9; i < (page + 1) * 5 * 9; i++) {
             if (i >= collection.size()) {
                 lastPage = true;
