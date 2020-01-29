@@ -44,6 +44,8 @@ public class BigMiningMechanicsListener implements Listener {
 
         Player player = event.getPlayer();
         List<Block> lastTwoTargetBlocks = player.getLastTwoTargetBlocks(null, 5);
+        if (lastTwoTargetBlocks.size() < 2)
+            return;
         Block nearestBlock = lastTwoTargetBlocks.get(0);
         Block secondBlock = lastTwoTargetBlocks.get(1);
         BlockFace blockFace = secondBlock.getFace(nearestBlock);
