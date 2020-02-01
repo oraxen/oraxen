@@ -61,11 +61,11 @@ public class BigMiningMechanicsListener implements Listener {
                     tempLocation = transpose(initialLocation, blockFace, relativeX, relativeY, relativeDepth * modifier);
                     if (tempLocation.equals(initialLocation))
                         continue;
-                    breakBlock(player, tempLocation.getBlock());
+                    breakBlock(player, tempLocation.getBlock(), item);
                 }
     }
 
-    private void breakBlock(Player player, Block block) {
+    private void breakBlock(Player player, Block block, ItemStack itemStack) {
         if (block.isLiquid() || block.getType() == Material.BEDROCK || block.getType() == Material.BARRIER)
             return;
         blocksToProcess += 1; // to avoid this method to call itself <- need other way to handle players using the same tool at the same time
