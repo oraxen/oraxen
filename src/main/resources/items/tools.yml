@@ -27,7 +27,7 @@ bedrock_pickaxe:
   material: STONE_PICKAXE
   Pack:
     generate_model: false
-    model: stone_pickaxe
+    model: bedrock_pickaxe
   Mechanics:
     durability:
       value: 5000 #diamond sword is 1561
