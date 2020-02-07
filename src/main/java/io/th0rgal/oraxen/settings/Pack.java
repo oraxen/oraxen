@@ -35,14 +35,14 @@ public enum Pack implements ConfigEnum {
         return RESOURCES_MANAGER.getSettings().getConfigurationSection("Pack").get(section);
     }
 
-    public BaseComponent[] toMiniMessage() {
+    public BaseComponent[] toMiniMessage(String... placeholders) {
         ConfigurationSection config = RESOURCES_MANAGER.getSettings().getConfigurationSection("Pack");
         String message;
         if (config.isList(section))
             message = String.join("\n", config.getStringList(section));
         else
             message = config.getString(section);
-        return MiniMessageParser.parseFormat(message);
+        return MiniMessageParser.parseFormat(message, placeholders);
     }
 
     @Override
