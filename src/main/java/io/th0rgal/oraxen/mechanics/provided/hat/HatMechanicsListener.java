@@ -3,7 +3,11 @@ package io.th0rgal.oraxen.mechanics.provided.hat;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 
+import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
+import io.th0rgal.oraxen.utils.armorequipevent.ArmorType;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -55,17 +59,31 @@ public class HatMechanicsListener implements Listener {
 
         ItemStack clone = cursor.clone();
         String itemID = OraxenItems.getIdByItem(clone);
-
-        if (factory.isNotImplementedIn(itemID))
-            return;
-
         ItemStack currentItem = e.getCurrentItem();
-        if (currentItem == null || currentItem.getType() == Material.AIR) {
-            e.setCancelled(true);
-            e.getWhoClicked().getInventory().setHelmet(clone);
-            cursor.setAmount(0);
-        }
 
+        if (factory.isNotImplementedIn(itemID) && ( cursor == null || cursor.getType() == Material.AIR ) ) {
+            itemID = OraxenItems.getIdByItem(currentItem);
+            if (factory.isNotImplementedIn(itemID))
+                return;
+
+            ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent((Player) e.getWhoClicked(), ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET, currentItem, cursor);
+            Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
+            if (armorEquipEvent.isCancelled())
+                e.setCancelled(true);
+
+        } else {
+
+            if (currentItem == null || currentItem.getType() == Material.AIR) {
+                ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent((Player) e.getWhoClicked(), ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET, currentItem, clone);
+                Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
+                if (armorEquipEvent.isCancelled())
+                    return;
+
+                e.setCancelled(true);
+                e.getWhoClicked().getInventory().setHelmet(armorEquipEvent.getNewArmorPiece());
+                cursor.setAmount(0);
+            }
+        }
     }
 
 }

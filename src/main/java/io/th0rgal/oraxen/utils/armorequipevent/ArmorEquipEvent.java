@@ -131,6 +131,10 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
          * When you die causing all armor to unequip
          */
         DEATH,
+        /**
+         * When you use HatMechanic from Oraxen
+         */
+        ORAXEN_HAT,
         ;
     }
 }
