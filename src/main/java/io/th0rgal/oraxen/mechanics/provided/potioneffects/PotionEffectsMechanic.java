@@ -71,6 +71,8 @@ public class PotionEffectsMechanic extends Mechanic {
     }
 
     public void onItemRemoved(Position position, Player player) {
+        if (!overridedTypes.containsKey(position))
+            return;
         for (PotionEffectType potionEffectType : overridedTypes.get(position))
             player.removePotionEffect(potionEffectType);
 
