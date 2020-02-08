@@ -68,6 +68,16 @@ public class PotionEffectsMechanic extends Mechanic {
         player.addPotionEffects(effects.get(position));
     }
 
+    public void onItemRemoved(Position position, Player player) {
+        for (PotionEffectType potionEffectType : overridedTypes.get(position))
+            player.removePotionEffect(potionEffectType);
+
+        if (previousPlayerEffects.containsKey(player.getUniqueId())) {
+            player.addPotionEffects(previousPlayerEffects.get(player.getUniqueId()));
+            previousPlayerEffects.remove(player.getUniqueId());
+        }
+    }
+
     public boolean hasConflict(Position position, PotionEffect potionEffect) {
         return overridedTypes.get(position).contains(potionEffect.getType());
     }
