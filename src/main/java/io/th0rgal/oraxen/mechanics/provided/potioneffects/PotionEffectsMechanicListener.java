@@ -25,6 +25,8 @@ public class PotionEffectsMechanicListener implements Listener {
             mechanic.onItemPlaced(event.getPlayer());
             return;
         }
+        item = event.getOldArmorPiece();
+        itemID = OraxenItems.getIdByItem(item);
         if (!factory.isNotImplementedIn(itemID)) {
             PotionEffectsMechanic mechanic = (PotionEffectsMechanic) factory.getMechanic(itemID);
             mechanic.onItemRemoved(event.getPlayer());
