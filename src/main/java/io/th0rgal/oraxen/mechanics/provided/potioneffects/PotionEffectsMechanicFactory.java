@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.mechanics.provided.commands.CommandsItemListener;
 import io.th0rgal.oraxen.mechanics.provided.commands.CommandsMechanic;
 import org.bukkit.configuration.ConfigurationSection;
 
