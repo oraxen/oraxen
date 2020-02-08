@@ -10,7 +10,7 @@ public class CommandsMechanicFactory extends MechanicFactory {
 
     public CommandsMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new CommandsItemListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new CommandsMechanicListener(this));
     }
 
     @Override
