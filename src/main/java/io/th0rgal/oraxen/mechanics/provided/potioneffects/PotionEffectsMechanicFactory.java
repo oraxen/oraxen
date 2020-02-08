@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.mechanics.provided.commands.CommandsMechanic;
 import org.bukkit.configuration.ConfigurationSection;
 
 public class PotionEffectsMechanicFactory extends MechanicFactory {
@@ -16,7 +15,7 @@ public class PotionEffectsMechanicFactory extends MechanicFactory {
 
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new CommandsMechanic(this, itemMechanicConfiguration);
+        Mechanic mechanic = new PotionEffectsMechanic(this, itemMechanicConfiguration);
         addToImplemented(mechanic);
         return mechanic;
     }

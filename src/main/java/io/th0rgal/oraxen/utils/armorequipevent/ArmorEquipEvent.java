@@ -19,12 +19,12 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
     private ItemStack oldArmorPiece, newArmorPiece;
 
     /**
-     * @param player The player who put on / removed the armor.
-     * @param type The ArmorType of the armor added
+     * @param player        The player who put on / removed the armor.
+     * @param type          The ArmorType of the armor added
      * @param oldArmorPiece The ItemStack of the armor removed.
      * @param newArmorPiece The ItemStack of the armor added.
      */
-    public ArmorEquipEvent(final Player player, final EquipMethod equipType, final ArmorType type, final ItemStack oldArmorPiece, final ItemStack newArmorPiece){
+    public ArmorEquipEvent(final Player player, final EquipMethod equipType, final ArmorType type, final ItemStack oldArmorPiece, final ItemStack newArmorPiece) {
         super(player);
         this.equipType = equipType;
         this.type = type;
@@ -37,8 +37,12 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
      *
      * @return A list of handlers handling this event.
      */
+    public static HandlerList getHandlerList() {
+        return handlers;
+    }
+
     @Override
-    public final HandlerList getHandlers(){
+    public HandlerList getHandlers() {
         return handlers;
     }
 
@@ -47,7 +51,7 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
      *
      * @param cancel If this event should be cancelled.
      */
-    public final void setCancelled(final boolean cancel){
+    public final void setCancelled(final boolean cancel) {
         this.cancel = cancel;
     }
 
@@ -56,44 +60,44 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
      *
      * @return If this event is cancelled
      */
-    public final boolean isCancelled(){
+    public final boolean isCancelled() {
         return cancel;
     }
 
-    public final ArmorType getType(){
+    public final ArmorType getType() {
         return type;
     }
 
     /**
      * Returns the last equipped armor piece, could be a piece of armor, or null
      */
-    public final ItemStack getOldArmorPiece(){
+    public final ItemStack getOldArmorPiece() {
         return oldArmorPiece;
     }
 
-    public final void setOldArmorPiece(final ItemStack oldArmorPiece){
+    public final void setOldArmorPiece(final ItemStack oldArmorPiece) {
         this.oldArmorPiece = oldArmorPiece;
     }
 
     /**
      * Returns the newly equipped armor, could be a piece of armor, or null
      */
-    public final ItemStack getNewArmorPiece(){
+    public final ItemStack getNewArmorPiece() {
         return newArmorPiece;
     }
 
-    public final void setNewArmorPiece(final ItemStack newArmorPiece){
+    public final void setNewArmorPiece(final ItemStack newArmorPiece) {
         this.newArmorPiece = newArmorPiece;
     }
 
     /**
      * Gets the method used to either equip or unequip an armor piece.
      */
-    public EquipMethod getMethod(){
+    public EquipMethod getMethod() {
         return equipType;
     }
 
-    public enum EquipMethod{// These have got to be the worst documentations ever.
+    public enum EquipMethod {// These have got to be the worst documentations ever.
         /**
          * When you shift click an armor piece to equip or unequip
          */

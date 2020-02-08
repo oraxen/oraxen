@@ -6,6 +6,9 @@ durability:
 commands:
   enabled: true
 
+potioneffects:
+  enabled: true
+
 block:
   enabled: true
 
