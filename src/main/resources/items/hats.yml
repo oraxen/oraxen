@@ -37,7 +37,6 @@ anubis_head:
         ambient: true # Makes potion effect produce more, translucent, particles.
         particles: true # whether this effect has particles or not
         icon: true # whether this effect has an icon or not
-        position: WORN # when should this effect work? When this item is WORN or HELD?
 
 crown:
   displayname: "&6Crown"
