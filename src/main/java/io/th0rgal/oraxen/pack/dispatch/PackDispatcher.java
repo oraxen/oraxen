@@ -22,7 +22,7 @@ public class PackDispatcher {
     }
 
     public static void sendWelcomeMessage(Player player) {
-        BaseComponent[] components = Pack.WELCOME_MESSAGE.toMiniMessage();
+        BaseComponent[] components = Pack.WELCOME_MESSAGE.toMiniMessage("pack_url", url);
         player.spigot().sendMessage(components);
     }
 
