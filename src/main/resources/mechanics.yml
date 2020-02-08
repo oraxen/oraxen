@@ -35,9 +35,9 @@ smelting:
 
 bottledexp:
   enabled: true
-  durability_cost: 1
+  durability_cost: 10
 
 bedrockbreak:
   enabled: true
-  disable_on_first_layer: false #set it on true to avoid player breaking the ground ...completely
+  disable_on_first_layer: false # Set it on true to avoid player breaking the ground ...completely
   durability_cost: 500
