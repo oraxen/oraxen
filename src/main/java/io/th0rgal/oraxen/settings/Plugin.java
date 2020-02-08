@@ -3,10 +3,13 @@ package io.th0rgal.oraxen.settings;
 import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.ChatColor;
 
+import java.util.List;
+
 public enum Plugin implements ConfigEnum {
 
     NAME("Plugin.name"),
-    PREFIX("Plugin.prefix");
+    PREFIX("Plugin.prefix"),
+    ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass");
 
     private final Object value;
 
@@ -16,6 +19,11 @@ public enum Plugin implements ConfigEnum {
 
     public Object getValue() {
         return this.value;
+    }
+
+    @SuppressWarnings("unchecked")
+    public List<String> getAsStringList() {
+        return (List<String>)value;
     }
 
     @Override
