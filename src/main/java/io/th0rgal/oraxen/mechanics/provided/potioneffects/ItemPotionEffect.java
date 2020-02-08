@@ -10,7 +10,6 @@ public class ItemPotionEffect {
     }
 
     public ItemPotionEffect (PotionEffect potionEffect, Position position) {
-
     }
 
 }

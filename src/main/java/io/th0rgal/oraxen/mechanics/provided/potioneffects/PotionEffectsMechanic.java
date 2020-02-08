@@ -4,9 +4,8 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 public class PotionEffectsMechanic extends Mechanic {
@@ -23,7 +22,22 @@ public class PotionEffectsMechanic extends Mechanic {
     }
 
     public ItemPotionEffect parseEffectSection(ConfigurationSection section) {
-        return null;
+        PotionEffectType effectType = PotionEffectType.getByName(section.getName());
+        int amplifier = 1;
+        boolean ambient = false;
+        boolean particles = true;
+        boolean icon = true;
+        if (section.isInt("amplifier"))
+            amplifier = section.getInt("amplifier");
+        if (section.isBoolean("ambient"))
+            ambient = section.getBoolean("ambient");
+        if (section.isBoolean("particles"))
+            particles = section.getBoolean("particles");
+        if (section.isBoolean("icon"))
+            icon = section.getBoolean("icon");
+        PotionEffect potionEffect = new PotionEffect(effectType, Integer.MAX_VALUE, amplifier, ambient, particles, icon);
+        ItemPotionEffect.Position position = ItemPotionEffect.Position.valueOf(section.getString("position").toUpperCase());
+        return new ItemPotionEffect(potionEffect, position);
     }
 
     public Set<ItemPotionEffect> getPotionEffects() {
