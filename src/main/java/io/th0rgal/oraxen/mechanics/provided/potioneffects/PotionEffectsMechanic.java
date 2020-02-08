@@ -1,10 +1,9 @@
 package io.th0rgal.oraxen.mechanics.provided.potioneffects;
 
-import com.comphenix.protocol.PacketType;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Item;
+
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
