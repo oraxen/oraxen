@@ -14,7 +14,7 @@ public class PotionEffectsMechanic extends Mechanic {
 
     private Map<Position, Set<PotionEffect>> effects = new HashMap<>();
     private Map<Position, Set<PotionEffectType>> overridedTypes = new HashMap<>();
-    private Map<UUID, Set<PotionEffect>> previousPlayerEffects;
+    private Map<UUID, Set<PotionEffect>> previousPlayerEffects = new HashMap<>();
 
     enum Position {
         HELD,
@@ -30,7 +30,7 @@ public class PotionEffectsMechanic extends Mechanic {
 
     public void registersEffectFromSection(ConfigurationSection section) {
         PotionEffectType effectType = PotionEffectType.getByName(section.getName());
-        int amplifier = 1;
+        int amplifier = 0;
         boolean ambient = false;
         boolean particles = true;
         boolean icon = true;
@@ -78,7 +78,7 @@ public class PotionEffectsMechanic extends Mechanic {
         }
     }
 
-    public boolean hasConflict(Position position, PotionEffect potionEffect) {
+    private boolean hasConflict(Position position, PotionEffect potionEffect) {
         return overridedTypes.get(position).contains(potionEffect.getType());
     }
 
