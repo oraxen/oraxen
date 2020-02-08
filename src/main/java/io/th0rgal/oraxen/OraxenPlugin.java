@@ -8,7 +8,9 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
+import io.th0rgal.oraxen.settings.Plugin;
 import io.th0rgal.oraxen.utils.OS;
+import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 
@@ -50,6 +52,7 @@ public class OraxenPlugin extends JavaPlugin {
         ResourcePack resourcePack = new ResourcePack(this);
         RecipesManager.load(this);
         FastInvManager.register(this);
+        new ArmorListener(Plugin.ARMOR_EQUIP_EVENT_BYPASS.getAsStringList()).registerEvents(this);
         registerCommands();
         Logs.log(ChatColor.GREEN + "Successfully loaded on " + OS.getOs().getPlatformName());
         new UploadManager(this).uploadAsyncAndSendToPlayers(resourcePack);
