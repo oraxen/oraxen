@@ -55,6 +55,8 @@ public class PotionEffectsMechanic extends Mechanic {
     }
 
     public void onItemPlaced(Position position, Player player) {
+        if (!effects.containsKey(position))
+            return;
         Collection<PotionEffect> activeEffects = player.getActivePotionEffects();
         Set<PotionEffect> currentConflictingEffects = new HashSet<>();
         for (PotionEffect potionEffect : activeEffects)
