@@ -10,11 +10,11 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
-public class CommandsItemListener implements Listener {
+public class CommandsMechanicListener implements Listener {
 
     private final CommandsMechanicFactory factory;
 
-    public CommandsItemListener(CommandsMechanicFactory factory) {
+    public CommandsMechanicListener(CommandsMechanicFactory factory) {
         this.factory = factory;
     }
 
