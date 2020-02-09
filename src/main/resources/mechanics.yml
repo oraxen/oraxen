@@ -3,6 +3,10 @@
 durability:
   enabled: true
 
+repair:
+  enabled: true
+  oraxen_items_only: false
+
 commands:
   enabled: true
 

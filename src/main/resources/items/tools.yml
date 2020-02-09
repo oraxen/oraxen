@@ -126,6 +126,9 @@ iron_cog:
     parent_model: "item/handheld"
     layers:
       - iron_cog.png
+  Mechanics:
+    repair:
+      fixed_amount: 100
 
 gold_cog:
   displayname: "&6Gold Cog"
@@ -135,6 +138,9 @@ gold_cog:
     parent_model: "item/handheld"
     layers:
       - gold_cog.png
+  Mechanics:
+    repair:
+      ratio: 0.50
 
 diamond_cog:
   displayname: "&bDiamond Cog"
@@ -144,3 +150,6 @@ diamond_cog:
     parent_model: "item/handheld"
     layers:
       - diamond_cog.png
+  Mechanics:
+    repair:
+      ratio: 1
