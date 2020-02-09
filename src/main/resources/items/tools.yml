@@ -128,7 +128,7 @@ iron_cog:
       - iron_cog.png
   Mechanics:
     repair:
-      fixed_amount: 100
+      ratio: 0.10
 
 gold_cog:
   displayname: "&6Gold Cog"
@@ -152,4 +152,4 @@ diamond_cog:
       - diamond_cog.png
   Mechanics:
     repair:
-      ratio: 1
+      ratio: 1.0

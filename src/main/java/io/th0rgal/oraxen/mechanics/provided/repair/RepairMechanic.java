@@ -20,7 +20,7 @@ public class RepairMechanic extends Mechanic {
     public int getFinalDamage(int maxDurability, int damage) {
         int amountToRepair;
         if (ratio != -1)
-            amountToRepair = (int) (maxDurability * ratio);
+            amountToRepair = (int) (ratio * maxDurability);
         else
             amountToRepair = fixedAmount;
         return Math.max(damage - amountToRepair, 0);
