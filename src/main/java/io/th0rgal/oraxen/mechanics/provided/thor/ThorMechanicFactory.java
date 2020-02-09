@@ -11,7 +11,7 @@ public class ThorMechanicFactory extends MechanicFactory {
 
     public ThorMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new ThorMechanicsListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new ThorMechanicListener(this));
     }
 
     @Override

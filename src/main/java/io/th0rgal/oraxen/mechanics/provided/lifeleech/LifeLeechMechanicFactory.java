@@ -11,7 +11,7 @@ public class LifeLeechMechanicFactory extends MechanicFactory {
 
     public LifeLeechMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new LifeLeechMechanicsListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new LifeLeechMechanicListener(this));
     }
 
     @Override

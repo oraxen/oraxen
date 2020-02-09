@@ -31,7 +31,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.function.Consumer;
 
-public class BedrockBreakMechanicsManager {
+public class BedrockBreakMechanicManager {
 
     private Set<Location> locations = new HashSet<>();
     private final ProtocolManager protocolManager;
@@ -47,7 +47,7 @@ public class BedrockBreakMechanicsManager {
         }
     }
 
-    public BedrockBreakMechanicsManager(BedrockBreakMechanicFactory factory) {
+    public BedrockBreakMechanicManager(BedrockBreakMechanicFactory factory) {
 
         this.protocolManager = ProtocolLibrary.getProtocolManager();
         protocolManager.addPacketListener(new PacketAdapter(OraxenPlugin.get(), ListenerPriority.LOW, PacketType.Play.Client.BLOCK_DIG) {

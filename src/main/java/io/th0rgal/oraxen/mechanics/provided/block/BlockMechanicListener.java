@@ -26,11 +26,11 @@ import org.bukkit.inventory.ItemStack;
 import java.util.Arrays;
 import java.util.List;
 
-public class BlockMechanicsListener implements Listener {
+public class BlockMechanicListener implements Listener {
 
     private final MechanicFactory factory;
 
-    public BlockMechanicsListener(BlockMechanicFactory factory) {
+    public BlockMechanicListener(BlockMechanicFactory factory) {
         this.factory = factory;
     }
 

@@ -15,11 +15,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Random;
 
-public class SmeltingMechanicsListener implements Listener {
+public class SmeltingMechanicListener implements Listener {
 
     private final MechanicFactory factory;
 
-    public SmeltingMechanicsListener(MechanicFactory factory) {
+    public SmeltingMechanicListener(MechanicFactory factory) {
         this.factory = factory;
     }
 

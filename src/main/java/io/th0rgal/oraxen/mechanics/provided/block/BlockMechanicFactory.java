@@ -28,7 +28,7 @@ public class BlockMechanicFactory extends MechanicFactory {
             File file = new File(blockstatesFolder, "mushroom_stem.json");
             Utils.writeStringToFile(file, getBlockstateContent());
         });
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicsListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicListener(this));
     }
 
     private String getBlockstateContent() {

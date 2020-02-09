@@ -11,11 +11,11 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-public class DurabilityMechanicsManager implements Listener {
+public class DurabilityMechanicManager implements Listener {
 
     private final DurabilityMechanicFactory factory;
 
-    public DurabilityMechanicsManager(DurabilityMechanicFactory factory) {
+    public DurabilityMechanicManager(DurabilityMechanicFactory factory) {
         this.factory = factory;
     }
 

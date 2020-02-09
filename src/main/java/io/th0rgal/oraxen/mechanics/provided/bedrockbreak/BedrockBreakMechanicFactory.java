@@ -14,7 +14,7 @@ public class BedrockBreakMechanicFactory extends MechanicFactory {
         super(section);
         disabledOnFirstLayer = section.getBoolean("disable_on_first_layer");
         durabilityCost = section.getInt("durability_cost");
-        new BedrockBreakMechanicsManager(this);
+        new BedrockBreakMechanicManager(this);
     }
 
     @Override

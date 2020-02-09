@@ -15,12 +15,12 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
 
-public class BigMiningMechanicsListener implements Listener {
+public class BigMiningMechanicListener implements Listener {
 
     private final MechanicFactory factory;
     private int blocksToProcess = 0;
 
-    public BigMiningMechanicsListener(MechanicFactory factory) {
+    public BigMiningMechanicListener(MechanicFactory factory) {
         this.factory = factory;
     }
 

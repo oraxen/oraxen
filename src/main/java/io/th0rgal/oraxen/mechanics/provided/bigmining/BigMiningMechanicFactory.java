@@ -10,7 +10,7 @@ public class BigMiningMechanicFactory extends MechanicFactory {
 
     public BigMiningMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new BigMiningMechanicsListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new BigMiningMechanicListener(this));
     }
 
     @Override

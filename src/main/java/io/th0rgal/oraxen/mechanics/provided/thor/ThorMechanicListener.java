@@ -15,12 +15,12 @@ import org.bukkit.inventory.ItemStack;
 
 import java.text.DecimalFormat;
 
-public class ThorMechanicsListener implements Listener {
+public class ThorMechanicListener implements Listener {
 
     private final MechanicFactory factory;
     private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("##.##");
 
-    public ThorMechanicsListener(MechanicFactory factory) {
+    public ThorMechanicListener(MechanicFactory factory) {
         this.factory = factory;
     }
 

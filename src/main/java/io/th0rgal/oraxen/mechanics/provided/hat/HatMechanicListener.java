@@ -19,11 +19,11 @@ import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
-public class HatMechanicsListener implements Listener {
+public class HatMechanicListener implements Listener {
 
     private final MechanicFactory factory;
 
-    public HatMechanicsListener(MechanicFactory factory) {
+    public HatMechanicListener(MechanicFactory factory) {
         this.factory = factory;
     }
 

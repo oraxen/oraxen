@@ -11,11 +11,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 
-public class LifeLeechMechanicsListener implements Listener {
+public class LifeLeechMechanicListener implements Listener {
 
     private final MechanicFactory factory;
 
-    public LifeLeechMechanicsListener(MechanicFactory factory) {
+    public LifeLeechMechanicListener(MechanicFactory factory) {
         this.factory = factory;
     }
 

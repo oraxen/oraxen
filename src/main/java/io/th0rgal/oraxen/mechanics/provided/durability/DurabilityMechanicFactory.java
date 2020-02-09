@@ -10,7 +10,7 @@ public class DurabilityMechanicFactory extends MechanicFactory {
 
     public DurabilityMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new DurabilityMechanicsManager(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new DurabilityMechanicManager(this));
     }
 
     @Override

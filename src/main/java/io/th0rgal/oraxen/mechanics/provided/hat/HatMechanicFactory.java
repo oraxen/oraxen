@@ -11,7 +11,7 @@ public class HatMechanicFactory extends MechanicFactory {
 
     public HatMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new HatMechanicsListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new HatMechanicListener(this));
     }
 
     @Override
