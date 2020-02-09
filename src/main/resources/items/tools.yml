@@ -117,3 +117,30 @@ fire_hammer:
     bigmining:
       radius: 1
       depth: 1
+
+iron_cog:
+  displayname: "&7Iron Cog"
+  material: DIAMOND
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    layers:
+      - iron_cog.png
+
+gold_cog:
+  displayname: "&6Gold Cog"
+  material: DIAMOND
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    layers:
+      - gold_cog.png
+
+diamond_cog:
+  displayname: "&bDiamond Cog"
+  material: DIAMOND
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    layers:
+      - diamond_cog.png
