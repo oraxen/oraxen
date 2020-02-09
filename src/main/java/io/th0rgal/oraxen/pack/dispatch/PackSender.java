@@ -38,8 +38,10 @@ public class PackSender implements Listener {
             case FAILED_DOWNLOAD:
                 if (!packLoaded.contains(player.getUniqueId())) {
                     packLoaded.add(player.getUniqueId());
-                    PackDispatcher.sendPack(event.getPlayer());
+                    PackDispatcher.sendPack(player);
                 }
+            case ACCEPTED:
+                packLoaded.remove(player.getUniqueId());
                 break;
         }
 
