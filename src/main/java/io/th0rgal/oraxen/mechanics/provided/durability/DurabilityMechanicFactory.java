@@ -8,9 +8,12 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class DurabilityMechanicFactory extends MechanicFactory {
 
+    private static DurabilityMechanicFactory instance;
+
     public DurabilityMechanicFactory(ConfigurationSection section) {
         super(section);
         MechanicsManager.registerListeners(OraxenPlugin.get(), new DurabilityMechanicManager(this));
+        instance = this;
     }
 
     @Override
@@ -20,4 +23,7 @@ public class DurabilityMechanicFactory extends MechanicFactory {
         return mechanic;
     }
 
+    public static DurabilityMechanicFactory get() {
+        return instance;
+    }
 }

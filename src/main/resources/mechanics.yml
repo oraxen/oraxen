@@ -5,7 +5,7 @@ durability:
 
 repair:
   enabled: true
-  oraxen_items_only: false
+  oraxen_durability_only: false
 
 commands:
   enabled: true
