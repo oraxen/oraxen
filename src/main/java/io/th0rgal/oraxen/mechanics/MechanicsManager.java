@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory
 import io.th0rgal.oraxen.mechanics.provided.hat.HatMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.lifeleech.LifeLeechMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.potioneffects.PotionEffectsMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.repair.RepairMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.smelting.SmeltingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.thor.ThorMechanicFactory;
 import io.th0rgal.oraxen.settings.ResourcesManager;
@@ -31,6 +32,7 @@ public class MechanicsManager {
     public static void registerNativeMechanics() {
         //misc
         registerMechanicFactory("durability", DurabilityMechanicFactory.class);
+        registerMechanicFactory("repair", RepairMechanicFactory.class);
         registerMechanicFactory("commands", CommandsMechanicFactory.class);
         registerMechanicFactory("potioneffects", PotionEffectsMechanicFactory.class);
         registerMechanicFactory("block", BlockMechanicFactory.class);
