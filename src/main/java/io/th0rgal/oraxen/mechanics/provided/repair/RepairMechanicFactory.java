@@ -9,8 +9,11 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class RepairMechanicFactory extends MechanicFactory {
 
+    private final boolean oraxenItemsOnly;
+
     public RepairMechanicFactory(ConfigurationSection section) {
         super(section);
+        oraxenItemsOnly = section.getBoolean("oraxen_items_only");
         MechanicsManager.registerListeners(OraxenPlugin.get(), new RepairMechanicListener(this));
     }
 
@@ -21,4 +24,7 @@ public class RepairMechanicFactory extends MechanicFactory {
         return mechanic;
     }
 
+    public boolean isOraxenItemsOnly() {
+        return oraxenItemsOnly;
+    }
 }
