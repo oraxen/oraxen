@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.utils;
 import io.th0rgal.oraxen.settings.Pack;
 
 import java.io.*;
+import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -63,6 +64,7 @@ public class ZipUtils {
             zipFilePath = inZipDirectory + "/" + zipFilePath;
 
         ZipEntry zipEntry = new ZipEntry(zipFilePath);
+        zipEntry.setLastModifiedTime(FileTime.fromMillis(0L));
         zos.putNextEntry(zipEntry);
 
         byte[] bytes = new byte[1024];
