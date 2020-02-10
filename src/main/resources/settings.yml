@@ -1,5 +1,4 @@
 configs_version: 0.0.0
-enable_configs_updater: true
 
 Plugin:
   name: "Oraxen"
@@ -35,6 +34,9 @@ Pack:
       - "<dark_gray>»<gray> To try to load it directly from the game, <click:run_command:/oraxen pack getpack><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click>"
       - ""
       - "<dark_gray>»<gray> To download it from the internet, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ install it from Options/ResourcePacks in your game\"><green><bold>CLICK HERE</bold></hover></click>"
+
+ConfigsTools:
+  enable_configs_updater: true
 
 Misc:
   # All blocks with an inventory or any blocks that when right clicked shouldn't equip armor.
