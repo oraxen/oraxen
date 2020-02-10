@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorType;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -40,6 +41,7 @@ public class HatMechanicListener implements Listener {
         Player player = event.getPlayer();
         PlayerInventory inventory = player.getInventory();
         if (inventory.getHelmet() == null) {
+            event.setCancelled(true);
             ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent(player, ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET, null, item);
             Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
             if (armorEquipEvent.isCancelled())
@@ -57,7 +59,6 @@ public class HatMechanicListener implements Listener {
         if (clickedInventory == null
                 || !clickedInventory.getType().equals(InventoryType.PLAYER)
                 || e.getSlotType() != InventoryType.SlotType.ARMOR
-                || e.getSlot() != 39
                 || cursor == null)
             return;
 
@@ -69,6 +70,12 @@ public class HatMechanicListener implements Listener {
             itemID = OraxenItems.getIdByItem(currentItem);
             if (factory.isNotImplementedIn(itemID))
                 return;
+
+            if (e.getSlot() != 39) {
+                e.setCancelled(true);
+                return;
+            }
+
             ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent((Player) e.getWhoClicked(), ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET, currentItem, cursor);
             Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
             if (armorEquipEvent.isCancelled())
