@@ -55,6 +55,13 @@ public class ItemParser {
         if (section.contains("displayname"))
             item.setDisplayName(ChatColor.translateAlternateColorCodes('&', section.getString("displayname")));
 
+        if (section.contains("lore")) {
+            List<String> lore = section.getStringList("lore");
+            for (int i = 0; i < lore.size(); i++)
+                lore.set(i, ChatColor.translateAlternateColorCodes('&', lore.get(i)));
+            item.setLore(lore);
+        }
+
         if (section.contains("unbreakable"))
             item.setUnbreakable(section.getBoolean("unbreakable"));
 
