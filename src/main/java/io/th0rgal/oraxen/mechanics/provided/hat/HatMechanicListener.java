@@ -5,7 +5,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorType;
-import io.th0rgal.oraxen.utils.logs.Logs;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -52,6 +52,16 @@ public class HatMechanicListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void OnPlaceHatNotOnHelmetSlot(ArmorEquipEvent event) {
+        if (event.getType().getSlot() == 5)
+            return;
+        ItemStack itemStack = event.getNewArmorPiece();
+        String itemID = OraxenItems.getIdByItem(itemStack);
+        if (!factory.isNotImplementedIn(itemID))
+            event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void OnPlaceHatOnHelmetSlot(InventoryClickEvent e) {
         Inventory clickedInventory = e.getClickedInventory();
         ItemStack cursor = e.getCursor();
@@ -71,17 +81,17 @@ public class HatMechanicListener implements Listener {
             if (factory.isNotImplementedIn(itemID))
                 return;
 
-            if (e.getSlot() != 39) {
-                e.setCancelled(true);
-                return;
-            }
-
             ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent((Player) e.getWhoClicked(), ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET, currentItem, cursor);
             Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
             if (armorEquipEvent.isCancelled())
                 e.setCancelled(true);
 
         } else {
+
+            if (e.getSlot() != 39) {
+                e.setCancelled(true);
+                return;
+            }
 
             if (currentItem == null || currentItem.getType() == Material.AIR) {
                 ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent((Player) e.getWhoClicked(), ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET, currentItem, clone);
