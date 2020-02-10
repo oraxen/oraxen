@@ -11,7 +11,12 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.Plugin;
+
+import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.ProviderNotFoundException;
 
 public class UploadManager {
 
@@ -48,8 +53,47 @@ public class UploadManager {
         switch (Pack.UPLOAD_TYPE.toString().toLowerCase()) {
             case "polymath":
                 return new Polymath(Pack.POLYMATH_SERVER.toString());
+            case "external":
+                Class<?> target;
+                final ConfigurationSection options = (ConfigurationSection) Pack.UPLOAD_OPTIONS.getValue();
+                String klass = options.getString("class");
+                if (klass == null) throw new ProviderNotFoundException("No provider set.");
+                try {
+                    target = Class.forName(klass);
+                } catch (Throwable any) {
+                    ProviderNotFoundException error = new ProviderNotFoundException("Provider not found: " + klass);
+                    error.addSuppressed(any);
+                    throw error;
+                }
+                if (!HostingProvider.class.isAssignableFrom(target)) {
+                    throw new ProviderNotFoundException(target + " is not a valid HostingProvider.");
+                }
+                Class<? extends HostingProvider> implement = target.asSubclass(HostingProvider.class);
+                Constructor<? extends HostingProvider> constructor;
+                try {
+                    try {
+                        constructor = implement.getConstructor(ConfigurationSection.class);
+                    } catch (Exception notFound) {
+                        try {
+                            constructor = implement.getConstructor();
+                        } catch (Exception ignore) {
+                            throw notFound; // Use (Lorg/bukkit/configuration/ConfigurationSection;)V to Exception
+                        }
+                    }
+                } catch (Exception e) {
+                    throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot found constructor in " + target).initCause(e);
+                }
+                try {
+                    return constructor.getParameterCount() == 0 ? constructor.newInstance() : constructor.newInstance(options);
+                } catch (InstantiationException e) {
+                    throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot alloc instance for " + target).initCause(e);
+                } catch (IllegalAccessException e) {
+                    throw (ProviderNotFoundException) new ProviderNotFoundException("Failed to access " + target).initCause(e);
+                } catch (InvocationTargetException e) {
+                    throw (ProviderNotFoundException) new ProviderNotFoundException("Exception in allocating instance.").initCause(e.getCause());
+                }
             default:
-                throw new RuntimeException();
+                throw new ProviderNotFoundException("Unknown provider type: " + Pack.UPLOAD_TYPE);
         }
 
     }
