@@ -1,4 +1,4 @@
 package io.th0rgal.oraxen.settings;
 
-public class SettingsUpdater {
+public class ConfigsUpdater {
 }
