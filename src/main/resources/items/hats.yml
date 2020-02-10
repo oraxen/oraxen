@@ -24,9 +24,12 @@
 
 anubis_head:
   displayname: "&9Anubis Head"
-  material: WOODEN_HOE
+  material: LEATHER_CHESTPLATE
   lore:
     - "&8» &7NightVision when worn"
+  AttributeModifiers:
+    - {name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD}
+    - {name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD}
   Pack:
     generate_model: false
     model: anubis_head # .json extension is not mandatory
@@ -42,7 +45,10 @@ anubis_head:
 
 crown:
   displayname: "&6Crown"
-  material: WOODEN_HOE
+  material: LEATHER_CHESTPLATE
+  AttributeModifiers:
+    - {name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD}
+    - {name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD}
   Pack:
     generate_model: false
     model: crown
@@ -52,7 +58,10 @@ crown:
 
 pharaoh_head:
   displayname: "&6Pharaoh Head"
-  material: WOODEN_HOE
+  material: LEATHER_CHESTPLATE
+  AttributeModifiers:
+    - {name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD}
+    - {name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD}
   Pack:
     generate_model: false
     model: pharaoh_head
@@ -62,7 +71,10 @@ pharaoh_head:
 
 witch_hat:
   displayname: "&5Witch Hat"
-  material: WOODEN_HOE
+  material: LEATHER_CHESTPLATE
+  AttributeModifiers:
+    - {name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD}
+    - {name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD}
   Pack:
     generate_model: false
     model: witch_hat
