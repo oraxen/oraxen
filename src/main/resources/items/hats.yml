@@ -25,6 +25,8 @@
 anubis_head:
   displayname: "&9Anubis Head"
   material: WOODEN_HOE
+  lore:
+    - "&8» &7NightVision when worn"
   Pack:
     generate_model: false
     model: anubis_head # .json extension is not mandatory

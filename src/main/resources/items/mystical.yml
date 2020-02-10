@@ -42,6 +42,8 @@ magical_wand:
 magical_axe:
   displayname: "&aAxe of Experience"
   material: DIAMOND_AXE
+  lore:
+    - "&8» &7Convert experience to bottles"
   Pack:
     generate_model: false
     model: magical_axe

@@ -25,6 +25,8 @@
 bedrock_pickaxe:
   displayname: "&bBedrock Pickaxe"
   material: STONE_PICKAXE
+  lore:
+    - "&8» &7Mine bedrock blocks"
   Pack:
     generate_model: false
     model: bedrock_pickaxe
@@ -47,6 +49,8 @@ withooker:
 emerald_hammer:
   displayname: "&aEmerald Hammer"
   material: DIAMOND_PICKAXE
+  lore:
+    - "&8» &7Break 3x3 blocks"
   Pack:
     generate_model: true
     parent_model: "item/handheld"
@@ -60,6 +64,8 @@ emerald_hammer:
 amethyst_hammer:
   displayname: "&dAmethyst Hammer"
   material: DIAMOND_PICKAXE
+  lore:
+    - "&8» &7Break 3x3x2 blocks"
   Pack:
     generate_model: true
     parent_model: "item/handheld"
@@ -73,6 +79,8 @@ amethyst_hammer:
 onyx_hammer:
   displayname: "&8Onyx Hammer"
   material: DIAMOND_PICKAXE
+  lore:
+    - "&8» &7Break 3x3x2 blocks"
   Pack:
     generate_model: true
     parent_model: "item/handheld"
@@ -88,6 +96,8 @@ onyx_hammer:
 orax_hammer:
   displayname: "&bOrax Hammer"
   material: DIAMOND_PICKAXE
+  lore:
+    - "&8» &7Break 5x5x2 blocks"
   Pack:
     generate_model: true
     parent_model: "item/handheld"
@@ -103,6 +113,9 @@ orax_hammer:
 fire_hammer:
   displayname: "&6Fire Hammer"
   material: DIAMOND_PICKAXE
+  lore:
+    - "&8» &7Break 3x3 blocks"
+    - "&8» &7Instantly smelt ores"
   Pack:
     generate_model: true
     parent_model: "item/handheld"
@@ -121,6 +134,9 @@ fire_hammer:
 iron_cog:
   displayname: "&7Iron Cog"
   material: DIAMOND
+  lore:
+    - "&8» &7Click on a damaged item to repair"
+    - "   &710% of its maximum durability"
   Pack:
     generate_model: true
     parent_model: "item/handheld"
@@ -133,6 +149,9 @@ iron_cog:
 gold_cog:
   displayname: "&6Gold Cog"
   material: DIAMOND
+  lore:
+    - "&8» &7Click on a damaged item to repair"
+    - "   &710% of its maximum durability"
   Pack:
     generate_model: true
     parent_model: "item/handheld"
@@ -145,6 +164,9 @@ gold_cog:
 diamond_cog:
   displayname: "&bDiamond Cog"
   material: DIAMOND
+  lore:
+    - "&8» &7Click on a damaged item to repair"
+    - "   &710% of its maximum durability"
   Pack:
     generate_model: true
     parent_model: "item/handheld"

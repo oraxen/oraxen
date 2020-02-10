@@ -30,6 +30,8 @@ storm_sword:
     - {name: "oraxen", attribute: GENERIC_ATTACK_DAMAGE, amount: 10, operation: 0, uuid: d1fe3908-8aa8-49bb-8c1f-907b765a43ab, slot: HAND}
     # it has two times more full-strength attacks per second than diamond sword
     - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 3.2, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
+  lore:
+    - "&8» &7Right click to strike lightning"
   Pack:
     generate_model: false
     model: storm_sword
@@ -64,6 +66,8 @@ dagger:
 blood_sword:
   displayname: "&cBlood Sword"
   material: DIAMOND_SWORD
+  lore:
+    - "&8» &7Steal the life of your enemies"
   AttributeModifiers:
     # diamond sword has an attack damage of 7
     - {name: "oraxen", attribute: GENERIC_ATTACK_DAMAGE, amount: 8, operation: 0, uuid: d1fe3908-8aa8-49bb-8c1f-907b765a43ab, slot: HAND}
