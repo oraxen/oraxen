@@ -13,7 +13,6 @@ import java.util.List;
 
 public class BlockMechanic extends Mechanic {
 
-    private final boolean defaultBreakAnimation;
     private final String model;
     private final int customVariation;
     private final Drop drop;
@@ -25,13 +24,6 @@ public class BlockMechanic extends Mechanic {
         - the section used to configure the mechanic
          */
         super(mechanicFactory, section);
-
-        if (!section.isConfigurationSection("break_animation")) {
-            defaultBreakAnimation = true;
-        } else {
-            ConfigurationSection breakAnimation = section.getConfigurationSection("break_animation");
-            defaultBreakAnimation = !breakAnimation.isBoolean("default") || breakAnimation.getBoolean("default");
-        }
 
         // todo: use the itemstack model if block model isn't set
         this.model = section.getString("model");
@@ -63,7 +55,4 @@ public class BlockMechanic extends Mechanic {
         return drop;
     }
 
-    public boolean isDefaultBreakAnimation() {
-        return defaultBreakAnimation;
-    }
 }

@@ -32,9 +32,6 @@ caveblock:
     block:
       custom_variation: 1
       model: caveblock
-      break_animation:
-        delay: 0
-        period: 1
       drop:
         silktouch: false # enable if you want to cancel loots and drop the block when a silktouch pickaxe is used
         minimal_tool: STONE_PICKAXE
