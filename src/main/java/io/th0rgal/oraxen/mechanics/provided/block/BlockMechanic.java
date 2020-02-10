@@ -13,7 +13,7 @@ import java.util.List;
 
 public class BlockMechanic extends Mechanic {
 
-    private final String model;
+    private String model;
     private final int customVariation;
     private final Drop drop;
 
@@ -25,8 +25,9 @@ public class BlockMechanic extends Mechanic {
          */
         super(mechanicFactory, section);
 
-        // todo: use the itemstack model if block model isn't set
-        this.model = section.getString("model");
+        if (section.isString("model"))
+            this.model = section.getString("model");
+
         this.customVariation = section.getInt("custom_variation");
 
         List<Loot> loots = new ArrayList<>();
@@ -43,8 +44,11 @@ public class BlockMechanic extends Mechanic {
             this.drop = new Drop(loots, drop.getBoolean("silktouch"), getItemID());
     }
 
-    public String getModel() {
-        return model;
+    public String getModel(ConfigurationSection section) {
+        if (model != null)
+            return model;
+        // use the itemstack model if block model isn't set
+        return section.getString("Pack.model");
     }
 
     public int getCustomVariation() {
