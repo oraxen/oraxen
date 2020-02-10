@@ -25,10 +25,6 @@ public class OraxenItems {
         map = new LinkedHashMap<>();
 
         File itemsFolder = new File(plugin.getDataFolder(), "items");
-        if (!itemsFolder.exists()) {
-            itemsFolder.mkdirs();
-            new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
-        }
 
         File[] itemsConfig = itemsFolder.listFiles();
         Arrays.sort(itemsConfig);

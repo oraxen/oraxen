@@ -4,7 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.settings.Pack;
+import io.th0rgal.oraxen.settings.Plugin;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -118,7 +118,7 @@ public class ItemParser {
                 customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getDurability();
             } else {
                 customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
-                if ((boolean) Pack.SET_MODEL_ID.getValue()) {
+                if ((boolean) Plugin.AUTOMATICALLY_SET_MODEL_ID.getValue()) {
                     this.configUpdated = true;
                     section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
                 }

@@ -9,8 +9,6 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public enum Pack implements ConfigEnum {
 
-    SET_MODEL_ID("automatically_set_model_id"),
-
     GENERATE("generation.generate"),
     COMPRESSION("generation.compression"),
     COMMENT("generation.comment"),

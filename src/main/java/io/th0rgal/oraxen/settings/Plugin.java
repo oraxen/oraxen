@@ -9,7 +9,10 @@ public enum Plugin implements ConfigEnum {
 
     NAME("Plugin.name"),
     PREFIX("Plugin.prefix"),
+    CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),
+    AUTOMATICALLY_SET_MODEL_ID("ConfigsTools.automatically_set_model_id"),
+
     ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass");
 
     private final Object value;

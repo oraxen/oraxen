@@ -29,7 +29,7 @@ public class OraxenMeta {
     public void setPackInfos(ConfigurationSection configurationSection) {
         this.hasPackInfos = true;
         this.modelName = readModelName(configurationSection);
-        this.layers = configurationSection.getStringList("layers");
+        this.layers = configurationSection.getStringList("textures");
         // can't be refactored with for each or stream because it'll throw ConcurrentModificationException
         for (int i = 0; i < layers.size(); i++) {
             String layer = layers.get(i);

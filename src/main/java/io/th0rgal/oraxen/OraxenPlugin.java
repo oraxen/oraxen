@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
+import io.th0rgal.oraxen.settings.ConfigsValidator;
 import io.th0rgal.oraxen.settings.Plugin;
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
@@ -47,6 +48,7 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     public void onEnable() {
+        new ConfigsValidator(this).validatesConfig();
         MechanicsManager.registerNativeMechanics();
         OraxenItems.loadItems(this);
         ResourcePack resourcePack = new ResourcePack(this);
