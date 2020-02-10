@@ -17,7 +17,6 @@ public class ModelGenerator {
         JsonObject textures = new JsonObject();
         List<String> layers = oraxenMeta.getLayers();
 
-        Logs.logError(oraxenMeta.getParentModel());
         if (oraxenMeta.getParentModel().equals("block/cube_all")) {
             textures.addProperty("all", layers.get(0));
         } else {
