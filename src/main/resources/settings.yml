@@ -1,5 +1,5 @@
-settings_version: 0.0.0
-enable_settings_updater: true
+configs_version: 0.0.0
+enable_configs_updater: true
 
 Plugin:
   name: "Oraxen"
