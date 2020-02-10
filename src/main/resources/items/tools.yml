@@ -151,7 +151,7 @@ gold_cog:
   material: DIAMOND
   lore:
     - "&8» &7Click on a damaged item to repair"
-    - "   &710% of its maximum durability"
+    - "   &750% of its maximum durability"
   Pack:
     generate_model: true
     parent_model: "item/handheld"
@@ -166,7 +166,7 @@ diamond_cog:
   material: DIAMOND
   lore:
     - "&8» &7Click on a damaged item to repair"
-    - "   &710% of its maximum durability"
+    - "   &7100% of its maximum durability"
   Pack:
     generate_model: true
     parent_model: "item/handheld"

@@ -27,7 +27,8 @@ emerald_helmet:
   material: LEATHER_HELMET
   color: 3, 252, 136 #rgb
   lore:
-    - "&8» &7Gives one extra heart"
+    - ""
+    - "&8» &7Gives 1 extra &c❤"
   Mechanics:
     durability:
       value: 437 # 20% than diamond helmet
@@ -49,7 +50,8 @@ emerald_chestplate:
   material: LEATHER_CHESTPLATE
   color: 3, 252, 136
   lore:
-    - "&8» &7Gives one extra heart and a half"
+    - ""
+    - "&8» &7Gives 1.5 extra &c❤"
   Mechanics:
     durability:
       value: 635
@@ -66,7 +68,8 @@ emerald_leggings:
   material: LEATHER_LEGGINGS
   color: 3, 252, 136
   lore:
-    - "&8» &7Gives one extra heart and a half"
+    - ""
+    - "&8» &7Gives 1.5 extra &c❤"
   Mechanics:
     durability:
       value: 595
@@ -83,7 +86,8 @@ emerald_boots:
   material: LEATHER_BOOTS
   color: 3, 252, 136
   lore:
-    - "&8» &7Gives one extra heart"
+    - ""
+    - "&8» &7Gives 1 extra &c❤"
   Mechanics:
     durability:
       value: 516
