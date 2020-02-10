@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.pack.generation;
 
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.items.OraxenMeta;
+import io.th0rgal.oraxen.utils.logs.Logs;
 
 import java.util.List;
 
@@ -15,9 +16,14 @@ public class ModelGenerator {
 
         JsonObject textures = new JsonObject();
         List<String> layers = oraxenMeta.getLayers();
-        for (int i = 0; i < layers.size(); i++)
-            textures.addProperty("layer" + i, layers.get(i));
 
+        Logs.logError(oraxenMeta.getParentModel());
+        if (oraxenMeta.getParentModel().equals("block/cube_all")) {
+            textures.addProperty("all", layers.get(0));
+        } else {
+            for (int i = 0; i < layers.size(); i++)
+                textures.addProperty("layer" + i, layers.get(i));
+        }
         json.add("textures", textures);
 
     }
