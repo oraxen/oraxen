@@ -60,7 +60,7 @@ amethyst:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    layers:
+    textures:
       - amethyst.png # .png extension is not mandatory
 
 ruby:
@@ -69,7 +69,7 @@ ruby:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    layers:
+    textures:
       - ruby.png # .png extension is not mandatory
 
 onyx:
@@ -78,7 +78,7 @@ onyx:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    layers:
+    textures:
       - onyx.png # .png extension is not mandatory
 
 orax:
@@ -87,7 +87,7 @@ orax:
   Pack:
     generate_model: true
     parent_model: "item/generated"
-    layers:
+    textures:
       - orax.png # .png extension is not mandatory
 
 fire:

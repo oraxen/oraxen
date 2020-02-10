@@ -54,7 +54,7 @@ emerald_hammer:
   Pack:
     generate_model: true
     parent_model: "item/handheld"
-    layers:
+    textures:
       - emerald_hammer.png
   Mechanics:
     bigmining:
@@ -69,7 +69,7 @@ amethyst_hammer:
   Pack:
     generate_model: true
     parent_model: "item/handheld"
-    layers:
+    textures:
       - amethyst_hammer.png
   Mechanics:
     bigmining:
@@ -84,7 +84,7 @@ onyx_hammer:
   Pack:
     generate_model: true
     parent_model: "item/handheld"
-    layers:
+    textures:
       - onyx_hammer.png
   Mechanics:
     durability:
@@ -101,7 +101,7 @@ orax_hammer:
   Pack:
     generate_model: true
     parent_model: "item/handheld"
-    layers:
+    textures:
       - orax_hammer.png
   Mechanics:
     durability:
@@ -119,7 +119,7 @@ fire_hammer:
   Pack:
     generate_model: true
     parent_model: "item/handheld"
-    layers:
+    textures:
       - fire_hammer.png
   Mechanics:
     smelting:
@@ -140,7 +140,7 @@ iron_cog:
   Pack:
     generate_model: true
     parent_model: "item/handheld"
-    layers:
+    textures:
       - iron_cog.png
   Mechanics:
     repair:
@@ -155,7 +155,7 @@ gold_cog:
   Pack:
     generate_model: true
     parent_model: "item/handheld"
-    layers:
+    textures:
       - gold_cog.png
   Mechanics:
     repair:
@@ -170,7 +170,7 @@ diamond_cog:
   Pack:
     generate_model: true
     parent_model: "item/handheld"
-    layers:
+    textures:
       - diamond_cog.png
   Mechanics:
     repair:
