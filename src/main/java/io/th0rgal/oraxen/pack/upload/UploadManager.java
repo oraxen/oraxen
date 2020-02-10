@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.pack.dispatch.PackSender;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
+import io.th0rgal.oraxen.pack.upload.hosts.Sh;
 import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
@@ -17,6 +18,7 @@ import org.bukkit.plugin.Plugin;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.ProviderNotFoundException;
+import java.util.List;
 
 public class UploadManager {
 
@@ -53,6 +55,14 @@ public class UploadManager {
         switch (Pack.UPLOAD_TYPE.toString().toLowerCase()) {
             case "polymath":
                 return new Polymath(Pack.POLYMATH_SERVER.toString());
+            case "sh":
+            case "cmd":
+                final ConfigurationSection opt = (ConfigurationSection) Pack.UPLOAD_OPTIONS.getValue();
+                final List<String> args = opt.getStringList("args");
+                if (args == null || args.isEmpty())
+                    throw new ProviderNotFoundException("No command line.");
+                String placeholder = opt.getString("placeholder", "${file}");
+                return new Sh(Sh.path(placeholder, args));
             case "external":
                 Class<?> target;
                 final ConfigurationSection options = (ConfigurationSection) Pack.UPLOAD_OPTIONS.getValue();
