@@ -8,7 +8,8 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
-import io.th0rgal.oraxen.settings.ConfigsValidator;
+import io.th0rgal.oraxen.settings.ConfigsManager;
+import io.th0rgal.oraxen.settings.Message;
 import io.th0rgal.oraxen.settings.Plugin;
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
@@ -48,9 +49,13 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     public void onEnable() {
-        new ConfigsValidator(this).validatesConfig();
+        ConfigsManager configsManager = new ConfigsManager(this);
+        if (!configsManager.validatesConfig()) {
+            Message.CONFIGS_VALIDATION_FAILED.logError();
+            getServer().getPluginManager().disablePlugin(this);
+        }
         MechanicsManager.registerNativeMechanics();
-        OraxenItems.loadItems(this);
+        OraxenItems.loadItems(configsManager);
         ResourcePack resourcePack = new ResourcePack(this);
         RecipesManager.load(this);
         FastInvManager.register(this);
@@ -63,7 +68,6 @@ public class OraxenPlugin extends JavaPlugin {
 
     public void onDisable() {
         MechanicsManager.unloadListeners();
-
         Logs.log(ChatColor.GREEN + "Successfully unloaded");
     }
 

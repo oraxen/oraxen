@@ -9,6 +9,7 @@ public enum Message {
 
     CMD_HELP(ChatColor.GREEN, "Check the docs for command usage: https://docs.oraxen.com/usage/commands"),
 
+    CONFIGS_VALIDATION_FAILED(ChatColor.RED, "Configurations validation failed, plugin automatically disabled!"),
     NOT_A_PLAYER_ERROR(ChatColor.RED, "You must be a player to use this command!"),
     COMMAND_DOES_NOT_EXIST_ERROR(ChatColor.RED, "This command doesn't exist, check the doc!"),
     ZIP_BROWSE_ERROR(ChatColor.RED, "An error occured browsing the zip"),
