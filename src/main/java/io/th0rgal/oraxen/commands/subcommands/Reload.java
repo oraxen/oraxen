@@ -45,7 +45,7 @@ public class Reload implements CommandInterface {
 
     private void reloadItems(JavaPlugin plugin, CommandSender sender) {
         Message.RELOAD.send(sender, "items");
-        OraxenItems.loadItems(plugin);
+        OraxenItems.loadItems();
     }
 
     private void reloadPack(JavaPlugin plugin, CommandSender sender) {

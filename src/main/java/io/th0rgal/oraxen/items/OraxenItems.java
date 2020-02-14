@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.settings.ConfigsManager;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
+
 import java.util.*;
 
 public class OraxenItems {
@@ -13,8 +14,14 @@ public class OraxenItems {
     //configuration sections : their OraxenItem wrapper
     private static Map<String, ItemBuilder> map;
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
+    private static ConfigsManager configsManager;
 
     public static void loadItems(ConfigsManager configsManager) {
+        OraxenItems.configsManager = configsManager;
+        loadItems();
+    }
+
+    public static void loadItems() {
         map = configsManager.parsesConfigs();
     }
 
@@ -48,7 +55,7 @@ public class OraxenItems {
         for (ItemBuilder itemBuilder : getItems())
             if (!itemBuilder.getOraxenMeta().isExcludedFromInventory())
                 unexcludedItems.add(itemBuilder);
-            return unexcludedItems;
+        return unexcludedItems;
     }
 
     public static Set<Map.Entry<String, ItemBuilder>> getEntries() {
