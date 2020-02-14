@@ -54,13 +54,15 @@ public class Loot {
         return itemStack;
     }
 
-    public void dropNaturally(Location location) {
+    public void dropNaturally(Location location, int amountMultiplier) {
         if (new Random().nextInt(probability) == 0)
-            dropItems(location);
+            dropItems(location, amountMultiplier);
     }
 
-    private void dropItems(Location location) {
+    private void dropItems(Location location, int amountMultiplier) {
+        ItemStack stack = getItemStack();
+        stack.setAmount(stack.getAmount() * amountMultiplier);
         for (int i = 0; i < maxAmount; i++)
-            location.getWorld().dropItemNaturally(location, getItemStack());
+            location.getWorld().dropItemNaturally(location, stack);
     }
 }
