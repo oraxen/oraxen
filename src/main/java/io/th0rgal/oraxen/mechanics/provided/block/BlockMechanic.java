@@ -38,10 +38,13 @@ public class BlockMechanic extends Mechanic {
         }
         if (drop.isString("minimal_tool"))
             this.drop = new Drop(loots, drop.getBoolean("silktouch"),
+                    drop.getBoolean("fortune"),
                     getItemID(),
                     Material.getMaterial(drop.getString("minimal_tool")));
         else
-            this.drop = new Drop(loots, drop.getBoolean("silktouch"), getItemID());
+            this.drop = new Drop(loots, drop.getBoolean("silktouch"),
+                    drop.getBoolean("fortune"),
+                    getItemID());
     }
 
     public String getModel(ConfigurationSection section) {

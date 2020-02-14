@@ -13,21 +13,24 @@ public class Drop {
 
     private final List<Loot> loots;
     final boolean silktouch;
+    final boolean fortune;
     private final boolean hasMinimalTool;
     String minimalTool;
     final String sourceID;
 
-    public Drop(List<Loot> loots, boolean silktouch, String sourceID, Material minimalTool) {
+    public Drop(List<Loot> loots, boolean silktouch, boolean fortune, String sourceID, Material minimalTool) {
         this.loots = loots;
         this.silktouch = silktouch;
+        this.fortune = fortune;
         this.sourceID = sourceID;
         hasMinimalTool = true;
         this.minimalTool = minimalTool.toString();
     }
 
-    public Drop(List<Loot> loots, boolean silktouch, String sourceID) {
+    public Drop(List<Loot> loots, boolean silktouch, boolean fortune, String sourceID) {
         this.loots = loots;
         this.silktouch = silktouch;
+        this.fortune = fortune;
         this.sourceID = sourceID;
         hasMinimalTool = false;
     }
