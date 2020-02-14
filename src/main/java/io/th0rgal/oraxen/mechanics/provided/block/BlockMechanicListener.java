@@ -90,11 +90,13 @@ public class BlockMechanicListener implements Listener {
         Material type = placedAgainst.getType();
         if (replaceableBlocks.contains(type))
             target = placedAgainst;
-        else
+        else {
             target = placedAgainst.getRelative(event.getBlockFace());
-
+            if (target.getType() != Material.AIR)
+                return;
+        }
         Location playerLocation = player.getLocation();
-        if (target.getType() != Material.AIR || isStandingInside(player, target))
+        if (isStandingInside(player, target))
             return;
 
         // determines the old informations of the block
