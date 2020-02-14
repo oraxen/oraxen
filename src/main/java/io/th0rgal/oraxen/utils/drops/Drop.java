@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.utils.drops;
 import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
@@ -52,7 +53,7 @@ public class Drop {
         if (!isToolEnough(itemInHand))
             return;
 
-        if (silktouch) {
+        if (silktouch && itemInHand.getItemMeta().hasEnchant(Enchantment.SILK_TOUCH)) {
             location.getWorld().dropItemNaturally(location, OraxenItems.getItemById(sourceID).build());
             return;
         }
