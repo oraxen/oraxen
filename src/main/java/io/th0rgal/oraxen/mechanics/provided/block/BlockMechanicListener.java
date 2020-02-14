@@ -55,6 +55,7 @@ public class BlockMechanicListener implements Listener {
                 .spawns(block.getLocation(),
                         event.getPlayer().getInventory()
                                 .getItemInMainHand());
+        event.setDropItems(false);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
