@@ -8,6 +8,7 @@ import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 public class Drop {
 
@@ -60,7 +61,13 @@ public class Drop {
             location.getWorld().dropItemNaturally(location, OraxenItems.getItemById(sourceID).build());
             return;
         }
-        for (Loot loot : loots)
-            loot.dropNaturally(location);
+
+        int fortuneMultiplier = 1;
+        if (fortune && itemInHand.getItemMeta().hasEnchant(Enchantment.LOOT_BONUS_BLOCKS))
+            fortuneMultiplier += new Random().nextInt(itemInHand.getItemMeta().getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS));
+
+        for (Loot loot : loots) {
+            loot.dropNaturally(location, fortuneMultiplier);
+        }
     }
 }
