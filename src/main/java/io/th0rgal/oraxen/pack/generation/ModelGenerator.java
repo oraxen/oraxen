@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.pack.generation;
 
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.items.OraxenMeta;
-import io.th0rgal.oraxen.utils.logs.Logs;
 
 import java.util.List;
 
