@@ -5,6 +5,7 @@
 ### Code improvement
 > Developers who have contributed to the source code
 * [AntoineJT](https://github.com/AntoineJT): active contributor, who contributed refactors.
+* [Karlatemp](https://github.com/Karlatemp) : added support for external hosting providers
 * [MrMicky](https://github.com/MrMicky-FR): developer of [FastInv](https://github.com/MrMicky-FR/FastInv) (used in this plugin)
 * [MiniDigger](https://github.com/MiniDigger): developer of [MiniMessage](https://github.com/MiniDigger/MiniMessage) (used in this plugin)
 
