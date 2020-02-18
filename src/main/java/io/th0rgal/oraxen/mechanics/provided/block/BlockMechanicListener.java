@@ -42,10 +42,10 @@ public class BlockMechanicListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(BlockBreakEvent event) {
         Block block = event.getBlock();
-        if (block.getType() != Material.MUSHROOM_STEM)
+        if (block.getType() != Material.MUSHROOM_STEM || event.isCancelled() || !event.isDropItems())
             return;
 
         MultipleFacing blockFacing = (MultipleFacing) block.getBlockData();
