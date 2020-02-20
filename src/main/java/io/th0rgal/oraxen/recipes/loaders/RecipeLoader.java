@@ -8,9 +8,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.Recipe;
-import org.bukkit.inventory.RecipeChoice;
+import org.bukkit.inventory.*;
 
 public abstract class RecipeLoader {
 
@@ -69,6 +67,12 @@ public abstract class RecipeLoader {
         if (getSection().isString("permission")) {
             String permission = getSection().getString("permission");
             RecipesEventsManager.get().addRecipe(recipe, permission);
+        }
+    }
+
+    private void addToWhitelistedRecipes(Recipe recipe) {
+        if (recipe instanceof ShapedRecipe || recipe instanceof ShapelessRecipe) {
+
         }
     }
 
