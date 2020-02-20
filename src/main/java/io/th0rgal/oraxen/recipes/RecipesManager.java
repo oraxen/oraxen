@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.recipes;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.recipes.listeners.RecipesBuilderEvents;
+import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.recipes.loaders.ShapedLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
 import io.th0rgal.oraxen.settings.ResourcesManager;
@@ -24,6 +25,7 @@ public class RecipesManager {
             new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
         }
         registerAllConfigRecipesFromFolder(recipesFolder);
+        RecipesEventsManager.get().registerEvents();
     }
     
     private static void registerAllConfigRecipesFromFolder(File recipesFolder) {
