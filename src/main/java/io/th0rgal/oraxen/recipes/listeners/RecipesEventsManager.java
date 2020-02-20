@@ -13,14 +13,14 @@ import org.bukkit.inventory.Recipe;
 
 import java.util.Map;
 
-public class PermissionRecipesManager implements Listener {
+public class RecipesEventsManager implements Listener {
 
-    private static PermissionRecipesManager instance;
+    private static RecipesEventsManager instance;
     private Map<Recipe, String> permissionsPerRecipe;
 
-    public static PermissionRecipesManager get() {
+    public static RecipesEventsManager get() {
         if (instance == null) {
-            instance = new PermissionRecipesManager();
+            instance = new RecipesEventsManager();
             Bukkit.getPluginManager().registerEvents(instance, OraxenPlugin.get());
         }
         return instance;

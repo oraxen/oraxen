@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.recipes.loaders;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 
-import io.th0rgal.oraxen.recipes.listeners.PermissionRecipesManager;
+import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -26,7 +26,7 @@ public abstract class RecipeLoader {
     protected void managesPermission(Recipe recipe) {
         if (getSection().isString("permission")) {
             String permission = getSection().getString("permission");
-            PermissionRecipesManager.get().addRecipe(recipe, permission);
+            RecipesEventsManager.get().addRecipe(recipe, permission);
         }
     }
 
