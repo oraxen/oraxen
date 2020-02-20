@@ -2,14 +2,14 @@ package io.th0rgal.oraxen.recipes.listeners;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.recipes.CustomRecipe;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
@@ -20,7 +20,7 @@ public class RecipesEventsManager implements Listener {
 
     private static RecipesEventsManager instance;
     private Map<Recipe, String> permissionsPerRecipe = new HashMap<>();
-    private Set<Recipe> whitelistedCraftRecipes = new HashSet<>();
+    private Set<CustomRecipe> whitelistedCraftRecipes = new HashSet<>();
 
     public static RecipesEventsManager get() {
         if (instance == null) {
@@ -40,7 +40,9 @@ public class RecipesEventsManager implements Listener {
         if (hasPermissions(player, recipe))
             return;
         ItemStack result = event.getInventory().getResult();
-        boolean containsOraxenItem = result != null && OraxenItems.isAnItem(OraxenItems.getIdByItem(result));
+        if (result == null)
+            return;
+        boolean containsOraxenItem = OraxenItems.isAnItem(OraxenItems.getIdByItem(result));
         if (!containsOraxenItem)
             for (ItemStack ingredient : event.getInventory().getMatrix())
                 if (OraxenItems.isAnItem(OraxenItems.getIdByItem(ingredient))) {
@@ -50,8 +52,8 @@ public class RecipesEventsManager implements Listener {
         if (!containsOraxenItem)
             return;
 
-        for (Recipe whitelistedRecipe : whitelistedCraftRecipes)
-            if (whitelistedRecipe.equals(recipe))
+        for (CustomRecipe whitelistedRecipe : whitelistedCraftRecipes)
+            if (whitelistedRecipe.equals(new CustomRecipe(recipe.getResult(), Arrays.asList(event.getInventory().getMatrix()))))
                 return;
 
         event.getInventory().setResult(new ItemStack(Material.AIR));
@@ -61,7 +63,7 @@ public class RecipesEventsManager implements Listener {
         permissionsPerRecipe.put(recipe, permission);
     }
 
-    public void addRecipe(Recipe recipe) {
+    public void whitelistRecipe(CustomRecipe recipe) {
         whitelistedCraftRecipes.add(recipe);
     }
 
