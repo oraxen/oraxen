@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -21,13 +22,6 @@ public abstract class RecipeLoader {
 
     protected ConfigurationSection getSection() {
         return section;
-    }
-
-    protected void managesPermission(Recipe recipe) {
-        if (getSection().isString("permission")) {
-            String permission = getSection().getString("permission");
-            RecipesEventsManager.get().addRecipe(recipe, permission);
-        }
     }
 
     protected ItemStack getResult() {
@@ -65,6 +59,18 @@ public abstract class RecipeLoader {
     }
 
     public abstract void registerRecipe();
+
+    protected void loadRecipe(Recipe recipe) {
+        Bukkit.addRecipe(recipe);
+        managesPermission(recipe);
+    }
+
+    private void managesPermission(Recipe recipe) {
+        if (getSection().isString("permission")) {
+            String permission = getSection().getString("permission");
+            RecipesEventsManager.get().addRecipe(recipe, permission);
+        }
+    }
 
 }
 

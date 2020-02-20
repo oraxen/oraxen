@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ShapedRecipe;
 
@@ -24,7 +23,6 @@ public class ShapedLoader extends RecipeLoader {
                     getRecipeChoice(ingredientsSection
                             .getConfigurationSection(ingredientLetter)));
         }
-        Bukkit.addRecipe(recipe);
-        managesPermission(recipe);
+        loadRecipe(recipe);
     }
 }
