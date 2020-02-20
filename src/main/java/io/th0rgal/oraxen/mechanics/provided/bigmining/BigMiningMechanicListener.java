@@ -55,8 +55,8 @@ public class BigMiningMechanicListener implements Listener {
         Location initialLocation = event.getBlock().getLocation();
 
         Location tempLocation;
-        for (double relativeX = -mechanic.getRadius(); relativeX < mechanic.getRadius(); relativeX++)
-            for (double relativeY = -mechanic.getRadius(); relativeY < mechanic.getRadius(); relativeY++)
+        for (double relativeX = -mechanic.getRadius(); relativeX <= mechanic.getRadius(); relativeX++)
+            for (double relativeY = -mechanic.getRadius(); relativeY <= mechanic.getRadius(); relativeY++)
                 for (double relativeDepth = 0; relativeDepth < mechanic.getDepth(); relativeDepth++) {
                     tempLocation = transpose(initialLocation, blockFace, relativeX, relativeY, relativeDepth * modifier);
                     if (tempLocation.equals(initialLocation))
