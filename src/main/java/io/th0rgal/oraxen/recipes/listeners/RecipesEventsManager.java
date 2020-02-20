@@ -19,7 +19,7 @@ import java.util.*;
 public class RecipesEventsManager implements Listener {
 
     private static RecipesEventsManager instance;
-    private Map<Recipe, String> permissionsPerRecipe = new HashMap<>();
+    private Map<CustomRecipe, String> permissionsPerRecipe = new HashMap<>();
     private Set<CustomRecipe> whitelistedCraftRecipes = new HashSet<>();
 
     public static RecipesEventsManager get() {
@@ -59,7 +59,7 @@ public class RecipesEventsManager implements Listener {
         event.getInventory().setResult(new ItemStack(Material.AIR));
     }
 
-    public void addPermissionRecipe(Recipe recipe, String permission) {
+    public void addPermissionRecipe(CustomRecipe recipe, String permission) {
         permissionsPerRecipe.put(recipe, permission);
     }
 
