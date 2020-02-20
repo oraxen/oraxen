@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.recipes.listeners;
 import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -29,14 +30,20 @@ public class RecipesEventsManager implements Listener {
     @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
     public void onCrafted(PrepareItemCraftEvent event) {
         Recipe recipe = event.getRecipe();
-        if (permissionsPerRecipe.containsKey(recipe)
-                && !event.getView().getPlayer().hasPermission(permissionsPerRecipe.get(recipe))) {
-            event.getInventory().setResult(new ItemStack(Material.AIR));
-        }
+        Player player = (Player) event.getView().getPlayer();
+        if (hasPermissions(player, recipe))
+            return;
+        event.getInventory().setResult(new ItemStack(Material.AIR));
+
     }
 
     public void addRecipe(Recipe recipe, String permission) {
         permissionsPerRecipe.put(recipe, permission);
     }
+
+    private boolean hasPermissions(Player player, Recipe recipe) {
+        return (!permissionsPerRecipe.containsKey(recipe) || player.hasPermission(permissionsPerRecipe.get(recipe)));
+    }
+
 
 }
