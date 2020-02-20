@@ -3,12 +3,15 @@ package io.th0rgal.oraxen.recipes.loaders;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 
+import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.*;
+
+import java.util.List;
 
 public abstract class RecipeLoader {
 
@@ -33,6 +36,16 @@ public abstract class RecipeLoader {
 
         return resultSection.getItemStack("minecraft_item");
 
+    }
+
+    protected ItemStack getIndredientItemStack(ConfigurationSection ingredientSection) {
+        if (ingredientSection.isString("oraxen_item"))
+            return OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build();
+
+        if (ingredientSection.isString("minecraft_type"))
+            return new ItemStack(Material.getMaterial(ingredientSection.getString("minecraft_type")));
+
+        return ingredientSection.getItemStack("minecraft_item");
     }
 
     @SuppressWarnings("deprecation")
@@ -61,7 +74,6 @@ public abstract class RecipeLoader {
     protected void loadRecipe(Recipe recipe) {
         Bukkit.addRecipe(recipe);
         managesPermission(recipe);
-        addToWhitelistedRecipes(recipe);
     }
 
     private void managesPermission(Recipe recipe) {
@@ -71,10 +83,8 @@ public abstract class RecipeLoader {
         }
     }
 
-    private void addToWhitelistedRecipes(Recipe recipe) {
-        if (recipe instanceof ShapedRecipe || recipe instanceof ShapelessRecipe) {
-            RecipesEventsManager.get().addRecipe(recipe);
-        }
+    protected void addToWhitelistedRecipes(Recipe recipe) {
+        RecipesEventsManager.get().whitelistRecipe(CustomRecipe.fromRecipe(recipe));
     }
 
 }
