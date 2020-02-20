@@ -61,18 +61,19 @@ public abstract class RecipeLoader {
     protected void loadRecipe(Recipe recipe) {
         Bukkit.addRecipe(recipe);
         managesPermission(recipe);
+        addToWhitelistedRecipes(recipe);
     }
 
     private void managesPermission(Recipe recipe) {
         if (getSection().isString("permission")) {
             String permission = getSection().getString("permission");
-            RecipesEventsManager.get().addRecipe(recipe, permission);
+            RecipesEventsManager.get().addPermissionRecipe(recipe, permission);
         }
     }
 
     private void addToWhitelistedRecipes(Recipe recipe) {
         if (recipe instanceof ShapedRecipe || recipe instanceof ShapelessRecipe) {
-
+            RecipesEventsManager.get().addRecipe(recipe);
         }
     }
 
