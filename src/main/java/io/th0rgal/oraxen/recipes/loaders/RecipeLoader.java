@@ -73,10 +73,10 @@ public abstract class RecipeLoader {
 
     protected void loadRecipe(Recipe recipe) {
         Bukkit.addRecipe(recipe);
-        managesPermission(recipe);
+        managesPermission(CustomRecipe.fromRecipe(recipe));
     }
 
-    private void managesPermission(Recipe recipe) {
+    private void managesPermission(CustomRecipe recipe) {
         if (getSection().isString("permission")) {
             String permission = getSection().getString("permission");
             RecipesEventsManager.get().addPermissionRecipe(recipe, permission);
