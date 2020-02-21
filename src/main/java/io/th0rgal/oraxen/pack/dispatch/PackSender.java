@@ -15,7 +15,6 @@ import java.util.UUID;
 
 public class PackSender implements Listener {
 
-    private Set<UUID> packLoaded = new HashSet<>();
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerConnect(PlayerJoinEvent event) {
@@ -36,12 +35,8 @@ public class PackSender implements Listener {
                 // todo: send a configurable alert message
                 break;
             case FAILED_DOWNLOAD:
-                if (!packLoaded.contains(player.getUniqueId())) {
-                    packLoaded.add(player.getUniqueId());
-                    PackDispatcher.sendPack(player);
-                }
+
             case ACCEPTED:
-                packLoaded.remove(player.getUniqueId());
                 break;
         }
 

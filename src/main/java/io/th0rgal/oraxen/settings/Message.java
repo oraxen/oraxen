@@ -4,11 +4,11 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
-
 public enum Message {
 
     CMD_HELP(ChatColor.GREEN, "Check the docs for command usage: https://docs.oraxen.com/usage/commands"),
 
+    UPDATING_CONFIG(ChatColor.RED, "Configuration option \"%s\" not found, adding it!"),
     CONFIGS_VALIDATION_FAILED(ChatColor.RED, "Configurations validation failed, plugin automatically disabled!"),
     NOT_A_PLAYER_ERROR(ChatColor.RED, "You must be a player to use this command!"),
     COMMAND_DOES_NOT_EXIST_ERROR(ChatColor.RED, "This command doesn't exist, check the doc!"),
@@ -53,14 +53,28 @@ public enum Message {
         sender.sendMessage(String.format(toString(), (Object[]) arguments));
     }
 
+    @SuppressWarnings("RedundantCast")
+    public void log(String... arguments) {
+        Logs.log(String.format(toString(), (Object[]) arguments));
+    }
+
     public void log() {
         Logs.log(toString());
+    }
+
+    @SuppressWarnings("RedundantCast")
+    public void logWarning(String... arguments) {
+        Logs.logWarning(String.format(toString(), (Object[]) arguments));
     }
 
     public void logWarning() {
         Logs.logWarning(toString());
     }
 
+    @SuppressWarnings("RedundantCast")
+    public void logError(String... arguments) {
+        Logs.logError(String.format(toString(), (Object[]) arguments));
+    }
     public void logError() {
         Logs.logError(toString());
     }
