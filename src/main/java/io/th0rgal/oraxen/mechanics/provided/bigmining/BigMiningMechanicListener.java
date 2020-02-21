@@ -73,7 +73,7 @@ public class BigMiningMechanicListener implements Listener {
         Bukkit.getPluginManager().callEvent(blockBreakEvent);
         if (!blockBreakEvent.isCancelled())
             if (blockBreakEvent.isDropItems())
-                block.breakNaturally();
+                block.breakNaturally(itemStack);
             else
                 block.setType(Material.AIR);
     }
