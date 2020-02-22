@@ -57,8 +57,11 @@ public class HatMechanicListener implements Listener {
             return;
         ItemStack itemStack = event.getNewArmorPiece();
         String itemID = OraxenItems.getIdByItem(itemStack);
-        if (!factory.isNotImplementedIn(itemID))
-            event.setCancelled(true);
+        if (!factory.isNotImplementedIn(itemID)) {
+            Inventory inventory = event.getPlayer().getInventory();
+            inventory.setItem(5, event.getNewArmorPiece());
+            inventory.setItem(event.getType().getSlot(), null);
+        }
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
