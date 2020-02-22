@@ -41,7 +41,7 @@ public enum Pack implements ConfigEnum {
             message = String.join("\n", config.getStringList(section));
         else
             message = config.getString(section);
-        return MiniMessageParser.parseFormat(message, placeholders);
+        return MiniMessageParser.parseFormat(ChatColor.translateAlternateColorCodes('&', message), placeholders);
     }
 
     @Override

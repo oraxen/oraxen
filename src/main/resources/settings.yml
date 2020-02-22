@@ -23,7 +23,8 @@ Pack:
   dispatch:
     send_pack: true
     send_welcome_message: false
-    welcome_message:
+    welcome_message: # you can also use & color codes for simple messages but <balise> mini message formatting is better because
+                     # it supports custom actions (click, hover, etc) and also multiple lines messages
       - "<dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>"
       - ""
       - "<gray><bold>To see the new items you need to use a special resourcepack (but don't worry, this doesn't prevent you from using yours at the same time).</bold>"
