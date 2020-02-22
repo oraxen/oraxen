@@ -16,7 +16,7 @@ public class PotionEffectsMechanicListener implements Listener {
         this.factory = factory;
     }
 
-    @EventHandler(priority = EventPriority.NORMAL)
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemWorn(ArmorEquipEvent event) {
         ItemStack item = event.getNewArmorPiece();
         String itemID = OraxenItems.getIdByItem(item);

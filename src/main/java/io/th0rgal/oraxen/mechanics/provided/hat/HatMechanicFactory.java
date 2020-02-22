@@ -9,9 +9,12 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class HatMechanicFactory extends MechanicFactory {
 
+    private static HatMechanicFactory instance;
+
     public HatMechanicFactory(ConfigurationSection section) {
         super(section);
         MechanicsManager.registerListeners(OraxenPlugin.get(), new HatMechanicListener(this));
+        instance = this;
     }
 
     @Override
@@ -19,6 +22,10 @@ public class HatMechanicFactory extends MechanicFactory {
         Mechanic mechanic = new HatMechanic(this, itemMechanicConfiguration);
         addToImplemented(mechanic);
         return mechanic;
+    }
+
+    public static HatMechanicFactory get() {
+        return instance;
     }
 
 }
