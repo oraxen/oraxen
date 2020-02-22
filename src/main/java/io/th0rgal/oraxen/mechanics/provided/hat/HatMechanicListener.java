@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.hat;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 
@@ -15,6 +16,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.Inventory;
@@ -54,15 +56,11 @@ public class HatMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void OnPlaceHatNotOnHelmetSlot(ArmorEquipEvent event) {
-        if (event.getType().getSlot() == 5)
-            return;
-        ItemStack itemStack = event.getNewArmorPiece();
-        String itemID = OraxenItems.getIdByItem(itemStack);
-        Logs.log("slot: " + event.getType().getSlot());
-        Logs.log("itemid: " + itemID);
-        Logs.log("olditem: " + event.getOldArmorPiece());
-        Logs.log("type: " + event.getMethod());
-        if (!factory.isNotImplementedIn(itemID)) {
+        ItemStack newArmorPiece = event.getNewArmorPiece();
+        if (newArmorPiece != null) {
+            String itemID = OraxenItems.getIdByItem(newArmorPiece);
+            if (factory.isNotImplementedIn(itemID) || event.getMethod() != ArmorEquipEvent.EquipMethod.SHIFT_CLICK)
+                return;
             event.setCancelled(true);
         }
     }
