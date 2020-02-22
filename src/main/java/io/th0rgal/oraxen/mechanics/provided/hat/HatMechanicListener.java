@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorType;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -57,10 +58,12 @@ public class HatMechanicListener implements Listener {
             return;
         ItemStack itemStack = event.getNewArmorPiece();
         String itemID = OraxenItems.getIdByItem(itemStack);
+        Logs.log("slot: " + event.getType().getSlot());
+        Logs.log("itemid: " + itemID);
+        Logs.log("olditem: " + event.getOldArmorPiece());
+        Logs.log("type: " + event.getMethod());
         if (!factory.isNotImplementedIn(itemID)) {
-            Inventory inventory = event.getPlayer().getInventory();
-            inventory.setItem(5, event.getNewArmorPiece());
-            inventory.setItem(event.getType().getSlot(), null);
+            event.setCancelled(true);
         }
     }
 

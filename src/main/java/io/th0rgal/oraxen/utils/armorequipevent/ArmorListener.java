@@ -80,9 +80,8 @@ public class ArmorListener implements Listener {
             newArmorType = ArmorType.matchType(e.getCurrentItem());
             if (newArmorType != null) {
                 boolean equipping = true;
-                if (e.getRawSlot() == newArmorType.getSlot()) {
+                if (e.getRawSlot() == newArmorType.getSlot())
                     equipping = false;
-                }
                 if (newArmorType.equals(ArmorType.HELMET) && (equipping == isAirOrNull(e.getWhoClicked().getInventory().getHelmet())) || newArmorType.equals(ArmorType.CHESTPLATE)
                         && (equipping == isAirOrNull(e.getWhoClicked().getInventory().getChestplate())) || newArmorType.equals(ArmorType.LEGGINGS)
                         && (equipping == isAirOrNull(e.getWhoClicked().getInventory().getLeggings())) || newArmorType.equals(ArmorType.BOOTS)
