@@ -18,6 +18,7 @@ import java.io.File;
 public class RecipesManager {
 
     public static void load(JavaPlugin plugin) {
+        Bukkit.resetRecipes();
         Bukkit.getPluginManager().registerEvents(new RecipesBuilderEvents(), plugin);
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {
