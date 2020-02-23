@@ -21,21 +21,4 @@ public class PackSender implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.NORMAL)
-    public void onPlayerUpdatesPackStatus(PlayerResourcePackStatusEvent event) {
-
-        Player player = event.getPlayer();
-
-        switch (event.getStatus()) {
-            case DECLINED:
-                // todo: send a configurable alert message
-                break;
-            case FAILED_DOWNLOAD:
-
-            case ACCEPTED:
-                break;
-        }
-
-    }
-
 }

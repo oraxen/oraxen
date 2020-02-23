@@ -32,6 +32,45 @@ Pack:
       - ""
       - "<dark_gray>»<gray> To download it from the internet, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ install it from Options/ResourcePacks in your game\"><green><bold>CLICK HERE</bold></hover></click>"
 
+  receive:
+    accepted:
+      actions:
+        message:
+          enabled: false
+          # KICK / CHAT / ACTION_BAR / TITLE / BOSS_BAR
+          type: CHAT
+          # Delay between each message appears in seconds
+          # Only matters by using ACTION_BAR, TITLE or BOSS_BAR
+          delay: 0
+          # Click and Hover elements are only available by using the CHAT type
+          messages: []
+        commands: []
+    failed_download:
+      actions:
+        message:
+          enabled: true
+          # KICK / CHAT / ACTION_BAR / TITLE / BOSS_BAR
+          type: CHAT
+          # Delay between each message appears in seconds
+          # Only matters by using ACTION_BAR, TITLE or BOSS_BAR
+          delay: 0
+          # Click and Hover elements are only available by using the CHAT type
+          messages:
+            - "<dark_gray>»<gray> <click:run_command:/oraxen pack getpack><hover:show_text:\"<aqua>/!Click me to retry it!\"\>Do you want to retry the download?</hover></click>"
+        commands: []
+    denied:
+      actions:
+        message:
+          enabled: false
+          # KICK / CHAT / ACTION_BAR / TITLE / BOSS_BAR
+          type: CHAT
+          # Delay between each message appears in seconds
+          # Only matters by using ACTION_BAR, TITLE or BOSS_BAR
+          delay: 0
+          # Click and Hover elements are only available by using the CHAT type
+          messages: []
+        commands: []
+
 ConfigsTools:
   # Nice for production servers, automatically set model ID in settings so
   # that you can other items without destroying the others already created
