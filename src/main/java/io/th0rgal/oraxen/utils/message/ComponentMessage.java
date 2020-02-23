@@ -15,12 +15,17 @@ public class ComponentMessage extends Message {
     private MessageAction action;
 
     public ComponentMessage(BaseComponent... message) {
-        this.message = message;
+        this(0, message);
     }
 
     public ComponentMessage(int delay, BaseComponent... message) {
+        this(MessageAction.CHAT, delay, message);
+    }
+
+    public ComponentMessage(MessageAction action, int delay, BaseComponent... message) {
         super(delay);
         this.message = message;
+        this.action = action;
     }
 
     public BaseComponent[] getMessage() {
@@ -86,6 +91,15 @@ public class ComponentMessage extends Message {
             return messages;
         for(BaseComponent[] components : componentList)
             messages.add(new ComponentMessage(delay, components));
+        return messages;
+    }
+
+    public static List<ComponentMessage> convert(List<BaseComponent[]> componentList, int delay, MessageAction action) {
+        ArrayList<ComponentMessage> messages = new ArrayList<>(componentList.size());
+        if(componentList.isEmpty())
+            return messages;
+        for(BaseComponent[] components : componentList)
+            messages.add(new ComponentMessage(action, delay, components));
         return messages;
     }
 

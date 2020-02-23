@@ -38,11 +38,15 @@ public class MessageTimer extends Thread {
                 if(!queue.isEmpty()) {
                     for(Map.Entry<CommandSender, List<Message>> entry : queue.entrySet().stream().filter(checkEntry -> checkEntry.getValue().isEmpty()).collect(Collectors.toList())) {
                         List<Message> messages = entry.getValue();
-                        Message message = messages.get(0);
-                        if(!message.delay())
-                            continue;
-                        messages.remove(message);
-                        message.sendTo(entry.getKey());
+                        int sent = 0;
+                        for(Message message : messages) {
+                            if (!message.delay())
+                                break;
+                            message.sendTo(entry.getKey());
+                            sent++;
+                        }
+                        for(; sent != 0; sent--)
+                            messages.remove(0);
                         if(messages.isEmpty())
                             remove.add(entry.getKey());
                     }
@@ -60,6 +64,21 @@ public class MessageTimer extends Thread {
                     return;
             }
         }
+    }
+
+    public int queuedMessageCount(CommandSender sender) {
+        if(!queue.containsKey(sender))
+            return 0;
+        return queue.get(sender).size();
+    }
+
+    public int totalQueuedMessageCount() {
+        if(queue.isEmpty())
+            return 0;
+        int count = 0;
+        for(List<Message> messages : queue.values())
+            count += messages.size();
+        return count;
     }
 
     public void queue(CommandSender sender, Message... messages) {
