@@ -34,12 +34,16 @@ public class BossbarManager {
     }
 
     public BossbarMessager getFreeMessager() {
-        Optional<BossbarMessager> optional = available.stream().filter(BossbarMessager::free).findFirst();
+        Optional<BossbarMessager> optional = available.stream().filter(BossbarMessager::isFree).findFirst();
         if(optional.isPresent())
             return optional.get();
         BossbarMessager messager = new BossbarMessager(this);
         available.add(messager);
         return messager;
+    }
+
+    public void freeUnused() {
+        available.forEach(BossbarMessager::free);
     }
 
     public int size() {

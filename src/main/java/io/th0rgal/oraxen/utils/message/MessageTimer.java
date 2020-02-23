@@ -35,6 +35,7 @@ public class MessageTimer extends Thread {
         ArrayList<CommandSender> remove = new ArrayList<>();
         while(true) {
             try {
+                manager.freeUnused();
                 if(!queue.isEmpty()) {
                     for(Map.Entry<CommandSender, List<Message>> entry : queue.entrySet().stream().filter(checkEntry -> checkEntry.getValue().isEmpty()).collect(Collectors.toList())) {
                         List<Message> messages = entry.getValue();
@@ -55,8 +56,7 @@ public class MessageTimer extends Thread {
                             queue.remove(sender);
                         remove.clear();
                     }
-                } else
-                    manager.countFree();
+                }
                 Thread.sleep(1000);
             } catch(Throwable throwable) {
                 // Just check if timer is interrupted

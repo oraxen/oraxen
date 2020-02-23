@@ -47,6 +47,10 @@ public class BossbarMessager implements BossBar {
         return false;
     }
 
+    public boolean isFree() {
+        return current == null;
+    }
+
     public void forceFree() {
         unused = 0;
         resetBar();
