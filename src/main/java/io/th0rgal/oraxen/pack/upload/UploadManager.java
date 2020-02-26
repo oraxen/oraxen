@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.pack.dispatch.PackDispatcher;
 import io.th0rgal.oraxen.pack.dispatch.PackSender;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
+import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
 import io.th0rgal.oraxen.pack.upload.hosts.Sh;
@@ -33,6 +34,8 @@ public class UploadManager {
     }
 
     public void uploadAsyncAndSendToPlayers(ResourcePack resourcePack) {
+        if((boolean) Pack.RECEIVE_ENABLED.getValue())
+            Bukkit.getPluginManager().registerEvents(new PackReceiver(), plugin);
         if (!enabled)
             return;
         long time = System.currentTimeMillis();

@@ -45,7 +45,7 @@ public class CommandsMechanicListener implements Listener {
                         command.replace("%p%", playerName));
 
         if (mechanic.hasPlayerCommands())
-            for (String command : mechanic.getConsoleCommands())
+            for (String command : mechanic.getPlayerCommands())
                 Bukkit.dispatchCommand(player,
                         command.replace("%p%", playerName));
 
