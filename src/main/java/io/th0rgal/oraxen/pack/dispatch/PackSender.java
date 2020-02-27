@@ -2,15 +2,12 @@ package io.th0rgal.oraxen.pack.dispatch;
 
 import io.th0rgal.oraxen.settings.Pack;
 
-import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
 public class PackSender implements Listener {
-
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerConnect(PlayerJoinEvent event) {

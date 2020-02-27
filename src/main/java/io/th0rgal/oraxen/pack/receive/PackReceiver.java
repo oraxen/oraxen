@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.receive;
 
 import io.th0rgal.oraxen.settings.Pack;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.message.ComponentMessage;
 import io.th0rgal.oraxen.utils.message.Message;
 import io.th0rgal.oraxen.utils.message.MessageAction;
@@ -28,31 +29,51 @@ public class PackReceiver implements Listener {
         MessageAction action;
 
         PlayerResourcePackStatusEvent.Status status = event.getStatus();
-        if (status == PlayerResourcePackStatusEvent.Status.DECLINED){
-            action = MessageAction.fromString((String) Pack.RECEIVE_DENIED_MESSAGE_ACTION.getValue());
-            message = (boolean) Pack.RECEIVE_DENIED_SEND_MESSAGE.getValue();
-            delay = (int) Pack.RECEIVE_DENIED_MESSAGE_DELAY.getValue();
-            components = Pack.RECEIVE_DENIED_MESSAGE.toMiniMessageList();
-            commands = (List<String>) Pack.RECEIVE_DENIED_COMMANDS.getValue();
-        } else if(status == PlayerResourcePackStatusEvent.Status.FAILED_DOWNLOAD) {
-            action = MessageAction.fromString((String) Pack.RECEIVE_FAILED_MESSAGE_ACTION.getValue());
-            message = (boolean) Pack.RECEIVE_FAILED_SEND_MESSAGE.getValue();
-            delay = (int) Pack.RECEIVE_FAILED_MESSAGE_DELAY.getValue();
-            components = Pack.RECEIVE_FAILED_MESSAGE.toMiniMessageList();
-            commands = (List<String>) Pack.RECEIVE_FAILED_COMMANDS.getValue();
-        } else {
-            action = MessageAction.fromString((String) Pack.RECEIVE_ALLOWED_MESSAGE_ACTION.getValue());
-            message = (boolean) Pack.RECEIVE_ALLOWED_SEND_MESSAGE.getValue();
-            delay = (int) Pack.RECEIVE_ALLOWED_MESSAGE_DELAY.getValue();
-            components = Pack.RECEIVE_ALLOWED_MESSAGE.toMiniMessageList();
-            commands = (List<String>) Pack.RECEIVE_ALLOWED_COMMANDS.getValue();
+
+        switch (status) {
+
+            case ACCEPTED:
+                action = MessageAction.fromString((String) Pack.RECEIVE_ALLOWED_MESSAGE_ACTION.getValue());
+                message = (boolean) Pack.RECEIVE_ALLOWED_SEND_MESSAGE.getValue();
+                delay = (int) Pack.RECEIVE_ALLOWED_MESSAGE_DELAY.getValue();
+                components = Pack.RECEIVE_ALLOWED_MESSAGE.toMiniMessageList();
+                commands = (List<String>) Pack.RECEIVE_ALLOWED_COMMANDS.getValue();
+                break;
+
+            case DECLINED:
+                action = MessageAction.fromString((String) Pack.RECEIVE_DENIED_MESSAGE_ACTION.getValue());
+                message = (boolean) Pack.RECEIVE_DENIED_SEND_MESSAGE.getValue();
+                delay = (int) Pack.RECEIVE_DENIED_MESSAGE_DELAY.getValue();
+                components = Pack.RECEIVE_DENIED_MESSAGE.toMiniMessageList();
+                commands = (List<String>) Pack.RECEIVE_DENIED_COMMANDS.getValue();
+                break;
+
+            case FAILED_DOWNLOAD:
+                action = MessageAction.fromString((String) Pack.RECEIVE_FAILED_MESSAGE_ACTION.getValue());
+                message = (boolean) Pack.RECEIVE_FAILED_SEND_MESSAGE.getValue();
+                delay = (int) Pack.RECEIVE_FAILED_MESSAGE_DELAY.getValue();
+                components = Pack.RECEIVE_FAILED_MESSAGE.toMiniMessageList();
+                commands = (List<String>) Pack.RECEIVE_FAILED_COMMANDS.getValue();
+                break;
+
+            case SUCCESSFULLY_LOADED:
+                action = MessageAction.fromString((String) Pack.RECEIVE_LOADED_MESSAGE_ACTION.getValue());
+                message = (boolean) Pack.RECEIVE_LOADED_SEND_MESSAGE.getValue();
+                delay = (int) Pack.RECEIVE_LOADED_MESSAGE_DELAY.getValue();
+                components = Pack.RECEIVE_LOADED_MESSAGE.toMiniMessageList();
+                commands = (List<String>) Pack.RECEIVE_LOADED_COMMANDS.getValue();
+                break;
+
+            default:
+                throw new IllegalStateException("Unexpected value: " + status);
         }
 
-        if (message && components.isEmpty()) {
+        Logs.log("THIS IS A DEBUG MESSAGE");
+        if (message && !components.isEmpty())
             MessageTimer.getDefaultTimer().queue(event.getPlayer(), (List) ComponentMessage.convert(components, delay, action));
-        }
+
         if (!commands.isEmpty())
-            for(String command : commands)
+            for (String command : commands)
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%p%", event.getPlayer().getName()));
 
     }
