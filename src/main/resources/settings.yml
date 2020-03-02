@@ -24,7 +24,7 @@ Pack:
     send_pack: true
     send_welcome_message: false
     welcome_message: # you can also use & color codes for simple messages but <balise> mini message formatting is better because
-                     # it supports custom actions (click, hover, etc) and also multiple lines messages
+      # it supports custom actions (click, hover, etc) and also multiple lines messages
       - "<dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>"
       - ""
       - "<gray><bold>To see the new items you need to use a special resourcepack (but don't worry, this doesn't prevent you from using yours at the same time).</bold>"
@@ -39,25 +39,35 @@ Pack:
     loaded:
       actions:
         message:
-          enabled: false
-          # KICK / CHAT / ACTION_BAR / TITLE / BOSS_BAR
+          enabled: true
+          # KICK / CHAT / ACTION_BAR / TITLE
           type: ACTION_BAR
-          # Delay between each message appears in seconds
-          # Only matters by using ACTION_BAR, TITLE or BOSS_BAR
+          # Delay between each message appears in seconds (and before the first one to be sent)
           delay: 3
           # Click and Hover elements are only available by using the CHAT type
           messages:
-            - "&a&lResourcePack succerssfully loaded!"
+            - "&a&lResourcePack successfully loaded!"
+        commands: []
+
+    accepted:
+      actions:
+        message:
+          enabled: true
+          # KICK / CHAT / ACTION_BAR / TITLE
+          type: BOSS_BAR
+          # Delay between each message appears in seconds (and before the first one to be sent)
+          delay: 0
+          messages:
+            - "&a&lThank you for accepting the ResourcePack"
         commands: []
 
     denied:
       actions:
         message:
-          enabled: false
-          # KICK / CHAT / ACTION_BAR / TITLE / BOSS_BAR
+          enabled: true
+          # KICK / CHAT / ACTION_BAR / TITLE
           type: CHAT
-          # Delay between each message appears in seconds
-          # Only matters by using ACTION_BAR, TITLE or BOSS_BAR
+          # Delay between each message appears in seconds (and before the first one to be sent)
           delay: 0
           # Click and Hover elements are only available by using the CHAT type
           messages:
@@ -68,22 +78,13 @@ Pack:
       actions:
         message:
           enabled: true
-          # KICK / CHAT / ACTION_BAR / TITLE / BOSS_BAR
+          # KICK / CHAT / ACTION_BAR / TITLE
           type: CHAT
-          # Delay between each message get send in seconds
+          # Delay between each message appears in seconds (and before the first one to be sent)
           delay: 0
           # Click and Hover elements are only available by using the CHAT type
           messages:
             - "<dark_gray>»<gray> &cY<click:run_command:/oraxen pack getpack><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click>"
-        commands: []
-
-    accepted:
-      actions:
-        message:
-          enabled: false
-          type: ACTION_BAR
-          delay: 0
-          messages: []
         commands: []
 
 ConfigsTools:

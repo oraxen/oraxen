@@ -77,7 +77,8 @@ public enum Pack implements ConfigEnum {
         ConfigurationSection config = RESOURCES_MANAGER.getSettings().getConfigurationSection("Pack");
         ArrayList<BaseComponent[]> messages = new ArrayList<>();
         if (config.isList(section))
-            config.getStringList(section).forEach(message -> messages.add(MiniMessageParser.parseFormat(message, placeholders)));
+            config.getStringList(section).forEach(message -> messages.add(MiniMessageParser.parseFormat
+                    (ChatColor.translateAlternateColorCodes('&', message), placeholders)));
         else
             messages.add(MiniMessageParser.parseFormat(ChatColor.translateAlternateColorCodes('&', config.getString(section)), placeholders));
         return messages;

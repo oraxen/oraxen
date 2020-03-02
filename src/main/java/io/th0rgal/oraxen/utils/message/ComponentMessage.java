@@ -1,8 +1,6 @@
 package io.th0rgal.oraxen.utils.message;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import net.md_5.bungee.api.chat.BaseComponent;
-import org.bukkit.boss.BarColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -11,7 +9,6 @@ import java.util.List;
 
 public class ComponentMessage extends Message {
 
-    private static final BossbarManager BOSSBAR_MANAGER = new BossbarManager(OraxenPlugin.get());
     private final BaseComponent[] message;
     private MessageAction action;
 
@@ -43,12 +40,11 @@ public class ComponentMessage extends Message {
         return action;
     }
 
-
     @Override
     public void sendTo(CommandSender sender) {
+        Player player = (Player) sender;
         if (action == MessageAction.CHAT)
             sender.spigot().sendMessage(message);
-        Player player = (Player) sender;
         if (action.hasType()) {
             player.spigot().sendMessage(action.getType(), message);
             return;
@@ -57,14 +53,6 @@ public class ComponentMessage extends Message {
             player.kickPlayer(getContent());
         if (action == MessageAction.TITLE)
             player.sendTitle(stringifyComponents(message), "", 20, 100, 20);
-        else {
-            BossbarMessager messager = BOSSBAR_MANAGER.getFreeMessager();
-            messager.apply(player);
-            messager.setProgress(1);
-            messager.setColor(BarColor.RED);
-            messager.setTitle(stringifyComponents(message));
-            messager.setVisible(true);
-        }
     }
 
     public static String stringifyComponents(BaseComponent[] message) {
