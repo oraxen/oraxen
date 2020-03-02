@@ -38,26 +38,7 @@ public class CommandsMechanicListener implements Listener {
         CommandsMechanic mechanic = (CommandsMechanic) factory.getMechanic(itemID);
         Player player = event.getPlayer();
         String playerName = player.getName();
-
-        if (mechanic.hasConsoleCommands())
-            for (String command : mechanic.getConsoleCommands())
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                        command.replace("%p%", playerName));
-
-        if (mechanic.hasPlayerCommands())
-            for (String command : mechanic.getPlayerCommands())
-                Bukkit.dispatchCommand(player,
-                        command.replace("%p%", playerName));
-
-        if (mechanic.hasOppedPlayerCommands())
-            for (String command : mechanic.getOppedPlayerCommands()) {
-                boolean wasOp = player.isOp();
-                player.setOp(true);
-                Bukkit.dispatchCommand(player,
-                        command.replace("%p%", playerName));
-                player.setOp(wasOp);
-            }
-
+        mechanic.getCommands().perform(player);
     }
 
 }
