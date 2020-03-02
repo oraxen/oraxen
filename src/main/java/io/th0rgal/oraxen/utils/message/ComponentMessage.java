@@ -11,7 +11,7 @@ import java.util.List;
 
 public class ComponentMessage extends Message {
 
-    private static final BossbarManager bossBarManager = new BossbarManager(OraxenPlugin.get());
+    private static final BossbarManager BOSSBAR_MANAGER = new BossbarManager(OraxenPlugin.get());
     private final BaseComponent[] message;
     private MessageAction action;
 
@@ -58,7 +58,7 @@ public class ComponentMessage extends Message {
         if (action == MessageAction.TITLE)
             player.sendTitle(stringifyComponents(message), "", 20, 100, 20);
         else {
-            BossbarMessager messager = bossBarManager.getFreeMessager();
+            BossbarMessager messager = BOSSBAR_MANAGER.getFreeMessager();
             messager.apply(player);
             messager.setProgress(1);
             messager.setColor(BarColor.RED);
