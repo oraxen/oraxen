@@ -5,8 +5,6 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.commands.CommandsParser;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.List;
-
 public class CommandsMechanic extends Mechanic {
 
     private CommandsParser commandsParser;
