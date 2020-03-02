@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.utils.message;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.boss.BarColor;
@@ -9,8 +8,6 @@ import org.bukkit.boss.BarStyle;
 import org.bukkit.boss.BossBar;
 import org.bukkit.entity.Player;
 
-import javax.xml.stream.events.Namespace;
-import java.util.ArrayList;
 import java.util.List;
 
 public class BossbarMessager implements BossBar {

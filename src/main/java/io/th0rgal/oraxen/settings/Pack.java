@@ -76,10 +76,10 @@ public enum Pack implements ConfigEnum {
     public List<BaseComponent[]> toMiniMessageList(String... placeholders) {
         ConfigurationSection config = RESOURCES_MANAGER.getSettings().getConfigurationSection("Pack");
         ArrayList<BaseComponent[]> messages = new ArrayList<>();
-        if(config.isList(section))
+        if (config.isList(section))
             config.getStringList(section).forEach(message -> messages.add(MiniMessageParser.parseFormat(message, placeholders)));
         else
-            messages.add(MiniMessageParser.parseFormat(config.getString(section), placeholders));
+            messages.add(MiniMessageParser.parseFormat(ChatColor.translateAlternateColorCodes('&', config.getString(section)), placeholders));
         return messages;
     }
 

@@ -11,6 +11,7 @@ import java.util.List;
 
 public class ComponentMessage extends Message {
 
+    private static final BossbarManager bossBarManager = new BossbarManager(OraxenPlugin.get());
     private final BaseComponent[] message;
     private MessageAction action;
 
@@ -43,24 +44,21 @@ public class ComponentMessage extends Message {
     }
 
 
-
     @Override
     public void sendTo(CommandSender sender) {
-        if(action == MessageAction.CHAT)
+        if (action == MessageAction.CHAT)
             sender.spigot().sendMessage(message);
-        else if(!canSend(sender))
-            return;
         Player player = (Player) sender;
-        if(action.hasType()) {
+        if (action.hasType()) {
             player.spigot().sendMessage(action.getType(), message);
             return;
         }
-        if(action == MessageAction.KICK)
+        if (action == MessageAction.KICK)
             player.kickPlayer(getContent());
-        if(action == MessageAction.TITLE)
+        if (action == MessageAction.TITLE)
             player.sendTitle(stringifyComponents(message), "", 20, 100, 20);
         else {
-            BossbarMessager messager = MessageTimer.getDefaultTimer().getBossbarManager().getFreeMessager();
+            BossbarMessager messager = bossBarManager.getFreeMessager();
             messager.apply(player);
             messager.setProgress(1);
             messager.setColor(BarColor.RED);
@@ -71,34 +69,34 @@ public class ComponentMessage extends Message {
 
     public static String stringifyComponents(BaseComponent[] message) {
         StringBuilder builder = new StringBuilder();
-        for(BaseComponent component : message)
+        for (BaseComponent component : message)
             builder.append(component.toLegacyText());
         return builder.toString();
     }
 
     public static List<ComponentMessage> convert(List<BaseComponent[]> componentList) {
         ArrayList<ComponentMessage> messages = new ArrayList<>(componentList.size());
-        if(componentList.isEmpty())
+        if (componentList.isEmpty())
             return messages;
-        for(BaseComponent[] components : componentList)
+        for (BaseComponent[] components : componentList)
             messages.add(new ComponentMessage(components));
         return messages;
     }
 
     public static List<ComponentMessage> convert(List<BaseComponent[]> componentList, int delay) {
         ArrayList<ComponentMessage> messages = new ArrayList<>(componentList.size());
-        if(componentList.isEmpty())
+        if (componentList.isEmpty())
             return messages;
-        for(BaseComponent[] components : componentList)
+        for (BaseComponent[] components : componentList)
             messages.add(new ComponentMessage(delay, components));
         return messages;
     }
 
     public static List<ComponentMessage> convert(List<BaseComponent[]> componentList, int delay, MessageAction action) {
         ArrayList<ComponentMessage> messages = new ArrayList<>(componentList.size());
-        if(componentList.isEmpty())
+        if (componentList.isEmpty())
             return messages;
-        for(BaseComponent[] components : componentList)
+        for (BaseComponent[] components : componentList)
             messages.add(new ComponentMessage(action, delay, components));
         return messages;
     }

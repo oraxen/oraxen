@@ -16,20 +16,13 @@ public enum MessageAction {
     private final boolean onlyPlayer;
     private ChatMessageType type;
 
-    private MessageAction(boolean onlyPlayer) {
+    MessageAction(boolean onlyPlayer) {
         this.onlyPlayer = onlyPlayer;
     }
 
-    private MessageAction(ChatMessageType type) {
+    MessageAction(ChatMessageType type) {
         this.onlyPlayer = true;
         this.type = type;
-    }
-
-    public boolean isAbleToReceive(CommandSender sender) {
-        if(onlyPlayer && !(sender instanceof Player))
-            return true;
-        else
-            return !onlyPlayer;
     }
 
     public boolean hasType() {

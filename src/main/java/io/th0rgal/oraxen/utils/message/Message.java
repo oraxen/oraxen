@@ -13,15 +13,8 @@ public abstract class Message {
         this.delay = delay;
     }
 
-    public boolean delay() {
-        if(delay == 0)
-            return true;
-        delay--;
-        return false;
-    }
-
-    public boolean canSend(CommandSender sender) {
-        return getAction().isAbleToReceive(sender);
+    public int getDelay() {
+        return delay;
     }
 
     public abstract String getContent();

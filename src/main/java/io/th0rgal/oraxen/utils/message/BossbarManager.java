@@ -24,7 +24,7 @@ public class BossbarManager {
 
     protected NamespacedKey generateNamespace() {
         String randomKey = KeyGenerator.generateKey(5);
-        while(doesExist(randomKey))
+        while (doesExist(randomKey))
             randomKey = KeyGenerator.generateKey(5);
         return new NamespacedKey(plugin, randomKey);
     }
@@ -35,7 +35,7 @@ public class BossbarManager {
 
     public BossbarMessager getFreeMessager() {
         Optional<BossbarMessager> optional = available.stream().filter(BossbarMessager::isFree).findFirst();
-        if(optional.isPresent())
+        if (optional.isPresent())
             return optional.get();
         BossbarMessager messager = new BossbarMessager(this);
         available.add(messager);

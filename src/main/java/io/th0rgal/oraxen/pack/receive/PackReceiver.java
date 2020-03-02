@@ -1,20 +1,17 @@
 package io.th0rgal.oraxen.pack.receive;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.settings.Pack;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.message.ComponentMessage;
-import io.th0rgal.oraxen.utils.message.Message;
 import io.th0rgal.oraxen.utils.message.MessageAction;
-import io.th0rgal.oraxen.utils.message.MessageTimer;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
+import org.bukkit.command.CommandSender;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class PackReceiver implements Listener {
@@ -68,14 +65,21 @@ public class PackReceiver implements Listener {
                 throw new IllegalStateException("Unexpected value: " + status);
         }
 
-        Logs.log("THIS IS A DEBUG MESSAGE");
         if (message && !components.isEmpty())
-            MessageTimer.getDefaultTimer().queue(event.getPlayer(), (List) ComponentMessage.convert(components, delay, action));
+            sendMessageLoop(event.getPlayer(), ComponentMessage.convert(components, delay, action));
 
         if (!commands.isEmpty())
             for (String command : commands)
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%p%", event.getPlayer().getName()));
+    }
 
+    private void sendMessageLoop(CommandSender receiver, List<ComponentMessage> messages) {
+        ComponentMessage nextMessage = messages.remove(0);
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+            nextMessage.sendTo(receiver);
+            if (!messages.isEmpty())
+                sendMessageLoop(receiver, messages);
+        }, nextMessage.getDelay() * 20);
     }
 
 }
