@@ -23,6 +23,7 @@ public class PackReceiver implements Listener {
     public void onPlayerUpdatesPackStatus(PlayerResourcePackStatusEvent event) {
         boolean message;
         int delay;
+        int period;
         List<BaseComponent[]> components;
         CommandsParser commands;
         MessageAction action;
@@ -35,6 +36,7 @@ public class PackReceiver implements Listener {
                 action = MessageAction.fromString((String) Pack.RECEIVE_ALLOWED_MESSAGE_ACTION.getValue());
                 message = (boolean) Pack.RECEIVE_ALLOWED_SEND_MESSAGE.getValue();
                 delay = (int) Pack.RECEIVE_ALLOWED_MESSAGE_DELAY.getValue();
+                period = (int) Pack.RECEIVE_ALLOWED_MESSAGE_PERIOD.getValue();
                 components = Pack.RECEIVE_ALLOWED_MESSAGE.toMiniMessageList();
                 commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
                 break;
@@ -43,6 +45,7 @@ public class PackReceiver implements Listener {
                 action = MessageAction.fromString((String) Pack.RECEIVE_DENIED_MESSAGE_ACTION.getValue());
                 message = (boolean) Pack.RECEIVE_DENIED_SEND_MESSAGE.getValue();
                 delay = (int) Pack.RECEIVE_DENIED_MESSAGE_DELAY.getValue();
+                period = (int) Pack.RECEIVE_DENIED_MESSAGE_PERIOD.getValue();
                 components = Pack.RECEIVE_DENIED_MESSAGE.toMiniMessageList();
                 commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
                 break;
@@ -51,6 +54,7 @@ public class PackReceiver implements Listener {
                 action = MessageAction.fromString((String) Pack.RECEIVE_FAILED_MESSAGE_ACTION.getValue());
                 message = (boolean) Pack.RECEIVE_FAILED_SEND_MESSAGE.getValue();
                 delay = (int) Pack.RECEIVE_FAILED_MESSAGE_DELAY.getValue();
+                period = (int) Pack.RECEIVE_FAILED_MESSAGE_PERIOD.getValue();
                 components = Pack.RECEIVE_FAILED_MESSAGE.toMiniMessageList();
                 commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
                 break;
@@ -59,6 +63,7 @@ public class PackReceiver implements Listener {
                 action = MessageAction.fromString((String) Pack.RECEIVE_LOADED_MESSAGE_ACTION.getValue());
                 message = (boolean) Pack.RECEIVE_LOADED_SEND_MESSAGE.getValue();
                 delay = (int) Pack.RECEIVE_LOADED_MESSAGE_DELAY.getValue();
+                period = (int) Pack.RECEIVE_LOADED_MESSAGE_PERIOD.getValue();
                 components = Pack.RECEIVE_LOADED_MESSAGE.toMiniMessageList();
                 commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
                 break;
@@ -68,18 +73,17 @@ public class PackReceiver implements Listener {
         }
 
         if (message && !components.isEmpty())
-            sendMessageLoop(event.getPlayer(), ComponentMessage.convert(components, delay, action));
+            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> sendMessageLoop(event.getPlayer(), ComponentMessage.convert(components, period, action)), delay);
 
         commands.perform(event.getPlayer());
     }
 
     private void sendMessageLoop(CommandSender receiver, List<ComponentMessage> messages) {
         ComponentMessage nextMessage = messages.remove(0);
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
-            nextMessage.sendTo(receiver);
-            if (!messages.isEmpty())
-                sendMessageLoop(receiver, messages);
-        }, nextMessage.getDelay() * 20);
+        nextMessage.sendTo(receiver);
+        if (!messages.isEmpty())
+            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(),
+                    () -> sendMessageLoop(receiver, messages), nextMessage.getDelay() * 20);
     }
 
 }

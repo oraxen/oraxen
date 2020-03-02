@@ -29,24 +29,28 @@ public enum Pack implements ConfigEnum {
     RECEIVE_ENABLED("receive.enabled"),
 
     RECEIVE_ALLOWED_SEND_MESSAGE("receive.accepted.actions.message.enabled"),
+    RECEIVE_ALLOWED_MESSAGE_PERIOD("receive.accepted.actions.message.period"),
     RECEIVE_ALLOWED_MESSAGE_DELAY("receive.accepted.actions.message.delay"),
     RECEIVE_ALLOWED_MESSAGE_ACTION("receive.accepted.actions.message.type"),
     RECEIVE_ALLOWED_MESSAGE("receive.accepted.actions.message.messages"),
     RECEIVE_ALLOWED_COMMANDS("receive.accepted.actions.commands"),
 
     RECEIVE_LOADED_SEND_MESSAGE("receive.loaded.actions.message.enabled"),
+    RECEIVE_LOADED_MESSAGE_PERIOD("receive.loaded.actions.message.period"),
     RECEIVE_LOADED_MESSAGE_DELAY("receive.loaded.actions.message.delay"),
     RECEIVE_LOADED_MESSAGE_ACTION("receive.loaded.actions.message.type"),
     RECEIVE_LOADED_MESSAGE("receive.loaded.actions.message.messages"),
     RECEIVE_LOADED_COMMANDS("receive.loaded.actions.commands"),
 
     RECEIVE_FAILED_SEND_MESSAGE("receive.failed_download.actions.message.enabled"),
+    RECEIVE_FAILED_MESSAGE_PERIOD("receive.failed_download.actions.message.period"),
     RECEIVE_FAILED_MESSAGE_DELAY("receive.failed_download.actions.message.delay"),
     RECEIVE_FAILED_MESSAGE_ACTION("receive.failed_download.actions.message.type"),
     RECEIVE_FAILED_MESSAGE("receive.failed_download.actions.message.messages"),
     RECEIVE_FAILED_COMMANDS("receive.failed_download.actions.commands"),
 
     RECEIVE_DENIED_SEND_MESSAGE("receive.denied.actions.message.enabled"),
+    RECEIVE_DENIED_MESSAGE_PERIOD("receive.denied.actions.message.period"),
     RECEIVE_DENIED_MESSAGE_DELAY("receive.denied.actions.message.delay"),
     RECEIVE_DENIED_MESSAGE_ACTION("receive.denied.actions.message.type"),
     RECEIVE_DENIED_MESSAGE("receive.denied.actions.message.messages"),

@@ -42,24 +42,39 @@ Pack:
           enabled: true
           # KICK / CHAT / ACTION_BAR / TITLE
           type: ACTION_BAR
-          # Delay between each message appears in seconds (and before the first one to be sent)
-          delay: 3
+          # Delay before the first message to appear, this is in seconds
+          delay: 0
+          # You only need a period if you send multiple messages of type ACTION_BAR or TITLE
+          period: -1
           # Click and Hover elements are only available by using the CHAT type
           messages:
             - "&a&lResourcePack successfully loaded!"
-        commands: []
+
+        # If you need to send commands
+        commands:
+          console: []
+          player: []
+          opped_player: []
 
     accepted:
       actions:
         message:
           enabled: true
           # KICK / CHAT / ACTION_BAR / TITLE
-          type: BOSS_BAR
-          # Delay between each message appears in seconds (and before the first one to be sent)
+          type: TITLE
+          # Delay before the first message to appear, this is in seconds
           delay: 0
+          # You only need a period if you send multiple messages of type ACTION_BAR or TITLE
+          period: 3
+          # Click and Hover elements are only available by using the CHAT type
           messages:
-            - "&a&lThank you for accepting the ResourcePack"
-        commands: []
+            - "&a&lResourcePack accepted!"
+            - "Thank you"
+        # If you need to send commands
+        commands:
+          console: []
+          player: []
+          opped_player: []
 
     denied:
       actions:
@@ -67,12 +82,18 @@ Pack:
           enabled: true
           # KICK / CHAT / ACTION_BAR / TITLE
           type: CHAT
-          # Delay between each message appears in seconds (and before the first one to be sent)
+          # Delay before the first message to appear, this is in seconds
           delay: 0
+          # You can put any value here because this is a CHAT message
+          period: -1
           # Click and Hover elements are only available by using the CHAT type
           messages:
-            - "<dark_gray>»<gray> <click:run_command:/oraxen pack getpack><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click>"
-        commands: []
+            - "<red>You refused the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:/oraxen pack><hover:show_text:\"<green>Display more informations\"><green><bold>CLICK HERE</bold></hover></click> <red>or type <bold>/o pack"
+        # If you need to send commands
+        commands:
+          console: []
+          player: []
+          opped_player: []
 
     failed_download:
       actions:
@@ -80,12 +101,18 @@ Pack:
           enabled: true
           # KICK / CHAT / ACTION_BAR / TITLE
           type: CHAT
-          # Delay between each message appears in seconds (and before the first one to be sent)
+          # Delay before the first message to appear, this is in seconds
           delay: 0
+          # You can put any value here because this is a CHAT message
+          period: -1
           # Click and Hover elements are only available by using the CHAT type
           messages:
-            - "<dark_gray>»<gray> &cY<click:run_command:/oraxen pack getpack><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click>"
-        commands: []
+            - "<red>You failed to download the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:/oraxen pack getpack><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click> <red>to retry or type <bold>/o pack</bold> and download it from the internet"
+        # If you need to send commands
+        commands:
+          console: []
+          player: []
+          opped_player: []
 
 ConfigsTools:
   # Nice for production servers, automatically set model ID in settings so
