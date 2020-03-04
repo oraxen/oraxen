@@ -49,8 +49,11 @@ public class BlockMechanicListener implements Listener {
             return;
 
         MultipleFacing blockFacing = (MultipleFacing) block.getBlockData();
-        BlockMechanicFactory
-                .getBlockMechanic(Utils.getCode(blockFacing))
+        BlockMechanic blockMechanic = BlockMechanicFactory
+                .getBlockMechanic(Utils.getCode(blockFacing));
+        if (blockMechanic == null)
+            return;
+        blockMechanic
                 .getDrop()
                 .spawns(block.getLocation(),
                         event.getPlayer().getInventory()
