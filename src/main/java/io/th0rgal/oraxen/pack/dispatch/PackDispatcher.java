@@ -1,7 +1,9 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.settings.Pack;
 import net.md_5.bungee.api.chat.BaseComponent;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 public class PackDispatcher {
@@ -22,8 +24,13 @@ public class PackDispatcher {
     }
 
     public static void sendWelcomeMessage(Player player) {
-        BaseComponent[] components = Pack.WELCOME_MESSAGE.toMiniMessage("pack_url", url);
-        player.spigot().sendMessage(components);
+        BaseComponent[] components = Pack.JOIN_MESSAGE_CONTENT.toMiniMessage("pack_url", url);
+        int delay = (int) Pack.JOIN_MESSAGE_DELAY.getValue();
+        if (delay == -1)
+            player.spigot().sendMessage(components);
+        else
+            Bukkit.getScheduler().runTaskLaterAsynchronously(OraxenPlugin.get(),
+                    () -> player.spigot().sendMessage(components), delay*20);
     }
 
 }

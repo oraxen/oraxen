@@ -11,7 +11,7 @@ public class PackSender implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerConnect(PlayerJoinEvent event) {
-        if ((boolean) Pack.SEND_WELCOME_MESSAGE.getValue())
+        if ((boolean) Pack.SEND_JOIN_MESSAGE.getValue())
             PackDispatcher.sendWelcomeMessage(event.getPlayer());
         if ((boolean) Pack.SEND_PACK.getValue()) {
             PackDispatcher.sendPack(event.getPlayer());

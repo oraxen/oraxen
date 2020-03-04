@@ -23,8 +23,9 @@ public enum Pack implements ConfigEnum {
     POLYMATH_SERVER("upload.polymath.server"),
 
     SEND_PACK("dispatch.send_pack"),
-    SEND_WELCOME_MESSAGE("dispatch.send_welcome_message"),
-    WELCOME_MESSAGE("dispatch.welcome_message"),
+    SEND_JOIN_MESSAGE("dispatch.join_message.enabled"),
+    JOIN_MESSAGE_DELAY("dispatch.join_message.delay"),
+    JOIN_MESSAGE_CONTENT("dispatch.join_message.content"),
 
     RECEIVE_ENABLED("receive.enabled"),
 
