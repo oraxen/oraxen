@@ -22,6 +22,20 @@
 # o italic
 # r reset (reset format and color)
 
+obsidian_pickaxe:
+  displayname: "&dObsidian Pickaxe"
+  material: IRON_PICKAXE
+  lore:
+    - "&8» &7Ludicrous durability"
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - obsidian_pickaxe.png
+  Mechanics:
+    durability:
+      value: 15000 #diamond sword is 1561
+
 bedrock_pickaxe:
   displayname: "&bBedrock Pickaxe"
   material: STONE_PICKAXE

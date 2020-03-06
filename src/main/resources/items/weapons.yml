@@ -56,6 +56,8 @@ energy_crystal_sword:
 glass_sword:
   displayname: "&fGlass Sword"
   material: DIAMOND_SWORD
+  lore:
+    - "&8» &7Fragile"
   AttributeModifiers:
     # diamond sword has an attack damage of 7
     - {name: "oraxen", attribute: GENERIC_ATTACK_DAMAGE, amount: 10, operation: 0, uuid: d1fe3908-8aa8-49bb-8c1f-907b765a43ab, slot: HAND}
@@ -73,6 +75,8 @@ glass_sword:
 obsidian_sword:
   displayname: "&dObsidian Sword"
   material: DIAMOND_SWORD
+  lore:
+    - "&8» &7Ludicrous durability"
   AttributeModifiers:
     # diamond sword has an attack damage of 7
     - {name: "oraxen", attribute: GENERIC_ATTACK_DAMAGE, amount: 6, operation: 0, uuid: d1fe3908-8aa8-49bb-8c1f-907b765a43ab, slot: HAND}
