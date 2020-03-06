@@ -53,15 +53,39 @@ energy_crystal_sword:
     generate_model: false
     model: energy_crystal_sword
 
-dagger:
-  displayname: "&cDagger"
+glass_sword:
+  displayname: "&fGlass Sword"
   material: DIAMOND_SWORD
+  AttributeModifiers:
+    # diamond sword has an attack damage of 7
+    - {name: "oraxen", attribute: GENERIC_ATTACK_DAMAGE, amount: 10, operation: 0, uuid: d1fe3908-8aa8-49bb-8c1f-907b765a43ab, slot: HAND}
+    # it has as 5 full-strength attacks per second
+    - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
   Pack:
-    generate_model: false
-    model: dagger
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - glass_sword.png
   Mechanics:
     durability:
-      value: 10 #diamond sword is 1561
+      value: 8
+
+obsidian_sword:
+  displayname: "&dObsidian Sword"
+  material: DIAMOND_SWORD
+  AttributeModifiers:
+    # diamond sword has an attack damage of 7
+    - {name: "oraxen", attribute: GENERIC_ATTACK_DAMAGE, amount: 6, operation: 0, uuid: d1fe3908-8aa8-49bb-8c1f-907b765a43ab, slot: HAND}
+    # it has as 5 full-strength attacks per second
+    - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - obsidian_sword.png
+  Mechanics:
+    durability:
+      value: 10000
 
 blood_sword:
   displayname: "&cBlood Sword"
@@ -82,6 +106,26 @@ blood_sword:
     durability:
       value: 500 #diamond sword is 1561
 
+octavia_sword:
+  displayname: "&7Octavia Sword"
+  material: DIAMOND_SWORD
+  Pack:
+    generate_model: false
+    model: octavia_sword
+  Mechanics:
+    durability:
+      value: 600 #diamond sword is 1561
+
+dagger:
+  displayname: "&cDagger"
+  material: DIAMOND_SWORD
+  Pack:
+    generate_model: false
+    model: dagger
+  Mechanics:
+    durability:
+      value: 10 #diamond sword is 1561
+
 katana:
   displayname: "&eKatana"
   material: DIAMOND_SWORD
@@ -96,13 +140,3 @@ katana:
   Mechanics:
     durability:
       value: 1000 #diamond sword is 1561
-
-octavia_sword:
-  displayname: "&7Octavia Sword"
-  material: DIAMOND_SWORD
-  Pack:
-    generate_model: false
-    model: octavia_sword
-  Mechanics:
-    durability:
-      value: 600 #diamond sword is 1561
