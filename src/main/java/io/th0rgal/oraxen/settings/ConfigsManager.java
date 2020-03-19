@@ -4,11 +4,10 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.IOException;
@@ -114,17 +113,28 @@ public class ConfigsManager {
                 .filter(file -> file.getName().endsWith(".yml"))
                 .map(YamlConfiguration::loadConfiguration)
                 .collect(Collectors.toList());
-        for (YamlConfiguration config : configs)
+        ItemParser errorItem = new ItemParser((ConfigurationSection) Plugin.ERROR_ITEM.getValue());
+        for (YamlConfiguration config : configs) {
             for (String itemSectionName : config.getKeys(false)) {
                 ConfigurationSection itemSection = config.getConfigurationSection(itemSectionName);
                 parseMap.put(itemSectionName, new ItemParser(itemSection));
             }
+        }
         boolean configUpdated = false;
         // because we must have parse all the items before building them to be able to use available models
         Map<String, ItemBuilder> map = new LinkedHashMap<>();
         for (Map.Entry<String, ItemParser> entry : parseMap.entrySet()) {
             ItemParser itemParser = entry.getValue();
-            map.put(entry.getKey(), itemParser.buildItem());
+            try {
+                map.put(entry.getKey(), itemParser.buildItem());
+            } catch (Exception e) {
+                map.put(entry.getKey(),
+                        errorItem.buildItem(String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD +
+                                e.getClass().getSimpleName() +
+                                ": " + ChatColor.RED + entry.getKey()));
+                Logs.logError("ERROR BUILDING ITEM \"" + entry.getKey() + "\"");
+                e.printStackTrace();
+            }
             if (itemParser.isConfigUpdated())
                 configUpdated = true;
         }

@@ -45,15 +45,23 @@ public class ItemParser {
         }
     }
 
-    public ItemBuilder buildItem() {
-
+    public ItemBuilder buildItem(String name) {
         ItemBuilder item = new ItemBuilder(type);
+        item.setDisplayName(name);
+        return applyConfig(item);
+    }
+
+    public ItemBuilder buildItem() {
+        ItemBuilder item = new ItemBuilder(type);
+        if (section.contains("displayname"))
+            item.setDisplayName(ChatColor.translateAlternateColorCodes('&', section.getString("displayname")));
+        return applyConfig(item);
+    }
+
+    private ItemBuilder applyConfig(ItemBuilder item) {
 
         if (section.contains("durability"))
             item.setDurability((short) section.getInt("durability"));
-
-        if (section.contains("displayname"))
-            item.setDisplayName(ChatColor.translateAlternateColorCodes('&', section.getString("displayname")));
 
         if (section.contains("lore")) {
             List<String> lore = section.getStringList("lore");
@@ -83,7 +91,6 @@ public class ItemParser {
         }
 
         if (section.contains("AttributeModifiers")) {
-
             @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
                     List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section.getList("AttributeModifiers");
             for (LinkedHashMap<String, Object> attributeJson : attributes) {
