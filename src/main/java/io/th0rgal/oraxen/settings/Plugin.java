@@ -12,6 +12,7 @@ public enum Plugin implements ConfigEnum {
     CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),
     AUTOMATICALLY_SET_MODEL_ID("ConfigsTools.automatically_set_model_id"),
+    ERROR_ITEM("ConfigsTools.error_item"),
 
     ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass");
 

@@ -121,6 +121,10 @@ ConfigsTools:
   # that you can other items without destroying the others already created
   automatically_set_model_id: false
   enable_configs_updater: true
+  error_item:
+    material: PODZOL
+    excludeFromInventory: false # set to true if you don't want to display it inside inventory
+    injectID: false
 
 Misc:
   # All blocks with an inventory or any blocks that when right clicked shouldn't equip armor.
