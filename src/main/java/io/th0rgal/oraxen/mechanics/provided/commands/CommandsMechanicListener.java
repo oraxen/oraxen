@@ -40,8 +40,10 @@ public class CommandsMechanicListener implements Listener {
         CommandsMechanic mechanic = (CommandsMechanic) factory.getMechanic(itemID);
         Player player = event.getPlayer();
 
-        if (!mechanic.hasPermission(player))
+        if (!mechanic.hasPermission(player)) {
             Message.DONT_HAVE_PERMISSION.send(player, mechanic.getPermission());
+            return;
+        }
 
         Timer playerTimer = mechanic.getTimer(player);
         if (!playerTimer.isFinished()) {

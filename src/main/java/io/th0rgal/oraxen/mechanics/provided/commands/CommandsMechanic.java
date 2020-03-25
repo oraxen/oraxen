@@ -13,7 +13,6 @@ public class CommandsMechanic extends Mechanic {
     private CommandsParser commandsParser;
     private boolean oneUsage;
     private String permission;
-    private boolean hasTimer = false;
     private TimersFactory timersFactory;
 
     public CommandsMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -27,10 +26,7 @@ public class CommandsMechanic extends Mechanic {
         if (section.isString("permission"))
             this.permission = section.getString("permission");
 
-        if (section.isLong("delay")) {
-            this.hasTimer = true;
-            this.timersFactory = new TimersFactory(section.getLong("delay"));
-        }
+        this.timersFactory = new TimersFactory(section.getLong("delay"));
 
     }
 
@@ -44,10 +40,6 @@ public class CommandsMechanic extends Mechanic {
 
     public boolean hasPermission(Player player) {
         return permission == null || player.hasPermission(this.permission);
-    }
-
-    public boolean hasTimer() {
-        return  this.hasTimer;
     }
 
     public Timer getTimer(Player player) {
