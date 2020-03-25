@@ -18,7 +18,6 @@ import java.text.DecimalFormat;
 public class ThorMechanicListener implements Listener {
 
     private final MechanicFactory factory;
-    private static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("##.##");
 
     public ThorMechanicListener(MechanicFactory factory) {
         this.factory = factory;
@@ -40,7 +39,7 @@ public class ThorMechanicListener implements Listener {
         Timer playerTimer = mechanic.getTimer(player);
 
         if (!playerTimer.isFinished()) {
-            Message.DELAY.send(player, DECIMAL_FORMAT.format(playerTimer.getRemainingTimeMillis() / 1000D));
+            Message.DELAY.send(player, Timer.DECIMAL_FORMAT.format(playerTimer.getRemainingTimeMillis() / 1000D));
             return;
         }
 
