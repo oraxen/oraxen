@@ -3,7 +3,7 @@
 ![Header](https://oraxen.com/thread/header_vector.svg)
 
 # What is it?
-Oraxen is a minecraft plugin allowing to easily exploit 1.14 new features in order to create new items. One of its key features is to be able to generate the texture pack automatically from the configuration, which greatly simplifies the work of administrators. Its vocation is also to be used by developers to be able to increase its functionalities via its API.
+Oraxen is a minecraft plugin that allows you to modify the game by adding new items, weapons, blocks, and more. One of its key features is to be able to generate the texture pack automatically from the configuration, which greatly simplifies the work of administrators. Its vocation is also to be used by developers to be able to increase its functionalities via its API.
 
 ![Demo image for animation](https://oraxen.com/thread/animation_demo.png)
 ![Demo image for some items](https://oraxen.com/thread/full_demo.png)
@@ -13,8 +13,10 @@ Oraxen is a minecraft plugin allowing to easily exploit 1.14 new features in ord
 - Automatically upload the resource-pack
 - Automatically send the resource-pack to your players
 - Allow to create new items in a few lines of configuration
-- Support custom items, weapons, armors, blocks [coming soon], entities [coming soon] and more
+- Support custom items, weapons, armors, blocks, and more
 - Modular mechanics system to empower your items
+- Automatically update configurations when you update the plugin
+- Handle configuration errors
 
 # Configuration
 ## Creating a new item is super easy
