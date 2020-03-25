@@ -38,6 +38,10 @@ public class CommandsMechanic extends Mechanic {
         return this.oneUsage;
     }
 
+    public String getPermission() {
+        return this.permission;
+    }
+
     public boolean hasPermission(Player player) {
         return permission == null || player.hasPermission(this.permission);
     }
