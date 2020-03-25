@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.mechanics.provided.commands;
 
 import io.th0rgal.oraxen.items.OraxenItems;
 
+import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.utils.timers.Timer;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -37,8 +39,22 @@ public class CommandsMechanicListener implements Listener {
 
         CommandsMechanic mechanic = (CommandsMechanic) factory.getMechanic(itemID);
         Player player = event.getPlayer();
-        String playerName = player.getName();
+
+        if (!mechanic.hasPermission(player))
+            Message.DONT_HAVE_PERMISSION.send(player, mechanic.getPermission());
+
+        Timer playerTimer = mechanic.getTimer(player);
+        if (!playerTimer.isFinished()) {
+            Message.DELAY.send(player, Timer.DECIMAL_FORMAT.format(playerTimer.getRemainingTimeMillis() / 1000D));
+            return;
+        }
+
+        playerTimer.reset();
+
         mechanic.getCommands().perform(player);
+
+        if (mechanic.isOneUsage())
+            item.setAmount(item.getAmount()-1);
     }
 
 }
