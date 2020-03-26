@@ -1,6 +1,3 @@
-
-
-
 package io.th0rgal.oraxen.recipes;
 
 import org.bukkit.inventory.ItemStack;

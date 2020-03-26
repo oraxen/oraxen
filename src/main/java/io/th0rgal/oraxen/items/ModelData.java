@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.items;
 
 import org.bukkit.Material;
-import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.Collections;
 import java.util.HashMap;

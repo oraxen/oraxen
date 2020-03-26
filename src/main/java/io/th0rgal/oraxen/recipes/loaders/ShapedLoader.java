@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
-import io.th0rgal.oraxen.recipes.CustomRecipe;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;

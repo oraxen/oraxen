@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.utils.OS;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 public class Debug implements CommandInterface {
 

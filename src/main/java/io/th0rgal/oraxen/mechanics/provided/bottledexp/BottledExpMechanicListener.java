@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.mechanics.provided.bottledexp;
 import io.th0rgal.oraxen.items.OraxenItems;
 
 import io.th0rgal.oraxen.settings.Message;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

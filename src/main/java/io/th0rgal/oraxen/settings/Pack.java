@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.settings;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageParser;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.ChatColor;

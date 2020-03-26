@@ -1,9 +1,6 @@
 package io.th0rgal.oraxen.utils.message;
 
 import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.BaseComponent;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 
 public enum MessageAction {
 

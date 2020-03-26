@@ -11,8 +11,6 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.*;
 
-import java.util.List;
-
 public abstract class RecipeLoader {
 
     private final ConfigurationSection section;
