@@ -27,13 +27,15 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
 
 public class BedrockBreakMechanicManager {
 
-    private Set<Location> locations = new HashSet<>();
+    private Map<Location, BukkitScheduler> breakerPerLocation = new HashMap<>();
     private final ProtocolManager protocolManager;
 
     private void sendBlockBreak(Player player, Location location, int stage) {
@@ -78,15 +80,18 @@ public class BedrockBreakMechanicManager {
                 if (factory.isDisabledOnFirstLayer() && location.getBlockY() == 0)
                     return;
                 if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
-                    locations.add(location);
 
+                    if (breakerPerLocation.containsKey(location))
+                        breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
                     BukkitScheduler scheduler = Bukkit.getScheduler();
+                    breakerPerLocation.put(location, scheduler);
+
                     scheduler.runTaskTimer(OraxenPlugin.get(), new Consumer<BukkitTask>() {
                         int value = 0;
 
                         @Override
                         public void accept(BukkitTask bukkitTask) {
-                            if (!locations.contains(location)) {
+                            if (!breakerPerLocation.containsKey(location)) {
                                 bukkitTask.cancel();
                                 return;
                             }
@@ -115,7 +120,7 @@ public class BedrockBreakMechanicManager {
                     }, mechanic.delay, mechanic.period);
 
                 } else {
-                    locations.remove(location);
+                    breakerPerLocation.remove(location);
                     sendBlockBreak(player, location, 10);
                 }
             }
