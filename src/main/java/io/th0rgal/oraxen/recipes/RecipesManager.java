@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.recipes.listeners.RecipesBuilderEvents;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.recipes.loaders.ShapedLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
+import io.th0rgal.oraxen.settings.Message;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -28,7 +29,7 @@ public class RecipesManager {
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();
     }
-    
+
     private static void registerAllConfigRecipesFromFolder(File recipesFolder) {
         for (File configFile : recipesFolder.listFiles()) {
             registerConfigRecipes(configFile);
@@ -44,16 +45,20 @@ public class RecipesManager {
     }
 
     private static void registerRecipeByType(File configFile, ConfigurationSection recipeSection) {
-        switch (configFile.getName()) {
-            case "shaped.yml":
-                new ShapedLoader(recipeSection).registerRecipe();
-                break;
-            case "shapeless.yml":
-                new ShapelessLoader(recipeSection).registerRecipe();
-                break;
-            default:
-                Logs.logError(configFile.getName());
-                break;
+        try {
+            switch (configFile.getName()) {
+                case "shaped.yml":
+                    new ShapedLoader(recipeSection).registerRecipe();
+                    break;
+                case "shapeless.yml":
+                    new ShapelessLoader(recipeSection).registerRecipe();
+                    break;
+                default:
+                    Logs.logError(configFile.getName());
+                    break;
+            }
+        } catch (NullPointerException exception) {
+            Message.BAD_RECIPE.logError(recipeSection.getName());
         }
     }
 }
