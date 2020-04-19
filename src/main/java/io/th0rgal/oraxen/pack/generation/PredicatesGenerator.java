@@ -35,18 +35,28 @@ public class PredicatesGenerator {
         //overrides
         JsonArray overrides = new JsonArray();
 
-        //custom items
-        for (ItemBuilder item : items) {
-            JsonObject override = new JsonObject();
-            JsonObject predicate = new JsonObject();
-            predicate.addProperty("custom_model_data", item.getOraxenMeta().getCustomModelData());
-            override.add("predicate", predicate);
-            override.addProperty("model", item.getOraxenMeta().getModelName());
-            overrides.add(override);
+        //specific items
+        if (material == Material.SHIELD) {
+            overrides.add(getOverride("blocking", 1, "item/shield_blocking"));
         }
+
+        //custom items
+        for (ItemBuilder item : items)
+            overrides.add(getOverride("custom_model_data",
+                    item.getOraxenMeta().getCustomModelData(),
+                    item.getOraxenMeta().getModelName()));
 
         json.add("overrides", overrides);
 
+    }
+
+    private JsonObject getOverride(String property, int propertyValue, String model) {
+        JsonObject override = new JsonObject();
+        JsonObject predicate = new JsonObject();
+        predicate.addProperty(property, propertyValue);
+        override.add("predicate", predicate);
+        override.addProperty("model", model);
+        return override;
     }
 
     public String getVanillaModelName(Material material) {
