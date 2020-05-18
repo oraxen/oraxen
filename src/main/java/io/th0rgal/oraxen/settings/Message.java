@@ -12,6 +12,7 @@ public enum Message {
     CONFIGS_VALIDATION_FAILED(ChatColor.RED, "Configurations validation failed, plugin automatically disabled!"),
     NOT_A_PLAYER_ERROR(ChatColor.RED, "You must be a player to use this command!"),
     COMMAND_DOES_NOT_EXIST_ERROR(ChatColor.RED, "This command doesn't exist, check the doc!"),
+    CANNOT_BE_REPAIRED(ChatColor.RED, "This item cannot be repaired!"),
     ZIP_BROWSE_ERROR(ChatColor.RED, "An error occured browsing the zip"),
     DONT_HAVE_PERMISSION(ChatColor.RED, "You need the permission %s to do this"),
     MECHANIC_DOESNT_EXIST(ChatColor.RED, "The mechanic %s doesn't exist"),
