@@ -1,8 +1,12 @@
-configs_version: 3
+configs_version: 4
 
 Plugin:
   name: "Oraxen"
   prefix: "&8&l[&bOraxen&8&l] §7"
+
+  commands:
+    repair:
+      oraxen_durability_only: false # will not repair vanilla items if set to true
 
 Pack:
   generation:
