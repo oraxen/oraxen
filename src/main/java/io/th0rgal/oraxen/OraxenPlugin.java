@@ -40,7 +40,8 @@ public class OraxenPlugin extends JavaPlugin {
                 .register("pack", new Pack())
                 .register("recipes", new Recipes())
                 .register("inv", new InventoryVisualizer())
-                .register("give", new Give());
+                .register("give", new Give())
+                .register("repair", new Repair());
         PluginCommand command = getCommand("oraxen");
         command.setExecutor(handler);
         // use brigadier if supported

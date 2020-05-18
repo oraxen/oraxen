@@ -32,6 +32,11 @@ permissions:
     description: Allows to view the inventory visualizer
   oraxen.command.inv.give:
     description: Allows to send the resourcepack
+  oraxen.command.repair.*:
+    description: Allows to repair oraxen items
+    children:
+      oraxen.command.repair.hand: true
+      oraxen.command.repair.all: true
   oraxen.command.pack:
     description: Allows to reload components of the plugin
   oraxen.command.reload:

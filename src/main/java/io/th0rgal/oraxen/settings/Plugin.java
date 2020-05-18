@@ -9,6 +9,9 @@ public enum Plugin implements ConfigEnum {
 
     NAME("Plugin.name"),
     PREFIX("Plugin.prefix"),
+
+    REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),
+
     CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),
     AUTOMATICALLY_SET_MODEL_ID("ConfigsTools.automatically_set_model_id"),
