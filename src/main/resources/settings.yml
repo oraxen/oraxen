@@ -131,6 +131,10 @@ ConfigsTools:
     injectID: false
 
 Misc:
+  # If this is set to true, Oraxen will reset recipes on reload. This might create conflicts with other plugins
+  # but this makes the things easier if you want to try your oraxen recipes.
+  reset_recipes: true
+
   # All blocks with an inventory or any blocks that when right clicked shouldn't equip armor.
   armor_equip_event_bypass:
     - FURNACE
