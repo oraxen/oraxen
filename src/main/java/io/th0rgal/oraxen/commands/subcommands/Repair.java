@@ -6,7 +6,7 @@ import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanic;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.settings.Message;
 import io.th0rgal.oraxen.settings.Plugin;
-import io.th0rgal.oraxen.utils.logs.Logs;
+
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -41,8 +41,11 @@ public class Repair implements CommandInterface {
 
         if (repairAll) {
             boolean repaired = false;
-            for (ItemStack item : player.getInventory().getContents())
-                if (!repaired && repairPlayerItem(item))
+            for (ItemStack item : player.getInventory().getStorageContents())
+                if (!repaired && item != null && repairPlayerItem(item))
+                    repaired = true;
+            for (ItemStack item : player.getInventory().getArmorContents())
+                if (!repaired && item != null && repairPlayerItem(item))
                     repaired = true;
             if (!repaired)
                 Message.CANNOT_BE_REPAIRED.send(sender);
