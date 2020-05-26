@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanic;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.settings.Message;
 import io.th0rgal.oraxen.settings.Plugin;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -39,15 +40,15 @@ public class Repair implements CommandInterface {
         Player player = (Player) sender;
 
         if (repairAll) {
-            boolean repairResult = repairPlayerItem(player.getInventory().getItemInMainHand());
-            if (!repairResult)
-                Message.CANNOT_BE_REPAIRED.send(sender);
-        } else {
             boolean repaired = false;
             for (ItemStack item : player.getInventory().getContents())
                 if (!repaired && repairPlayerItem(item))
                     repaired = true;
             if (!repaired)
+                Message.CANNOT_BE_REPAIRED.send(sender);
+        } else {
+            boolean repairResult = repairPlayerItem(player.getInventory().getItemInMainHand());
+            if (!repairResult)
                 Message.CANNOT_BE_REPAIRED.send(sender);
         }
         return true;
@@ -56,18 +57,15 @@ public class Repair implements CommandInterface {
     private boolean repairPlayerItem(ItemStack toRepair) {
         String toRepairId = OraxenItems.getIdByItem(toRepair);
         ItemMeta toRepairMeta = toRepair.getItemMeta();
-        Damageable damageable = (Damageable) toRepairMeta;
         if (!(toRepairMeta instanceof Damageable))
             return false;
-
+        Damageable damageable = (Damageable) toRepairMeta;
         DurabilityMechanicFactory durabilityFactory = DurabilityMechanicFactory.get();
         if (durabilityFactory.isNotImplementedIn(toRepairId)) {
             if ((boolean) Plugin.REPAIR_COMMAND_ORAXEN_DURABILITY.getValue()) // not oraxen item
                 return false;
-
             if (damageable.getDamage() == 0) // full durability
                 return false;
-
         } else {
             DurabilityMechanic durabilityMechanic = (DurabilityMechanic) durabilityFactory.getMechanic(toRepairId);
             PersistentDataContainer persistentDataContainer = toRepairMeta.getPersistentDataContainer();
@@ -79,6 +77,7 @@ public class Repair implements CommandInterface {
                     realMaxDurability);
         }
         damageable.setDamage(0);
+        toRepair.setItemMeta((ItemMeta) damageable);
         return true;
     }
 
