@@ -25,7 +25,7 @@ public class ItemParser {
 
     private static final Map<String, ModelData> MODEL_DATAS_BY_ID = new HashMap<>();
 
-    private OraxenMeta oraxenMeta;
+    private final OraxenMeta oraxenMeta;
     private final ConfigurationSection section;
     private final Material type;
     private boolean configUpdated = false;
