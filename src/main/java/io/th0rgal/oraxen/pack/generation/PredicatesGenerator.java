@@ -46,19 +46,22 @@ public class PredicatesGenerator {
                     item.getOraxenMeta().getCustomModelData(),
                     item.getOraxenMeta().getModelName()));
             if (item.getOraxenMeta().hasBlockingModel()) {
-                overrides.add(getOverride("blocking",
-                        1,
-                        item.getOraxenMeta().getBlockingModelName()));
+                JsonObject predicate = new JsonObject();
+                predicate.addProperty("blocking", 1);
+                overrides.add(getOverride(predicate, "custom_model_data",
+                        item.getOraxenMeta().getCustomModelData(),
+                        item.getOraxenMeta().getModelName()));
             }
         }
-
         json.add("overrides", overrides);
-
     }
 
     private JsonObject getOverride(String property, int propertyValue, String model) {
+        return getOverride(new JsonObject(), property, propertyValue, model);
+    }
+
+    private JsonObject getOverride(JsonObject predicate, String property, int propertyValue, String model) {
         JsonObject override = new JsonObject();
-        JsonObject predicate = new JsonObject();
         predicate.addProperty(property, propertyValue);
         override.add("predicate", predicate);
         override.addProperty("model", model);
