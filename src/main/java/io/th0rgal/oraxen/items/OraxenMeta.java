@@ -8,27 +8,25 @@ public class OraxenMeta {
 
     private int customModelData;
     private String modelName;
+    private String blockingModel;
     private List<String> layers;
     private String parentModel;
     private boolean generate_model;
     private boolean hasPackInfos = false;
     private boolean excludedFromInventory = false;
 
-    public OraxenMeta () {
-
-    }
-
     public void setExcludedFromInventory() {
         this.excludedFromInventory = true;
     }
 
-    public boolean isExcludedFromInventory () {
-        return  excludedFromInventory;
+    public boolean isExcludedFromInventory() {
+        return excludedFromInventory;
     }
 
     public void setPackInfos(ConfigurationSection configurationSection) {
         this.hasPackInfos = true;
-        this.modelName = readModelName(configurationSection);
+        this.modelName = readModelName(configurationSection, "model");
+        this.blockingModel = readModelName(configurationSection, "blocking_model");
         this.layers = configurationSection.getStringList("textures");
         // can't be refactored with for each or stream because it'll throw ConcurrentModificationException
         for (int i = 0; i < layers.size(); i++) {
@@ -40,12 +38,10 @@ public class OraxenMeta {
         this.parentModel = configurationSection.getString("parent_model");
     }
 
-    // this is maybe not a really good function name
-    private String readModelName(ConfigurationSection configurationSection) {
-        String modelName = configurationSection.getString("model");
-        if (modelName == null)
-            return configurationSection.getParent().getName();
-        if (modelName.endsWith(".json"))
+    // this might not be a really good function name
+    private String readModelName(ConfigurationSection configurationSection, String configString) {
+        String modelName = configurationSection.getString(configString);
+        if (modelName != null && modelName.endsWith(".json"))
             return modelName.substring(0, modelName.length() - 5);
         return modelName;
     }
@@ -59,7 +55,7 @@ public class OraxenMeta {
     }
 
     public int getCustomModelData() {
-        return  customModelData;
+        return customModelData;
     }
 
     public void setModelName(String modelName) {
@@ -68,6 +64,14 @@ public class OraxenMeta {
 
     public String getModelName() {
         return modelName;
+    }
+
+    public boolean hasBlockingModel() {
+        return blockingModel != null;
+    }
+
+    public String getBlockingModelName() {
+        return blockingModel;
     }
 
     public boolean hasLayers() {

@@ -41,10 +41,16 @@ public class PredicatesGenerator {
         }
 
         //custom items
-        for (ItemBuilder item : items)
+        for (ItemBuilder item : items) {
             overrides.add(getOverride("custom_model_data",
                     item.getOraxenMeta().getCustomModelData(),
                     item.getOraxenMeta().getModelName()));
+            if (item.getOraxenMeta().hasBlockingModel()) {
+                overrides.add(getOverride("blocking",
+                        1,
+                        item.getOraxenMeta().getBlockingModelName()));
+            }
+        }
 
         json.add("overrides", overrides);
 
@@ -85,6 +91,8 @@ public class PredicatesGenerator {
             return "item/handheld";
         if (material == Material.FISHING_ROD)
             return "item/handheld_rod";
+        if (material == Material.SHIELD)
+            return "builtin/entity";
         return "item/generated";
     }
 
