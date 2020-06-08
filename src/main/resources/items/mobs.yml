@@ -22,15 +22,10 @@
 # o italic
 # r reset (reset format and color)
 
+# This item needs to be used with an external plugin (for example to be put as a hat on an invisible zombie)
 goblin_beetle:
   material: WOODEN_HOE
   excludeFromInventory: true
   Pack:
     generate_model: false
     model: goblin_beetle
-  Mechanics:
-    Mob:
-      base: ZOMBIE
-      artificial_intelligence: DEFAULT
-      equipment:
-        head: {goblin_beetle: 100.0} # item_section: percentage of loot
