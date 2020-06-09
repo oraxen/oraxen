@@ -41,8 +41,11 @@ public class OraxenMeta {
     // this might not be a really good function name
     private String readModelName(ConfigurationSection configurationSection, String configString) {
         String modelName = configurationSection.getString(configString);
-        if (modelName != null && modelName.endsWith(".json"))
+        if (modelName == null && configString.equals("model"))
+            return configurationSection.getParent().getName();
+        if (modelName.endsWith(".json"))
             return modelName.substring(0, modelName.length() - 5);
+
         return modelName;
     }
 

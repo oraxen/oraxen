@@ -50,7 +50,7 @@ public class PredicatesGenerator {
                 predicate.addProperty("blocking", 1);
                 overrides.add(getOverride(predicate, "custom_model_data",
                         item.getOraxenMeta().getCustomModelData(),
-                        item.getOraxenMeta().getModelName()));
+                        item.getOraxenMeta().getBlockingModelName()));
             }
         }
         json.add("overrides", overrides);
