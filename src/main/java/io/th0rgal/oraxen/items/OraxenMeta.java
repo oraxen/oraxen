@@ -43,7 +43,7 @@ public class OraxenMeta {
         String modelName = configurationSection.getString(configString);
         if (modelName == null && configString.equals("model"))
             return configurationSection.getParent().getName();
-        if (modelName.endsWith(".json"))
+        if (modelName != null && modelName.endsWith(".json"))
             return modelName.substring(0, modelName.length() - 5);
 
         return modelName;
