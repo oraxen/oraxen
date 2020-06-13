@@ -46,7 +46,6 @@ amethyst_ore:
     parent_model: block/cube_all
     textures:
       - amethyst_ore
-    custom_model_data: 2
   Mechanics:
     block:
       custom_variation: 2
@@ -67,7 +66,6 @@ ruby_ore:
     parent_model: block/cube_all
     textures:
       - ruby_ore
-    custom_model_data: 3
   Mechanics:
     block:
       custom_variation: 3
@@ -88,7 +86,6 @@ onyx_ore:
     parent_model: block/cube_all
     textures:
       - onyx_ore
-    custom_model_data: 4
   Mechanics:
     block:
       custom_variation: 4
@@ -109,7 +106,6 @@ orax_ore:
     parent_model: block/cube_all
     textures:
       - orax_ore
-    custom_model_data: 5
   Mechanics:
     block:
       custom_variation: 5
