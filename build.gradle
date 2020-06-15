@@ -23,6 +23,8 @@ repositories {
     maven { url "http://repo.dmulloy2.net/nexus/repository/public/" }
     //Minecraft repo (commodore)
     maven { url "https://libraries.minecraft.net/" }
+    //MythicMobs
+    maven { url "https://mvn.lumine.io/repository/maven-releases/"}
     jcenter() // needed for building shadow from protocolLib 4.5.0
 }
 
@@ -41,6 +43,7 @@ dependencies {
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
     implementation group: "me.lucko", name: "commodore", version: "1.3"
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '+'
+    implementation group: "io.lumine.xikage", name: "MythicMobs", version: "4.9.1"
 }
 
 processResources {
