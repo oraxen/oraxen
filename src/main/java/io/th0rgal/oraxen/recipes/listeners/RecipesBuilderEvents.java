@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.recipes.listeners;
 
 import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
-
 import org.bukkit.Material;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -20,7 +19,7 @@ public class RecipesBuilderEvents implements Listener {
         RecipeBuilder recipeBuilder = RecipeBuilder.get(event.getWhoClicked().getUniqueId());
         if (recipeBuilder == null
                 || !event.getView().getTitle().equals(recipeBuilder.getInventoryTitle())
-                || !event.getInventory().getType().equals(InventoryType.WORKBENCH)
+                || !(event.getInventory().getType().equals(InventoryType.WORKBENCH) || event.getInventory().getType().equals(InventoryType.FURNACE))
                 || event.getSlotType() != InventoryType.SlotType.RESULT)
             return;
 
