@@ -48,11 +48,6 @@ public class FurnaceBuilder extends RecipeBuilder{
         setSerializedItem(newCraftSection.createSection("result"), content[2]);
         setSerializedItem(newCraftSection.createSection("input"), content[0]);
 
-        Bukkit.getConsoleSender().sendMessage(Arrays.toString(cookingTimeMenu.text.toArray()));
-        Bukkit.getConsoleSender().sendMessage(Arrays.toString(experienceMenu.text.toArray()));
-
-
-
         if(cookingTimeMenu != null)
             newCraftSection.set("cookingTime", Integer.parseInt(cookingTimeMenu.text.get(0)));
         else
