@@ -1,0 +1,31 @@
+amethyst:
+  experience: 200
+  cookingTime: 200
+  result:
+    oraxen_item: amethyst
+  input:
+    oraxen_item: amethyst_ore
+
+ruby:
+  experience: 200
+  cookingTime: 200
+  result:
+    oraxen_item: ruby
+  input:
+    oraxen_item: ruby_ore
+
+onyx:
+  experience: 200
+  cookingTime: 200
+  result:
+    oraxen_item: onyx
+  input:
+    oraxen_item: onyx_ore
+
+orax:
+  experience: 200
+  cookingTime: 200
+  result:
+    oraxen_item: orax
+  input:
+    oraxen_item: orax_ore

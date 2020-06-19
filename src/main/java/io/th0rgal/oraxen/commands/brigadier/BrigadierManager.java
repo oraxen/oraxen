@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.commands.brigadier;
 
-import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
+import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
 import me.lucko.commodore.Commodore;
@@ -17,7 +17,12 @@ public class BrigadierManager {
                                         .then(RequiredArgumentBuilder.argument("amount", IntegerArgumentType.integer())))))
                 .then(LiteralArgumentBuilder.literal("inv"))
                 .then(LiteralArgumentBuilder.literal("recipes")
-                        .then(LiteralArgumentBuilder.literal("open"))
+                        .then(LiteralArgumentBuilder.literal("open")
+                                .then(LiteralArgumentBuilder.literal("shaped"))
+                                .then(LiteralArgumentBuilder.literal("shapeless"))
+                                .then(LiteralArgumentBuilder.literal("furnace")
+                                    .then(LiteralArgumentBuilder.literal("cookingtime"))
+                                    .then(LiteralArgumentBuilder.literal("experience"))))
                         .then(LiteralArgumentBuilder.literal("save")))
                 .then(LiteralArgumentBuilder.literal("reload")
                         .then(LiteralArgumentBuilder.literal("items"))

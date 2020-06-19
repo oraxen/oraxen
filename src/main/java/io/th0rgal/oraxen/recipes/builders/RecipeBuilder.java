@@ -91,6 +91,10 @@ public abstract class RecipeBuilder {
         return inventoryTitle;
     }
 
+    public Player getPlayer() {
+        return player;
+    }
+
     public void open() {
         player.openInventory(inventory);
     }

@@ -3,12 +3,12 @@ package io.th0rgal.oraxen.recipes;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.recipes.listeners.RecipesBuilderEvents;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
+import io.th0rgal.oraxen.recipes.loaders.FurnaceLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapedLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
 import io.th0rgal.oraxen.settings.Message;
 import io.th0rgal.oraxen.settings.Plugin;
 import io.th0rgal.oraxen.settings.ResourcesManager;
-
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -54,6 +54,9 @@ public class RecipesManager {
                     break;
                 case "shapeless.yml":
                     new ShapelessLoader(recipeSection).registerRecipe();
+                    break;
+                case "furnace.yml":
+                    new FurnaceLoader(recipeSection).registerRecipe();
                     break;
                 default:
                     Logs.logError(configFile.getName());
