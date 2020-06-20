@@ -8,11 +8,10 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-public class FurnaceBuilder extends RecipeBuilder{
+public class FurnaceBuilder extends RecipeBuilder {
 
     private SignMenuFactory.Menu cookingTimeMenu;
     private SignMenuFactory.Menu experienceMenu;
@@ -48,12 +47,12 @@ public class FurnaceBuilder extends RecipeBuilder{
         setSerializedItem(newCraftSection.createSection("result"), content[2]);
         setSerializedItem(newCraftSection.createSection("input"), content[0]);
 
-        if(cookingTimeMenu != null)
+        if (cookingTimeMenu != null)
             newCraftSection.set("cookingTime", Integer.parseInt(cookingTimeMenu.text.get(0)));
         else
             newCraftSection.set("cookingTime", 200);
 
-        if(experienceMenu != null)
+        if (experienceMenu != null)
             newCraftSection.set("experience", Integer.parseInt(experienceMenu.text.get(0)));
         else
             newCraftSection.set("experience", 200);

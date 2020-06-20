@@ -29,7 +29,7 @@ public abstract class RecipeBuilder {
     public RecipeBuilder(Player player, String builderName) {
         this.player = player;
         this.builderName = builderName;
-        this.inventoryTitle = player.getName() + " " + builderName + " builder§o§r§a§x§e§n"; // watermark
+        this.inventoryTitle = player.getName() + " " + builderName + " builder";
         UUID playerId = player.getUniqueId();
         inventory = MAP.containsKey(playerId)
                 ? MAP.get(playerId).inventory

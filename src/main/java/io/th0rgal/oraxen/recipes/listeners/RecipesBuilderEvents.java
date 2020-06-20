@@ -19,10 +19,8 @@ public class RecipesBuilderEvents implements Listener {
         RecipeBuilder recipeBuilder = RecipeBuilder.get(event.getWhoClicked().getUniqueId());
         if (recipeBuilder == null
                 || !event.getView().getTitle().equals(recipeBuilder.getInventoryTitle())
-                || !(event.getInventory().getType().equals(InventoryType.WORKBENCH) || event.getInventory().getType().equals(InventoryType.FURNACE))
                 || event.getSlotType() != InventoryType.SlotType.RESULT)
             return;
-
         event.setCancelled(true);
         ItemStack currentResult = event.getCurrentItem() != null ? event.getCurrentItem().clone() : new ItemStack(Material.AIR);
         ItemStack currentCursor = event.getCursor() != null ? event.getCursor().clone() : new ItemStack(Material.AIR);
