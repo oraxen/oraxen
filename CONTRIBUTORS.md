@@ -4,7 +4,8 @@
 
 ### Code improvement
 > Developers who have contributed to the source code
-* [AntoineJT](https://github.com/AntoineJT): active contributor, who contributed refactors.
+* [AntoineJT](https://github.com/AntoineJT): made greats refactors.
+* [yzl210](https://github.com/yzl210): active contributor, introduced mythicmobs support and shapeless+furnace recipes.
 * [Lauriichen](https://github.com/Lauriichen): did a great work with the recipes system
 * [Karlatemp](https://github.com/Karlatemp): added support for external hosting providers
 * [MrMicky](https://github.com/MrMicky-FR): developer of [FastInv](https://github.com/MrMicky-FR/FastInv) (used in this plugin)
