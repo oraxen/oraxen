@@ -23,17 +23,22 @@ public class ShapelessBuilder extends WorkbenchBuilder {
         Map<ItemStack, Integer> items = new HashMap<>();
         ItemStack[] content = getInventory().getContents();
         for (int i = 1; i < content.length; i++)
-            items.put(content[i], items.getOrDefault(content[i], 0) + 1);
+            if(content[i] != null)
+                items.put(content[i], items.getOrDefault(content[i], 0) + 1);
+
 
         ConfigurationSection newCraftSection = getConfig().createSection(name);
         setSerializedItem(newCraftSection.createSection("result"), content[0]);
         ConfigurationSection ingredients = newCraftSection.createSection("ingredients");
 
-        for (int i = 1; i < items.size(); i++) {
-            ConfigurationSection ingredientSection = ingredients.createSection(String.valueOf((char) (64 + i)));
-            ingredientSection.set("amount", items.values().toArray()[i]);
-            setSerializedItem(ingredientSection, content[i]);
+        int i = 0;
+
+        for (Map.Entry<ItemStack, Integer> item  : items.entrySet()) {
+            ConfigurationSection ingredientSection = ingredients.createSection(String.valueOf((char) (64 + ++i)));
+            ingredientSection.set("amount", item.getValue());
+            setSerializedItem(ingredientSection, item.getKey());
         }
+
         if (permission != null)
             newCraftSection.set("permission", permission);
         saveConfig();
