@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -19,8 +20,8 @@ import java.util.*;
 public class RecipesEventsManager implements Listener {
 
     private static RecipesEventsManager instance;
-    private Map<CustomRecipe, String> permissionsPerRecipe = new HashMap<>();
-    private Set<CustomRecipe> whitelistedCraftRecipes = new HashSet<>();
+    private final Map<CustomRecipe, String> permissionsPerRecipe = new HashMap<>();
+    private final Set<CustomRecipe> whitelistedCraftRecipes = new HashSet<>();
 
     public static RecipesEventsManager get() {
         if (instance == null) {
@@ -52,9 +53,15 @@ public class RecipesEventsManager implements Listener {
         if (!containsOraxenItem)
             return;
 
-        for (CustomRecipe whitelistedRecipe : whitelistedCraftRecipes)
-            if (whitelistedRecipe.equals(new CustomRecipe(recipe.getResult(), Arrays.asList(event.getInventory().getMatrix()))))
+        for (CustomRecipe whitelistedRecipe : whitelistedCraftRecipes) {
+            if (whitelistedRecipe.equals(
+                    new CustomRecipe(
+                            Objects.requireNonNull(recipe).getResult(),
+                            Arrays.asList(event.getInventory().getMatrix())
+                    )
+            ))
                 return;
+        }
 
         event.getInventory().setResult(new ItemStack(Material.AIR));
     }
@@ -64,6 +71,7 @@ public class RecipesEventsManager implements Listener {
     }
 
     public void whitelistRecipe(CustomRecipe recipe) {
+        Logs.log("whitelisting recipe:" + recipe);
         whitelistedCraftRecipes.add(recipe);
     }
 

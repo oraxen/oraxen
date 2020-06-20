@@ -1,8 +1,11 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapelessRecipe;
+
+import java.util.Objects;
 
 
 public class ShapelessLoader extends RecipeLoader {
@@ -16,12 +19,13 @@ public class ShapelessLoader extends RecipeLoader {
         ShapelessRecipe recipe = new ShapelessRecipe(getNamespacedKey(), getResult());
         ConfigurationSection ingredientsSection = getSection().getConfigurationSection("ingredients");
 
-        for(String ingredientLetter : ingredientsSection.getKeys(false)) {
+        for (String ingredientLetter : Objects.requireNonNull(ingredientsSection).getKeys(false)) {
             ConfigurationSection itemSection = ingredientsSection.getConfigurationSection(ingredientLetter);
-            RecipeChoice ingredient = getRecipeChoice(itemSection);
-            for(int i = 0;i < itemSection.getInt("amount");i++)
+            RecipeChoice ingredient = getRecipeChoice(Objects.requireNonNull(itemSection));
+            for (int i = 0; i < itemSection.getInt("amount"); i++)
                 recipe.addIngredient(ingredient);
         }
+        Logs.logError("registering shapeless");
         addToWhitelistedRecipes(recipe);
         loadRecipe(recipe);
     }
