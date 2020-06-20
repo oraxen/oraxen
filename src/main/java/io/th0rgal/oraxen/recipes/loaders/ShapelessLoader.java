@@ -25,7 +25,6 @@ public class ShapelessLoader extends RecipeLoader {
             for (int i = 0; i < itemSection.getInt("amount"); i++)
                 recipe.addIngredient(ingredient);
         }
-        Logs.logError("registering shapeless");
         addToWhitelistedRecipes(recipe);
         loadRecipe(recipe);
     }

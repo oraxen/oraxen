@@ -21,7 +21,7 @@ public class FurnaceLoader extends RecipeLoader {
                 ),
                 getSection().getInt("experience"),
                 getSection().getInt("cookingTime"));
-        addToWhitelistedRecipes(recipe);
+        //addToWhitelistedRecipes(recipe); <- no whitelist for furnace recipes
         loadRecipe(recipe);
     }
 }

@@ -29,7 +29,6 @@ public class ShapedLoader extends RecipeLoader {
                     ingredientLetter.charAt(0),
                     getRecipeChoice(Objects.requireNonNull(itemSection)));
         }
-        Logs.logError("registering shaped");
         addToWhitelistedRecipes(recipe);
         loadRecipe(recipe);
     }

@@ -71,7 +71,6 @@ public class RecipesEventsManager implements Listener {
     }
 
     public void whitelistRecipe(CustomRecipe recipe) {
-        Logs.log("whitelisting recipe:" + recipe);
         whitelistedCraftRecipes.add(recipe);
     }
 
