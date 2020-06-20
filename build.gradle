@@ -8,7 +8,6 @@ plugins {
 
 group "io.th0rgal"
 def pluginVersion = "1.30.0"
-sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
@@ -20,7 +19,7 @@ repositories {
     //CodeMc (bstats)
     maven { url "https://repo.codemc.org/repository/maven-public" }
     //ProtocolLib
-    maven { url "http://repo.dmulloy2.net/nexus/repository/public/" }
+    maven { url "https://repo.dmulloy2.net/nexus/repository/public/" }
     //Minecraft repo (commodore)
     maven { url "https://libraries.minecraft.net/" }
     //MythicMobs
@@ -56,6 +55,7 @@ shadowJar {
     relocate "org.bstats.bukkit", "io.th0rgal.oraxen.bstats"
     relocate "me.lucko:commodore", "io.th0rgal.oraxen.commodore"
     minimize { exclude("io.th0rgal.oraxen.api.*") }
+    archiveClassifier.set(pluginVersion)
     archiveClassifier.set(pluginVersion)
 
     manifest {
