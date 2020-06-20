@@ -13,6 +13,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 public abstract class RecipeBuilder {
@@ -29,9 +30,9 @@ public abstract class RecipeBuilder {
     public RecipeBuilder(Player player, String builderName) {
         this.player = player;
         this.builderName = builderName;
-        this.inventoryTitle = player.getName() + " " + builderName + " builder";
+        this.inventoryTitle = player.getName() + " " + builderName + " builder§o§r§a§x§e§n"; // watermark
         UUID playerId = player.getUniqueId();
-        inventory = MAP.containsKey(playerId)
+        inventory = MAP.containsKey(playerId) && MAP.get(playerId).builderName.equals(builderName)
                 ? MAP.get(playerId).inventory
                 : createInventory(player, inventoryTitle);
         player.openInventory(inventory);
@@ -53,7 +54,7 @@ public abstract class RecipeBuilder {
         String itemID = OraxenItems.getIdByItem(itemStack);
 
         //if our itemstack is made using oraxen and is not modified
-        if (itemID != null && OraxenItems.getItemById(itemID).build().equals(itemStack)) {
+        if (itemID != null && Objects.equals(OraxenItems.getItemById(itemID).build().getItemMeta(), itemStack.getItemMeta())) {
             section.set("oraxen_item", itemID);
             return;
         }
