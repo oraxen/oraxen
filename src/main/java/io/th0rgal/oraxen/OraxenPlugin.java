@@ -64,7 +64,7 @@ public class OraxenPlugin extends JavaPlugin {
         RecipesManager.load(this);
         FastInvManager.register(this);
         new ArmorListener(Plugin.ARMOR_EQUIP_EVENT_BYPASS.getAsStringList()).registerEvents(this);
-        if(getServer().getPluginManager().isPluginEnabled("MythicMobs"))
+        if (getServer().getPluginManager().isPluginEnabled("MythicMobs"))
             new MythicMobsListener().registerEvents(this);
         registerCommands();
         Logs.log(ChatColor.GREEN + "Successfully loaded on " + OS.getOs().getPlatformName());
@@ -82,7 +82,7 @@ public class OraxenPlugin extends JavaPlugin {
         return instance;
     }
 
-    public SignMenuFactory getSignMenuFactory(){
+    public SignMenuFactory getSignMenuFactory() {
         return signMenuFactory;
     }
 
