@@ -190,9 +190,14 @@ diamond_cog:
     repair:
       ratio: 1.0
 
-serpe:
-  displayname: "&rSerpe"
-  material: STONE_HOE
+iron_serpe:
+  displayname: "&7Iron Serpe"
+  material: WOODEN_HOE
+  Pack:
+    generate_model: true
+    parent_model: "item/handheld"
+    textures:
+      - iron_serpe.png
   Mechanics:
     harvesting:
       radius: 5
