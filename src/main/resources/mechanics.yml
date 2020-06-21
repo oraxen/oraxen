@@ -45,3 +45,6 @@ bedrockbreak:
   enabled: true
   disable_on_first_layer: false # Set it on true to avoid player breaking the ground ...completely
   durability_cost: 500
+
+harvesting:
+  enabled: true

@@ -189,3 +189,11 @@ diamond_cog:
   Mechanics:
     repair:
       ratio: 1.0
+
+serpe:
+  displayname: "&rSerpe"
+  material: STONE_HOE
+  Mechanics:
+    harvesting:
+      radius: 5
+      height: 3
