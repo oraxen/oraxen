@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 
 public class EnergyBlastMechanic extends Mechanic{
 
+    private Particle particle;
     private Particle.DustOptions particleColor;
     private double damage;
     private int length;
@@ -21,6 +22,7 @@ public class EnergyBlastMechanic extends Mechanic{
         super(mechanicFactory, section);
         ConfigurationSection particleSection = section.getConfigurationSection("particle");
         ConfigurationSection colorSection = particleSection.getConfigurationSection("color");
+        this.particle = Particle.valueOf(particleSection.getString("type"));
         this.particleColor = new Particle.DustOptions(Color.fromRGB(colorSection.getInt("red"), colorSection.getInt("green"), colorSection.getInt("blue")), particleSection.getInt("size"));
         this.damage = section.getDouble("damage");
         this.length = section.getInt("length");
@@ -41,5 +43,9 @@ public class EnergyBlastMechanic extends Mechanic{
 
     public int getLength() {
         return length;
+    }
+
+    public Particle getParticle() {
+        return particle;
     }
 }

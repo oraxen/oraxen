@@ -64,10 +64,10 @@ public class EnergyBlastMechanicManager implements Listener {
         Location destination = origin.clone().add(direction);
         for (int i = 0; i < mechanic.getLength() * 10; i++) {
             Location loc = destination.add(direction);
-            loc.getWorld().spawnParticle(Particle.REDSTONE, loc, 1, 0, 0, 0, 0, mechanic.getParticleColor());
+            spawnParticle(loc.getWorld(), loc, mechanic);
         }
 
-        playEffect(player, mechanic.getParticleColor(), mechanic.getDamage(), mechanic.getLength());
+        playEffect(player, mechanic);
     }
 
     private Location getRightHandLocation(Player player){
@@ -78,7 +78,7 @@ public class EnergyBlastMechanicManager implements Listener {
         return new Location(player.getWorld(), x, y, z);
     }
 
-    private void playEffect(Player player, Particle.DustOptions particleColor, double damage, int length) {
+    private void playEffect(Player player, EnergyBlastMechanic mechanic) {
         new BukkitRunnable() {
             int circlePoints = 360;
             double radius = 2;
@@ -89,7 +89,7 @@ public class EnergyBlastMechanicManager implements Listener {
             final double yaw = -playerLoc.getYaw() * 0.017453292F;
             double increment = (2 * Math.PI) / circlePoints;
             double circlePointOffset = 0;
-            int beamLength = length * 2;
+            int beamLength = mechanic.getLength() * 2;
             double radiusShrinkage = radius / (double) ((beamLength + 2) / 2);
             @Override
             public void run() {
@@ -106,7 +106,7 @@ public class EnergyBlastMechanicManager implements Listener {
                     VectorUtils.rotateAroundAxisX(vec, pitch);
                     VectorUtils.rotateAroundAxisY(vec, yaw);
                     playerLoc.add(vec);
-                    world.spawnParticle(Particle.REDSTONE, playerLoc, 0, 0, 0, 0, 0, particleColor);
+                    spawnParticle(playerLoc.getWorld(), playerLoc, mechanic);
                     playerLoc.subtract(vec);
                 }
 
@@ -117,20 +117,35 @@ public class EnergyBlastMechanicManager implements Listener {
 
                 radius -= radiusShrinkage;
                 if (radius < 0) {
-                    playerLoc.getWorld().spawnParticle(Particle.REDSTONE, playerLoc, 1000,0.3,0.3,0.3,0.3, particleColor);
+                    spawnParticle(playerLoc.getWorld(), playerLoc, mechanic, 1000, 0.3, 0.3, 0.3, 0.3);
                     for(Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, 0.5, 0.5, 0.5))
                         if(entity instanceof LivingEntity && entity != player)
-                            ((LivingEntity)entity).damage(damage * 3.0);
+                            ((LivingEntity)entity).damage(mechanic.getDamage() * 3.0);
                     this.cancel();
                     return;
                 }
+
                 playerLoc.add(dir);
                 for(Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, radius, radius, radius))
                     if(entity instanceof LivingEntity && entity != player)
-                        ((LivingEntity)entity).damage(damage);
+                        ((LivingEntity)entity).damage(mechanic.getDamage());
 
             }
         }.runTaskTimer(OraxenPlugin.get(), 0, 1);
+    }
+
+    private void spawnParticle(World world, Location location, EnergyBlastMechanic mechanic){
+        if(mechanic.getParticle() == Particle.REDSTONE)
+            world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, mechanic.getParticleColor());
+        else
+            world.spawnParticle(mechanic.getParticle(), location, 1, 0, 0, 0, 0);
+    }
+
+    private void spawnParticle(World world, Location location, EnergyBlastMechanic mechanic, int amount, double offsetX, double offsetY, double offsetZ, double extra){
+        if(mechanic.getParticle() == Particle.REDSTONE)
+            world.spawnParticle(Particle.REDSTONE, location, amount, offsetX, offsetY, offsetZ, extra, mechanic.getParticleColor());
+        else
+            world.spawnParticle(mechanic.getParticle(), location, amount, offsetX, offsetY, offsetZ, extra);
     }
 
 
