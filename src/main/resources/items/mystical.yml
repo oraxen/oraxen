@@ -38,6 +38,17 @@ magical_wand:
   Pack:
     generate_model: false
     model: magical_wand
+  Mechanics:
+    energyblast:
+      delay: 20000
+      length: 5
+      damage: 10.0
+      particle:
+        size: 1
+        color:
+          red: 0
+          green: 255
+          blue: 255
 
 magical_axe:
   displayname: "&aAxe of Experience"

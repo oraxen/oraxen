@@ -28,6 +28,9 @@ thor:
 lifeleech:
   enabled: true
 
+energyblast:
+  enabled: true
+
 
 # FARMING
 
