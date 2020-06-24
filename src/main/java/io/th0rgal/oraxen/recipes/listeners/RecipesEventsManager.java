@@ -20,8 +20,8 @@ import java.util.*;
 public class RecipesEventsManager implements Listener {
 
     private static RecipesEventsManager instance;
-    private final Map<CustomRecipe, String> permissionsPerRecipe = new HashMap<>();
-    private final Set<CustomRecipe> whitelistedCraftRecipes = new HashSet<>();
+    private Map<CustomRecipe, String> permissionsPerRecipe = new HashMap<>();
+    private Set<CustomRecipe> whitelistedCraftRecipes = new HashSet<>();
 
     public static RecipesEventsManager get() {
         if (instance == null) {
@@ -64,6 +64,11 @@ public class RecipesEventsManager implements Listener {
         }
 
         event.getInventory().setResult(new ItemStack(Material.AIR));
+    }
+
+    public void resetRecipes() {
+        permissionsPerRecipe = new HashMap<>();
+        whitelistedCraftRecipes = new HashSet<>();
     }
 
     public void addPermissionRecipe(CustomRecipe recipe, String permission) {

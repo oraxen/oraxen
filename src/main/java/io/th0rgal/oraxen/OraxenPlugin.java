@@ -46,6 +46,7 @@ public class OraxenPlugin extends JavaPlugin {
                 .register("give", new Give())
                 .register("repair", new Repair());
         PluginCommand command = getCommand("oraxen");
+        assert command != null;
         command.setExecutor(handler);
         // use brigadier if supported
         if (CommodoreProvider.isSupported())

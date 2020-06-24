@@ -21,12 +21,13 @@ public class BrigadierManager {
                                 .then(LiteralArgumentBuilder.literal("shaped"))
                                 .then(LiteralArgumentBuilder.literal("shapeless"))
                                 .then(LiteralArgumentBuilder.literal("furnace")
-                                    .then(LiteralArgumentBuilder.literal("cookingtime"))
-                                    .then(LiteralArgumentBuilder.literal("experience"))))
+                                        .then(LiteralArgumentBuilder.literal("cookingtime"))
+                                        .then(LiteralArgumentBuilder.literal("experience"))))
                         .then(LiteralArgumentBuilder.literal("save")))
                 .then(LiteralArgumentBuilder.literal("reload")
                         .then(LiteralArgumentBuilder.literal("items"))
-                        .then(LiteralArgumentBuilder.literal("pack")))
+                        .then(LiteralArgumentBuilder.literal("pack"))
+                        .then(LiteralArgumentBuilder.literal("recipes")))
         );
     }
 }
