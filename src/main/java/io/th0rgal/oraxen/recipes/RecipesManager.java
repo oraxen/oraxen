@@ -16,6 +16,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.util.Objects;
 
 public class RecipesManager {
 
@@ -24,18 +25,26 @@ public class RecipesManager {
             Bukkit.resetRecipes();
         Bukkit.getPluginManager().registerEvents(new RecipesBuilderEvents(), plugin);
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
-        if (!recipesFolder.exists()) {
-            recipesFolder.mkdirs();
+        if (!recipesFolder.mkdirs())
             new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
-        }
+        registerAllConfigRecipesFromFolder(recipesFolder);
+        RecipesEventsManager.get().registerEvents();
+    }
+
+    public static void reload(JavaPlugin plugin) {
+        if ((boolean) Plugin.RESET_RECIPES.getValue())
+            Bukkit.resetRecipes();
+        RecipesEventsManager.get().resetRecipes();
+        File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
+        if (!recipesFolder.mkdirs())
+            new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();
     }
 
     private static void registerAllConfigRecipesFromFolder(File recipesFolder) {
-        for (File configFile : recipesFolder.listFiles()) {
+        for (File configFile : Objects.requireNonNull(recipesFolder.listFiles()))
             registerConfigRecipes(configFile);
-        }
     }
 
     private static void registerConfigRecipes(File configFile) {

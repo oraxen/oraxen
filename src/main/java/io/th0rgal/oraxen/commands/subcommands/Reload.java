@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.commands.CommandInterface;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
+import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.settings.Message;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -24,6 +25,7 @@ public class Reload implements CommandInterface {
         if (args.length <= 1) {
             reloadItems(plugin, sender);
             reloadPack(plugin, sender);
+            RecipesManager.reload(plugin);
             return true;
         }
 
@@ -34,6 +36,10 @@ public class Reload implements CommandInterface {
 
             case "pack":
                 reloadPack(plugin, sender);
+                break;
+
+            case "recipes":
+                RecipesManager.reload(plugin);
                 break;
 
             default:

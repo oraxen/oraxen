@@ -1,13 +1,9 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.ShapedRecipe;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public class ShapedLoader extends RecipeLoader {
