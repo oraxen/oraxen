@@ -23,7 +23,7 @@ public class Reload implements CommandInterface {
         JavaPlugin plugin = OraxenPlugin.get();
 
         if (args.length <= 1) {
-            reloadItems(plugin, sender);
+            reloadItems(sender);
             reloadPack(plugin, sender);
             RecipesManager.reload(plugin);
             return true;
@@ -31,7 +31,7 @@ public class Reload implements CommandInterface {
 
         switch (args[1]) {
             case "items":
-                reloadItems(plugin, sender);
+                reloadItems(sender);
                 break;
 
             case "pack":
@@ -49,7 +49,7 @@ public class Reload implements CommandInterface {
         return false;
     }
 
-    private void reloadItems(JavaPlugin plugin, CommandSender sender) {
+    private void reloadItems(CommandSender sender) {
         Message.RELOAD.send(sender, "items");
         OraxenItems.loadItems();
     }
