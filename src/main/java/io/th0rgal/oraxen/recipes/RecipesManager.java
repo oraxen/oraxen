@@ -25,8 +25,10 @@ public class RecipesManager {
             Bukkit.resetRecipes();
         Bukkit.getPluginManager().registerEvents(new RecipesBuilderEvents(), plugin);
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
-        if (!recipesFolder.mkdirs())
+        if (!recipesFolder.exists()) {
+            recipesFolder.mkdirs();
             new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
+        }
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();
     }
@@ -36,8 +38,10 @@ public class RecipesManager {
             Bukkit.resetRecipes();
         RecipesEventsManager.get().resetRecipes();
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
-        if (!recipesFolder.mkdirs())
+        if (!recipesFolder.exists()) {
+            recipesFolder.mkdirs();
             new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
+        }
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();
     }
