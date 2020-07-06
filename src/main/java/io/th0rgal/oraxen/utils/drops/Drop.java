@@ -36,7 +36,7 @@ public class Drop {
         hasMinimalTool = false;
     }
 
-    final List<String> types = Arrays.asList("WOODEN", "STONE", "IRON", "GOLDEN", "DIAMOND");
+    final List<String> types = Arrays.asList("WOODEN", "STONE", "IRON", "GOLDEN", "DIAMOND", "NETHERITE");
 
     public boolean isToolEnough(ItemStack itemInHand) {
         if (!hasMinimalTool)
