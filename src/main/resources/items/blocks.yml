@@ -30,6 +30,7 @@ caveblock:
     model: caveblock
   Mechanics:
     block:
+      break_sound: BLOCK_GLASS_BREAK
       custom_variation: 1
       model: caveblock
       drop:
@@ -48,6 +49,7 @@ amethyst_ore:
       - amethyst_ore
   Mechanics:
     block:
+      break_sound: BLOCK_STONE_BREAK
       custom_variation: 2
       model: amethyst_ore
       drop:
@@ -68,6 +70,7 @@ ruby_ore:
       - ruby_ore
   Mechanics:
     block:
+      break_sound: BLOCK_STONE_BREAK
       custom_variation: 3
       model: ruby_ore
       drop:
@@ -88,6 +91,7 @@ onyx_ore:
       - onyx_ore
   Mechanics:
     block:
+      break_sound: BLOCK_STONE_BREAK
       custom_variation: 4
       model: onyx_ore
       drop:
@@ -108,6 +112,7 @@ orax_ore:
       - orax_ore
   Mechanics:
     block:
+      break_sound: BLOCK_STONE_BREAK
       custom_variation: 5
       model: orax_ore
       drop:
