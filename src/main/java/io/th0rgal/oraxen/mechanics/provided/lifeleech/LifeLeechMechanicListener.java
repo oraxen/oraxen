@@ -32,7 +32,8 @@ public class LifeLeechMechanicListener implements Listener {
             return;
 
         LifeLeechMechanic mechanic = (LifeLeechMechanic) factory.getMechanic(itemID);
-        damager.setHealth(damager.getHealth() + mechanic.getAmount());
+        double health = damager.getHealth() + mechanic.getAmount();
+        damager.setHealth(health < 20 ? health : 20);
         LivingEntity damaged = (LivingEntity) event.getEntity();
         damaged.setHealth(damaged.getHealth() - mechanic.getAmount());
     }
