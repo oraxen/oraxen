@@ -14,7 +14,7 @@ by the Copyright Holder, and derivatives of that collection of files created thr
 "You" is you, if you're thinking about copying or distributing this Package.
 
 
-## Copyright (C) 2019 Marchand Thomas
+## Copyright (C) 2019, 2020 Marchand Thomas
 
 You are not allowed to redistribute full, partial or modified versions of the package to which the license 
 is associated. This license does not apply to modules or extensions that use but do not contain full, 
