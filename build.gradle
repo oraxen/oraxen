@@ -3,7 +3,7 @@ import java.text.SimpleDateFormat
 plugins {
     id "java"
     id "idea"
-    id "com.github.johnrengelman.shadow" version "5.1.0"
+    id "com.github.johnrengelman.shadow" version "5.2.0"
 }
 
 group "io.th0rgal"
