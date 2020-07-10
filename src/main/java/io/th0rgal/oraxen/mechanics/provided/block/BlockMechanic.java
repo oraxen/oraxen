@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ public class BlockMechanic extends Mechanic {
     private String model;
     private final int customVariation;
     private final Drop drop;
+    private final Sound breakSound;
 
     @SuppressWarnings("unchecked")
     public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -29,6 +31,11 @@ public class BlockMechanic extends Mechanic {
             this.model = section.getString("model");
 
         this.customVariation = section.getInt("custom_variation");
+
+        if (section.isString("break_sound"))
+            this.breakSound = Sound.valueOf(section.getString("break_sound").toUpperCase());
+        else
+            this.breakSound = null;
 
         List<Loot> loots = new ArrayList<>();
         ConfigurationSection drop = section.getConfigurationSection("drop");
@@ -60,6 +67,14 @@ public class BlockMechanic extends Mechanic {
 
     public Drop getDrop() {
         return drop;
+    }
+
+    public boolean hasBreakSound() {
+        return this.breakSound != null;
+    }
+
+    public Sound getBreakSound() {
+        return this.breakSound;
     }
 
 }
