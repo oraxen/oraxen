@@ -107,7 +107,7 @@ public class ItemUtils {
         try {
             return ((boolean) NMS_ITEM_STACK.getMethod("hasTag").invoke(NMSitemStack) ?
                     NMS_ITEM_STACK.getMethod("getTag").invoke(NMSitemStack) :
-                    NBT_TAG_COMPOUND.newInstance());
+                    NBT_TAG_COMPOUND.getDeclaredConstructor().newInstance());
         } catch (IllegalAccessException | InvocationTargetException | NoSuchMethodException | InstantiationException e) {
             throw (new RuntimeException());
         }
