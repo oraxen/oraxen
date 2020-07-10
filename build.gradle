@@ -3,11 +3,11 @@ import java.text.SimpleDateFormat
 plugins {
     id "java"
     id "idea"
-    id "com.github.johnrengelman.shadow" version "5.1.0"
+    id "com.github.johnrengelman.shadow" version "5.2.0"
 }
 
 group "io.th0rgal"
-def pluginVersion = "1.33.1"
+def pluginVersion = "1.35.0"
 
 repositories {
     mavenCentral()
@@ -34,6 +34,11 @@ compileJava {
     options.fork = true
     options.forkOptions.executable = 'javac'
     options.encoding = "UTF-8"
+}
+
+tasks.withType(JavaCompile) {
+    options.compilerArgs << '-Xlint:unchecked'
+    options.deprecation = true
 }
 
 dependencies {

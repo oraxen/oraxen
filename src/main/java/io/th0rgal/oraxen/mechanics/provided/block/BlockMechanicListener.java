@@ -4,10 +4,7 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
 
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
@@ -53,6 +50,8 @@ public class BlockMechanicListener implements Listener {
                 .getBlockMechanic(Utils.getCode(blockFacing));
         if (blockMechanic == null)
             return;
+        if (blockMechanic.hasBreakSound())
+            block.getWorld().playSound(block.getLocation(), blockMechanic.getBreakSound(), 1.0f, 0.8f);
         blockMechanic
                 .getDrop()
                 .spawns(block.getLocation(),
@@ -75,7 +74,8 @@ public class BlockMechanicListener implements Listener {
     }
 
     // not static here because only instanciated once I think
-    private final List<Material> replaceableBlocks = Arrays.asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN, Material.LARGE_FERN);
+    private final List<Material> replaceableBlocks = Arrays.asList(Material.SNOW, Material.VINE,
+            Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN, Material.LARGE_FERN);
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrePlacingCustomBlock(PlayerInteractEvent event) {
