@@ -34,6 +34,11 @@ compileJava {
     options.encoding = "UTF-8"
 }
 
+tasks.withType(JavaCompile) {
+    options.compilerArgs << '-Xlint:unchecked'
+    options.deprecation = true
+}
+
 dependencies {
     // The Spigot API with no shadowing. Requires the OSS repo.
     compileOnly group: "org.spigotmc", name: "spigot", version: "1.14.4-R0.1-SNAPSHOT"
