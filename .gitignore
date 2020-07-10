@@ -131,3 +131,5 @@ gradle-app.setting
 
 ### Gradle Patch ###
 **/build/
+
+# Based on gitignore.io work
