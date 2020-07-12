@@ -20,6 +20,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.signinput.SignMenuFactory;
 import me.lucko.commodore.CommodoreProvider;
 import org.bstats.bukkit.Metrics;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -33,6 +34,14 @@ public class OraxenPlugin extends JavaPlugin {
     public OraxenPlugin() throws Exception {
         instance = this;
         Logs.enableFilter();
+    }
+
+    private void postLoading(ResourcePack resourcePack, ConfigsManager configsManager) {
+        registerCommands();
+        new UploadManager(this).uploadAsyncAndSendToPlayers(resourcePack);
+        new Metrics(this, 5371);
+        this.signMenuFactory = new SignMenuFactory(this);
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> OraxenItems.loadItems(configsManager));
     }
 
     private void registerCommands() {
@@ -67,11 +76,8 @@ public class OraxenPlugin extends JavaPlugin {
         new ArmorListener(Plugin.ARMOR_EQUIP_EVENT_BYPASS.getAsStringList()).registerEvents(this);
         if (getServer().getPluginManager().isPluginEnabled("MythicMobs"))
             new MythicMobsListener().registerEvents(this);
-        registerCommands();
+        postLoading(resourcePack, configsManager);
         Logs.log(ChatColor.GREEN + "Successfully loaded on " + OS.getOs().getPlatformName());
-        new UploadManager(this).uploadAsyncAndSendToPlayers(resourcePack);
-        new Metrics(this, 5371);
-        this.signMenuFactory = new SignMenuFactory(this);
     }
 
     public void onDisable() {
