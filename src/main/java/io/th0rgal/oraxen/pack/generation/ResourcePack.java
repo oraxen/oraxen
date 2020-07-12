@@ -112,14 +112,13 @@ public class ResourcePack {
         List<File> assetFoldersCustom = new ArrayList<>();
         // needs to be ordered, forEach cannot be used
         for (File folder : packFolder.listFiles()) {
-            if (folder.isDirectory()) {
+            if (folder.isDirectory()  && folder.getName().equalsIgnoreCase("assets")) {
+                System.out.println(ChatColor.DARK_AQUA + "Experimental Custom Assets : You used a custom assets/minecraft !");
+                ZipUtils.getAllFiles(folder, assetFoldersCustom);
+            } else if (folder.isDirectory()) {
                 ZipUtils.getAllFiles(folder, subfolders);
             }
 
-            if(folder.isDirectory() && folder.getName().equalsIgnoreCase("assets")) {
-                System.out.println(ChatColor.DARK_AQUA + "Experimental Custom Assets : You used a custom assets/minecraft !");
-                ZipUtils.getAllFiles(folder, assetFoldersCustom);
-            }
         }
 
         rootFolder.addAll(assetFoldersCustom);
