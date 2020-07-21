@@ -23,7 +23,14 @@ repositories {
     //Minecraft repo (commodore)
     maven { url "https://libraries.minecraft.net/" }
     //MythicMobs
-    maven { url "https://mvn.lumine.io/repository/maven-releases/" }
+    maven { url "https://mvn.lumine.io/repository/maven-public/" }
+    //JitPack
+    maven { url 'https://jitpack.io' }
+    //PlaceHolderAPI
+    maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
+    //EffectLib
+    maven { url 'http://maven.elmakers.com/repository/' }
+
     jcenter() // needed for building shadow from protocolLib 4.5.0
 }
 
@@ -44,7 +51,8 @@ dependencies {
     compileOnly group: "org.spigotmc", name: "spigot", version: "1.14.4-R0.1-SNAPSHOT"
     compileOnly group: "org.spigotmc", name: "spigot-api", version: "1.14.4-R0.1-SNAPSHOT"
     compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "+"
-    compileOnly group: "io.lumine.xikage", name: "MythicMobs", version: "4.9.1"
+    compileOnly group: "io.lumine.xikage", name: "MythicMobs", version: "4.9.2"
+    compileOnly group: "com.github.Hazebyte", name: "CrateReloadedAPI", version: "5318abfccc"
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
     implementation group: "me.lucko", name: "commodore", version: "1.3"
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '+'
