@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.settings.ResourcesManager;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.ZipUtils;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -20,6 +21,7 @@ import java.util.zip.ZipInputStream;
 public class ResourcePack {
 
     private static File modelsFolder;
+    private static File assetsFolder;
     private static final List<Consumer<File>> PACK_MODIFIERS = new ArrayList<>();
     JavaPlugin plugin;
     private File pack;
@@ -31,12 +33,14 @@ public class ResourcePack {
         makeDirsIfNotExists(packFolder);
 
         File texturesFolder = new File(packFolder, "textures");
+        assetsFolder = new File(packFolder, "assets");
         modelsFolder = new File(packFolder, "models");
 
         boolean extractModels = !modelsFolder.exists();
         boolean extractTextures = !texturesFolder.exists();
+        boolean extractassets = !assetsFolder.exists();
 
-        if (extractModels || extractTextures) {
+        if (extractModels || extractTextures || extractassets) {
             ZipInputStream zip = ResourcesManager.browse();
             try {
                 ZipEntry entry = zip.getNextEntry();
@@ -45,7 +49,8 @@ public class ResourcePack {
                 while (entry != null) {
                     String name = entry.getName();
                     boolean isSuitable = (extractModels && name.startsWith("pack/models"))
-                            || (extractTextures && name.startsWith("pack/textures"));
+                            || (extractTextures && name.startsWith("pack/textures"))
+                            || (extractassets && name.startsWith("/pack/assets"));
 
                     resourcesManager.extractFileIfTrue(entry, name, isSuitable);
                     entry = zip.getNextEntry();
@@ -95,20 +100,31 @@ public class ResourcePack {
             }
         }
         generatePredicates(texturedItems);
-        for (Consumer<File> packModifier : PACK_MODIFIERS)
+        for (Consumer<File> packModifier : PACK_MODIFIERS) {
             packModifier.accept(packFolder);
+        }
 
         //zipping resourcepack
         List<File> rootFolder = new ArrayList<>();
         ZipUtils.getFilesInFolder(packFolder, rootFolder, packFolder.getName() + ".zip");
 
         List<File> subfolders = new ArrayList<>();
+        List<File> assetFoldersCustom = new ArrayList<>();
         // needs to be ordered, forEach cannot be used
-        Arrays.stream(packFolder.listFiles())
-                .filter(File::isDirectory)
-                .forEachOrdered(folder -> ZipUtils.getAllFiles(folder, subfolders));
+        for (File folder : packFolder.listFiles()) {
+            if (folder.isDirectory()  && folder.getName().equalsIgnoreCase("assets")) {
+                System.out.println(ChatColor.DARK_AQUA + "Experimental Custom Assets : You used a custom assets/minecraft !");
+                ZipUtils.getAllFiles(folder, assetFoldersCustom);
+            } else if (folder.isDirectory()) {
+                ZipUtils.getAllFiles(folder, subfolders);
+            }
 
-        Map<String, List<File>> fileListByZipDirectory = new HashMap<>();
+        }
+
+        rootFolder.addAll(assetFoldersCustom);
+
+
+        Map<String, List<File>> fileListByZipDirectory = new LinkedHashMap<>();
         fileListByZipDirectory.put("assets/minecraft", subfolders);
         fileListByZipDirectory.put("", rootFolder);
 
@@ -123,6 +139,7 @@ public class ResourcePack {
         if (!file.exists())
             plugin.saveResource("pack/" + file.getName(), true);
     }
+
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void makeDirsIfNotExists(File folder) {
