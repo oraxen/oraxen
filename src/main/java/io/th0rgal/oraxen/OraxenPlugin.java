@@ -1,9 +1,11 @@
 package io.th0rgal.oraxen;
 
+import com.hazebyte.crate.api.CrateAPI;
 import io.th0rgal.oraxen.commands.BaseCommand;
 import io.th0rgal.oraxen.commands.CommandHandler;
 import io.th0rgal.oraxen.commands.brigadier.BrigadierManager;
 import io.th0rgal.oraxen.commands.subcommands.*;
+import io.th0rgal.oraxen.compatibility.cratereloaded.CrateReloadedListener;
 import io.th0rgal.oraxen.compatibility.mythicmobs.MythicMobsListener;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -76,6 +78,8 @@ public class OraxenPlugin extends JavaPlugin {
         new ArmorListener(Plugin.ARMOR_EQUIP_EVENT_BYPASS.getAsStringList()).registerEvents(this);
         if (getServer().getPluginManager().isPluginEnabled("MythicMobs"))
             new MythicMobsListener().registerEvents(this);
+        if (getServer().getPluginManager().isPluginEnabled("CrateReloaded"))
+            new CrateReloadedListener().registerEvents(this);
         postLoading(resourcePack, configsManager);
         Logs.log(ChatColor.GREEN + "Successfully loaded on " + OS.getOs().getPlatformName());
     }
