@@ -55,6 +55,7 @@ dependencies {
     compileOnly group: "io.lumine.xikage", name: "MythicMobs", version: "4.9.2"
     compileOnly group: "com.github.Hazebyte", name: "CrateReloadedAPI", version: "5318abfccc"
     compileOnly group: "me.badbones69", name: "crazycrates-plugin", version: "+"
+    compileOnly fileTree(dir: "lib", include: ["*.jar"])
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
     implementation group: "me.lucko", name: "commodore", version: "1.3"
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '+'

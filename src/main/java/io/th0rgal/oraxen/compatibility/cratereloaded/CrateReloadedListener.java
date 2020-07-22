@@ -5,22 +5,20 @@ import com.hazebyte.crate.api.CratePlugin;
 import com.hazebyte.crate.api.crate.Crate;
 import com.hazebyte.crate.api.crate.reward.Reward;
 import com.hazebyte.crate.api.event.PluginReadyEvent;
+import io.th0rgal.oraxen.compatibility.Listener;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.Message;
-import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class CrateReloadedListener implements Listener {
+public class CrateReloadedListener extends Listener {
 
-    public void registerEvents(Plugin plugin) {
-        Bukkit.getPluginManager().registerEvents(this, plugin);
+    public CrateReloadedListener() {
+        super("CrateReloaded");
         try {
             registerItems();
         } catch (Exception e) {
