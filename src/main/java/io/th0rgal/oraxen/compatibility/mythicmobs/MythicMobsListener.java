@@ -10,10 +10,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.Plugin;
 
-/**
- * @author yzl210
- * @since June 15, 2020
- */
 public class MythicMobsListener implements Listener {
 
     public void registerEvents(Plugin plugin) {
