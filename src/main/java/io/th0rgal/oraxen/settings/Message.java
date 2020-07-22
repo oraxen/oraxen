@@ -19,6 +19,8 @@ public enum Message {
     WRONG_TYPE(ChatColor.RED, "You are using an invalid type"),
     BAD_RECIPE(ChatColor.RED, "The recipe \"%s\" is invalid, please ensure all its ingredients exist in your config"),
     ITEM_NOT_FOUND(ChatColor.RED, "The item \"%s\" could not be found"),
+    PLUGIN_HOOKS(ChatColor.GREEN, "Plugin \"%s\" detected, enabling hooks"),
+    PLUGIN_UNHOOKS(ChatColor.GREEN, "Unhooking plugin \"%s\""),
 
     UNCONCISTENT_CONFIG_VERSION(ChatColor.RED, "Config updating error: does this config come from the future?"),
     CONFIGS_NOT_UPDATED(ChatColor.GREEN, "Configs version number is consistent: skipping updating"),

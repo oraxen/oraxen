@@ -1,25 +1,29 @@
 package io.th0rgal.oraxen.compatibility.cratereloaded;
 
-import com.google.common.collect.Lists;
 import com.hazebyte.crate.api.CrateAPI;
 import com.hazebyte.crate.api.CratePlugin;
 import com.hazebyte.crate.api.crate.Crate;
 import com.hazebyte.crate.api.crate.reward.Reward;
 import com.hazebyte.crate.api.event.PluginReadyEvent;
+import io.th0rgal.oraxen.compatibility.Listener;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.Message;
-import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 
-public class CrateReloadedListener implements Listener {
+import java.util.ArrayList;
+import java.util.List;
 
-    public void registerEvents(Plugin plugin) {
-        Bukkit.getPluginManager().registerEvents(this, plugin);
-        registerItems();
+public class CrateReloadedListener extends Listener {
+
+    public CrateReloadedListener() {
+        super("CrateReloaded");
+        try {
+            registerItems();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     @EventHandler
@@ -30,24 +34,46 @@ public class CrateReloadedListener implements Listener {
     private void registerItems() {
         CratePlugin cratePlugin = CrateAPI.getInstance();
         for (Crate crate : cratePlugin.getCrateRegistrar().getCrates()) {
-            for (Reward reward : crate.getRewards()) {
-                if (reward.getLine().getRewardString().contains("oraxen-item")) {
-                    String rs = reward.getLine().getRewardString();
-                    String rf = rs.substring(rs.indexOf("oraxen-item:(") + "oraxen-item:(".length());
-                    String value = rf.substring(0, rf.indexOf(")"));
-                    String itemID = value.split(" ")[0];
-                    ItemBuilder itemBuilder = OraxenItems.getItemById(itemID);
-                    if (itemBuilder == null) {
-                        Message.ITEM_NOT_FOUND.logError(itemID);
-                        continue;
-                    }
-                    ItemStack itemStack = itemBuilder.build();
-                    if (value.split(" ").length > 1)
-                        itemStack.setAmount(Integer.parseInt(value.split(" ")[1]));
-                    reward.setItems(Lists.newArrayList(itemStack));
-                }
+            solveRewards(crate.getRewards());
+            solveRewards(crate.getConstantRewards());
+        }
+    }
+
+    private void solveRewards(List<Reward> rewards) {
+        for (Reward reward : rewards) {
+            if (reward.getLine().getRewardString().contains("oraxen-item")) {
+                List<ItemStack> items = reward.getItems();
+                items.addAll(getOraxenItems(reward.getLine().getRewardString(), "oraxen-item"));
+                reward.setItems(items);
+            }
+            if (reward.getLine().getRewardString().contains("oraxen-display")) {
+                List<ItemStack> items = getOraxenItems(reward.getLine().getRewardString(), "oraxen-display");
+                if (!items.isEmpty())
+                    reward.setDisplayItem(items.get(0));
             }
         }
+    }
+
+
+    private List<ItemStack> getOraxenItems(String rs, String paramName) {
+        String rewardString = rs + "";
+        List<ItemStack> items = new ArrayList<>();
+        while (rewardString.contains(paramName)) {
+            rewardString = rewardString.substring(rewardString.indexOf(paramName + ":(") + (paramName + ":(").length());
+            String value = rewardString.substring(0, rewardString.indexOf(")"));
+            rewardString = rewardString.substring(rewardString.indexOf(")") + 1);
+            String itemID = value.split(" ")[0];
+            if (!OraxenItems.isAnItem(itemID)) {
+                Message.ITEM_NOT_FOUND.logError(itemID);
+                continue;
+            }
+            ItemBuilder itemBuilder = OraxenItems.getItemById(itemID);
+            ItemStack itemStack = itemBuilder.build();
+            if (value.split(" ").length > 1)
+                itemStack.setAmount(Integer.parseInt(value.split(" ")[1]));
+            items.add(itemStack);
+        }
+        return items;
     }
 
 
