@@ -4,7 +4,7 @@ import io.th0rgal.oraxen.commands.BaseCommand;
 import io.th0rgal.oraxen.commands.CommandHandler;
 import io.th0rgal.oraxen.commands.brigadier.BrigadierManager;
 import io.th0rgal.oraxen.commands.subcommands.*;
-import io.th0rgal.oraxen.compatibility.mythicmobs.MythicMobsListener;
+import io.th0rgal.oraxen.compatibility.CompatibilitiesManager;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
@@ -28,6 +28,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class OraxenPlugin extends JavaPlugin {
 
     private static OraxenPlugin instance;
+    private static CompatibilitiesManager compatibilitiesManager;
     private SignMenuFactory signMenuFactory;
 
 
@@ -74,14 +75,15 @@ public class OraxenPlugin extends JavaPlugin {
         RecipesManager.load(this);
         FastInvManager.register(this);
         new ArmorListener(Plugin.ARMOR_EQUIP_EVENT_BYPASS.getAsStringList()).registerEvents(this);
-        if (getServer().getPluginManager().isPluginEnabled("MythicMobs"))
-            new MythicMobsListener().registerEvents(this);
+        compatibilitiesManager = new CompatibilitiesManager();
+        CompatibilitiesManager.enableCompatibilities(this);
         postLoading(resourcePack, configsManager);
         Logs.log(ChatColor.GREEN + "Successfully loaded on " + OS.getOs().getPlatformName());
     }
 
     public void onDisable() {
         MechanicsManager.unloadListeners();
+        CompatibilitiesManager.unRegisterAllListeners();
         Logs.log(ChatColor.GREEN + "Successfully unloaded");
     }
 

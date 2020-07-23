@@ -3,21 +3,16 @@ package io.th0rgal.oraxen.compatibility.mythicmobs;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitItemStack;
 import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicDropLoadEvent;
 import io.lumine.xikage.mythicmobs.drops.droppables.ItemDrop;
+import io.th0rgal.oraxen.compatibility.Listener;
 import io.th0rgal.oraxen.items.OraxenItems;
-import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.plugin.Plugin;
 
-/**
- * @author yzl210
- * @since June 15, 2020
- */
-public class MythicMobsListener implements Listener {
+public class MythicMobsListener extends Listener {
 
-    public void registerEvents(Plugin plugin) {
-        Bukkit.getPluginManager().registerEvents(this, plugin);
+
+    public MythicMobsListener() {
+        super("MythicMobs");
     }
 
     @EventHandler
