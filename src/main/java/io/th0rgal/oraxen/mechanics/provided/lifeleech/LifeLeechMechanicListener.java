@@ -22,8 +22,10 @@ public class LifeLeechMechanicListener implements Listener {
         this.factory = factory;
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onCall(EntityDamageByEntityEvent event) {
+        
+        if (event.isCancelled()) return; 
         if (!(event.getDamager() instanceof Player))
             return;
 
