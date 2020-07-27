@@ -106,19 +106,23 @@ public class ConfigsManager {
         }
     }
 
-    public Map<String, ItemBuilder> parsesConfigs() {
-        Map<String, ItemParser> parseMap = new LinkedHashMap<>();
-        File[] itemsFile = getItemsFiles();
-        List<YamlConfiguration> configs = Arrays.stream(itemsFile)
+    public Map<File, Map<String, ItemBuilder>> parsesConfigs(){
+        Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
+        List<File> configs = Arrays.stream(getItemsFiles())
                 .filter(file -> file.getName().endsWith(".yml"))
-                .map(YamlConfiguration::loadConfiguration)
                 .collect(Collectors.toList());
+        for(File file : configs){
+            parseMap.put(file, parsesConfig(YamlConfiguration.loadConfiguration(file), file));
+        }
+        return parseMap;
+    }
+
+    public Map<String, ItemBuilder> parsesConfig(YamlConfiguration config, File itemFile) {
+        Map<String, ItemParser> parseMap = new LinkedHashMap<>();
         ItemParser errorItem = new ItemParser((ConfigurationSection) Plugin.ERROR_ITEM.getValue());
-        for (YamlConfiguration config : configs) {
-            for (String itemSectionName : config.getKeys(false)) {
-                ConfigurationSection itemSection = config.getConfigurationSection(itemSectionName);
-                parseMap.put(itemSectionName, new ItemParser(itemSection));
-            }
+        for (String itemSectionName : config.getKeys(false)) {
+            ConfigurationSection itemSection = config.getConfigurationSection(itemSectionName);
+            parseMap.put(itemSectionName, new ItemParser(itemSection));
         }
         boolean configUpdated = false;
         // because we must have parse all the items before building them to be able to use available models
@@ -139,13 +143,12 @@ public class ConfigsManager {
                 configUpdated = true;
         }
         if (configUpdated)
-            for (int i = 0; i < itemsFile.length; i++) {
                 try {
-                    configs.get(i).save(itemsFile[i]);
+                    config.save(itemFile);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-            }
+
         return map;
     }
 

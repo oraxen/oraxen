@@ -2,11 +2,15 @@ package io.th0rgal.oraxen.commands.subcommands;
 
 import io.th0rgal.oraxen.commands.CommandInterface;
 import io.th0rgal.oraxen.settings.Message;
-import io.th0rgal.oraxen.utils.ItemsInventory;
+import io.th0rgal.oraxen.utils.itemsvisualizer.AllItemsInventory;
+import io.th0rgal.oraxen.utils.itemsvisualizer.FileInventory;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.util.Arrays;
 
 public class InventoryVisualizer implements CommandInterface {
 
@@ -18,12 +22,13 @@ public class InventoryVisualizer implements CommandInterface {
             return false;
         }
 
-        if (args.length > 1) return false;
-
         if (sender instanceof Player) {
             Player player = (Player) sender;
             if (player.hasPermission("oraxen.command.inv.view"))
-                new ItemsInventory(0).open(player);
+                if(args.length > 1 && args[1].equalsIgnoreCase("all"))
+                    new AllItemsInventory(0).open(player);
+                else
+                    new FileInventory(0).open(player);
             else
                 Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.inv.view");
 

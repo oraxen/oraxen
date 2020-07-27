@@ -9,12 +9,13 @@ import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.io.File;
 import java.util.*;
 
 public class OraxenItems {
 
     //configuration sections : their OraxenItem wrapper
-    private static Map<String, ItemBuilder> map;
+    private static Map<File, Map<String, ItemBuilder>> map;
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
     private static ConfigsManager configsManager;
 
@@ -41,20 +42,28 @@ public class OraxenItems {
     }
 
     public static boolean isAnItem(String itemID) {
-        return map.containsKey(itemID);
+        return getAllItems().containsKey(itemID);
     }
 
     public static ItemBuilder getItemById(String id) {
-        return map.get(id);
+        return getAllItems().get(id);
     }
 
     public static Collection<ItemBuilder> getItems() {
-        return map.values();
+        return getAllItems().values();
     }
 
     public static List<ItemBuilder> getUnexcludedItems() {
         List<ItemBuilder> unexcludedItems = new ArrayList<>();
         for (ItemBuilder itemBuilder : getItems())
+            if (!itemBuilder.getOraxenMeta().isExcludedFromInventory())
+                unexcludedItems.add(itemBuilder);
+        return unexcludedItems;
+    }
+
+    public static List<ItemBuilder> getUnexcludedItems(File file) {
+        List<ItemBuilder> unexcludedItems = new ArrayList<>();
+        for (ItemBuilder itemBuilder : map.get(file).values())
             if (!itemBuilder.getOraxenMeta().isExcludedFromInventory())
                 unexcludedItems.add(itemBuilder);
         return unexcludedItems;
@@ -68,7 +77,7 @@ public class OraxenItems {
                 String[] params = line.split(":");
                 if (params[0].equalsIgnoreCase("type"))
                     if (OraxenItems.isAnItem(params[1]))
-                        itemStack = OraxenItems.getItemById(params[1]).build().clone();
+                        itemStack = getItemById(params[1]).build().clone();
                     else {
                         Message.ITEM_NOT_FOUND.logError(params[1]);
                         break;
@@ -82,11 +91,21 @@ public class OraxenItems {
     }
 
     public static Set<Map.Entry<String, ItemBuilder>> getEntries() {
-        return map.entrySet();
+        return getAllItems().entrySet();
     }
 
     public static Set<String> getSectionsNames() {
-        return map.keySet();
+        return getAllItems().keySet();
+    }
+
+    public static Map<File, Map<String, ItemBuilder>> getMap(){
+        return map;
+    }
+
+    public static Map<String, ItemBuilder> getAllItems(){
+        Map<String, ItemBuilder> items = new LinkedHashMap<>();
+        map.values().forEach(items::putAll);
+        return items;
     }
 
 }
