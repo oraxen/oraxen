@@ -23,9 +23,9 @@ public class SmeltingMechanicListener implements Listener {
         this.factory = factory;
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onBlockbreak(BlockBreakEvent event) {
-
+        if (event.isCancelled()) return;
         ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
         if (item == null)
             return;
@@ -34,17 +34,9 @@ public class SmeltingMechanicListener implements Listener {
         if (factory.isNotImplementedIn(itemID))
             return;
 
-        Material type = event.getBlock().getType();
-        ItemStack loot;
-        if (type == Material.IRON_ORE) {
-            loot = new ItemStack(Material.IRON_INGOT);
-        } else if (type == Material.GOLD_ORE) {
-            loot = new ItemStack(Material.GOLD_INGOT);
-        } else {
-            return;
-        }
-
+        ItemStack loot = furnace(new ItemStack(event.getBlock().getType()));
         ItemMeta itemMeta = item.getItemMeta();
+        
         if (itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
             loot.setAmount(1 + new Random().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
         }
@@ -55,6 +47,18 @@ public class SmeltingMechanicListener implements Listener {
         if (mechanic.playSound()) {
             location.getWorld().playSound(location, Sound.ENTITY_GUARDIAN_ATTACK, 0.10f, 0.8f);
         }
+    }
+    
+    
+    private ItemStack furnace(ItemStack item) {
+        if (item == null) return null; // Because item can be null
+        while (recipeIterator.hasNext()) {
+            Recipe recipe = recipeIterator.next();
+            if (!(recipe instanceof CookingRecipe)) continue;
+            CookingRecipe recipe1 = (CookingRecipe) recipe;
+            if (recipe1.getInputChoice().test(item)) return new ItemStack(recipe.getResult().getType(), item.getAmount());
+        }
+        return item; // return result furnace :)
     }
 
 }
