@@ -17,44 +17,44 @@ import java.util.Random;
 
 public class SmeltingMechanicListener implements Listener {
 
-	private final MechanicFactory factory;
+    private final MechanicFactory factory;
 
-	public SmeltingMechanicListener(MechanicFactory factory) {
-		this.factory = factory;
-	}
+    public SmeltingMechanicListener(MechanicFactory factory) {
+        this.factory = factory;
+    }
 
-	@EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-	public void onBlockbreak(BlockBreakEvent event) {
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onBlockbreak(BlockBreakEvent event) {
 
-		ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
-		if (item == null)
-			return;
+        ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
+        if (item == null)
+            return;
 
-		String itemID = OraxenItems.getIdByItem(item);
-		if (factory.isNotImplementedIn(itemID))
-			return;
+        String itemID = OraxenItems.getIdByItem(item);
+        if (factory.isNotImplementedIn(itemID))
+            return;
 
-		Material type = event.getBlock().getType();
-		ItemStack loot;
-		if (type == Material.IRON_ORE) {
-			loot = new ItemStack(Material.IRON_INGOT);
-		} else if (type == Material.GOLD_ORE) {
-			loot = new ItemStack(Material.GOLD_INGOT);
-		} else {
-			return;
-		}
+        Material type = event.getBlock().getType();
+        ItemStack loot;
+        if (type == Material.IRON_ORE) {
+            loot = new ItemStack(Material.IRON_INGOT);
+        } else if (type == Material.GOLD_ORE) {
+            loot = new ItemStack(Material.GOLD_INGOT);
+        } else {
+            return;
+        }
 
-		ItemMeta itemMeta = item.getItemMeta();
-		if (itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
-			loot.setAmount(1 + new Random().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
-		}
-		event.setDropItems(false);
-		Location location = event.getBlock().getLocation();
-		location.getWorld().dropItemNaturally(location, loot);
-		SmeltingMechanic mechanic = (SmeltingMechanic) factory.getMechanic(itemID);
-		if (mechanic.playSound()) {
-			location.getWorld().playSound(location, Sound.ENTITY_GUARDIAN_ATTACK, 0.10f, 0.8f);
-		}
-	}
+        ItemMeta itemMeta = item.getItemMeta();
+        if (itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
+            loot.setAmount(1 + new Random().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
+        }
+        event.setDropItems(false);
+        Location location = event.getBlock().getLocation();
+        location.getWorld().dropItemNaturally(location, loot);
+        SmeltingMechanic mechanic = (SmeltingMechanic) factory.getMechanic(itemID);
+        if (mechanic.playSound()) {
+            location.getWorld().playSound(location, Sound.ENTITY_GUARDIAN_ATTACK, 0.10f, 0.8f);
+        }
+    }
 
 }
