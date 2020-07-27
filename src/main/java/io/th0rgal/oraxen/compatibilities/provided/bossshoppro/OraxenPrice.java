@@ -29,13 +29,13 @@ public class OraxenPrice extends BSPriceType {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public boolean hasPrice(Player player, BSBuy bsBuy, Object reward, ClickType clickType, boolean messageOnFailure) {
         List<ItemStack> items = (List<ItemStack>) reward;
         for (ItemStack i : items) {
             if (!ClassManager.manager.getItemStackChecker().inventoryContainsItem(player, i, bsBuy)) {
-                if (messageOnFailure) {
+                if (messageOnFailure)
                     ClassManager.manager.getMessageHandler().sendMessage("NotEnough.Item", player);
-                }
                 return false;
             }
         }
@@ -43,6 +43,7 @@ public class OraxenPrice extends BSPriceType {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public String takePrice(Player player, BSBuy bsBuy, Object reward, ClickType clickType) {
         List<ItemStack> itemStacks = (List<ItemStack>) reward;
         if (!(itemStacks.isEmpty()))
@@ -54,6 +55,7 @@ public class OraxenPrice extends BSPriceType {
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public String getDisplayPrice(Player player, BSBuy bsBuy, Object reward, ClickType clickType) {
         String items_formatted = ClassManager.manager.getItemStackTranslator().getFriendlyText((List<ItemStack>) reward);
         return ClassManager.manager.getMessageHandler().get("Display.Item").replace("%items%", items_formatted);

@@ -16,6 +16,7 @@ public class CompatibilityProvider<T extends Plugin> implements Listener {
         this.isEnabled = false;
     }
 
+    @SuppressWarnings("unchecked")
     public void enable(String pluginName) {
         Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
         this.isEnabled = true;
