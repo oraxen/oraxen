@@ -14,10 +14,10 @@ import io.th0rgal.oraxen.utils.reflection.version.ServerVersion;
 
 public class ReflectionProvider {
 
-    public static ReflectionProvider ORAXEN = new ReflectionProvider(provider -> Reflections.setup(provider));
+    public static final String CB_PATH_FORMAT = "org.bukkit.craftbukkit.%s.%s";
+    public static final String NMS_PATH_FORMAT = "net.minecraft.server.%s.%s";
 
-    public static String CB_PATH_FORMAT = "org.bukkit.craftbukkit.%s.%s";
-    public static String NMS_PATH_FORMAT = "net.minecraft.server.%s.%s";
+    public static final ReflectionProvider ORAXEN = new ReflectionProvider(provider -> Reflections.setup(provider));
 
     protected final ReflectCache cache;
 
