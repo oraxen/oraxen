@@ -4,7 +4,7 @@ import io.th0rgal.oraxen.commands.BaseCommand;
 import io.th0rgal.oraxen.commands.CommandHandler;
 import io.th0rgal.oraxen.commands.brigadier.BrigadierManager;
 import io.th0rgal.oraxen.commands.subcommands.*;
-import io.th0rgal.oraxen.compatibility.CompatibilitiesManager;
+import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
@@ -70,20 +70,19 @@ public class OraxenPlugin extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
         }
         MechanicsManager.registerNativeMechanics();
+        CompatibilitiesManager.enableNativeCompatibilities();
         OraxenItems.loadItems(configsManager);
         ResourcePack resourcePack = new ResourcePack(this);
         RecipesManager.load(this);
         FastInvManager.register(this);
         new ArmorListener(Plugin.ARMOR_EQUIP_EVENT_BYPASS.getAsStringList()).registerEvents(this);
-        compatibilitiesManager = new CompatibilitiesManager();
-        CompatibilitiesManager.enableCompatibilities(this);
         postLoading(resourcePack, configsManager);
         Logs.log(ChatColor.GREEN + "Successfully loaded on " + OS.getOs().getPlatformName());
     }
 
     public void onDisable() {
         MechanicsManager.unloadListeners();
-        CompatibilitiesManager.unRegisterAllListeners();
+        CompatibilitiesManager.disableCompatibilities();
         Logs.log(ChatColor.GREEN + "Successfully unloaded");
     }
 

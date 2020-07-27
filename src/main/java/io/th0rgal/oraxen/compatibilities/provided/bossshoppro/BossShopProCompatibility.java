@@ -1,8 +1,9 @@
-package io.th0rgal.oraxen.compatibility.bossshoppro;
+package io.th0rgal.oraxen.compatibilities.provided.bossshoppro;
 
-import io.th0rgal.oraxen.compatibility.Listener;
+import io.th0rgal.oraxen.compatibilities.CompatibilityProvider;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.Message;
+import org.black_ixx.bossshop.BossShop;
 import org.black_ixx.bossshop.events.BSCreatedShopItemEvent;
 import org.black_ixx.bossshop.events.BSRegisterTypesEvent;
 import org.bukkit.Material;
@@ -10,12 +11,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 
-public class BossShopProListener extends Listener {
-
-
-    public BossShopProListener() {
-        super("BossShopPro");
-    }
+public class BossShopProCompatibility extends CompatibilityProvider<BossShop> {
 
     @EventHandler
     public void onBSCreatedShopItem(BSCreatedShopItemEvent event) {
