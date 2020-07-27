@@ -52,12 +52,15 @@ public class CompatibilitiesManager {
         return false;
     }
 
-
     public static void addCompatibility(String compatibilityPluginName, Class<? extends CompatibilityProvider<?>> clazz) {
         if (compatibilityPluginName != null && clazz != null) {
             COMPATIBILITY_PROVIDERS.put(compatibilityPluginName, clazz);
             enableCompatibility(compatibilityPluginName);
         }
+    }
+
+    public static boolean isCompatibilityEnabled(String pluginName){
+        return ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName) && ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).isEnabled();
     }
 
     public static ConcurrentHashMap<String, Class<? extends CompatibilityProvider<?>>> getCompatibilityProviders() {
