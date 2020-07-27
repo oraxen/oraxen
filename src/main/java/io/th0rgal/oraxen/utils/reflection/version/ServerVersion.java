@@ -66,19 +66,13 @@ public class ServerVersion extends DefaultVersion {
             return true;
         if (version instanceof ServerVersion) {
             ServerVersion other = (ServerVersion) version;
-            if (refaction > other.refaction)
-                return true;
-        } else if (refaction > 0) {
-            return true;
-        }
-        return false;
+            return refaction > other.refaction;
+        } else return refaction > 0;
     }
 
     @Override
     public boolean isSimilar(Version version) {
-        return super.isSimilar(version)
-                ? ((version instanceof ServerVersion) ? refaction == ((ServerVersion) version).refaction : false)
-                : false;
+        return super.isSimilar(version) && ((version instanceof ServerVersion) && refaction == ((ServerVersion) version).refaction);
     }
 
     @Override
@@ -87,8 +81,7 @@ public class ServerVersion extends DefaultVersion {
             return true;
         if (version instanceof ServerVersion) {
             ServerVersion other = (ServerVersion) version;
-            if (refaction < other.refaction)
-                return true;
+            return refaction < other.refaction;
         }
         return false;
     }
@@ -145,7 +138,7 @@ public class ServerVersion extends DefaultVersion {
         public ServerVersion analyze(String formatted) {
             ServerVersion version = new ServerVersion();
             String[] parts = (formatted = formatted.replaceFirst("v", "")).contains("_") ? formatted.split("_")
-                    : (formatted.contains(".") ? formatted.split("\\.") : new String[] { formatted });
+                    : (formatted.contains(".") ? formatted.split("\\.") : new String[]{formatted});
             try {
                 if (parts.length == 1) {
                     version.setMajor(Strings.isNumeric(parts[0]) ? Integer.parseInt(parts[0]) : 0);

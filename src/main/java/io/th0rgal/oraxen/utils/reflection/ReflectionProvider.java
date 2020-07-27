@@ -1,23 +1,21 @@
 package io.th0rgal.oraxen.utils.reflection;
 
-import java.util.Optional;
-import java.util.function.Consumer;
-
-import org.bukkit.Bukkit;
-
 import com.syntaxphoenix.syntaxapi.reflection.ClassCache;
 import com.syntaxphoenix.syntaxapi.reflection.Reflect;
 import com.syntaxphoenix.syntaxapi.reflection.ReflectCache;
-
 import io.th0rgal.oraxen.utils.reflection.version.MinecraftVersion;
 import io.th0rgal.oraxen.utils.reflection.version.ServerVersion;
+import org.bukkit.Bukkit;
+
+import java.util.Optional;
+import java.util.function.Consumer;
 
 public class ReflectionProvider {
 
     public static final String CB_PATH_FORMAT = "org.bukkit.craftbukkit.%s.%s";
     public static final String NMS_PATH_FORMAT = "net.minecraft.server.%s.%s";
 
-    public static final ReflectionProvider ORAXEN = new ReflectionProvider(provider -> Reflections.setup(provider));
+    public static final ReflectionProvider ORAXEN = new ReflectionProvider(Reflections::setup);
 
     protected final ReflectCache cache;
 
