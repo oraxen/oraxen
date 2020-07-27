@@ -45,8 +45,8 @@ public class ReflectionProvider {
                 .analyze(Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3]);
         this.minecraft = MinecraftVersion.fromString(Bukkit.getVersion().split(" ")[2].replace(")", ""));
         String serverString = server.toString();
-        this.cbPath = String.format(CB_PATH_FORMAT, serverString);
-        this.nmsPath = String.format(NMS_PATH_FORMAT, serverString);
+        this.cbPath = String.format(CB_PATH_FORMAT, serverString, "%s");
+        this.nmsPath = String.format(NMS_PATH_FORMAT, serverString, "%s");
         setup.accept(this);
     }
 
