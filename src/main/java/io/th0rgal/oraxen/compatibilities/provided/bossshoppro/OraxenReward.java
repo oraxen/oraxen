@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.compatibilities.provided.bossshoppro;
 
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.settings.Message;
 import org.black_ixx.bossshop.core.BSBuy;
 import org.black_ixx.bossshop.core.rewards.BSRewardType;
 import org.black_ixx.bossshop.managers.ClassManager;
@@ -11,7 +10,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -19,7 +17,7 @@ public class OraxenReward extends BSRewardType {
 
     @Override
     public Object createObject(Object o, boolean force_final_state) {
-        return getOraxenItems(InputReader.readStringListList(o));
+        return OraxenItems.getItemStacksByName(InputReader.readStringListList(o));
     }
 
     @Override
@@ -73,27 +71,5 @@ public class OraxenReward extends BSRewardType {
         return true;
     }
 
-    public List<ItemStack> getOraxenItems(List<List<String>> lists) {
-        List<ItemStack> itemStacks = new ArrayList<>();
-        for (List<String> itemsList : lists) {
-            ItemStack itemStack = new ItemStack(Material.AIR);
-            for (String line : itemsList) {
-                String[] params = line.split(":");
-                if (params[0].equalsIgnoreCase("type")) {
-                    if (OraxenItems.isAnItem(params[1]))
-                        itemStack = OraxenItems.getItemById(params[1]).build().clone();
-                    else {
-                        Message.ITEM_NOT_FOUND.logError(params[1]);
-                        break;
-                    }
-                }
-                if (params[0].equalsIgnoreCase("amount")) {
-                    itemStack.setAmount(Integer.parseInt(params[1]));
-                }
-            }
-            itemStacks.add(itemStack);
-        }
-        return itemStacks;
-    }
 }
 
