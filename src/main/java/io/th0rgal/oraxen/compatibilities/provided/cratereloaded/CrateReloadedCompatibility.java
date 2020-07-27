@@ -1,11 +1,11 @@
-package io.th0rgal.oraxen.compatibility.cratereloaded;
+package io.th0rgal.oraxen.compatibilities.provided.cratereloaded;
 
 import com.hazebyte.crate.api.CrateAPI;
 import com.hazebyte.crate.api.CratePlugin;
 import com.hazebyte.crate.api.crate.Crate;
 import com.hazebyte.crate.api.crate.reward.Reward;
 import com.hazebyte.crate.api.event.PluginReadyEvent;
-import io.th0rgal.oraxen.compatibility.Listener;
+import io.th0rgal.oraxen.compatibilities.CompatibilityProvider;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.Message;
@@ -15,10 +15,10 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 
-public class CrateReloadedListener extends Listener {
+public class CrateReloadedCompatibility extends CompatibilityProvider<CratePlugin> {
 
-    public CrateReloadedListener() {
-        super("CrateReloaded");
+    public CrateReloadedCompatibility() {
+        super();
         try {
             registerItems();
         } catch (Exception e) {

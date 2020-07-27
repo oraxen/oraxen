@@ -1,19 +1,15 @@
-package io.th0rgal.oraxen.compatibility.mythicmobs;
+package io.th0rgal.oraxen.compatibilities.provided.mythicmobs;
 
+import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitItemStack;
 import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicDropLoadEvent;
 import io.lumine.xikage.mythicmobs.drops.droppables.ItemDrop;
-import io.th0rgal.oraxen.compatibility.Listener;
+import io.th0rgal.oraxen.compatibilities.CompatibilityProvider;
 import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 
-public class MythicMobsListener extends Listener {
-
-
-    public MythicMobsListener() {
-        super("MythicMobs");
-    }
+public class MythicMobsCompatibility extends CompatibilityProvider<MythicMobs> {
 
     @EventHandler
     public void onMythicDropLoadEvent(MythicDropLoadEvent event) {

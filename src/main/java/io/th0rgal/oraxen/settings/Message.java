@@ -60,11 +60,11 @@ public enum Message {
 
     @SuppressWarnings("RedundantCast")
     public void log(String... arguments) {
-        Logs.log(String.format(toString(), (Object[]) arguments));
+        Logs.log(String.format(message, (Object[]) arguments));
     }
 
     public void log() {
-        Logs.log(toString());
+        Logs.log(message);
     }
 
     @SuppressWarnings("RedundantCast")
