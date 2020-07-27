@@ -28,7 +28,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class OraxenPlugin extends JavaPlugin {
 
     private static OraxenPlugin instance;
-    private static CompatibilitiesManager compatibilitiesManager;
     private SignMenuFactory signMenuFactory;
 
 

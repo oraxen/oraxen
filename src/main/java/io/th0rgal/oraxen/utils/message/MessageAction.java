@@ -21,6 +21,10 @@ public enum MessageAction {
         this.onlyPlayer = true;
         this.type = type;
     }
+    
+    public boolean isOnlyPlayer() {
+    	return onlyPlayer;
+    }
 
     public boolean hasType() {
         return type != null;

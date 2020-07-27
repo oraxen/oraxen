@@ -11,7 +11,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
-import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
 public class BottledExpMechanicListener implements Listener {
@@ -47,7 +46,6 @@ public class BottledExpMechanicListener implements Listener {
             return;
         }
 
-        Inventory inventory = player.getInventory();
         player.getWorld().dropItem(player.getLocation(), bottlesStack);
         player.setLevel(0);
         player.setExp(0);

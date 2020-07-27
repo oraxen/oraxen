@@ -98,7 +98,6 @@ public class BlockMechanicListener implements Listener {
             if (target.getType() != Material.AIR)
                 return;
         }
-        Location playerLocation = player.getLocation();
         if (isStandingInside(player, target))
             return;
 

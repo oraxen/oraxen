@@ -3,6 +3,7 @@ import java.text.SimpleDateFormat
 plugins {
     id "java"
     id "idea"
+    id "eclipse"
     id "com.github.johnrengelman.shadow" version "5.2.0"
 }
 

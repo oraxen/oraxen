@@ -70,7 +70,8 @@ public class EnergyBlastMechanicManager implements Listener {
         playEffect(player, mechanic);
     }
 
-    private Location getRightHandLocation(Player player){
+    @SuppressWarnings("unused")
+	private Location getRightHandLocation(Player player){
         double yawRightHandDirection = Math.toRadians(-1 * player.getEyeLocation().getYaw() - 45);
         double x = 0.5 * Math.sin(yawRightHandDirection) + player.getLocation().getX();
         double y = player.getLocation().getY() + 1;
@@ -83,7 +84,6 @@ public class EnergyBlastMechanicManager implements Listener {
             int circlePoints = 360;
             double radius = 2;
             Location playerLoc = player.getEyeLocation();
-            World world = playerLoc.getWorld();
             final Vector dir = player.getLocation().getDirection().normalize();
             final double pitch = (playerLoc.getPitch() + 90.0F) * 0.017453292F;
             final double yaw = -playerLoc.getYaw() * 0.017453292F;
