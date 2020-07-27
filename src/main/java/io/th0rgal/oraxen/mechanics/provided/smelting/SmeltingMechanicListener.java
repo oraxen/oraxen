@@ -35,6 +35,7 @@ public class SmeltingMechanicListener implements Listener {
             return;
 
         ItemStack loot = furnace(new ItemStack(event.getBlock().getType()));
+        if (loot == null) return; // not recupe
         ItemMeta itemMeta = item.getItemMeta();
         
         if (itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
