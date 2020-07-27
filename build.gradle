@@ -60,6 +60,8 @@ dependencies {
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
     implementation group: "me.lucko", name: "commodore", version: "1.3"
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '+'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.1'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'nbt', version: '2.0.2'
 }
 
 processResources {
@@ -71,6 +73,7 @@ processResources {
 shadowJar {
     relocate "org.bstats.bukkit", "io.th0rgal.oraxen.bstats"
     relocate "me.lucko:commodore", "io.th0rgal.oraxen.commodore"
+    relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.syntaxapi"
     minimize { exclude("io.th0rgal.oraxen.api.*") }
     archiveClassifier.set(pluginVersion)
     archiveClassifier.set(pluginVersion)
