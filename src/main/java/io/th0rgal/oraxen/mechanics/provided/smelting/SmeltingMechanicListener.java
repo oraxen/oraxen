@@ -45,8 +45,8 @@ public class SmeltingMechanicListener implements Listener {
         }
 
         ItemMeta itemMeta = item.getItemMeta();
-        if (item.getItemMeta().hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
-            loot.setAmount(1 + new Random().nextInt(item.getItemMeta().getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
+        if (itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
+            loot.setAmount(1 + new Random().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
         }
         event.setDropItems(false);
         Location location = event.getBlock().getLocation();

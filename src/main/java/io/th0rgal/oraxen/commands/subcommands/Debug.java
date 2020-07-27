@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.commands.CommandInterface;
 import io.th0rgal.oraxen.settings.Message;
 
-import io.th0rgal.oraxen.utils.NMS;
 import io.th0rgal.oraxen.utils.OS;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
@@ -38,7 +37,7 @@ public class Debug implements CommandInterface {
 
         JsonObject minecraftJson = new JsonObject();
         minecraftJson.addProperty("name", Bukkit.getVersion());
-        minecraftJson.addProperty("version", NMS.getVersion());
+        minecraftJson.addProperty("version", Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3]);
 
         report.add("operating_system", operatingSystemJson);
         report.add("plugin", pluginJson);

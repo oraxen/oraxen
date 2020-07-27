@@ -8,9 +8,6 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.HashMap;
-import java.util.Map;
-
 public class FurnaceBuilder extends RecipeBuilder {
 
     private SignMenuFactory.Menu cookingTimeMenu;
@@ -40,8 +37,7 @@ public class FurnaceBuilder extends RecipeBuilder {
 
     @Override
     public void saveRecipe(String name, String permission) {
-
-        Map<ItemStack, Integer> items = new HashMap<>();
+    	
         ItemStack[] content = getInventory().getContents();
         ConfigurationSection newCraftSection = getConfig().createSection(name);
         setSerializedItem(newCraftSection.createSection("result"), content[2]);

@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.items;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import io.th0rgal.oraxen.utils.ItemUtils;
 
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -43,7 +42,6 @@ public class ItemBuilder {
     private boolean hasAttributeModifiers;
     private Multimap<Attribute, AttributeModifier> attributeModifiers;
     private final Map<PersistentDataSpace, Object> persistentDataMap = new HashMap<>();
-    private final Map<String, Object> nbtTags = new HashMap<>();
     private boolean hasCustomModelData;
     private int customModelData;
     private List<String> lore;
@@ -186,16 +184,6 @@ public class ItemBuilder {
         if (!hasCustomModelData)
             hasCustomModelData = true;
         this.customModelData = customModelData;
-        return this;
-    }
-
-    public ItemBuilder addCustomNBTTags(Map<String, Object> nbtTags) {
-        this.nbtTags.putAll(nbtTags);
-        return this;
-    }
-
-    public ItemBuilder setNBTBase(String field, Object nbtBase) {
-        nbtTags.put(field, nbtBase);
         return this;
     }
 
@@ -364,15 +352,7 @@ public class ItemBuilder {
         itemMeta.setLore(lore);
 
         itemStack.setItemMeta(itemMeta);
-        if (!nbtTags.isEmpty()) {
-            Object nmsItem = ItemUtils.getNMSCopy(itemStack);
-            Object nbtTagCompound = ItemUtils.getNBTTagCompound(nmsItem);
-            for (Map.Entry<String, Object> nbtTagByPath : nbtTags.entrySet())
-                ItemUtils.setNBTBase(nbtTagCompound, nbtTagByPath.getKey(), nbtTagByPath.getValue());
-            ItemUtils.setNBTTagCompound(nmsItem, nbtTagCompound);
-            finalItemStack = ItemUtils.fromNMS(nmsItem);
-        } else
-            finalItemStack = itemStack;
+        finalItemStack = itemStack;
 
         return this;
     }

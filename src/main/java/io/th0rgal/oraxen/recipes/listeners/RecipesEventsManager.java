@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -38,7 +37,7 @@ public class RecipesEventsManager implements Listener {
     public void onCrafted(PrepareItemCraftEvent event) {
         Recipe recipe = event.getRecipe();
         Player player = (Player) event.getView().getPlayer();
-        if (hasPermissions(player, recipe))
+        if (hasPermissions(player, CustomRecipe.fromRecipe(recipe)))
             return;
         ItemStack result = event.getInventory().getResult();
         if (result == null)
@@ -79,7 +78,7 @@ public class RecipesEventsManager implements Listener {
         whitelistedCraftRecipes.add(recipe);
     }
 
-    private boolean hasPermissions(Player player, Recipe recipe) {
+    private boolean hasPermissions(Player player, CustomRecipe recipe) {
         return (permissionsPerRecipe.containsKey(recipe) && player.hasPermission(permissionsPerRecipe.get(recipe)));
     }
 

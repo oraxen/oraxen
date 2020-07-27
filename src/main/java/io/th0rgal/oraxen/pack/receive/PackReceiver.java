@@ -18,7 +18,6 @@ import java.util.List;
 
 public class PackReceiver implements Listener {
 
-    @SuppressWarnings("rawtypes")
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerUpdatesPackStatus(PlayerResourcePackStatusEvent event) {
         boolean message;
