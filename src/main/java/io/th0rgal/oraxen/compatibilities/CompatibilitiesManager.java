@@ -42,6 +42,8 @@ public class CompatibilitiesManager {
 
     public static boolean disableCompatibility(String pluginName) {
         try {
+            if(!ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName))
+                return false;
             if (ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).isEnabled())
                 ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).disable();
             ACTIVE_COMPATIBILITY_PROVIDERS.remove(pluginName);
