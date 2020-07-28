@@ -21,6 +21,8 @@ public enum Message {
     ITEM_NOT_FOUND(ChatColor.RED, "The item \"%s\" could not be found"),
     PLUGIN_HOOKS(ChatColor.GREEN, "Plugin \"%s\" detected, enabling hooks"),
     PLUGIN_UNHOOKS(ChatColor.GREEN, "Unhooking plugin \"%s\""),
+    NOT_A_NUMBER(ChatColor.RED, "Input string \"%s\" is not a number"),
+    ITEM_GAVE(ChatColor.GREEN, "Successfully gave %s \"%s\" to %s"),
 
     UNCONCISTENT_CONFIG_VERSION(ChatColor.RED, "Config updating error: does this config come from the future?"),
     CONFIGS_NOT_UPDATED(ChatColor.GREEN, "Configs version number is consistent: skipping updating"),

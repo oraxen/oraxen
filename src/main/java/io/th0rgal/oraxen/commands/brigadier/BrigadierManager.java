@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.commands.brigadier;
 
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
@@ -20,7 +21,7 @@ public class BrigadierManager {
         LiteralCommandNode<?> completions = LiteralArgumentBuilder.literal("oraxen")
                 .then(LiteralArgumentBuilder.literal("give")
                         .then(items
-                                .then(RequiredArgumentBuilder.argument("amount", StringArgumentType.string()))))
+                                .then(RequiredArgumentBuilder.argument("amount", IntegerArgumentType.integer()))))
                 .then(LiteralArgumentBuilder.literal("inv")
                         .then(LiteralArgumentBuilder.literal("all")))
                 .then(LiteralArgumentBuilder.literal("recipes")

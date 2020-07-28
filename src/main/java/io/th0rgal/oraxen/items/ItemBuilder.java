@@ -412,7 +412,7 @@ public class ItemBuilder {
     public ItemStack build() {
         if (finalItemStack == null)
             regen();
-        return finalItemStack;
+        return finalItemStack.clone();
     }
 
     @Override
