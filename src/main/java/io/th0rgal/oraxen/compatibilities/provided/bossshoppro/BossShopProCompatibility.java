@@ -2,7 +2,7 @@ package io.th0rgal.oraxen.compatibilities.provided.bossshoppro;
 
 import io.th0rgal.oraxen.compatibilities.CompatibilityProvider;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.settings.MessageOld;
 import org.black_ixx.bossshop.BossShop;
 import org.black_ixx.bossshop.events.BSCreatedShopItemEvent;
 import org.black_ixx.bossshop.events.BSRegisterTypesEvent;
@@ -26,7 +26,7 @@ public class BossShopProCompatibility extends CompatibilityProvider<BossShop> {
         if (OraxenItems.isAnItem(itemID))
             itemStack = OraxenItems.getItemById(itemID).build().clone();
         else
-            Message.ITEM_NOT_FOUND.logError(itemID);
+            MessageOld.ITEM_NOT_FOUND.logError(itemID);
         if (amount != 0)
             itemStack.setAmount(amount);
         event.getShopItem().setItem(itemStack, false);

@@ -1,9 +1,9 @@
-package io.th0rgal.oraxen.commands.subcommands;
+package io.th0rgal.oraxen.deprecated.commands.subcommands;
 
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.commands.CommandInterface;
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.deprecated.commands.CommandInterface;
+import io.th0rgal.oraxen.settings.MessageOld;
 
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.reflection.ReflectionProvider;
@@ -18,7 +18,7 @@ public class Debug implements CommandInterface {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
         if (!sender.hasPermission("oraxen.command.debug")) {
-            Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.debug");
+            MessageOld.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.debug");
             return false;
         }
 

@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.compatibilities;
 import io.th0rgal.oraxen.compatibilities.provided.bossshoppro.BossShopProCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.cratereloaded.CrateReloadedCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.mythicmobs.MythicMobsCompatibility;
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.settings.MessageOld;
 import org.bukkit.Bukkit;
 
 import java.util.concurrent.ConcurrentHashMap;
@@ -30,7 +30,7 @@ public class CompatibilitiesManager {
                 CompatibilityProvider<?> compatibilityProvider = COMPATIBILITY_PROVIDERS.get(pluginName).newInstance();
                 compatibilityProvider.enable(pluginName);
                 ACTIVE_COMPATIBILITY_PROVIDERS.put(pluginName, compatibilityProvider);
-                Message.PLUGIN_HOOKS.log(pluginName);
+                MessageOld.PLUGIN_HOOKS.log(pluginName);
                 return true;
             }
         } catch (InstantiationException | IllegalAccessException e) {
@@ -47,7 +47,7 @@ public class CompatibilitiesManager {
             if (ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).isEnabled())
                 ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).disable();
             ACTIVE_COMPATIBILITY_PROVIDERS.remove(pluginName);
-            Message.PLUGIN_UNHOOKS.log(pluginName);
+            MessageOld.PLUGIN_UNHOOKS.log(pluginName);
             return true;
         }catch (Exception e){
             e.printStackTrace();

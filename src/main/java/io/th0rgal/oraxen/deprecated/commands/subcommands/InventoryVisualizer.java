@@ -1,7 +1,7 @@
-package io.th0rgal.oraxen.commands.subcommands;
+package io.th0rgal.oraxen.deprecated.commands.subcommands;
 
-import io.th0rgal.oraxen.commands.CommandInterface;
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.deprecated.commands.CommandInterface;
+import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.utils.itemsvisualizer.AllItemsInventory;
 import io.th0rgal.oraxen.utils.itemsvisualizer.FileInventory;
 import org.bukkit.command.Command;
@@ -14,7 +14,7 @@ public class InventoryVisualizer implements CommandInterface {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
         if (!sender.hasPermission("oraxen.command.inv")) {
-            Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.inv");
+            MessageOld.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.inv");
             return false;
         }
 
@@ -26,10 +26,10 @@ public class InventoryVisualizer implements CommandInterface {
                 else
                     new FileInventory(0).open(player);
             else
-                Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.inv.view");
+                MessageOld.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.inv.view");
 
         } else {
-            Message.NOT_A_PLAYER_ERROR.send(sender);
+            MessageOld.NOT_A_PLAYER_ERROR.send(sender);
         }
 
         return false;

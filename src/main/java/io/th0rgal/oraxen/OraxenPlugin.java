@@ -1,28 +1,24 @@
 package io.th0rgal.oraxen;
 
-import io.th0rgal.oraxen.commands.BaseCommand;
-import io.th0rgal.oraxen.commands.CommandHandler;
-import io.th0rgal.oraxen.commands.brigadier.BrigadierManager;
-import io.th0rgal.oraxen.commands.subcommands.*;
+import io.th0rgal.oraxen.command.CommandProvider;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.language.Translations;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.settings.ConfigsManager;
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.settings.Plugin;
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
 import io.th0rgal.oraxen.utils.fastinv.FastInvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.signinput.SignMenuFactory;
-import me.lucko.commodore.CommodoreProvider;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.command.PluginCommand;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class OraxenPlugin extends JavaPlugin {
@@ -30,44 +26,27 @@ public class OraxenPlugin extends JavaPlugin {
     private static OraxenPlugin instance;
     private SignMenuFactory signMenuFactory;
 
-
     public OraxenPlugin() throws Exception {
         instance = this;
         Logs.enableFilter();
     }
 
     private void postLoading(ResourcePack resourcePack, ConfigsManager configsManager) {
-        registerCommands();
+        CommandProvider.register();
         new UploadManager(this).uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
         this.signMenuFactory = new SignMenuFactory(this);
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> OraxenItems.loadItems(configsManager));
     }
 
-    private void registerCommands() {
-        CommandHandler handler = new CommandHandler()
-                .register("oraxen", new BaseCommand())
-                .register("debug", new Debug())
-                .register("reload", new Reload())
-                .register("pack", new Pack())
-                .register("recipes", new Recipes())
-                .register("inv", new InventoryVisualizer())
-                .register("give", new Give())
-                .register("repair", new Repair());
-        PluginCommand command = getCommand("oraxen");
-        assert command != null;
-        command.setExecutor(handler);
-        // use brigadier if supported
-        if (CommodoreProvider.isSupported())
-            BrigadierManager.registerCompletions(CommodoreProvider.getCommodore(this), command);
-    }
-
     public void onEnable() {
         ConfigsManager configsManager = new ConfigsManager(this);
         if (!configsManager.validatesConfig()) {
-            Message.CONFIGS_VALIDATION_FAILED.logError();
+            MessageOld.CONFIGS_VALIDATION_FAILED.logError();
             getServer().getPluginManager().disablePlugin(this);
+            return;
         }
+        Translations.MANAGER.reloadCatch();
         MechanicsManager.registerNativeMechanics();
         CompatibilitiesManager.enableNativeCompatibilities();
         OraxenItems.loadItems(configsManager);

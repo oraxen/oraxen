@@ -1,10 +1,10 @@
-package io.th0rgal.oraxen.commands.subcommands;
+package io.th0rgal.oraxen.deprecated.commands.subcommands;
 
-import io.th0rgal.oraxen.commands.CommandInterface;
+import io.th0rgal.oraxen.deprecated.commands.CommandInterface;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanic;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.settings.Plugin;
 
 import org.bukkit.command.Command;
@@ -25,16 +25,16 @@ public class Repair implements CommandInterface {
 
         if (repairAll) {
             if (!sender.hasPermission("oraxen.command.repair.all")) {
-                Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.repair.all");
+                MessageOld.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.repair.all");
                 return false;
             }
         } else if (!sender.hasPermission("oraxen.command.repair.hand")) {
-            Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.repair.hand");
+            MessageOld.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.repair.hand");
             return false;
         }
 
         if (!(sender instanceof Player)) {
-            Message.NOT_A_PLAYER_ERROR.send(sender);
+            MessageOld.NOT_A_PLAYER_ERROR.send(sender);
             return true;
         }
         Player player = (Player) sender;
@@ -48,11 +48,11 @@ public class Repair implements CommandInterface {
                 if (!repaired && item != null && repairPlayerItem(item))
                     repaired = true;
             if (!repaired)
-                Message.CANNOT_BE_REPAIRED.send(sender);
+                MessageOld.CANNOT_BE_REPAIRED.send(sender);
         } else {
             boolean repairResult = repairPlayerItem(player.getInventory().getItemInMainHand());
             if (!repairResult)
-                Message.CANNOT_BE_REPAIRED.send(sender);
+                MessageOld.CANNOT_BE_REPAIRED.send(sender);
         }
         return true;
     }

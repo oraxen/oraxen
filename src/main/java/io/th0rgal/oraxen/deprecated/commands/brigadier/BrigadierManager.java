@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.commands.brigadier;
+package io.th0rgal.oraxen.deprecated.commands.brigadier;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;

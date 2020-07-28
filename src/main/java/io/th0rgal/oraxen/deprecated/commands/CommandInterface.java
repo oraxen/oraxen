@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.commands;
+package io.th0rgal.oraxen.deprecated.commands;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;

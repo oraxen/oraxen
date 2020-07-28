@@ -41,7 +41,7 @@ public class ConfigsManager {
         for (String key : defaultConfiguration.getKeys(true))
             if (userConfiguration.get(key) == null) {
                 updated = true;
-                Message.UPDATING_CONFIG.logError(key);
+                MessageOld.UPDATING_CONFIG.logError(key);
                 userConfiguration.set(key, defaultConfiguration.get(key));
             }
 
@@ -69,10 +69,10 @@ public class ConfigsManager {
         int configsVersion = (int) Plugin.CONFIGS_VERSION.getValue();
 
         if (configsVersion == currentversion)
-            Message.CONFIGS_NOT_UPDATED.logError();
+            MessageOld.CONFIGS_NOT_UPDATED.logError();
 
         else if (configsVersion > currentversion) {
-            Message.UNCONCISTENT_CONFIG_VERSION.logError();
+            MessageOld.UNCONCISTENT_CONFIG_VERSION.logError();
 
         } else {
             for (int i = configsVersion + 1; i <= currentversion; i++) { //so that you can update from 1 to n
@@ -98,7 +98,7 @@ public class ConfigsManager {
                         break;
 
                     default:
-                        Message.CONFIGS_UPDATING_FAILED.logError();
+                        MessageOld.CONFIGS_UPDATING_FAILED.logError();
                         return;
                 }
             }

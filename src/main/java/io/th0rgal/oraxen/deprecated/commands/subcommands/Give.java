@@ -1,8 +1,8 @@
-package io.th0rgal.oraxen.commands.subcommands;
+package io.th0rgal.oraxen.deprecated.commands.subcommands;
 
-import io.th0rgal.oraxen.commands.CommandInterface;
+import io.th0rgal.oraxen.deprecated.commands.CommandInterface;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.settings.MessageOld;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -16,7 +16,7 @@ public class Give implements CommandInterface {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
         if (!sender.hasPermission("oraxen.command.give")) {
-            Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.give");
+            MessageOld.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.give");
             return false;
         }
 
@@ -27,24 +27,24 @@ public class Give implements CommandInterface {
             if (sender instanceof Player) {
                 Player player = (Player) sender;
                 if (!OraxenItems.isAnItem(args[1])) {
-                    Message.ITEM_NOT_FOUND.send(sender, args[1]);
+                    MessageOld.ITEM_NOT_FOUND.send(sender, args[1]);
                     return true;
                 }
                 addItemToInventory(player.getInventory(), OraxenItems.getItemById(args[1]).build());
-                Message.ITEM_GAVE.send(sender, "1", args[1], sender.getName());
+                MessageOld.ITEM_GAVE.send(sender, "1", args[1], sender.getName());
                 return true;
             }
-            Message.NOT_A_PLAYER_ERROR.send(sender);
+            MessageOld.NOT_A_PLAYER_ERROR.send(sender);
             return true;
         }
 
         Player target = Bukkit.getPlayer(args[1]);
         if (target == null) {
-            Message.PLAYER_NOT_FOUND.send(sender, args[1]);
+            MessageOld.PLAYER_NOT_FOUND.send(sender, args[1]);
             return true;
         }
         if (!OraxenItems.isAnItem(args[2])) {
-            Message.ITEM_NOT_FOUND.send(sender, args[2]);
+            MessageOld.ITEM_NOT_FOUND.send(sender, args[2]);
             return true;
         }
         ItemStack itemStack = OraxenItems.getItemById(args[2]).build();
@@ -52,14 +52,14 @@ public class Give implements CommandInterface {
             try {
                 itemStack.setAmount(Integer.parseInt(args[3]));
             } catch (NumberFormatException e) {
-                Message.NOT_A_NUMBER.send(sender, args[3]);
+                MessageOld.NOT_A_NUMBER.send(sender, args[3]);
                 return true;
             }
         addItemToInventory(target.getInventory(), itemStack);
         if (args.length == 3)
-            Message.ITEM_GAVE.send(sender, "1", args[2], sender.getName());
+            MessageOld.ITEM_GAVE.send(sender, "1", args[2], sender.getName());
         else
-            Message.ITEM_GAVE.send(sender, args[3], args[2], sender.getName());
+            MessageOld.ITEM_GAVE.send(sender, args[3], args[2], sender.getName());
 
         return true;
     }

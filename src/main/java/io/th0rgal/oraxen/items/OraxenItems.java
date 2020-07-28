@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.items;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.settings.ConfigsManager;
 
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.settings.MessageOld;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -79,7 +79,7 @@ public class OraxenItems {
                     if (OraxenItems.isAnItem(params[1]))
                         itemStack = getItemById(params[1]).build().clone();
                     else {
-                        Message.ITEM_NOT_FOUND.logError(params[1]);
+                        MessageOld.ITEM_NOT_FOUND.logError(params[1]);
                         break;
                     }
                 else if (params[0].equalsIgnoreCase("amount"))

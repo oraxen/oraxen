@@ -2,7 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.bottledexp;
 
 import io.th0rgal.oraxen.items.OraxenItems;
 
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.settings.MessageOld;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -42,7 +42,7 @@ public class BottledExpMechanicListener implements Listener {
         Player player = event.getPlayer();
         ItemStack bottlesStack = new ItemStack(Material.EXPERIENCE_BOTTLE, mechanic.getBottleEquivalent(player.getLevel(), player.getExp()));
         if (bottlesStack.getAmount() <= 0) {
-            Message.NOT_ENOUGH_EXP.send(player);
+            MessageOld.NOT_ENOUGH_EXP.send(player);
             return;
         }
 

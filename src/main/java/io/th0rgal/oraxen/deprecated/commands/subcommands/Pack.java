@@ -1,8 +1,8 @@
-package io.th0rgal.oraxen.commands.subcommands;
+package io.th0rgal.oraxen.deprecated.commands.subcommands;
 
-import io.th0rgal.oraxen.commands.CommandInterface;
+import io.th0rgal.oraxen.deprecated.commands.CommandInterface;
 import io.th0rgal.oraxen.pack.dispatch.PackDispatcher;
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.settings.MessageOld;
 import org.bukkit.Bukkit;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
@@ -20,19 +20,19 @@ public class Pack implements CommandInterface {
         if (args[1].equalsIgnoreCase("sendmenu") || args[1].equalsIgnoreCase("sendpack")) {
 
             if (args.length < 3) {
-                Message.PLAYER_NOT_GIVEN.send(sender);
+                MessageOld.PLAYER_NOT_GIVEN.send(sender);
                 return true;
             }
 
             if (!sender.hasPermission("oraxen.command.pack")) {
-                Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.pack");
+                MessageOld.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.pack");
                 return true;
             }
 
             target = Bukkit.getPlayer(args[2]);
 
             if (target == null) {
-                Message.PLAYER_NOT_FOUND.send(sender, args[2]);
+                MessageOld.PLAYER_NOT_FOUND.send(sender, args[2]);
                 return true;
             }
 
@@ -53,7 +53,7 @@ public class Pack implements CommandInterface {
         } else if (args[1].equalsIgnoreCase("getmenu") || args[1].equalsIgnoreCase("getpack")) {
 
             if (!(sender instanceof Player)) {
-                Message.NOT_A_PLAYER_ERROR.send(sender);
+                MessageOld.NOT_A_PLAYER_ERROR.send(sender);
                 return true;
             }
 

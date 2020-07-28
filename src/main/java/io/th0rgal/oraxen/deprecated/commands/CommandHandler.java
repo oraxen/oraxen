@@ -1,6 +1,6 @@
-package io.th0rgal.oraxen.commands;
+package io.th0rgal.oraxen.deprecated.commands;
 
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.settings.MessageOld;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -45,7 +45,7 @@ public class CommandHandler implements CommandExecutor {
             return true;
         } else {
             //We want to send a message to the sender if the command doesn't exist.
-            Message.COMMAND_DOES_NOT_EXIST_ERROR.send(sender);
+            MessageOld.COMMAND_DOES_NOT_EXIST_ERROR.send(sender);
             return true;
         }
 

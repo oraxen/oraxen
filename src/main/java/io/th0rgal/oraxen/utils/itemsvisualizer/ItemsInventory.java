@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.utils.itemsvisualizer;
 import com.google.common.collect.Iterables;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.utils.fastinv.FastInv;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -64,7 +64,7 @@ public class ItemsInventory extends FastInv {
                 humanEntity.getWorld().dropItem(humanEntity.getLocation(), item);
             }
         } else {
-            Message.DONT_HAVE_PERMISSION.send(humanEntity, "oraxen.command.inv.give");
+            MessageOld.DONT_HAVE_PERMISSION.send(humanEntity, "oraxen.command.inv.give");
         }
     }
 

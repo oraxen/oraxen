@@ -6,7 +6,7 @@ import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.recipes.loaders.FurnaceLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapedLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.settings.Plugin;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -76,7 +76,7 @@ public class RecipesManager {
                     break;
             }
         } catch (NullPointerException exception) {
-            Message.BAD_RECIPE.logError(recipeSection.getName());
+            MessageOld.BAD_RECIPE.logError(recipeSection.getName());
         }
     }
 }
