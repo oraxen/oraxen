@@ -16,6 +16,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.Iterator;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Random;
 
@@ -33,8 +35,6 @@ public class SmeltingMechanicListener implements Listener {
     public void onBlockbreak(BlockBreakEvent event) {
         if (event.isCancelled()) return;
         ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
-        if (item == null)
-            return;
 
         String itemID = OraxenItems.getIdByItem(item);
         if (factory.isNotImplementedIn(itemID))
@@ -47,30 +47,30 @@ public class SmeltingMechanicListener implements Listener {
         if (loot == null) return; // not recipe
         ItemMeta itemMeta = item.getItemMeta();
 
-        if (itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
+        if (Objects.requireNonNull(itemMeta).hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
             loot.setAmount(1 + new Random().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
         }
         event.setDropItems(false);
         Location location = event.getBlock().getLocation();
-        location.getWorld().dropItemNaturally(location, loot);
+        Objects.requireNonNull(location.getWorld()).dropItemNaturally(location, loot);
         SmeltingMechanic mechanic = (SmeltingMechanic) factory.getMechanic(itemID);
         if (mechanic.playSound()) {
             location.getWorld().playSound(location, Sound.ENTITY_GUARDIAN_ATTACK, 0.10f, 0.8f);
         }
     }
 
-
+    @SuppressWarnings("unchecked")
     private ItemStack furnace(ItemStack item) {
         if (item == null) return null; // Because item can be null
         Optional<Reflect> recipeIteratorReflect = ORAXEN.getOptionalReflect("cb_recipeiterator");
         if (!recipeIteratorReflect.isPresent())
             throw new IllegalStateException("Oraxen Reflections aren't setup properly?");
-        Object recipeIterator = recipeIteratorReflect.get().init();
+        Iterator<Recipe> recipeIterator = (Iterator<Recipe>) recipeIteratorReflect.get().init();
 
-        while ((boolean) recipeIteratorReflect.get().run(recipeIterator, "hasNext")) {
-            Recipe recipe = (Recipe) recipeIteratorReflect.get().run(recipeIterator, "next");
+        while (recipeIterator.hasNext()) {
+            Recipe recipe = recipeIterator.next();
             if (!(recipe instanceof CookingRecipe)) continue;
-            CookingRecipe recipe1 = (CookingRecipe) recipe;
+            CookingRecipe<?> recipe1 = (CookingRecipe<?>) recipe;
             if (recipe1.getInputChoice().test(item))
                 return new ItemStack(recipe.getResult().getType(), item.getAmount());
         }

@@ -33,8 +33,6 @@ public class BigMiningMechanicListener implements Listener {
         }
 
         ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
-        if (item == null)
-            return;
 
         String itemID = OraxenItems.getIdByItem(item);
         if (factory.isNotImplementedIn(itemID))
