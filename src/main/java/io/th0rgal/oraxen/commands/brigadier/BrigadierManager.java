@@ -1,22 +1,28 @@
 package io.th0rgal.oraxen.commands.brigadier;
 
-import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.builder.LiteralArgumentBuilder;
 import com.mojang.brigadier.builder.RequiredArgumentBuilder;
+import com.mojang.brigadier.tree.LiteralCommandNode;
+import io.th0rgal.oraxen.items.OraxenItems;
 import me.lucko.commodore.Commodore;
 import org.bukkit.command.PluginCommand;
+
 
 public class BrigadierManager {
 
     public static void registerCompletions(Commodore commodore, PluginCommand command) {
-        commodore.register(command, LiteralArgumentBuilder.literal("oraxen")
+
+        RequiredArgumentBuilder<Object, String> items = RequiredArgumentBuilder.argument("player", StringArgumentType.string());
+
+        OraxenItems.getAllItems().keySet().forEach(itemID -> items.then(LiteralArgumentBuilder.literal(itemID)));
+
+        LiteralCommandNode<?> completions = LiteralArgumentBuilder.literal("oraxen")
                 .then(LiteralArgumentBuilder.literal("give")
-                        .then(RequiredArgumentBuilder.argument("player", StringArgumentType.string())
-                                .then(RequiredArgumentBuilder.argument("itemID", StringArgumentType.string())
-                                        .then(RequiredArgumentBuilder.argument("amount", IntegerArgumentType.integer())))))
+                        .then(items
+                                .then(RequiredArgumentBuilder.argument("amount", StringArgumentType.string()))))
                 .then(LiteralArgumentBuilder.literal("inv")
-                    .then(LiteralArgumentBuilder.literal("all")))
+                        .then(LiteralArgumentBuilder.literal("all")))
                 .then(LiteralArgumentBuilder.literal("recipes")
                         .then(LiteralArgumentBuilder.literal("open")
                                 .then(LiteralArgumentBuilder.literal("shaped"))
@@ -28,7 +34,9 @@ public class BrigadierManager {
                 .then(LiteralArgumentBuilder.literal("reload")
                         .then(LiteralArgumentBuilder.literal("items"))
                         .then(LiteralArgumentBuilder.literal("pack"))
-                        .then(LiteralArgumentBuilder.literal("recipes")))
-        );
+                        .then(LiteralArgumentBuilder.literal("recipes"))).build();
+
+        commodore.register(command, completions);
+
     }
 }
