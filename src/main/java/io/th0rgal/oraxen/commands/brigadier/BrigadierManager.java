@@ -9,6 +9,8 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import me.lucko.commodore.Commodore;
 import org.bukkit.command.PluginCommand;
 
+import java.awt.peer.LightweightPeer;
+
 
 public class BrigadierManager {
 
@@ -35,7 +37,9 @@ public class BrigadierManager {
                 .then(LiteralArgumentBuilder.literal("reload")
                         .then(LiteralArgumentBuilder.literal("items"))
                         .then(LiteralArgumentBuilder.literal("pack"))
-                        .then(LiteralArgumentBuilder.literal("recipes"))).build();
+                        .then(LiteralArgumentBuilder.literal("recipes")))
+                .then(LiteralArgumentBuilder.literal("repair")
+                        .then(LiteralArgumentBuilder.literal("all"))).build();
 
         commodore.register(command, completions);
 
