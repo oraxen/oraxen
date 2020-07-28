@@ -9,9 +9,6 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import me.lucko.commodore.Commodore;
 import org.bukkit.command.PluginCommand;
 
-import java.awt.peer.LightweightPeer;
-
-
 public class BrigadierManager {
 
     public static void registerCompletions(Commodore commodore, PluginCommand command) {
@@ -39,7 +36,16 @@ public class BrigadierManager {
                         .then(LiteralArgumentBuilder.literal("pack"))
                         .then(LiteralArgumentBuilder.literal("recipes")))
                 .then(LiteralArgumentBuilder.literal("repair")
-                        .then(LiteralArgumentBuilder.literal("all"))).build();
+                        .then(LiteralArgumentBuilder.literal("all")))
+                .then(LiteralArgumentBuilder.literal("debug"))
+                .then(LiteralArgumentBuilder.literal("pack")
+                        .then(LiteralArgumentBuilder.literal("getpack"))
+                        .then(LiteralArgumentBuilder.literal("getmenu"))
+                        .then(LiteralArgumentBuilder.literal("sendpack")
+                                .then(RequiredArgumentBuilder.argument("player", StringArgumentType.string())))
+                        .then(LiteralArgumentBuilder.literal("sendmenu")
+                                .then(RequiredArgumentBuilder.argument("player", StringArgumentType.string()))))
+                .build();
 
         commodore.register(command, completions);
 
