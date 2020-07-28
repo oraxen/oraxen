@@ -74,7 +74,7 @@ public class SmeltingMechanicListener implements Listener {
             if (recipe1.getInputChoice().test(item))
                 return new ItemStack(recipe.getResult().getType(), item.getAmount());
         }
-        return item; // return result furnace :)
+        return null; // return result furnace :)
     }
 
 }
