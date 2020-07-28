@@ -12,8 +12,6 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Objects;
-
 public class LifeLeechMechanicListener implements Listener {
 
     private final MechanicFactory factory;
@@ -44,7 +42,6 @@ public class LifeLeechMechanicListener implements Listener {
          * Fixe d'un bug duquel le maxHealth n'est pas bien compté.
          * Fixe d'un second byg que le GENERIC_MAX_HEALTH avec getDefaultValue ne dépasse pas les 20
          */
-        //
 
         double maxHealth = damager.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
 

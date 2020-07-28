@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.RecipeChoice;
 import org.bukkit.inventory.ShapelessRecipe;

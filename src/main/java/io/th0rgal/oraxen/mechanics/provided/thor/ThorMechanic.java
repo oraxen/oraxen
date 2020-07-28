@@ -11,8 +11,7 @@ import org.bukkit.entity.Player;
 import java.util.Random;
 
 public class ThorMechanic extends Mechanic {
-
-    private long nextAllowedUsageTime = 0;
+	
     private int lightningBoltsAmount;
     private double randomLocationVariation;
     private TimersFactory timersFactory;

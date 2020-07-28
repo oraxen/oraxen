@@ -2,11 +2,14 @@ package io.th0rgal.oraxen.commands.subcommands;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.commands.CommandInterface;
+import io.th0rgal.oraxen.commands.brigadier.BrigadierManager;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.settings.Message;
+import me.lucko.commodore.Commodore;
+import me.lucko.commodore.CommodoreProvider;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -52,6 +55,8 @@ public class Reload implements CommandInterface {
     private void reloadItems(CommandSender sender) {
         Message.RELOAD.send(sender, "items");
         OraxenItems.loadItems();
+        if(CommodoreProvider.isSupported())
+            BrigadierManager.registerCompletions(CommodoreProvider.getCommodore(OraxenPlugin.get()), OraxenPlugin.get().getCommand("oraxen"));
     }
 
     private void reloadPack(JavaPlugin plugin, CommandSender sender) {

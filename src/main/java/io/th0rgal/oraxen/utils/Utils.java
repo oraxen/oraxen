@@ -42,6 +42,7 @@ public class Utils {
         try {
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             writer.write(content);
+            writer.flush();
             writer.close();
         } catch (IOException e) {
             e.printStackTrace();

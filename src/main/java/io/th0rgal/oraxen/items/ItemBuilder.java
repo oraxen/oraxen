@@ -2,7 +2,11 @@ package io.th0rgal.oraxen.items;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import io.th0rgal.oraxen.utils.ItemUtils;
+import com.syntaxphoenix.syntaxapi.nbt.NbtCompound;
+import com.syntaxphoenix.syntaxapi.nbt.NbtTag;
+import com.syntaxphoenix.syntaxapi.nbt.NbtType;
+
+import io.th0rgal.oraxen.utils.reflection.ItemTools;
 
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -27,13 +31,13 @@ public class ItemBuilder {
     private Material type;
     private int amount;
 
-    private int durability; //Damageable
-    private Color color; //LeatherArmorMeta & PotionMeta
+    private int durability; // Damageable
+    private Color color; // LeatherArmorMeta & PotionMeta
     private PotionData potionData;
     private List<PotionEffect> potionEffects;
-    private OfflinePlayer owningPlayer; //SkullMeta
+    private OfflinePlayer owningPlayer; // SkullMeta
 
-    private DyeColor bodyColor; //TropicalFishBucketMeta
+    private DyeColor bodyColor; // TropicalFishBucketMeta
     private TropicalFish.Pattern pattern;
     private DyeColor patternColor;
 
@@ -43,12 +47,14 @@ public class ItemBuilder {
     private boolean hasAttributeModifiers;
     private Multimap<Attribute, AttributeModifier> attributeModifiers;
     private final Map<PersistentDataSpace, Object> persistentDataMap = new HashMap<>();
-    private final Map<String, Object> nbtTags = new HashMap<>();
     private boolean hasCustomModelData;
     private int customModelData;
     private List<String> lore;
     private final PersistentDataContainer persistentDataContainer;
     private final Map<Enchantment, Integer> enchantments;
+
+    private final NbtCompound overrideData;
+    private final NbtCompound customItemData;
 
     public ItemBuilder(Material material) {
         this(new ItemStack(material));
@@ -108,6 +114,11 @@ public class ItemBuilder {
             this.lore = itemMeta.getLore();
 
         this.persistentDataContainer = itemMeta.getPersistentDataContainer();
+
+        this.overrideData = ItemTools.toNbtCompound(itemStack);
+        this.customItemData = overrideData.hasKey("oraxenData", NbtType.COMPOUND)
+                ? overrideData.getCompound("oraxenData")
+                : new NbtCompound();
 
         this.enchantments = new HashMap<>();
 
@@ -173,7 +184,8 @@ public class ItemBuilder {
     @SuppressWarnings("unchecked")
     public <T, Z> Z getCustomTag(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType) {
         for (Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
-            if (dataSpace.getKey().getNamespacedKey().equals(namespacedKey) && dataSpace.getKey().getDataType().equals(dataType))
+            if (dataSpace.getKey().getNamespacedKey().equals(namespacedKey)
+                    && dataSpace.getKey().getDataType().equals(dataType))
                 return (Z) dataSpace.getValue();
         return null;
     }
@@ -189,14 +201,32 @@ public class ItemBuilder {
         return this;
     }
 
-    public ItemBuilder addCustomNBTTags(Map<String, Object> nbtTags) {
-        this.nbtTags.putAll(nbtTags);
+    public ItemBuilder setOverrideTag(String name, NbtTag tag) {
+        overrideData.set(name, tag);
         return this;
     }
 
-    public ItemBuilder setNBTBase(String field, Object nbtBase) {
-        nbtTags.put(field, nbtBase);
+    public ItemBuilder setOverrideTags(NbtCompound compound) {
+        overrideData.getValue().putAll(compound.getValue());
         return this;
+    }
+    
+    public NbtTag getOverrideTag(String name) {
+        return overrideData.get(name);
+    }
+
+    public ItemBuilder setNbtTag(String name, NbtTag tag) {
+        customItemData.set(name, tag);
+        return this;
+    }
+
+    public ItemBuilder setNbtTags(NbtCompound compound) {
+        customItemData.getValue().putAll(compound.getValue());
+        return this;
+    }
+    
+    public NbtTag getNbtTag(String name) {
+        return customItemData.get(name);
     }
 
     public ItemBuilder addItemFlags(ItemFlag... itemFlags) {
@@ -259,14 +289,25 @@ public class ItemBuilder {
     public OraxenMeta getOraxenMeta() {
         return oraxenMeta;
     }
+    
+    public ItemStack getReferenceClone() {
+        return itemStack.clone();
+    }
 
     private ItemStack finalItemStack;
 
     @SuppressWarnings("unchecked")
     public ItemBuilder regen() {
-
+        
+        if(!customItemData.isEmpty())
+            overrideData.set("oraxenData", customItemData);
+        
+        ItemStack itemStack = ItemTools.fromNbtCompound(overrideData);
+        
+        overrideData.remove("oraxenData");
+        
         /*
-         CHANGING ITEM
+         * CHANGING ITEM
          */
         if (type != null)
             itemStack.setType(this.type);
@@ -274,11 +315,11 @@ public class ItemBuilder {
             itemStack.setAmount(this.amount);
 
         /*
-         CHANGING ItemBuilder META
+         * CHANGING ItemBuilder META
          */
         ItemMeta itemMeta = itemStack.getItemMeta();
 
-        //durability
+        // durability
         if (itemMeta instanceof Damageable) {
             Damageable damageable = (Damageable) itemMeta;
             if (durability != damageable.getDamage()) {
@@ -338,7 +379,6 @@ public class ItemBuilder {
             itemMeta = tropicalFishBucketMeta;
         }
 
-
         if (displayName != null)
             itemMeta.setDisplayName(displayName);
 
@@ -359,20 +399,12 @@ public class ItemBuilder {
         if (!persistentDataMap.isEmpty())
             for (Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
                 itemMeta.getPersistentDataContainer().set(dataSpace.getKey().getNamespacedKey(),
-                        (PersistentDataType<?, Object>) dataSpace.getKey().getDataType(),
-                        dataSpace.getValue());
+                        (PersistentDataType<?, Object>) dataSpace.getKey().getDataType(), dataSpace.getValue());
+        
         itemMeta.setLore(lore);
 
         itemStack.setItemMeta(itemMeta);
-        if (!nbtTags.isEmpty()) {
-            Object nmsItem = ItemUtils.getNMSCopy(itemStack);
-            Object nbtTagCompound = ItemUtils.getNBTTagCompound(nmsItem);
-            for (Map.Entry<String, Object> nbtTagByPath : nbtTags.entrySet())
-                ItemUtils.setNBTBase(nbtTagCompound, nbtTagByPath.getKey(), nbtTagByPath.getValue());
-            ItemUtils.setNBTTagCompound(nmsItem, nbtTagCompound);
-            finalItemStack = ItemUtils.fromNMS(nmsItem);
-        } else
-            finalItemStack = itemStack;
+        finalItemStack = itemStack;
 
         return this;
     }
@@ -385,7 +417,7 @@ public class ItemBuilder {
 
     @Override
     public String toString() {
-        //todo
+        // todo
         return super.toString();
     }
 
