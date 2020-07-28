@@ -60,7 +60,6 @@ public class CompatibilitiesManager {
             if (compatibilityPluginName != null && clazz != null) {
                 COMPATIBILITY_PROVIDERS.put(compatibilityPluginName, clazz);
                 if(tryEnable)
-                if(tryEnable)
                     return enableCompatibility(compatibilityPluginName);
                 else
                     return true;
