@@ -15,51 +15,66 @@ public class CompatibilitiesManager {
 
     public static void enableNativeCompatibilities() {
         new CompatibilityListener();
-        addCompatibility("MythicMobs", MythicMobsCompatibility.class);
-        addCompatibility("CrateReloaded", CrateReloadedCompatibility.class);
-        addCompatibility("BossShopPro", BossShopProCompatibility.class);
+        addCompatibility("MythicMobs", MythicMobsCompatibility.class, true);
+        addCompatibility("CrateReloaded", CrateReloadedCompatibility.class, true);
+        addCompatibility("BossShopPro", BossShopProCompatibility.class, true);
     }
 
     public static void disableCompatibilities() {
-        for (String pluginName : ACTIVE_COMPATIBILITY_PROVIDERS.keySet()) {
-            disableCompatibility(pluginName);
-        }
+        ACTIVE_COMPATIBILITY_PROVIDERS.forEach((pluginName, compatibilityProvider) -> disableCompatibility(pluginName));
     }
 
     public static boolean enableCompatibility(String pluginName) {
-        if (!ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName) && COMPATIBILITY_PROVIDERS.containsKey(pluginName) && Bukkit.getPluginManager().isPluginEnabled(pluginName)) {
-            try {
+        try {
+            if (!ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName) && COMPATIBILITY_PROVIDERS.containsKey(pluginName) && Bukkit.getPluginManager().isPluginEnabled(pluginName)) {
                 CompatibilityProvider<?> compatibilityProvider = COMPATIBILITY_PROVIDERS.get(pluginName).newInstance();
-                ACTIVE_COMPATIBILITY_PROVIDERS.put(pluginName, compatibilityProvider);
                 compatibilityProvider.enable(pluginName);
+                ACTIVE_COMPATIBILITY_PROVIDERS.put(pluginName, compatibilityProvider);
                 Message.PLUGIN_HOOKS.log(pluginName);
                 return true;
-            } catch (InstantiationException | IllegalAccessException e) {
-                e.printStackTrace();
-                return false;
             }
+        } catch (InstantiationException | IllegalAccessException e) {
+            e.printStackTrace();
+            return false;
         }
         return false;
     }
 
     public static boolean disableCompatibility(String pluginName) {
-        if (ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName) && ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).isEnabled()) {
-            ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).disable();
+        try {
+            if (ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).isEnabled())
+                ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).disable();
             ACTIVE_COMPATIBILITY_PROVIDERS.remove(pluginName);
             Message.PLUGIN_UNHOOKS.log(pluginName);
             return true;
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public static boolean addCompatibility(String compatibilityPluginName, Class<? extends CompatibilityProvider<?>> clazz, boolean tryEnable) {
+        try {
+            if (compatibilityPluginName != null && clazz != null) {
+                COMPATIBILITY_PROVIDERS.put(compatibilityPluginName, clazz);
+                if(tryEnable)
+                if(tryEnable)
+                    return enableCompatibility(compatibilityPluginName);
+                else
+                    return true;
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+            return false;
         }
         return false;
     }
 
-    public static void addCompatibility(String compatibilityPluginName, Class<? extends CompatibilityProvider<?>> clazz) {
-        if (compatibilityPluginName != null && clazz != null) {
-            COMPATIBILITY_PROVIDERS.put(compatibilityPluginName, clazz);
-            enableCompatibility(compatibilityPluginName);
-        }
+    public static boolean addCompatibility(String compatibilityPluginName, Class<? extends CompatibilityProvider<?>> clazz) {
+        return addCompatibility(compatibilityPluginName, clazz, false);
     }
 
-    public static CompatibilityProvider<?> getActiveCompatibility(String pluginName) {
+        public static CompatibilityProvider<?> getActiveCompatibility(String pluginName) {
         return ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName);
     }
 
