@@ -59,7 +59,15 @@ public class CompatibilitiesManager {
         }
     }
 
-    public static boolean isCompatibilityEnabled(String pluginName){
+    public static CompatibilityProvider<?> getActiveCompatibility(String pluginName) {
+        return ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName);
+    }
+
+    public static Class<? extends CompatibilityProvider<?>> getCompatibility(String pluginName) {
+        return COMPATIBILITY_PROVIDERS.get(pluginName);
+    }
+
+    public static boolean isCompatibilityEnabled(String pluginName) {
         return ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName) && ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).isEnabled();
     }
 
