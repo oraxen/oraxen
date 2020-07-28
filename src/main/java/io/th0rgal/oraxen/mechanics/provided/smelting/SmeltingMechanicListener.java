@@ -1,19 +1,25 @@
 package io.th0rgal.oraxen.mechanics.provided.smelting;
 
+import com.syntaxphoenix.syntaxapi.reflection.Reflect;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.inventory.CookingRecipe;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
+import java.util.Optional;
 import java.util.Random;
+
+import static io.th0rgal.oraxen.utils.reflection.ReflectionProvider.ORAXEN;
 
 public class SmeltingMechanicListener implements Listener {
 
@@ -34,10 +40,13 @@ public class SmeltingMechanicListener implements Listener {
         if (factory.isNotImplementedIn(itemID))
             return;
 
+        if (event.getPlayer().getGameMode() == GameMode.CREATIVE)
+            return;
+
         ItemStack loot = furnace(new ItemStack(event.getBlock().getType()));
-        if (loot == null) return; // not recupe
+        if (loot == null) return; // not recipe
         ItemMeta itemMeta = item.getItemMeta();
-        
+
         if (itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
             loot.setAmount(1 + new Random().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
         }
@@ -49,15 +58,21 @@ public class SmeltingMechanicListener implements Listener {
             location.getWorld().playSound(location, Sound.ENTITY_GUARDIAN_ATTACK, 0.10f, 0.8f);
         }
     }
-    
-    
+
+
     private ItemStack furnace(ItemStack item) {
         if (item == null) return null; // Because item can be null
-        while (recipeIterator.hasNext()) {
-            Recipe recipe = recipeIterator.next();
+        Optional<Reflect> recipeIteratorReflect = ORAXEN.getOptionalReflect("cb_recipeiterator");
+        if (!recipeIteratorReflect.isPresent())
+            throw new IllegalStateException("Oraxen Reflections aren't setup properly?");
+        Object recipeIterator = recipeIteratorReflect.get().init();
+
+        while ((boolean) recipeIteratorReflect.get().run(recipeIterator, "hasNext")) {
+            Recipe recipe = (Recipe) recipeIteratorReflect.get().run(recipeIterator, "next");
             if (!(recipe instanceof CookingRecipe)) continue;
             CookingRecipe recipe1 = (CookingRecipe) recipe;
-            if (recipe1.getInputChoice().test(item)) return new ItemStack(recipe.getResult().getType(), item.getAmount());
+            if (recipe1.getInputChoice().test(item))
+                return new ItemStack(recipe.getResult().getType(), item.getAmount());
         }
         return item; // return result furnace :)
     }

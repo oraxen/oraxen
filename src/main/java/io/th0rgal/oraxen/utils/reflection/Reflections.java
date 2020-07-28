@@ -33,6 +33,11 @@ public class Reflections {
                 .searchMethod("asNmsStack", "asNMSCopy", ItemStack.class)
                 .searchMethod("fromNmsStack", "asBukkitCopy", nmsItemStackClass);
 
+        provider.createCBReflect("cb_recipeiterator", "inventory.RecipeIterator")
+                .searchMethod("hasNext", "hasNext")
+                .searchMethod("next", "next");
+
+
     }
 
 }
