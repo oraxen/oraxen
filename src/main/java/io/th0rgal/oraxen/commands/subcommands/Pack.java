@@ -14,7 +14,15 @@ public class Pack implements CommandInterface {
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
         Player target;
-        if (args.length == 3) {
+        if (args.length == 1)
+            return false;
+
+        if (args[1].equalsIgnoreCase("sendmenu") || args[1].equalsIgnoreCase("sendpack")) {
+
+            if (args.length < 3) {
+                Message.PLAYER_NOT_GIVEN.send(sender);
+                return true;
+            }
 
             if (!sender.hasPermission("oraxen.command.pack")) {
                 Message.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.pack");
@@ -22,6 +30,11 @@ public class Pack implements CommandInterface {
             }
 
             target = Bukkit.getPlayer(args[2]);
+
+            if (target == null) {
+                Message.PLAYER_NOT_FOUND.send(sender, args[2]);
+                return true;
+            }
 
             switch (args[1]) {
 
@@ -37,7 +50,13 @@ public class Pack implements CommandInterface {
                     return false;
             }
 
-        } else {
+        } else if (args[1].equalsIgnoreCase("getmenu") || args[1].equalsIgnoreCase("getpack")) {
+
+            if (!(sender instanceof Player)) {
+                Message.NOT_A_PLAYER_ERROR.send(sender);
+                return true;
+            }
+
             target = (Player) sender;
 
             if (args.length == 2) {
@@ -59,6 +78,8 @@ public class Pack implements CommandInterface {
             PackDispatcher.sendWelcomeMessage(target);
             return true;
         }
+        return false;
     }
+
 
 }

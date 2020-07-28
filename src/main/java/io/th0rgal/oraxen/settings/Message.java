@@ -18,11 +18,14 @@ public enum Message {
     MECHANIC_DOESNT_EXIST(ChatColor.RED, "The mechanic %s doesn't exist"),
     WRONG_TYPE(ChatColor.RED, "You are using an invalid type"),
     BAD_RECIPE(ChatColor.RED, "The recipe \"%s\" is invalid, please ensure all its ingredients exist in your config"),
-    ITEM_NOT_FOUND(ChatColor.RED, "The item \"%s\" could not be found"),
+    ITEM_NOT_FOUND(ChatColor.RED, "Item \"%s\" not found"),
     PLUGIN_HOOKS(ChatColor.GREEN, "Plugin \"%s\" detected, enabling hooks"),
     PLUGIN_UNHOOKS(ChatColor.GREEN, "Unhooking plugin \"%s\""),
     NOT_A_NUMBER(ChatColor.RED, "Input string \"%s\" is not a number"),
     ITEM_GAVE(ChatColor.GREEN, "Successfully gave %s \"%s\" to %s"),
+    PLAYER_NOT_FOUND(ChatColor.RED, "Player \"%s\" not found"),
+    PLAYER_NOT_GIVEN(ChatColor.RED, "You must specify a player"),
+
 
     UNCONCISTENT_CONFIG_VERSION(ChatColor.RED, "Config updating error: does this config come from the future?"),
     CONFIGS_NOT_UPDATED(ChatColor.GREEN, "Configs version number is consistent: skipping updating"),

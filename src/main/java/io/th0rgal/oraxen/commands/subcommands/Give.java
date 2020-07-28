@@ -26,6 +26,10 @@ public class Give implements CommandInterface {
         if (args.length == 2) {
             if (sender instanceof Player) {
                 Player player = (Player) sender;
+                if (!OraxenItems.isAnItem(args[1])) {
+                    Message.ITEM_NOT_FOUND.send(sender, args[1]);
+                    return true;
+                }
                 addItemToInventory(player.getInventory(), OraxenItems.getItemById(args[1]).build());
                 Message.ITEM_GAVE.send(sender, "1", args[1], sender.getName());
                 return true;
@@ -35,16 +39,24 @@ public class Give implements CommandInterface {
         }
 
         Player target = Bukkit.getPlayer(args[1]);
+        if (target == null) {
+            Message.PLAYER_NOT_FOUND.send(sender, args[1]);
+            return true;
+        }
+        if (!OraxenItems.isAnItem(args[2])) {
+            Message.ITEM_NOT_FOUND.send(sender, args[2]);
+            return true;
+        }
         ItemStack itemStack = OraxenItems.getItemById(args[2]).build();
         if (args.length == 4)
             try {
                 itemStack.setAmount(Integer.parseInt(args[3]));
-            }catch (NumberFormatException e){
+            } catch (NumberFormatException e) {
                 Message.NOT_A_NUMBER.send(sender, args[3]);
                 return true;
             }
         addItemToInventory(target.getInventory(), itemStack);
-        if(args.length == 3)
+        if (args.length == 3)
             Message.ITEM_GAVE.send(sender, "1", args[2], sender.getName());
         else
             Message.ITEM_GAVE.send(sender, args[3], args[2], sender.getName());
