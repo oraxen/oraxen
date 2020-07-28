@@ -68,7 +68,7 @@ public final class Translations {
     public static String translate(String language, CommandInfo info, DescriptionType type,
             Placeholder... placeholders) {
         return description(language, type.isSimple() ? info.getSimpleDescriptionId() : info.getDetailedDescriptionId(),
-                placeholders);
+            placeholders);
     }
 
     public static String translate(String language, IMessage message) {

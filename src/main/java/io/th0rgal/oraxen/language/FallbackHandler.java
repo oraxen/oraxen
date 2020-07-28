@@ -8,8 +8,6 @@ import org.bukkit.event.Listener;
 import io.th0rgal.oraxen.command.CommandInfo;
 import io.th0rgal.oraxen.command.CommandProvider;
 import io.th0rgal.oraxen.language.Translations.TranslationManager.TranslationStorage;
-import io.th0rgal.oraxen.settings.Message;
-import io.th0rgal.oraxen.settings.Variable;
 
 public class FallbackHandler implements Listener {
 

@@ -1,9 +1,8 @@
-package io.th0rgal.oraxen.settings;
+package io.th0rgal.oraxen.language;
 
 import org.bukkit.plugin.Plugin;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.language.IVariable;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageParser;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
