@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.repair;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -14,7 +14,7 @@ public class RepairMechanicFactory extends MechanicFactory {
     public RepairMechanicFactory(ConfigurationSection section) {
         super(section);
         oraxenDurabilityOnly = section.getBoolean("oraxen_durability_only");
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new RepairMechanicListener(this));
+        MechanicsManager.registerListeners(Oraxen.get(), new RepairMechanicListener(this));
     }
 
     @Override

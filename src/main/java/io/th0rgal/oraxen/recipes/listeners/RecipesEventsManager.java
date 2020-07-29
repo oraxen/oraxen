@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.recipes.listeners;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 
@@ -30,7 +30,7 @@ public class RecipesEventsManager implements Listener {
     }
 
     public void registerEvents() {
-        Bukkit.getPluginManager().registerEvents(instance, OraxenPlugin.get());
+        Bukkit.getPluginManager().registerEvents(instance, Oraxen.get());
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)

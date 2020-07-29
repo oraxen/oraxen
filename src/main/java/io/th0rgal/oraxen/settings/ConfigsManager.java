@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.settings;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -34,7 +34,7 @@ public class ConfigsManager {
     }
 
     public boolean validatesConfig() {
-        ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
+        ResourcesManager resourcesManager = new ResourcesManager(Oraxen.get());
         File userConfigurationFile = resourcesManager.extractConfiguration("settings.yml");
         YamlConfiguration userConfiguration = YamlConfiguration.loadConfiguration(userConfigurationFile);
         boolean updated = false;

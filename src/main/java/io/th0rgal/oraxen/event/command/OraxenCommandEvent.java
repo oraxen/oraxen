@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.command;
+package io.th0rgal.oraxen.event.command;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,6 +8,8 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
 import com.oraxen.chimerate.commons.command.dispatcher.Dispatcher;
+
+import io.th0rgal.oraxen.command.CommandInfo;
 
 public class OraxenCommandEvent extends Event {
 
@@ -50,7 +52,7 @@ public class OraxenCommandEvent extends Event {
 
     public boolean apply(CommandInfo info) {
 
-        List<String> aliases = info.getAliases();
+        List<String> aliases = info.getAliasesAsList();
         aliases.add(info.getName());
 
         String[] copy = aliases.toArray(new String[0]);

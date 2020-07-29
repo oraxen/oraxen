@@ -12,6 +12,7 @@ import com.syntaxphoenix.syntaxapi.config.yaml.YamlConfig;
 import com.syntaxphoenix.syntaxapi.utils.java.Exceptions;
 
 import io.th0rgal.oraxen.command.CommandInfo;
+import io.th0rgal.oraxen.event.language.OraxenTranslationEvent;
 import io.th0rgal.oraxen.utils.general.Constants;
 import io.th0rgal.oraxen.utils.general.Placeholder;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -178,7 +179,7 @@ public final class Translations {
             //
             // Load fallback from source
 
-            Bukkit.getPluginManager().callEvent(new FallbackTranslationLoadEvent(this, fallback));
+            Bukkit.getPluginManager().callEvent(new OraxenTranslationEvent(this, fallback));
 
             //
             // Overwrite fallback from file

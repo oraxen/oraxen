@@ -21,19 +21,18 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class OraxenPlugin extends JavaPlugin {
+public class Oraxen extends JavaPlugin {
 
-    private static OraxenPlugin instance;
     private SignMenuFactory signMenuFactory;
+    private UploadManager uploadManager;
 
-    public OraxenPlugin() throws Exception {
-        instance = this;
+    public Oraxen() throws Exception {
         Logs.enableFilter();
     }
 
     private void postLoading(ResourcePack resourcePack, ConfigsManager configsManager) {
         CommandProvider.register();
-        new UploadManager(this).uploadAsyncAndSendToPlayers(resourcePack);
+        (this.uploadManager = new UploadManager(this)).uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
         this.signMenuFactory = new SignMenuFactory(this);
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> OraxenItems.loadItems(configsManager));
@@ -64,12 +63,16 @@ public class OraxenPlugin extends JavaPlugin {
         Logs.log(ChatColor.GREEN + "Successfully unloaded");
     }
 
-    public static OraxenPlugin get() {
-        return instance;
+    public static Oraxen get() {
+        return Oraxen.getPlugin(Oraxen.class);
     }
 
     public SignMenuFactory getSignMenuFactory() {
         return signMenuFactory;
+    }
+
+    public UploadManager getUploadManager() {
+        return uploadManager;
     }
 
 }

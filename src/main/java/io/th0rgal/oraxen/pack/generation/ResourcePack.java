@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.pack.generation;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.Pack;
@@ -44,7 +44,7 @@ public class ResourcePack {
             ZipInputStream zip = ResourcesManager.browse();
             try {
                 ZipEntry entry = zip.getNextEntry();
-                ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
+                ResourcesManager resourcesManager = new ResourcesManager(Oraxen.get());
 
                 while (entry != null) {
                     String name = entry.getName();

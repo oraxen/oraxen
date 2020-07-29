@@ -1,13 +1,15 @@
 package io.th0rgal.oraxen.command;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.function.Supplier;
+import java.util.function.Function;
 
 import org.bukkit.command.CommandSender;
 
 import com.oraxen.chimerate.commons.command.dispatcher.Dispatcher;
 import com.oraxen.chimerate.commons.command.tree.nodes.Literal.Builder;
 
+import io.th0rgal.oraxen.event.command.OraxenCommandEvent;
 import io.th0rgal.oraxen.utils.Utils;
 
 import com.mojang.brigadier.tree.CommandNode;
@@ -15,7 +17,7 @@ import com.mojang.brigadier.tree.CommandNode;
 public class CommandInfo {
 
     private final String name;
-    private final List<String> aliases;
+    private final String[] aliases;
 
     // Description
     private String simple = "";
@@ -24,10 +26,10 @@ public class CommandInfo {
     private Builder<CommandSender> builder;
     private CommandNode<CommandSender> node;
 
-    public CommandInfo(String name, Supplier<Builder<CommandSender>> supplier, String... aliases) {
+    public CommandInfo(String name, Function<CommandInfo, Builder<CommandSender>> function, String... aliases) {
         this.name = name.toLowerCase();
-        this.aliases = Utils.toLowercaseList(aliases);
-        this.builder = supplier.get();
+        this.aliases = Utils.toLowercase(aliases);
+        this.builder = function.apply(this);
     }
 
     /*
@@ -96,8 +98,12 @@ public class CommandInfo {
         return name;
     }
 
-    public List<String> getAliases() {
-        return aliases;
+    public String[] getAliases() {
+        return aliases.clone();
+    }
+
+    public List<String> getAliasesAsList() {
+        return Arrays.asList(aliases);
     }
 
     public Builder<CommandSender> getBuilder() {
@@ -112,14 +118,14 @@ public class CommandInfo {
      * 
      */
 
-    final CommandInfo register(Dispatcher dispatcher) {
+    public final CommandInfo register(Dispatcher dispatcher) {
         if (node != null)
             return this;
         node = dispatcher.register(builder);
         return this;
     }
 
-    public OraxenCommandEvent register(OraxenCommandEvent event) {
+    public final OraxenCommandEvent register(OraxenCommandEvent event) {
         return event.add(this);
     }
 

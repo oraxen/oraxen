@@ -2,7 +2,7 @@ package io.th0rgal.oraxen.language;
 
 import org.bukkit.plugin.Plugin;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageParser;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -10,9 +10,21 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 public enum Message implements IMessage {
 
+    //
+    // General Messages
+    //
+    NO_PERMISSION(""),
+
+    //
+    // Command Messages
+    //
+    COMMAND_NOT_EXIST(""),
+
+    // Help
     COMMAND_HELP_INFO_SHORT(""), COMMAND_HELP_INFO_DETAILED(""),
-    
-    COMMAND_NOT_EXIST(""),;
+
+    //
+    ;
 
     private final String value;
 
@@ -44,7 +56,7 @@ public enum Message implements IMessage {
 
     @Override
     public Plugin getOwner() {
-        return OraxenPlugin.get();
+        return Oraxen.get();
     }
 
 }

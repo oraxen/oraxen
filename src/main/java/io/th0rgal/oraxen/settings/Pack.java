@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.settings;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageParser;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.ChatColor;
@@ -57,7 +57,7 @@ public enum Pack implements ConfigEnum {
     RECEIVE_DENIED_COMMANDS("receive.denied.actions.commands");
 
     private final String section;
-    private static final ResourcesManager RESOURCES_MANAGER = new ResourcesManager(OraxenPlugin.get());
+    private static final ResourcesManager RESOURCES_MANAGER = new ResourcesManager(Oraxen.get());
 
     Pack(String section) {
         this.section = section;

@@ -2,7 +2,7 @@ package io.th0rgal.oraxen.language;
 
 import org.bukkit.plugin.Plugin;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageParser;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -10,7 +10,13 @@ import net.md_5.bungee.api.chat.TextComponent;
 
 public enum Variable implements IVariable {
 
-    GLOBAL_PREFIX("&3Neuanfang &8| &7", true),;
+    //
+    // General Variables
+    //
+    PREFIX("&bOraxen &8| &7", true),
+
+    //
+    ;
 
     private final String value;
 
@@ -42,7 +48,7 @@ public enum Variable implements IVariable {
 
     @Override
     public Plugin getOwner() {
-        return OraxenPlugin.get();
+        return Oraxen.get();
     }
 
 }

@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.smelting;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -10,7 +10,7 @@ public class SmeltingMechanicFactory extends MechanicFactory {
 
     public SmeltingMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new SmeltingMechanicListener(this));
+        MechanicsManager.registerListeners(Oraxen.get(), new SmeltingMechanicListener(this));
     }
 
     @Override

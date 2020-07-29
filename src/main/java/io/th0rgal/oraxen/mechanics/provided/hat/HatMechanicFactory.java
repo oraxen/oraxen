@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.hat;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -13,7 +13,7 @@ public class HatMechanicFactory extends MechanicFactory {
 
     public HatMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new HatMechanicListener(this));
+        MechanicsManager.registerListeners(Oraxen.get(), new HatMechanicListener(this));
         instance = this;
     }
 

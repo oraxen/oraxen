@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.items.OraxenItems;
 
 import io.th0rgal.oraxen.recipes.CustomRecipe;
@@ -60,7 +60,7 @@ public abstract class RecipeLoader {
     }
 
     protected NamespacedKey getNamespacedKey() {
-        return new NamespacedKey(OraxenPlugin.get(), getRecipeName());
+        return new NamespacedKey(Oraxen.get(), getRecipeName());
     }
 
     protected String getRecipeName() {

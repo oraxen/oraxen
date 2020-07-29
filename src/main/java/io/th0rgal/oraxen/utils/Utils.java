@@ -13,17 +13,23 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Utils {
-    
+
     public static List<String> toLowercaseList(String... values) {
         ArrayList<String> list = new ArrayList<>();
-        for (String value : values)
-            list.add(value.toLowerCase());
+        for (int index = 0; index < values.length; index++)
+            list.add(values[index].toLowerCase());
         return list;
+    }
+
+    public static String[] toLowercase(String... values) {
+        for (int index = 0; index < values.length; index++)
+            values[index] = values[index].toLowerCase();
+        return values;
     }
 
     public static int getCode(MultipleFacing blockData) {
         final List<BlockFace> properties = Arrays.asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH,
-                BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
+            BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
         int sum = 0;
         for (BlockFace blockFace : blockData.getFaces())
             sum += (int) Math.pow(2, properties.indexOf(blockFace));

@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.commands;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -10,7 +10,7 @@ public class CommandsMechanicFactory extends MechanicFactory {
 
     public CommandsMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new CommandsMechanicListener(this));
+        MechanicsManager.registerListeners(Oraxen.get(), new CommandsMechanicListener(this));
     }
 
     @Override

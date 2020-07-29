@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.deprecated.commands.subcommands;
 
 import com.google.gson.JsonObject;
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.deprecated.commands.CommandInterface;
 import io.th0rgal.oraxen.settings.MessageOld;
 
@@ -32,7 +32,7 @@ public class Debug implements CommandInterface {
         operatingSystemJson.addProperty("arch", system.getArch());
 
         JsonObject pluginJson = new JsonObject();
-        pluginJson.addProperty("version", OraxenPlugin.get().getDescription().getVersion());
+        pluginJson.addProperty("version", Oraxen.get().getDescription().getVersion());
         pluginJson.addProperty("user", "%%__USER__%%");
         pluginJson.addProperty("resource", "%%__RESOURCE__%%");
         pluginJson.addProperty("nonce", "%%__NONCE__%%");

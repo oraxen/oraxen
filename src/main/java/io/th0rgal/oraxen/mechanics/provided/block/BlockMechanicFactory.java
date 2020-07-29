@@ -2,7 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.block;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -28,7 +28,7 @@ public class BlockMechanicFactory extends MechanicFactory {
             File file = new File(blockstatesFolder, "mushroom_stem.json");
             Utils.writeStringToFile(file, getBlockstateContent());
         });
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicListener(this));
+        MechanicsManager.registerListeners(Oraxen.get(), new BlockMechanicListener(this));
     }
 
     private String getBlockstateContent() {

@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.pack.receive;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.utils.commands.CommandsParser;
 import io.th0rgal.oraxen.utils.message.ComponentMessage;
@@ -72,7 +72,7 @@ public class PackReceiver implements Listener {
         }
 
         if (message && !components.isEmpty())
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> sendMessageLoop(event.getPlayer(), ComponentMessage.convert(components, period, action)), delay);
+            Bukkit.getScheduler().runTaskLater(Oraxen.get(), () -> sendMessageLoop(event.getPlayer(), ComponentMessage.convert(components, period, action)), delay);
 
         commands.perform(event.getPlayer());
     }
@@ -81,7 +81,7 @@ public class PackReceiver implements Listener {
         ComponentMessage nextMessage = messages.remove(0);
         nextMessage.sendTo(receiver);
         if (!messages.isEmpty())
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(),
+            Bukkit.getScheduler().runTaskLater(Oraxen.get(),
                     () -> sendMessageLoop(receiver, messages), nextMessage.getDelay() * 20);
     }
 

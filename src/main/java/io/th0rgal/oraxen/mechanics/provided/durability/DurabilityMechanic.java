@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.durability;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import org.bukkit.NamespacedKey;
@@ -10,7 +10,7 @@ import org.bukkit.persistence.PersistentDataType;
 public class DurabilityMechanic extends Mechanic {
 
     private final int itemDurability;
-    public static final NamespacedKey NAMESPACED_KEY = new NamespacedKey(OraxenPlugin.get(), "durability");
+    public static final NamespacedKey NAMESPACED_KEY = new NamespacedKey(Oraxen.get(), "durability");
 
     public DurabilityMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         /* We give:

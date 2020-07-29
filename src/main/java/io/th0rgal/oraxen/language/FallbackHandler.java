@@ -7,12 +7,13 @@ import org.bukkit.event.Listener;
 
 import io.th0rgal.oraxen.command.CommandInfo;
 import io.th0rgal.oraxen.command.CommandProvider;
+import io.th0rgal.oraxen.event.language.OraxenTranslationEvent;
 import io.th0rgal.oraxen.language.Translations.TranslationManager.TranslationStorage;
 
 public class FallbackHandler implements Listener {
 
     @EventHandler
-    public void onLoad(FallbackTranslationLoadEvent event) {
+    public void onLoad(OraxenTranslationEvent event) {
 
         TranslationStorage storage = event.getStorage();
 

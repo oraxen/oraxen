@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.items;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -82,7 +82,7 @@ public class ItemParser {
             oraxenMeta.setExcludedFromInventory();
 
         if (!section.contains("injectID") || section.getBoolean("injectId"))
-            item.setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING, section.getName());
+            item.setCustomTag(new NamespacedKey(Oraxen.get(), "id"), PersistentDataType.STRING, section.getName());
 
         if (section.contains("ItemFlags")) {
             List<String> itemFlags = section.getStringList("ItemFlags");
