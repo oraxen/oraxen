@@ -44,7 +44,12 @@ public class Reload {
                             RecipesManager.reload(oraxen);
                             break;
                         }
-                    }));
+                    })).executes((sender, context) -> {
+                        Oraxen oraxen = Oraxen.get();
+                        reloadItems(sender);
+                        reloadPack(oraxen, sender);
+                        RecipesManager.reload(oraxen);
+                    });
             builder.executes((sender, context) -> Message.NO_PERMISSION.send(sender));
 
             return builder;
