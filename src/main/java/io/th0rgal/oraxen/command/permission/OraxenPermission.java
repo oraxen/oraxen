@@ -18,7 +18,10 @@ public enum OraxenPermission {
     COMMAND_RELOAD(COMMAND_ALL),
 
     // Help
-    COMMAND_HELP(COMMAND_ALL)
+    COMMAND_HELP(COMMAND_ALL),
+    
+    // Debug
+    COMMAND_DEBUG(COMMAND_ALL),
 
     //
     ;

@@ -11,7 +11,6 @@ import io.th0rgal.oraxen.command.CommandInfo;
 import io.th0rgal.oraxen.command.argument.Reloadable;
 import io.th0rgal.oraxen.command.permission.OraxenPermission;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.language.Message;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.settings.MessageOld;
@@ -50,7 +49,6 @@ public class Reload {
                         reloadPack(oraxen, sender);
                         RecipesManager.reload(oraxen);
                     });
-            builder.executes((sender, context) -> Message.NO_PERMISSION.send(sender));
 
             return builder;
         }, "rl");
