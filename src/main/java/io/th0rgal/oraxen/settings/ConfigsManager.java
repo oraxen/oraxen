@@ -72,7 +72,7 @@ public class ConfigsManager {
             Message.CONFIGS_NOT_UPDATED.logError();
 
         else if (configsVersion > currentversion) {
-            Message.UNCONCISTENT_CONFIG_VERSION.logError();
+            Message.UNCONSISTENT_CONFIG_VERSION.logError();
 
         } else {
             for (int i = configsVersion + 1; i <= currentversion; i++) { //so that you can update from 1 to n

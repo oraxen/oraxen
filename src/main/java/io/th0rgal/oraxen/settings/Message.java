@@ -27,7 +27,7 @@ public enum Message {
     PLAYER_NOT_GIVEN(ChatColor.RED, "You must specify a player"),
 
 
-    UNCONCISTENT_CONFIG_VERSION(ChatColor.RED, "Config updating error: does this config come from the future?"),
+    UNCONSISTENT_CONFIG_VERSION(ChatColor.RED, "Config updating error: does this config come from the future?"),
     CONFIGS_NOT_UPDATED(ChatColor.GREEN, "Configs version number is consistent: skipping updating"),
     CONFIGS_UPDATING_FAILED(ChatColor.RED, "Configs updating failed, please post an issue on github"),
 
