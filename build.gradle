@@ -75,7 +75,10 @@ shadowJar {
     relocate "org.bstats.bukkit", "io.th0rgal.oraxen.bstats"
     relocate "me.lucko:commodore", "io.th0rgal.oraxen.commodore"
     relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.syntaxapi"
-    minimize { exclude("io.th0rgal.oraxen.api.*") }
+    minimize {
+        exclude("io.th0rgal.oraxen.api.*")
+        exclude("com.syntaxphoenix.syntaxapi.*")
+    }
     archiveClassifier.set(pluginVersion)
     archiveClassifier.set(pluginVersion)
 
