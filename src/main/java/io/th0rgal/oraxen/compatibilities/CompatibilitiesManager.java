@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.compatibilities.provided.mythicmobs.MythicMobsCompatibi
 import io.th0rgal.oraxen.settings.Message;
 import org.bukkit.Bukkit;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CompatibilitiesManager {
@@ -27,13 +28,13 @@ public class CompatibilitiesManager {
     public static boolean enableCompatibility(String pluginName) {
         try {
             if (!ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName) && COMPATIBILITY_PROVIDERS.containsKey(pluginName) && Bukkit.getPluginManager().isPluginEnabled(pluginName)) {
-                CompatibilityProvider<?> compatibilityProvider = COMPATIBILITY_PROVIDERS.get(pluginName).newInstance();
+                CompatibilityProvider<?> compatibilityProvider = COMPATIBILITY_PROVIDERS.get(pluginName).getDeclaredConstructor().newInstance();
                 compatibilityProvider.enable(pluginName);
                 ACTIVE_COMPATIBILITY_PROVIDERS.put(pluginName, compatibilityProvider);
                 Message.PLUGIN_HOOKS.log(pluginName);
                 return true;
             }
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             e.printStackTrace();
             return false;
         }
@@ -42,14 +43,14 @@ public class CompatibilitiesManager {
 
     public static boolean disableCompatibility(String pluginName) {
         try {
-            if(!ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName))
+            if (!ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName))
                 return false;
             if (ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).isEnabled())
                 ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).disable();
             ACTIVE_COMPATIBILITY_PROVIDERS.remove(pluginName);
             Message.PLUGIN_UNHOOKS.log(pluginName);
             return true;
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
@@ -59,12 +60,12 @@ public class CompatibilitiesManager {
         try {
             if (compatibilityPluginName != null && clazz != null) {
                 COMPATIBILITY_PROVIDERS.put(compatibilityPluginName, clazz);
-                if(tryEnable)
+                if (tryEnable)
                     return enableCompatibility(compatibilityPluginName);
                 else
                     return true;
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
@@ -75,7 +76,7 @@ public class CompatibilitiesManager {
         return addCompatibility(compatibilityPluginName, clazz, false);
     }
 
-        public static CompatibilityProvider<?> getActiveCompatibility(String pluginName) {
+    public static CompatibilityProvider<?> getActiveCompatibility(String pluginName) {
         return ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName);
     }
 
