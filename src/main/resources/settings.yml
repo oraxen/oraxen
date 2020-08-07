@@ -223,3 +223,16 @@ Misc:
     - LOOM
     - STONECUTTER
     - BELL
+    
+    
+# Better customization for GUI oraxen inv. Oraxen Items Work. its gui_inventory.<name to file without extension yml>
+gui_inventory:
+  armors: emerald_helmet
+  blocks: DIRT
+  guis: CHEST
+  hats: DIAMOND_HELMET
+  items: STICK
+  mobs: ZOMBIE_HEAD
+  mystical: REDSTONE_TORCH
+  tools: DIAMOND_PICKAXE
+  weapons: DIRT
