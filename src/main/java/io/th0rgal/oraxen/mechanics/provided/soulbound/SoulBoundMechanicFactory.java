@@ -13,7 +13,7 @@ public class SoulBoundMechanicFactory extends MechanicFactory {
         MechanicsManager.registerListeners(OraxenPlugin.get(), new SoulBoundMechanicListener(this));
     }
 
-
+    @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         Mechanic mechanic = new SoulBoundMechanic(this, itemMechanicConfiguration);
         addToImplemented(mechanic);
