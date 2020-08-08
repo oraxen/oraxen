@@ -32,7 +32,7 @@ public class SmeltingMechanicListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
-    public void onBlockbreak(BlockBreakEvent event) {
+    public void onBlockBreak(BlockBreakEvent event) {
         if (event.isCancelled()) return;
         ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
 

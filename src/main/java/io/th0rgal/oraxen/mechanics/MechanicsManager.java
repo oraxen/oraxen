@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.mechanics.provided.lifeleech.LifeLeechMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.potioneffects.PotionEffectsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.repair.RepairMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.smelting.SmeltingMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.soulbound.SoulBoundMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.thor.ThorMechanicFactory;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import org.bukkit.Bukkit;
@@ -42,6 +43,7 @@ public class MechanicsManager {
         registerMechanicFactory("potioneffects", PotionEffectsMechanicFactory.class);
         registerMechanicFactory("block", BlockMechanicFactory.class);
         registerMechanicFactory("hat", HatMechanicFactory.class);
+        registerMechanicFactory("soulbound", SoulBoundMechanicFactory.class);
 
         //combat
         registerMechanicFactory("thor", ThorMechanicFactory.class);

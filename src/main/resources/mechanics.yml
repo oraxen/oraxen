@@ -19,6 +19,8 @@ block:
 hat:
   enabled: true
 
+soulbound:
+  enabled: true
 
 # COMBAT
 
