@@ -33,7 +33,7 @@ public class SoulBoundMechanicListener implements Listener {
             String itemID = OraxenItems.getIdByItem(drop);
             if (itemID == null)
                 continue;
-            if (!this.factory.isNotImplementedIn(itemID)) {
+            if (!factory.isNotImplementedIn(itemID)) {
                 SoulBoundMechanic mechanic = (SoulBoundMechanic) this.factory.getMechanic(itemID);
                 if (new Random().nextInt(100) >= mechanic.getLoseChance() * 100)
                     items.add(drop);
@@ -51,11 +51,10 @@ public class SoulBoundMechanicListener implements Listener {
             return;
         Player player = event.getPlayer();
         for (ItemStack item : this.SOUL_BOUND_ITEMS.get(player)) {
-            if (player.getInventory().firstEmpty() != -1) {
+            if (player.getInventory().firstEmpty() != -1)
                 player.getInventory().addItem(item);
-                continue;
-            }
-            player.getWorld().dropItem(player.getLocation(), item);
+            else
+                player.getWorld().dropItem(player.getLocation(), item);
         }
         this.SOUL_BOUND_ITEMS.remove(player);
     }
