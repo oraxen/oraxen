@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen;
 
+import com.sk89q.worldguard.WorldGuard;
 import io.th0rgal.oraxen.commands.BaseCommand;
 import io.th0rgal.oraxen.commands.CommandHandler;
 import io.th0rgal.oraxen.commands.brigadier.BrigadierManager;
@@ -92,5 +93,11 @@ public class OraxenPlugin extends JavaPlugin {
     public SignMenuFactory getSignMenuFactory() {
         return signMenuFactory;
     }
+    
+    public static boolean WorldGuard() {
+        return Bukkit.getPluginManager().isPluginEnabled("WorldGuard");
+    }
+
+    public static WorldGuard worldGuardPlugin() { return WorldGuard.getInstance(); }
 
 }
