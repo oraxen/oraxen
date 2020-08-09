@@ -31,7 +31,7 @@ public class BigMiningMechanicListener implements Listener {
         this.factory = factory;
     }
 
-    @EventHandler(priority = EventPriority.NORMAL)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockbreak(BlockBreakEvent event) {
 
         Player player = event.getPlayer();
