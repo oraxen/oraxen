@@ -33,6 +33,8 @@ public class RepairMechanicListener implements Listener {
         RepairMechanic repairMechanic = (RepairMechanic) factory.getMechanic(itemID);
 
         ItemStack toRepair = event.getCurrentItem();
+        if(toRepair == null)
+             return;
         String toRepairId = OraxenItems.getIdByItem(toRepair);
         ItemMeta toRepairMeta = toRepair.getItemMeta();
         Damageable damageable = (Damageable) toRepairMeta;
