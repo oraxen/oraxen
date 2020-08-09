@@ -1,9 +1,16 @@
 package io.th0rgal.oraxen.mechanics.provided.bigmining;
 
+import com.sk89q.worldedit.bukkit.BukkitAdapter;
+import com.sk89q.worldguard.LocalPlayer;
+import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
+import com.sk89q.worldguard.protection.flags.Flags;
+import com.sk89q.worldguard.protection.regions.RegionContainer;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -24,9 +31,23 @@ public class BigMiningMechanicListener implements Listener {
         this.factory = factory;
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onBlockbreak(BlockBreakEvent event) {
 
+        Player player = event.getPlayer();
+
+        if (OraxenPlugin.WorldGuard()) {
+            LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(player);
+            RegionContainer container = OraxenPlugin.worldGuardPlugin().getPlatform().getRegionContainer();
+            com.sk89q.worldedit.util.Location loc = BukkitAdapter.adapt(event.getBlock().getLocation());
+            if (player.hasPermission("oraxen.worldguard.bypass") ||
+                    player.hasPermission("oraxen.worldguard.*") ||
+                    !container.createQuery().testState(loc, localPlayer, Flags.BLOCK_BREAK)) {
+                event.setCancelled(true);
+                event.getPlayer().sendMessage("Your are not allowed to break this block !");
+                return;
+            }
+        }
         if (blocksToProcess > 0) {
             blocksToProcess -= 1;
             return;
@@ -39,8 +60,6 @@ public class BigMiningMechanicListener implements Listener {
             return;
 
         BigMiningMechanic mechanic = (BigMiningMechanic) factory.getMechanic(itemID);
-
-        Player player = event.getPlayer();
         List<Block> lastTwoTargetBlocks = player.getLastTwoTargetBlocks(null, 5);
         if (lastTwoTargetBlocks.size() < 2)
             return;
