@@ -3,7 +3,7 @@ name: Oraxen
 version: ${projectVersion}
 author: Th0rgal
 api-version: "1.14"
-softdepend: [ProtocolLib, MythicMobs, CrateReloaded, BossShopPro]
+softdepend: [ProtocolLib, MythicMobs, CrateReloaded, BossShopPro, WorldGuard]
 commands:
   oraxen:
     description: Main command of Oraxen.
