@@ -13,6 +13,8 @@ import io.th0rgal.oraxen.mechanics.provided.hat.HatMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.lifeleech.LifeLeechMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.potioneffects.PotionEffectsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.repair.RepairMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.skin.SkinMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.skinnable.SkinnableMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.smelting.SmeltingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.soulbound.SoulBoundMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.thor.ThorMechanicFactory;
@@ -44,6 +46,8 @@ public class MechanicsManager {
         registerMechanicFactory("block", BlockMechanicFactory.class);
         registerMechanicFactory("hat", HatMechanicFactory.class);
         registerMechanicFactory("soulbound", SoulBoundMechanicFactory.class);
+        registerMechanicFactory("skin", SkinMechanicFactory.class);
+        registerMechanicFactory("skinnable", SkinnableMechanicFactory.class);
 
         //combat
         registerMechanicFactory("thor", ThorMechanicFactory.class);

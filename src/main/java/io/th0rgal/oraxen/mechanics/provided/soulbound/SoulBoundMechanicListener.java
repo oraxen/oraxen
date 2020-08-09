@@ -34,28 +34,28 @@ public class SoulBoundMechanicListener implements Listener {
             if (itemID == null)
                 continue;
             if (!factory.isNotImplementedIn(itemID)) {
-                SoulBoundMechanic mechanic = (SoulBoundMechanic) this.factory.getMechanic(itemID);
+                SoulBoundMechanic mechanic = (SoulBoundMechanic) factory.getMechanic(itemID);
                 if (new Random().nextInt(100) >= mechanic.getLoseChance() * 100)
                     items.add(drop);
             }
         }
         if (!items.isEmpty()) {
-            this.SOUL_BOUND_ITEMS.put(event.getEntity(), items);
+            SOUL_BOUND_ITEMS.put(event.getEntity(), items);
             event.getDrops().removeAll(items);
         }
     }
 
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
-        if (!this.SOUL_BOUND_ITEMS.containsKey(event.getPlayer()))
+        if (!SOUL_BOUND_ITEMS.containsKey(event.getPlayer()))
             return;
         Player player = event.getPlayer();
-        for (ItemStack item : this.SOUL_BOUND_ITEMS.get(player)) {
+        for (ItemStack item : SOUL_BOUND_ITEMS.get(player)) {
             if (player.getInventory().firstEmpty() != -1)
                 player.getInventory().addItem(item);
             else
                 player.getWorld().dropItem(player.getLocation(), item);
         }
-        this.SOUL_BOUND_ITEMS.remove(player);
+        SOUL_BOUND_ITEMS.remove(player);
     }
 }

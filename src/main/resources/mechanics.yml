@@ -22,6 +22,12 @@ hat:
 soulbound:
   enabled: true
 
+skin:
+  enabled: true
+
+skinnable:
+  enabled: true
+
 # COMBAT
 
 thor:

@@ -13,7 +13,7 @@ public class SoulBoundMechanic extends Mechanic {
     }
 
     public double getLoseChance() {
-        return this.loseChance;
+        return loseChance;
     }
 }
 
