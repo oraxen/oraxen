@@ -8,7 +8,7 @@ plugins {
 }
 
 group "io.th0rgal"
-def pluginVersion = "1.42.0"
+def pluginVersion = "1.40.0"
 
 repositories {
     mavenCentral()
@@ -33,7 +33,11 @@ repositories {
     maven { url 'http://maven.elmakers.com/repository/' }
     //CrazyCrates
     maven { url 'https://nexus.badbones69.com/repository/maven-public/' }
+    //sk89q-repo
+    maven { url 'https://maven.enginehub.org/repo/' }
+
     jcenter() // needed for building shadow from protocolLib 4.5.0
+
 }
 
 compileJava {
@@ -51,11 +55,13 @@ tasks.withType(JavaCompile) {
 dependencies {
     // The Spigot API with no shadowing. Requires the OSS repo.
     compileOnly group: "org.spigotmc", name: "spigot", version: "1.14.4-R0.1-SNAPSHOT"
+    compileOnly 'com.sk89q.worldguard:worldguard-bukkit:LATEST'
     compileOnly group: "org.spigotmc", name: "spigot-api", version: "1.14.4-R0.1-SNAPSHOT"
     compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "+"
     compileOnly group: "io.lumine.xikage", name: "MythicMobs", version: "4.9.2"
     compileOnly group: "com.github.Hazebyte", name: "CrateReloadedAPI", version: "5318abfccc"
     compileOnly group: "me.badbones69", name: "crazycrates-plugin", version: "+"
+    compileOnly group: "com.sk89q.worldguard", name: "worldguard-bukkit", version: "+"
     compileOnly fileTree(dir: "libs", include: ["*.jar"])
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
     implementation group: "me.lucko", name: "commodore", version: "1.3"
