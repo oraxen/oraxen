@@ -6,12 +6,12 @@ import org.bukkit.event.Listener;
 import io.th0rgal.oraxen.event.command.OraxenCommandEvent;
 
 public class CommandListener implements Listener {
-    
+
     @EventHandler
     public void onCommandCreation(OraxenCommandEvent event) {
-        
-        event.add(Reload.build());
-        
+
+        event.add(Reload.build()).add(Debug.build()).add(InventoryVisualizer.build()).add(Repair.build());
+
     }
 
 }

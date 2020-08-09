@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.command.CommandInfo;
 import io.th0rgal.oraxen.command.argument.Reloadable;
 import io.th0rgal.oraxen.command.permission.OraxenPermission;
+import io.th0rgal.oraxen.command.types.ReloadableType;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.recipes.RecipesManager;
@@ -21,34 +22,45 @@ public class Reload {
         return new CommandInfo("reload", info -> {
             Builder<CommandSender> builder = Literal.of(info.getName()).alias(info.getAliases());
 
-            builder.requires(sender -> OraxenPermission.COMMAND_RELOAD.has(sender))
-                    .then(Argument.of("type", Reloadable.TYPE).executes((sender, context) -> {
-                        switch (context.getArgument("type", Reloadable.class)) {
-                        case ITEMS:
-                            reloadItems(sender);
-                            break;
+            builder.then(Argument.of("type", ReloadableType.TYPE).executes((sender, context) -> {
 
-                        case PACK:
-                            reloadPack(Oraxen.get(), sender);
-                            break;
+                if (!OraxenPermission.COMMAND_RELOAD.has(sender)) {
+                    MessageOld.DONT_HAVE_PERMISSION.send(sender);
+                    return;
+                }
 
-                        case RECIPES:
-                            RecipesManager.reload(Oraxen.get());
-                            break;
+                switch (context.getArgument("type", Reloadable.class)) {
+                case ITEMS:
+                    reloadItems(sender);
+                    break;
 
-                        default:
-                            Oraxen oraxen = Oraxen.get();
-                            reloadItems(sender);
-                            reloadPack(oraxen, sender);
-                            RecipesManager.reload(oraxen);
-                            break;
-                        }
-                    })).executes((sender, context) -> {
-                        Oraxen oraxen = Oraxen.get();
-                        reloadItems(sender);
-                        reloadPack(oraxen, sender);
-                        RecipesManager.reload(oraxen);
-                    });
+                case PACK:
+                    reloadPack(Oraxen.get(), sender);
+                    break;
+
+                case RECIPES:
+                    RecipesManager.reload(Oraxen.get());
+                    break;
+
+                default:
+                    Oraxen oraxen = Oraxen.get();
+                    reloadItems(sender);
+                    reloadPack(oraxen, sender);
+                    RecipesManager.reload(oraxen);
+                    break;
+                }
+            })).executes((sender, context) -> {
+
+                if (!OraxenPermission.COMMAND_RELOAD.has(sender)) {
+                    MessageOld.DONT_HAVE_PERMISSION.send(sender);
+                    return;
+                }
+                
+                Oraxen oraxen = Oraxen.get();
+                reloadItems(sender);
+                reloadPack(oraxen, sender);
+                RecipesManager.reload(oraxen);
+            });
 
             return builder;
         }, "rl");

@@ -21,8 +21,18 @@ public enum OraxenPermission {
     COMMAND_HELP(COMMAND_ALL),
     
     // Debug
-    COMMAND_DEBUG(COMMAND_ALL),
+    COMMAND_DEBUG(COMMAND_ALL), 
+    
+    // Inventory
+    COMMAND_INVENTORY(COMMAND_ALL),
+    
+    // Repair
+    COMMAND_REPAIR_ALL(COMMAND_ALL),
+    COMMAND_REPAIR(COMMAND_REPAIR_ALL),
+    COMMAND_REPAIR_EVERYTHING(COMMAND_REPAIR_ALL)
 
+    //
+    // END
     //
     ;
 

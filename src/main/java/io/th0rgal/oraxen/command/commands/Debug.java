@@ -10,6 +10,7 @@ import com.oraxen.chimerate.commons.command.tree.nodes.Literal.Builder;
 import io.th0rgal.oraxen.Oraxen;
 import io.th0rgal.oraxen.command.CommandInfo;
 import io.th0rgal.oraxen.command.permission.OraxenPermission;
+import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.reflection.ReflectionProvider;
 
@@ -19,7 +20,13 @@ public class Debug {
         return new CommandInfo("debug", info -> {
             Builder<CommandSender> builder = Literal.of(info.getName());
 
-            builder.requires(sender -> OraxenPermission.COMMAND_DEBUG.has(sender)).executes((sender, context) -> {
+            builder.executes((sender, context) -> {
+                
+                if(!OraxenPermission.COMMAND_DEBUG.has(sender)) {
+                    MessageOld.DONT_HAVE_PERMISSION.send(sender);
+                    return;
+                }
+                
                 JsonObject report = new JsonObject();
                 OS system = OS.getOs();
 
