@@ -42,12 +42,11 @@ public class Recipes {
                     })
                 ).then(
                     Literal.of("show").then(
-                        Argument.of("location", SpecificWordType.of("hand", "all")
-                    ).optionally(
-                        Argument.of("type", RecipeTypeType.TYPE)
-                    ).executes((sender, context) -> {
-                        // Show
-                    }))
+                        Argument.of("location", SpecificWordType.of("hand", "all"))
+                            .optionally(Argument.of("type", RecipeTypeType.TYPE))
+                                .executes((sender, context) -> {
+                                    // Show
+                                }))
                 ).executes((sender, context) -> {
                     Language language = LanguageProvider.getLanguageOf(sender);
                     Message.COMMAND_HELP_INFO_DETAILED.send(sender, language, 
