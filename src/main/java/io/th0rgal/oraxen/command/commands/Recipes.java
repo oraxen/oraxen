@@ -23,7 +23,6 @@ import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
 import io.th0rgal.oraxen.utils.general.Placeholder;
 
 public class Recipes {
-
     public static CommandInfo build() {
         return new CommandInfo("recipe", info -> {
             Builder<CommandSender> builder = Literal.of(info.getName()).alias(info.getAliases());
@@ -41,9 +40,9 @@ public class Recipes {
                 .then(Literal.of("save").executes((sender, context) -> {
                     Player player = (Player) sender;
                     RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
-                    
-                    if(recipe == null) {
-                        
+
+                    if (recipe == null) {
+
                         return;
                     }
                     // Save
@@ -60,10 +59,9 @@ public class Recipes {
                     Language language = LanguageProvider.getLanguageOf(sender);
                     Message.COMMAND_HELP_INFO_DETAILED
                         .send(sender, language, new Placeholder("name", info.getName()),
-                            new Placeholder("decription", translate(language, info, DescriptionType.DETAILED)));
+                            new Placeholder("description", translate(language, info, DescriptionType.DETAILED)));
                 });
             return builder;
         });
     }
-
 }

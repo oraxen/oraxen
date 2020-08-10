@@ -90,7 +90,7 @@ public class CommandProvider {
                     for (CommandInfo info : infos) {
 
                         Message.COMMAND_HELP_INFO_SHORT.send(sender, language, new Placeholder("name", info.getName()),
-                            new Placeholder("decription", translate(language, info, DescriptionType.SIMPLE)));
+                            new Placeholder("description", translate(language, info, DescriptionType.SIMPLE)));
 
                     }
 
@@ -109,7 +109,7 @@ public class CommandProvider {
             Language language = LanguageProvider.getLanguageOf(sender);
 
             Message.COMMAND_HELP_INFO_DETAILED.send(sender, language, new Placeholder("name", info.getName()),
-                new Placeholder("decription", translate(language, info, DescriptionType.DETAILED)));
+                new Placeholder("description", translate(language, info, DescriptionType.DETAILED)));
 
         }));
 
