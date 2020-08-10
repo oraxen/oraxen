@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.command.commands;
 import static io.th0rgal.oraxen.language.Translations.translate;
 
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 import com.oraxen.chimerate.commons.command.tree.nodes.Argument;
 import com.oraxen.chimerate.commons.command.tree.nodes.Literal;
@@ -18,6 +19,7 @@ import io.th0rgal.oraxen.language.DescriptionType;
 import io.th0rgal.oraxen.language.Language;
 import io.th0rgal.oraxen.language.LanguageProvider;
 import io.th0rgal.oraxen.language.Message;
+import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
 import io.th0rgal.oraxen.utils.general.Placeholder;
 
 public class Recipes {
@@ -37,6 +39,13 @@ public class Recipes {
                             // Builder
                         })))
                 .then(Literal.of("save").executes((sender, context) -> {
+                    Player player = (Player) sender;
+                    RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                    
+                    if(recipe == null) {
+                        
+                        return;
+                    }
                     // Save
                 }))
                 .then(Literal
@@ -49,8 +58,9 @@ public class Recipes {
                         })))
                 .executes((sender, context) -> {
                     Language language = LanguageProvider.getLanguageOf(sender);
-                    Message.COMMAND_HELP_INFO_DETAILED.send(sender, language, new Placeholder("name", info.getName()),
-                        new Placeholder("decription", translate(language, info, DescriptionType.DETAILED)));
+                    Message.COMMAND_HELP_INFO_DETAILED
+                        .send(sender, language, new Placeholder("name", info.getName()),
+                            new Placeholder("decription", translate(language, info, DescriptionType.DETAILED)));
                 });
             return builder;
         });
