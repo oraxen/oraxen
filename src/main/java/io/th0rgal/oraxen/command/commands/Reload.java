@@ -6,7 +6,7 @@ import com.oraxen.chimerate.commons.command.tree.nodes.Argument;
 import com.oraxen.chimerate.commons.command.tree.nodes.Literal;
 import com.oraxen.chimerate.commons.command.tree.nodes.Literal.Builder;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.command.CommandInfo;
 import io.th0rgal.oraxen.command.argument.Reloadable;
 import io.th0rgal.oraxen.command.permission.OraxenPermission;
@@ -24,10 +24,8 @@ public class Reload {
 
             builder.then(Argument.of("type", ReloadableType.TYPE).executes((sender, context) -> {
 
-                if (!OraxenPermission.COMMAND_RELOAD.has(sender)) {
-                    MessageOld.DONT_HAVE_PERMISSION.send(sender);
+                if (!OraxenPermission.COMMAND_RELOAD.required(sender))
                     return;
-                }
 
                 switch (context.getArgument("type", Reloadable.class)) {
                 case ITEMS:
@@ -35,15 +33,15 @@ public class Reload {
                     break;
 
                 case PACK:
-                    reloadPack(Oraxen.get(), sender);
+                    reloadPack(OraxenPlugin.get(), sender);
                     break;
 
                 case RECIPES:
-                    RecipesManager.reload(Oraxen.get());
+                    RecipesManager.reload(OraxenPlugin.get());
                     break;
 
                 default:
-                    Oraxen oraxen = Oraxen.get();
+                    OraxenPlugin oraxen = OraxenPlugin.get();
                     reloadItems(sender);
                     reloadPack(oraxen, sender);
                     RecipesManager.reload(oraxen);
@@ -51,12 +49,10 @@ public class Reload {
                 }
             })).executes((sender, context) -> {
 
-                if (!OraxenPermission.COMMAND_RELOAD.has(sender)) {
-                    MessageOld.DONT_HAVE_PERMISSION.send(sender);
+                if (!OraxenPermission.COMMAND_RELOAD.required(sender))
                     return;
-                }
                 
-                Oraxen oraxen = Oraxen.get();
+                OraxenPlugin oraxen = OraxenPlugin.get();
                 reloadItems(sender);
                 reloadPack(oraxen, sender);
                 RecipesManager.reload(oraxen);
@@ -71,7 +67,7 @@ public class Reload {
         OraxenItems.loadItems();
     }
 
-    private static void reloadPack(Oraxen plugin, CommandSender sender) {
+    private static void reloadPack(OraxenPlugin plugin, CommandSender sender) {
         MessageOld.REGENERATED.send(sender, "resourcepack");
         ResourcePack resourcePack = new ResourcePack(plugin);
         plugin.getUploadManager().uploadAsyncAndSendToPlayers(resourcePack);

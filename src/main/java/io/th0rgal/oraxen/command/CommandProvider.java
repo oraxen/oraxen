@@ -15,7 +15,7 @@ import com.oraxen.chimerate.commons.command.tree.nodes.Argument;
 import com.oraxen.chimerate.commons.command.tree.nodes.Literal;
 import com.oraxen.chimerate.commons.command.tree.nodes.Literal.Builder;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.event.command.OraxenCommandEvent;
 import io.th0rgal.oraxen.language.DescriptionType;
 import io.th0rgal.oraxen.language.Language;
@@ -33,7 +33,7 @@ public class CommandProvider {
 
     public static void register() {
 
-        Dispatcher dispatcher = Dispatcher.of(Oraxen.get());
+        Dispatcher dispatcher = Dispatcher.of(OraxenPlugin.get());
 
         OraxenCommandEvent event = new OraxenCommandEvent(dispatcher, "oraxen", "oxn", "o");
 

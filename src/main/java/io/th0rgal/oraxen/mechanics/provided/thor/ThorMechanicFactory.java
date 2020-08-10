@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.thor;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -11,7 +11,7 @@ public class ThorMechanicFactory extends MechanicFactory {
 
     public ThorMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(Oraxen.get(), new ThorMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new ThorMechanicListener(this));
     }
 
     @Override

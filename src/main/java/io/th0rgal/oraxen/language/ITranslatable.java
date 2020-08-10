@@ -3,6 +3,8 @@ package io.th0rgal.oraxen.language;
 import org.bukkit.command.CommandSender;
 import org.bukkit.plugin.Plugin;
 
+import com.syntaxphoenix.syntaxapi.utils.java.Arrays;
+
 import io.th0rgal.oraxen.utils.general.IEnum;
 import io.th0rgal.oraxen.utils.general.Placeholder;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageParser;
@@ -15,11 +17,19 @@ public interface ITranslatable extends IEnum {
     public String id();
 
     public String value();
-    
+
     public TranslationType type();
 
     public default String translationId() {
         return getOwner().getName().replace(' ', '_') + '.' + id();
+    }
+    
+    /*
+     * Placeholder
+     */
+    
+    public default Placeholder placeholder() {
+        return Placeholder.of(this);
     }
 
     /*
@@ -75,11 +85,20 @@ public interface ITranslatable extends IEnum {
     }
 
     public default void send(CommandSender sender, Placeholder... placeholders) {
-        send(sender, LanguageProvider.getLanguageOf(sender));
+        send(sender, LanguageProvider.getLanguageOf(sender), placeholders);
+    }
+
+    public default void send(CommandSender sender, Placeholder[] placeholders, Placeholder... additional) {
+        send(sender, LanguageProvider.getLanguageOf(sender), placeholders, additional);
+    }
+
+    public default void send(CommandSender sender, Language language, Placeholder[] placeholders,
+            Placeholder... additional) {
+        send(sender, language, Arrays.merge(size -> new Placeholder[size], placeholders, additional));
     }
 
     public default void send(CommandSender sender, Language language, Placeholder... placeholders) {
-        sender.spigot().sendMessage(message(language));
+        sender.spigot().sendMessage(message(language, placeholders));
     }
 
 }

@@ -2,7 +2,7 @@ package io.th0rgal.oraxen.language;
 
 import org.bukkit.plugin.Plugin;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageParser;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -13,7 +13,7 @@ public enum Message implements IMessage {
     //
     // General Messages
     //
-    NO_PERMISSION(""),
+    NO_PERMISSION("$prefix You're lacking the permission &c$permission &7to do this!"),
 
     //
     // Command Messages
@@ -56,7 +56,7 @@ public enum Message implements IMessage {
 
     @Override
     public Plugin getOwner() {
-        return Oraxen.get();
+        return OraxenPlugin.get();
     }
 
 }

@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.items;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.settings.ConfigsManager;
 
 import io.th0rgal.oraxen.settings.MessageOld;
@@ -16,7 +16,7 @@ public class OraxenItems {
 
     //configuration sections : their OraxenItem wrapper
     private static Map<File, Map<String, ItemBuilder>> map;
-    public static final NamespacedKey ITEM_ID = new NamespacedKey(Oraxen.get(), "id");
+    public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
     private static ConfigsManager configsManager;
 
     public static void loadItems(ConfigsManager configsManager) {

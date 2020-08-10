@@ -22,10 +22,8 @@ public class InventoryVisualizer {
 
             builder.optionally(Argument.of("all", SpecificWordType.of("all")).executes((sender, context) -> {
 
-                if (!OraxenPermission.COMMAND_INVENTORY.has(sender)) {
-                    MessageOld.DONT_HAVE_PERMISSION.send(sender);
+                if (!OraxenPermission.COMMAND_INVENTORY.required(sender))
                     return;
-                }
 
                 if (!(sender instanceof Player)) {
                     MessageOld.NOT_A_PLAYER_ERROR.send(sender);

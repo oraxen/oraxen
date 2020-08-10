@@ -2,7 +2,7 @@ package io.th0rgal.oraxen.language;
 
 import org.bukkit.plugin.Plugin;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageParser;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageSerializer;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -48,7 +48,7 @@ public enum Variable implements IVariable {
 
     @Override
     public Plugin getOwner() {
-        return Oraxen.get();
+        return OraxenPlugin.get();
     }
 
 }

@@ -21,12 +21,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public class Oraxen extends JavaPlugin {
+public class OraxenPlugin extends JavaPlugin {
 
     private SignMenuFactory signMenuFactory;
     private UploadManager uploadManager;
 
-    public Oraxen() throws Exception {
+    public OraxenPlugin() throws Exception {
         Logs.enableFilter();
     }
 
@@ -63,8 +63,8 @@ public class Oraxen extends JavaPlugin {
         Logs.log(ChatColor.GREEN + "Successfully unloaded");
     }
 
-    public static Oraxen get() {
-        return Oraxen.getPlugin(Oraxen.class);
+    public static OraxenPlugin get() {
+        return OraxenPlugin.getPlugin(OraxenPlugin.class);
     }
 
     public SignMenuFactory getSignMenuFactory() {

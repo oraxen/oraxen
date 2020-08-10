@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.bottledexp;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -13,7 +13,7 @@ public class BottledExpMechanicFactory extends MechanicFactory {
     public BottledExpMechanicFactory(ConfigurationSection section) {
         super(section);
         durabilityCost = section.getInt("durability_cost");
-        MechanicsManager.registerListeners(Oraxen.get(),
+        MechanicsManager.registerListeners(OraxenPlugin.get(),
                 new BottledExpMechanicListener(this));
     }
 

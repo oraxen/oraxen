@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.recipes.builders;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import org.bukkit.configuration.ConfigurationSection;
@@ -69,7 +69,7 @@ public abstract class RecipeBuilder {
 
     public YamlConfiguration getConfig() {
         if (configFile == null) {
-            configFile = new ResourcesManager(Oraxen.get()).extractConfiguration("recipes/" + builderName + ".yml");
+            configFile = new ResourcesManager(OraxenPlugin.get()).extractConfiguration("recipes/" + builderName + ".yml");
             config = YamlConfiguration.loadConfiguration(configFile);
         }
         return config;

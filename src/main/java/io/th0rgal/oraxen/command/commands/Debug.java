@@ -7,10 +7,9 @@ import com.google.gson.JsonObject;
 import com.oraxen.chimerate.commons.command.tree.nodes.Literal;
 import com.oraxen.chimerate.commons.command.tree.nodes.Literal.Builder;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.command.CommandInfo;
 import io.th0rgal.oraxen.command.permission.OraxenPermission;
-import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.reflection.ReflectionProvider;
 
@@ -21,12 +20,10 @@ public class Debug {
             Builder<CommandSender> builder = Literal.of(info.getName());
 
             builder.executes((sender, context) -> {
-                
-                if(!OraxenPermission.COMMAND_DEBUG.has(sender)) {
-                    MessageOld.DONT_HAVE_PERMISSION.send(sender);
+
+                if (!OraxenPermission.COMMAND_DEBUG.required(sender))
                     return;
-                }
-                
+
                 JsonObject report = new JsonObject();
                 OS system = OS.getOs();
 
@@ -37,7 +34,7 @@ public class Debug {
                 operatingSystemJson.addProperty("arch", system.getArch());
 
                 JsonObject pluginJson = new JsonObject();
-                pluginJson.addProperty("version", Oraxen.get().getDescription().getVersion());
+                pluginJson.addProperty("version", OraxenPlugin.get().getDescription().getVersion());
                 pluginJson.addProperty("user", "%%__USER__%%");
                 pluginJson.addProperty("resource", "%%__RESOURCE__%%");
                 pluginJson.addProperty("nonce", "%%__NONCE__%%");

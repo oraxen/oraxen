@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.energyblast;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.settings.MessageOld;
@@ -131,7 +131,7 @@ public class EnergyBlastMechanicManager implements Listener {
                         ((LivingEntity)entity).damage(mechanic.getDamage());
 
             }
-        }.runTaskTimer(Oraxen.get(), 0, 1);
+        }.runTaskTimer(OraxenPlugin.get(), 0, 1);
     }
 
     private void spawnParticle(World world, Location location, EnergyBlastMechanic mechanic){

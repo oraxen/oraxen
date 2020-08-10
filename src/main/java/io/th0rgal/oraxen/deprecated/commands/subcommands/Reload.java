@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.deprecated.commands.subcommands;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.deprecated.commands.CommandInterface;
 import io.th0rgal.oraxen.deprecated.commands.brigadier.BrigadierManager;
 import io.th0rgal.oraxen.items.OraxenItems;
@@ -22,7 +22,7 @@ public class Reload implements CommandInterface {
             MessageOld.DONT_HAVE_PERMISSION.send(sender, "oraxen.command.reload");
             return true;
         }
-        JavaPlugin plugin = Oraxen.get();
+        JavaPlugin plugin = OraxenPlugin.get();
 
         if (args.length <= 1) {
             reloadItems(sender);
@@ -55,7 +55,7 @@ public class Reload implements CommandInterface {
         MessageOld.RELOAD.send(sender, "items");
         OraxenItems.loadItems();
         if(CommodoreProvider.isSupported())
-            BrigadierManager.registerCompletions(CommodoreProvider.getCommodore(Oraxen.get()), Oraxen.get().getCommand("oraxen"));
+            BrigadierManager.registerCompletions(CommodoreProvider.getCommodore(OraxenPlugin.get()), OraxenPlugin.get().getCommand("oraxen"));
     }
 
     private void reloadPack(JavaPlugin plugin, CommandSender sender) {

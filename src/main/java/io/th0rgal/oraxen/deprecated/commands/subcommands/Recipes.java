@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.deprecated.commands.subcommands;
 
 import com.google.common.collect.Lists;
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.deprecated.commands.CommandInterface;
 import io.th0rgal.oraxen.recipes.builders.FurnaceBuilder;
 import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
@@ -97,13 +97,13 @@ public class Recipes implements CommandInterface {
         FurnaceBuilder furnaceBuilder = (FurnaceBuilder) RecipeBuilder.get(player.getUniqueId());
         switch (type){
             case "cookingtime":
-                SignMenuFactory.Menu cookingTime = Oraxen.get().getSignMenuFactory().newMenu(Lists.newArrayList("200", "Please enter the", "Cooking Time", "(Default is: 200)"));
+                SignMenuFactory.Menu cookingTime = OraxenPlugin.get().getSignMenuFactory().newMenu(Lists.newArrayList("200", "Please enter the", "Cooking Time", "(Default is: 200)"));
                 furnaceBuilder.setCookingTimeMenu(cookingTime);
                 cookingTime.open(player);
                 break;
 
             case "experience":
-                SignMenuFactory.Menu experience = Oraxen.get().getSignMenuFactory().newMenu(Lists.newArrayList("200", "Please enter", "the Experience", "(Default is: 200)"));
+                SignMenuFactory.Menu experience = OraxenPlugin.get().getSignMenuFactory().newMenu(Lists.newArrayList("200", "Please enter", "the Experience", "(Default is: 200)"));
                 furnaceBuilder.setExperienceMenu(experience);
                 experience.open(player);
                 break;

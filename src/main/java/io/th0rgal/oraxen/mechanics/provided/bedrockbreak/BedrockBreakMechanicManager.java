@@ -10,7 +10,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -50,7 +50,7 @@ public class BedrockBreakMechanicManager {
     public BedrockBreakMechanicManager(BedrockBreakMechanicFactory factory) {
 
         this.protocolManager = ProtocolLibrary.getProtocolManager();
-        protocolManager.addPacketListener(new PacketAdapter(Oraxen.get(), ListenerPriority.LOW, PacketType.Play.Client.BLOCK_DIG) {
+        protocolManager.addPacketListener(new PacketAdapter(OraxenPlugin.get(), ListenerPriority.LOW, PacketType.Play.Client.BLOCK_DIG) {
             @Override
             public void onPacketReceiving(PacketEvent event) {
                 PacketContainer packet = event.getPacket();
@@ -80,11 +80,11 @@ public class BedrockBreakMechanicManager {
                 if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
 
                     if (breakerPerLocation.containsKey(location))
-                        breakerPerLocation.get(location).cancelTasks(Oraxen.get());
+                        breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
                     BukkitScheduler scheduler = Bukkit.getScheduler();
                     breakerPerLocation.put(location, scheduler);
 
-                    scheduler.runTaskTimer(Oraxen.get(), new Consumer<BukkitTask>() {
+                    scheduler.runTaskTimer(OraxenPlugin.get(), new Consumer<BukkitTask>() {
                         int value = 0;
 
                         @Override

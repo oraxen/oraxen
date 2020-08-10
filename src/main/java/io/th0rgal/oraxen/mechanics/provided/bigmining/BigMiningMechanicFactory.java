@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.bigmining;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -10,7 +10,7 @@ public class BigMiningMechanicFactory extends MechanicFactory {
 
     public BigMiningMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(Oraxen.get(), new BigMiningMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new BigMiningMechanicListener(this));
     }
 
     @Override

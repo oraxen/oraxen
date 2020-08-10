@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.bedrockbreak.BedrockBreakMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.bigmining.BigMiningMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.block.BlockMechanicFactory;
@@ -57,7 +57,7 @@ public class MechanicsManager {
     }
 
     public static void registerMechanicFactory(String mechanicID, Class<? extends MechanicFactory> mechanicFactoryClass) {
-        YamlConfiguration mechanicsConfig = new ResourcesManager(Oraxen.get()).getMechanics();
+        YamlConfiguration mechanicsConfig = new ResourcesManager(OraxenPlugin.get()).getMechanics();
         if (mechanicsConfig.getKeys(false).contains(mechanicID)) {
             ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicID);
             if (factorySection.getBoolean("enabled"))

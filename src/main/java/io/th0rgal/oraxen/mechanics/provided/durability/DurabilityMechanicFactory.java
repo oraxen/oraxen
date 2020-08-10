@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.durability;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -12,7 +12,7 @@ public class DurabilityMechanicFactory extends MechanicFactory {
 
     public DurabilityMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(Oraxen.get(), new DurabilityMechanicManager(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new DurabilityMechanicManager(this));
         instance = this;
     }
 

@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.settings;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -76,7 +76,7 @@ public class ResourcesManager {
     }
 
     public static ZipInputStream browse() {
-        CodeSource src = Oraxen.class.getProtectionDomain().getCodeSource();
+        CodeSource src = OraxenPlugin.class.getProtectionDomain().getCodeSource();
         if (src != null) {
             URL jar = src.getLocation();
             return tryToBrowse(jar);

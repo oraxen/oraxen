@@ -5,14 +5,14 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.persistence.PersistentDataContainer;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 
 public class LanguageProvider {
 
     public static final String NULL_VALUE = "<null>";
     public static final Language DEFAULT_LANGUAGE = new Language("en_UK", "English");
 
-    public static final NamespacedKey LANGUAGE_KEY = new NamespacedKey(Oraxen.get(), "language");
+    public static final NamespacedKey LANGUAGE_KEY = new NamespacedKey(OraxenPlugin.get(), "language");
 
     public static Language getLanguageOf(CommandSender sender) {
         return sender instanceof Player ? getLanguageOf((Player) sender) : DEFAULT_LANGUAGE;

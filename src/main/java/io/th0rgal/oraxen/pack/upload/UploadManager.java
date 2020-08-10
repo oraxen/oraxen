@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.pack.upload;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.pack.dispatch.PackDispatcher;
 import io.th0rgal.oraxen.pack.dispatch.PackSender;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
@@ -43,7 +43,7 @@ public class UploadManager {
             Bukkit.getPluginManager().registerEvents(receiver = new PackReceiver(), plugin);
         long time = System.currentTimeMillis();
         Logs.log(ChatColor.GREEN, "Automatic upload of the resource pack is enabled, uploading...");
-        Bukkit.getScheduler().runTaskAsynchronously(Oraxen.get(), () -> {
+        Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
             if (!hostingProvider.uploadPack(resourcePack.getFile())) {
                 Logs.log(ChatColor.RED, "Resourcepack not uploaded");
                 return;

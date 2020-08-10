@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.recipes;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.recipes.listeners.RecipesBuilderEvents;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.recipes.loaders.FurnaceLoader;
@@ -24,7 +24,7 @@ public class RecipesManager {
         if ((boolean) Plugin.RESET_RECIPES.getValue())
             Bukkit.resetRecipes();
         Bukkit.getPluginManager().registerEvents(new RecipesBuilderEvents(), plugin);
-        File recipesFolder = new File(Oraxen.get().getDataFolder(), "recipes");
+        File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {
             recipesFolder.mkdirs();
             new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
@@ -37,7 +37,7 @@ public class RecipesManager {
         if ((boolean) Plugin.RESET_RECIPES.getValue())
             Bukkit.resetRecipes();
         RecipesEventsManager.get().resetRecipes();
-        File recipesFolder = new File(Oraxen.get().getDataFolder(), "recipes");
+        File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {
             recipesFolder.mkdirs();
             new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");

@@ -2,7 +2,12 @@ package io.th0rgal.oraxen.command.permission;
 
 import org.bukkit.command.CommandSender;
 
-public enum OraxenPermission {
+import io.th0rgal.oraxen.language.Message;
+import io.th0rgal.oraxen.language.Variable;
+import io.th0rgal.oraxen.settings.IPlaceable;
+import io.th0rgal.oraxen.utils.general.Placeholder;
+
+public enum OraxenPermission implements IPlaceable {
 
     //
     // General Permissions
@@ -19,17 +24,15 @@ public enum OraxenPermission {
 
     // Help
     COMMAND_HELP(COMMAND_ALL),
-    
+
     // Debug
-    COMMAND_DEBUG(COMMAND_ALL), 
-    
+    COMMAND_DEBUG(COMMAND_ALL),
+
     // Inventory
     COMMAND_INVENTORY(COMMAND_ALL),
-    
+
     // Repair
-    COMMAND_REPAIR_ALL(COMMAND_ALL),
-    COMMAND_REPAIR(COMMAND_REPAIR_ALL),
-    COMMAND_REPAIR_EVERYTHING(COMMAND_REPAIR_ALL)
+    COMMAND_REPAIR_ALL(COMMAND_ALL), COMMAND_REPAIR(COMMAND_REPAIR_ALL), COMMAND_REPAIR_EVERYTHING(COMMAND_REPAIR_ALL)
 
     //
     // END
@@ -67,6 +70,31 @@ public enum OraxenPermission {
 
     public boolean has(CommandSender sender) {
         return sender.hasPermission(asString()) ? true : ((parent == null) ? false : parent.has(sender));
+    }
+
+    public boolean required(CommandSender sender) {
+        if (!has(sender)) {
+            Message.NO_PERMISSION.send(sender, Variable.PREFIX.placeholder(), getPlaceholder());
+            return false;
+        }
+        return true;
+    }
+
+    public boolean required(CommandSender sender, Placeholder... placeholders) {
+        if (!has(sender)) {
+            Message.NO_PERMISSION.send(sender, placeholders, Variable.PREFIX.placeholder(), getPlaceholder());
+            return false;
+        }
+        return true;
+    }
+
+    /*
+     * Placeholder creation
+     */
+
+    @Override
+    public Placeholder getPlaceholder() {
+        return new Placeholder("permission", asString());
     }
 
     /*

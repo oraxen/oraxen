@@ -1,6 +1,11 @@
 package io.th0rgal.oraxen.utils.general;
 
+import io.th0rgal.oraxen.language.ITranslatable;
+import io.th0rgal.oraxen.language.Language;
 import io.th0rgal.oraxen.language.LanguageProvider;
+import io.th0rgal.oraxen.language.TranslationType;
+import io.th0rgal.oraxen.language.Translations;
+import io.th0rgal.oraxen.settings.IPlaceable;
 
 public class Placeholder {
 
@@ -8,10 +13,19 @@ public class Placeholder {
         return new Placeholder(placeholder, value);
     }
 
+    public static Placeholder of(IPlaceable placeable) {
+        return placeable.getPlaceholder();
+    }
+
+    public static Placeholder of(ITranslatable translatable) {
+        return new Placeholder(translatable.type(), translatable.id(), translatable.value());
+    }
+
     /*
      * 
      */
 
+    private final TranslationType translation;
     private final String placeholder;
     private Object value;
 
@@ -22,6 +36,11 @@ public class Placeholder {
     }
 
     public Placeholder(String placeholder, Object value) {
+        this(null, placeholder, value);
+    }
+
+    public Placeholder(TranslationType translation, String placeholder, Object value) {
+        this.translation = translation;
         this.placeholder = placeholder;
         this.value = value;
     }
@@ -48,7 +67,7 @@ public class Placeholder {
     }
 
     public String getVarPlaceholder() {
-        return '%' + placeholder + '%';
+        return '$' + placeholder;
     }
 
     public Object getValue() {
@@ -59,6 +78,10 @@ public class Placeholder {
         if (value == null)
             return LanguageProvider.NULL_VALUE;
         return stringify == null ? value.toString() : stringify.asString(value);
+    }
+
+    public String getValueAsTranslatedString(Language language) {
+        return translation == null ? getValueAsString() : Translations.translate(language, placeholder, translation);
     }
 
     /*

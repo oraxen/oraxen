@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.settings.Pack;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
@@ -29,7 +29,7 @@ public class PackDispatcher {
         if (delay == -1)
             player.spigot().sendMessage(components);
         else
-            Bukkit.getScheduler().runTaskLaterAsynchronously(Oraxen.get(),
+            Bukkit.getScheduler().runTaskLaterAsynchronously(OraxenPlugin.get(),
                     () -> player.spigot().sendMessage(components), delay*20);
     }
 

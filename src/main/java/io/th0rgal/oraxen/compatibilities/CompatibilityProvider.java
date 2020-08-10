@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.compatibilities;
 
-import io.th0rgal.oraxen.Oraxen;
+import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -18,7 +18,7 @@ public class CompatibilityProvider<T extends Plugin> implements Listener {
 
     @SuppressWarnings("unchecked")
     public void enable(String pluginName) {
-        Bukkit.getPluginManager().registerEvents(this, Oraxen.get());
+        Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
         this.isEnabled = true;
         this.pluginName = pluginName;
         try {
