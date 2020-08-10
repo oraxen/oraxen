@@ -52,7 +52,7 @@ public class Recipes {
                     Language language = LanguageProvider.getLanguageOf(sender);
                     Message.COMMAND_HELP_INFO_DETAILED.send(sender, language, 
                         new Placeholder("name", info.getName()), 
-                        new Placeholder("decription", translate(language, info, DescriptionType.DETAILED))
+                        new Placeholder("description", translate(language, info, DescriptionType.DETAILED))
                     );
                 });
             return builder;
