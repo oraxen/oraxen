@@ -26,7 +26,7 @@ public class SpecificWordType implements WordType<String> {
 
     @Override
     public String parse(StringReader reader) throws CommandSyntaxException {
-        String string = reader.readQuotedString().toLowerCase();
+        String string = reader.readUnquotedString().toLowerCase();
         if (words.contains(string))
             throw EXCEPTION.createWithContext(reader, string);
         return string;

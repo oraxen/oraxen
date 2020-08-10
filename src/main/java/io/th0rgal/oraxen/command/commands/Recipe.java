@@ -31,12 +31,13 @@ import io.th0rgal.oraxen.utils.general.Placeholder;
 import io.th0rgal.oraxen.utils.signinput.SignMenuFactory;
 import io.th0rgal.oraxen.utils.signinput.SignMenuFactory.Menu;
 
-public class Recipes {
+public class Recipe {
     public static CommandInfo build() {
         return new CommandInfo("recipe", info -> {
             Builder<CommandSender> builder = Literal.of(info.getName()).alias(info.getAliases());
             builder
-                .requires(Conditions.mixed(Conditions.reqPerm(OraxenPermission.COMMAND_RECIPE), Conditions.player(Message.NOT_PLAYER)))
+                .requires(Conditions
+                    .mixed(Conditions.reqPerm(OraxenPermission.COMMAND_RECIPE), Conditions.player(Message.NOT_PLAYER)))
                 .then(Literal
                     .of("builder")
                     .requires(Conditions.reqPerm(OraxenPermission.COMMAND_RECIPE_EDIT))
@@ -64,13 +65,17 @@ public class Recipes {
                                         if (type.equals("cookingtime")) {
                                             if ((menu = furnace.getCookingTimeMenu()) == null) {
                                                 menu = factory
-                                                    .newMenu(Arrays.asList("200", "Please enter the", "Cooking Time", "(Default is: 200)"));
+                                                    .newMenu(Arrays
+                                                        .asList("200", "Please enter the", "Cooking Time",
+                                                            "(Default is: 200)"));
                                                 ((FurnaceBuilder) recipe).setCookingTimeMenu(menu);
                                             }
                                         } else {
                                             if ((menu = furnace.getExperienceMenu()) == null) {
                                                 menu = factory
-                                                    .newMenu(Arrays.asList("200", "Please enter", "the Experience", "(Default is: 200)"));
+                                                    .newMenu(Arrays
+                                                        .asList("200", "Please enter", "the Experience",
+                                                            "(Default is: 200)"));
                                                 ((FurnaceBuilder) recipe).setExperienceMenu(menu);
                                             }
                                         }

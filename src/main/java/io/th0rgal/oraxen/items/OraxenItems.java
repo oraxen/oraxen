@@ -11,10 +11,13 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.io.File;
 import java.util.*;
+import java.util.Map.Entry;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class OraxenItems {
 
-    //configuration sections : their OraxenItem wrapper
+    // configuration sections : their OraxenItem wrapper
     private static Map<File, Map<String, ItemBuilder>> map;
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
     private static ConfigsManager configsManager;
@@ -36,21 +39,19 @@ public class OraxenItems {
         if (item == null || !item.hasItemMeta() || item.getItemMeta().getPersistentDataContainer().isEmpty())
             return null;
         else
-            return item.getItemMeta()
-                    .getPersistentDataContainer()
-                    .get(ITEM_ID, PersistentDataType.STRING);
+            return item.getItemMeta().getPersistentDataContainer().get(ITEM_ID, PersistentDataType.STRING);
     }
 
-    public static boolean isAnItem(String itemID) {
-        return getAllItems().containsKey(itemID);
+    public static boolean isAnItem(String itemId) {
+        return entryStream().anyMatch(entry -> entry.getKey().equals(itemId));
     }
 
     public static ItemBuilder getItemById(String id) {
-        return getAllItems().get(id);
-    }
-
-    public static Collection<ItemBuilder> getItems() {
-        return getAllItems().values();
+        return entryStream()
+            .filter(entry -> entry.getKey().equals(id))
+            .findFirst()
+            .map(entry -> entry.getValue())
+            .orElse(null);
     }
 
     public static List<ItemBuilder> getUnexcludedItems() {
@@ -90,22 +91,28 @@ public class OraxenItems {
         return itemStacks;
     }
 
-    public static Set<Map.Entry<String, ItemBuilder>> getEntries() {
-        return getAllItems().entrySet();
+    public static Set<Entry<String, ItemBuilder>> getEntries() {
+        return entryStream().collect(Collectors.toSet());
+    }
+
+    public static Collection<ItemBuilder> getItems() {
+        return entryStream().map(Entry::getValue).collect(Collectors.toList());
     }
 
     public static Set<String> getSectionsNames() {
-        return getAllItems().keySet();
+        return entryStream().map(Entry::getKey).collect(Collectors.toSet());
     }
 
-    public static Map<File, Map<String, ItemBuilder>> getMap(){
+    public static Map<File, Map<String, ItemBuilder>> getMap() {
         return map;
     }
 
-    public static Map<String, ItemBuilder> getAllItems(){
-        Map<String, ItemBuilder> items = new LinkedHashMap<>();
-        map.values().forEach(items::putAll);
-        return items;
+    public static Map<String, ItemBuilder> getAllItems() {
+        return entryStream().collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+    }
+
+    public static Stream<Entry<String, ItemBuilder>> entryStream() {
+        return map.values().stream().flatMap(map -> map.entrySet().stream());
     }
 
 }

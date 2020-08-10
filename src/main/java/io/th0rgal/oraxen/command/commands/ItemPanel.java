@@ -15,7 +15,7 @@ import io.th0rgal.oraxen.language.Message;
 import io.th0rgal.oraxen.utils.itemsvisualizer.AllItemsInventory;
 import io.th0rgal.oraxen.utils.itemsvisualizer.FileInventory;
 
-public class InventoryVisualizer {
+public class ItemPanel {
 
     public static CommandInfo build() {
         return new CommandInfo("inventory", info -> {
@@ -32,7 +32,6 @@ public class InventoryVisualizer {
                     } else {
                         new FileInventory(0).open(player);
                     }
-
                 }));
 
             return builder;

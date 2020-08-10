@@ -15,22 +15,26 @@ public enum Message implements IMessage {
     //
     NO_PERMISSION("$prefix You're lacking the permission &c$permission &7to do this!"),
     WORK_IN_PROGRESS("$prefix This feature is &dwork in progress&7!"),
-    NOT_PLAYER(""),
+    NOT_PLAYER("$prefix This can &conly &7be done as a &cplayer&7!"),
 
     //
     // Command Messages
     //
-    COMMAND_NOT_EXIST(""),
+    COMMAND_NOT_EXIST("$prefix The command '&c$name&7' doesn't exist!"),
 
     // Help
     COMMAND_HELP_INFO_SHORT(""),
     COMMAND_HELP_INFO_DETAILED(""),
-    
+
     // Recipe
-    COMMAND_RECIPE_NO_BUILDER(""),
-    COMMAND_RECIPE_NO_FURNACE(""),
-    COMMAND_RECIPE_NO_NAME(""),
-    COMMAND_RECIPE_SAVE(""),
+    COMMAND_RECIPE_NO_BUILDER("$prefix Please &ccreate an recipe&7 first!"),
+    COMMAND_RECIPE_NO_FURNACE("$prefix This option is only avaiable for &cFurnace Recipes&7!"),
+    COMMAND_RECIPE_NO_NAME("$prefix Please &cspecify a name &7for the recipe!"),
+    COMMAND_RECIPE_SAVE("$prefix Recipe '$a$name&7' saved &asuccessfully&7!"),
+
+    // Give
+    COMMAND_GIVE_PLAYER("$prefix You gave '&a$player&7' &3$amountx $item&7!"),
+    COMMAND_GIVE_PLAYERS("$prefix You gave &a$players players &3$amountx $item&7!"),
 
     //
     ;

@@ -20,7 +20,7 @@ public class RecipeTypeType implements WordType<RecipeType> {
 
     @Override
     public RecipeType parse(StringReader reader) throws CommandSyntaxException {
-        String string = reader.readQuotedString();
+        String string = reader.readUnquotedString();
         RecipeType recipeType = RecipeType.fromString(string);
         if (recipeType == null)
             throw EXCEPTION.createWithContext(reader, string);

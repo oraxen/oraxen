@@ -10,7 +10,7 @@ public class CommandListener implements Listener {
     @EventHandler
     public void onCommandCreation(OraxenCommandEvent event) {
 
-        event.add(Reload.build()).add(Debug.build()).add(InventoryVisualizer.build()).add(Repair.build());
+        event.add(Reload.build()).add(Debug.build()).add(ItemPanel.build()).add(Repair.build());
 
     }
 
