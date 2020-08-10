@@ -35,10 +35,8 @@ public class FileInventory extends FastInv {
             if (material == null) material = "PAPER";
 
             try {
-                ItemStack isOraxenItems = OraxenItems.getItemById(material).build();
-                if (isOraxenItems != null)
-                    itemStack = new ItemBuilder(isOraxenItems).setDisplayName(ChatColor.GREEN + ymlFile.getName()).build();
-
+                ItemBuilder isOraxenItems = OraxenItems.getItemById(material);
+                itemStack = isOraxenItems.setDisplayName(ChatColor.GREEN + ymlFile.getName()).build();
             } catch (Exception e) {
                 try {
                     itemStack = new ItemBuilder(Material.getMaterial(material.toUpperCase())).setDisplayName(ChatColor.GREEN + ymlFile.getName()).build();
