@@ -40,6 +40,10 @@ public abstract class RecipeBuilder {
     }
 
     abstract Inventory createInventory(Player player, String inventoryTitle);
+    
+    void close() {
+        MAP.remove(player.getUniqueId());
+    }
 
     public abstract void saveRecipe(String name);
 

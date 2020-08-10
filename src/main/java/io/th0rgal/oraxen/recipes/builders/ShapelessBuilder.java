@@ -42,6 +42,7 @@ public class ShapelessBuilder extends WorkbenchBuilder {
         if (permission != null)
             newCraftSection.set("permission", permission);
         saveConfig();
+        close();
     }
 
 

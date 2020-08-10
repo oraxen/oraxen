@@ -13,7 +13,7 @@ public enum Variable implements IVariable {
     //
     // General Variables
     //
-    PREFIX("&bOraxen &8| &7", true),
+    PREFIX("&bOraxen &8|&7", true),
 
     //
     ;

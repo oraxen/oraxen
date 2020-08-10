@@ -17,9 +17,24 @@ public class Recipes implements CommandInterface {
 
     /*
      * 
-     * -> builder -> shaped -> shapeless -> furnace -> cookingtime -> experience ->
-     * save -> show -> hand -> shaped -> shapeless -> furnace -> all -> shaped ->
-     * shapeless -> furnace
+     *  -> builder 
+     *      -> shaped 
+     *      -> shapeless 
+     *      -> furnace 
+     *          -> cookingtime 
+     *          -> experience 
+     *      -> save 
+     *          -> name
+     *              -> || permission
+     *      -> show 
+     *          -> hand 
+     *              -> shaped 
+     *              -> shapeless 
+     *              -> furnace 
+     *          -> all 
+     *              -> shaped 
+     *              -> shapeless 
+     *              -> furnace
      * 
      */
 

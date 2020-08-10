@@ -14,6 +14,7 @@ public enum Message implements IMessage {
     // General Messages
     //
     NO_PERMISSION("$prefix You're lacking the permission &c$permission &7to do this!"),
+    WORK_IN_PROGRESS("$prefix This feature is &dwork in progress&7!"),
     NOT_PLAYER(""),
 
     //
@@ -22,7 +23,14 @@ public enum Message implements IMessage {
     COMMAND_NOT_EXIST(""),
 
     // Help
-    COMMAND_HELP_INFO_SHORT(""), COMMAND_HELP_INFO_DETAILED(""),
+    COMMAND_HELP_INFO_SHORT(""),
+    COMMAND_HELP_INFO_DETAILED(""),
+    
+    // Recipe
+    COMMAND_RECIPE_NO_BUILDER(""),
+    COMMAND_RECIPE_NO_FURNACE(""),
+    COMMAND_RECIPE_NO_NAME(""),
+    COMMAND_RECIPE_SAVE(""),
 
     //
     ;
