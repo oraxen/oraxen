@@ -36,9 +36,9 @@ public class FileInventory extends FastInv {
 
             try {
                 ItemStack isOraxenItems = OraxenItems.getItemById(material).build();
-                if (isOraxenItems != null && isOraxenItems.getType() != null) {
+                if (isOraxenItems != null)
                     itemStack = new ItemBuilder(isOraxenItems).setDisplayName(ChatColor.GREEN + ymlFile.getName()).build();
-                }
+
             } catch (Exception e) {
                 try {
                     itemStack = new ItemBuilder(Material.getMaterial(material.toUpperCase())).setDisplayName(ChatColor.GREEN + ymlFile.getName()).build();
@@ -47,7 +47,8 @@ public class FileInventory extends FastInv {
                 }
             }
 
-            if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).setDisplayName(ChatColor.GREEN + ymlFile.getName()).build(); //  Bug possible sir isOraxenItems est dispo mais ne peut être un itemstack. Pourquoi ? on ne sait jamais
+            if (itemStack == null)
+                itemStack = new ItemBuilder(Material.PAPER).setDisplayName(ChatColor.GREEN + ymlFile.getName()).build(); //  Bug possible sir isOraxenItems est dispo mais ne peut être un itemstack. Pourquoi ? on ne sait jamais
             setItem(i - page * 2 * 9, itemStack, e -> new ItemsInventory(0, page, ymlFile).open((Player) e.getWhoClicked()));
         }
 
