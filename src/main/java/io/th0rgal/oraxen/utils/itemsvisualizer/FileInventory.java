@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Collection;
 
 public class FileInventory extends FastInv {
@@ -36,7 +37,7 @@ public class FileInventory extends FastInv {
 
             try {
                 ItemBuilder isOraxenItems = OraxenItems.getItemById(material);
-                itemStack = isOraxenItems.setDisplayName(ChatColor.GREEN + ymlFile.getName()).build();
+                itemStack = isOraxenItems.setDisplayName(ChatColor.GREEN + ymlFile.getName()).setLore(new ArrayList<>()).build();
             } catch (Exception e) {
                 try {
                     itemStack = new ItemBuilder(Material.getMaterial(material.toUpperCase())).setDisplayName(ChatColor.GREEN + ymlFile.getName()).build();
