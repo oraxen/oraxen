@@ -20,10 +20,10 @@ public class Debug {
             Builder<CommandSender> builder = Literal.of(info.getName());
 
             builder.executes((sender, context) -> {
-
+                
                 if (!OraxenPermission.COMMAND_DEBUG.required(sender))
                     return;
-
+                
                 JsonObject report = new JsonObject();
                 OS system = OS.getOs();
 

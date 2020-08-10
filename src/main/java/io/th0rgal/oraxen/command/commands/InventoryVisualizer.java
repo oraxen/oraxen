@@ -8,9 +8,10 @@ import com.oraxen.chimerate.commons.command.tree.nodes.Literal;
 import com.oraxen.chimerate.commons.command.tree.nodes.Literal.Builder;
 
 import io.th0rgal.oraxen.command.CommandInfo;
+import io.th0rgal.oraxen.command.condition.Conditions;
 import io.th0rgal.oraxen.command.permission.OraxenPermission;
 import io.th0rgal.oraxen.command.types.SpecificWordType;
-import io.th0rgal.oraxen.settings.MessageOld;
+import io.th0rgal.oraxen.language.Message;
 import io.th0rgal.oraxen.utils.itemsvisualizer.AllItemsInventory;
 import io.th0rgal.oraxen.utils.itemsvisualizer.FileInventory;
 
@@ -22,13 +23,9 @@ public class InventoryVisualizer {
 
             builder.optionally(Argument.of("all", SpecificWordType.of("all")).executes((sender, context) -> {
 
-                if (!OraxenPermission.COMMAND_INVENTORY.required(sender))
+                if (Conditions.mixed(Conditions.reqPerm(OraxenPermission.COMMAND_INVENTORY),
+                    Conditions.player(Message.NOT_PLAYER)).isTrue(sender, context))
                     return;
-
-                if (!(sender instanceof Player)) {
-                    MessageOld.NOT_A_PLAYER_ERROR.send(sender);
-                    return;
-                }
 
                 Player player = (Player) sender;
                 if (context.getOptionalArgument("all", String.class) != null) {

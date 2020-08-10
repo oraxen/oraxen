@@ -10,11 +10,13 @@ import io.th0rgal.oraxen.command.CommandInfo;
 public class Recipes {
 
     public static CommandInfo build() {
-        return new CommandInfo("name", info -> {
+        return new CommandInfo("recipe", info -> {
             Builder<CommandSender> builder = Literal.of(info.getName()).alias(info.getAliases());
             
+            
+            
             return builder;
-        }, "alias1", "alias2", "...");
+        });
     }
 
 }

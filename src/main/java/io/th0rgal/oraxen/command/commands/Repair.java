@@ -15,9 +15,11 @@ import com.oraxen.chimerate.commons.command.tree.nodes.Literal.Builder;
 import com.syntaxphoenix.syntaxapi.utils.java.Arrays;
 
 import io.th0rgal.oraxen.command.CommandInfo;
+import io.th0rgal.oraxen.command.condition.Conditions;
 import io.th0rgal.oraxen.command.permission.OraxenPermission;
 import io.th0rgal.oraxen.command.types.SpecificWordType;
 import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.language.Message;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanic;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.settings.MessageOld;
@@ -31,13 +33,9 @@ public class Repair {
 
             builder.optionally(Argument.of("all", SpecificWordType.of("all")).executes((sender, context) -> {
 
-                if (!OraxenPermission.COMMAND_REPAIR.required(sender))
+                if (Conditions.mixed(Conditions.reqPerm(OraxenPermission.COMMAND_REPAIR),
+                    Conditions.player(Message.NOT_PLAYER)).isTrue(sender, context))
                     return;
-
-                if (!(sender instanceof Player)) {
-                    MessageOld.NOT_A_PLAYER_ERROR.send(sender);
-                    return;
-                }
 
                 Player player = (Player) sender;
                 if (context.getOptionalArgument("all", String.class) != null

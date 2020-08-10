@@ -2,8 +2,6 @@ package io.th0rgal.oraxen.utils.general;
 
 import java.io.File;
 
-import io.th0rgal.oraxen.language.Language;
-
 public final class Constants {
 
     /*

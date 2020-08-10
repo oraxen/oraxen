@@ -4,10 +4,9 @@ import org.bukkit.command.CommandSender;
 
 import io.th0rgal.oraxen.language.Message;
 import io.th0rgal.oraxen.language.Variable;
-import io.th0rgal.oraxen.settings.IPlaceable;
 import io.th0rgal.oraxen.utils.general.Placeholder;
 
-public enum OraxenPermission implements IPlaceable {
+public enum OraxenPermission implements IPermission {
 
     //
     // General Permissions
@@ -65,12 +64,22 @@ public enum OraxenPermission implements IPlaceable {
     }
 
     /*
-     * Permission check
+     * IPermission implementation
      */
 
-    public boolean has(CommandSender sender) {
-        return sender.hasPermission(asString()) ? true : ((parent == null) ? false : parent.has(sender));
+    @Override
+    public String prefix() {
+        return prefix;
     }
+
+    @Override
+    public OraxenPermission parent() {
+        return parent;
+    }
+
+    /*
+     * Permission check
+     */
 
     public boolean required(CommandSender sender) {
         if (!has(sender)) {
@@ -89,30 +98,12 @@ public enum OraxenPermission implements IPlaceable {
     }
 
     /*
-     * Placeholder creation
-     */
-
-    @Override
-    public Placeholder getPlaceholder() {
-        return new Placeholder("permission", asString());
-    }
-
-    /*
      * String functions
      */
 
-    public String asString() {
-        return toString();
-    }
-
     @Override
     public String toString() {
-        String name = name().toLowerCase();
-        if (name.endsWith("_ALL"))
-            name = name.substring(0, name.length() - 4) + '*';
-        else if (name.equals("ALL"))
-            name = "*";
-        return String.format(PERMISSION_FORMAT, prefix, name);
+        return asString();
     }
 
 }

@@ -51,7 +51,7 @@ public class Reload {
 
                 if (!OraxenPermission.COMMAND_RELOAD.required(sender))
                     return;
-                
+
                 OraxenPlugin oraxen = OraxenPlugin.get();
                 reloadItems(sender);
                 reloadPack(oraxen, sender);

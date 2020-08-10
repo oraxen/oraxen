@@ -14,6 +14,7 @@ public enum Message implements IMessage {
     // General Messages
     //
     NO_PERMISSION("$prefix You're lacking the permission &c$permission &7to do this!"),
+    NOT_PLAYER(""),
 
     //
     // Command Messages
