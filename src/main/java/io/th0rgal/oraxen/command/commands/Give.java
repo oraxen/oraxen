@@ -41,10 +41,15 @@ public class Give {
                             player.getInventory().addItem(items);
                         });
                         int size = players.size();
-                        if(size == 1)
-                            Message.COMMAND_GIVE_PLAYER.send(sender, Placeholder.of("player", players.get(0).getName()), Placeholder.of("amount", amount), Placeholder.of("item", OraxenItems.getIdByItem(itemBuilder)));
+                        if (size == 1)
+                            Message.COMMAND_GIVE_PLAYER
+                                .send(sender, Placeholder.of("player", players.get(0).getName()),
+                                    Placeholder.of("amount", amount),
+                                    Placeholder.of("item", OraxenItems.getIdByItem(itemBuilder)));
                         else
-                            Message.COMMAND_GIVE_PLAYERS.send(sender, Placeholder.of("players", size), Placeholder.of("amount", amount), Placeholder.of("item", OraxenItems.getIdByItem(itemBuilder)));
+                            Message.COMMAND_GIVE_PLAYERS
+                                .send(sender, Placeholder.of("players", size), Placeholder.of("amount", amount),
+                                    Placeholder.of("item", OraxenItems.getIdByItem(itemBuilder)));
                     }));
             return builder;
         });
