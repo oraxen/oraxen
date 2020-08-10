@@ -15,6 +15,14 @@ import org.bukkit.entity.Player;
 
 public class Recipes implements CommandInterface {
 
+    /*
+     * 
+     * -> builder -> shaped -> shapeless -> furnace -> cookingtime -> experience ->
+     * save -> show -> hand -> shaped -> shapeless -> furnace -> all -> shaped ->
+     * shapeless -> furnace
+     * 
+     */
+
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
 
@@ -32,35 +40,35 @@ public class Recipes implements CommandInterface {
 
             switch (args[1]) {
 
-                case "open":
-                    if(args.length > 3 && args[2].equals("furnace"))
-                        if(currentBuilder != null)
-                            createSign(args[3], player);
-                        else
-                            sender.sendMessage("Builder is null! You need to create a new one");
-                    else if (args.length > 2)
-                        buildAndOpen(player, args[2]);
-                    else if (currentBuilder != null)
-                        currentBuilder.open();
+            case "open":
+                if (args.length > 3 && args[2].equals("furnace"))
+                    if (currentBuilder != null)
+                        createSign(args[3], player);
                     else
-                        sender.sendMessage("$recipeslist");
-                    break;
-
-                case "save":
-                    if (currentBuilder == null)
                         sender.sendMessage("Builder is null! You need to create a new one");
-                    else if (args.length == 3) {
-                        currentBuilder.saveRecipe(args[2]);
-                        MessageOld.SAVE_RECIPE.send(sender, args[2]);
-                    } else if (args.length == 4) {
-                        currentBuilder.saveRecipe(args[2], args[3]);
-                        MessageOld.SAVE_RECIPE.send(sender, args[2]);
-                    } else
-                        sender.sendMessage("o recipes save <recipe_name>");
-                    break;
+                else if (args.length > 2)
+                    buildAndOpen(player, args[2]);
+                else if (currentBuilder != null)
+                    currentBuilder.open();
+                else
+                    sender.sendMessage("$recipeslist");
+                break;
 
-                default:
-                    break;
+            case "save":
+                if (currentBuilder == null)
+                    sender.sendMessage("Builder is null! You need to create a new one");
+                else if (args.length == 3) {
+                    currentBuilder.saveRecipe(args[2]);
+                    MessageOld.SAVE_RECIPE.send(sender, args[2]);
+                } else if (args.length == 4) {
+                    currentBuilder.saveRecipe(args[2], args[3]);
+                    MessageOld.SAVE_RECIPE.send(sender, args[2]);
+                } else
+                    sender.sendMessage("o recipes save <recipe_name>");
+                break;
+
+            default:
+                break;
             }
 
         } else {
@@ -70,43 +78,48 @@ public class Recipes implements CommandInterface {
         return true;
     }
 
-
     private void buildAndOpen(Player player, String recipeType) {
         switch (recipeType.toLowerCase()) {
-            case "shaped":
-                new ShapedBuilder(player);
-                break;
+        case "shaped":
+            new ShapedBuilder(player);
+            break;
 
-            case "shapeless":
-                new ShapelessBuilder(player);
-                break;
+        case "shapeless":
+            new ShapelessBuilder(player);
+            break;
 
-            case "furnace":
-                new FurnaceBuilder(player);
-                break;
+        case "furnace":
+            new FurnaceBuilder(player);
+            break;
 
-            default:
-                player.sendMessage("error");
-                break;
+        default:
+            player.sendMessage("error");
+            break;
         }
     }
 
-    private void createSign(String type, Player player){
-        if(!(RecipeBuilder.get(player.getUniqueId()) instanceof FurnaceBuilder))
+    private void createSign(String type, Player player) {
+        if (!(RecipeBuilder.get(player.getUniqueId()) instanceof FurnaceBuilder))
             return;
         FurnaceBuilder furnaceBuilder = (FurnaceBuilder) RecipeBuilder.get(player.getUniqueId());
-        switch (type){
-            case "cookingtime":
-                SignMenuFactory.Menu cookingTime = OraxenPlugin.get().getSignMenuFactory().newMenu(Lists.newArrayList("200", "Please enter the", "Cooking Time", "(Default is: 200)"));
-                furnaceBuilder.setCookingTimeMenu(cookingTime);
-                cookingTime.open(player);
-                break;
+        switch (type) {
+        case "cookingtime":
+            SignMenuFactory.Menu cookingTime = OraxenPlugin
+                .get()
+                .getSignMenuFactory()
+                .newMenu(Lists.newArrayList("200", "Please enter the", "Cooking Time", "(Default is: 200)"));
+            furnaceBuilder.setCookingTimeMenu(cookingTime);
+            cookingTime.open(player);
+            break;
 
-            case "experience":
-                SignMenuFactory.Menu experience = OraxenPlugin.get().getSignMenuFactory().newMenu(Lists.newArrayList("200", "Please enter", "the Experience", "(Default is: 200)"));
-                furnaceBuilder.setExperienceMenu(experience);
-                experience.open(player);
-                break;
+        case "experience":
+            SignMenuFactory.Menu experience = OraxenPlugin
+                .get()
+                .getSignMenuFactory()
+                .newMenu(Lists.newArrayList("200", "Please enter", "the Experience", "(Default is: 200)"));
+            furnaceBuilder.setExperienceMenu(experience);
+            experience.open(player);
+            break;
         }
     }
 

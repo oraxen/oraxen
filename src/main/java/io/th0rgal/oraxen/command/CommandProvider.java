@@ -40,7 +40,9 @@ public class CommandProvider {
         Bukkit.getPluginManager().callEvent(event);
 
         neuanfangCommand(dispatcher, event.getAliases(), event.getCommandInfos());
-
+        
+        dispatcher.update();
+        
     }
 
     /*
@@ -52,10 +54,9 @@ public class CommandProvider {
             List<CommandInfo> commandInfos) {
 
         //
-        // Create Neuanfang main command
+        // Create Oraxen main command
 
-        Builder<CommandSender> oraxenNode = Literal.of("neuanfang");
-        oraxenNode.alias("neu");
+        Builder<CommandSender> oraxenNode = Literal.of("oraxen").alias("oxn", "o");
 
         //
         // Loop through infos
@@ -73,7 +74,7 @@ public class CommandProvider {
         // Create help command
 
         Builder<CommandSender> help = Literal.of("help");
-        help.alias("?", "hilfe");
+        help.alias("?");
 
         INFO_PROVIDER.addAll(commandInfos);
 
@@ -119,7 +120,7 @@ public class CommandProvider {
         oraxenNode.redirect(helpNode);
 
         //
-        // Register neuanfang command and push result
+        // Register oraxen command and push result
 
         return new CommandNode[] { helpNode, dispatcher.register(oraxenNode) };
 

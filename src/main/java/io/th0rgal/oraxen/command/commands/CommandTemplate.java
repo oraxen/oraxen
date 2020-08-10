@@ -12,7 +12,7 @@ public class CommandTemplate {
     public static CommandInfo build() {
         return new CommandInfo("name", info -> {
             Builder<CommandSender> builder = Literal.of(info.getName()).alias(info.getAliases());
-            
+
             return builder;
         }, "alias1", "alias2", "...");
     }

@@ -13,23 +13,23 @@ public class Conditions {
     }
 
     public static ICondition hasPerm(IPermission permission) {
-        return (sender, context) -> permission.has(sender);
+        return (sender) -> permission.has(sender);
     }
 
     public static ICondition reqPerm(IPermission permission) {
-        return (sender, context) -> permission.required(sender);
+        return (sender) -> permission.required(sender);
     }
 
     public static ICondition reqPerm(IPermission permission, Placeholder... placeholders) {
-        return (sender, context) -> permission.required(sender, placeholders);
+        return (sender) -> permission.required(sender, placeholders);
     }
 
     public static ICondition player() {
-        return (sender, context) -> sender instanceof Player;
+        return (sender) -> sender instanceof Player;
     }
 
     public static ICondition player(ITranslatable translatable, Placeholder... placeholders) {
-        return (sender, context) -> {
+        return (sender) -> {
             if (!(sender instanceof Player)) {
                 translatable.send(sender, placeholders);
                 return false;

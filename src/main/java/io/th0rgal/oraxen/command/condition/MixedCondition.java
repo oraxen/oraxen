@@ -4,8 +4,6 @@ import java.util.Arrays;
 
 import org.bukkit.command.CommandSender;
 
-import com.mojang.brigadier.context.CommandContext;
-
 public class MixedCondition implements ICondition {
 
     private final ICondition[] conditions;
@@ -15,8 +13,8 @@ public class MixedCondition implements ICondition {
     }
 
     @Override
-    public boolean isTrue(CommandSender sender, CommandContext<CommandSender> context) {
-        return Arrays.stream(conditions).allMatch(condition -> condition.isTrue(sender, context));
+    public boolean isTrue(CommandSender sender) {
+        return Arrays.stream(conditions).allMatch(condition -> condition.isTrue(sender));
     }
 
 }

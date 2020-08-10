@@ -1,12 +1,17 @@
 package io.th0rgal.oraxen.command.condition;
 
+import java.util.function.Predicate;
+
 import org.bukkit.command.CommandSender;
 
-import com.mojang.brigadier.context.CommandContext;
-
 @FunctionalInterface
-public interface ICondition {
+public interface ICondition extends Predicate<CommandSender> {
     
-    public boolean isTrue(CommandSender sender, CommandContext<CommandSender> context);
+    @Override
+    default boolean test(CommandSender sender) {
+        return isTrue(sender);
+    }
+    
+    public boolean isTrue(CommandSender sender);
     
 }

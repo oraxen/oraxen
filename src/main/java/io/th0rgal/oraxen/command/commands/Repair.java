@@ -31,38 +31,37 @@ public class Repair {
         return new CommandInfo("repair", info -> {
             Builder<CommandSender> builder = Literal.of(info.getName()).alias(info.getAliases());
 
-            builder.optionally(Argument.of("all", SpecificWordType.of("all")).executes((sender, context) -> {
-
-                if (Conditions.mixed(Conditions.reqPerm(OraxenPermission.COMMAND_REPAIR),
-                    Conditions.player(Message.NOT_PLAYER)).isTrue(sender, context))
-                    return;
-
-                Player player = (Player) sender;
-                if (context.getOptionalArgument("all", String.class) != null
+            builder
+                .requires(Conditions
+                    .mixed(Conditions.reqPerm(OraxenPermission.COMMAND_RECIPE), Conditions.player(Message.NOT_PLAYER)))
+                .optionally(Argument.of("all", SpecificWordType.of("all")).executes((sender, context) -> {
+                    Player player = (Player) sender;
+                    if (context.getOptionalArgument("all", String.class) != null
                         && OraxenPermission.COMMAND_REPAIR_EVERYTHING.has(sender)) {
-                    ItemStack[] items = Arrays.merge(size -> new ItemStack[size],
-                        player.getInventory().getStorageContents(), player.getInventory().getArmorContents());
-                    int failed = 0;
-                    for (int index = 0; index < items.length; index++) {
-                        ItemStack item = items[index];
-                        if (item == null || item.getType() == Material.AIR)
-                            continue;
-                        if (repairPlayerItem(item)) {
-                            MessageOld.CANNOT_BE_REPAIRED.send(sender, item.getItemMeta().getDisplayName());
-                            failed++;
+                        ItemStack[] items = Arrays
+                            .merge(size -> new ItemStack[size], player.getInventory().getStorageContents(),
+                                player.getInventory().getArmorContents());
+                        int failed = 0;
+                        for (int index = 0; index < items.length; index++) {
+                            ItemStack item = items[index];
+                            if (item == null || item.getType() == Material.AIR)
+                                continue;
+                            if (repairPlayerItem(item)) {
+                                MessageOld.CANNOT_BE_REPAIRED.send(sender, item.getItemMeta().getDisplayName());
+                                failed++;
+                            }
                         }
+                        MessageOld.REPAIRED_ITEMS.send(sender, (items.length - failed) + "");
+                    } else {
+                        ItemStack item = player.getInventory().getItemInMainHand();
+                        if (item == null || item.getType() == Material.AIR) {
+                            MessageOld.CANNOT_BE_REPAIRED_INVALID.send(sender);
+                            return;
+                        }
+                        if (repairPlayerItem(item))
+                            MessageOld.CANNOT_BE_REPAIRED.send(sender, item.getItemMeta().getDisplayName());
                     }
-                    MessageOld.REPAIRED_ITEMS.send(sender, (items.length - failed) + "");
-                } else {
-                    ItemStack item = player.getInventory().getItemInMainHand();
-                    if (item == null || item.getType() == Material.AIR) {
-                        MessageOld.CANNOT_BE_REPAIRED_INVALID.send(sender);
-                        return;
-                    }
-                    if (repairPlayerItem(item))
-                        MessageOld.CANNOT_BE_REPAIRED.send(sender, item.getItemMeta().getDisplayName());
-                }
-            }));
+                }));
 
             return builder;
         });
@@ -85,11 +84,11 @@ public class Repair {
             PersistentDataContainer persistentDataContainer = itemMeta.getPersistentDataContainer();
             int realMaxDurability = durabilityMechanic.getItemMaxDurability();
             int damage = realMaxDurability
-                    - persistentDataContainer.get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER);
+                - persistentDataContainer.get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER);
             if (damage == 0) // full durability
                 return false;
-            persistentDataContainer.set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER,
-                realMaxDurability);
+            persistentDataContainer
+                .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realMaxDurability);
         }
         damageable.setDamage(0);
         itemStack.setItemMeta((ItemMeta) damageable);

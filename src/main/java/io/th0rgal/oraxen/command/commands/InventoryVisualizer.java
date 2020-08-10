@@ -21,20 +21,19 @@ public class InventoryVisualizer {
         return new CommandInfo("inventory", info -> {
             Builder<CommandSender> builder = Literal.of(info.getName()).alias(info.getAliases());
 
-            builder.optionally(Argument.of("all", SpecificWordType.of("all")).executes((sender, context) -> {
+            builder
+                .requires(Conditions
+                    .mixed(Conditions.reqPerm(OraxenPermission.COMMAND_INVENTORY),
+                        Conditions.player(Message.NOT_PLAYER)))
+                .optionally(Argument.of("all", SpecificWordType.of("all")).executes((sender, context) -> {
+                    Player player = (Player) sender;
+                    if (context.getOptionalArgument("all", String.class) != null) {
+                        new AllItemsInventory(0).open(player);
+                    } else {
+                        new FileInventory(0).open(player);
+                    }
 
-                if (Conditions.mixed(Conditions.reqPerm(OraxenPermission.COMMAND_INVENTORY),
-                    Conditions.player(Message.NOT_PLAYER)).isTrue(sender, context))
-                    return;
-
-                Player player = (Player) sender;
-                if (context.getOptionalArgument("all", String.class) != null) {
-                    new AllItemsInventory(0).open(player);
-                } else {
-                    new FileInventory(0).open(player);
-                }
-
-            }));
+                }));
 
             return builder;
         }, "inv");
