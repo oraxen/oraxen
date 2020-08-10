@@ -48,7 +48,8 @@ public class FileInventory extends FastInv {
             }
 
             if (itemStack == null)
-                itemStack = new ItemBuilder(Material.PAPER).setDisplayName(ChatColor.GREEN + ymlFile.getName()).build(); //  Bug possible sir isOraxenItems est dispo mais ne peut être un itemstack. Pourquoi ? on ne sait jamais
+                //  avoid possible bug if isOraxenItems is available but can't be an itemstack
+                itemStack = new ItemBuilder(Material.PAPER).setDisplayName(ChatColor.GREEN + ymlFile.getName()).build();
             setItem(i - page * 2 * 9, itemStack, e -> new ItemsInventory(0, page, ymlFile).open((Player) e.getWhoClicked()));
         }
 
