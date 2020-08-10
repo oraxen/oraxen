@@ -6,8 +6,11 @@ import com.sk89q.worldguard.bukkit.WorldGuardPlugin;
 import com.sk89q.worldguard.protection.flags.Flags;
 import com.sk89q.worldguard.protection.regions.RegionContainer;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
+import io.th0rgal.oraxen.compatibilities.provided.worldguard.WorldGuardCompatibility;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -32,22 +35,14 @@ public class BigMiningMechanicListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onBlockbreak(BlockBreakEvent event) {
+    public void onBlockBreak(BlockBreakEvent event) {
 
         Player player = event.getPlayer();
 
-        if (OraxenPlugin.WorldGuard()) {
-            LocalPlayer localPlayer = WorldGuardPlugin.inst().wrapPlayer(player);
-            RegionContainer container = OraxenPlugin.worldGuardPlugin().getPlatform().getRegionContainer();
-            com.sk89q.worldedit.util.Location loc = BukkitAdapter.adapt(event.getBlock().getLocation());
-            if (player.hasPermission("oraxen.worldguard.bypass") ||
-                    player.hasPermission("oraxen.worldguard.*") ||
-                    !container.createQuery().testState(loc, localPlayer, Flags.BLOCK_BREAK)) {
-                event.setCancelled(true);
-                event.getPlayer().sendMessage("Your are not allowed to break this block !");
-                return;
-            }
+        if(CompatibilitiesManager.isCompatibilityEnabled("WorldGuard") && !((WorldGuardCompatibility)CompatibilitiesManager.getActiveCompatibility("WorldGuard")).canBreak(event.getPlayer(), event.getBlock())) {
+            return;
         }
+
         if (blocksToProcess > 0) {
             blocksToProcess -= 1;
             return;
