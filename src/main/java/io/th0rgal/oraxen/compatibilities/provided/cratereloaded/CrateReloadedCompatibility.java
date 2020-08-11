@@ -63,7 +63,7 @@ public class CrateReloadedCompatibility extends CompatibilityProvider<CratePlugi
             String value = rewardString.substring(0, rewardString.indexOf(")"));
             rewardString = rewardString.substring(rewardString.indexOf(")") + 1);
             String itemID = value.split(" ")[0];
-            if (!OraxenItems.isAnItem(itemID)) {
+            if (!OraxenItems.exists(itemID)) {
                 MessageOld.ITEM_NOT_FOUND.logError(itemID);
                 continue;
             }

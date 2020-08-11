@@ -23,7 +23,7 @@ public class BossShopProCompatibility extends CompatibilityProvider<BossShop> {
         if (itemID == null)
             return;
         ItemStack itemStack = new ItemStack(Material.AIR);
-        if (OraxenItems.isAnItem(itemID))
+        if (OraxenItems.exists(itemID))
             itemStack = OraxenItems.getItemById(itemID).build().clone();
         else
             MessageOld.ITEM_NOT_FOUND.logError(itemID);

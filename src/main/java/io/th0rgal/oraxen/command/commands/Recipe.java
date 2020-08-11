@@ -2,8 +2,6 @@ package io.th0rgal.oraxen.command.commands;
 
 import static io.th0rgal.oraxen.language.Translations.translate;
 
-import java.util.Arrays;
-
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -28,10 +26,10 @@ import io.th0rgal.oraxen.recipes.builders.FurnaceBuilder;
 import io.th0rgal.oraxen.recipes.builders.ShapelessBuilder;
 import io.th0rgal.oraxen.recipes.builders.ShapedBuilder;
 import io.th0rgal.oraxen.utils.general.Placeholder;
-import io.th0rgal.oraxen.utils.signinput.SignMenuFactory;
-import io.th0rgal.oraxen.utils.signinput.SignMenuFactory.Menu;
+import io.th0rgal.oraxen.utils.input.InputProvider;
 
 public class Recipe {
+
     public static CommandInfo build() {
         return new CommandInfo("recipe", info -> {
             Builder<CommandSender> builder = Literal.of(info.getName()).alias(info.getAliases());
@@ -60,26 +58,30 @@ public class Recipe {
                                 if ((type = context.getOptionalArgument("furnace", String.class)) != null) {
                                     if (recipe instanceof FurnaceBuilder) {
                                         FurnaceBuilder furnace = (FurnaceBuilder) recipe;
-                                        SignMenuFactory factory = OraxenPlugin.get().getSignMenuFactory();
-                                        Menu menu;
+                                        InputProvider input = OraxenPlugin.get().getInputProvider();
                                         if (type.equals("cookingtime")) {
-                                            if ((menu = furnace.getCookingTimeMenu()) == null) {
-                                                menu = factory
-                                                    .newMenu(Arrays
-                                                        .asList("200", "Please enter the", "Cooking Time",
-                                                            "(Default is: 200)"));
-                                                ((FurnaceBuilder) recipe).setCookingTimeMenu(menu);
+                                            if (input.hasMultipleLines()) {
+                                                input
+                                                    .setMessage(String
+                                                        .join(InputProvider.LINE, "200", "Please enter the",
+                                                            "Cooking time", "(Default is: 200)"));
+                                            } else {
+                                                input.setMessage("Please enter the Cooking time (Default is: 200)");
                                             }
+                                            furnace.setCookingTimeProvider(input);
                                         } else {
-                                            if ((menu = furnace.getExperienceMenu()) == null) {
-                                                menu = factory
-                                                    .newMenu(Arrays
-                                                        .asList("200", "Please enter", "the Experience",
-                                                            "(Default is: 200)"));
-                                                ((FurnaceBuilder) recipe).setExperienceMenu(menu);
+                                            if (input.hasMultipleLines()) {
+                                                input
+                                                    .setMessage(String
+                                                        .join(InputProvider.LINE, "200", "Please enter the",
+                                                            "Experience amount", "(Default is: 200)"));
+                                            } else {
+                                                input
+                                                    .setMessage("Please enter the Experience amount (Default is: 200)");
                                             }
+                                            furnace.setExperienceProvider(input);
                                         }
-                                        menu.open(player);
+                                        input.open(player);
                                     } else {
                                         Message.COMMAND_RECIPE_NO_FURNACE.send(sender);
                                     }

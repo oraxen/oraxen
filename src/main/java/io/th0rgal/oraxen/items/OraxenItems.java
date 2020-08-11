@@ -36,13 +36,16 @@ public class OraxenItems {
     }
 
     public static String getIdByItem(ItemStack item) {
-        if (item == null || !item.hasItemMeta() || item.getItemMeta().getPersistentDataContainer().isEmpty())
-            return null;
-        else
-            return item.getItemMeta().getPersistentDataContainer().get(ITEM_ID, PersistentDataType.STRING);
+        return (item == null || !item.hasItemMeta() || item.getItemMeta().getPersistentDataContainer().isEmpty()) ? null
+            : item.getItemMeta().getPersistentDataContainer().get(ITEM_ID, PersistentDataType.STRING);
     }
 
+    @Deprecated
     public static boolean isAnItem(String itemId) {
+        return exists(itemId);
+    }
+
+    public static boolean exists(String itemId) {
         return entryStream().anyMatch(entry -> entry.getKey().equals(itemId));
     }
 
@@ -55,40 +58,48 @@ public class OraxenItems {
     }
 
     public static List<ItemBuilder> getUnexcludedItems() {
-        List<ItemBuilder> unexcludedItems = new ArrayList<>();
-        for (ItemBuilder itemBuilder : getItems())
-            if (!itemBuilder.getOraxenMeta().isExcludedFromInventory())
-                unexcludedItems.add(itemBuilder);
-        return unexcludedItems;
+        return itemStream()
+            .filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
+            .collect(Collectors.toList());
     }
 
     public static List<ItemBuilder> getUnexcludedItems(File file) {
-        List<ItemBuilder> unexcludedItems = new ArrayList<>();
-        for (ItemBuilder itemBuilder : map.get(file).values())
-            if (!itemBuilder.getOraxenMeta().isExcludedFromInventory())
-                unexcludedItems.add(itemBuilder);
-        return unexcludedItems;
+        return map
+            .get(file)
+            .values()
+            .stream()
+            .filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
+            .collect(Collectors.toList());
     }
 
     public static List<ItemStack> getItemStacksByName(List<List<String>> lists) {
-        List<ItemStack> itemStacks = new ArrayList<>();
-        for (List<String> itemsList : lists) {
-            ItemStack itemStack = new ItemStack(Material.AIR);
-            for (String line : itemsList) {
-                String[] params = line.split(":");
-                if (params[0].equalsIgnoreCase("type"))
-                    if (OraxenItems.isAnItem(params[1]))
-                        itemStack = getItemById(params[1]).build().clone();
-                    else {
-                        MessageOld.ITEM_NOT_FOUND.logError(params[1]);
-                        break;
-                    }
-                else if (params[0].equalsIgnoreCase("amount"))
-                    itemStack.setAmount(Integer.parseInt(params[1]));
-            }
-            itemStacks.add(itemStack);
-        }
-        return itemStacks;
+        return lists.stream().flatMap(list -> {
+            ItemStack[] itemStack = new ItemStack[] { new ItemStack(Material.AIR) };
+            list.stream().map(line -> line.split(":")).forEach(param -> {
+                switch (param[0].toLowerCase()) {
+                case "type":
+                    if (isAnItem(param[1]))
+                        itemStack[0] = getItemById(param[1]).build().clone();
+                    else
+                        MessageOld.ITEM_NOT_FOUND.logError(param[1]);
+                    break;
+                case "amount":
+                    itemStack[0].setAmount(Integer.parseInt(param[1]));
+                    break;
+                default:
+                    break;
+                }
+            });
+            return Stream.of(itemStack[0]);
+        }).collect(Collectors.toList());
+    }
+
+    public static Map<File, Map<String, ItemBuilder>> getMap() {
+        return map;
+    }
+
+    public static Map<String, ItemBuilder> getEntriesAsMap() {
+        return entryStream().collect(Collectors.toMap(Entry::getKey, Entry::getValue));
     }
 
     public static Set<Entry<String, ItemBuilder>> getEntries() {
@@ -96,19 +107,24 @@ public class OraxenItems {
     }
 
     public static Collection<ItemBuilder> getItems() {
-        return entryStream().map(Entry::getValue).collect(Collectors.toList());
+        return itemStream().collect(Collectors.toList());
     }
 
+    @Deprecated
     public static Set<String> getSectionsNames() {
-        return entryStream().map(Entry::getKey).collect(Collectors.toSet());
+        return getNames();
     }
 
-    public static Map<File, Map<String, ItemBuilder>> getMap() {
-        return map;
+    public static Set<String> getNames() {
+        return nameStream().collect(Collectors.toSet());
     }
 
-    public static Map<String, ItemBuilder> getAllItems() {
-        return entryStream().collect(Collectors.toMap(Entry::getKey, Entry::getValue));
+    public static Stream<String> nameStream() {
+        return entryStream().map(Entry::getKey);
+    }
+
+    public static Stream<ItemBuilder> itemStream() {
+        return entryStream().map(Entry::getValue);
     }
 
     public static Stream<Entry<String, ItemBuilder>> entryStream() {

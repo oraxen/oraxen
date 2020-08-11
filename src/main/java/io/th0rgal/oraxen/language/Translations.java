@@ -268,7 +268,7 @@ public final class Translations {
             if (!translations.isEmpty())
                 for (TranslationStorage translation : translations)
                     translation.save();
-
+            
             return this;
         }
 
@@ -397,6 +397,9 @@ public final class Translations {
             }
 
             public TranslationStorage reload(boolean clear) throws IOException {
+                if(!folder.exists())
+                    return save();
+                
                 File[] files = folder.listFiles();
 
                 if (files.length != 0) {
@@ -428,9 +431,7 @@ public final class Translations {
                     }
                 }
 
-                save();
-
-                return this;
+                return save();
             }
 
             /*

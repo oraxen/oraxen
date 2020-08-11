@@ -6,6 +6,8 @@ import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.event.HandlerList;
+import org.bukkit.event.Listener;
 
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
@@ -16,6 +18,7 @@ import com.oraxen.chimerate.commons.command.tree.nodes.Literal;
 import com.oraxen.chimerate.commons.command.tree.nodes.Literal.Builder;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.command.commands.CommandListener;
 import io.th0rgal.oraxen.event.command.OraxenCommandEvent;
 import io.th0rgal.oraxen.language.DescriptionType;
 import io.th0rgal.oraxen.language.Language;
@@ -26,23 +29,34 @@ import io.th0rgal.oraxen.utils.general.Placeholder;
 public class CommandProvider {
 
     public static final InfoProvider INFO_PROVIDER = new InfoProvider();
+    public static final Listener LISTENER = new CommandListener();
 
     /*
      * 
      */
 
-    public static void register() {
+    public static void register(OraxenPlugin plugin) {
 
-        Dispatcher dispatcher = Dispatcher.of(OraxenPlugin.get());
+        Bukkit.getPluginManager().registerEvents(LISTENER, plugin);
+
+        Dispatcher dispatcher = Dispatcher.of(plugin);
 
         OraxenCommandEvent event = new OraxenCommandEvent(dispatcher, "oraxen", "oxn", "o");
 
         Bukkit.getPluginManager().callEvent(event);
 
-        neuanfangCommand(dispatcher, event.getAliases(), event.getCommandInfos());
-        
+        oraxenCommand(dispatcher, event.getAliases(), event.getCommandInfos());
+
         dispatcher.update();
-        
+
+    }
+
+    /*
+     * 
+     */
+
+    public static void unregister() {
+        HandlerList.unregisterAll(LISTENER);
     }
 
     /*
@@ -50,8 +64,8 @@ public class CommandProvider {
      */
 
     @SuppressWarnings("unchecked")
-    private static CommandNode<CommandSender>[] neuanfangCommand(Dispatcher dispatcher, List<String> aliases,
-            List<CommandInfo> commandInfos) {
+    private static CommandNode<CommandSender>[] oraxenCommand(Dispatcher dispatcher, List<String> aliases,
+        List<CommandInfo> commandInfos) {
 
         //
         // Create Oraxen main command
@@ -78,7 +92,9 @@ public class CommandProvider {
 
         INFO_PROVIDER.addAll(commandInfos);
 
-        help.optionally(Argument.of("page", IntegerArgumentType.integer(1, INFO_PROVIDER.getPageCount()))
+        help
+            .optionally(Argument
+                .of("page", IntegerArgumentType.integer(1, INFO_PROVIDER.getPageCount()))
                 .executes((sender, context) -> {
 
                     int page = context.getOptionalArgument("page", int.class, 1);
@@ -89,8 +105,9 @@ public class CommandProvider {
 
                     for (CommandInfo info : infos) {
 
-                        Message.COMMAND_HELP_INFO_SHORT.send(sender, language, new Placeholder("name", info.getName()),
-                            new Placeholder("description", translate(language, info, DescriptionType.SIMPLE)));
+                        Message.COMMAND_HELP_INFO_SHORT
+                            .send(sender, language, new Placeholder("name", info.getName()),
+                                new Placeholder("description", translate(language, info, DescriptionType.SIMPLE)));
 
                     }
 
@@ -108,8 +125,9 @@ public class CommandProvider {
 
             Language language = LanguageProvider.getLanguageOf(sender);
 
-            Message.COMMAND_HELP_INFO_DETAILED.send(sender, language, new Placeholder("name", info.getName()),
-                new Placeholder("description", translate(language, info, DescriptionType.DETAILED)));
+            Message.COMMAND_HELP_INFO_DETAILED
+                .send(sender, language, new Placeholder("name", info.getName()),
+                    new Placeholder("description", translate(language, info, DescriptionType.DETAILED)));
 
         }));
 

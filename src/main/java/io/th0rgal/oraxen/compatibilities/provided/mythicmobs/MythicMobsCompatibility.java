@@ -15,11 +15,11 @@ public class MythicMobsCompatibility extends CompatibilityProvider<MythicMobs> {
     public void onMythicDropLoadEvent(MythicDropLoadEvent event) {
         if (event.getDropName().equalsIgnoreCase("oraxen")) {
             String line = event.getContainer().getLine();
-            if (line.split(" ").length == 4 && OraxenItems.isAnItem(line.split(" ")[1])) {
+            if (line.split(" ").length == 4 && OraxenItems.exists(line.split(" ")[1])) {
                 ItemStack od = OraxenItems.getItemById(line.split(" ")[1]).build();
                 ItemDrop itemDrop = new ItemDrop(line, event.getConfig(), new BukkitItemStack(od));
                 event.register(itemDrop);
-            } else if (line.split(" ").length == 3 && OraxenItems.isAnItem(line.split(" ")[2])) {
+            } else if (line.split(" ").length == 3 && OraxenItems.exists(line.split(" ")[2])) {
                 ItemStack od = OraxenItems.getItemById(line.split(" ")[2]).build();
                 ItemDrop itemDrop = new ItemDrop(line, event.getConfig(), new BukkitItemStack(od));
                 event.register(itemDrop);
