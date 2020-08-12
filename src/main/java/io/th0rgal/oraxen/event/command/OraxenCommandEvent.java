@@ -52,7 +52,7 @@ public class OraxenCommandEvent extends Event {
 
     public boolean apply(CommandInfo info) {
 
-        List<String> aliases = info.getAliasesAsList();
+        ArrayList<String> aliases = info.getAliasesAsList();
         aliases.add(info.getName());
 
         String[] copy = aliases.toArray(new String[0]);

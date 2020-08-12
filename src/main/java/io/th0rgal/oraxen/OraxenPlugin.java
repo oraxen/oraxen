@@ -43,6 +43,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     private void postLoading(ResourcePack resourcePack, ConfigsManager configsManager) {
         CommandProvider.register(this);
+        Translations.MANAGER.reloadCatch();
         (this.uploadManager = new UploadManager(this)).uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
         pluginDependent();
@@ -67,7 +68,6 @@ public class OraxenPlugin extends JavaPlugin {
             return;
         }
         Bukkit.getPluginManager().registerEvents(new FallbackHandler(), this);
-        Translations.MANAGER.reloadCatch();
         MechanicsManager.registerNativeMechanics();
         CompatibilitiesManager.enableNativeCompatibilities();
         OraxenItems.loadItems(configsManager);

@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.command;
 
-import java.util.Arrays;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.function.Function;
 
 import org.bukkit.command.CommandSender;
@@ -11,10 +10,13 @@ import com.oraxen.chimerate.commons.command.tree.nodes.Literal.Builder;
 
 import io.th0rgal.oraxen.event.command.OraxenCommandEvent;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.reflection.JavaTools;
 
 import com.mojang.brigadier.tree.CommandNode;
 
 public class CommandInfo {
+
+    private final boolean mainNode;
 
     private final String name;
     private final String[] aliases;
@@ -27,6 +29,12 @@ public class CommandInfo {
     private CommandNode<CommandSender> node;
 
     public CommandInfo(String name, Function<CommandInfo, Builder<CommandSender>> function, String... aliases) {
+        this(false, name, function, aliases);
+    }
+
+    public CommandInfo(boolean mainNode, String name, Function<CommandInfo, Builder<CommandSender>> function,
+        String... aliases) {
+        this.mainNode = mainNode;
         this.name = name.toLowerCase();
         this.aliases = Utils.toLowercase(aliases);
         this.builder = function.apply(this);
@@ -94,6 +102,10 @@ public class CommandInfo {
      * 
      */
 
+    public boolean isMainNode() {
+        return mainNode;
+    }
+
     public String getName() {
         return name;
     }
@@ -102,8 +114,8 @@ public class CommandInfo {
         return aliases.clone();
     }
 
-    public List<String> getAliasesAsList() {
-        return Arrays.asList(aliases);
+    public ArrayList<String> getAliasesAsList() {
+        return JavaTools.asList(getAliases());
     }
 
     public Builder<CommandSender> getBuilder() {
@@ -119,7 +131,7 @@ public class CommandInfo {
      */
 
     public final CommandInfo register(Dispatcher dispatcher) {
-        if (node != null)
+        if (!mainNode || node != null)
             return this;
         node = dispatcher.register(builder);
         return this;

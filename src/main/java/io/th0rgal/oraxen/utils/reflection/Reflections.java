@@ -8,6 +8,8 @@ import org.bukkit.inventory.ItemStack;
 public class Reflections {
 
     public static void setup(ReflectionProvider provider) {
+        
+        generalSetup(provider);
 
         /*
          * Predefine needed classes
@@ -39,5 +41,11 @@ public class Reflections {
 
 
     }
-
+    
+    public static void generalSetup(ReflectionProvider provider) {
+        
+        provider.createReflect("java_arraylist", "java.util.ArrayList").searchField("elements", "elementData");
+        
+    }
+    
 }

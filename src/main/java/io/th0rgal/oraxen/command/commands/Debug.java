@@ -52,7 +52,7 @@ public class Debug {
             });
 
             return builder;
-        });
+        }).setDescription("Just a debug command");
     }
 
 }

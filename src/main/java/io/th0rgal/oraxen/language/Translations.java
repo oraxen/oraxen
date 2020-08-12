@@ -409,7 +409,7 @@ public final class Translations {
                             continue;
                         if (name.startsWith("description")) {
                             if (clear)
-                                variable.clear();
+                                description.clear();
                             description.load(file);
                             descriptionFile = file;
                             continue;

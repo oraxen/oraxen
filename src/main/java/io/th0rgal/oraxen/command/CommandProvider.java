@@ -62,9 +62,8 @@ public class CommandProvider {
     /*
      * 
      */
-
-    @SuppressWarnings("unchecked")
-    private static CommandNode<CommandSender>[] oraxenCommand(Dispatcher dispatcher, List<String> aliases,
+    
+    private static CommandNode<CommandSender> oraxenCommand(Dispatcher dispatcher, List<String> aliases,
         List<CommandInfo> commandInfos) {
 
         //
@@ -79,8 +78,10 @@ public class CommandProvider {
 
             //
             // Add nodes to commands
-
-            oraxenNode.then(info.getNode());
+            if(info.isMainNode())
+                oraxenNode.then(info.getNode());
+            else
+                oraxenNode.then(info.getBuilder());
 
         }
 
@@ -130,17 +131,15 @@ public class CommandProvider {
                     new Placeholder("description", translate(language, info, DescriptionType.DETAILED)));
 
         }));
-
+        
         //
-        // Register help command
-
-        CommandNode<CommandSender> helpNode = dispatcher.register(help);
-        oraxenNode.redirect(helpNode);
+        // Add help node to oraxen command
+        oraxenNode.then(help);
 
         //
         // Register oraxen command and push result
 
-        return new CommandNode[] { helpNode, dispatcher.register(oraxenNode) };
+        return dispatcher.register(oraxenNode);
 
     }
 

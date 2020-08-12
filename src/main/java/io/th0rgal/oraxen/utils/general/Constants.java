@@ -10,7 +10,7 @@ public final class Constants {
 
     public enum Folders {
 
-        MAIN("main", "Oraxen"),
+        MAIN("main", "plugins//Oraxen"),
 
         TRANSLATION("translation", "%main%//language", MAIN),;
 
