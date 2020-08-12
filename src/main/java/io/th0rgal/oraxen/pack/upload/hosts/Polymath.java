@@ -25,13 +25,17 @@ public class Polymath implements HostingProvider {
                     .form("id", "%%__USER__%%")
                     .form("pack", new CUrl.FileIO(resourcePack.getPath()));
             JsonObject jsonOutput = (JsonObject) new JsonParser().parse(new String(curl.exec(), StandardCharsets.UTF_8));
-            if (jsonOutput.has("error")) {
+            if (jsonOutput.has("url") || jsonOutput.has("sha1")) {
+                packUrl = jsonOutput.get("url").getAsString();
+                sha1 = jsonOutput.get("sha1").getAsString();
+                return true;
+            } else if (jsonOutput.has("error")) {
                 Logs.logError(jsonOutput.get("error").getAsString());
                 throw new RuntimeException();
+            } else {
+                Logs.logError("response: " + jsonOutput);
+                throw new RuntimeException();
             }
-            packUrl = jsonOutput.get("url").getAsString();
-            sha1 = jsonOutput.get("sha1").getAsString();
-            return true;
 
         } catch (Exception exception) { //if upload failed
             exception.printStackTrace();
