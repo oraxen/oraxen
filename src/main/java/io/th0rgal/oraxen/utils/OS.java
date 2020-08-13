@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -176,7 +178,8 @@ public class OS {
         while ((line = br.readLine()) != null) {
             if (lineNb++ == 0)
                 lineToReturn = line;
-            if (line.startsWith("PRETTY_NAME")) return new OsInfo(name, version, arch, line.substring(13, line.length() - 1));
+            if (line.startsWith("PRETTY_NAME"))
+                return new OsInfo(name, version, arch, line.substring(13, line.length() - 1));
         }
         return new OsInfo(name, version, arch, lineToReturn);
     }
@@ -210,10 +213,10 @@ public class OS {
     }
 
     static class OsInfo {
-        private String name;
-        private String arch;
-        private String version;
-        private String platformName;
+        private final String name;
+        private final String arch;
+        private final String version;
+        private final String platformName;
 
         private OsInfo(final String name, final String version, final String arch, final String platformName) {
             this.name = name;
