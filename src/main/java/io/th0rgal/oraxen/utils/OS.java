@@ -1,7 +1,5 @@
 package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.utils.logs.Logs;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -151,7 +149,7 @@ public class OS {
 
     private String getFileEndingWith(final File dir, final String fileEndingWith) {
         File[] fileList = dir.listFiles((dir1, filename) -> filename.endsWith(fileEndingWith));
-        if (fileList.length > 0)
+        if (fileList != null && fileList.length > 0)
             return fileList[0].getAbsolutePath();
         else
             return null;
