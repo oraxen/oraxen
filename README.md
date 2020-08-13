@@ -8,19 +8,19 @@
 
 <p align="center">
     <a href="https://www.spigotmc.org/resources/oraxen.72448/">
-        <img alt="spigot" src="https://img.shields.io/badge/spigot-oraxen-lightgreen"/>
+        <img alt="spigot" src="https://img.shields.io/badge/spigot-oraxen-brightgreen"/>
     </a>
     <a href="https://bstats.org/plugin/bukkit/Oraxen" alt="bstats servers">
-        <img src="https://img.shields.io/bstats/servers/5371?color=lightgreen"/>
+        <img src="https://img.shields.io/bstats/servers/5371?color=brightgreen"/>
     </a>
     <a href="https://bstats.org/plugin/bukkit/Oraxen" alt="bstats players">
-        <img src="https://img.shields.io/bstats/players/5371?color=lightgreen"/>
+        <img src="https://img.shields.io/bstats/players/5371?color=brightgreen"/>
     </a>
     <a href="https://lgtm.com/projects/g/oraxen/Oraxen/context:java">
-        <img alt="Language grade: Java" src="https://img.shields.io/lgtm/grade/java/github/oraxen/Oraxen?color=lightgreen"/>
+        <img alt="Language grade: Java" src="https://img.shields.io/lgtm/grade/java/github/oraxen/Oraxen"/>
     </a>
     <a href="https://docs.oraxen.com/" alt="Docs (gitbook)">
-        <img src="https://img.shields.io/badge/docs-gitbook-lightgreen"/>
+        <img src="https://img.shields.io/badge/docs-gitbook-brightgreen"/>
     </a>
 </p>
 
