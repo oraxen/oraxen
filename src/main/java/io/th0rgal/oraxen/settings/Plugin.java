@@ -18,7 +18,8 @@ public enum Plugin implements ConfigEnum {
     ERROR_ITEM("ConfigsTools.error_item"),
 
     RESET_RECIPES("Misc.reset_recipes"),
-    ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass");
+    ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass"),
+    SHIELD_DISPLAY("Misc.shield_display");
 
     private final Object value;
 

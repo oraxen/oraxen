@@ -1,8 +1,11 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.settings.Plugin;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -32,12 +35,15 @@ public class PredicatesGenerator {
 
         json.add("textures", textures);
 
+
         //overrides
         JsonArray overrides = new JsonArray();
 
         //specific items
         if (material == Material.SHIELD) {
             overrides.add(getOverride("blocking", 1, "item/shield_blocking"));
+            json.addProperty("gui_light", "front");
+            json.add("display", new JsonParser().parse(Plugin.SHIELD_DISPLAY.toString()).getAsJsonObject());
         }
 
         //custom items
