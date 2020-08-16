@@ -144,24 +144,3 @@ katana:
   Mechanics:
     durability:
       value: 1000 #diamond sword is 1561
-
-bone_sword:
-  displayname: "&fBone Sword"
-  material: DIAMOND_SWORD
-  Pack:
-    generate_model: false
-    model: bone_sword
-
-great_sword:
-  displayname: "&bGreat Sword"
-  material: DIAMOND_SWORD
-  Pack:
-    generate_model: false
-    model: great_sword
-
-wood_sword:
-  displayname: "&6Wood Sword"
-  material: DIAMOND_SWORD
-  Pack:
-    generate_model: false
-    model: wood_sword
