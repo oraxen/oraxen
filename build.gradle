@@ -8,7 +8,7 @@ plugins {
 }
 
 group "io.th0rgal"
-def pluginVersion = "1.43.2"
+def pluginVersion = "1.43.3"
 
 repositories {
     mavenCentral()
