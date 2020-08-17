@@ -69,3 +69,10 @@ magical_axe:
   Mechanics:
     bottledexp: # Because exp converting is cheated
       ratio: 0.95 # So you'll lose 1/20 of your exp by converting it
+
+ice_staff:
+  displayname: "&bIce Staff"
+  material: WOODEN_HOE
+  Pack:
+    generate_model: false
+    model: ice_staff
