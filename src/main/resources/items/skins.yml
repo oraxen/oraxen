@@ -1,0 +1,14 @@
+diamond_sword: # A simple skinnable diamond sword
+  material: DIAMOND_SWORD
+  Mechanics:
+    skinnable: {}
+
+great_sword:
+  displayname: "&7&lSKIN: &bGreat Sword"
+  material: DIAMOND_SWORD
+  Pack:
+    generate_model: false
+    model: great_sword
+  Mechanics:
+    skin:
+      consume: true
