@@ -58,7 +58,7 @@ public class Loot {
     }
 
     private void dropItems(Location location, int amountMultiplier) {
-        ItemStack stack = getItemStack();
+        ItemStack stack = getItemStack().clone();
         stack.setAmount(stack.getAmount() * amountMultiplier);
         for (int i = 0; i < maxAmount; i++)
             location.getWorld().dropItemNaturally(location, stack);
