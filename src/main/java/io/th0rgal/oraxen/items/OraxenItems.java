@@ -49,12 +49,15 @@ public class OraxenItems {
         return entryStream().anyMatch(entry -> entry.getKey().equals(itemId));
     }
 
-    public static ItemBuilder getItemById(String id) {
+    public static Optional<ItemBuilder> getOptionalItemById(String id) {
         return entryStream()
             .filter(entry -> entry.getKey().equals(id))
             .findFirst()
-            .map(entry -> entry.getValue())
-            .orElse(null);
+            .map(entry -> entry.getValue());
+    }
+
+    public static ItemBuilder getItemById(String id) {
+        return getOptionalItemById(id).orElse(null);
     }
 
     public static List<ItemBuilder> getUnexcludedItems() {

@@ -1,150 +1,171 @@
 package io.th0rgal.oraxen.command;
 
-import static io.th0rgal.oraxen.language.Translations.translate;
-
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 import org.bukkit.Bukkit;
-import org.bukkit.command.CommandSender;
-import org.bukkit.event.HandlerList;
-import org.bukkit.event.Listener;
+import org.bukkit.command.PluginCommand;
 
-import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.arguments.StringArgumentType;
-import com.mojang.brigadier.tree.CommandNode;
-import com.oraxen.chimerate.commons.command.dispatcher.Dispatcher;
-import com.oraxen.chimerate.commons.command.tree.nodes.Argument;
-import com.oraxen.chimerate.commons.command.tree.nodes.Literal;
-import com.oraxen.chimerate.commons.command.tree.nodes.Literal.Builder;
+import com.syntaxphoenix.syntaxapi.command.CommandManager;
+import com.syntaxphoenix.syntaxapi.logging.LoggerState;
+import com.syntaxphoenix.syntaxapi.logging.SynLogger;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.command.commands.CommandListener;
 import io.th0rgal.oraxen.event.command.OraxenCommandEvent;
-import io.th0rgal.oraxen.language.DescriptionType;
-import io.th0rgal.oraxen.language.Language;
-import io.th0rgal.oraxen.language.LanguageProvider;
-import io.th0rgal.oraxen.language.Message;
-import io.th0rgal.oraxen.utils.general.Placeholder;
+import io.th0rgal.oraxen.utils.logs.ConsoleAdapter;
 
 public class CommandProvider {
 
-    public static final InfoProvider INFO_PROVIDER = new InfoProvider();
-    public static final Listener LISTENER = new CommandListener();
+    private final SynLogger logger = new SynLogger(LoggerState.CUSTOM).setCustom(ConsoleAdapter.INSTANCE);
 
-    /*
-     * 
-     */
+    private final ArrayList<CommandInfo> infos = new ArrayList<>();
+    private final CommandManager manager;
 
-    public static void register(OraxenPlugin plugin) {
+    private int size = 10;
 
-        Bukkit.getPluginManager().registerEvents(LISTENER, plugin);
-
-        Dispatcher dispatcher = Dispatcher.of(plugin);
-
-        OraxenCommandEvent event = new OraxenCommandEvent(dispatcher, "oraxen", "oxn", "o");
-
-        Bukkit.getPluginManager().callEvent(event);
-
-        oraxenCommand(dispatcher, event.getAliases(), event.getCommandInfos());
-
-        dispatcher.update();
-
+    public CommandProvider(OraxenPlugin plugin) {
+        this.manager = new CommandManager().setLogger(logger);
+        Bukkit.getPluginManager().registerEvents(new CommandListener(), plugin);
+        PluginCommand command = plugin.getCommand("oraxen");
+        CommandRedirect redirect = new CommandRedirect(this);
+        command.setExecutor(redirect);
+        command.setTabCompleter(redirect);
     }
 
     /*
-     * 
+     * Getter
      */
 
-    public static void unregister() {
-        HandlerList.unregisterAll(LISTENER);
+    public CommandManager getManager() {
+        return manager;
+    }
+
+    public SynLogger getLogger() {
+        return logger;
     }
 
     /*
-     * 
+     * Page management
      */
-    
-    private static CommandNode<CommandSender> oraxenCommand(Dispatcher dispatcher, List<String> aliases,
-        List<CommandInfo> commandInfos) {
 
-        //
-        // Create Oraxen main command
+    public CommandProvider setPageSize(int size) {
+        this.size = size;
+        return this;
+    }
 
-        Builder<CommandSender> oraxenNode = Literal.of("oraxen").alias("oxn", "o");
+    public int getPageSize() {
+        return size;
+    }
 
-        //
-        // Loop through infos
+    public int getPageCount() {
+        return (int) Math.ceil((double) infos.size() / 10);
+    }
 
-        for (CommandInfo info : commandInfos) {
+    /*
+     * Info management
+     */
 
-            //
-            // Add nodes to commands
-            if(info.isMainNode())
-                oraxenNode.then(info.getNode());
-            else
-                oraxenNode.then(info.getBuilder());
+    public CommandProvider clear() {
+        infos.clear();
+        return this;
+    }
 
+    public CommandProvider add(CommandInfo info) {
+        if (!infos.contains(info))
+            write(info);
+        return this;
+    }
+
+    public CommandProvider remove(CommandInfo info) {
+        delete(info);
+        return this;
+    }
+
+    public CommandProvider addAll(CommandInfo... infos) {
+        for (int index = 0; index < infos.length; index++)
+            add(infos[index]);
+        return this;
+    }
+
+    public CommandProvider addAll(Collection<CommandInfo> infos) {
+        if (infos != null && !infos.isEmpty())
+            for (CommandInfo info : infos)
+                add(info);
+        return this;
+    }
+
+    public CommandProvider removeAll(CommandInfo... infos) {
+        for (int index = 0; index < infos.length; index++)
+            remove(infos[index]);
+        return this;
+    }
+
+    public CommandProvider removeAll(Collection<CommandInfo> infos) {
+        if (infos != null && !infos.isEmpty())
+            for (CommandInfo info : infos)
+                remove(info);
+        return this;
+    }
+
+    /*
+     * Intern write to list
+     */
+
+    private void write(CommandInfo info) {
+        infos.add(info);
+    }
+
+    private void delete(CommandInfo info) {
+        infos.remove(info);
+    }
+
+    /*
+     * Info getter
+     */
+
+    public Optional<CommandInfo> getOptionalInfo(String name) {
+        return infos.stream().filter(info -> info.has(name)).findFirst();
+    }
+
+    public CommandInfo getInfo(String name) {
+        return getOptionalInfo(name).orElse(null);
+    }
+
+    public List<CommandInfo> getInfos(int page) {
+        ArrayList<CommandInfo> list = new ArrayList<>();
+
+        int end = page * size;
+        int start = end - size;
+
+        int size = infos.size();
+
+        for (int index = start; index < end; index++) {
+            if (index == size)
+                break;
+            list.add(infos.get(index));
         }
 
-        //
-        // Create help command
-
-        Builder<CommandSender> help = Literal.of("help");
-        help.alias("?");
-
-        INFO_PROVIDER.addAll(commandInfos);
-
-        help
-            .optionally(Argument
-                .of("page", IntegerArgumentType.integer(1, INFO_PROVIDER.getPageCount()))
-                .executes((sender, context) -> {
-
-                    int page = context.getOptionalArgument("page", int.class, 1);
-
-                    List<CommandInfo> infos = INFO_PROVIDER.getInfos(page);
-
-                    Language language = LanguageProvider.getLanguageOf(sender);
-
-                    for (CommandInfo info : infos) {
-
-                        Message.COMMAND_HELP_INFO_SHORT
-                            .send(sender, language, new Placeholder("name", info.getName()),
-                                new Placeholder("description", translate(language, info, DescriptionType.SIMPLE)));
-
-                    }
-
-                }));
-
-        help.optionally(Argument.of("command", StringArgumentType.word()).executes((sender, context) -> {
-
-            String command = context.getOptionalArgument("command", String.class, "");
-
-            CommandInfo info = INFO_PROVIDER.getInfo(command.toLowerCase());
-            if (info == null) {
-                Message.COMMAND_NOT_EXIST.send(sender, new Placeholder("name", command));
-                return;
-            }
-
-            Language language = LanguageProvider.getLanguageOf(sender);
-
-            Message.COMMAND_HELP_INFO_DETAILED
-                .send(sender, language, new Placeholder("name", info.getName()),
-                    new Placeholder("description", translate(language, info, DescriptionType.DETAILED)));
-
-        }));
-        
-        //
-        // Add help node to oraxen command
-        oraxenNode.then(help);
-
-        //
-        // Register oraxen command and push result
-
-        return dispatcher.register(oraxenNode);
-
+        return list;
     }
 
+    @SuppressWarnings("unchecked")
+    public List<CommandInfo> getInfos() {
+        return (List<CommandInfo>) infos.clone();
+    }
+    
     /*
-     * 
+     * Shutdown
      */
 
+    public void call(boolean state) {
+        if(state) {
+            Bukkit.getPluginManager().callEvent(new OraxenCommandEvent(this));
+            return;
+        }
+        manager.unregisterAll();
+    }
+    
 }

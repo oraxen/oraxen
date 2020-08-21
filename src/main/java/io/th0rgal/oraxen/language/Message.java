@@ -1,5 +1,8 @@
 package io.th0rgal.oraxen.language;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+
 import org.bukkit.plugin.Plugin;
 
 import io.th0rgal.oraxen.OraxenPlugin;
@@ -13,28 +16,31 @@ public enum Message implements IMessage {
     //
     // General Messages
     //
-    NO_PERMISSION("$prefix You're lacking the permission &c$permission &7to do this!"),
-    WORK_IN_PROGRESS("$prefix This feature is &dwork in progress&7!"),
-    NOT_PLAYER("$prefix This can &conly &7be done as a &cplayer&7!"),
+    NO_PERMISSION(true, "$prefix &7You're lacking the permission &c$permission &7to do this!"),
+    WORK_IN_PROGRESS(true, "$prefix &7This feature is &dwork in progress&7!"),
+    NOT_PLAYER(true, "$prefix &7This can &conly &7be done as a &cplayer&7!"),
 
     //
     // Command Messages
     //
-    COMMAND_NOT_EXIST("$prefix The command '&c$name&7' doesn't exist!"),
+    COMMAND_NOT_EXIST(true, "$prefix &7The command '&c$name&7' doesn't exist!"),
 
     // Help
-    COMMAND_HELP_INFO_SHORT(""),
-    COMMAND_HELP_INFO_DETAILED(""),
+    COMMAND_HELP_INFO_PAGE(true, "&8[&b$current &7/ &3$total&8]"),
+    COMMAND_HELP_INFO_LINE(true, "&8- &7$content"),
+    COMMAND_HELP_INFO_SHORT(true, "$prefix &3/oraxen &b$label $usage &8- &7$description"),
+    COMMAND_HELP_INFO_HEADER(true, "$prefix &7Info => &3$label $page"),
+    COMMAND_HELP_INFO_DETAILED(true, "$header", "", "$line1", "$line2", "$line3", "$line4", "$line5", "$line6", "", "$header"),
 
     // Recipe
-    COMMAND_RECIPE_NO_BUILDER("$prefix Please &ccreate an recipe&7 first!"),
-    COMMAND_RECIPE_NO_FURNACE("$prefix This option is only avaiable for &cFurnace Recipes&7!"),
-    COMMAND_RECIPE_NO_NAME("$prefix Please &cspecify a name &7for the recipe!"),
-    COMMAND_RECIPE_SAVE("$prefix Recipe '$a$name&7' saved &asuccessfully&7!"),
+    COMMAND_RECIPE_NO_BUILDER(true, "$prefix &7Please &ccreate an recipe&7 first!"),
+    COMMAND_RECIPE_NO_FURNACE(true, "$prefix &7This option is only avaiable for &cFurnace Recipes&7!"),
+    COMMAND_RECIPE_NO_NAME(true, "$prefix &7Please &cspecify a name &7for the recipe!"),
+    COMMAND_RECIPE_SAVE(true, "$prefix &7Recipe '$a$name&7' saved &asuccessfully&7!"),
 
     // Give
-    COMMAND_GIVE_PLAYER("$prefix You gave '&a$player&7' &3$amountx $item&7!"),
-    COMMAND_GIVE_PLAYERS("$prefix You gave &a$players players &3$amountx $item&7!"),
+    COMMAND_GIVE_PLAYER(true, "$prefix &7You gave '&a$player&7' &3$amountx $item&7!"),
+    COMMAND_GIVE_PLAYERS(true, "$prefix &7You gave &a$players players &3$amountx $item&7!"),
 
     //
     ;
@@ -45,8 +51,23 @@ public enum Message implements IMessage {
         this.value = value;
     }
 
-    Message(String value, boolean legacy) {
+    Message(boolean legacy, String value) {
         this(legacy ? TextComponent.fromLegacyText(value) : MiniMessageParser.parseFormat(value));
+    }
+
+    Message(boolean legacy, String... values) {
+        ArrayList<BaseComponent[]> list = new ArrayList<>();
+        BaseComponent[] line = new BaseComponent[] { new TextComponent("\n") };
+        int length = values.length - 1;
+        for (int index = 0; index < values.length; index++) {
+            list
+                .add(legacy ? TextComponent.fromLegacyText(values[index])
+                    : MiniMessageParser.parseFormat(values[index]));
+            if (index != length)
+                list.add(line);
+        }
+        this.value = MiniMessageSerializer
+            .serialize(list.stream().flatMap(Arrays::stream).toArray(size -> new BaseComponent[size]));
     }
 
     Message(BaseComponent[] components) {

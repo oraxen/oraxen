@@ -12,6 +12,10 @@ public interface ICondition extends Predicate<CommandSender> {
         return isTrue(sender);
     }
     
+    public default boolean isFalse(CommandSender sender) {
+        return !isTrue(sender);
+    }
+    
     public boolean isTrue(CommandSender sender);
     
 }

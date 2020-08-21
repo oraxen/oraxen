@@ -17,6 +17,12 @@ public enum OraxenPermission implements IPermission {
     // Command Permissions
     //
     COMMAND_ALL(ALL),
+    
+    // Give
+    COMMAND_GIVE(COMMAND_ALL),
+    
+    // Pack
+    COMMAND_PACK(COMMAND_ALL),
 
     // Reload
     COMMAND_RELOAD(COMMAND_ALL),

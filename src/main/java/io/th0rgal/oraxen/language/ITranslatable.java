@@ -21,7 +21,7 @@ public interface ITranslatable extends IEnum {
     public TranslationType type();
 
     public default String translationId() {
-        return getOwner().getName().replace(' ', '_') + '.' + id();
+        return getOwner().getName().replace(' ', '_').toLowerCase() + '.' + id();
     }
     
     /*

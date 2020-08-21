@@ -1,25 +1,41 @@
 package io.th0rgal.oraxen.language;
 
+import java.util.function.Function;
+
+import io.th0rgal.oraxen.command.CommandInfo;
+
 public enum DescriptionType {
-	
-	SIMPLE(true), DETAILED();
-	
-	private final boolean simple;
-	
-	private DescriptionType() {
-		simple = false;
-	}
-	
-	private DescriptionType(boolean simple) {
-		this.simple = simple;
-	}
-	
-	/*
-	 * 
-	 */
-	
-	public boolean isSimple() {
-		return simple;
-	}
+
+    USAGE(CommandInfo::getUsageId, CommandInfo::getUsage),
+    SIMPLE(CommandInfo::getSimpleDescriptionId, CommandInfo::getSimpleDescription),
+    DETAILED(CommandInfo::getDetailedDescriptionId, CommandInfo::getDetailedDescription);
+
+    private final Function<CommandInfo, String> id;
+    private final Function<CommandInfo, String> message;
+
+    private DescriptionType(Function<CommandInfo, String> id, Function<CommandInfo, String> message) {
+        this.id = id;
+        this.message = message;
+    }
+
+    public boolean isSimple() {
+        return this == SIMPLE;
+    }
+
+    public boolean isUsage() {
+        return this == USAGE;
+    }
+
+    public boolean isDetailed() {
+        return this == DETAILED;
+    }
+
+    public String getId(CommandInfo info) {
+        return id.apply(info);
+    }
+
+    public String getMessage(CommandInfo info) {
+        return message.apply(info);
+    }
 
 }

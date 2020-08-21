@@ -10,7 +10,14 @@ public class CommandListener implements Listener {
     @EventHandler
     public void onCommandCreation(OraxenCommandEvent event) {
 
-        event.add(Reload.build()).add(Debug.build()).add(ItemPanel.build()).add(Repair.build());
+        event
+            .add(Debug.info())
+            .add(Give.info())
+            .add(ItemPanel.info())
+            .add(Pack.info())
+            .add(Recipe.info())
+            .add(Reload.info())
+            .add(Repair.info());
 
     }
 

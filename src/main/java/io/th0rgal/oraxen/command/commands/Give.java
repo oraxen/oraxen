@@ -1,58 +1,101 @@
 package io.th0rgal.oraxen.command.commands;
 
-import java.util.List;
+import static io.th0rgal.oraxen.command.argument.ArgumentHelper.*;
 
+import java.util.Optional;
+import java.util.Set;
+
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.oraxen.chimerate.commons.command.tree.nodes.Argument;
-import com.oraxen.chimerate.commons.command.tree.nodes.Literal;
-import com.oraxen.chimerate.commons.command.tree.nodes.Literal.Builder;
-import com.oraxen.chimerate.commons.command.types.PlayersType;
+import com.syntaxphoenix.syntaxapi.command.ArgumentType;
+import com.syntaxphoenix.syntaxapi.command.Arguments;
+import com.syntaxphoenix.syntaxapi.command.DefaultCompletion;
+import com.syntaxphoenix.syntaxapi.command.arguments.IntegerArgument;
+import com.syntaxphoenix.syntaxapi.command.arguments.StringArgument;
 
 import io.th0rgal.oraxen.command.CommandInfo;
-import io.th0rgal.oraxen.command.types.OraxenItemType;
+import io.th0rgal.oraxen.command.MinecraftInfo;
+import io.th0rgal.oraxen.command.OraxenCommand;
+import io.th0rgal.oraxen.command.condition.Conditions;
+import io.th0rgal.oraxen.command.permission.OraxenPermission;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.language.Message;
 import io.th0rgal.oraxen.utils.general.Placeholder;
 
-public class Give {
+public class Give extends OraxenCommand {
 
-    @SuppressWarnings("unchecked")
-    public static CommandInfo build() {
-        return new CommandInfo("give", info -> {
-            Builder<CommandSender> builder = Literal.of(info.getName()).alias(info.getAliases());
-            builder
-                .then(Argument
-                    .of("players", PlayersType.STRING)
-                    .then(Argument.of("item", OraxenItemType.TYPE))
-                    .optionally(Argument.of("amount", IntegerArgumentType.integer(1, 2304)))
-                    .executes((sender, context) -> {
-                        List<Player> players = context.getArgument("players", List.class);
-                        ItemBuilder itemBuilder = context.getArgument("item", ItemBuilder.class);
-                        int amount = context.getOptionalArgument("amount", int.class, 1);
-                        int max = itemBuilder.getMaxStackSize();
-                        int slots = max / amount + (max % amount > 0 ? 1 : 0);
-                        ItemStack[] items = itemBuilder.buildArray(slots > 36 ? (amount = max * 36) : amount);
-                        players.forEach(player -> {
-                            player.getInventory().addItem(items);
-                        });
-                        int size = players.size();
-                        if (size == 1)
-                            Message.COMMAND_GIVE_PLAYER
-                                .send(sender, Placeholder.of("player", players.get(0).getName()),
-                                    Placeholder.of("amount", amount),
-                                    Placeholder.of("item", OraxenItems.getIdByItem(itemBuilder)));
-                        else
-                            Message.COMMAND_GIVE_PLAYERS
-                                .send(sender, Placeholder.of("players", size), Placeholder.of("amount", amount),
-                                    Placeholder.of("item", OraxenItems.getIdByItem(itemBuilder)));
-                    }));
-            return builder;
-        });
+    public static final OraxenCommand COMMAND = new Give();
+
+    public static CommandInfo info() {
+        return new CommandInfo("give", COMMAND);
+    }
+
+    private Give() {
+    }
+
+    @Override
+    public void execute(MinecraftInfo info, Arguments arguments) {
+
+        CommandSender sender = info.getSender();
+
+        if (Conditions.reqPerm(OraxenPermission.COMMAND_GIVE).isFalse(sender))
+            return;
+
+        Optional<Player[]> option0 = get(arguments, 1, argument -> players(sender, argument));
+        Optional<ItemBuilder> option1 = get(arguments, 2, argument -> item(argument));
+        if (!(option0.isPresent() && option1.isPresent())) {
+            info.getInfo().sendSimple(sender, info.getLabel());
+            return;
+        }
+        Player[] players = option0.get();
+        ItemBuilder itemBuilder = option1.get();
+
+        int amount = range(get(arguments, 3, ArgumentType.INTEGER).map(argument -> argument.asInteger().getValue()), 1,
+            2304).orElse(1);
+        int max = itemBuilder.getMaxStackSize();
+        int slots = max / amount + (max % amount > 0 ? 1 : 0);
+        ItemStack[] items = itemBuilder.buildArray(slots > 36 ? (amount = max * 36) : amount);
+        for (int index = 0; index < players.length; index++)
+            players[index].getInventory().addItem(items);
+        if (players.length == 1)
+            Message.COMMAND_GIVE_PLAYER
+                .send(sender, Placeholder.of("player", players[0].getName()), Placeholder.of("amount", amount),
+                    Placeholder.of("item", OraxenItems.getIdByItem(itemBuilder)));
+        else
+            Message.COMMAND_GIVE_PLAYERS
+                .send(sender, Placeholder.of("players", players.length), Placeholder.of("amount", amount),
+                    Placeholder.of("item", OraxenItems.getIdByItem(itemBuilder)));
+    }
+
+    @Override
+    public DefaultCompletion complete(MinecraftInfo info, Arguments arguments) {
+        DefaultCompletion completion = new DefaultCompletion();
+        
+        if(Conditions.hasPerm(OraxenPermission.COMMAND_GIVE).isFalse(info.getSender()))
+            return completion;
+        
+        int count = arguments.count();
+        
+        if(count == 0) {
+            completion(completion,
+                Conditions.player().isTrue(info.getSender()) ? (new String[] { "@a", "@r", "@s", "@p" })
+                    : (new String[] { "@a", "@r", "@p" }));
+            Player[] players = Bukkit.getOnlinePlayers().toArray(new Player[0]);
+            for (int index = 0; index < players.length; index++)
+                arguments.add(new StringArgument(players[index].getName()));
+        } else if(count == 1) {
+            Set<String> values = OraxenItems.getNames();
+            for(String value : values)
+                arguments.add(new StringArgument(value));
+        } else if(count == 2) {
+            arguments.add(new IntegerArgument(1));
+            arguments.add(new IntegerArgument(2304));
+        }
+        return completion;
     }
 
 }

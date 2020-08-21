@@ -63,12 +63,12 @@ public final class Translations {
      */
 
     public static String translate(String language, CommandInfo info, DescriptionType type) {
-        return description(language, type.isSimple() ? info.getSimpleDescriptionId() : info.getDetailedDescriptionId());
+        return description(language, type.getId(info));
     }
 
     public static String translate(String language, CommandInfo info, DescriptionType type,
             Placeholder... placeholders) {
-        return description(language, type.isSimple() ? info.getSimpleDescriptionId() : info.getDetailedDescriptionId(),
+        return description(language, type.getId(info),
             placeholders);
     }
 

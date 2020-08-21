@@ -32,6 +32,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 public class OraxenPlugin extends JavaPlugin {
 
     private Supplier<InputProvider> inputProvider;
+    private CommandProvider commandProvider;
     private UploadManager uploadManager;
 
     private static OraxenPlugin oraxen;
@@ -42,7 +43,8 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     private void postLoading(ResourcePack resourcePack, ConfigsManager configsManager) {
-        CommandProvider.register(this);
+        commandProvider = new CommandProvider(this);
+        commandProvider.call(true);
         Translations.MANAGER.reloadCatch();
         (this.uploadManager = new UploadManager(this)).uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
@@ -89,7 +91,7 @@ public class OraxenPlugin extends JavaPlugin {
         MechanicsManager.unloadListeners();
         if (ChatInputProvider.LISTENER != null)
             HandlerList.unregisterAll(ChatInputProvider.LISTENER);
-        CommandProvider.unregister();
+        commandProvider.call(false);
         HandlerList.unregisterAll(this);
     }
 
@@ -99,6 +101,10 @@ public class OraxenPlugin extends JavaPlugin {
 
     public InputProvider getInputProvider() {
         return inputProvider.get();
+    }
+
+    public CommandProvider getCommandProvider() {
+        return commandProvider;
     }
 
     public UploadManager getUploadManager() {
