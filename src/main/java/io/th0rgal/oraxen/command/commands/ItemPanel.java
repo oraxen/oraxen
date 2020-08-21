@@ -58,7 +58,7 @@ public class ItemPanel extends OraxenCommand {
         if(Conditions.hasPerm(OraxenPermission.COMMAND_RELOAD).isFalse(info.getSender()))
             return completion;
         
-        if(arguments.count() == 0) {
+        if(arguments.count() == 1) {
             completion.add(new StringArgument("all"));
         }
         

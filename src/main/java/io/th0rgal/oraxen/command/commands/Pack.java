@@ -70,9 +70,9 @@ public class Pack extends OraxenCommand {
 
         int count = arguments.count();
 
-        if (count == 0) {
+        if (count == 1) {
             completion(completion, "pack", "menu");
-        } else if (count == 1) {
+        } else if (count == 2) {
             completion(completion,
                 Conditions.player().isTrue(info.getSender()) ? (new String[] { "@a", "@r", "@s", "@p" })
                     : (new String[] { "@a", "@r", "@p" }));

@@ -80,18 +80,18 @@ public class Give extends OraxenCommand {
         
         int count = arguments.count();
         
-        if(count == 0) {
+        if(count == 1) {
             completion(completion,
                 Conditions.player().isTrue(info.getSender()) ? (new String[] { "@a", "@r", "@s", "@p" })
                     : (new String[] { "@a", "@r", "@p" }));
             Player[] players = Bukkit.getOnlinePlayers().toArray(new Player[0]);
             for (int index = 0; index < players.length; index++)
                 arguments.add(new StringArgument(players[index].getName()));
-        } else if(count == 1) {
+        } else if(count == 2) {
             Set<String> values = OraxenItems.getNames();
             for(String value : values)
                 arguments.add(new StringArgument(value));
-        } else if(count == 2) {
+        } else if(count == 3) {
             arguments.add(new IntegerArgument(1));
             arguments.add(new IntegerArgument(2304));
         }

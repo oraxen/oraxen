@@ -67,7 +67,7 @@ public class Reload extends OraxenCommand {
         if(Conditions.hasPerm(OraxenPermission.COMMAND_RELOAD).isFalse(info.getSender()))
             return completion;
         
-        if (arguments.count() == 0) {
+        if (arguments.count() == 1) {
             Reloadable[] types = Reloadable.values();
             for(int index = 0; index < types.length; index++)
                 completion.add(new StringArgument(types[index].name()));

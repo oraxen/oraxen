@@ -53,7 +53,7 @@ public abstract class ArgumentHelper {
      */
 
     public static Optional<BaseArgument> get(Arguments arguments, int position) {
-        return arguments.count() > position ? Optional.empty() : Optional.of(arguments.get(position));
+        return arguments.count() < position ? Optional.empty() : Optional.of(arguments.get(position));
     }
 
     public static Optional<BaseArgument> get(Arguments arguments, int position, ArgumentType type) {

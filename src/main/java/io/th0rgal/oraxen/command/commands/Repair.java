@@ -89,7 +89,7 @@ public class Repair extends OraxenCommand {
             return completion;
         }
         
-        if(arguments.count() == 0) {
+        if(arguments.count() == 1) {
             completion.add(new StringArgument("all"));
         }
         

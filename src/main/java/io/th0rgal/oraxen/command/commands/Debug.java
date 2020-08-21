@@ -67,17 +67,4 @@ public final class Debug extends OraxenCommand {
         return new DefaultCompletion();
     }
 
-//    public static CommandInfo build() {
-//        return new CommandInfo("debug", info -> {
-//            Builder<CommandSender> builder = Literal.of(info.getName());
-//
-//            builder.executes((sender, context) -> {
-//
-
-//            });
-//
-//            return builder;
-//        }).setDescription("Just a debug command");
-//    }
-
 }

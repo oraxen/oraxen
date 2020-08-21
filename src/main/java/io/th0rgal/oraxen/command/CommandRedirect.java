@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.command;
 import static com.syntaxphoenix.syntaxapi.command.DefaultArgumentSerializer.DEFAULT;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.bukkit.command.Command;
@@ -46,22 +47,25 @@ public class CommandRedirect implements CommandExecutor, TabCompleter {
 
         ArrayList<String> output = new ArrayList<>();
 
-        if (args.length == 0) {
+        CommandProcess process = prepare(sender, args);
+
+        if (!process.isValid() || process.getCommand() == null) {
             provider.getInfos().stream().map(info -> info.getName()).forEach(value -> output.add(value));
             return output;
         }
 
-        CommandProcess process = prepare(sender, args);
-
-        if (!process.isValid() || process.getCommand() == null)
-            return output;
-
         BaseCommand command = process.getCommand();
-        if (!(command instanceof OraxenCommand))
+        if (!(command instanceof OraxenCommand)) {
+            provider.getInfos().stream().map(info -> info.getName()).forEach(value -> output.add(value));
             return output;
-
+        }
+        
+        System.out.println(Arrays.asList(args));
+        
         MinecraftInfo info = (MinecraftInfo) process.constructInfo();
         Arguments arguments = process.getArguments();
+        
+        System.out.println(arguments.toString());
 
         Arguments completion = ((OraxenCommand) command).complete(info, arguments).getCompletion();
 
