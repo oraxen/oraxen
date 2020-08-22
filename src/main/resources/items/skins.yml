@@ -22,3 +22,13 @@ bone_sword:
   Mechanics:
     skin:
       consume: true
+
+wood_sword:
+  displayname: "&7&lSKIN: &6Wood Sword"
+  material: DIAMOND_SWORD
+  Pack:
+    generate_model: false
+    model: wood_sword
+  Mechanics:
+    skin:
+      consume: true
