@@ -16,5 +16,3 @@ public class SoulBoundMechanic extends Mechanic {
         return loseChance;
     }
 }
-
-

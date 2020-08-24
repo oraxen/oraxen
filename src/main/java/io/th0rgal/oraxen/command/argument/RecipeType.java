@@ -7,7 +7,9 @@ import com.syntaxphoenix.syntaxapi.command.BaseArgument;
 
 public enum RecipeType {
 
-    SHAPED, SHAPELESS, FURNACE;
+    SHAPED,
+    SHAPELESS,
+    FURNACE;
 
     public static RecipeType fromString(String string) {
         try {
@@ -22,7 +24,8 @@ public enum RecipeType {
     }
 
     public static Optional<RecipeType> fromArgument(BaseArgument argument) {
-        return Optional.ofNullable(argument.getType() != ArgumentType.STRING ? null : fromString(argument.asString().getValue()));
+        return Optional
+            .ofNullable(argument.getType() != ArgumentType.STRING ? null : fromString(argument.asString().getValue()));
     }
-    
+
 }

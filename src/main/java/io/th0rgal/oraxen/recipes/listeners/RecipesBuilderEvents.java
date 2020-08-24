@@ -17,12 +17,12 @@ public class RecipesBuilderEvents implements Listener {
     public void setCursor(InventoryClickEvent event) {
 
         RecipeBuilder recipeBuilder = RecipeBuilder.get(event.getWhoClicked().getUniqueId());
-        if (recipeBuilder == null
-                || !event.getView().getTitle().equals(recipeBuilder.getInventoryTitle())
-                || event.getSlotType() != InventoryType.SlotType.RESULT)
+        if (recipeBuilder == null || !event.getView().getTitle().equals(recipeBuilder.getInventoryTitle())
+            || event.getSlotType() != InventoryType.SlotType.RESULT)
             return;
         event.setCancelled(true);
-        ItemStack currentResult = event.getCurrentItem() != null ? event.getCurrentItem().clone() : new ItemStack(Material.AIR);
+        ItemStack currentResult = event.getCurrentItem() != null ? event.getCurrentItem().clone()
+            : new ItemStack(Material.AIR);
         ItemStack currentCursor = event.getCursor() != null ? event.getCursor().clone() : new ItemStack(Material.AIR);
         event.setCurrentItem(currentCursor);
         event.setCursor(currentResult);

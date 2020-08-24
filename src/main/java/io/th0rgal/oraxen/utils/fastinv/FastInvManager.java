@@ -27,7 +27,7 @@ public final class FastInvManager {
      * Register events for FastInv
      *
      * @param plugin Plugin to register
-     * @throws NullPointerException if plugin is null
+     * @throws NullPointerException  if plugin is null
      * @throws IllegalStateException if FastInv is already registered
      */
     public static void register(Plugin plugin) {
@@ -91,8 +91,10 @@ public final class FastInvManager {
      * Close all open FastInv inventories
      */
     public static void closeAll() {
-        Bukkit.getOnlinePlayers().stream()
-                .filter(p -> p.getOpenInventory().getTopInventory().getHolder() instanceof FastInv)
-                .forEach(Player::closeInventory);
+        Bukkit
+            .getOnlinePlayers()
+            .stream()
+            .filter(p -> p.getOpenInventory().getTopInventory().getHolder() instanceof FastInv)
+            .forEach(Player::closeInventory);
     }
 }

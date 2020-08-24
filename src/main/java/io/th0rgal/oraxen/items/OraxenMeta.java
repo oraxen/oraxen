@@ -28,7 +28,8 @@ public class OraxenMeta {
         this.modelName = readModelName(configurationSection, "model");
         this.blockingModel = readModelName(configurationSection, "blocking_model");
         this.layers = configurationSection.getStringList("textures");
-        // can't be refactored with for each or stream because it'll throw ConcurrentModificationException
+        // can't be refactored with for each or stream because it'll throw
+        // ConcurrentModificationException
         for (int i = 0; i < layers.size(); i++) {
             String layer = layers.get(i);
             if (layer.endsWith(".png"))

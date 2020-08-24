@@ -17,10 +17,10 @@ public enum OraxenPermission implements IPermission {
     // Command Permissions
     //
     COMMAND_ALL(ALL),
-    
+
     // Give
     COMMAND_GIVE(COMMAND_ALL),
-    
+
     // Pack
     COMMAND_PACK(COMMAND_ALL),
 
@@ -40,7 +40,7 @@ public enum OraxenPermission implements IPermission {
     COMMAND_REPAIR_ALL(COMMAND_ALL),
     COMMAND_REPAIR(COMMAND_REPAIR_ALL),
     COMMAND_REPAIR_EVERYTHING(COMMAND_REPAIR_ALL),
-    
+
     // Recipe
     COMMAND_RECIPE_EDIT(COMMAND_ALL),
     COMMAND_RECIPE(COMMAND_RECIPE_EDIT),
@@ -95,10 +95,7 @@ public enum OraxenPermission implements IPermission {
 
     public boolean required(CommandSender sender) {
         if (!has(sender)) {
-            Message.NO_PERMISSION
-                    .send(sender, Variable.PREFIX
-                            .placeholder(),
-                        getPlaceholder());
+            Message.NO_PERMISSION.send(sender, Variable.PREFIX.placeholder(), getPlaceholder());
             return false;
         }
         return true;
@@ -106,10 +103,7 @@ public enum OraxenPermission implements IPermission {
 
     public boolean required(CommandSender sender, Placeholder... placeholders) {
         if (!has(sender)) {
-            Message.NO_PERMISSION
-                    .send(sender, placeholders, Variable.PREFIX
-                            .placeholder(),
-                        getPlaceholder());
+            Message.NO_PERMISSION.send(sender, placeholders, Variable.PREFIX.placeholder(), getPlaceholder());
             return false;
         }
         return true;

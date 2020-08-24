@@ -28,7 +28,8 @@ public class ConfigsManager {
 
     public ConfigsManager(JavaPlugin plugin) {
         this.plugin = plugin;
-        defaultConfiguration = YamlConfiguration.loadConfiguration(new InputStreamReader(plugin.getResource("settings.yml")));
+        defaultConfiguration = YamlConfiguration
+            .loadConfiguration(new InputStreamReader(plugin.getResource("settings.yml")));
 
         currentversion = defaultConfiguration.getInt("configs_version");
     }
@@ -52,14 +53,14 @@ public class ConfigsManager {
                 e.printStackTrace();
             }
 
-        //check itemsFolder
+        // check itemsFolder
         itemsFolder = new File(plugin.getDataFolder(), "items");
         if (!itemsFolder.exists()) {
             itemsFolder.mkdirs();
             new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
         }
 
-        return true; //todo : return false when an error is detected + prints a detailed error
+        return true; // todo : return false when an error is detected + prints a detailed error
     }
 
     public void updatesConfigs() {
@@ -75,43 +76,44 @@ public class ConfigsManager {
             MessageOld.UNCONSISTENT_CONFIG_VERSION.logError();
 
         } else {
-            for (int i = configsVersion + 1; i <= currentversion; i++) { //so that you can update from 1 to n
+            for (int i = configsVersion + 1; i <= currentversion; i++) { // so that you can update from 1 to n
 
                 switch (i) {
 
-                    case 2:
-                        // replaces layers by textures
-                        applyToAllItems(itemSection -> {
-                            if (!itemSection.isConfigurationSection("Pack"))
-                                return itemSection;
-                            ConfigurationSection packSection = itemSection.getConfigurationSection("Pack");
-                            if (packSection.isList("layers")) {
-                                packSection.set("textures", packSection.getList("layers"));
-                                packSection.set("layers", null);
-                            }
+                case 2:
+                    // replaces layers by textures
+                    applyToAllItems(itemSection -> {
+                        if (!itemSection.isConfigurationSection("Pack"))
                             return itemSection;
-                        });
-                        break;
+                        ConfigurationSection packSection = itemSection.getConfigurationSection("Pack");
+                        if (packSection.isList("layers")) {
+                            packSection.set("textures", packSection.getList("layers"));
+                            packSection.set("layers", null);
+                        }
+                        return itemSection;
+                    });
+                    break;
 
-                    case 3:
-                        //code to update from config version 2 to 3
-                        break;
+                case 3:
+                    // code to update from config version 2 to 3
+                    break;
 
-                    default:
-                        MessageOld.CONFIGS_UPDATING_FAILED.logError();
-                        return;
+                default:
+                    MessageOld.CONFIGS_UPDATING_FAILED.logError();
+                    return;
                 }
             }
-            //todo: updates configs version
+            // todo: updates configs version
         }
     }
 
-    public Map<File, Map<String, ItemBuilder>> parsesConfigs(){
+    public Map<File, Map<String, ItemBuilder>> parsesConfigs() {
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
-        List<File> configs = Arrays.stream(getItemsFiles())
-                .filter(file -> file.getName().endsWith(".yml"))
-                .collect(Collectors.toList());
-        for(File file : configs){
+        List<File> configs = Arrays
+            .stream(getItemsFiles())
+            .filter(file -> file.getName().endsWith(".yml"))
+            .collect(Collectors.toList());
+        for (File file : configs) {
             parseMap.put(file, parsesConfig(YamlConfiguration.loadConfiguration(file), file));
         }
         return parseMap;
@@ -125,17 +127,19 @@ public class ConfigsManager {
             parseMap.put(itemSectionName, new ItemParser(itemSection));
         }
         boolean configUpdated = false;
-        // because we must have parse all the items before building them to be able to use available models
+        // because we must have parse all the items before building them to be able to
+        // use available models
         Map<String, ItemBuilder> map = new LinkedHashMap<>();
         for (Map.Entry<String, ItemParser> entry : parseMap.entrySet()) {
             ItemParser itemParser = entry.getValue();
             try {
                 map.put(entry.getKey(), itemParser.buildItem());
             } catch (Exception e) {
-                map.put(entry.getKey(),
-                        errorItem.buildItem(String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD +
-                                e.getClass().getSimpleName() +
-                                ": " + ChatColor.RED + entry.getKey()));
+                map
+                    .put(entry.getKey(),
+                        errorItem
+                            .buildItem(String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD
+                                + e.getClass().getSimpleName() + ": " + ChatColor.RED + entry.getKey()));
                 Logs.logError("ERROR BUILDING ITEM \"" + entry.getKey() + "\"");
                 e.printStackTrace();
             }
@@ -143,11 +147,11 @@ public class ConfigsManager {
                 configUpdated = true;
         }
         if (configUpdated)
-                try {
-                    config.save(itemFile);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            try {
+                config.save(itemFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
         return map;
     }

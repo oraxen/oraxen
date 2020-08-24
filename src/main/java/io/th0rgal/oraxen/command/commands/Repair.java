@@ -88,11 +88,11 @@ public class Repair extends OraxenCommand {
             .isFalse(info.getSender())) {
             return completion;
         }
-        
-        if(arguments.count() == 1) {
+
+        if (arguments.count() == 1) {
             completion.add(new StringArgument("all"));
         }
-        
+
         return completion;
     }
 

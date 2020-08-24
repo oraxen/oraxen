@@ -11,7 +11,6 @@ import org.bukkit.entity.Player;
 
 import java.util.Objects;
 
-
 public class EnergyBlastMechanic extends Mechanic {
 
     private final Particle particle;
@@ -26,11 +25,10 @@ public class EnergyBlastMechanic extends Mechanic {
         assert particleSection != null;
         ConfigurationSection colorSection = particleSection.getConfigurationSection("color");
         this.particle = Particle.valueOf(particleSection.getString("type"));
-        this.particleColor = new Particle.DustOptions(Color.fromRGB(Objects.requireNonNull(colorSection)
-                        .getInt("red"),
-                colorSection.getInt("green"),
+        this.particleColor = new Particle.DustOptions(Color
+            .fromRGB(Objects.requireNonNull(colorSection).getInt("red"), colorSection.getInt("green"),
                 colorSection.getInt("blue")),
-                particleSection.getInt("size"));
+            particleSection.getInt("size"));
         this.damage = section.getDouble("damage");
         this.length = section.getInt("length");
         this.timersFactory = new TimersFactory(section.getLong("delay"));

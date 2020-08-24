@@ -33,8 +33,8 @@ public class RepairMechanicListener implements Listener {
         RepairMechanic repairMechanic = (RepairMechanic) factory.getMechanic(itemID);
 
         ItemStack toRepair = event.getCurrentItem();
-        if(toRepair == null)
-             return;
+        if (toRepair == null)
+            return;
         String toRepairId = OraxenItems.getIdByItem(toRepair);
         ItemMeta toRepairMeta = toRepair.getItemMeta();
         Damageable damageable = (Damageable) toRepairMeta;
@@ -48,19 +48,22 @@ public class RepairMechanicListener implements Listener {
             if (damageable.getDamage() == 0)
                 return;
 
-            damageable.setDamage(repairMechanic.getFinalDamage(toRepair.getType().getMaxDurability(), damageable.getDamage()));
+            damageable
+                .setDamage(
+                    repairMechanic.getFinalDamage(toRepair.getType().getMaxDurability(), damageable.getDamage()));
 
         } else {
             DurabilityMechanic durabilityMechanic = (DurabilityMechanic) durabilityFactory.getMechanic(toRepairId);
             PersistentDataContainer persistentDataContainer = toRepairMeta.getPersistentDataContainer();
             int realMaxDurability = durabilityMechanic.getItemMaxDurability();
-            int damage = realMaxDurability - persistentDataContainer.get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER);
+            int damage = realMaxDurability
+                - persistentDataContainer.get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER);
             if (damage == 0)
                 return;
             int finalDamage = repairMechanic.getFinalDamage(realMaxDurability, damage);
 
-            persistentDataContainer.set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER,
-                    realMaxDurability - finalDamage);
+            persistentDataContainer
+                .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realMaxDurability - finalDamage);
 
             damageable.setDamage(finalDamage / realMaxDurability * item.getType().getMaxDurability());
         }

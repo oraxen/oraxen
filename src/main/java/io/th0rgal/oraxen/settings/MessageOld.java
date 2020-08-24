@@ -28,7 +28,6 @@ public enum MessageOld {
     PLAYER_NOT_FOUND(ChatColor.RED, "Player \"%s\" not found"),
     PLAYER_NOT_GIVEN(ChatColor.RED, "You must specify a player"),
 
-
     UNCONSISTENT_CONFIG_VERSION(ChatColor.RED, "Config updating error: does this config come from the future?"),
     CONFIGS_NOT_UPDATED(ChatColor.GREEN, "Configs version number is consistent: skipping updating"),
     CONFIGS_UPDATING_FAILED(ChatColor.RED, "Configs updating failed, please post an issue on github"),
@@ -87,6 +86,7 @@ public enum MessageOld {
     public void logError(String... arguments) {
         Logs.logError(String.format(toString(), (Object[]) arguments));
     }
+
     public void logError() {
         Logs.logError(toString());
     }

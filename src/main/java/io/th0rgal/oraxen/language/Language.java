@@ -52,7 +52,7 @@ public class Language {
      */
 
     public static class LanguageType implements PersistentDataType<String, Language> {
-        
+
         public static final LanguageType INSTANCE = new LanguageType();
 
         @Override

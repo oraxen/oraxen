@@ -13,8 +13,7 @@ public class BottledExpMechanicFactory extends MechanicFactory {
     public BottledExpMechanicFactory(ConfigurationSection section) {
         super(section);
         durabilityCost = section.getInt("durability_cost");
-        MechanicsManager.registerListeners(OraxenPlugin.get(),
-                new BottledExpMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new BottledExpMechanicListener(this));
     }
 
     @Override

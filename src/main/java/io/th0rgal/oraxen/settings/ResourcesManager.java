@@ -20,6 +20,7 @@ public class ResourcesManager {
     }
 
     private YamlConfiguration settings;
+
     public YamlConfiguration getSettings() {
         if (settings == null)
             settings = getConfiguration("settings.yml");
@@ -27,6 +28,7 @@ public class ResourcesManager {
     }
 
     private YamlConfiguration mechanics;
+
     public YamlConfiguration getMechanics() {
         if (mechanics == null)
             mechanics = getConfiguration("mechanics.yml");

@@ -10,14 +10,14 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import io.th0rgal.oraxen.utils.input.chat.ChatInputProvider;
 
 public class ChatInputListener implements Listener {
-    
+
     @EventHandler(priority = EventPriority.HIGH)
     public void onChatAsync(AsyncPlayerChatEvent event) {
         Optional<ChatInputProvider> optional = ChatInputProvider.getByPlayer(event.getPlayer());
-        if(!optional.isPresent())
+        if (!optional.isPresent())
             return;
         optional.get().response(event.getPlayer(), event.getMessage());
         event.setCancelled(true);
     }
-    
+
 }

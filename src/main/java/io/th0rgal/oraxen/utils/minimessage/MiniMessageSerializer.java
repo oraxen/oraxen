@@ -91,14 +91,20 @@ public class MiniMessageSerializer {
             // ### only start if prevComp didn't start the same one
             HoverEvent hov = comp.getHoverEvent();
             if (hov != null && (prevComp == null || areDifferent(hov, prevComp.getHoverEvent()))) {
-                sb.append(startTag(String.format("%s" + SEPARATOR + "%s" + SEPARATOR + "\"%s\"", HOVER, hov.getAction().name().toLowerCase(), serialize(hov.getValue()))));
+                sb
+                    .append(startTag(String
+                        .format("%s" + SEPARATOR + "%s" + SEPARATOR + "\"%s\"", HOVER,
+                            hov.getAction().name().toLowerCase(), serialize(hov.getValue()))));
             }
 
             // ## click
             // ### only start if prevComp didn't start the same one
             ClickEvent click = comp.getClickEvent();
             if (click != null && (prevComp == null || areDifferent(click, prevComp.getClickEvent()))) {
-                sb.append(startTag(String.format("%s" + SEPARATOR + "%s" + SEPARATOR + "\"%s\"", CLICK, click.getAction().name().toLowerCase(), click.getValue())));
+                sb
+                    .append(startTag(String
+                        .format("%s" + SEPARATOR + "%s" + SEPARATOR + "\"%s\"", CLICK,
+                            click.getAction().name().toLowerCase(), click.getValue())));
             }
 
             // # append text
@@ -161,12 +167,14 @@ public class MiniMessageSerializer {
     }
 
     private static boolean areDifferent(@Nonnull ClickEvent c1, @Nullable ClickEvent c2) {
-        if (c2 == null) return true;
+        if (c2 == null)
+            return true;
         return !c1.equals(c2) && (!c1.getAction().equals(c2.getAction()) || !c1.getValue().equals(c2.getValue()));
     }
 
     private static boolean areDifferent(@Nonnull HoverEvent h1, @Nullable HoverEvent h2) {
-        if (h2 == null) return true;
+        if (h2 == null)
+            return true;
         return !h1.equals(h2) && (!h1.getAction().equals(h2.getAction()));// TODO also compare value
     }
 

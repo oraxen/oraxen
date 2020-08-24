@@ -68,18 +68,18 @@ public class CustomRecipe {
             return false;
         for (int index = 0; index < ingredients1.size(); index++) {
             ItemStack ingredient1 = ingredients1.get(index);
-            if(ordered) {
+            if (ordered) {
                 ItemStack ingredient2 = ingredients2.get(index);
-                if(ingredient1 == null && ingredient2 == null)
+                if (ingredient1 == null && ingredient2 == null)
                     continue;
-                if(ingredient1 == null || ingredient2 == null)
+                if (ingredient1 == null || ingredient2 == null)
                     return false;
-                if(!ingredient1.isSimilar(ingredient2))
+                if (!ingredient1.isSimilar(ingredient2))
                     return false;
             } else {
-                if(ingredient1 == null)
+                if (ingredient1 == null)
                     continue;
-                if(ingredients2.stream().noneMatch(ingredient1::isSimilar))
+                if (ingredients2.stream().noneMatch(ingredient1::isSimilar))
                     return false;
             }
         }
@@ -116,4 +116,3 @@ public class CustomRecipe {
         }
     }
 }
-

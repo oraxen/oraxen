@@ -12,7 +12,8 @@ public class HarvestingMechanic extends Mechanic {
     public HarvestingMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
         this.radius = section.getInt("radius");
-        this.height = section.getInt("height");;
+        this.height = section.getInt("height");
+        ;
     }
 
     public int getRadius() {

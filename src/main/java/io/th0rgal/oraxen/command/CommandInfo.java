@@ -146,7 +146,8 @@ public class CommandInfo {
 
     public void sendSimple(CommandSender sender, String label) {
         Message.COMMAND_HELP_INFO_SHORT
-            .send(sender, Placeholder.of("label", label), Placeholder.of("usage", this, DescriptionType.USAGE), Placeholder.of("description", this, DescriptionType.SIMPLE));
+            .send(sender, Placeholder.of("label", label), Placeholder.of("usage", this, DescriptionType.USAGE),
+                Placeholder.of("description", this, DescriptionType.SIMPLE));
     }
 
 }

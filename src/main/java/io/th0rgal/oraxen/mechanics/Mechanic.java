@@ -13,7 +13,8 @@ public abstract class Mechanic {
     private final String itemID;
 
     @SafeVarargs
-    public Mechanic(MechanicFactory mechanicFactory, ConfigurationSection section, Function<ItemBuilder, ItemBuilder>... modifiers) {
+    public Mechanic(MechanicFactory mechanicFactory, ConfigurationSection section,
+        Function<ItemBuilder, ItemBuilder>... modifiers) {
         this.mechanicFactory = mechanicFactory;
         this.section = section;
         this.itemModifiers = modifiers;

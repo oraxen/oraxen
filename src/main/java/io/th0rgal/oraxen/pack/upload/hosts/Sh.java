@@ -59,7 +59,8 @@ public class Sh implements HostingProvider {
         try {
             byte[] result = read(stream);
             byte[] sha1 = read(stream);
-            if (sha1.length == 0) sha1 = null;
+            if (sha1.length == 0)
+                sha1 = null;
             if (start.waitFor() == 0) {
                 this.sha1 = sha1;
                 this.result = new String(result);
@@ -75,16 +76,19 @@ public class Sh implements HostingProvider {
         boolean r = false;
         do {
             int code = stream.read();
-            if (code == -1) break; // EOF
+            if (code == -1)
+                break; // EOF
             if (code == '\r') {
-                if (r) os.write('\r');
+                if (r)
+                    os.write('\r');
                 r = true;
                 continue;
             }
             if (code == '\n') {
                 break;
             }
-            if (r) os.write('\r');
+            if (r)
+                os.write('\r');
             os.write(code);
         } while (true);
         return os.toByteArray();

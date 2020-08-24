@@ -20,7 +20,8 @@ public class BlockMechanicFactory extends MechanicFactory {
 
     public BlockMechanicFactory(ConfigurationSection section) {
         super(section);
-        // this modifier should be executed when all the items have been parsed, just before zipping the pack
+        // this modifier should be executed when all the items have been parsed, just
+        // before zipping the pack
         ResourcePack.addModifiers(packFolder -> {
             File blockstatesFolder = new File(packFolder, "blockstates");
             if (!blockstatesFolder.exists())
@@ -34,7 +35,7 @@ public class BlockMechanicFactory extends MechanicFactory {
     private String getBlockstateContent() {
         JsonObject mushroomStem = new JsonObject();
         JsonArray multipart = new JsonArray();
-        //adds default override
+        // adds default override
         multipart.add(getBlockstateOverride("mushroom_stem", 15));
         for (JsonObject override : MUSHROOM_STEM_BLOCKSTATE_OVERRIDES)
             multipart.add(override);
@@ -54,15 +55,16 @@ public class BlockMechanicFactory extends MechanicFactory {
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         BlockMechanic mechanic = new BlockMechanic(this, itemMechanicConfiguration);
-        MUSHROOM_STEM_BLOCKSTATE_OVERRIDES.add
-                (getBlockstateOverride(mechanic.getModel(itemMechanicConfiguration.getParent().getParent()), mechanic.getCustomVariation()));
+        MUSHROOM_STEM_BLOCKSTATE_OVERRIDES
+            .add(getBlockstateOverride(mechanic.getModel(itemMechanicConfiguration.getParent().getParent()),
+                mechanic.getCustomVariation()));
         BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
     }
 
     public static BlockMechanic getBlockMechanic(int customVariation) {
-        return  BLOCK_PER_VARIATION.get(customVariation);
+        return BLOCK_PER_VARIATION.get(customVariation);
     }
 
 }

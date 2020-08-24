@@ -11,7 +11,7 @@ import org.bukkit.entity.Player;
 import java.util.Random;
 
 public class ThorMechanic extends Mechanic {
-	
+
     private int lightningBoltsAmount;
     private double randomLocationVariation;
     private TimersFactory timersFactory;
@@ -35,6 +35,6 @@ public class ThorMechanic extends Mechanic {
     }
 
     public Timer getTimer(Player player) {
-        return  timersFactory.getTimer(player);
+        return timersFactory.getTimer(player);
     }
 }

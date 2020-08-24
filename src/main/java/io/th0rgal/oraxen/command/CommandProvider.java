@@ -155,17 +155,17 @@ public class CommandProvider {
     public List<CommandInfo> getInfos() {
         return (List<CommandInfo>) infos.clone();
     }
-    
+
     /*
      * Shutdown
      */
 
     public void call(boolean state) {
-        if(state) {
+        if (state) {
             Bukkit.getPluginManager().callEvent(new OraxenCommandEvent(this));
             return;
         }
         manager.unregisterAll();
     }
-    
+
 }

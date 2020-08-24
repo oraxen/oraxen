@@ -23,11 +23,11 @@ public interface ITranslatable extends IEnum {
     public default String translationId() {
         return getOwner().getName().replace(' ', '_').toLowerCase() + '.' + id();
     }
-    
+
     /*
      * Placeholder
      */
-    
+
     public default Placeholder placeholder() {
         return Placeholder.of(this);
     }
@@ -65,12 +65,10 @@ public interface ITranslatable extends IEnum {
     }
 
     public default BaseComponent[] message(String language) {
-        System.out.println(translate(language));
         return MiniMessageParser.parseFormat(translate(language));
     }
 
     public default BaseComponent[] message(String language, Placeholder... placeholders) {
-        System.out.println(translate(language, placeholders));
         return MiniMessageParser.parseFormat(translate(language, placeholders));
     }
 
@@ -95,7 +93,7 @@ public interface ITranslatable extends IEnum {
     }
 
     public default void send(CommandSender sender, Language language, Placeholder[] placeholders,
-            Placeholder... additional) {
+        Placeholder... additional) {
         send(sender, language, Arrays.merge(size -> new Placeholder[size], placeholders, additional));
     }
 

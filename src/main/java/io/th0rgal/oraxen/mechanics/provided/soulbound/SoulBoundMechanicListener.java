@@ -13,16 +13,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Random;
 
-
 public class SoulBoundMechanicListener implements Listener {
     private final SoulBoundMechanicFactory factory;
     private final HashMap<Player, List<ItemStack>> SOUL_BOUND_ITEMS = new HashMap<>();
 
-
     public SoulBoundMechanicListener(SoulBoundMechanicFactory factory) {
         this.factory = factory;
     }
-
 
     @EventHandler
     public void onPlayerDeath(PlayerDeathEvent event) {

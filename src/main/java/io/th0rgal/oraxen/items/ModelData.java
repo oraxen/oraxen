@@ -48,7 +48,8 @@ public class ModelData {
                 return i;
             }
         }
-        //if no durability was available between the choosed, let's create a new one bigger
+        // if no durability was available between the choosed, let's create a new one
+        // bigger
         int newMaxDurability = currentMaxDurability + 1;
         usedDurabilities.put(model, newMaxDurability);
         DATAS.put(type, usedDurabilities);
