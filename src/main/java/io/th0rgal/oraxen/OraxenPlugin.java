@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.command.CommandProvider;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.language.FallbackHandler;
+import io.th0rgal.oraxen.language.LanguageListener;
 import io.th0rgal.oraxen.language.Translations;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
@@ -70,6 +71,7 @@ public class OraxenPlugin extends JavaPlugin {
             return;
         }
         Bukkit.getPluginManager().registerEvents(new FallbackHandler(), this);
+        Bukkit.getPluginManager().registerEvents(new LanguageListener(), this);
         MechanicsManager.registerNativeMechanics();
         CompatibilitiesManager.enableNativeCompatibilities();
         OraxenItems.loadItems(configsManager);
@@ -83,6 +85,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     public void onDisable() {
         unregisterListeners();
+        Translations.MANAGER.reloadCatch();
         CompatibilitiesManager.disableCompatibilities();
         Logs.log(ChatColor.GREEN + "Successfully unloaded");
     }

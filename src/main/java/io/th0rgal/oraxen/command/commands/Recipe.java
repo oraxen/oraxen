@@ -179,13 +179,10 @@ public class Recipe extends OraxenCommand {
         } else if (count == 2 || count == 3) {
             Optional<String> option0 = restrict(get(arguments, 1, ArgumentType.STRING).map(BaseArgument::asString),
                 edit ? (new String[] { "builder", "save", "show" }) : (new String[] { "show" }));
-            System.out.println(get(arguments, 1).map(argument -> argument.toString()).orElse("-----"));
-            System.out.println(option0.orElse("-----"));
             if (!option0.isPresent())
                 return completion;
             switch (option0.get()) {
             case "builder":
-                System.out.println(edit);
                 if (!edit)
                     break;
                 if (count == 3) {

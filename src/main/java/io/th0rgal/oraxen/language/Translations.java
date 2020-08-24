@@ -223,9 +223,13 @@ public final class Translations {
             // Load language names
 
             language.load(languageFile);
+            if(!languageFile.exists())
+                languageFile.createNewFile();
 
             //
             // Create language objects
+            
+           LanguageProvider.DEFAULT_LANGUAGE.setName(language.check("en_UK", "English"));
 
             for (String key : language.getKeys()) {
                 Language lang = new Language(key);
@@ -315,7 +319,7 @@ public final class Translations {
          */
 
         public boolean hasTranslation(String language) {
-            return translations.stream().anyMatch(storage -> storage.getLanguage().equals(language));
+            return translations.stream().anyMatch(storage -> storage.getLanguage().equals(language)) ? true : fallback.getLanguage().equals(language);
         }
 
         public TranslationStorage getTranslation(String language) {

@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.language;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
 import io.th0rgal.oraxen.OraxenPlugin;
@@ -51,17 +52,13 @@ public enum Message implements IMessage {
         this.value = value;
     }
 
-    Message(boolean legacy, String value) {
-        this(legacy ? TextComponent.fromLegacyText(value) : MiniMessageParser.parseFormat(value));
-    }
-
     Message(boolean legacy, String... values) {
         ArrayList<BaseComponent[]> list = new ArrayList<>();
         BaseComponent[] line = new BaseComponent[] { new TextComponent("\n") };
         int length = values.length - 1;
         for (int index = 0; index < values.length; index++) {
             list
-                .add(legacy ? TextComponent.fromLegacyText(values[index])
+                .add(legacy ? TextComponent.fromLegacyText(values[index].replace('&', ChatColor.COLOR_CHAR))
                     : MiniMessageParser.parseFormat(values[index]));
             if (index != length)
                 list.add(line);
