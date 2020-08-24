@@ -22,7 +22,8 @@ public class OS {
                 initMacOsInfo(name, version, arch);
             else if (name.startsWith("Darwin"))
                 initDarwinOsInfo(name, version, arch);
-            else for (String linuxName : linux)
+            else
+                for (String linuxName : linux)
                     if (name.startsWith(linuxName))
                         initLinuxOsInfo(name, version, arch);
         }
@@ -118,10 +119,9 @@ public class OS {
             osInfo = getPlatformNameFromFile(name, version, arch, "/etc/system-release");
 
         File dir = new File("/etc/");
-        if (dir.exists()) {
+        if (osInfo == null && dir.exists()) {
             // if generic 'system-release' file is not present, then try to find another one
-            if (osInfo == null)
-                osInfo = getPlatformNameFromFile(name, version, arch, getFileEndingWith(dir, "-release"));
+            osInfo = getPlatformNameFromFile(name, version, arch, getFileEndingWith(dir, "-release"));
 
             // if generic 'system-release' file is not present, then try to find '_version'
             if (osInfo == null)
@@ -135,10 +135,8 @@ public class OS {
 
         // if nothing found yet, looks for the version info
         File fileVersion = new File("/proc/version");
-        if (fileVersion.exists()) {
-            if (osInfo == null)
-                osInfo = getPlatformNameFromFile(name, version, arch, fileVersion.getAbsolutePath());
-        }
+        if (osInfo == null && fileVersion.exists())
+            osInfo = getPlatformNameFromFile(name, version, arch, fileVersion.getAbsolutePath());
 
         // if nothing found, well...
         if (osInfo == null)
@@ -155,7 +153,8 @@ public class OS {
             return null;
     }
 
-    private OsInfo getPlatformNameFromFile(final String name, final String version, final String arch, final String filename) {
+    private OsInfo getPlatformNameFromFile(final String name, final String version, final String arch,
+            final String filename) {
         if (filename == null)
             return null;
         File f = new File(filename);
@@ -169,7 +168,8 @@ public class OS {
         return null;
     }
 
-    OsInfo readPlatformName(final String name, final String version, final String arch, final BufferedReader br) throws IOException {
+    OsInfo readPlatformName(final String name, final String version, final String arch, final BufferedReader br)
+            throws IOException {
         String line;
         String lineToReturn = null;
         int lineNb = 0;
@@ -195,7 +195,8 @@ public class OS {
         return null;
     }
 
-    OsInfo readPlatformNameFromLsb(final String name, final String version, final String arch, final BufferedReader br) throws IOException {
+    OsInfo readPlatformNameFromLsb(final String name, final String version, final String arch, final BufferedReader br)
+            throws IOException {
         String distribDescription = null;
         String distribCodename = null;
 
@@ -203,7 +204,8 @@ public class OS {
         while ((line = br.readLine()) != null) {
             if (line.startsWith("DISTRIB_DESCRIPTION"))
                 distribDescription = line.replace("DISTRIB_DESCRIPTION=", "").replace("\"", "");
-            if (line.startsWith("DISTRIB_CODENAME")) distribCodename = line.replace("DISTRIB_CODENAME=", "");
+            if (line.startsWith("DISTRIB_CODENAME"))
+                distribCodename = line.replace("DISTRIB_CODENAME=", "");
         }
         if (distribDescription != null && distribCodename != null)
             return new OsInfo(name, version, arch, distribDescription + " (" + distribCodename + ")");

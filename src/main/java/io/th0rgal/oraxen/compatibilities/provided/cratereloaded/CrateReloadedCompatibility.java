@@ -8,7 +8,7 @@ import com.hazebyte.crate.api.event.PluginReadyEvent;
 import io.th0rgal.oraxen.compatibilities.CompatibilityProvider;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.settings.MessageOld;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 
@@ -63,8 +63,8 @@ public class CrateReloadedCompatibility extends CompatibilityProvider<CratePlugi
             String value = rewardString.substring(0, rewardString.indexOf(")"));
             rewardString = rewardString.substring(rewardString.indexOf(")") + 1);
             String itemID = value.split(" ")[0];
-            if (!OraxenItems.isAnItem(itemID)) {
-                Message.ITEM_NOT_FOUND.logError(itemID);
+            if (!OraxenItems.exists(itemID)) {
+                MessageOld.ITEM_NOT_FOUND.logError(itemID);
                 continue;
             }
             ItemBuilder itemBuilder = OraxenItems.getItemById(itemID);

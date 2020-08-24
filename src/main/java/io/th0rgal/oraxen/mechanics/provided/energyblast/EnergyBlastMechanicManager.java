@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.energyblast;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.utils.VectorUtils;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import org.bukkit.Location;
@@ -51,7 +51,7 @@ public class EnergyBlastMechanicManager implements Listener {
         Timer playerTimer = mechanic.getTimer(player);
 
         if (!playerTimer.isFinished()) {
-            Message.DELAY.send(player, Timer.DECIMAL_FORMAT.format(playerTimer.getRemainingTimeMillis() / 1000D));
+            MessageOld.DELAY.send(player, Timer.DECIMAL_FORMAT.format(playerTimer.getRemainingTimeMillis() / 1000D));
             return;
         }
 

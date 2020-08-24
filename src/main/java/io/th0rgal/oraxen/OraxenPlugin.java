@@ -1,73 +1,77 @@
 package io.th0rgal.oraxen;
 
-import io.th0rgal.oraxen.commands.BaseCommand;
-import io.th0rgal.oraxen.commands.CommandHandler;
-import io.th0rgal.oraxen.commands.brigadier.BrigadierManager;
-import io.th0rgal.oraxen.commands.subcommands.*;
+import io.th0rgal.oraxen.command.CommandProvider;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.language.FallbackHandler;
+import io.th0rgal.oraxen.language.LanguageListener;
+import io.th0rgal.oraxen.language.Translations;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.settings.ConfigsManager;
-import io.th0rgal.oraxen.settings.Message;
+import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.settings.Plugin;
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
 import io.th0rgal.oraxen.utils.fastinv.FastInvManager;
+import io.th0rgal.oraxen.utils.input.InputProvider;
+import io.th0rgal.oraxen.utils.input.chat.ChatInputProvider;
+import io.th0rgal.oraxen.utils.input.sign.SignMenuFactory;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import io.th0rgal.oraxen.utils.signinput.SignMenuFactory;
-import me.lucko.commodore.CommodoreProvider;
+
+import java.util.function.Supplier;
+
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.command.PluginCommand;
+import org.bukkit.event.HandlerList;
+import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class OraxenPlugin extends JavaPlugin {
 
-    private static OraxenPlugin instance;
-    private SignMenuFactory signMenuFactory;
+    private Supplier<InputProvider> inputProvider;
+    private CommandProvider commandProvider;
+    private UploadManager uploadManager;
 
+    private static OraxenPlugin oraxen;
 
     public OraxenPlugin() throws Exception {
-        instance = this;
+        oraxen = this;
         Logs.enableFilter();
     }
 
     private void postLoading(ResourcePack resourcePack, ConfigsManager configsManager) {
-        registerCommands();
-        new UploadManager(this).uploadAsyncAndSendToPlayers(resourcePack);
+        commandProvider = new CommandProvider(this);
+        commandProvider.call(true);
+        Translations.MANAGER.reloadCatch();
+        (this.uploadManager = new UploadManager(this)).uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
-        this.signMenuFactory = new SignMenuFactory(this);
+        pluginDependent();
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> OraxenItems.loadItems(configsManager));
     }
 
-    private void registerCommands() {
-        CommandHandler handler = new CommandHandler()
-                .register("oraxen", new BaseCommand())
-                .register("debug", new Debug())
-                .register("reload", new Reload())
-                .register("pack", new Pack())
-                .register("recipes", new Recipes())
-                .register("inv", new InventoryVisualizer())
-                .register("give", new Give())
-                .register("repair", new Repair());
-        PluginCommand command = getCommand("oraxen");
-        assert command != null;
-        command.setExecutor(handler);
-        // use brigadier if supported
-        if (CommodoreProvider.isSupported())
-            BrigadierManager.registerCompletions(CommodoreProvider.getCommodore(this), command);
+    private void pluginDependent() {
+        PluginManager manager = Bukkit.getPluginManager();
+        if (manager.getPlugin("ProtocolLib") != null) {
+            this.inputProvider = () -> new SignMenuFactory(this).newProvider();
+        } else {
+            ChatInputProvider.load(this);
+            this.inputProvider = () -> ChatInputProvider.getFree();
+        }
     }
 
     public void onEnable() {
         ConfigsManager configsManager = new ConfigsManager(this);
         if (!configsManager.validatesConfig()) {
-            Message.CONFIGS_VALIDATION_FAILED.logError();
+            MessageOld.CONFIGS_VALIDATION_FAILED.logError();
             getServer().getPluginManager().disablePlugin(this);
+            return;
         }
+        Bukkit.getPluginManager().registerEvents(new FallbackHandler(), this);
+        Bukkit.getPluginManager().registerEvents(new LanguageListener(), this);
         MechanicsManager.registerNativeMechanics();
         CompatibilitiesManager.enableNativeCompatibilities();
         OraxenItems.loadItems(configsManager);
@@ -80,17 +84,33 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     public void onDisable() {
-        MechanicsManager.unloadListeners();
+        unregisterListeners();
         CompatibilitiesManager.disableCompatibilities();
         Logs.log(ChatColor.GREEN + "Successfully unloaded");
     }
 
-    public static OraxenPlugin get() {
-        return instance;
+    private void unregisterListeners() {
+        MechanicsManager.unloadListeners();
+        if (ChatInputProvider.LISTENER != null)
+            HandlerList.unregisterAll(ChatInputProvider.LISTENER);
+        commandProvider.call(false);
+        HandlerList.unregisterAll(this);
     }
 
-    public SignMenuFactory getSignMenuFactory() {
-        return signMenuFactory;
+    public static OraxenPlugin get() {
+        return oraxen;
+    }
+
+    public InputProvider getInputProvider() {
+        return inputProvider.get();
+    }
+
+    public CommandProvider getCommandProvider() {
+        return commandProvider;
+    }
+
+    public UploadManager getUploadManager() {
+        return uploadManager;
     }
 
 

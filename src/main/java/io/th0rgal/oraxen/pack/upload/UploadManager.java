@@ -27,6 +27,9 @@ public class UploadManager {
     private boolean enabled;
     private HostingProvider hostingProvider;
 
+    private PackReceiver receiver;
+    private PackSender sender;
+
     public UploadManager(Plugin plugin) {
         this.plugin = plugin;
         this.enabled = (boolean) Pack.UPLOAD.getValue();
@@ -34,10 +37,10 @@ public class UploadManager {
     }
 
     public void uploadAsyncAndSendToPlayers(ResourcePack resourcePack) {
-        if((boolean) Pack.RECEIVE_ENABLED.getValue())
-            Bukkit.getPluginManager().registerEvents(new PackReceiver(), plugin);
         if (!enabled)
             return;
+        if ((boolean) Pack.RECEIVE_ENABLED.getValue() && receiver == null)
+            Bukkit.getPluginManager().registerEvents(receiver = new PackReceiver(), plugin);
         long time = System.currentTimeMillis();
         Logs.log(ChatColor.GREEN, "Automatic upload of the resource pack is enabled, uploading...");
         Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
@@ -45,68 +48,74 @@ public class UploadManager {
                 Logs.log(ChatColor.RED, "Resourcepack not uploaded");
                 return;
             }
-            Logs.log(ChatColor.GREEN, "Resourcepack uploaded on url "
-                    + hostingProvider.getPackURL() + " in " + (System.currentTimeMillis() - time) + "ms");
+            Logs.log(ChatColor.GREEN, "Resourcepack uploaded on url " + hostingProvider.getPackURL() + " in "
+                    + (System.currentTimeMillis() - time) + "ms");
             PackDispatcher.setPackURL(hostingProvider.getPackURL());
             PackDispatcher.setSha1(hostingProvider.getSHA1());
-            if ((boolean) Pack.SEND_PACK.getValue() || (boolean) Pack.SEND_JOIN_MESSAGE.getValue())
-                Bukkit.getPluginManager().registerEvents(new PackSender(), plugin);
+            if (((boolean) Pack.SEND_PACK.getValue() || (boolean) Pack.SEND_JOIN_MESSAGE.getValue()) && sender == null)
+                Bukkit.getPluginManager().registerEvents(sender = new PackSender(), plugin);
         });
     }
 
     private HostingProvider getHostingProvider() {
         switch (Pack.UPLOAD_TYPE.toString().toLowerCase()) {
-            case "polymath":
-                return new Polymath(Pack.POLYMATH_SERVER.toString());
-            case "sh":
-            case "cmd":
-                final ConfigurationSection opt = (ConfigurationSection) Pack.UPLOAD_OPTIONS.getValue();
-                final List<String> args = opt.getStringList("args");
-                if (args == null || args.isEmpty())
-                    throw new ProviderNotFoundException("No command line.");
-                String placeholder = opt.getString("placeholder", "${file}");
-                return new Sh(Sh.path(placeholder, args));
-            case "external":
-                Class<?> target;
-                final ConfigurationSection options = (ConfigurationSection) Pack.UPLOAD_OPTIONS.getValue();
-                String klass = options.getString("class");
-                if (klass == null) throw new ProviderNotFoundException("No provider set.");
+        case "polymath":
+            return new Polymath(Pack.POLYMATH_SERVER.toString());
+        case "sh":
+        case "cmd":
+            final ConfigurationSection opt = (ConfigurationSection) Pack.UPLOAD_OPTIONS.getValue();
+            final List<String> args = opt.getStringList("args");
+            if (args == null || args.isEmpty())
+                throw new ProviderNotFoundException("No command line.");
+            String placeholder = opt.getString("placeholder", "${file}");
+            return new Sh(Sh.path(placeholder, args));
+        case "external":
+            Class<?> target;
+            final ConfigurationSection options = (ConfigurationSection) Pack.UPLOAD_OPTIONS.getValue();
+            String klass = options.getString("class");
+            if (klass == null)
+                throw new ProviderNotFoundException("No provider set.");
+            try {
+                target = Class.forName(klass);
+            } catch (Throwable any) {
+                ProviderNotFoundException error = new ProviderNotFoundException("Provider not found: " + klass);
+                error.addSuppressed(any);
+                throw error;
+            }
+            if (!HostingProvider.class.isAssignableFrom(target)) {
+                throw new ProviderNotFoundException(target + " is not a valid HostingProvider.");
+            }
+            Class<? extends HostingProvider> implement = target.asSubclass(HostingProvider.class);
+            Constructor<? extends HostingProvider> constructor;
+            try {
                 try {
-                    target = Class.forName(klass);
-                } catch (Throwable any) {
-                    ProviderNotFoundException error = new ProviderNotFoundException("Provider not found: " + klass);
-                    error.addSuppressed(any);
-                    throw error;
-                }
-                if (!HostingProvider.class.isAssignableFrom(target)) {
-                    throw new ProviderNotFoundException(target + " is not a valid HostingProvider.");
-                }
-                Class<? extends HostingProvider> implement = target.asSubclass(HostingProvider.class);
-                Constructor<? extends HostingProvider> constructor;
-                try {
+                    constructor = implement.getConstructor(ConfigurationSection.class);
+                } catch (Exception notFound) {
                     try {
-                        constructor = implement.getConstructor(ConfigurationSection.class);
-                    } catch (Exception notFound) {
-                        try {
-                            constructor = implement.getConstructor();
-                        } catch (Exception ignore) {
-                            throw notFound; // Use (Lorg/bukkit/configuration/ConfigurationSection;)V to Exception
-                        }
+                        constructor = implement.getConstructor();
+                    } catch (Exception ignore) {
+                        throw notFound; // Use (Lorg/bukkit/configuration/ConfigurationSection;)V to Exception
                     }
-                } catch (Exception e) {
-                    throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot found constructor in " + target).initCause(e);
                 }
-                try {
-                    return constructor.getParameterCount() == 0 ? constructor.newInstance() : constructor.newInstance(options);
-                } catch (InstantiationException e) {
-                    throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot alloc instance for " + target).initCause(e);
-                } catch (IllegalAccessException e) {
-                    throw (ProviderNotFoundException) new ProviderNotFoundException("Failed to access " + target).initCause(e);
-                } catch (InvocationTargetException e) {
-                    throw (ProviderNotFoundException) new ProviderNotFoundException("Exception in allocating instance.").initCause(e.getCause());
-                }
-            default:
-                throw new ProviderNotFoundException("Unknown provider type: " + Pack.UPLOAD_TYPE);
+            } catch (Exception e) {
+                throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot found constructor in " + target)
+                        .initCause(e);
+            }
+            try {
+                return constructor.getParameterCount() == 0 ? constructor.newInstance()
+                        : constructor.newInstance(options);
+            } catch (InstantiationException e) {
+                throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot alloc instance for " + target)
+                        .initCause(e);
+            } catch (IllegalAccessException e) {
+                throw (ProviderNotFoundException) new ProviderNotFoundException("Failed to access " + target)
+                        .initCause(e);
+            } catch (InvocationTargetException e) {
+                throw (ProviderNotFoundException) new ProviderNotFoundException("Exception in allocating instance.")
+                        .initCause(e.getCause());
+            }
+        default:
+            throw new ProviderNotFoundException("Unknown provider type: " + Pack.UPLOAD_TYPE);
         }
 
     }

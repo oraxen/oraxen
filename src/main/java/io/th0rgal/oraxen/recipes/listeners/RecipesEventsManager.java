@@ -42,10 +42,10 @@ public class RecipesEventsManager implements Listener {
         ItemStack result = event.getInventory().getResult();
         if (result == null)
             return;
-        boolean containsOraxenItem = OraxenItems.isAnItem(OraxenItems.getIdByItem(result));
+        boolean containsOraxenItem = OraxenItems.exists(OraxenItems.getIdByItem(result));
         if (!containsOraxenItem)
             for (ItemStack ingredient : event.getInventory().getMatrix())
-                if (OraxenItems.isAnItem(OraxenItems.getIdByItem(ingredient))) {
+                if (OraxenItems.exists(OraxenItems.getIdByItem(ingredient))) {
                     containsOraxenItem = true;
                     break;
                 }
@@ -53,12 +53,9 @@ public class RecipesEventsManager implements Listener {
             return;
 
         for (CustomRecipe whitelistedRecipe : whitelistedCraftRecipes) {
-            if (whitelistedRecipe.equals(
-                    new CustomRecipe(
-                            Objects.requireNonNull(recipe).getResult(),
-                            Arrays.asList(event.getInventory().getMatrix())
-                    )
-            ))
+            if (whitelistedRecipe
+                .equals(new CustomRecipe(Objects.requireNonNull(recipe).getResult(),
+                    Arrays.asList(event.getInventory().getMatrix()))))
                 return;
         }
 

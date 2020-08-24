@@ -81,7 +81,7 @@ public class ResourcesManager {
             URL jar = src.getLocation();
             return tryToBrowse(jar);
         } else {
-            Message.ZIP_BROWSE_ERROR.logError();
+            MessageOld.ZIP_BROWSE_ERROR.logError();
             throw new RuntimeException();
         }
     }
@@ -90,7 +90,7 @@ public class ResourcesManager {
         try {
             return new ZipInputStream(jar.openStream());
         } catch (IOException e) {
-            Message.ZIP_BROWSE_ERROR.logError();
+            MessageOld.ZIP_BROWSE_ERROR.logError();
             e.printStackTrace();
             throw new RuntimeException();
         }

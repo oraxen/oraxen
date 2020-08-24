@@ -46,17 +46,12 @@ public class BlockMechanicListener implements Listener {
             return;
 
         MultipleFacing blockFacing = (MultipleFacing) block.getBlockData();
-        BlockMechanic blockMechanic = BlockMechanicFactory
-                .getBlockMechanic(Utils.getCode(blockFacing));
+        BlockMechanic blockMechanic = BlockMechanicFactory.getBlockMechanic(Utils.getCode(blockFacing));
         if (blockMechanic == null)
             return;
         if (blockMechanic.hasBreakSound())
             block.getWorld().playSound(block.getLocation(), blockMechanic.getBreakSound(), 1.0f, 0.8f);
-        blockMechanic
-                .getDrop()
-                .spawns(block.getLocation(),
-                        event.getPlayer().getInventory()
-                                .getItemInMainHand());
+        blockMechanic.getDrop().spawns(block.getLocation(), event.getPlayer().getInventory().getItemInMainHand());
         event.setDropItems(false);
     }
 
@@ -64,7 +59,7 @@ public class BlockMechanicListener implements Listener {
     public void onPlacingMushroomBlock(BlockPlaceEvent event) {
 
         if (event.getBlockPlaced().getType() != Material.MUSHROOM_STEM
-                || OraxenItems.isAnItem(OraxenItems.getIdByItem(event.getItemInHand())))
+            || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
 
         Block block = event.getBlock();
@@ -74,8 +69,9 @@ public class BlockMechanicListener implements Listener {
     }
 
     // not static here because only instanciated once I think
-    private final List<Material> replaceableBlocks = Arrays.asList(Material.SNOW, Material.VINE,
-            Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN, Material.LARGE_FERN);
+    private final List<Material> replaceableBlocks = Arrays
+        .asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,
+            Material.LARGE_FERN);
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrePlacingCustomBlock(PlayerInteractEvent event) {
@@ -110,10 +106,11 @@ public class BlockMechanicListener implements Listener {
         int customVariation = ((BlockMechanic) factory.getMechanic(itemID)).getCustomVariation();
         Utils.setBlockFacing(newBlockData, customVariation);
 
-        //set the new block
+        // set the new block
         target.setBlockData(newBlockData); // false to cancel physic
 
-        BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, event.getHand());
+        BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player,
+            true, event.getHand());
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
@@ -128,8 +125,9 @@ public class BlockMechanicListener implements Listener {
         Location playerLocation = player.getLocation();
         Location blockLocation = block.getLocation();
         return playerLocation.getBlockX() == blockLocation.getBlockX()
-                && (playerLocation.getBlockY() == blockLocation.getBlockY() || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
-                && playerLocation.getBlockZ() == blockLocation.getBlockZ();
+            && (playerLocation.getBlockY() == blockLocation.getBlockY()
+                || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
+            && playerLocation.getBlockZ() == blockLocation.getBlockZ();
     }
 
 }

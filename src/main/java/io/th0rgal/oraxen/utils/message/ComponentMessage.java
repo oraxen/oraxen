@@ -52,7 +52,7 @@ public class ComponentMessage extends Message {
         if (action == MessageAction.KICK)
             player.kickPlayer(getContent());
         if (action == MessageAction.TITLE)
-            player.sendTitle(stringifyComponents(message), "", 20, 100, 20);
+            player.sendTitle(getContent(), "", 20, 100, 20);
     }
 
     public static String stringifyComponents(BaseComponent[] message) {

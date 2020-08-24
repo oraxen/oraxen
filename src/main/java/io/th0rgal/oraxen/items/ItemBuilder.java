@@ -117,8 +117,8 @@ public class ItemBuilder {
 
         this.overrideData = ItemTools.toNbtCompound(itemStack);
         this.customItemData = overrideData.hasKey("oraxenData", NbtType.COMPOUND)
-                ? overrideData.getCompound("oraxenData")
-                : new NbtCompound();
+            ? overrideData.getCompound("oraxenData")
+            : new NbtCompound();
 
         this.enchantments = new HashMap<>();
 
@@ -130,6 +130,8 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setAmount(int amount) {
+        if (amount > type.getMaxStackSize())
+            amount = type.getMaxStackSize();
         this.amount = amount;
         return this;
     }
@@ -185,7 +187,7 @@ public class ItemBuilder {
     public <T, Z> Z getCustomTag(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType) {
         for (Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
             if (dataSpace.getKey().getNamespacedKey().equals(namespacedKey)
-                    && dataSpace.getKey().getDataType().equals(dataType))
+                && dataSpace.getKey().getDataType().equals(dataType))
                 return (Z) dataSpace.getValue();
         return null;
     }
@@ -210,7 +212,7 @@ public class ItemBuilder {
         overrideData.getValue().putAll(compound.getValue());
         return this;
     }
-    
+
     public NbtTag getOverrideTag(String name) {
         return overrideData.get(name);
     }
@@ -224,7 +226,7 @@ public class ItemBuilder {
         customItemData.getValue().putAll(compound.getValue());
         return this;
     }
-    
+
     public NbtTag getNbtTag(String name) {
         return customItemData.get(name);
     }
@@ -289,7 +291,7 @@ public class ItemBuilder {
     public OraxenMeta getOraxenMeta() {
         return oraxenMeta;
     }
-    
+
     public ItemStack getReferenceClone() {
         return itemStack.clone();
     }
@@ -298,14 +300,14 @@ public class ItemBuilder {
 
     @SuppressWarnings("unchecked")
     public ItemBuilder regen() {
-        
-        if(!customItemData.isEmpty())
+
+        if (!customItemData.isEmpty())
             overrideData.set("oraxenData", customItemData);
-        
+
         ItemStack itemStack = ItemTools.fromNbtCompound(overrideData);
-        
+
         overrideData.remove("oraxenData");
-        
+
         /*
          * CHANGING ITEM
          */
@@ -398,15 +400,41 @@ public class ItemBuilder {
 
         if (!persistentDataMap.isEmpty())
             for (Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
-                itemMeta.getPersistentDataContainer().set(dataSpace.getKey().getNamespacedKey(),
+                itemMeta
+                    .getPersistentDataContainer()
+                    .set(dataSpace.getKey().getNamespacedKey(),
                         (PersistentDataType<?, Object>) dataSpace.getKey().getDataType(), dataSpace.getValue());
-        
+
         itemMeta.setLore(lore);
 
         itemStack.setItemMeta(itemMeta);
         finalItemStack = itemStack;
 
         return this;
+    }
+
+    public int getMaxStackSize() {
+        return type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
+    }
+
+    public ItemStack[] buildArray(int amount) {
+        ItemStack built = build();
+        int max = getMaxStackSize();
+        int rest = max == amount ? amount : amount % max;
+        int iterations = amount > max ? (amount - rest) / max : 0;
+        ItemStack[] output = new ItemStack[iterations + (rest > 0 ? 1 : 0)];
+        System.out.println(max + "/" + rest + "/" + iterations);
+        for (int index = 0; index < iterations; index++) {
+            ItemStack clone = built.clone();
+            clone.setAmount(max);
+            output[index] = clone;
+        }
+        if (rest != 0) {
+            ItemStack clone = built.clone();
+            clone.setAmount(rest);
+            output[iterations] = clone;
+        }
+        return output;
     }
 
     public ItemStack build() {
