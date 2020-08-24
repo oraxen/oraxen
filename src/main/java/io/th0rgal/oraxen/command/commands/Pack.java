@@ -43,8 +43,8 @@ public class Pack extends OraxenCommand {
             return;
 
         Optional<Boolean> option0 = restrict(
-            get(arguments, 1, ArgumentType.STRING).map(argument -> argument.asString()), "pack", "menu")
-                .map(value -> value.equals("pack"));
+            get(arguments, 1, ArgumentType.STRING).map(argument -> argument.asString()), "get", "send")
+                .map(value -> value.equals("get"));
         if (!option0.isPresent()) {
             info.getInfo().sendSimple(sender, info.getLabel());
             return;
@@ -72,7 +72,7 @@ public class Pack extends OraxenCommand {
         int count = arguments.count();
 
         if (count == 1) {
-            completion(completion, "pack", "menu");
+            completion(completion, "get", "send");
         } else if (count == 2) {
             completion(completion,
                 Conditions.player().isTrue(info.getSender()) ? (new String[] { "@a", "@r", "@s", "@p" })
