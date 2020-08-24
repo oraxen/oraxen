@@ -8,7 +8,6 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
-
 public class SkinMechanicListener implements Listener {
     private final SkinMechanicFactory factory;
 
@@ -16,19 +15,18 @@ public class SkinMechanicListener implements Listener {
         this.factory = factory;
     }
 
-
     @EventHandler
     public void onInventoryClick(InventoryClickEvent event) {
         ItemStack skin = event.getCursor();
         ItemStack skinnable = event.getCurrentItem();
         String skinItemID = OraxenItems.getIdByItem(skin);
         String skinnableItemID = OraxenItems.getIdByItem(skinnable);
-        if (factory.isNotImplementedIn(skinItemID) || SkinnableMechanicFactory.get().isNotImplementedIn(skinnableItemID))
+        if (factory.isNotImplementedIn(skinItemID)
+            || SkinnableMechanicFactory.get().isNotImplementedIn(skinnableItemID))
             return;
 
         if (!skin.getItemMeta().hasCustomModelData() || skin.getType() != skinnable.getType())
             return;
-
 
         int changeSkin = skin.getItemMeta().getCustomModelData();
 

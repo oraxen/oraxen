@@ -48,7 +48,8 @@ public class UploadManager {
                 Logs.log(ChatColor.RED, "Resourcepack not uploaded");
                 return;
             }
-            Logs.log(ChatColor.GREEN, "Resourcepack uploaded on url " + hostingProvider.getPackURL() + " in "
+            Logs
+                .log(ChatColor.GREEN, "Resourcepack uploaded on url " + hostingProvider.getPackURL() + " in "
                     + (System.currentTimeMillis() - time) + "ms");
             PackDispatcher.setPackURL(hostingProvider.getPackURL());
             PackDispatcher.setSha1(hostingProvider.getSHA1());
@@ -99,20 +100,20 @@ public class UploadManager {
                 }
             } catch (Exception e) {
                 throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot found constructor in " + target)
-                        .initCause(e);
+                    .initCause(e);
             }
             try {
                 return constructor.getParameterCount() == 0 ? constructor.newInstance()
-                        : constructor.newInstance(options);
+                    : constructor.newInstance(options);
             } catch (InstantiationException e) {
                 throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot alloc instance for " + target)
-                        .initCause(e);
+                    .initCause(e);
             } catch (IllegalAccessException e) {
                 throw (ProviderNotFoundException) new ProviderNotFoundException("Failed to access " + target)
-                        .initCause(e);
+                    .initCause(e);
             } catch (InvocationTargetException e) {
                 throw (ProviderNotFoundException) new ProviderNotFoundException("Exception in allocating instance.")
-                        .initCause(e.getCause());
+                    .initCause(e.getCause());
             }
         default:
             throw new ProviderNotFoundException("Unknown provider type: " + Pack.UPLOAD_TYPE);

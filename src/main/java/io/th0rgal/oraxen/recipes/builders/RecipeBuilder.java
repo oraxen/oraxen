@@ -33,14 +33,14 @@ public abstract class RecipeBuilder {
         this.inventoryTitle = player.getName() + " " + builderName + " builder";
         UUID playerId = player.getUniqueId();
         inventory = MAP.containsKey(playerId) && MAP.get(playerId).builderName.equals(builderName)
-                ? MAP.get(playerId).inventory
-                : createInventory(player, inventoryTitle);
+            ? MAP.get(playerId).inventory
+            : createInventory(player, inventoryTitle);
         player.openInventory(inventory);
         MAP.put(playerId, this);
     }
 
     abstract Inventory createInventory(Player player, String inventoryTitle);
-    
+
     void close() {
         MAP.remove(player.getUniqueId());
     }
@@ -57,13 +57,14 @@ public abstract class RecipeBuilder {
 
         String itemID = OraxenItems.getIdByItem(itemStack);
 
-        //if our itemstack is made using oraxen and is not modified
-        if (itemID != null && Objects.equals(OraxenItems.getItemById(itemID).build().getItemMeta(), itemStack.getItemMeta())) {
+        // if our itemstack is made using oraxen and is not modified
+        if (itemID != null
+            && Objects.equals(OraxenItems.getItemById(itemID).build().getItemMeta(), itemStack.getItemMeta())) {
             section.set("oraxen_item", itemID);
             return;
         }
 
-        //if our itemstack is an unmodified vanilla item
+        // if our itemstack is an unmodified vanilla item
         if (itemStack != null && itemStack.equals(new ItemStack(itemStack.getType()))) {
             section.set("minecraft_type", itemStack.getType().toString());
             return;
@@ -73,7 +74,8 @@ public abstract class RecipeBuilder {
 
     public YamlConfiguration getConfig() {
         if (configFile == null) {
-            configFile = new ResourcesManager(OraxenPlugin.get()).extractConfiguration("recipes/" + builderName + ".yml");
+            configFile = new ResourcesManager(OraxenPlugin.get())
+                .extractConfiguration("recipes/" + builderName + ".yml");
             config = YamlConfiguration.loadConfiguration(configFile);
         }
         return config;

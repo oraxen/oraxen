@@ -34,7 +34,7 @@ public abstract class MechanicFactory {
     }
 
     public Mechanic getMechanic(String itemID) {
-        return  mechanicByItem.get(itemID);
+        return mechanicByItem.get(itemID);
     }
 
     public String getMechanicID() {

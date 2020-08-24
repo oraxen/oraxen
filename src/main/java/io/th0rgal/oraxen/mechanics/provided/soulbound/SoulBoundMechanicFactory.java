@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import org.bukkit.configuration.ConfigurationSection;
 
-
 public class SoulBoundMechanicFactory extends MechanicFactory {
     public SoulBoundMechanicFactory(ConfigurationSection section) {
         super(section);

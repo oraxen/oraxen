@@ -50,7 +50,8 @@ public abstract class RecipeLoader {
     protected RecipeChoice getRecipeChoice(ConfigurationSection ingredientSection) {
 
         if (ingredientSection.isString("oraxen_item"))
-            return new RecipeChoice.ExactChoice(OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build());
+            return new RecipeChoice.ExactChoice(
+                OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build());
 
         if (ingredientSection.isString("minecraft_type"))
             return new RecipeChoice.MaterialChoice(Material.getMaterial(ingredientSection.getString("minecraft_type")));
@@ -86,8 +87,3 @@ public abstract class RecipeLoader {
     }
 
 }
-
-
-
-
-

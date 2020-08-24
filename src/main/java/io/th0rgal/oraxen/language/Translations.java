@@ -101,7 +101,7 @@ public final class Translations {
      */
 
     public static String message(String language, String id) {
-        return translate(language, id, TranslationType.MESSAGE);
+        return replaceDefaults(language, translate(language, id, TranslationType.MESSAGE));
     }
 
     public static String variable(String language, String id) {
@@ -109,7 +109,7 @@ public final class Translations {
     }
 
     public static String description(String language, String id) {
-        return translate(language, id, TranslationType.DESCRIPTION);
+        return replaceDefaults(language, translate(language, id, TranslationType.DESCRIPTION));
     }
 
     public static String message(String language, String id, Placeholder... placeholders) {

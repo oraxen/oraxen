@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.utils;
 
-
 import org.bukkit.util.Vector;
 
 public class VectorUtils {

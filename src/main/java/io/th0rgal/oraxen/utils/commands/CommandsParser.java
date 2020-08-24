@@ -36,20 +36,17 @@ public class CommandsParser {
 
         if (consoleCommands != null)
             for (String command : consoleCommands)
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(),
-                        command.replace("%p%", playerName));
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("%p%", playerName));
 
         if (playerCommands != null)
             for (String command : playerCommands)
-                Bukkit.dispatchCommand(player,
-                        command.replace("%p%", playerName));
+                Bukkit.dispatchCommand(player, command.replace("%p%", playerName));
 
         if (oppedPlayerCommands != null)
             for (String command : oppedPlayerCommands) {
                 boolean wasOp = player.isOp();
                 player.setOp(true);
-                Bukkit.dispatchCommand(player,
-                        command.replace("%p%", playerName));
+                Bukkit.dispatchCommand(player, command.replace("%p%", playerName));
                 player.setOp(wasOp);
             }
     }

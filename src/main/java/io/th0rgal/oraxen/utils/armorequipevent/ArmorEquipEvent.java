@@ -24,7 +24,8 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
      * @param oldArmorPiece The ItemStack of the armor removed.
      * @param newArmorPiece The ItemStack of the armor added.
      */
-    public ArmorEquipEvent(final Player player, final EquipMethod equipType, final ArmorType type, final ItemStack oldArmorPiece, final ItemStack newArmorPiece) {
+    public ArmorEquipEvent(final Player player, final EquipMethod equipType, final ArmorType type,
+        final ItemStack oldArmorPiece, final ItemStack newArmorPiece) {
         super(player);
         this.equipType = equipType;
         this.type = type;
@@ -111,16 +112,19 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
          */
         PICK_DROP,
         /**
-         * When you right click an armor piece in the hotbar without the inventory open to equip.
+         * When you right click an armor piece in the hotbar without the inventory open
+         * to equip.
          */
         HOTBAR,
         /**
-         * When you press the hotbar slot number while hovering over the armor slot to equip or unequip
+         * When you press the hotbar slot number while hovering over the armor slot to
+         * equip or unequip
          */
         HOTBAR_SWAP,
         /**
          * When in range of a dispenser that shoots an armor piece to equip.<br>
-         * Requires the spigot version to have {@link org.bukkit.event.block.BlockDispenseArmorEvent} implemented.
+         * Requires the spigot version to have
+         * {@link org.bukkit.event.block.BlockDispenseArmorEvent} implemented.
          */
         DISPENSER,
         /**
@@ -134,7 +138,6 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
         /**
          * When you use HatMechanic from Oraxen
          */
-        ORAXEN_HAT,
-        ;
+        ORAXEN_HAT,;
     }
 }

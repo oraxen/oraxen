@@ -94,7 +94,8 @@ public class Give extends OraxenCommand {
         } else if (count == 3) {
             Optional<ItemBuilder> item = get(arguments, 2, argument -> item(argument));
             if (item.isPresent())
-                completion.add(new StringArgument("{<amount>} | min = 1 / max = " + (item.get().getMaxStackSize() * 36)));
+                completion
+                    .add(new StringArgument("{<amount>} | min = 1 / max = " + (item.get().getMaxStackSize() * 36)));
         }
         return completion;
     }

@@ -33,7 +33,8 @@ public class SmeltingMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (event.isCancelled()) return;
+        if (event.isCancelled())
+            return;
         ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
 
         String itemID = OraxenItems.getIdByItem(item);
@@ -44,7 +45,8 @@ public class SmeltingMechanicListener implements Listener {
             return;
 
         ItemStack loot = furnace(new ItemStack(event.getBlock().getType()));
-        if (loot == null) return; // not recipe
+        if (loot == null)
+            return; // not recipe
         ItemMeta itemMeta = item.getItemMeta();
 
         if (Objects.requireNonNull(itemMeta).hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
@@ -61,7 +63,8 @@ public class SmeltingMechanicListener implements Listener {
 
     @SuppressWarnings("unchecked")
     private ItemStack furnace(ItemStack item) {
-        if (item == null) return null; // Because item can be null
+        if (item == null)
+            return null; // Because item can be null
         Optional<Reflect> recipeIteratorReflect = ORAXEN.getOptionalReflect("cb_recipeiterator");
         if (!recipeIteratorReflect.isPresent())
             throw new IllegalStateException("Oraxen Reflections aren't setup properly?");
@@ -69,7 +72,8 @@ public class SmeltingMechanicListener implements Listener {
 
         while (recipeIterator.hasNext()) {
             Recipe recipe = recipeIterator.next();
-            if (!(recipe instanceof CookingRecipe)) continue;
+            if (!(recipe instanceof CookingRecipe))
+                continue;
             CookingRecipe<?> recipe1 = (CookingRecipe<?>) recipe;
             if (recipe1.getInputChoice().test(item))
                 return new ItemStack(recipe.getResult().getType(), item.getAmount());

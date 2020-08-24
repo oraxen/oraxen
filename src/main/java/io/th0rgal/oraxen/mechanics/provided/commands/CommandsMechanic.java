@@ -43,7 +43,7 @@ public class CommandsMechanic extends Mechanic {
     }
 
     public Timer getTimer(Player player) {
-        return  timersFactory.getTimer(player);
+        return timersFactory.getTimer(player);
     }
 
     public CommandsParser getCommands() {

@@ -50,7 +50,7 @@ public class ChatInputProvider implements InputProvider {
 
     private BiPredicate<Player, InputProvider> response;
     private boolean reopenOnFail;
-    
+
     @Override
     public boolean hasMultipleLines() {
         return false;
@@ -112,7 +112,7 @@ public class ChatInputProvider implements InputProvider {
         this.response = response;
         return this;
     }
-    
+
     @Override
     public void close() {
         this.userId = null;

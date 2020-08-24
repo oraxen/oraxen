@@ -57,13 +57,15 @@ public class OraxenPrice extends BSPriceType {
     @Override
     @SuppressWarnings("unchecked")
     public String getDisplayPrice(Player player, BSBuy bsBuy, Object reward, ClickType clickType) {
-        String items_formatted = ClassManager.manager.getItemStackTranslator().getFriendlyText((List<ItemStack>) reward);
+        String items_formatted = ClassManager.manager
+            .getItemStackTranslator()
+            .getFriendlyText((List<ItemStack>) reward);
         return ClassManager.manager.getMessageHandler().get("Display.Item").replace("%items%", items_formatted);
     }
 
     @Override
     public String[] createNames() {
-        return new String[]{"oraxen", "oraxen-item", "item-oraxen"};
+        return new String[] { "oraxen", "oraxen-item", "item-oraxen" };
     }
 
     @Override

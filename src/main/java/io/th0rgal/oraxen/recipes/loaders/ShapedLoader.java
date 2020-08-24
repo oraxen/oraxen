@@ -21,9 +21,7 @@ public class ShapedLoader extends RecipeLoader {
         ConfigurationSection ingredientsSection = getSection().getConfigurationSection("ingredients");
         for (String ingredientLetter : Objects.requireNonNull(ingredientsSection).getKeys(false)) {
             ConfigurationSection itemSection = ingredientsSection.getConfigurationSection(ingredientLetter);
-            recipe.setIngredient(
-                    ingredientLetter.charAt(0),
-                    getRecipeChoice(Objects.requireNonNull(itemSection)));
+            recipe.setIngredient(ingredientLetter.charAt(0), getRecipeChoice(Objects.requireNonNull(itemSection)));
         }
         addToWhitelistedRecipes(recipe);
         loadRecipe(recipe);

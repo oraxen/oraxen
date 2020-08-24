@@ -25,7 +25,7 @@ public class Timer {
     }
 
     public long getRemainingTimeMillis() {
-        return  lastUsage + delay - System.currentTimeMillis();
+        return lastUsage + delay - System.currentTimeMillis();
     }
 
 }

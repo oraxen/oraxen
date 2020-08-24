@@ -54,14 +54,14 @@ public class ItemPanel extends OraxenCommand {
     @Override
     public DefaultCompletion complete(MinecraftInfo info, Arguments arguments) {
         DefaultCompletion completion = new DefaultCompletion();
-        
-        if(Conditions.hasPerm(OraxenPermission.COMMAND_RELOAD).isFalse(info.getSender()))
+
+        if (Conditions.hasPerm(OraxenPermission.COMMAND_RELOAD).isFalse(info.getSender()))
             return completion;
-        
-        if(arguments.count() == 1) {
+
+        if (arguments.count() == 1) {
             completion.add(new StringArgument("all"));
         }
-        
+
         return completion;
     }
 

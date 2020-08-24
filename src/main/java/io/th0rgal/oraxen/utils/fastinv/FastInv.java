@@ -20,8 +20,8 @@ import java.util.function.Predicate;
 import java.util.stream.IntStream;
 
 /**
- * Small and easy Bukkit inventory API with 1.7 to 1.14 support !
- * The project is on <a href="https://github.com/MrMicky-FR/FastInv">GitHub</a>
+ * Small and easy Bukkit inventory API with 1.7 to 1.14 support ! The project is
+ * on <a href="https://github.com/MrMicky-FR/FastInv">GitHub</a>
  *
  * @author MrMicky
  * @version 3.0
@@ -106,7 +106,8 @@ public class FastInv implements InventoryHolder {
     }
 
     /**
-     * Add an {@link ItemStack} to the inventory on the first empty slot with a click handler.
+     * Add an {@link ItemStack} to the inventory on the first empty slot with a
+     * click handler.
      *
      * @param item    The item to add.
      * @param handler The the click handler for the item.
@@ -129,7 +130,8 @@ public class FastInv implements InventoryHolder {
     }
 
     /**
-     * Add an {@link ItemStack} to the inventory on specific slot with a click handler.
+     * Add an {@link ItemStack} to the inventory on specific slot with a click
+     * handler.
      *
      * @param slot    The slot where to add the item.
      * @param item    The item to add.
@@ -157,7 +159,8 @@ public class FastInv implements InventoryHolder {
     }
 
     /**
-     * Add an {@link ItemStack} to the inventory on a range of slots with a click handler.
+     * Add an {@link ItemStack} to the inventory on a range of slots with a click
+     * handler.
      *
      * @param slotFrom Starting slot to put the item in.
      * @param slotTo   Ending slot to put the item in.
@@ -181,7 +184,8 @@ public class FastInv implements InventoryHolder {
     }
 
     /**
-     * Add an {@link ItemStack} to the inventory on multiples slots with a click handler.
+     * Add an {@link ItemStack} to the inventory on multiples slots with a click
+     * handler.
      *
      * @param slots   The slots where to add the item
      * @param item    The item to add.
@@ -215,8 +219,8 @@ public class FastInv implements InventoryHolder {
     }
 
     /**
-     * Add a close filter to prevent players from closing the inventory.
-     * To prevent a player from closing the inventory the predicate should return {@code true}
+     * Add a close filter to prevent players from closing the inventory. To prevent
+     * a player from closing the inventory the predicate should return {@code true}
      *
      * @param closeFilter The close filter
      */
@@ -270,13 +274,17 @@ public class FastInv implements InventoryHolder {
     }
 
     /**
-     * Get borders of the inventory. If the inventory size is under 27, all slots are returned
+     * Get borders of the inventory. If the inventory size is under 27, all slots
+     * are returned
      *
      * @return inventory borders
      */
     public int[] getBorders() {
         int size = inventory.getSize();
-        return IntStream.range(0, size).filter(i -> size < 27 || i < 9 || i % 9 == 0 || (i - 8) % 9 == 0 || i > size - 9).toArray();
+        return IntStream
+            .range(0, size)
+            .filter(i -> size < 27 || i < 9 || i % 9 == 0 || (i - 8) % 9 == 0 || i > size - 9)
+            .toArray();
     }
 
     /**

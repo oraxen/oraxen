@@ -23,5 +23,4 @@ public class CompatibilityListener implements Listener {
         CompatibilitiesManager.disableCompatibility(event.getPlugin().getName());
     }
 
-
 }

@@ -64,7 +64,8 @@ public class Drop {
 
         int fortuneMultiplier = 1;
         if (fortune && itemInHand.getItemMeta().hasEnchant(Enchantment.LOOT_BONUS_BLOCKS))
-            fortuneMultiplier += new Random().nextInt(itemInHand.getItemMeta().getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS));
+            fortuneMultiplier += new Random()
+                .nextInt(itemInHand.getItemMeta().getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS));
 
         for (Loot loot : loots) {
             loot.dropNaturally(location, fortuneMultiplier);

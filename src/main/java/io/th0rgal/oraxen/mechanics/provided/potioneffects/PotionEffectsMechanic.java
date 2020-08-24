@@ -37,7 +37,8 @@ public class PotionEffectsMechanic extends Mechanic {
             particles = section.getBoolean("particles");
         if (section.isBoolean("icon"))
             icon = section.getBoolean("icon");
-        PotionEffect potionEffect = new PotionEffect(effectType, Integer.MAX_VALUE, amplifier, ambient, particles, icon);
+        PotionEffect potionEffect = new PotionEffect(effectType, Integer.MAX_VALUE, amplifier, ambient, particles,
+            icon);
         effects.add(potionEffect);
         overridedTypes.add(potionEffect.getType());
     }

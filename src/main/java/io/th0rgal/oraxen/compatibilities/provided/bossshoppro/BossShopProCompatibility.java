@@ -38,5 +38,4 @@ public class BossShopProCompatibility extends CompatibilityProvider<BossShop> {
         new OraxenPrice().register();
     }
 
-
 }

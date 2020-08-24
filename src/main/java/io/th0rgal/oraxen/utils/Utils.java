@@ -28,8 +28,8 @@ public class Utils {
     }
 
     public static int getCode(MultipleFacing blockData) {
-        final List<BlockFace> properties = Arrays.asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH,
-            BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
+        final List<BlockFace> properties = Arrays
+            .asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
         int sum = 0;
         for (BlockFace blockFace : blockData.getFaces())
             sum += (int) Math.pow(2, properties.indexOf(blockFace));

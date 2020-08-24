@@ -30,12 +30,16 @@ public class DurabilityMechanicManager implements Listener {
 
         ItemMeta itemMeta = item.getItemMeta();
         PersistentDataContainer persistentDataContainer = itemMeta.getPersistentDataContainer();
-        int realDurabilityLeft = persistentDataContainer.get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER) - event.getDamage();
+        int realDurabilityLeft = persistentDataContainer
+            .get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER) - event.getDamage();
 
         if (realDurabilityLeft > 0) {
-            double realMaxDurability = durabilityMechanic.getItemMaxDurability(); //because int rounded values suck
-            persistentDataContainer.set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realDurabilityLeft);
-            ((Damageable) itemMeta).setDamage((int) (item.getType().getMaxDurability() - realDurabilityLeft / realMaxDurability * item.getType().getMaxDurability()));
+            double realMaxDurability = durabilityMechanic.getItemMaxDurability(); // because int rounded values suck
+            persistentDataContainer
+                .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realDurabilityLeft);
+            ((Damageable) itemMeta)
+                .setDamage((int) (item.getType().getMaxDurability()
+                    - realDurabilityLeft / realMaxDurability * item.getType().getMaxDurability()));
             item.setItemMeta(itemMeta);
         } else {
             item.setAmount(0);

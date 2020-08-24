@@ -33,7 +33,7 @@ public enum Plugin implements ConfigEnum {
 
     @SuppressWarnings("unchecked")
     public List<String> getAsStringList() {
-        return (List<String>)value;
+        return (List<String>) value;
     }
 
     @Override

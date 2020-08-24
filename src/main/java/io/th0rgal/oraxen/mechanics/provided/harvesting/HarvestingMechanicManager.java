@@ -30,7 +30,7 @@ public class HarvestingMechanicManager implements Listener {
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPlayerInteract(PlayerInteractEvent event) {
 
-        if(!event.getAction().equals(Action.RIGHT_CLICK_BLOCK) || event.getClickedBlock() == null)
+        if (!event.getAction().equals(Action.RIGHT_CLICK_BLOCK) || event.getClickedBlock() == null)
             return;
 
         ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
@@ -46,26 +46,27 @@ public class HarvestingMechanicManager implements Listener {
 
         Player player = event.getPlayer();
 
-        for(Block block : getNearbyBlocks(event.getClickedBlock().getLocation(), mechanic.getRadius(), mechanic.getHeight())){
-            if(block.getBlockData() instanceof Ageable){
+        for (Block block : getNearbyBlocks(event.getClickedBlock().getLocation(), mechanic.getRadius(),
+            mechanic.getHeight())) {
+            if (block.getBlockData() instanceof Ageable) {
                 Ageable ageable = (Ageable) block.getBlockData();
-                if(ageable.getAge() == ageable.getMaximumAge()){
+                if (ageable.getAge() == ageable.getMaximumAge()) {
                     ageable.setAge(0);
                     block.setBlockData(ageable);
                     List<ItemStack> drops = new ArrayList<>();
                     switch (block.getType()) {
-                        case WHEAT:
-                            drops.add(new ItemStack(Material.WHEAT));
-                            drops.add(new ItemStack(Material.WHEAT_SEEDS));
-                            break;
-                        case BEETROOTS:
-                            drops.add(new ItemStack(Material.BEETROOT));
-                            drops.add(new ItemStack(Material.BEETROOT_SEEDS));
-                            break;
-                        default:
-                            drops.addAll(block.getDrops());
+                    case WHEAT:
+                        drops.add(new ItemStack(Material.WHEAT));
+                        drops.add(new ItemStack(Material.WHEAT_SEEDS));
+                        break;
+                    case BEETROOTS:
+                        drops.add(new ItemStack(Material.BEETROOT));
+                        drops.add(new ItemStack(Material.BEETROOT_SEEDS));
+                        break;
+                    default:
+                        drops.addAll(block.getDrops());
                     }
-                    for(ItemStack itemStack : drops)
+                    for (ItemStack itemStack : drops)
                         giveItem(player, itemStack);
                 }
             }
@@ -75,19 +76,22 @@ public class HarvestingMechanicManager implements Listener {
 
     private static List<Block> getNearbyBlocks(Location location, int radius, int height) {
         List<Block> blocks = new ArrayList<>();
-        for(int x = location.getBlockX() - Math.floorDiv(radius, 2); x <= location.getBlockX() + Math.floorDiv(radius, 2); x++) {
-            for(int y = location.getBlockY() - Math.floorDiv(height, 2); y <= location.getBlockY() + Math.floorDiv(height, 2); y++)
-                for(int z = location.getBlockZ() - Math.floorDiv(radius, 2); z <= location.getBlockZ() + Math.floorDiv(radius, 2); z++) {
+        for (int x = location.getBlockX() - Math.floorDiv(radius, 2); x <= location.getBlockX()
+            + Math.floorDiv(radius, 2); x++) {
+            for (int y = location.getBlockY() - Math.floorDiv(height, 2); y <= location.getBlockY()
+                + Math.floorDiv(height, 2); y++)
+                for (int z = location.getBlockZ() - Math.floorDiv(radius, 2); z <= location.getBlockZ()
+                    + Math.floorDiv(radius, 2); z++) {
                     blocks.add(Objects.requireNonNull(location.getWorld()).getBlockAt(x, y, z));
                 }
-            }
+        }
         return blocks;
     }
 
     private void giveItem(HumanEntity humanEntity, ItemStack item) {
-            if (humanEntity.getInventory().firstEmpty() != -1)
-                humanEntity.getInventory().addItem(item);
-            else
-                humanEntity.getWorld().dropItem(humanEntity.getLocation(), item);
+        if (humanEntity.getInventory().firstEmpty() != -1)
+            humanEntity.getInventory().addItem(item);
+        else
+            humanEntity.getWorld().dropItem(humanEntity.getLocation(), item);
     }
 }

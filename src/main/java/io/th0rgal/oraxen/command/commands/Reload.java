@@ -35,7 +35,7 @@ public class Reload extends OraxenCommand {
     @Override
     public void execute(MinecraftInfo info, Arguments arguments) {
         CommandSender sender = info.getSender();
-        
+
         if (Conditions.reqPerm(OraxenPermission.COMMAND_RELOAD).isFalse(sender))
             return;
 
@@ -51,7 +51,7 @@ public class Reload extends OraxenCommand {
         case RECIPES:
             RecipesManager.reload(OraxenPlugin.get());
             break;
-            
+
         case MESSAGES:
             Translations.MANAGER.reloadCatch();
             break;
@@ -69,13 +69,13 @@ public class Reload extends OraxenCommand {
     @Override
     public DefaultCompletion complete(MinecraftInfo info, Arguments arguments) {
         DefaultCompletion completion = new DefaultCompletion();
-        
-        if(Conditions.hasPerm(OraxenPermission.COMMAND_RELOAD).isFalse(info.getSender()))
+
+        if (Conditions.hasPerm(OraxenPermission.COMMAND_RELOAD).isFalse(info.getSender()))
             return completion;
-        
+
         if (arguments.count() == 1) {
             Reloadable[] types = Reloadable.values();
-            for(int index = 0; index < types.length; index++)
+            for (int index = 0; index < types.length; index++)
                 completion.add(new StringArgument(types[index].name()));
         }
         return completion;

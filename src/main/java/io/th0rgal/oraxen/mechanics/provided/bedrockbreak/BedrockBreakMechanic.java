@@ -13,9 +13,9 @@ public class BedrockBreakMechanic extends Mechanic {
     final int probability;
 
     public BedrockBreakMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
-        /* We give:
-        - an instance of the Factory which created the mechanic
-        - the section used to configure the mechanic
+        /*
+         * We give: - an instance of the Factory which created the mechanic - the
+         * section used to configure the mechanic
          */
         super(mechanicFactory, section);
         this.delay = section.getLong("delay");
@@ -31,4 +31,3 @@ public class BedrockBreakMechanic extends Mechanic {
         return new Random().nextInt(probability) == 0;
     }
 }
-

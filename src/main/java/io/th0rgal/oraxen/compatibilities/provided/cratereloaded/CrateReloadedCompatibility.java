@@ -54,7 +54,6 @@ public class CrateReloadedCompatibility extends CompatibilityProvider<CratePlugi
         }
     }
 
-
     private List<ItemStack> getOraxenItems(String rs, String paramName) {
         String rewardString = rs + "";
         List<ItemStack> items = new ArrayList<>();
@@ -75,6 +74,5 @@ public class CrateReloadedCompatibility extends CompatibilityProvider<CratePlugi
         }
         return items;
     }
-
 
 }

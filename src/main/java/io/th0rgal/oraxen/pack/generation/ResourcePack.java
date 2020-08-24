@@ -49,8 +49,8 @@ public class ResourcePack {
                 while (entry != null) {
                     String name = entry.getName();
                     boolean isSuitable = (extractModels && name.startsWith("pack/models"))
-                            || (extractTextures && name.startsWith("pack/textures"))
-                            || (extractassets && name.startsWith("/pack/assets"));
+                        || (extractTextures && name.startsWith("pack/textures"))
+                        || (extractassets && name.startsWith("/pack/assets"));
 
                     resourcesManager.extractFileIfTrue(entry, name, isSuitable);
                     entry = zip.getNextEntry();
@@ -78,18 +78,22 @@ public class ResourcePack {
             ItemBuilder item = entry.getValue();
             if (item.getOraxenMeta().hasPackInfos()) {
                 if (item.getOraxenMeta().shouldGenerateModel()) {
-                    Utils.writeStringToFile(
-                            new File(modelsFolder, item.getOraxenMeta().getModelName() + ".json"),
+                    Utils
+                        .writeStringToFile(new File(modelsFolder, item.getOraxenMeta().getModelName() + ".json"),
                             new ModelGenerator(item.getOraxenMeta()).getJson().toString());
                 }
                 List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
-                //todo: could be improved by using items.get(i).getOraxenMeta().getCustomModelData() when items.add(customModelData, item) with catch when not possible
+                // todo: could be improved by using
+                // items.get(i).getOraxenMeta().getCustomModelData() when
+                // items.add(customModelData, item) with catch when not possible
                 if (items.isEmpty())
                     items.add(item);
                 else
                     // for some reason those breaks are needed to avoid some nasty "memory leak"
                     for (int i = 0; i < items.size(); i++)
-                        if (items.get(i).getOraxenMeta().getCustomModelData() > item.getOraxenMeta().getCustomModelData()) {
+                        if (items.get(i).getOraxenMeta().getCustomModelData() > item
+                            .getOraxenMeta()
+                            .getCustomModelData()) {
                             items.add(i, item);
                             break;
                         } else if (i == items.size() - 1) {
@@ -104,7 +108,7 @@ public class ResourcePack {
             packModifier.accept(packFolder);
         }
 
-        //zipping resourcepack
+        // zipping resourcepack
         List<File> rootFolder = new ArrayList<>();
         ZipUtils.getFilesInFolder(packFolder, rootFolder, packFolder.getName() + ".zip");
 
@@ -112,8 +116,9 @@ public class ResourcePack {
         List<File> assetFoldersCustom = new ArrayList<>();
         // needs to be ordered, forEach cannot be used
         for (File folder : packFolder.listFiles()) {
-            if (folder.isDirectory()  && folder.getName().equalsIgnoreCase("assets")) {
-                System.out.println(ChatColor.DARK_AQUA + "Experimental Custom Assets : You used a custom assets/minecraft !");
+            if (folder.isDirectory() && folder.getName().equalsIgnoreCase("assets")) {
+                System.out
+                    .println(ChatColor.DARK_AQUA + "Experimental Custom Assets : You used a custom assets/minecraft !");
                 ZipUtils.getAllFiles(folder, assetFoldersCustom);
             } else if (folder.isDirectory()) {
                 ZipUtils.getAllFiles(folder, subfolders);
@@ -122,7 +127,6 @@ public class ResourcePack {
         }
 
         rootFolder.addAll(assetFoldersCustom);
-
 
         Map<String, List<File>> fileListByZipDirectory = new LinkedHashMap<>();
         fileListByZipDirectory.put("assets/minecraft", subfolders);
@@ -139,7 +143,6 @@ public class ResourcePack {
         if (!file.exists())
             plugin.saveResource("pack/" + file.getName(), true);
     }
-
 
     @SuppressWarnings("ResultOfMethodCallIgnored")
     private void makeDirsIfNotExists(File folder) {
@@ -160,12 +163,11 @@ public class ResourcePack {
 
         for (Map.Entry<Material, List<ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
             Material entryMaterial = texturedItemsEntry.getKey();
-            PredicatesGenerator predicatesGenerator = new PredicatesGenerator(entryMaterial, texturedItemsEntry.getValue());
+            PredicatesGenerator predicatesGenerator = new PredicatesGenerator(entryMaterial,
+                texturedItemsEntry.getValue());
             String vanillaModelName = predicatesGenerator.getVanillaModelName(entryMaterial) + ".json";
 
-            Utils.writeStringToFile(
-                    new File(modelsFolder, vanillaModelName),
-                    predicatesGenerator.toJSON().toString());
+            Utils.writeStringToFile(new File(modelsFolder, vanillaModelName), predicatesGenerator.toJSON().toString());
         }
     }
 

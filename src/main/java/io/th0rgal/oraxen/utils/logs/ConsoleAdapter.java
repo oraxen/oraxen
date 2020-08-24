@@ -9,12 +9,13 @@ import org.bukkit.command.ConsoleCommandSender;
 import io.th0rgal.oraxen.language.Variable;
 
 public final class ConsoleAdapter implements BiConsumer<Boolean, String> {
-    
+
     public static final ConsoleAdapter INSTANCE = new ConsoleAdapter();
 
     private final ConsoleCommandSender sender = Bukkit.getConsoleSender();
-    
-    private ConsoleAdapter() { }
+
+    private ConsoleAdapter() {
+    }
 
     /*
      * 

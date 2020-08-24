@@ -56,7 +56,8 @@ public class MiniMessageParser {
     private static final String INNER = "inner";
     private static final String END = "end";
     // https://regex101.com/r/8VZ7uA/5
-    private static Pattern pattern = Pattern.compile("((?<start><)(?<token>([^<>]+)|([^<>]+\"(?<inner>[^\"]+)\"))(?<end>>))+?");
+    private static Pattern pattern = Pattern
+        .compile("((?<start><)(?<token>([^<>]+)|([^<>]+\"(?<inner>[^\"]+)\"))(?<end>>))+?");
 
     @Nonnull
     public static String escapeTokens(@Nonnull String richMessage) {
@@ -118,7 +119,7 @@ public class MiniMessageParser {
     public static String handlePlaceholders(@Nonnull String richMessage, @Nonnull String... placeholders) {
         if (placeholders.length % 2 != 0) {
             throw new RuntimeException(
-                    "Invalid number placeholders defined, usage: parseFormat(format, key, value, key, value...)");
+                "Invalid number placeholders defined, usage: parseFormat(format, key, value, key, value...)");
         }
         for (int i = 0; i < placeholders.length; i += 2) {
             richMessage = richMessage.replace(TAG_START + placeholders[i] + TAG_END, placeholders[i + 1]);
@@ -216,7 +217,8 @@ public class MiniMessageParser {
             // decoration
             else if ((deco = resolveDecoration(token)).isPresent()) {
                 decorations.add(deco.get());
-            } else if (token.startsWith(CLOSE_TAG) && (deco = resolveDecoration(token.replace(CLOSE_TAG, ""))).isPresent()) {
+            } else if (token.startsWith(CLOSE_TAG)
+                && (deco = resolveDecoration(token.replace(CLOSE_TAG, ""))).isPresent()) {
                 decorations.remove(deco.get());
             }
             // color

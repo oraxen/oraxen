@@ -55,7 +55,7 @@ public class NbtTools {
         Optional<Reflect> option0 = ORAXEN.getOptionalReflect("nms_nbt_stream_tools");
         if (!option0.isPresent())
             throw new IllegalStateException("Oraxen Reflections aren't setup properly?");
-        
+
         try {
 
             PipedInputStream input = new PipedInputStream();

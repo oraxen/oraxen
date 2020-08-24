@@ -21,9 +21,9 @@ public enum MessageAction {
         this.onlyPlayer = true;
         this.type = type;
     }
-    
+
     public boolean isOnlyPlayer() {
-    	return onlyPlayer;
+        return onlyPlayer;
     }
 
     public boolean hasType() {
@@ -35,7 +35,7 @@ public enum MessageAction {
     }
 
     public static MessageAction fromString(String name) {
-        for(MessageAction action : values()) {
+        for (MessageAction action : values()) {
             if (action.name().equalsIgnoreCase(name))
                 return action;
         }

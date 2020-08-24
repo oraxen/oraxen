@@ -31,48 +31,52 @@ public class PackReceiver implements Listener {
 
         switch (status) {
 
-            case ACCEPTED:
-                action = MessageAction.fromString((String) Pack.RECEIVE_ALLOWED_MESSAGE_ACTION.getValue());
-                message = (boolean) Pack.RECEIVE_ALLOWED_SEND_MESSAGE.getValue();
-                delay = (int) Pack.RECEIVE_ALLOWED_MESSAGE_DELAY.getValue();
-                period = (int) Pack.RECEIVE_ALLOWED_MESSAGE_PERIOD.getValue();
-                components = Pack.RECEIVE_ALLOWED_MESSAGE.toMiniMessageList();
-                commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
-                break;
+        case ACCEPTED:
+            action = MessageAction.fromString((String) Pack.RECEIVE_ALLOWED_MESSAGE_ACTION.getValue());
+            message = (boolean) Pack.RECEIVE_ALLOWED_SEND_MESSAGE.getValue();
+            delay = (int) Pack.RECEIVE_ALLOWED_MESSAGE_DELAY.getValue();
+            period = (int) Pack.RECEIVE_ALLOWED_MESSAGE_PERIOD.getValue();
+            components = Pack.RECEIVE_ALLOWED_MESSAGE.toMiniMessageList();
+            commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
+            break;
 
-            case DECLINED:
-                action = MessageAction.fromString((String) Pack.RECEIVE_DENIED_MESSAGE_ACTION.getValue());
-                message = (boolean) Pack.RECEIVE_DENIED_SEND_MESSAGE.getValue();
-                delay = (int) Pack.RECEIVE_DENIED_MESSAGE_DELAY.getValue();
-                period = (int) Pack.RECEIVE_DENIED_MESSAGE_PERIOD.getValue();
-                components = Pack.RECEIVE_DENIED_MESSAGE.toMiniMessageList();
-                commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
-                break;
+        case DECLINED:
+            action = MessageAction.fromString((String) Pack.RECEIVE_DENIED_MESSAGE_ACTION.getValue());
+            message = (boolean) Pack.RECEIVE_DENIED_SEND_MESSAGE.getValue();
+            delay = (int) Pack.RECEIVE_DENIED_MESSAGE_DELAY.getValue();
+            period = (int) Pack.RECEIVE_DENIED_MESSAGE_PERIOD.getValue();
+            components = Pack.RECEIVE_DENIED_MESSAGE.toMiniMessageList();
+            commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
+            break;
 
-            case FAILED_DOWNLOAD:
-                action = MessageAction.fromString((String) Pack.RECEIVE_FAILED_MESSAGE_ACTION.getValue());
-                message = (boolean) Pack.RECEIVE_FAILED_SEND_MESSAGE.getValue();
-                delay = (int) Pack.RECEIVE_FAILED_MESSAGE_DELAY.getValue();
-                period = (int) Pack.RECEIVE_FAILED_MESSAGE_PERIOD.getValue();
-                components = Pack.RECEIVE_FAILED_MESSAGE.toMiniMessageList();
-                commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
-                break;
+        case FAILED_DOWNLOAD:
+            action = MessageAction.fromString((String) Pack.RECEIVE_FAILED_MESSAGE_ACTION.getValue());
+            message = (boolean) Pack.RECEIVE_FAILED_SEND_MESSAGE.getValue();
+            delay = (int) Pack.RECEIVE_FAILED_MESSAGE_DELAY.getValue();
+            period = (int) Pack.RECEIVE_FAILED_MESSAGE_PERIOD.getValue();
+            components = Pack.RECEIVE_FAILED_MESSAGE.toMiniMessageList();
+            commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
+            break;
 
-            case SUCCESSFULLY_LOADED:
-                action = MessageAction.fromString((String) Pack.RECEIVE_LOADED_MESSAGE_ACTION.getValue());
-                message = (boolean) Pack.RECEIVE_LOADED_SEND_MESSAGE.getValue();
-                delay = (int) Pack.RECEIVE_LOADED_MESSAGE_DELAY.getValue();
-                period = (int) Pack.RECEIVE_LOADED_MESSAGE_PERIOD.getValue();
-                components = Pack.RECEIVE_LOADED_MESSAGE.toMiniMessageList();
-                commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
-                break;
+        case SUCCESSFULLY_LOADED:
+            action = MessageAction.fromString((String) Pack.RECEIVE_LOADED_MESSAGE_ACTION.getValue());
+            message = (boolean) Pack.RECEIVE_LOADED_SEND_MESSAGE.getValue();
+            delay = (int) Pack.RECEIVE_LOADED_MESSAGE_DELAY.getValue();
+            period = (int) Pack.RECEIVE_LOADED_MESSAGE_PERIOD.getValue();
+            components = Pack.RECEIVE_LOADED_MESSAGE.toMiniMessageList();
+            commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
+            break;
 
-            default:
-                throw new IllegalStateException("Unexpected value: " + status);
+        default:
+            throw new IllegalStateException("Unexpected value: " + status);
         }
 
         if (message && !components.isEmpty())
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> sendMessageLoop(event.getPlayer(), ComponentMessage.convert(components, period, action)), delay);
+            Bukkit
+                .getScheduler()
+                .runTaskLater(OraxenPlugin.get(),
+                    () -> sendMessageLoop(event.getPlayer(), ComponentMessage.convert(components, period, action)),
+                    delay);
 
         commands.perform(event.getPlayer());
     }
@@ -81,8 +85,10 @@ public class PackReceiver implements Listener {
         ComponentMessage nextMessage = messages.remove(0);
         nextMessage.sendTo(receiver);
         if (!messages.isEmpty())
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(),
-                    () -> sendMessageLoop(receiver, messages), nextMessage.getDelay() * 20);
+            Bukkit
+                .getScheduler()
+                .runTaskLater(OraxenPlugin.get(), () -> sendMessageLoop(receiver, messages),
+                    nextMessage.getDelay() * 20);
     }
 
 }

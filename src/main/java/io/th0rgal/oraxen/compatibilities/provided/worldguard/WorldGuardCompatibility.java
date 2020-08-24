@@ -16,12 +16,13 @@ public class WorldGuardCompatibility extends CompatibilityProvider<WorldGuardPlu
     public boolean canBreak(Player player, Block block) {
         LocalPlayer localPlayer = plugin.wrapPlayer(player);
         RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
-        boolean canBypass = WorldGuard.getInstance().getPlatform().getSessionManager()
-                .hasBypass(localPlayer, BukkitAdapter.adapt(player.getWorld()));
-        return canBypass || query.testBuild(BukkitAdapter
-                .adapt(block.getLocation()), localPlayer, Flags.BLOCK_BREAK)
-                || player.hasPermission("oraxen.worldguard.bypass")
-                || player.hasPermission("oraxen.worldguard.*");
+        boolean canBypass = WorldGuard
+            .getInstance()
+            .getPlatform()
+            .getSessionManager()
+            .hasBypass(localPlayer, BukkitAdapter.adapt(player.getWorld()));
+        return canBypass || query.testBuild(BukkitAdapter.adapt(block.getLocation()), localPlayer, Flags.BLOCK_BREAK)
+            || player.hasPermission("oraxen.worldguard.bypass") || player.hasPermission("oraxen.worldguard.*");
     }
 
 }

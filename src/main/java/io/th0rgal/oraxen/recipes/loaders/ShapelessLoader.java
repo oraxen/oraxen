@@ -6,7 +6,6 @@ import org.bukkit.inventory.ShapelessRecipe;
 
 import java.util.Objects;
 
-
 public class ShapelessLoader extends RecipeLoader {
 
     public ShapelessLoader(ConfigurationSection section) {
