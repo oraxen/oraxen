@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.language;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 import java.util.function.Predicate;
 
@@ -30,7 +31,7 @@ public final class Translations {
     }
 
     public static String translate(Language language, CommandInfo info, DescriptionType type,
-            Placeholder... placeholders) {
+        Placeholder... placeholders) {
         return translate(language.getId(), info, type, placeholders);
     }
 
@@ -67,9 +68,8 @@ public final class Translations {
     }
 
     public static String translate(String language, CommandInfo info, DescriptionType type,
-            Placeholder... placeholders) {
-        return description(language, type.getId(info),
-            placeholders);
+        Placeholder... placeholders) {
+        return description(language, type.getId(info), placeholders);
     }
 
     public static String translate(String language, IMessage message) {
@@ -93,7 +93,7 @@ public final class Translations {
     }
 
     public static String translate(String language, String id, TranslationType type, Placeholder... placeholders) {
-        return replace(translate(language, id, type), placeholders);
+        return replace(language, translate(language, id, type), placeholders);
     }
 
     /*
@@ -128,11 +128,23 @@ public final class Translations {
      * 
      */
 
-    public static String replace(String message, Placeholder... placeholders) {
+    public static String replace(String language, String message, Placeholder... placeholders) {
         if (message.equals(LanguageProvider.NULL_VALUE))
             return message;
         for (int index = 0; index < placeholders.length; index++)
             message = placeholders[index].replace(message);
+        return replaceDefaults(language, message);
+    }
+
+    public static String replaceDefaults(String language, String message) {
+        if (message.equals(LanguageProvider.NULL_VALUE))
+            return message;
+        Placeholder[] placeholders = Arrays
+            .stream(Variable.values())
+            .map(ITranslatable::placeholder)
+            .toArray(Placeholder[]::new);
+        for (int index = 0; index < placeholders.length; index++)
+            message = placeholders[index].replaceTranslated(language, message);
         return message;
     }
 
@@ -223,13 +235,13 @@ public final class Translations {
             // Load language names
 
             language.load(languageFile);
-            if(!languageFile.exists())
+            if (!languageFile.exists())
                 languageFile.createNewFile();
 
             //
             // Create language objects
-            
-           LanguageProvider.DEFAULT_LANGUAGE.setName(language.check("en_UK", "English"));
+
+            LanguageProvider.DEFAULT_LANGUAGE.setName(language.check("en_UK", "English"));
 
             for (String key : language.getKeys()) {
                 Language lang = new Language(key);
@@ -237,6 +249,8 @@ public final class Translations {
                 lang.setName(name);
                 languages.add(lang);
             }
+
+            language.save(languageFile);
 
             return this;
         }
@@ -272,7 +286,7 @@ public final class Translations {
             if (!translations.isEmpty())
                 for (TranslationStorage translation : translations)
                     translation.save();
-            
+
             return this;
         }
 
@@ -319,12 +333,15 @@ public final class Translations {
          */
 
         public boolean hasTranslation(String language) {
-            return translations.stream().anyMatch(storage -> storage.getLanguage().equals(language)) ? true : fallback.getLanguage().equals(language);
+            return translations.stream().anyMatch(storage -> storage.getLanguage().equals(language)) ? true
+                : fallback.getLanguage().equals(language);
         }
 
         public TranslationStorage getTranslation(String language) {
-            Optional<TranslationStorage> option = translations.stream()
-                    .filter(storage -> storage.getLanguage().equals(language)).findAny();
+            Optional<TranslationStorage> option = translations
+                .stream()
+                .filter(storage -> storage.getLanguage().equals(language))
+                .findAny();
             return option.isPresent() ? option.get() : fallback;
         }
 
@@ -401,9 +418,9 @@ public final class Translations {
             }
 
             public TranslationStorage reload(boolean clear) throws IOException {
-                if(!folder.exists())
+                if (!folder.exists())
                     return save();
-                
+
                 File[] files = folder.listFiles();
 
                 if (files.length != 0) {
@@ -464,7 +481,9 @@ public final class Translations {
              */
 
             public String get(String id, TranslationType type) {
+                System.out.println(id + " / " + type.name());
                 Object value = read(id, type);
+                System.out.println(value);
                 if (value == null)
                     return LanguageProvider.NULL_VALUE;
                 if (value instanceof String)

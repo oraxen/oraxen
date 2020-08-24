@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.command.argument.Reloadable;
 import io.th0rgal.oraxen.command.condition.Conditions;
 import io.th0rgal.oraxen.command.permission.OraxenPermission;
 import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.language.Translations;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.settings.MessageOld;
@@ -50,9 +51,14 @@ public class Reload extends OraxenCommand {
         case RECIPES:
             RecipesManager.reload(OraxenPlugin.get());
             break;
+            
+        case MESSAGES:
+            Translations.MANAGER.reloadCatch();
+            break;
 
         default:
             OraxenPlugin oraxen = OraxenPlugin.get();
+            Translations.MANAGER.reloadCatch();
             reloadItems(sender);
             reloadPack(oraxen, sender);
             RecipesManager.reload(oraxen);

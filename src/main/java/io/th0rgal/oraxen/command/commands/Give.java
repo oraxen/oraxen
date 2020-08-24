@@ -1,19 +1,18 @@
 package io.th0rgal.oraxen.command.commands;
 
 import static io.th0rgal.oraxen.command.argument.ArgumentHelper.*;
+import static io.th0rgal.oraxen.command.argument.CompletionHelper.*;
 
 import java.util.Optional;
-import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import com.syntaxphoenix.syntaxapi.command.ArgumentType;
+import com.syntaxphoenix.syntaxapi.command.ArgumentSuperType;
 import com.syntaxphoenix.syntaxapi.command.Arguments;
 import com.syntaxphoenix.syntaxapi.command.DefaultCompletion;
-import com.syntaxphoenix.syntaxapi.command.arguments.IntegerArgument;
 import com.syntaxphoenix.syntaxapi.command.arguments.StringArgument;
 
 import io.th0rgal.oraxen.command.CommandInfo;
@@ -54,11 +53,14 @@ public class Give extends OraxenCommand {
         Player[] players = option0.get();
         ItemBuilder itemBuilder = option1.get();
 
-        int amount = range(get(arguments, 3, ArgumentType.INTEGER).map(argument -> argument.asInteger().getValue()), 1,
-            2304).orElse(1);
+        int amount = range(get(arguments, 3, ArgumentSuperType.NUMBER).map(argument -> argument.asNumeric().asNumber()),
+            1, 2304).map(Number::intValue).orElse(1);
         int max = itemBuilder.getMaxStackSize();
-        int slots = max / amount + (max % amount > 0 ? 1 : 0);
+        int slots = amount / max + (max % amount > 0 ? 1 : 0);
         ItemStack[] items = itemBuilder.buildArray(slots > 36 ? (amount = max * 36) : amount);
+        System.out
+            .println(items.length + "/" + max + "/" + amount + "/" + slots + "/"
+                + (slots > 36 ? (amount = max * 36) : amount));
         for (int index = 0; index < players.length; index++)
             players[index].getInventory().addItem(items);
         if (players.length == 1)
@@ -74,26 +76,25 @@ public class Give extends OraxenCommand {
     @Override
     public DefaultCompletion complete(MinecraftInfo info, Arguments arguments) {
         DefaultCompletion completion = new DefaultCompletion();
-        
-        if(Conditions.hasPerm(OraxenPermission.COMMAND_GIVE).isFalse(info.getSender()))
+
+        if (Conditions.hasPerm(OraxenPermission.COMMAND_GIVE).isFalse(info.getSender()))
             return completion;
-        
+
         int count = arguments.count();
-        
-        if(count == 1) {
+
+        if (count == 1) {
             completion(completion,
                 Conditions.player().isTrue(info.getSender()) ? (new String[] { "@a", "@r", "@s", "@p" })
                     : (new String[] { "@a", "@r", "@p" }));
             Player[] players = Bukkit.getOnlinePlayers().toArray(new Player[0]);
             for (int index = 0; index < players.length; index++)
-                arguments.add(new StringArgument(players[index].getName()));
-        } else if(count == 2) {
-            Set<String> values = OraxenItems.getNames();
-            for(String value : values)
-                arguments.add(new StringArgument(value));
-        } else if(count == 3) {
-            arguments.add(new IntegerArgument(1));
-            arguments.add(new IntegerArgument(2304));
+                completion.add(new StringArgument(players[index].getName()));
+        } else if (count == 2) {
+            completion(completion, OraxenItems.nameArray());
+        } else if (count == 3) {
+            Optional<ItemBuilder> item = get(arguments, 2, argument -> item(argument));
+            if (item.isPresent())
+                completion.add(new StringArgument("{<amount>} | min = 1 / max = " + (item.get().getMaxStackSize() * 36)));
         }
         return completion;
     }

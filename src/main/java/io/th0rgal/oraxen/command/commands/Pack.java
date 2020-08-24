@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.command.commands;
 
 import static io.th0rgal.oraxen.command.argument.ArgumentHelper.*;
+import static io.th0rgal.oraxen.command.argument.CompletionHelper.*;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -78,25 +79,10 @@ public class Pack extends OraxenCommand {
                     : (new String[] { "@a", "@r", "@p" }));
             Player[] players = Bukkit.getOnlinePlayers().toArray(new Player[0]);
             for (int index = 0; index < players.length; index++)
-                arguments.add(new StringArgument(players[index].getName()));
+                completion.add(new StringArgument(players[index].getName()));
         }
 
         return completion;
     }
-
-//    @SuppressWarnings("unchecked")
-//    public static CommandInfo build() {
-//        return new CommandInfo("pack", info -> {
-//            Builder<CommandSender> builder = Literal.of(info.getName()).alias(info.getAliases());
-//            builder
-//                .then(Argument
-//                    .of("type", SpecificWordType.of("menu", "pack"))
-//                    .optionally(Argument.of("players", PlayersType.STRING))
-//                    .executes((sender, context) -> {
-
-//                    }));
-//            return builder;
-//        }, "menu");
-//    }
 
 }

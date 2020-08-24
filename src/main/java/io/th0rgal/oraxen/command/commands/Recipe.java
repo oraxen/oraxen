@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.command.commands;
 
 import static io.th0rgal.oraxen.command.argument.ArgumentHelper.*;
+import static io.th0rgal.oraxen.command.argument.CompletionHelper.*;
 
 import java.util.Optional;
 

@@ -85,7 +85,6 @@ public class OraxenPlugin extends JavaPlugin {
 
     public void onDisable() {
         unregisterListeners();
-        Translations.MANAGER.reloadCatch();
         CompatibilitiesManager.disableCompatibilities();
         Logs.log(ChatColor.GREEN + "Successfully unloaded");
     }

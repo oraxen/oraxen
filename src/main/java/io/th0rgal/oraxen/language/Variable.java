@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.language;
 
+import org.bukkit.ChatColor;
 import org.bukkit.plugin.Plugin;
 
 import io.th0rgal.oraxen.OraxenPlugin;
@@ -13,7 +14,7 @@ public enum Variable implements IVariable {
     //
     // General Variables
     //
-    PREFIX("&bOraxen &8|&7", true),
+    PREFIX(true, "&bOraxen &8|&7"),
 
     //
     ;
@@ -24,8 +25,8 @@ public enum Variable implements IVariable {
         this.value = value;
     }
 
-    Variable(String value, boolean legacy) {
-        this(legacy ? TextComponent.fromLegacyText(value) : MiniMessageParser.parseFormat(value));
+    Variable(boolean legacy, String value) {
+        this(legacy ? TextComponent.fromLegacyText(value.replace('&', ChatColor.COLOR_CHAR)) : MiniMessageParser.parseFormat(value));
     }
 
     Variable(BaseComponent[] components) {

@@ -420,9 +420,10 @@ public class ItemBuilder {
     public ItemStack[] buildArray(int amount) {
         ItemStack built = build();
         int max = getMaxStackSize();
-        int rest = amount % max;
-        int iterations = amount > max ? max / (amount - rest) : 0;
+        int rest = max == amount ? amount : amount % max;
+        int iterations = amount > max ? (amount - rest) / max : 0;
         ItemStack[] output = new ItemStack[iterations + (rest > 0 ? 1 : 0)];
+        System.out.println(max + "/" + rest + "/" + iterations);
         for (int index = 0; index < iterations; index++) {
             ItemStack clone = built.clone();
             clone.setAmount(max);

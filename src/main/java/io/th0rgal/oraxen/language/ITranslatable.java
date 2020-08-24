@@ -65,10 +65,12 @@ public interface ITranslatable extends IEnum {
     }
 
     public default BaseComponent[] message(String language) {
+        System.out.println(translate(language));
         return MiniMessageParser.parseFormat(translate(language));
     }
 
     public default BaseComponent[] message(String language, Placeholder... placeholders) {
+        System.out.println(translate(language, placeholders));
         return MiniMessageParser.parseFormat(translate(language, placeholders));
     }
 

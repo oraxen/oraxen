@@ -21,7 +21,6 @@ import com.syntaxphoenix.syntaxapi.command.ArgumentSuperType;
 import com.syntaxphoenix.syntaxapi.command.ArgumentType;
 import com.syntaxphoenix.syntaxapi.command.Arguments;
 import com.syntaxphoenix.syntaxapi.command.BaseArgument;
-import com.syntaxphoenix.syntaxapi.command.DefaultCompletion;
 import com.syntaxphoenix.syntaxapi.command.arguments.StringArgument;
 
 import io.th0rgal.oraxen.items.ItemBuilder;
@@ -34,17 +33,6 @@ public abstract class ArgumentHelper {
      */
 
     private static final Location ORIGIN = new Location(null, 0, 0, 0);
-    
-    /*
-     * 
-     * Completion helper
-     * 
-     */
-    
-    public static void completion(DefaultCompletion completion, String... strings) {
-        for(int index = 0; index < strings.length; index++)
-            completion.add(new StringArgument(strings[index]));
-    }
 
     /*
      * 
@@ -80,49 +68,49 @@ public abstract class ArgumentHelper {
      * 
      */
 
-    public static <E extends Number> Optional<E> range(Optional<E> optional, E min, E max) {
+    public static Optional<Number> range(Optional<Number> optional, Number min, Number max) {
         return max(min(optional, min), max);
     }
 
-    public static <E extends Number> Optional<E> min(Optional<E> optional, E min) {
+    public static Optional<Number> min(Optional<Number> optional, Number min) {
         return optional.map(value -> min(value, min));
     }
 
-    private static <E extends Number> E min(E value, E min) {
+    private static Number min(Number value, Number min) {
         return value.doubleValue() > min.doubleValue() ? value : min;
     }
 
-    public static <E extends Number> Optional<E> max(Optional<E> optional, E max) {
+    public static Optional<Number> max(Optional<Number> optional, Number max) {
         return optional.map(value -> max(value, max));
     }
 
-    private static <E extends Number> E max(E value, E max) {
+    private static Number max(Number value, Number max) {
         return value.doubleValue() < max.doubleValue() ? value : max;
     }
-    
+
     /*
      * 
      * String helper
      * 
      */
-    
+
     public static Optional<String> restrict(Optional<StringArgument> optional, String... values) {
         return restrict(optional, Arrays.asList(values));
     }
-    
+
     public static Optional<String> restrict(Optional<StringArgument> optional, List<String> values) {
         return optional.map(argument -> argument.getValue()).filter(value -> values.contains(value));
     }
-    
+
     /*
      * 
      * Loop helper
      * 
      */
-    
+
     public static <E> void forEach(Optional<E[]> optional, Consumer<E> action) {
         optional.ifPresent(array -> {
-            for(int index = 0; index < array.length; index++)
+            for (int index = 0; index < array.length; index++)
                 action.accept(array[index]);
         });
     }
@@ -185,8 +173,8 @@ public abstract class ArgumentHelper {
                     return collection
                         .stream()
                         .unordered()
-                        .skip((long) (Math.random() * 500L))
-                        .findAny()
+                        .skip((int) (collection.size() * Math.random()))
+                        .findFirst()
                         .map(player -> player);
                 default:
                     return Optional.empty();
@@ -229,8 +217,8 @@ public abstract class ArgumentHelper {
                 return collection
                     .stream()
                     .unordered()
-                    .skip((long) (Math.random() * 500L))
-                    .findAny()
+                    .skip((int) (collection.size() * Math.random()))
+                    .findFirst()
                     .map(player -> new Player[] { player });
             case 'a':
                 Collection<? extends Player> collection1 = Bukkit.getOnlinePlayers();

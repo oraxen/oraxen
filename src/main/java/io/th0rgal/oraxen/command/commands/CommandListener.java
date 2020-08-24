@@ -11,6 +11,7 @@ public class CommandListener implements Listener {
     public void onCommandCreation(OraxenCommandEvent event) {
 
         event
+            .add(Help.info())
             .add(Debug.info())
             .add(Give.info())
             .add(ItemPanel.info())

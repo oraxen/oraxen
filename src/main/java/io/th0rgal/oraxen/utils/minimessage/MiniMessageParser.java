@@ -225,6 +225,10 @@ public class MiniMessageParser {
             } else if (token.startsWith(CLOSE_TAG) && resolveColor(token.replace(CLOSE_TAG, "")).isPresent()) {
                 colors.pop();
             }
+            // else
+            else {
+                builder.append('<' + token + '>');
+            }
         }
 
         // handle last message part

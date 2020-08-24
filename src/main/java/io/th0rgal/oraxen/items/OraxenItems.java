@@ -122,6 +122,10 @@ public class OraxenItems {
         return nameStream().collect(Collectors.toSet());
     }
 
+    public static String[] nameArray() {
+        return nameStream().toArray(String[]::new);
+    }
+
     public static Stream<String> nameStream() {
         return entryStream().map(Entry::getKey);
     }

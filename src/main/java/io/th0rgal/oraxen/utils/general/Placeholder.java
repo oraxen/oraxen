@@ -101,8 +101,12 @@ public class Placeholder {
         return stringify == null ? value.toString() : stringify.asString(value);
     }
 
+    public String getValueAsTranslatedString(String languageId) {
+        return type == null ? getValueAsString() : Translations.translate(languageId, id, type);
+    }
+
     public String getValueAsTranslatedString(Language language) {
-        return type == null ? getValueAsString() : Translations.translate(language, id, type);
+        return getValueAsTranslatedString(language.getId());
     }
 
     /*
@@ -111,6 +115,14 @@ public class Placeholder {
 
     public String replace(String value) {
         return value.replace(getVarPlaceholder(), getValueAsString());
+    }
+
+    public String replaceTranslated(String languageId, String value) {
+        return value.replace(getVarPlaceholder(), getValueAsTranslatedString(languageId));
+    }
+
+    public String replaceTranslated(Language language, String value) {
+        return replaceTranslated(language.getId(), value);
     }
 
 }

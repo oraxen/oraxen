@@ -18,10 +18,10 @@ public class FallbackHandler implements Listener {
         TranslationStorage storage = event.getStorage();
 
         for (Message message : Message.values())
-            storage.set(message.id(), MESSAGE, message.value());
+            storage.set(message.translationId(), MESSAGE, message.value());
 
         for (Variable variable : Variable.values())
-            storage.set(variable.id(), VARIABLE, variable.value());
+            storage.set(variable.translationId(), VARIABLE, variable.value());
 
         for (CommandInfo info : OraxenPlugin.get().getCommandProvider().getInfos()) {
             storage.set(info.getUsageId(), DESCRIPTION, info.getUsage());

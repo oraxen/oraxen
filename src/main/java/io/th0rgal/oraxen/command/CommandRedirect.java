@@ -3,8 +3,8 @@ package io.th0rgal.oraxen.command;
 import static com.syntaxphoenix.syntaxapi.command.DefaultArgumentSerializer.DEFAULT;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -17,10 +17,13 @@ import com.syntaxphoenix.syntaxapi.command.CommandManager;
 import com.syntaxphoenix.syntaxapi.command.CommandProcess;
 import com.syntaxphoenix.syntaxapi.command.ExecutionState;
 
+import io.th0rgal.oraxen.command.argument.function.FunctionHelper;
 import io.th0rgal.oraxen.language.Message;
 import io.th0rgal.oraxen.utils.general.Placeholder;
 
 public class CommandRedirect implements CommandExecutor, TabCompleter {
+
+    public static final Pattern TAG_PATTERN = Pattern.compile("(<\\S*>)");
 
     private final CommandProvider provider;
     private final CommandManager manager;
@@ -37,7 +40,7 @@ public class CommandRedirect implements CommandExecutor, TabCompleter {
         if (!process.isValid() || process.getCommand() == null) {
             Message.COMMAND_NOT_EXIST.send(sender, Placeholder.of("name", process.getLabel()));
             return true;
-        } 
+        }
 
         return process.execute(manager) == ExecutionState.SUCCESS;
     }
@@ -49,36 +52,54 @@ public class CommandRedirect implements CommandExecutor, TabCompleter {
 
         CommandProcess process = prepare(sender, args);
 
+        String label = process.isValid() ? process.getLabel() : "";
+
         if (!process.isValid() || process.getCommand() == null) {
-            provider.getInfos().stream().map(info -> info.getName()).forEach(value -> output.add(value));
+            provider
+                .getInfos()
+                .stream()
+                .map(info -> info.getName())
+                .filter(value -> matches(label, value))
+                .forEach(value -> output.add(value));
             return output;
         }
 
         BaseCommand command = process.getCommand();
         if (!(command instanceof OraxenCommand)) {
-            provider.getInfos().stream().map(info -> info.getName()).forEach(value -> output.add(value));
+            provider
+                .getInfos()
+                .stream()
+                .map(info -> info.getName())
+                .filter(value -> matches(label, value))
+                .forEach(value -> output.add(value));
             return output;
         }
-        
-        System.out.println(Arrays.asList(args));
-        
-        MinecraftInfo info = (MinecraftInfo) process.constructInfo();
+
         Arguments arguments = process.getArguments();
-        
-        System.out.println(arguments.toString());
+        String argument = FunctionHelper.of(() -> DEFAULT.toString(arguments.get(arguments.count())), "").get();
+
+        MinecraftInfo info = (MinecraftInfo) process.constructInfo();
 
         Arguments completion = ((OraxenCommand) command).complete(info, arguments).getCompletion();
 
         int size = completion.count();
-        for (int index = 1; index <= size; index++)
-            output.add(DEFAULT.toString(completion.get(index)));
+        for (int index = 1; index <= size; index++) {
+            String value = DEFAULT.toString(completion.get(index));
+            if (matches(argument, value))
+                output.add(value);
+        }
 
         return output;
     }
 
+    private boolean matches(String current, String value) {
+        return current.isEmpty() || value.contains(current) || TAG_PATTERN.matcher(value).find();
+    }
+
     private CommandProcess prepare(CommandSender sender, String[] arguments) {
         CommandProcess process = manager.process(arguments);
-        process.setInfoConstructor((manager, label) -> new MinecraftInfo(manager, label, provider.getInfo(label), sender));
+        process
+            .setInfoConstructor((manager, label) -> new MinecraftInfo(manager, label, provider.getInfo(label), sender));
         return process;
     }
 
