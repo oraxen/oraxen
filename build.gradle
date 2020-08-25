@@ -80,6 +80,7 @@ processResources {
 shadowJar {
     relocate "org.bstats.bukkit", "io.th0rgal.oraxen.bstats"
     relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.syntaxapi"
+    relocate "org.yaml.snakeyaml", "io.th0rgal.oraxen.snakeyaml"
     minimize {
         exclude("io.th0rgal.oraxen.api.*")
         exclude("com.syntaxphoenix.syntaxapi.*")
