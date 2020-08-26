@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.compatibilities.provided.mythicmobs.MythicMobsCompatibi
 import io.th0rgal.oraxen.settings.MessageOld;
 import org.bukkit.Bukkit;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class CompatibilitiesManager {
@@ -27,15 +28,15 @@ public class CompatibilitiesManager {
     public static boolean enableCompatibility(String pluginName) {
         try {
             if (!ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName)
-                && COMPATIBILITY_PROVIDERS.containsKey(pluginName)
-                && Bukkit.getPluginManager().isPluginEnabled(pluginName)) {
-                CompatibilityProvider<?> compatibilityProvider = COMPATIBILITY_PROVIDERS.get(pluginName).newInstance();
+                    && COMPATIBILITY_PROVIDERS.containsKey(pluginName)
+                    && Bukkit.getPluginManager().isPluginEnabled(pluginName)) {
+                CompatibilityProvider<?> compatibilityProvider = COMPATIBILITY_PROVIDERS.get(pluginName).getConstructor().newInstance();
                 compatibilityProvider.enable(pluginName);
                 ACTIVE_COMPATIBILITY_PROVIDERS.put(pluginName, compatibilityProvider);
                 MessageOld.PLUGIN_HOOKS.log(pluginName);
                 return true;
             }
-        } catch (InstantiationException | IllegalAccessException e) {
+        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             e.printStackTrace();
             return false;
         }
@@ -58,7 +59,7 @@ public class CompatibilitiesManager {
     }
 
     public static boolean addCompatibility(String compatibilityPluginName,
-        Class<? extends CompatibilityProvider<?>> clazz, boolean tryEnable) {
+                                           Class<? extends CompatibilityProvider<?>> clazz, boolean tryEnable) {
         try {
             if (compatibilityPluginName != null && clazz != null) {
                 COMPATIBILITY_PROVIDERS.put(compatibilityPluginName, clazz);
@@ -75,7 +76,7 @@ public class CompatibilitiesManager {
     }
 
     public static boolean addCompatibility(String compatibilityPluginName,
-        Class<? extends CompatibilityProvider<?>> clazz) {
+                                           Class<? extends CompatibilityProvider<?>> clazz) {
         return addCompatibility(compatibilityPluginName, clazz, false);
     }
 
@@ -89,7 +90,7 @@ public class CompatibilitiesManager {
 
     public static boolean isCompatibilityEnabled(String pluginName) {
         return ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName)
-            && ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).isEnabled();
+                && ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).isEnabled();
     }
 
     public static ConcurrentHashMap<String, Class<? extends CompatibilityProvider<?>>> getCompatibilityProviders() {
