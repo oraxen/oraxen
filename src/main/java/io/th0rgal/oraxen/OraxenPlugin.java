@@ -59,7 +59,7 @@ public class OraxenPlugin extends JavaPlugin {
             this.inputProvider = () -> new SignMenuFactory(this).newProvider();
         } else {
             ChatInputProvider.load(this);
-            this.inputProvider = () -> ChatInputProvider.getFree();
+            this.inputProvider = ChatInputProvider::getFree;
         }
     }
 
