@@ -14,7 +14,7 @@ public enum Variable implements IVariable {
     //
     // General Variables
     //
-    PREFIX(true, "&bOraxen &8|&7"),
+    PREFIX(true, io.th0rgal.oraxen.settings.Plugin.PREFIX.toString()),
 
     //
     ;
@@ -27,7 +27,7 @@ public enum Variable implements IVariable {
 
     Variable(boolean legacy, String value) {
         this(legacy ? TextComponent.fromLegacyText(value.replace('&', ChatColor.COLOR_CHAR))
-            : MiniMessageParser.parseFormat(value));
+                : MiniMessageParser.parseFormat(value));
     }
 
     Variable(BaseComponent[] components) {
@@ -35,7 +35,7 @@ public enum Variable implements IVariable {
     }
 
     /*
-     * 
+     *
      */
 
     @Override

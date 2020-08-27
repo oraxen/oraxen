@@ -2,7 +2,7 @@ configs_version: 4
 
 Plugin:
   name: "Oraxen"
-  prefix: "&8&l[&bOraxen&8&l] §7"
+  prefix: "&bOraxen &8|&7"
 
   commands:
     repair:
