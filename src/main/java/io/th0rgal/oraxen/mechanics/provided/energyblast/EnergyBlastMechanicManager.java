@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.utils.VectorUtils;
 import io.th0rgal.oraxen.utils.timers.Timer;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
@@ -15,10 +16,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
+
+import java.util.concurrent.TimeUnit;
 
 public class EnergyBlastMechanicManager implements Listener {
 
@@ -35,8 +40,6 @@ public class EnergyBlastMechanicManager implements Listener {
             return;
 
         ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
-        if (item == null)
-            return;
 
         String itemID = OraxenItems.getIdByItem(item);
 
@@ -50,7 +53,7 @@ public class EnergyBlastMechanicManager implements Listener {
         Timer playerTimer = mechanic.getTimer(player);
 
         if (!playerTimer.isFinished()) {
-            MessageOld.DELAY.send(player, Timer.DECIMAL_FORMAT.format(playerTimer.getRemainingTimeMillis() / 1000D));
+            MessageOld.DELAY.send(player, playerTimer.getString(TimeUnit.SECONDS));
             return;
         }
 
@@ -69,27 +72,19 @@ public class EnergyBlastMechanicManager implements Listener {
         playEffect(player, mechanic);
     }
 
-    @SuppressWarnings("unused")
-    private Location getRightHandLocation(Player player) {
-        double yawRightHandDirection = Math.toRadians(-1 * player.getEyeLocation().getYaw() - 45);
-        double x = 0.5 * Math.sin(yawRightHandDirection) + player.getLocation().getX();
-        double y = player.getLocation().getY() + 1;
-        double z = 0.5 * Math.cos(yawRightHandDirection) + player.getLocation().getZ();
-        return new Location(player.getWorld(), x, y, z);
-    }
 
     private void playEffect(Player player, EnergyBlastMechanic mechanic) {
         new BukkitRunnable() {
-            int circlePoints = 360;
-            double radius = 2;
-            Location playerLoc = player.getEyeLocation();
             final Vector dir = player.getLocation().getDirection().normalize();
+            final int circlePoints = 360;
+            double radius = 2;
+            final Location playerLoc = player.getEyeLocation();
             final double pitch = (playerLoc.getPitch() + 90.0F) * 0.017453292F;
             final double yaw = -playerLoc.getYaw() * 0.017453292F;
-            double increment = (2 * Math.PI) / circlePoints;
+            final double increment = (2 * Math.PI) / circlePoints;
             double circlePointOffset = 0;
             int beamLength = mechanic.getLength() * 2;
-            double radiusShrinkage = radius / (double) ((beamLength + 2) / 2);
+            final double radiusShrinkage = radius / (double) ((beamLength + 2) / 2);
 
             @Override
             public void run() {
@@ -119,16 +114,28 @@ public class EnergyBlastMechanicManager implements Listener {
                 if (radius < 0) {
                     spawnParticle(playerLoc.getWorld(), playerLoc, mechanic, 1000, 0.3, 0.3, 0.3, 0.3);
                     for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, 0.5, 0.5, 0.5))
-                        if (entity instanceof LivingEntity && entity != player)
-                            ((LivingEntity) entity).damage(mechanic.getDamage() * 3.0);
+                        if (entity instanceof LivingEntity && entity != player) {
+                            EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, mechanic.getDamage() * 3.0);
+                            Bukkit.getPluginManager().callEvent(event);
+                            if (!event.isCancelled()) {
+                                entity.setLastDamageCause(event);
+                                ((LivingEntity) entity).damage(mechanic.getDamage() * 3.0, player);
+                            }
+                        }
                     this.cancel();
                     return;
                 }
 
                 playerLoc.add(dir);
                 for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, radius, radius, radius))
-                    if (entity instanceof LivingEntity && entity != player)
-                        ((LivingEntity) entity).damage(mechanic.getDamage());
+                    if (entity instanceof LivingEntity && entity != player) {
+                        EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, mechanic.getDamage());
+                        Bukkit.getPluginManager().callEvent(event);
+                        if (!event.isCancelled()) {
+                            entity.setLastDamageCause(event);
+                            ((LivingEntity) entity).damage(mechanic.getDamage(), player);
+                        }
+                    }
 
             }
         }.runTaskTimer(OraxenPlugin.get(), 0, 1);
@@ -142,11 +149,11 @@ public class EnergyBlastMechanicManager implements Listener {
     }
 
     private void spawnParticle(World world, Location location, EnergyBlastMechanic mechanic, int amount, double offsetX,
-        double offsetY, double offsetZ, double extra) {
+                               double offsetY, double offsetZ, double extra) {
         if (mechanic.getParticle() == Particle.REDSTONE)
             world
-                .spawnParticle(Particle.REDSTONE, location, amount, offsetX, offsetY, offsetZ, extra,
-                    mechanic.getParticleColor());
+                    .spawnParticle(Particle.REDSTONE, location, amount, offsetX, offsetY, offsetZ, extra,
+                            mechanic.getParticleColor());
         else
             world.spawnParticle(mechanic.getParticle(), location, amount, offsetX, offsetY, offsetZ, extra);
     }
