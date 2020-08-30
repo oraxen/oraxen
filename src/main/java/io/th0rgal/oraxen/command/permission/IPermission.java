@@ -35,7 +35,7 @@ public interface IPermission extends IPlaceable {
             name = name.substring(0, name.length() - 4) + '*';
         else if (name.equals("ALL"))
             name = "*";
-        return String.format(PERMISSION_FORMAT, prefix(), name);
+        return String.format(PERMISSION_FORMAT, prefix(), name.replace('_', '.'));
     }
 
 }
