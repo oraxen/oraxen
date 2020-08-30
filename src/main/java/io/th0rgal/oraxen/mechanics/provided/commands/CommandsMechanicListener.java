@@ -12,6 +12,8 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.concurrent.TimeUnit;
+
 public class CommandsMechanicListener implements Listener {
 
     private final CommandsMechanicFactory factory;
@@ -45,7 +47,7 @@ public class CommandsMechanicListener implements Listener {
 
         Timer playerTimer = mechanic.getTimer(player);
         if (!playerTimer.isFinished()) {
-            MessageOld.DELAY.send(player, Timer.DECIMAL_FORMAT.format(playerTimer.getRemainingTimeMillis() / 1000D));
+            MessageOld.DELAY.send(player, playerTimer.getString(TimeUnit.SECONDS));
             return;
         }
 
