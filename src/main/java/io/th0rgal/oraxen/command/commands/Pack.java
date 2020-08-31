@@ -6,6 +6,7 @@ import static io.th0rgal.oraxen.command.argument.CompletionHelper.*;
 import java.util.Optional;
 import java.util.function.Consumer;
 
+import com.syntaxphoenix.syntaxapi.command.BaseArgument;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -43,7 +44,7 @@ public class Pack extends OraxenCommand {
             return;
 
         Optional<Boolean> option0 = restrict(
-            get(arguments, 1, ArgumentType.STRING).map(argument -> argument.asString()), "get", "send")
+                get(arguments, 1, ArgumentType.STRING).map(BaseArgument::asString), "get", "send")
                 .map(value -> value.equals("get"));
         if (!option0.isPresent()) {
             info.getInfo().sendSimple(sender, info.getLabel());
@@ -51,7 +52,7 @@ public class Pack extends OraxenCommand {
         }
 
         Consumer<Player> send = option0.get() ? PackDispatcher::sendWelcomeMessage
-            : PackDispatcher::sendPack;
+                : PackDispatcher::sendPack;
         Optional<Player[]> players = get(arguments, 2, argument -> players(sender, argument));
 
         if (players.isPresent()) {
@@ -75,8 +76,8 @@ public class Pack extends OraxenCommand {
             completion(completion, "get", "send");
         } else if (count == 2) {
             completion(completion,
-                Conditions.player().isTrue(info.getSender()) ? (new String[] { "@a", "@r", "@s", "@p" })
-                    : (new String[] { "@a", "@r", "@p" }));
+                    Conditions.player().isTrue(info.getSender()) ? (new String[]{"@a", "@r", "@s", "@p"})
+                            : (new String[]{"@a", "@r", "@p"}));
             Player[] players = Bukkit.getOnlinePlayers().toArray(new Player[0]);
             for (Player player : players) completion.add(new StringArgument(player.getName()));
         }
