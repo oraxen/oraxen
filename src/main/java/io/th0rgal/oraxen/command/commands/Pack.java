@@ -50,8 +50,8 @@ public class Pack extends OraxenCommand {
             return;
         }
 
-        Consumer<Player> send = option0.get() ? player -> PackDispatcher.sendWelcomeMessage(player)
-            : player -> PackDispatcher.sendPack(player);
+        Consumer<Player> send = option0.get() ? PackDispatcher::sendWelcomeMessage
+            : PackDispatcher::sendPack;
         Optional<Player[]> players = get(arguments, 2, argument -> players(sender, argument));
 
         if (players.isPresent()) {
