@@ -4,6 +4,7 @@ plugins {
     id "java"
     id "idea"
     id "eclipse"
+    id "maven"
     id "com.github.johnrengelman.shadow" version "5.2.0"
 }
 
@@ -33,7 +34,6 @@ repositories {
     maven { url 'http://maven.elmakers.com/repository/' }
     //sk89q-repo
     maven { url 'https://maven.enginehub.org/repo/' }
-
     jcenter() // needed for building shadow from protocolLib 4.5.0
 }
 
