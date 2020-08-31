@@ -32,38 +32,29 @@ public class ItemsInventory extends FastInv {
 
         // back item
         setItem(getInventory().getSize() - 5,
-            new ItemBuilder(Material.BARRIER).setDisplayName(ChatColor.RED + "back").build(),
-            e -> new FileInventory(fileInvPage).open((Player) e.getWhoClicked()));
+                new ItemBuilder(Material.BARRIER).setDisplayName(ChatColor.RED + "back").build(),
+                e -> new FileInventory(fileInvPage).open((Player) e.getWhoClicked()));
 
         if (page > 0)
             setItem(getInventory().getSize() - 6,
-                new ItemBuilder(Material.ARROW)
-                    .setAmount(page)
-                    .setDisplayName(ChatColor.YELLOW + "open page " + page)
-                    .build(),
-                e -> new ItemsInventory(page - 1, fileInvPage, file).open((Player) e.getWhoClicked()));
+                    new ItemBuilder(Material.ARROW)
+                            .setAmount(page)
+                            .setDisplayName(ChatColor.YELLOW + "open page " + page)
+                            .build(),
+                    e -> new ItemsInventory(page - 1, fileInvPage, file).open((Player) e.getWhoClicked()));
 
         if (!lastPage)
             setItem(getInventory().getSize() - 4,
-                new ItemBuilder(Material.ARROW)
-                    .setAmount(page + 2)
-                    .setDisplayName(ChatColor.RED + "open page " + (page + 2))
-                    .build(),
-                e -> new ItemsInventory(page + 1, fileInvPage, file).open((Player) e.getWhoClicked()));
+                    new ItemBuilder(Material.ARROW)
+                            .setAmount(page + 2)
+                            .setDisplayName(ChatColor.RED + "open page " + (page + 2))
+                            .build(),
+                    e -> new ItemsInventory(page + 1, fileInvPage, file).open((Player) e.getWhoClicked()));
 
     }
 
     private void giveItem(HumanEntity humanEntity, ItemStack item) {
-        if (humanEntity.hasPermission("oraxen.command.inv.give")) {
-            if (humanEntity.getInventory().firstEmpty() != -1)
-                humanEntity.getInventory().addItem(item);
-            else {
-                humanEntity.sendMessage("Your inventory was full, the item has been looted on the ground");
-                humanEntity.getWorld().dropItem(humanEntity.getLocation(), item);
-            }
-        } else {
-            MessageOld.DONT_HAVE_PERMISSION.send(humanEntity, "oraxen.command.inv.give");
-        }
+        AllItemsInventory.sharedGive(humanEntity, item);
     }
 
 }
