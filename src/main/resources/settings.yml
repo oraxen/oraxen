@@ -229,12 +229,13 @@ Misc:
 
 # Better customization for GUI oraxen inv. Oraxen Items Work. its gui_inventory.<name to file without extension yml>
 gui_inventory:
-  armors: emerald_helmet
-  blocks: DIRT
+  armors: emerald_chestplate
+  blocks: orax_ore
   guis: CHEST
-  hats: DIAMOND_HELMET
-  items: STICK
+  hats: onyx_helmet
+  items: ruby
   mobs: ZOMBIE_HEAD
-  mystical: REDSTONE_TORCH
-  tools: DIAMOND_PICKAXE
-  weapons: DIRT
+  mystical: legendary_hammer
+  skins: wood_sword
+  tools: iron_serpe
+  weapons: energy_crystal_sword
