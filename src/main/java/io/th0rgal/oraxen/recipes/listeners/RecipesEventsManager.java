@@ -21,6 +21,7 @@ public class RecipesEventsManager implements Listener {
     private static RecipesEventsManager instance;
     private Map<CustomRecipe, String> permissionsPerRecipe = new HashMap<>();
     private Set<CustomRecipe> whitelistedCraftRecipes = new HashSet<>();
+    private ArrayList<CustomRecipe> whitelistedCraftRecipesOrdered= new ArrayList<CustomRecipe>();
 
     public static RecipesEventsManager get() {
         if (instance == null) {
@@ -65,6 +66,7 @@ public class RecipesEventsManager implements Listener {
     public void resetRecipes() {
         permissionsPerRecipe = new HashMap<>();
         whitelistedCraftRecipes = new HashSet<>();
+        whitelistedCraftRecipesOrdered = new ArrayList<>();
     }
 
     public void addPermissionRecipe(CustomRecipe recipe, String permission) {
@@ -73,6 +75,11 @@ public class RecipesEventsManager implements Listener {
 
     public void whitelistRecipe(CustomRecipe recipe) {
         whitelistedCraftRecipes.add(recipe);
+        whitelistedCraftRecipesOrdered.add( recipe);
+    }
+
+    public ArrayList<CustomRecipe> getWhitelistedCraftRecipes() {
+        return whitelistedCraftRecipesOrdered;
     }
 
     private boolean hasPermissions(Player player, CustomRecipe recipe) {
