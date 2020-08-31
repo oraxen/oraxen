@@ -21,9 +21,9 @@ import java.util.stream.Collectors;
 
 public class ConfigsManager {
 
-    private JavaPlugin plugin;
-    private YamlConfiguration defaultConfiguration;
-    private int currentversion;
+    private final JavaPlugin plugin;
+    private final YamlConfiguration defaultConfiguration;
+    private final int currentversion;
     private File itemsFolder;
 
     public ConfigsManager(JavaPlugin plugin) {
