@@ -78,8 +78,7 @@ public class Pack extends OraxenCommand {
                 Conditions.player().isTrue(info.getSender()) ? (new String[] { "@a", "@r", "@s", "@p" })
                     : (new String[] { "@a", "@r", "@p" }));
             Player[] players = Bukkit.getOnlinePlayers().toArray(new Player[0]);
-            for (int index = 0; index < players.length; index++)
-                completion.add(new StringArgument(players[index].getName()));
+            for (Player player : players) completion.add(new StringArgument(player.getName()));
         }
 
         return completion;
