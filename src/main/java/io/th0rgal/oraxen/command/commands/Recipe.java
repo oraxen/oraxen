@@ -71,7 +71,7 @@ public class Recipe extends OraxenCommand {
                 return;
             RecipeBuilder recipe0 = RecipeBuilder.get(player.getUniqueId());
 
-            Optional<RecipeType> option01 = get(arguments, 2, argument -> RecipeType.fromArgument(argument));
+            Optional<RecipeType> option01 = get(arguments, 2, RecipeType::fromArgument);
             if (!option01.isPresent()) {
                 info.getInfo().sendSimple(sender, info.getLabel());
                 return;
