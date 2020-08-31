@@ -232,9 +232,9 @@ gui_inventory:
   armors: emerald_chestplate
   blocks: orax_ore
   guis: CHEST
-  hats: onyx_helmet
+  hats: crown
   items: ruby
-  mobs: ZOMBIE_HEAD
+  mobs: goblin_beetle
   mystical: legendary_hammer
   skins: wood_sword
   tools: iron_serpe
