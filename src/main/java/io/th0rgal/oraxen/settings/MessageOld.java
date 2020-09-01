@@ -58,13 +58,11 @@ public enum MessageOld {
         sender.sendMessage(toString());
     }
 
-    @SuppressWarnings("RedundantCast")
     public void send(CommandSender sender, String... arguments) {
         // the cast is here to indicates to compiler a non-varargs call
         sender.sendMessage(String.format(toString(), (Object[]) arguments));
     }
 
-    @SuppressWarnings("RedundantCast")
     public void log(String... arguments) {
         Logs.log(String.format(message, (Object[]) arguments));
     }
@@ -73,7 +71,6 @@ public enum MessageOld {
         Logs.log(message);
     }
 
-    @SuppressWarnings("RedundantCast")
     public void logWarning(String... arguments) {
         Logs.logWarning(String.format(toString(), (Object[]) arguments));
     }
@@ -82,7 +79,6 @@ public enum MessageOld {
         Logs.logWarning(toString());
     }
 
-    @SuppressWarnings("RedundantCast")
     public void logError(String... arguments) {
         Logs.logError(String.format(toString(), (Object[]) arguments));
     }

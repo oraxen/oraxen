@@ -20,7 +20,9 @@ public class PackDispatcher {
     }
 
     public static void sendPack(Player player) {
-        player.setResourcePack(url, sha1);
+        player.setResourcePack(
+                // minecraft has known bugs with ssl protocol
+                url.replace("https://", "http://"), sha1);
     }
 
     public static void sendWelcomeMessage(Player player) {
@@ -30,9 +32,9 @@ public class PackDispatcher {
             player.spigot().sendMessage(components);
         else
             Bukkit
-                .getScheduler()
-                .runTaskLaterAsynchronously(OraxenPlugin.get(), () -> player.spigot().sendMessage(components),
-                    delay * 20);
+                    .getScheduler()
+                    .runTaskLaterAsynchronously(OraxenPlugin.get(), () -> player.spigot().sendMessage(components),
+                            delay * 20);
     }
 
 }

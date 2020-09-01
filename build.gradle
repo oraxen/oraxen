@@ -4,11 +4,12 @@ plugins {
     id "java"
     id "idea"
     id "eclipse"
+    id "maven"
     id "com.github.johnrengelman.shadow" version "5.2.0"
 }
 
 group "io.th0rgal"
-def pluginVersion = "1.49.2"
+def pluginVersion = "1.52.0"
 
 repositories {
     mavenCentral()
@@ -33,7 +34,6 @@ repositories {
     maven { url 'http://maven.elmakers.com/repository/' }
     //sk89q-repo
     maven { url 'https://maven.enginehub.org/repo/' }
-
     jcenter() // needed for building shadow from protocolLib 4.5.0
 }
 
@@ -62,7 +62,7 @@ dependencies {
     implementation fileTree(dir: "libs/implement", include: ["*.jar"])
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '+'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.1'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.2'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'version', version: '2.0.2'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'nbt', version: '2.0.2'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'config-yaml', version: '2.0.2'

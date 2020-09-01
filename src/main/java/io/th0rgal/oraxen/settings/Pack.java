@@ -66,7 +66,7 @@ public enum Pack implements ConfigEnum {
     public Object getValue() {
         return RESOURCES_MANAGER.getSettings().getConfigurationSection("Pack").get(section);
     }
-
+    
     public BaseComponent[] toMiniMessage(String... placeholders) {
         ConfigurationSection config = RESOURCES_MANAGER.getSettings().getConfigurationSection("Pack");
         String message;

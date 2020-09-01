@@ -7,8 +7,8 @@ public class Timer {
 
     public static final DecimalFormat DECIMAL_FORMAT = new DecimalFormat("##.##");
     private long lastUsage = 0;
-    private long delay;
-    private TimeUnit timeUnit;
+    private final long delay;
+    private final TimeUnit timeUnit;
 
     Timer(long delay) {
         this(delay, TimeUnit.MILLISECONDS);

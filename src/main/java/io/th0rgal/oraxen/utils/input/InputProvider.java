@@ -6,22 +6,22 @@ import org.bukkit.entity.Player;
 
 public interface InputProvider {
 
-    public static String LINE = "\\u00B6line";
+    String LINE = "\\u00B6line";
 
-    public String[] getInput();
+    String[] getInput();
 
-    public InputProvider setMessage(String message);
+    InputProvider setMessage(String message);
 
-    public void open(Player player);
+    void open(Player player);
 
-    public InputProvider onRespond(BiPredicate<Player, InputProvider> response);
+    InputProvider onRespond(BiPredicate<Player, InputProvider> response);
 
-    public InputProvider reopenOnFail(boolean state);
+    InputProvider reopenOnFail(boolean state);
 
-    public boolean reopenOnFail();
+    boolean reopenOnFail();
 
-    public boolean hasMultipleLines();
+    boolean hasMultipleLines();
 
-    public void close();
+    void close();
 
 }

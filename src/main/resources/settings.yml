@@ -2,7 +2,7 @@ configs_version: 4
 
 Plugin:
   name: "Oraxen"
-  prefix: "&bOraxen &8|&7"
+  prefix: "&bOraxen &8|&7 "
 
   commands:
     repair:
@@ -22,7 +22,7 @@ Pack:
     enabled: true
     type: polymath #transfer.sh or polymath
     polymath:
-      server: atlas.oraxen.com:8080 # you can also host your own polymath instance
+      server: atlas.oraxen.com # you can also host your own polymath instance
 
   dispatch:
     send_pack: true
@@ -35,7 +35,7 @@ Pack:
         - ""
         - "<gray><bold>To see the new items you need to use a special resourcepack (but don't worry, this doesn't prevent you from using yours at the same time).</bold>"
         - ""
-        - "<dark_gray>»<gray> To try to load it directly from the game, <click:run_command:/oraxen pack getpack><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click>"
+        - "<dark_gray>»<gray> To try to load it directly from the game, <click:run_command:/oraxen pack send><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click>"
         - ""
         - "<dark_gray>»<gray> To download it from the internet, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ install it from Options/ResourcePacks in your game\"><green><bold>CLICK HERE</bold></hover></click>"
 
@@ -58,9 +58,9 @@ Pack:
 
         # If you need to send commands
         commands:
-          console: []
-          player: []
-          opped_player: []
+          console: [ ]
+          player: [ ]
+          opped_player: [ ]
 
     accepted:
       actions:
@@ -78,9 +78,9 @@ Pack:
             - "Thank you"
         # If you need to send commands
         commands:
-          console: []
-          player: []
-          opped_player: []
+          console: [ ]
+          player: [ ]
+          opped_player: [ ]
 
     denied:
       actions:
@@ -94,12 +94,12 @@ Pack:
           period: -1
           # Click and Hover elements are only available by using the CHAT type
           messages:
-            - "<red>You refused the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:/oraxen pack><hover:show_text:\"<green>Display more informations\"><green><bold>CLICK HERE</bold></hover></click> <red>or type <bold>/o pack"
+            - "<red>You refused the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:/oraxen pack get><hover:show_text:\"<green>Display more informations\"><green><bold>CLICK HERE</bold></hover></click> <red>or type <bold>/o pack"
         # If you need to send commands
         commands:
-          console: []
-          player: []
-          opped_player: []
+          console: [ ]
+          player: [ ]
+          opped_player: [ ]
 
     failed_download:
       actions:
@@ -113,12 +113,12 @@ Pack:
           period: -1
           # Click and Hover elements are only available by using the CHAT type
           messages:
-            - "<red>You failed to download the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:/oraxen pack getpack><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click> <red>to retry or type <bold>/o pack</bold> and download it from the internet"
+            - "<red>You failed to download the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:/oraxen pack get><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click> <red>to retry or type <bold>/o pack</bold> and download it from the internet"
         # If you need to send commands
         commands:
-          console: []
-          player: []
-          opped_player: []
+          console: [ ]
+          player: [ ]
+          opped_player: [ ]
 
 ConfigsTools:
   # Nice for production servers, automatically set model ID in settings so
@@ -229,12 +229,13 @@ Misc:
 
 # Better customization for GUI oraxen inv. Oraxen Items Work. its gui_inventory.<name to file without extension yml>
 gui_inventory:
-  armors: emerald_helmet
-  blocks: DIRT
+  armors: emerald_chestplate
+  blocks: orax_ore
   guis: CHEST
-  hats: DIAMOND_HELMET
-  items: STICK
-  mobs: ZOMBIE_HEAD
-  mystical: REDSTONE_TORCH
-  tools: DIAMOND_PICKAXE
-  weapons: DIRT
+  hats: crown
+  items: ruby
+  mobs: goblin_beetle
+  mystical: legendary_hammer
+  skins: wood_sword
+  tools: iron_serpe
+  weapons: energy_crystal_sword

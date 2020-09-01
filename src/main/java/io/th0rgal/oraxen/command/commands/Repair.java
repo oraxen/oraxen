@@ -45,24 +45,23 @@ public class Repair extends OraxenCommand {
         CommandSender sender = info.getSender();
 
         if (Conditions
-            .mixed(Conditions.reqPerm(OraxenPermission.COMMAND_RECIPE), Conditions.player(Message.NOT_PLAYER))
-            .isFalse(sender)) {
+                .mixed(Conditions.reqPerm(OraxenPermission.COMMAND_RECIPE), Conditions.player(Message.NOT_PLAYER))
+                .isFalse(sender)) {
             return;
         }
 
         Player player = (Player) sender;
         if (get(arguments, 1, ArgumentType.STRING)
-            .map(argument -> argument.asString().getValue().equals("all"))
-            .orElse(false) && OraxenPermission.COMMAND_REPAIR_EVERYTHING.has(sender)) {
+                .map(argument -> argument.asString().getValue().equals("all"))
+                .orElse(false) && OraxenPermission.COMMAND_REPAIR_EVERYTHING.has(sender)) {
             ItemStack[] items = Arrays
-                .merge(size -> new ItemStack[size], player.getInventory().getStorageContents(),
-                    player.getInventory().getArmorContents());
+                    .merge(ItemStack[]::new, player.getInventory().getStorageContents(),
+                            player.getInventory().getArmorContents());
             int failed = 0;
-            for (int index = 0; index < items.length; index++) {
-                ItemStack item = items[index];
+            for (ItemStack item : items) {
                 if (item == null || item.getType() == Material.AIR)
                     continue;
-                if (repairPlayerItem(item)) {
+                if (!repairPlayerItem(item)) {
                     MessageOld.CANNOT_BE_REPAIRED.send(sender, item.getItemMeta().getDisplayName());
                     failed++;
                 }
@@ -74,7 +73,7 @@ public class Repair extends OraxenCommand {
                 MessageOld.CANNOT_BE_REPAIRED_INVALID.send(sender);
                 return;
             }
-            if (repairPlayerItem(item))
+            if (!repairPlayerItem(item))
                 MessageOld.CANNOT_BE_REPAIRED.send(sender, item.getItemMeta().getDisplayName());
         }
     }
@@ -84,8 +83,8 @@ public class Repair extends OraxenCommand {
         DefaultCompletion completion = new DefaultCompletion();
 
         if (Conditions
-            .mixed(Conditions.hasPerm(OraxenPermission.COMMAND_REPAIR_EVERYTHING), Conditions.player())
-            .isFalse(info.getSender())) {
+                .mixed(Conditions.hasPerm(OraxenPermission.COMMAND_REPAIR_EVERYTHING), Conditions.player())
+                .isFalse(info.getSender())) {
             return completion;
         }
 
@@ -113,11 +112,11 @@ public class Repair extends OraxenCommand {
             PersistentDataContainer persistentDataContainer = itemMeta.getPersistentDataContainer();
             int realMaxDurability = durabilityMechanic.getItemMaxDurability();
             int damage = realMaxDurability
-                - persistentDataContainer.get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER);
+                    - persistentDataContainer.get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER);
             if (damage == 0) // full durability
                 return false;
             persistentDataContainer
-                .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realMaxDurability);
+                    .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realMaxDurability);
         }
         damageable.setDamage(0);
         itemStack.setItemMeta((ItemMeta) damageable);

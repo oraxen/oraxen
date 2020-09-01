@@ -15,7 +15,7 @@ public class Polymath implements HostingProvider {
     private String sha1;
 
     public Polymath(String serverAddress) {
-        this.serverAddress = "http://" + serverAddress + "/";
+        this.serverAddress = "https://" + serverAddress + "/";
     }
 
     @Override

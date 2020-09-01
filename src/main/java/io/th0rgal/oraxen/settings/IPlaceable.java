@@ -4,6 +4,6 @@ import io.th0rgal.oraxen.utils.general.Placeholder;
 
 public interface IPlaceable {
 
-    public Placeholder getPlaceholder();
+    Placeholder getPlaceholder();
 
 }
