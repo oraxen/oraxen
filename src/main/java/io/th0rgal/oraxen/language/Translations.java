@@ -481,9 +481,7 @@ public final class Translations {
              */
 
             public String get(String id, TranslationType type) {
-                System.out.println(id + " / " + type.name());
                 Object value = read(id, type);
-                System.out.println(value);
                 if (value == null)
                     return LanguageProvider.NULL_VALUE;
                 if (value instanceof String)
