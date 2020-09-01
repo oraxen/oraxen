@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.recipes.loaders.FurnaceLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapedLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
+import io.th0rgal.oraxen.settings.ConfigUpdater;
 import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.settings.Plugin;
 import io.th0rgal.oraxen.settings.ResourcesManager;
@@ -16,6 +17,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 
 public class RecipesManager {
@@ -53,10 +55,17 @@ public class RecipesManager {
 
     private static void registerConfigRecipes(File configFile) {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+        boolean update = ConfigUpdater.update(configFile, config);
         for (String recipeSetting : config.getKeys(false)) {
             ConfigurationSection recipeSection = config.getConfigurationSection(recipeSetting);
             registerRecipeByType(configFile, recipeSection);
         }
+        if (update)
+            try {
+                config.save(configFile);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
     }
 
     private static void registerRecipeByType(File configFile, ConfigurationSection recipeSection) {

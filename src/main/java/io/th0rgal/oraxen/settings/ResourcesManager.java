@@ -8,6 +8,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 import java.security.CodeSource;
+import java.util.AbstractMap;
+import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -19,31 +21,35 @@ public class ResourcesManager {
         this.plugin = plugin;
     }
 
-    private YamlConfiguration settings;
+    private Entry<File, YamlConfiguration> settings;
+    private Entry<File, YamlConfiguration> mechanics;
 
     public YamlConfiguration getSettings() {
-        if (settings == null)
-            settings = getConfiguration("settings.yml");
-        return settings;
+        return getSettingsEntry().getValue();
     }
 
-    private YamlConfiguration mechanics;
+    public Entry<File, YamlConfiguration> getSettingsEntry() {
+        return settings != null ? settings : (settings = getEntry("settings.yml"));
+    }
 
     public YamlConfiguration getMechanics() {
-        if (mechanics == null)
-            mechanics = getConfiguration("mechanics.yml");
-        return mechanics;
+        return getMechanicsEntry().getValue();
+    }
+
+    public Entry<File, YamlConfiguration> getMechanicsEntry() {
+        return mechanics != null ? mechanics : (mechanics = getEntry("mechanics.yml"));
+    }
+
+    public Entry<File, YamlConfiguration> getEntry(String fileName) {
+        File file = extractConfiguration(fileName);
+        return new AbstractMap.SimpleEntry<>(file, YamlConfiguration.loadConfiguration(file));
     }
 
     public File extractConfiguration(String fileName) {
-        File itemsFile = new File(this.plugin.getDataFolder(), fileName);
-        if (!itemsFile.exists())
+        File file = new File(this.plugin.getDataFolder(), fileName);
+        if (!file.exists())
             this.plugin.saveResource(fileName, false);
-        return itemsFile;
-    }
-
-    public YamlConfiguration getConfiguration(String fileName) {
-        return YamlConfiguration.loadConfiguration(extractConfiguration(fileName));
+        return file;
     }
 
     public void extractConfigsInFolder(String folder, String fileExtension) {

@@ -18,6 +18,7 @@ import io.th0rgal.oraxen.mechanics.provided.skinnable.SkinnableMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.smelting.SmeltingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.soulbound.SoulBoundMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.thor.ThorMechanicFactory;
+import io.th0rgal.oraxen.settings.ConfigUpdater;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -26,11 +27,14 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class MechanicsManager {
 
@@ -64,7 +68,9 @@ public class MechanicsManager {
 
     public static void registerMechanicFactory(String mechanicID,
         Class<? extends MechanicFactory> mechanicFactoryClass) {
-        YamlConfiguration mechanicsConfig = new ResourcesManager(OraxenPlugin.get()).getMechanics();
+        Entry<File, YamlConfiguration> mechanicsEntry = new ResourcesManager(OraxenPlugin.get()).getMechanicsEntry();
+        YamlConfiguration mechanicsConfig = mechanicsEntry.getValue();
+        boolean updated = ConfigUpdater.update(mechanicsEntry.getKey(), mechanicsConfig);
         if (mechanicsConfig.getKeys(false).contains(mechanicID)) {
             ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicID);
             if (factorySection.getBoolean("enabled"))
@@ -78,6 +84,12 @@ public class MechanicsManager {
                     e.printStackTrace();
                 }
         }
+        if (updated)
+            try {
+                mechanicsConfig.save(mechanicsEntry.getKey());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
     }
 
     public static void registerListeners(JavaPlugin plugin, Listener... listeners) {
