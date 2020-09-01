@@ -8,6 +8,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.time.OffsetDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -24,6 +26,10 @@ public class Utils {
         for (int index = 0; index < values.length; index++)
             values[index] = values[index].toLowerCase();
         return values;
+    }
+    
+    public static long getVersion(String format) {
+        return Long.parseLong(OffsetDateTime.now().format(DateTimeFormatter.ofPattern(format)));
     }
 
     public static int getCode(MultipleFacing blockData) {

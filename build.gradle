@@ -62,7 +62,7 @@ dependencies {
     implementation fileTree(dir: "libs/implement", include: ["*.jar"])
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '+'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.1'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.2'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'version', version: '2.0.2'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'nbt', version: '2.0.2'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'config-yaml', version: '2.0.2'
