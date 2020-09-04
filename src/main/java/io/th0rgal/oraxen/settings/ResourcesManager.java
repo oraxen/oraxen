@@ -1,13 +1,13 @@
 package io.th0rgal.oraxen.settings;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.ReflectionUtils;
+
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.security.CodeSource;
 import java.util.AbstractMap;
 import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
@@ -68,6 +68,7 @@ public class ResourcesManager {
             entry = zip.getNextEntry();
         }
         zip.closeEntry();
+        zip.close();
     }
 
     public void extractFileIfTrue(ZipEntry entry, String name, boolean isSuitable) {
@@ -84,24 +85,10 @@ public class ResourcesManager {
     }
 
     public static ZipInputStream browse() {
-        CodeSource src = OraxenPlugin.class.getProtectionDomain().getCodeSource();
-        if (src != null) {
-            URL jar = src.getLocation();
-            return tryToBrowse(jar);
-        } else {
+        return ReflectionUtils.getJarStream(OraxenPlugin.class).orElseThrow(() -> {
             MessageOld.ZIP_BROWSE_ERROR.logError();
-            throw new RuntimeException();
-        }
-    }
-
-    private static ZipInputStream tryToBrowse(URL jar) {
-        try {
-            return new ZipInputStream(jar.openStream());
-        } catch (IOException e) {
-            MessageOld.ZIP_BROWSE_ERROR.logError();
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
+            return new RuntimeException("OraxenResources not found!");
+        });
     }
 
 }

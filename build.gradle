@@ -9,7 +9,7 @@ plugins {
 }
 
 group "io.th0rgal"
-def pluginVersion = "1.52.0"
+def pluginVersion = "1.53.0"
 
 repositories {
     mavenCentral()
@@ -77,10 +77,15 @@ processResources {
     }
 }
 
+java {
+	withJavadocJar()
+	withSourcesJar()
+}
+
 shadowJar {
-    relocate "org.bstats.bukkit", "io.th0rgal.oraxen.bstats"
-    relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.syntaxapi"
-    relocate "org.yaml.snakeyaml", "io.th0rgal.oraxen.snakeyaml"
+    relocate "org.bstats.bukkit", "io.th0rgal.oraxen.shaded.bstats"
+    relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.shaded.syntaxapi"
+    relocate "org.yaml.snakeyaml", "io.th0rgal.oraxen.shaded.snakeyaml"
     minimize {
         exclude("io.th0rgal.oraxen.api.*")
         exclude("com.syntaxphoenix.syntaxapi.*")
@@ -100,4 +105,4 @@ shadowJar {
     }
 }
 
-task buildJar(dependsOn: [clean, shadowJar])
+build.dependsOn shadowJar

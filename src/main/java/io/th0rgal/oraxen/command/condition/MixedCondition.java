@@ -2,18 +2,21 @@ package io.th0rgal.oraxen.command.condition;
 
 import java.util.Arrays;
 
-import org.bukkit.command.CommandSender;
+public class MixedCondition<E> implements ICondition<E> {
 
-public class MixedCondition implements ICondition {
+    @SafeVarargs
+    public static <E> MixedCondition<E> mixed(ICondition<E>... conditions) {
+        return new MixedCondition<>(conditions);
+    }
 
-    private final ICondition[] conditions;
+    private final ICondition<E>[] conditions;
 
-    public MixedCondition(ICondition... conditions) {
+    public MixedCondition(ICondition<E>[] conditions) {
         this.conditions = conditions;
     }
 
     @Override
-    public boolean isTrue(CommandSender sender) {
+    public boolean isTrue(E sender) {
         return Arrays.stream(conditions).allMatch(condition -> condition.isTrue(sender));
     }
 

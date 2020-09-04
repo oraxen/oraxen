@@ -8,27 +8,27 @@ import io.th0rgal.oraxen.utils.general.Placeholder;
 
 public class Conditions {
 
-    public static MixedCondition mixed(ICondition... conditions) {
-        return new MixedCondition(conditions);
+    public static MixedCommandCondition mixed(CommandCondition... conditions) {
+        return new MixedCommandCondition(conditions);
     }
 
-    public static ICondition hasPerm(IPermission permission) {
+    public static CommandCondition hasPerm(IPermission permission) {
         return (sender) -> permission.has(sender);
     }
 
-    public static ICondition reqPerm(IPermission permission) {
+    public static CommandCondition reqPerm(IPermission permission) {
         return (sender) -> permission.required(sender);
     }
 
-    public static ICondition reqPerm(IPermission permission, Placeholder... placeholders) {
+    public static CommandCondition reqPerm(IPermission permission, Placeholder... placeholders) {
         return (sender) -> permission.required(sender, placeholders);
     }
 
-    public static ICondition player() {
+    public static CommandCondition player() {
         return (sender) -> sender instanceof Player;
     }
 
-    public static ICondition player(ITranslatable translatable, Placeholder... placeholders) {
+    public static CommandCondition player(ITranslatable translatable, Placeholder... placeholders) {
         return (sender) -> {
             if (!(sender instanceof Player)) {
                 translatable.send(sender, placeholders);
