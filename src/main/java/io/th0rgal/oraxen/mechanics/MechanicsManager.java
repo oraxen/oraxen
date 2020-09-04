@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.command.condition.ICondition;
 import io.th0rgal.oraxen.mechanics.provided.bedrockbreak.BedrockBreakMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.bigmining.BigMiningMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.block.BlockMechanicFactory;
@@ -54,31 +55,52 @@ public class MechanicsManager {
         registerMechanicFactory("skinnable", SkinnableMechanicFactory.class);
 
         // combat
+        //
+        // native
         registerMechanicFactory("thor", ThorMechanicFactory.class);
         registerMechanicFactory("lifeleech", LifeLeechMechanicFactory.class);
         registerMechanicFactory("energyblast", EnergyBlastMechanicFactory.class);
 
         // farming
+        //
+        // native
         registerMechanicFactory("bigmining", BigMiningMechanicFactory.class);
         registerMechanicFactory("smelting", SmeltingMechanicFactory.class);
         registerMechanicFactory("bottledexp", BottledExpMechanicFactory.class);
-        registerMechanicFactory("bedrockbreak", BedrockBreakMechanicFactory.class);
         registerMechanicFactory("harvesting", HarvestingMechanicFactory.class);
+        //
+        // dependent
+        registerMechanicFactoryIfTrue(clazz -> Bukkit.getPluginManager().getPlugin("ProtocolLib") != null,
+            "bedrockbreak", BedrockBreakMechanicFactory.class);
     }
 
-    public static void registerMechanicFactory(String mechanicID,
+    public static void registerMechanicFactoryIfTrue(ICondition<Class<? extends MechanicFactory>> condition,
+        String mechanicId, Class<? extends MechanicFactory> mechanicFactoryClass) {
+        if (condition.isFalse(mechanicFactoryClass))
+            return;
+        registerMechanicFactory(mechanicId, mechanicFactoryClass);
+    }
+
+    public static void registerMechanicFactoryIfFalse(ICondition<Class<? extends MechanicFactory>> condition,
+        String mechanicId, Class<? extends MechanicFactory> mechanicFactoryClass) {
+        if (condition.isTrue(mechanicFactoryClass))
+            return;
+        registerMechanicFactory(mechanicId, mechanicFactoryClass);
+    }
+
+    public static void registerMechanicFactory(String mechanicId,
         Class<? extends MechanicFactory> mechanicFactoryClass) {
         Entry<File, YamlConfiguration> mechanicsEntry = new ResourcesManager(OraxenPlugin.get()).getMechanicsEntry();
         YamlConfiguration mechanicsConfig = mechanicsEntry.getValue();
         boolean updated = ConfigUpdater.update(mechanicsEntry.getKey(), mechanicsConfig);
-        if (mechanicsConfig.getKeys(false).contains(mechanicID)) {
-            ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicID);
+        if (mechanicsConfig.getKeys(false).contains(mechanicId)) {
+            ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicId);
             if (factorySection.getBoolean("enabled"))
                 try {
                     MechanicFactory factory = mechanicFactoryClass
                         .getConstructor(ConfigurationSection.class)
                         .newInstance(factorySection);
-                    FACTORIES_BY_MECHANIC_ID.put(mechanicID, factory);
+                    FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException
                     | NoSuchMethodException e) {
                     e.printStackTrace();

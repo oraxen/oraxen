@@ -15,8 +15,9 @@ public class ZipUtils {
 
     public static void getAllFiles(File dir, List<File> fileList, String... blacklisted) {
         File[] files = dir.listFiles();
+        List<String> blacklist = Arrays.asList(blacklisted);
         for (File file : files) {
-            if (!Arrays.asList(blacklisted).contains(file.getName()))
+            if (!blacklist.contains(file.getName()))
                 fileList.add(file);
             if (file.isDirectory())
                 getAllFiles(file, fileList);

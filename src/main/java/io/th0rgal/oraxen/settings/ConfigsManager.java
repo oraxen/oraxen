@@ -1,12 +1,16 @@
 package io.th0rgal.oraxen.settings;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.event.config.OraxenConfigEvent;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
+import io.th0rgal.oraxen.settings.update.ExampleUpdate;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -18,7 +22,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ConfigsManager {
+public class ConfigsManager implements Listener {
 
     private final JavaPlugin plugin;
     private final YamlConfiguration defaultConfiguration;
@@ -30,11 +34,16 @@ public class ConfigsManager {
             .loadConfiguration(new InputStreamReader(plugin.getResource("settings.yml")));
     }
 
+    @EventHandler
+    public void onUpdate(OraxenConfigEvent event) {
+        event.registerUpdates(ExampleUpdate.class);
+    }
+
     public boolean validatesConfig() {
         ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
         File userConfigurationFile = resourcesManager.extractConfiguration("settings.yml");
         YamlConfiguration userConfiguration = YamlConfiguration.loadConfiguration(userConfigurationFile);
-        boolean updated =  ConfigUpdater.update(userConfigurationFile, userConfiguration);
+        boolean updated = ConfigUpdater.update(userConfigurationFile, userConfiguration);
         for (String key : defaultConfiguration.getKeys(true))
             if (userConfiguration.get(key) == null) {
                 updated = true;
@@ -53,7 +62,7 @@ public class ConfigsManager {
         itemsFolder = new File(plugin.getDataFolder(), "items");
         if (!itemsFolder.exists()) {
             itemsFolder.mkdirs();
-            resourcesManager.extractConfigsInFolder("items", "yml");
+            new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
         }
 
         return true; // todo : return false when an error is detected + prints a detailed error
@@ -119,6 +128,8 @@ public class ConfigsManager {
         Map<String, ItemParser> parseMap = new LinkedHashMap<>();
         ItemParser errorItem = new ItemParser((ConfigurationSection) Plugin.ERROR_ITEM.getValue());
         for (String itemSectionName : config.getKeys(false)) {
+            if (!config.isConfigurationSection(itemSectionName))
+                continue;
             ConfigurationSection itemSection = config.getConfigurationSection(itemSectionName);
             parseMap.put(itemSectionName, new ItemParser(itemSection));
         }

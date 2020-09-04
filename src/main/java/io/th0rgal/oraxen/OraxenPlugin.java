@@ -2,6 +2,7 @@ package io.th0rgal.oraxen;
 
 import io.th0rgal.oraxen.command.CommandProvider;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
+import io.th0rgal.oraxen.event.config.OraxenConfigEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.language.FallbackHandler;
 import io.th0rgal.oraxen.language.LanguageListener;
@@ -70,10 +71,13 @@ public class OraxenPlugin extends JavaPlugin {
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        Bukkit.getPluginManager().registerEvents(new FallbackHandler(), this);
-        Bukkit.getPluginManager().registerEvents(new LanguageListener(), this);
+        PluginManager pluginManager = Bukkit.getPluginManager();
+        pluginManager.registerEvents(new FallbackHandler(), this);
+        pluginManager.registerEvents(configsManager, this);
+        pluginManager.registerEvents(new LanguageListener(), this);
         MechanicsManager.registerNativeMechanics();
         CompatibilitiesManager.enableNativeCompatibilities();
+        pluginManager.callEvent(new OraxenConfigEvent());
         OraxenItems.loadItems(configsManager);
         ResourcePack resourcePack = new ResourcePack(this);
         RecipesManager.load(this);
