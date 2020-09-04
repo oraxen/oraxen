@@ -72,7 +72,9 @@ public abstract class ConfigUpdater {
         Entry<Long, TreeSet<UpdateInfo>> infos;
         while ((infos = next(version)) != null) {
             for (UpdateInfo info : infos.getValue()) {
-                if (!(info.getPathAsString().equals(path) || info.isApplyable(version)))
+                if (!info.getPathAsString().isEmpty() && !info.getPathAsString().equals(path))
+                    continue;
+                if (!info.isApplyable(version))
                     continue;
                 if (info.apply(file, config))
                     version = infos.getKey().longValue();

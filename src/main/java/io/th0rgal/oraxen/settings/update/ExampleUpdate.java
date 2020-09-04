@@ -9,7 +9,6 @@ public class ExampleUpdate {
     @Update(path = { "settings" }, version = 20200901145120L)
     public static void updateSomething(YamlConfiguration config) {
         // Do updates here
-        System.out.println("Some info: " + config.getName());
     }
 
 }
