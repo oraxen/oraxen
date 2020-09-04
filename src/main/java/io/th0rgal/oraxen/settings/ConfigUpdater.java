@@ -2,30 +2,60 @@ package io.th0rgal.oraxen.settings;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.TreeMap;
+import java.util.TreeSet;
 
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import com.syntaxphoenix.syntaxapi.reflection.PackageAccess;
-
 public abstract class ConfigUpdater {
 
-    private static final TreeMap<Long, UpdateInfo> UPDATES = new TreeMap<>();
+    private static final TreeMap<Long, TreeSet<UpdateInfo>> UPDATES = new TreeMap<>();
 
-    static {
-        Class<?>[] classes = PackageAccess.of("io.th0rgal.oraxen.settings.update").getClasses();
-        for (Class<?> clazz : classes) {
-            Method[] methods = clazz.getMethods();
-            for (Method method : methods) {
-                if (!Modifier.isStatic(method.getModifiers()))
-                    continue;
-                Update update = method.getDeclaredAnnotation(Update.class);
-                if (update == null)
-                    continue;
-                UPDATES.put(update.version(), new UpdateInfo(update, method));
+    public static boolean register(Object object) {
+        return object instanceof Class ? registerStatic((Class<?>) object) : registerDeclared(object);
+    }
+
+    private static boolean registerDeclared(Object instance) {
+        Class<?> reference = instance.getClass();
+        int registered = 0;
+        for (Method method : reference.getDeclaredMethods()) {
+            Update update = method.getDeclaredAnnotation(Update.class);
+            if (update == null)
+                continue;
+            add(new UpdateInfo(instance, update, method));
+        }
+        return registered != 0;
+    }
+
+    private static boolean registerStatic(Class<?> reference) {
+        int registered = 0;
+        for (Method method : reference.getMethods()) {
+            Update update = method.getDeclaredAnnotation(Update.class);
+            if (update == null)
+                continue;
+            add(new UpdateInfo(null, update, method));
+        }
+        return registered != 0;
+    }
+
+    private static void add(UpdateInfo info) {
+        synchronized (UPDATES) {
+            long key = info.getVersion();
+            if (UPDATES.containsKey(key)) {
+                UPDATES.get(key).add(info);
+            } else {
+                TreeSet<UpdateInfo> set = new TreeSet<>();
+                set.add(info);
+                UPDATES.put(key, set);
             }
+        }
+    }
+
+    private static Entry<Long, TreeSet<UpdateInfo>> next(long key) {
+        synchronized (UPDATES) {
+            return Optional.ofNullable(UPDATES.higherEntry(key)).orElse(null);
         }
     }
 
@@ -39,13 +69,14 @@ public abstract class ConfigUpdater {
             .map(object -> ((Number) object).longValue())
             .orElse(0L);
         long oldVersion = version;
-        Long current;
-        while ((current = UPDATES.higherKey(version)) != null) {
-            UpdateInfo info = UPDATES.get(current);
-            if (!(info.getPathAsString().equals(path) || info.isApplyable(version)))
-                continue;
-            if (info.apply(file, config))
-                version = current.longValue();
+        Entry<Long, TreeSet<UpdateInfo>> infos;
+        while ((infos = next(version)) != null) {
+            for (UpdateInfo info : infos.getValue()) {
+                if (!(info.getPathAsString().equals(path) || info.isApplyable(version)))
+                    continue;
+                if (info.apply(file, config))
+                    version = infos.getKey().longValue();
+            }
         }
         config.set("version", version);
         return oldVersion != version;

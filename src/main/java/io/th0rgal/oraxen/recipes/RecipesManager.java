@@ -57,6 +57,8 @@ public class RecipesManager {
         YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
         boolean update = ConfigUpdater.update(configFile, config);
         for (String recipeSetting : config.getKeys(false)) {
+            if (!config.isConfigurationSection(recipeSetting))
+                continue;
             ConfigurationSection recipeSection = config.getConfigurationSection(recipeSetting);
             registerRecipeByType(configFile, recipeSection);
         }

@@ -33,6 +33,15 @@ public @interface Update {
     int type() default 0;
     
     /**
+     * Priority in that the updates should be executed.
+     * 
+     * 0 is lowest and {@code Integer}.MAV_VALUE is the highest.
+     * 
+     * @return the priority
+     */
+    int priority() default 0;
+    
+    /**
      * Return the version of this update
      * 
      * The easiest way to provide a safe version format based on time would be

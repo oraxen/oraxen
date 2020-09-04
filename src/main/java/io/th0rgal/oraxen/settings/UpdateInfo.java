@@ -10,14 +10,22 @@ import com.syntaxphoenix.syntaxapi.utils.java.Exceptions;
 
 import io.th0rgal.oraxen.utils.logs.Logs;
 
-public class UpdateInfo {
+public class UpdateInfo implements Comparable<UpdateInfo> {
 
     private final Update update;
     private final Method method;
 
-    public UpdateInfo(Update update, Method method) {
+    private final Object instance;
+
+    public UpdateInfo(Object instance, Update update, Method method) {
         this.update = update;
         this.method = method;
+
+        this.instance = instance;
+    }
+
+    public Object getInstance() {
+        return instance;
     }
 
     public Method getMethod() {
@@ -34,6 +42,10 @@ public class UpdateInfo {
 
     public long getRequiredVersion() {
         return update.required();
+    }
+
+    public int getPriority() {
+        return update.priority();
     }
 
     public int getType() {
@@ -56,13 +68,13 @@ public class UpdateInfo {
         try {
             switch (update.type()) {
             case 0:
-                ReflectionTools.execute(null, method, configuration);
+                ReflectionTools.execute(instance, method, configuration);
                 break;
             case 1:
-                ReflectionTools.execute(null, method, configuration, file);
+                ReflectionTools.execute(instance, method, configuration, file);
                 break;
             case 2:
-                ReflectionTools.execute(null, method, file);
+                ReflectionTools.execute(instance, method, file);
                 break;
             default:
                 break;
@@ -73,6 +85,11 @@ public class UpdateInfo {
             Logs.logError(Exceptions.stackTraceToString(exception));
             return false;
         }
+    }
+
+    @Override
+    public int compareTo(UpdateInfo info) {
+        return Integer.compare(update.priority(), info.update.priority());
     }
 
 }
