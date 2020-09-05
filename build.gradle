@@ -78,8 +78,8 @@ processResources {
 }
 
 java {
-	withJavadocJar()
-	withSourcesJar()
+    withJavadocJar()
+    withSourcesJar()
 }
 
 shadowJar {
