@@ -12,6 +12,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 public abstract class ConfigUpdater {
 
     private static final TreeMap<Long, TreeSet<UpdateInfo>> UPDATES = new TreeMap<>();
+    private static int amount = 0;
 
     public static boolean register(Object object) {
         return object instanceof Class ? registerStatic((Class<?>) object) : registerDeclared(object);
@@ -49,6 +50,7 @@ public abstract class ConfigUpdater {
                 TreeSet<UpdateInfo> set = new TreeSet<>();
                 set.add(info);
                 UPDATES.put(key, set);
+                amount++;
             }
         }
     }
@@ -69,6 +71,7 @@ public abstract class ConfigUpdater {
             .map(object -> ((Number) object).longValue())
             .orElse(0L);
         long oldVersion = version;
+        int executed = 0;
         Entry<Long, TreeSet<UpdateInfo>> infos;
         while ((infos = next(version)) != null) {
             for (UpdateInfo info : infos.getValue()) {
@@ -79,6 +82,8 @@ public abstract class ConfigUpdater {
                 if (info.apply(file, config))
                     version = infos.getKey().longValue();
             }
+            if(++executed == amount)
+                break;
         }
         config.set("version", version);
         return oldVersion != version;
