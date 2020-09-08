@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.worldguard.WorldGuardCompatibility;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.Constants;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -74,7 +75,7 @@ public class BigMiningMechanicListener implements Listener {
     }
 
     private void breakBlock(Player player, Block block, ItemStack itemStack) {
-        if (block.isLiquid() || block.getType() == Material.BEDROCK || block.getType() == Material.BARRIER)
+        if (block.isLiquid() || Constants.UNBREAKABLE_BLOCKS.contains(block.getType()))
             return;
         blocksToProcess += 1; // to avoid this method to call itself <- need other way to handle players using
                               // the same tool at the same time
