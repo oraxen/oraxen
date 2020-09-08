@@ -30,12 +30,18 @@ public class RecipeShowcase extends FastInv {
       lastPage = true;
     }
 
-    //Add Crafting border
-    fillRect(1,3,5,7,
-        new ItemBuilder(Material.WHITE_STAINED_GLASS_PANE).setDisplayName("BORDER").build());
-
     //Display Result
     setItem(4, new ItemBuilder(currentRecipe.getResult()).build());
+
+    Optional<ItemBuilder> background = OraxenItems.getOptionalItemById("recipe_showcase");
+    if (background.isPresent()) {
+      //Add Background
+      setItem(45, background.get().build());
+    } else {
+      //Add Crafting border
+      fillRect(1,3,5,7,
+          new ItemBuilder(Material.WHITE_STAINED_GLASS_PANE).setDisplayName("BORDER").build());
+    }
 
     //Display Recipe
     int slot = 21;
@@ -52,13 +58,13 @@ public class RecipeShowcase extends FastInv {
     }
 
     //Close RecipeShowcase inventory button
-    setItem(getInventory().getSize() - 2,
+    setItem(49,
         new ItemBuilder(Material.BARRIER).setDisplayName(ChatColor.RED + "Close").build(),
         e -> e.getWhoClicked().closeInventory());
 
     //Previous Page button
     if (page > 0)
-      setItem(getInventory().getSize() - 9,
+      setItem(28,
           new ItemBuilder(Material.ARROW)
               .setAmount(page)
               .setDisplayName(ChatColor.YELLOW + "Open page " + page)
@@ -67,7 +73,7 @@ public class RecipeShowcase extends FastInv {
 
     //Next page button
     if (!lastPage)
-      setItem(getInventory().getSize() - 1,
+      setItem(34,
           new ItemBuilder(Material.ARROW)
               .setAmount(page + 2)
               .setDisplayName(ChatColor.YELLOW + "Open page " + (page + 2))

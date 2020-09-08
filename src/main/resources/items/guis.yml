@@ -1,3 +1,11 @@
+recipe_showcase:
+  displayname: "&0"
+  material: DIAMOND
+  excludeFromInventory: true
+  Pack:
+    generate_model: false
+    model: upper_section
+
 example_upper_section:
   displayname: "&0"
   material: DIAMOND
@@ -13,3 +21,5 @@ example_lower_section:
   Pack:
     generate_model: false
     model: lower_section
+
+
