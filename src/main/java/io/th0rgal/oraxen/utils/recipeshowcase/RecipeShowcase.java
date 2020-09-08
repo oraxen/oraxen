@@ -2,9 +2,11 @@ package io.th0rgal.oraxen.utils.recipeshowcase;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.utils.fastinv.FastInv;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Optional;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -90,17 +92,18 @@ public class RecipeShowcase extends FastInv {
 
   private void setRecipeSlot(ItemStack itemStack, int slot,
       ArrayList<CustomRecipe> filteredRecipes) {
-    //Check for recipe
-    ArrayList<Recipe> recipes = (ArrayList<Recipe>) OraxenPlugin.get().getServer().getRecipesFor(itemStack);
-    Optional<CustomRecipe> customRecipe = Optional.empty();
-    if (recipes.size() > 0) {
-      customRecipe = Optional.ofNullable(CustomRecipe.fromRecipe(recipes.get(0)));
-    }
-
-    //Get Page
     int page = -1;
-    if (customRecipe.isPresent()) {
-      page = filteredRecipes.indexOf(customRecipe.get());
+
+    //Check for recipe
+    for (int i = 0; i < filteredRecipes.size(); i++) {
+      String currentItemId = OraxenItems.getIdByItem(itemStack);
+      String recipeItemId = OraxenItems.getIdByItem(filteredRecipes.get(i).getResult());
+      if (Objects.nonNull(currentItemId)
+          && Objects.nonNull(recipeItemId)
+          && currentItemId.equals(recipeItemId)) {
+        page = i;
+        break;
+      }
     }
 
     //Set Recipe Item
