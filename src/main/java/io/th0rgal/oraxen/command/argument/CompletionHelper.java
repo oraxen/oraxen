@@ -13,13 +13,11 @@ public abstract class CompletionHelper {
      */
 
     public static void completion(DefaultCompletion completion, String... strings) {
-        for (int index = 0; index < strings.length; index++)
-            completion.add(new StringArgument(strings[index]));
+        for (String string : strings) completion.add(new StringArgument(string));
     }
 
     public static void completion(DefaultCompletion completion, Integer... ints) {
-        for (int index = 0; index < ints.length; index++)
-            completion.add(new IntegerArgument(ints[index]));
+        for (Integer anInt : ints) completion.add(new IntegerArgument(anInt));
     }
 
 }

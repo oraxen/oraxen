@@ -58,9 +58,9 @@ public class CommandRedirect implements CommandExecutor, TabCompleter {
             provider
                 .getInfos()
                 .stream()
-                .map(info -> info.getName())
+                .map(CommandInfo::getName)
                 .filter(value -> matches(label, value))
-                .forEach(value -> output.add(value));
+                .forEach(output::add);
             return output;
         }
 
@@ -69,9 +69,9 @@ public class CommandRedirect implements CommandExecutor, TabCompleter {
             provider
                 .getInfos()
                 .stream()
-                .map(info -> info.getName())
+                .map(CommandInfo::getName)
                 .filter(value -> matches(label, value))
-                .forEach(value -> output.add(value));
+                .forEach(output::add);
             return output;
         }
 

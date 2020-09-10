@@ -13,11 +13,11 @@ public class Conditions {
     }
 
     public static ICondition hasPerm(IPermission permission) {
-        return (sender) -> permission.has(sender);
+        return permission::has;
     }
 
     public static ICondition reqPerm(IPermission permission) {
-        return (sender) -> permission.required(sender);
+        return permission::required;
     }
 
     public static ICondition reqPerm(IPermission permission, Placeholder... placeholders) {

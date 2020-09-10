@@ -16,9 +16,9 @@ public enum RecipeType {
             return valueOf(string);
         } catch (IllegalArgumentException ignore) {
             RecipeType[] values = values();
-            for (int index = 0; index < values.length; index++)
-                if (values[index].name().equalsIgnoreCase(string))
-                    return values[index];
+            for (RecipeType value : values)
+                if (value.name().equalsIgnoreCase(string))
+                    return value;
         }
         return null;
     }
