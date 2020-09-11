@@ -56,6 +56,7 @@ public class ResourcePack {
                     entry = zip.getNextEntry();
                 }
                 zip.closeEntry();
+                zip.close();
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
@@ -144,7 +145,6 @@ public class ResourcePack {
             plugin.saveResource("pack/" + file.getName(), true);
     }
 
-    @SuppressWarnings("ResultOfMethodCallIgnored")
     private void makeDirsIfNotExists(File folder) {
         if (!folder.exists())
             folder.mkdirs();

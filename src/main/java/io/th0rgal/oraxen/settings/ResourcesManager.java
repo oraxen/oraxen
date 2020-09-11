@@ -1,13 +1,15 @@
 package io.th0rgal.oraxen.settings;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.ReflectionUtils;
+
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URL;
-import java.security.CodeSource;
+import java.util.AbstractMap;
+import java.util.Map.Entry;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -19,31 +21,35 @@ public class ResourcesManager {
         this.plugin = plugin;
     }
 
-    private YamlConfiguration settings;
+    private Entry<File, YamlConfiguration> settings;
+    private Entry<File, YamlConfiguration> mechanics;
 
     public YamlConfiguration getSettings() {
-        if (settings == null)
-            settings = getConfiguration("settings.yml");
-        return settings;
+        return getSettingsEntry().getValue();
     }
 
-    private YamlConfiguration mechanics;
+    public Entry<File, YamlConfiguration> getSettingsEntry() {
+        return settings != null ? settings : (settings = getEntry("settings.yml"));
+    }
 
     public YamlConfiguration getMechanics() {
-        if (mechanics == null)
-            mechanics = getConfiguration("mechanics.yml");
-        return mechanics;
+        return getMechanicsEntry().getValue();
+    }
+
+    public Entry<File, YamlConfiguration> getMechanicsEntry() {
+        return mechanics != null ? mechanics : (mechanics = getEntry("mechanics.yml"));
+    }
+
+    public Entry<File, YamlConfiguration> getEntry(String fileName) {
+        File file = extractConfiguration(fileName);
+        return new AbstractMap.SimpleEntry<>(file, YamlConfiguration.loadConfiguration(file));
     }
 
     public File extractConfiguration(String fileName) {
-        File itemsFile = new File(this.plugin.getDataFolder(), fileName);
-        if (!itemsFile.exists())
+        File file = new File(this.plugin.getDataFolder(), fileName);
+        if (!file.exists())
             this.plugin.saveResource(fileName, false);
-        return itemsFile;
-    }
-
-    public YamlConfiguration getConfiguration(String fileName) {
-        return YamlConfiguration.loadConfiguration(extractConfiguration(fileName));
+        return file;
     }
 
     public void extractConfigsInFolder(String folder, String fileExtension) {
@@ -62,6 +68,7 @@ public class ResourcesManager {
             entry = zip.getNextEntry();
         }
         zip.closeEntry();
+        zip.close();
     }
 
     public void extractFileIfTrue(ZipEntry entry, String name, boolean isSuitable) {
@@ -78,24 +85,10 @@ public class ResourcesManager {
     }
 
     public static ZipInputStream browse() {
-        CodeSource src = OraxenPlugin.class.getProtectionDomain().getCodeSource();
-        if (src != null) {
-            URL jar = src.getLocation();
-            return tryToBrowse(jar);
-        } else {
+        return ReflectionUtils.getJarStream(OraxenPlugin.class).orElseThrow(() -> {
             MessageOld.ZIP_BROWSE_ERROR.logError();
-            throw new RuntimeException();
-        }
-    }
-
-    private static ZipInputStream tryToBrowse(URL jar) {
-        try {
-            return new ZipInputStream(jar.openStream());
-        } catch (IOException e) {
-            MessageOld.ZIP_BROWSE_ERROR.logError();
-            e.printStackTrace();
-            throw new RuntimeException();
-        }
+            return new RuntimeException("OraxenResources not found!");
+        });
     }
 
 }

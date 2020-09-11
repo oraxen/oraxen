@@ -9,7 +9,7 @@ plugins {
 }
 
 group "io.th0rgal"
-def pluginVersion = "1.52.0"
+def pluginVersion = "1.55.1"
 
 repositories {
     mavenCentral()
@@ -62,7 +62,7 @@ dependencies {
     implementation fileTree(dir: "libs/implement", include: ["*.jar"])
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '+'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.1'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.2'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'version', version: '2.0.2'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'nbt', version: '2.0.2'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'config-yaml', version: '2.0.2'
@@ -77,10 +77,15 @@ processResources {
     }
 }
 
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
 shadowJar {
-    relocate "org.bstats.bukkit", "io.th0rgal.oraxen.bstats"
-    relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.syntaxapi"
-    relocate "org.yaml.snakeyaml", "io.th0rgal.oraxen.snakeyaml"
+    relocate "org.bstats.bukkit", "io.th0rgal.oraxen.shaded.bstats"
+    relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.shaded.syntaxapi"
+    relocate "org.yaml.snakeyaml", "io.th0rgal.oraxen.shaded.snakeyaml"
     minimize {
         exclude("io.th0rgal.oraxen.api.*")
         exclude("com.syntaxphoenix.syntaxapi.*")
@@ -100,4 +105,4 @@ shadowJar {
     }
 }
 
-task buildJar(dependsOn: [clean, shadowJar])
+build.dependsOn shadowJar

@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.command.condition.ICondition;
 import io.th0rgal.oraxen.mechanics.provided.bedrockbreak.BedrockBreakMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.bigmining.BigMiningMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.block.BlockMechanicFactory;
@@ -18,6 +19,7 @@ import io.th0rgal.oraxen.mechanics.provided.skinnable.SkinnableMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.smelting.SmeltingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.soulbound.SoulBoundMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.thor.ThorMechanicFactory;
+import io.th0rgal.oraxen.settings.ConfigUpdater;
 import io.th0rgal.oraxen.settings.ResourcesManager;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -26,11 +28,14 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import java.io.File;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 public class MechanicsManager {
 
@@ -50,34 +55,63 @@ public class MechanicsManager {
         registerMechanicFactory("skinnable", SkinnableMechanicFactory.class);
 
         // combat
+        //
+        // native
         registerMechanicFactory("thor", ThorMechanicFactory.class);
         registerMechanicFactory("lifeleech", LifeLeechMechanicFactory.class);
         registerMechanicFactory("energyblast", EnergyBlastMechanicFactory.class);
 
         // farming
+        //
+        // native
         registerMechanicFactory("bigmining", BigMiningMechanicFactory.class);
         registerMechanicFactory("smelting", SmeltingMechanicFactory.class);
         registerMechanicFactory("bottledexp", BottledExpMechanicFactory.class);
-        registerMechanicFactory("bedrockbreak", BedrockBreakMechanicFactory.class);
         registerMechanicFactory("harvesting", HarvestingMechanicFactory.class);
+        //
+        // dependent
+        registerMechanicFactoryIfTrue(clazz -> Bukkit.getPluginManager().getPlugin("ProtocolLib") != null,
+            "bedrockbreak", BedrockBreakMechanicFactory.class);
     }
 
-    public static void registerMechanicFactory(String mechanicID,
+    public static void registerMechanicFactoryIfTrue(ICondition<Class<? extends MechanicFactory>> condition,
+        String mechanicId, Class<? extends MechanicFactory> mechanicFactoryClass) {
+        if (condition.isFalse(mechanicFactoryClass))
+            return;
+        registerMechanicFactory(mechanicId, mechanicFactoryClass);
+    }
+
+    public static void registerMechanicFactoryIfFalse(ICondition<Class<? extends MechanicFactory>> condition,
+        String mechanicId, Class<? extends MechanicFactory> mechanicFactoryClass) {
+        if (condition.isTrue(mechanicFactoryClass))
+            return;
+        registerMechanicFactory(mechanicId, mechanicFactoryClass);
+    }
+
+    public static void registerMechanicFactory(String mechanicId,
         Class<? extends MechanicFactory> mechanicFactoryClass) {
-        YamlConfiguration mechanicsConfig = new ResourcesManager(OraxenPlugin.get()).getMechanics();
-        if (mechanicsConfig.getKeys(false).contains(mechanicID)) {
-            ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicID);
+        Entry<File, YamlConfiguration> mechanicsEntry = new ResourcesManager(OraxenPlugin.get()).getMechanicsEntry();
+        YamlConfiguration mechanicsConfig = mechanicsEntry.getValue();
+        boolean updated = ConfigUpdater.update(mechanicsEntry.getKey(), mechanicsConfig);
+        if (mechanicsConfig.getKeys(false).contains(mechanicId)) {
+            ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicId);
             if (factorySection.getBoolean("enabled"))
                 try {
                     MechanicFactory factory = mechanicFactoryClass
                         .getConstructor(ConfigurationSection.class)
                         .newInstance(factorySection);
-                    FACTORIES_BY_MECHANIC_ID.put(mechanicID, factory);
+                    FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
                 } catch (InstantiationException | IllegalAccessException | InvocationTargetException
                     | NoSuchMethodException e) {
                     e.printStackTrace();
                 }
         }
+        if (updated)
+            try {
+                mechanicsConfig.save(mechanicsEntry.getKey());
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
     }
 
     public static void registerListeners(JavaPlugin plugin, Listener... listeners) {
