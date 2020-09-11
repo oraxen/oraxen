@@ -45,7 +45,7 @@ public class CommandInfo {
     public boolean has(String name) {
         if (!alias.hasAliases())
             return alias.getName().equals(name);
-        return alias.getName().equals(name) || Arrays.stream(alias.getAliases()).anyMatch(alias -> alias.equals(name));
+        return alias.getName().equals(name) || Arrays.asList(alias.getAliases()).contains(name);
     }
 
     /*

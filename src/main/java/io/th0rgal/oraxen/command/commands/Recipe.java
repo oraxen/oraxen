@@ -155,7 +155,6 @@ public class Recipe extends OraxenCommand {
             Message.WORK_IN_PROGRESS.send(sender);
             break;
         default:
-            return;
         }
 
     }
@@ -187,7 +186,7 @@ public class Recipe extends OraxenCommand {
                 if (!edit)
                     break;
                 if (count == 3) {
-                    Optional<Boolean> option1 = get(arguments, 2, argument -> RecipeType.fromArgument(argument))
+                    Optional<Boolean> option1 = get(arguments, 2, RecipeType::fromArgument)
                         .map(type -> type == RecipeType.FURNACE);
                     if (!option1.orElse(false))
                         break;
@@ -195,8 +194,7 @@ public class Recipe extends OraxenCommand {
                     break;
                 }
                 RecipeType[] types = RecipeType.values();
-                for (int index = 0; index < types.length; index++)
-                    completion.add(new StringArgument(types[index].name()));
+                for (RecipeType type : types) completion.add(new StringArgument(type.name()));
                 break;
             case "save":
                 if (!edit)

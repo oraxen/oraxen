@@ -99,7 +99,7 @@ public abstract class ArgumentHelper {
     }
 
     public static Optional<String> restrict(Optional<StringArgument> optional, List<String> values) {
-        return optional.map(argument -> argument.getValue()).filter(value -> values.contains(value));
+        return optional.map(StringArgument::getValue).filter(values::contains);
     }
 
     /*
@@ -110,8 +110,7 @@ public abstract class ArgumentHelper {
 
     public static <E> void forEach(Optional<E[]> optional, Consumer<E> action) {
         optional.ifPresent(array -> {
-            for (int index = 0; index < array.length; index++)
-                action.accept(array[index]);
+            for (E e : array) action.accept(e);
         });
     }
 
@@ -124,12 +123,10 @@ public abstract class ArgumentHelper {
     public static Optional<ItemBuilder> item(BaseArgument argument) {
         if (argument == null)
             return Optional.empty();
-        switch (argument.getType()) {
-        case STRING:
+        if (argument.getType() == ArgumentType.STRING) {
             return OraxenItems.getOptionalItemById(argument.asString().getValue());
-        default:
-            return Optional.empty();
         }
+        return Optional.empty();
     }
 
     /*
@@ -141,49 +138,47 @@ public abstract class ArgumentHelper {
     public static Optional<Player> player(CommandSender sender, BaseArgument argument) {
         if (argument == null)
             return Optional.empty();
-        switch (argument.getType()) {
-        case STRING:
+        if (argument.getType() == ArgumentType.STRING) {
             String value = argument.asString().getValue();
             if (value.startsWith("@") && value.length() >= 2) {
                 char type = value.charAt(1);
                 switch (type) {
-                case 'p':
-                    if (sender == null)
+                    case 'p':
+                        if (sender == null)
+                            return Optional.empty();
+                        if (sender instanceof Player)
+                            return Optional.of((Player) sender);
+                        Collection<? extends Player> collection0 = Bukkit.getOnlinePlayers();
+                        if (collection0.isEmpty())
+                            return Optional.empty();
+                        return collection0
+                                .stream()
+                                .unordered()
+                                .min((p1, p2) -> Double
+                                        .compare(ORIGIN.distanceSquared(p1.getLocation()),
+                                                ORIGIN.distanceSquared(p2.getLocation())))
+                                .map(player -> player);
+                    case 's':
+                        if (sender == null)
+                            return Optional.empty();
+                        return Optional.ofNullable(sender instanceof Player ? (Player) sender : null);
+                    case 'r':
+                        Collection<? extends Player> collection = Bukkit.getOnlinePlayers();
+                        if (collection.isEmpty())
+                            return Optional.empty();
+                        return collection
+                                .stream()
+                                .unordered()
+                                .skip((int) (collection.size() * Math.random()))
+                                .findFirst()
+                                .map(player -> player);
+                    default:
                         return Optional.empty();
-                    if (sender instanceof Player)
-                        return Optional.of((Player) sender);
-                    Collection<? extends Player> collection0 = Bukkit.getOnlinePlayers();
-                    if (collection0.isEmpty())
-                        return Optional.empty();
-                    return collection0
-                        .stream()
-                        .unordered()
-                        .min((p1, p2) -> Double
-                            .compare(ORIGIN.distanceSquared(p1.getLocation()),
-                                ORIGIN.distanceSquared(p2.getLocation())))
-                        .map(player -> player);
-                case 's':
-                    if (sender == null)
-                        return Optional.empty();
-                    return Optional.ofNullable(sender instanceof Player ? (Player) sender : null);
-                case 'r':
-                    Collection<? extends Player> collection = Bukkit.getOnlinePlayers();
-                    if (collection.isEmpty())
-                        return Optional.empty();
-                    return collection
-                        .stream()
-                        .unordered()
-                        .skip((int) (collection.size() * Math.random()))
-                        .findFirst()
-                        .map(player -> player);
-                default:
-                    return Optional.empty();
                 }
             }
             return ofGet(() -> Bukkit.getPlayer(UUID.fromString(value)), () -> Bukkit.getPlayer(value));
-        default:
-            return Optional.empty();
         }
+        return Optional.empty();
     }
 
     private static Optional<Player[]> players(CommandSender sender, String value) {
@@ -224,7 +219,7 @@ public abstract class ArgumentHelper {
                 Collection<? extends Player> collection1 = Bukkit.getOnlinePlayers();
                 if (collection1.isEmpty())
                     return Optional.empty();
-                return Optional.of(collection1.stream().toArray(size -> new Player[size]));
+                return Optional.of(collection1.toArray(new Player[0]));
             default:
                 return Optional.empty();
             }
@@ -243,16 +238,16 @@ public abstract class ArgumentHelper {
                 return Optional.empty();
             ArrayList<Player> players0 = new ArrayList<>();
             int length = list.size();
-            for (int index = 0; index < length; index++)
-                players(sender, list.get(index)).ifPresent(player -> Collections.addAll(players0, player));
+            for (BaseArgument baseArgument : list)
+                players(sender, baseArgument).ifPresent(player -> Collections.addAll(players0, player));
             return Optional.ofNullable(players0.isEmpty() ? null : players0.toArray(new Player[0]));
         case ARRAY:
             BaseArgument[] values = argument.asArray().getValue();
             if (values.length == 0)
                 return Optional.empty();
             ArrayList<Player> players = new ArrayList<>();
-            for (int index = 0; index < values.length; index++)
-                players(sender, values[index]).ifPresent(player -> Collections.addAll(players, player));
+            for (BaseArgument value : values)
+                players(sender, value).ifPresent(player -> Collections.addAll(players, player));
             return Optional.ofNullable(players.isEmpty() ? null : players.toArray(new Player[0]));
         default:
             return Optional.empty();

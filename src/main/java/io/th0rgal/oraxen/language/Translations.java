@@ -131,8 +131,7 @@ public final class Translations {
     public static String replace(String language, String message, Placeholder... placeholders) {
         if (message.equals(LanguageProvider.NULL_VALUE))
             return message;
-        for (int index = 0; index < placeholders.length; index++)
-            message = placeholders[index].replace(message);
+        for (Placeholder placeholder : placeholders) message = placeholder.replace(message);
         return replaceDefaults(language, message);
     }
 
@@ -143,8 +142,7 @@ public final class Translations {
             .stream(Variable.values())
             .map(ITranslatable::placeholder)
             .toArray(Placeholder[]::new);
-        for (int index = 0; index < placeholders.length; index++)
-            message = placeholders[index].replaceTranslated(language, message);
+        for (Placeholder placeholder : placeholders) message = placeholder.replaceTranslated(language, message);
         return message;
     }
 
@@ -308,7 +306,7 @@ public final class Translations {
 
         public Language getLanguage(String value, RequestType type) {
             Optional<Language> option = getOption(value, type);
-            return option.isPresent() ? option.get() : LanguageProvider.DEFAULT_LANGUAGE;
+            return option.orElse(LanguageProvider.DEFAULT_LANGUAGE);
         }
 
         private final Optional<Language> getOption(String value, RequestType type) {
@@ -333,8 +331,7 @@ public final class Translations {
          */
 
         public boolean hasTranslation(String language) {
-            return translations.stream().anyMatch(storage -> storage.getLanguage().equals(language)) ? true
-                : fallback.getLanguage().equals(language);
+            return translations.stream().anyMatch(storage -> storage.getLanguage().equals(language)) || fallback.getLanguage().equals(language);
         }
 
         public TranslationStorage getTranslation(String language) {
@@ -342,7 +339,7 @@ public final class Translations {
                 .stream()
                 .filter(storage -> storage.getLanguage().equals(language))
                 .findAny();
-            return option.isPresent() ? option.get() : fallback;
+            return option.orElse(fallback);
         }
 
         public TranslationStorage getFallbackTranslation() {
@@ -447,7 +444,6 @@ public final class Translations {
                                 message.clear();
                             message.load(file);
                             messageFile = file;
-                            continue;
                         }
                     }
                 }
@@ -533,7 +529,6 @@ public final class Translations {
                     return;
                 }
                 default:
-                    return;
                 }
             }
 

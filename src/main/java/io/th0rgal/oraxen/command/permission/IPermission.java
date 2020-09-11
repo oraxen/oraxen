@@ -22,7 +22,7 @@ public interface IPermission extends IPlaceable {
 
     public default boolean has(CommandSender sender) {
         IPermission parent = parent();
-        return sender.hasPermission(asString()) ? true : ((parent == null) ? false : parent.has(sender));
+        return sender.hasPermission(asString()) || (parent != null && parent.has(sender));
     }
 
     public boolean required(CommandSender sender);

@@ -65,7 +65,7 @@ public enum Message implements IMessage {
                 list.add(line);
         }
         this.value = MiniMessageSerializer
-            .serialize(list.stream().flatMap(Arrays::stream).toArray(size -> new BaseComponent[size]));
+            .serialize(list.stream().flatMap(Arrays::stream).toArray(BaseComponent[]::new));
     }
 
     Message(BaseComponent[] components) {

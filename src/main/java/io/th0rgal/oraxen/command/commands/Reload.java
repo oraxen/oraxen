@@ -39,7 +39,7 @@ public class Reload extends OraxenCommand {
         if (Conditions.reqPerm(OraxenPermission.COMMAND_RELOAD).isFalse(sender))
             return;
 
-        switch (get(arguments, 1, argument -> Reloadable.fromArgument(argument)).orElse(Reloadable.ALL)) {
+        switch (get(arguments, 1, Reloadable::fromArgument).orElse(Reloadable.ALL)) {
         case ITEMS:
             reloadItems(sender);
             break;
@@ -75,8 +75,7 @@ public class Reload extends OraxenCommand {
 
         if (arguments.count() == 1) {
             Reloadable[] types = Reloadable.values();
-            for (int index = 0; index < types.length; index++)
-                completion.add(new StringArgument(types[index].name()));
+            for (Reloadable type : types) completion.add(new StringArgument(type.name()));
         }
         return completion;
     }
