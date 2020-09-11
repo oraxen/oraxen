@@ -9,7 +9,7 @@ plugins {
 }
 
 group "io.th0rgal"
-def pluginVersion = "1.55.1"
+def pluginVersion = "1.55.2"
 
 repositories {
     mavenCentral()
