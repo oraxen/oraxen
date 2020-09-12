@@ -4,7 +4,7 @@ plugins {
     id "java"
     id "idea"
     id "eclipse"
-    id "maven"
+    id "maven-publish"
     id "com.github.johnrengelman.shadow" version "5.2.0"
 }
 
