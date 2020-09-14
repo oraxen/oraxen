@@ -13,9 +13,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
+import java.io.*;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -30,8 +28,18 @@ public class ConfigsManager implements Listener {
 
     public ConfigsManager(JavaPlugin plugin) {
         this.plugin = plugin;
-        defaultConfiguration = YamlConfiguration
-            .loadConfiguration(new InputStreamReader(plugin.getResource("settings.yml")));
+
+        InputStreamReader inputStreamReader = new InputStreamReader(plugin.getResource("settings.yml"));
+        try {
+            defaultConfiguration = YamlConfiguration.loadConfiguration(inputStreamReader);
+        } finally {
+            if (inputStreamReader != null)
+                try {
+                    inputStreamReader.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+        }
     }
 
     @EventHandler
@@ -115,9 +123,9 @@ public class ConfigsManager implements Listener {
     public Map<File, Map<String, ItemBuilder>> parsesConfigs() {
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
         List<File> configs = Arrays
-            .stream(getItemsFiles())
-            .filter(file -> file.getName().endsWith(".yml"))
-            .collect(Collectors.toList());
+                .stream(getItemsFiles())
+                .filter(file -> file.getName().endsWith(".yml"))
+                .collect(Collectors.toList());
         for (File file : configs) {
             parseMap.put(file, parsesConfig(YamlConfiguration.loadConfiguration(file), file));
         }
@@ -143,10 +151,10 @@ public class ConfigsManager implements Listener {
                 map.put(entry.getKey(), itemParser.buildItem());
             } catch (Exception e) {
                 map
-                    .put(entry.getKey(),
-                        errorItem
-                            .buildItem(String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD
-                                + e.getClass().getSimpleName() + ": " + ChatColor.RED + entry.getKey()));
+                        .put(entry.getKey(),
+                                errorItem
+                                        .buildItem(String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD
+                                                + e.getClass().getSimpleName() + ": " + ChatColor.RED + entry.getKey()));
                 Logs.logError("ERROR BUILDING ITEM \"" + entry.getKey() + "\"");
                 e.printStackTrace();
             }
