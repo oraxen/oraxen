@@ -4,7 +4,7 @@ import org.bukkit.command.CommandSender;
 
 public abstract class Message {
 
-    private int delay = 0;
+    private long delay = 0;
 
     public Message() {
     }
@@ -13,7 +13,7 @@ public abstract class Message {
         this.delay = delay;
     }
 
-    public int getDelay() {
+    public long getDelay() {
         return delay;
     }
 

@@ -27,14 +27,14 @@ public class PackDispatcher {
 
     public static void sendWelcomeMessage(Player player) {
         BaseComponent[] components = Pack.JOIN_MESSAGE_CONTENT.toMiniMessage("pack_url", url);
-        int delay = (int) Pack.JOIN_MESSAGE_DELAY.getValue();
+        long delay = (long) Pack.JOIN_MESSAGE_DELAY.getValue();
         if (delay == -1)
             player.spigot().sendMessage(components);
         else
             Bukkit
                     .getScheduler()
                     .runTaskLaterAsynchronously(OraxenPlugin.get(), () -> player.spigot().sendMessage(components),
-                            delay * 20);
+                            delay * 20L);
     }
 
 }

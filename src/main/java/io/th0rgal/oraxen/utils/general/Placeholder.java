@@ -32,14 +32,14 @@ public class Placeholder {
     }
 
     /*
-     * 
+     *
      */
 
     private final TranslationType type;
     private final String id;
 
     private final String placeholder;
-    private Object value;
+    private final Object value;
 
     private Stringify stringify;
 
@@ -67,7 +67,7 @@ public class Placeholder {
     }
 
     /*
-     * 
+     *
      */
 
     public Stringify getStringify() {
@@ -80,7 +80,7 @@ public class Placeholder {
     }
 
     /*
-     * 
+     *
      */
 
     public String getPlaceholder() {
@@ -110,7 +110,7 @@ public class Placeholder {
     }
 
     /*
-     * 
+     *
      */
 
     public String replace(String value) {
