@@ -33,8 +33,8 @@ public abstract class RecipeBuilder {
         this.inventoryTitle = player.getName() + " " + builderName + " builder";
         UUID playerId = player.getUniqueId();
         inventory = MAP.containsKey(playerId) && MAP.get(playerId).builderName.equals(builderName)
-            ? MAP.get(playerId).inventory
-            : createInventory(player, inventoryTitle);
+                ? MAP.get(playerId).inventory
+                : createInventory(player, inventoryTitle);
         player.openInventory(inventory);
         MAP.put(playerId, this);
     }
@@ -59,7 +59,7 @@ public abstract class RecipeBuilder {
 
         // if our itemstack is made using oraxen and is not modified
         if (itemID != null
-            && Objects.equals(OraxenItems.getItemById(itemID).build().getItemMeta(), itemStack.getItemMeta())) {
+                && Objects.equals(OraxenItems.getItemById(itemID).build().getItemMeta(), itemStack.getItemMeta())) { // lgtm [java/dereferenced-value-may-be-null]
             section.set("oraxen_item", itemID);
             return;
         }
@@ -75,7 +75,7 @@ public abstract class RecipeBuilder {
     public YamlConfiguration getConfig() {
         if (configFile == null) {
             configFile = new ResourcesManager(OraxenPlugin.get())
-                .extractConfiguration("recipes/" + builderName + ".yml");
+                    .extractConfiguration("recipes/" + builderName + ".yml");
             config = YamlConfiguration.loadConfiguration(configFile);
         }
         return config;
