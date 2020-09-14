@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 
+import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -75,14 +76,14 @@ public class RecipesEventsManager implements Listener {
 
     public void whitelistRecipe(CustomRecipe recipe) {
         whitelistedCraftRecipes.add(recipe);
-        whitelistedCraftRecipesOrdered.add( recipe);
+        whitelistedCraftRecipesOrdered.add(recipe);
     }
 
-    public ArrayList<CustomRecipe> getWhitelistedCraftRecipes() {
-        return whitelistedCraftRecipesOrdered;
+    public ArrayList<CustomRecipe> getOrderedFilteredRecipes(Player player) {
+        return (ArrayList<CustomRecipe>) whitelistedCraftRecipesOrdered.stream().filter((customRecipe -> !hasPermissions(player, customRecipe))).collect(Collectors.toList());
     }
 
-    private boolean hasPermissions(Player player, CustomRecipe recipe) {
+    public boolean hasPermissions(Player player, CustomRecipe recipe) {
         return (permissionsPerRecipe.containsKey(recipe) && player.hasPermission(permissionsPerRecipe.get(recipe)));
     }
 

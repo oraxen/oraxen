@@ -44,7 +44,8 @@ public enum Message implements IMessage {
     COMMAND_GIVE_PLAYER(true, "$prefix &7You gave '&a$player&7' &3$amountx $item&7!"),
     COMMAND_GIVE_PLAYERS(true, "$prefix &7You gave &a$players players &3$amountx $item&7!"),
 
-    //
+    //RecipeBook
+    COMMAND_NO_RECIPES(true, "$prefix &7There are not recipes to show!")
     ;
 
     private final String value;

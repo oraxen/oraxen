@@ -10,8 +10,11 @@ import io.th0rgal.oraxen.command.OraxenCommand;
 import io.th0rgal.oraxen.command.condition.Conditions;
 import io.th0rgal.oraxen.command.permission.OraxenPermission;
 import io.th0rgal.oraxen.language.Message;
+import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.utils.recipeshowcase.RecipeShowcase;
+import java.util.ArrayList;
+import java.util.Objects;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
@@ -36,8 +39,15 @@ public class RecipeBook extends OraxenCommand {
             return;
         }
 
-        //TODO Filter recipes based on each players permissions
-        new RecipeShowcase(0, RecipesEventsManager.get().getWhitelistedCraftRecipes()).open((Player) sender);
+        Player player = (Player) sender;
+        ArrayList<CustomRecipe> recipes =
+            RecipesEventsManager.get().getOrderedFilteredRecipes(player);
+        if (Objects.nonNull(recipes) && recipes.size() > 0) {
+            new RecipeShowcase(0, recipes).open(player);
+        } else {
+            Message.COMMAND_NO_RECIPES.send(sender);
+        }
+
     }
 
     @Override
