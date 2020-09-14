@@ -42,7 +42,7 @@ public class HatMechanicListener implements Listener {
         if (inventory.getHelmet() == null) {
             event.setCancelled(true);
             ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent(player, ArmorEquipEvent.EquipMethod.ORAXEN_HAT,
-                ArmorType.HELMET, null, item);
+                    ArmorType.HELMET, null, item);
             Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
             if (armorEquipEvent.isCancelled())
                 return;
@@ -68,7 +68,7 @@ public class HatMechanicListener implements Listener {
         ItemStack cursor = e.getCursor();
 
         if (clickedInventory == null || !clickedInventory.getType().equals(InventoryType.PLAYER)
-            || e.getSlotType() != InventoryType.SlotType.ARMOR || cursor == null)
+                || e.getSlotType() != InventoryType.SlotType.ARMOR || cursor == null)
             return;
 
         ItemStack clone = cursor.clone();
@@ -76,13 +76,13 @@ public class HatMechanicListener implements Listener {
         ItemStack currentItem = e.getCurrentItem();
 
         if (factory.isNotImplementedIn(itemID)) {
-            if ((cursor == null || cursor.getType() == Material.AIR)) {
+            if (cursor.getType() == Material.AIR) {
                 itemID = OraxenItems.getIdByItem(currentItem);
                 if (factory.isNotImplementedIn(itemID))
                     return;
 
                 ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent((Player) e.getWhoClicked(),
-                    ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET, currentItem, cursor);
+                        ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET, currentItem, cursor);
                 Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
                 if (armorEquipEvent.isCancelled())
                     e.setCancelled(true);
@@ -96,7 +96,7 @@ public class HatMechanicListener implements Listener {
 
             if (currentItem == null || currentItem.getType() == Material.AIR) {
                 ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent((Player) e.getWhoClicked(),
-                    ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET, currentItem, clone);
+                        ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET, currentItem, clone);
                 Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
                 if (armorEquipEvent.isCancelled())
                     return;
