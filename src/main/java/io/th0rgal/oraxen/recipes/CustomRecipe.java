@@ -62,6 +62,14 @@ public class CustomRecipe {
     /*
      *
      */
+    @Override
+    public int hashCode() {
+        return result.hashCode() / 2 + ingredients.hashCode() / 2 + (ordered ? 1 : 0);
+    }
+
+    /*
+     *
+     */
 
     private boolean areEqual(List<ItemStack> ingredients1, List<ItemStack> ingredients2) {
         if (ingredients1.size() != ingredients2.size())
