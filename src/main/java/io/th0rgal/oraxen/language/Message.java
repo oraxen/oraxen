@@ -38,7 +38,7 @@ public enum Message implements IMessage {
     COMMAND_RECIPE_NO_BUILDER(true, "$prefix &7Please &ccreate an recipe&7 first!"),
     COMMAND_RECIPE_NO_FURNACE(true, "$prefix &7This option is only avaiable for &cFurnace Recipes&7!"),
     COMMAND_RECIPE_NO_NAME(true, "$prefix &7Please &cspecify a name &7for the recipe!"),
-    COMMAND_RECIPE_SAVE(true, "$prefix &7Recipe '$a$name&7' saved &asuccessfully&7!"),
+    COMMAND_RECIPE_SAVE(true, "$prefix &7Recipe '&a$name&7' saved &asuccessfully&7!"),
 
     // Give
     COMMAND_GIVE_PLAYER(true, "$prefix &7You gave '&a$player&7' &3$amountx $item&7!"),
@@ -65,7 +65,7 @@ public enum Message implements IMessage {
                 list.add(line);
         }
         this.value = MiniMessageSerializer
-            .serialize(list.stream().flatMap(Arrays::stream).toArray(size -> new BaseComponent[size]));
+            .serialize(list.stream().flatMap(Arrays::stream).toArray(BaseComponent[]::new));
     }
 
     Message(BaseComponent[] components) {
