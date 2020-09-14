@@ -4,7 +4,7 @@ recipe_showcase:
   excludeFromInventory: true
   Pack:
     generate_model: false
-    model: upper_section
+    model: recipe_showcase
 
 example_upper_section:
   displayname: "&0"
