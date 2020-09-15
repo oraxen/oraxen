@@ -1,5 +1,9 @@
 package io.th0rgal.oraxen.utils.timers;
 
+import io.th0rgal.oraxen.language.Message;
+import io.th0rgal.oraxen.utils.general.Placeholder;
+import org.bukkit.entity.Player;
+
 import java.text.DecimalFormat;
 import java.util.concurrent.TimeUnit;
 
@@ -55,6 +59,13 @@ public class Timer {
 
     public String getString(TimeUnit timeUnit) {
         return getRemainingTime(timeUnit) + " " + timeUnit.name();
+    }
+
+
+
+    public void sendToPlayer(Player player, TimeUnit timeUnit){
+        Message.COOL_DOWN.send(player, Placeholder.of("time", getRemainingTime(timeUnit)), Placeholder.of("unit", Message.valueOf("TIME_UNIT_" + timeUnit.name())));
+
     }
 
 }

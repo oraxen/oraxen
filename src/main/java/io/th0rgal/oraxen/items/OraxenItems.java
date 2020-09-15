@@ -50,7 +50,7 @@ public class OraxenItems {
     }
 
     public static Optional<ItemBuilder> getOptionalItemById(String id) {
-        return entryStream().filter(entry -> entry.getKey().equals(id)).findFirst().map(entry -> entry.getValue());
+        return entryStream().filter(entry -> entry.getKey().equals(id)).findFirst().map(Entry::getValue);
     }
 
     public static ItemBuilder getItemById(String id) {
