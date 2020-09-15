@@ -26,8 +26,9 @@ public abstract class ConfigUpdater {
             if (update == null)
                 continue;
             add(new UpdateInfo(instance, update, method));
+            registered++;
         }
-        return false; // registered != 0
+        return registered != 0;
     }
 
     private static boolean registerStatic(Class<?> reference) {
@@ -37,8 +38,9 @@ public abstract class ConfigUpdater {
             if (update == null)
                 continue;
             add(new UpdateInfo(null, update, method));
+            registered++;
         }
-        return false; // registered != 0
+        return registered != 0;
     }
 
     private static void add(UpdateInfo info) {

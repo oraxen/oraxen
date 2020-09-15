@@ -11,16 +11,17 @@ import java.util.Map;
 
 public class CustomRecipe {
 
+    private String name;
     private ItemStack result;
     private List<ItemStack> ingredients;
     private boolean ordered;
 
-    public CustomRecipe(ItemStack result, List<ItemStack> ingredients) {
+    public CustomRecipe(String name, ItemStack result, List<ItemStack> ingredients) {
         this.result = result;
         this.ingredients = ingredients;
     }
 
-    public CustomRecipe(ItemStack result, List<ItemStack> ingredients, boolean ordered) {
+    public CustomRecipe(String name, ItemStack result, List<ItemStack> ingredients, boolean ordered) {
         this.result = result;
         this.ingredients = ingredients;
         this.ordered = ordered;
@@ -29,6 +30,10 @@ public class CustomRecipe {
     /*
      *
      */
+
+    public String getName() {
+        return name;
+    }
 
     public ItemStack getResult() {
         return result;
@@ -113,12 +118,12 @@ public class CustomRecipe {
                     ingredients.add(map.get(chars[charIndex]));
                 }
             }
-            return new CustomRecipe(recipe.getResult(), ingredients, true);
+            return new CustomRecipe(recipe.getKey().toString(), recipe.getResult(), ingredients, true);
         } else if (bukkitRecipe instanceof ShapelessRecipe) {
             ShapelessRecipe recipe = (ShapelessRecipe) bukkitRecipe;
             List<ItemStack> ingredients = new ArrayList<>(9);
             ingredients.addAll(recipe.getIngredientList());
-            return new CustomRecipe(recipe.getResult(), ingredients, false);
+            return new CustomRecipe(recipe.getKey().toString(), recipe.getResult(), ingredients, false);
         } else {
             return null;
         }
