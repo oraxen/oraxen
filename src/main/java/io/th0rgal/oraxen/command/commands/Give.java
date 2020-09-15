@@ -58,9 +58,6 @@ public class Give extends OraxenCommand {
         int max = itemBuilder.getMaxStackSize();
         int slots = amount / max + (max % amount > 0 ? 1 : 0);
         ItemStack[] items = itemBuilder.buildArray(slots > 36 ? (amount = max * 36) : amount);
-        System.out
-            .println(items.length + "/" + max + "/" + amount + "/" + slots + "/"
-                + (slots > 36 ? (amount = max * 36) : amount));
         for (int index = 0; index < players.length; index++)
             players[index].getInventory().addItem(items);
         if (players.length == 1)

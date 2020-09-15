@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.thor;
 
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
