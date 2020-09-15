@@ -5,8 +5,10 @@
 ### Code improvement
 > Developers who have contributed to the source code
 * [AntoineJT](https://github.com/AntoineJT): made greats refactors.
-* [yzl210](https://github.com/yzl210): active contributor, introduced mythicmobs support and shapeless+furnace recipes.
-* [Lauriichan](https://github.com/Lauriichan): did a great work with the recipes system
+* [yzl210](https://github.com/yzl210): active contributor, introduced mythicmobs support, shapeless+furnace recipes and much more
+* [Lauriichan](https://github.com/Lauriichan): did a great work with the recipes, commands and multiple refactors
+* [Brett Saunders](https://github.com/brettsaunders21): introduced an awesome display inventory for recipes
+* [DoctaEnkoda](https://github.com/DoctaEnkoda): multiple improvements (worked on recipes and fixed bugs)
 * [Karlatemp](https://github.com/Karlatemp): added support for external hosting providers
 * [MrMicky](https://github.com/MrMicky-FR): developer of [FastInv](https://github.com/MrMicky-FR/FastInv) (used in this plugin)
 * [MiniDigger](https://github.com/MiniDigger): developer of [MiniMessage](https://github.com/MiniDigger/MiniMessage) (used in this plugin)
