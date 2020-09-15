@@ -18,7 +18,8 @@ public class CommandListener implements Listener {
             .add(Pack.info())
             .add(Recipe.info())
             .add(Reload.info())
-            .add(Repair.info());
+            .add(Repair.info())
+            .add(RecipeBook.info());
 
     }
 
