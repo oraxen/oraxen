@@ -6,6 +6,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.ConsoleCommandSender;
 
+import io.th0rgal.oraxen.language.LanguageProvider;
 import io.th0rgal.oraxen.language.Variable;
 
 public final class ConsoleAdapter implements BiConsumer<Boolean, String> {
@@ -27,7 +28,7 @@ public final class ConsoleAdapter implements BiConsumer<Boolean, String> {
     }
 
     public ConsoleAdapter send(String message) {
-        sender.sendMessage(Variable.PREFIX.translate("EN_UK") + ChatColor.translateAlternateColorCodes('&', message));
+        sender.sendMessage(Variable.PREFIX.legacyMessage(LanguageProvider.DEFAULT_LANGUAGE) + ' ' + ChatColor.translateAlternateColorCodes('&', message));
         return this;
     }
 

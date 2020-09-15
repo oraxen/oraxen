@@ -39,16 +39,16 @@ public enum Message implements IMessage {
     COMMAND_RECIPE_NO_BUILDER(true, "$prefix &7Please &ccreate an recipe&7 first!"),
     COMMAND_RECIPE_NO_FURNACE(true, "$prefix &7This option is only avaiable for &cFurnace Recipes&7!"),
     COMMAND_RECIPE_NO_NAME(true, "$prefix &7Please &cspecify a name &7for the recipe!"),
+    COMMAND_RECIPE_NO_RECIPES(true, "$prefix &7There are no recipes to show!"),
+    COMMAND_RECIPE_NO_ITEM(true, "$prefix &7Please specify an item!"),
     COMMAND_RECIPE_SAVE(true, "$prefix &7Recipe '&a$name&7' saved &asuccessfully&7!"),
 
     // Give
     COMMAND_GIVE_PLAYER(true, "$prefix &7You gave '&a$player&7' &3$amountx $item&7!"),
     COMMAND_GIVE_PLAYERS(true, "$prefix &7You gave &a$players players &3$amountx $item&7!"),
-
-    //RecipeBook
-    COMMAND_NO_RECIPES(true, "$prefix &7There are not recipes to show!");
-
-
+    
+    //
+    ;
 
 
     private final String value;

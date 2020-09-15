@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.recipes.CustomRecipe;
 import java.util.stream.Collectors;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -22,7 +23,7 @@ public class RecipesEventsManager implements Listener {
     private static RecipesEventsManager instance;
     private Map<CustomRecipe, String> permissionsPerRecipe = new HashMap<>();
     private Set<CustomRecipe> whitelistedCraftRecipes = new HashSet<>();
-    private ArrayList<CustomRecipe> whitelistedCraftRecipesOrdered= new ArrayList<CustomRecipe>();
+    private ArrayList<CustomRecipe> whitelistedCraftRecipesOrdered = new ArrayList<CustomRecipe>();
 
     public static RecipesEventsManager get() {
         if (instance == null) {
@@ -39,7 +40,7 @@ public class RecipesEventsManager implements Listener {
     public void onCrafted(PrepareItemCraftEvent event) {
         Recipe recipe = event.getRecipe();
         Player player = (Player) event.getView().getPlayer();
-        if (hasPermissions(player, CustomRecipe.fromRecipe(recipe)))
+        if (hasPermission(player, CustomRecipe.fromRecipe(recipe)))
             return;
         ItemStack result = event.getInventory().getResult();
         if (result == null)
@@ -54,10 +55,10 @@ public class RecipesEventsManager implements Listener {
         if (!containsOraxenItem)
             return;
 
+        CustomRecipe current = new CustomRecipe(null, Objects.requireNonNull(recipe).getResult(),
+            Arrays.asList(event.getInventory().getMatrix()));
         for (CustomRecipe whitelistedRecipe : whitelistedCraftRecipes) {
-            if (whitelistedRecipe
-                .equals(new CustomRecipe(Objects.requireNonNull(recipe).getResult(),
-                    Arrays.asList(event.getInventory().getMatrix()))))
+            if (whitelistedRecipe.equals(current))
                 return;
         }
 
@@ -79,12 +80,15 @@ public class RecipesEventsManager implements Listener {
         whitelistedCraftRecipesOrdered.add(recipe);
     }
 
-    public ArrayList<CustomRecipe> getOrderedFilteredRecipes(Player player) {
-        return (ArrayList<CustomRecipe>) whitelistedCraftRecipesOrdered.stream().filter((customRecipe -> !hasPermissions(player, customRecipe))).collect(Collectors.toList());
+    public List<CustomRecipe> getPermittedRecipes(CommandSender sender) {
+        return whitelistedCraftRecipesOrdered
+            .stream()
+            .filter(customRecipe -> hasPermission(sender, customRecipe))
+            .collect(Collectors.toList());
     }
 
-    public boolean hasPermissions(Player player, CustomRecipe recipe) {
-        return (permissionsPerRecipe.containsKey(recipe) && player.hasPermission(permissionsPerRecipe.get(recipe)));
+    public boolean hasPermission(CommandSender sender, CustomRecipe recipe) {
+        return permissionsPerRecipe.containsKey(recipe) ? sender.hasPermission(permissionsPerRecipe.get(recipe)) : true;
     }
 
 }

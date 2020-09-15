@@ -72,6 +72,26 @@ public interface ITranslatable extends IEnum {
         return MiniMessageParser.parseFormat(translate(language, placeholders));
     }
 
+    public default String legacyMessage() {
+        return BaseComponent.toLegacyText(message());
+    }
+
+    public default String legacyMessage(Language language) {
+        return BaseComponent.toLegacyText(message(language));
+    }
+
+    public default String legacyMessage(Language language, Placeholder... placeholders) {
+        return BaseComponent.toLegacyText(message(language, placeholders));
+    }
+
+    public default String legacyMessage(String language) {
+        return BaseComponent.toLegacyText(message(language));
+    }
+
+    public default String legacyMessage(String language, Placeholder... placeholders) {
+        return BaseComponent.toLegacyText(message(language, placeholders));
+    }
+
     /*
      * Send to CommandSender
      */
