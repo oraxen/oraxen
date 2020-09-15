@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 
 import java.util.stream.Collectors;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -56,7 +57,7 @@ public class RecipesEventsManager implements Listener {
             return;
 
         CustomRecipe current = new CustomRecipe(null, Objects.requireNonNull(recipe).getResult(),
-            Arrays.asList(event.getInventory().getMatrix()));
+                Arrays.asList(event.getInventory().getMatrix()));
         for (CustomRecipe whitelistedRecipe : whitelistedCraftRecipes) {
             if (whitelistedRecipe.equals(current))
                 return;
@@ -82,13 +83,13 @@ public class RecipesEventsManager implements Listener {
 
     public List<CustomRecipe> getPermittedRecipes(CommandSender sender) {
         return whitelistedCraftRecipesOrdered
-            .stream()
-            .filter(customRecipe -> hasPermission(sender, customRecipe))
-            .collect(Collectors.toList());
+                .stream()
+                .filter(customRecipe -> hasPermission(sender, customRecipe))
+                .collect(Collectors.toList());
     }
 
     public boolean hasPermission(CommandSender sender, CustomRecipe recipe) {
-        return permissionsPerRecipe.containsKey(recipe) ? sender.hasPermission(permissionsPerRecipe.get(recipe)) : true;
+        return !permissionsPerRecipe.containsKey(recipe) || sender.hasPermission(permissionsPerRecipe.get(recipe));
     }
 
 }
