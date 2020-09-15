@@ -33,12 +33,11 @@ public class ConfigsManager implements Listener {
         try {
             defaultConfiguration = YamlConfiguration.loadConfiguration(inputStreamReader);
         } finally {
-            if (inputStreamReader != null)
-                try {
-                    inputStreamReader.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+            try {
+                inputStreamReader.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 
