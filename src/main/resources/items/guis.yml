@@ -1,3 +1,23 @@
+arrow_next_icon:
+  displayname: "&0"
+  material: DIAMOND
+  excludeFromInventory: true
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    textures:
+      - arrow_next_icon.png # .png extension is not mandatory
+
+arrow_previous_icon:
+  displayname: "&0"
+  material: DIAMOND
+  excludeFromInventory: true
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    textures:
+      - arrow_previous_icon.png # .png extension is not mandatory
+
 recipe_showcase:
   displayname: "&0"
   material: DIAMOND
