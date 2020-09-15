@@ -20,6 +20,7 @@ public enum Message implements IMessage {
     NO_PERMISSION(true, "$prefix &7You're lacking the permission &c$permission &7to do this!"),
     WORK_IN_PROGRESS(true, "$prefix &7This feature is &dwork in progress&7!"),
     NOT_PLAYER(true, "$prefix &7This can &conly &7be done as a &cplayer&7!"),
+    COOL_DOWN(true, "&aWait Another $time $unit!"),
 
     //
     // Command Messages
@@ -45,8 +46,17 @@ public enum Message implements IMessage {
     COMMAND_GIVE_PLAYERS(true, "$prefix &7You gave &a$players players &3$amountx $item&7!"),
 
     //RecipeBook
-    COMMAND_NO_RECIPES(true, "$prefix &7There are not recipes to show!")
-    ;
+    COMMAND_NO_RECIPES(true, "$prefix &7There are not recipes to show!"),
+
+    //Time Units
+    TIME_UNIT_NANOSECONDS("NanoSeconds"),
+    TIME_UNIT_MICROSECONDS("MicroSeconds"),
+    TIME_UNIT_MILLISECONDS("MilliSeconds"),
+    TIME_UNIT_SECONDS("Seconds"),
+    TIME_UNIT_MINUTES("Minutes"),
+    TIME_UNIT_HOURS("Hours"),
+    TIME_UNIT_DAYS("Days");
+
 
     private final String value;
 
