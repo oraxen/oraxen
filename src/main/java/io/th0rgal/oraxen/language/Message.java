@@ -46,16 +46,9 @@ public enum Message implements IMessage {
     COMMAND_GIVE_PLAYERS(true, "$prefix &7You gave &a$players players &3$amountx $item&7!"),
 
     //RecipeBook
-    COMMAND_NO_RECIPES(true, "$prefix &7There are not recipes to show!"),
+    COMMAND_NO_RECIPES(true, "$prefix &7There are not recipes to show!");
 
-    //Time Units
-    TIME_UNIT_NANOSECONDS("NanoSeconds"),
-    TIME_UNIT_MICROSECONDS("MicroSeconds"),
-    TIME_UNIT_MILLISECONDS("MilliSeconds"),
-    TIME_UNIT_SECONDS("Seconds"),
-    TIME_UNIT_MINUTES("Minutes"),
-    TIME_UNIT_HOURS("Hours"),
-    TIME_UNIT_DAYS("Days");
+
 
 
     private final String value;

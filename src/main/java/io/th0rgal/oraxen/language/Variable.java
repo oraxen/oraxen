@@ -16,6 +16,15 @@ public enum Variable implements IVariable {
     //
     PREFIX(true, io.th0rgal.oraxen.settings.Plugin.PREFIX.toString()),
 
+    //Time Units
+    TIME_UNIT_NANOSECONDS("NanoSeconds"),
+    TIME_UNIT_MICROSECONDS("MicroSeconds"),
+    TIME_UNIT_MILLISECONDS("MilliSeconds"),
+    TIME_UNIT_SECONDS("Seconds"),
+    TIME_UNIT_MINUTES("Minutes"),
+    TIME_UNIT_HOURS("Hours"),
+    TIME_UNIT_DAYS("Days")
+
     //
     ;
 
