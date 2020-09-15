@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.command.commands;
 
+import static java.util.Arrays.stream;
+
 import static io.th0rgal.oraxen.command.argument.ArgumentHelper.*;
 import static io.th0rgal.oraxen.command.argument.CompletionHelper.*;
 
@@ -10,6 +12,8 @@ import java.util.stream.Collectors;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.utils.recipeshowcase.RecipeShowcase;
+
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -28,7 +32,6 @@ import io.th0rgal.oraxen.command.OraxenCommand;
 import io.th0rgal.oraxen.command.argument.RecipeType;
 import io.th0rgal.oraxen.command.condition.Conditions;
 import io.th0rgal.oraxen.command.permission.OraxenPermission;
-import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.language.Message;
 import io.th0rgal.oraxen.recipes.builders.FurnaceBuilder;
@@ -171,43 +174,50 @@ public class Recipe extends OraxenCommand {
             }
             String[] oraxenItems = OraxenItems.nameArray();
             String recipeName = restrict(get(arguments, 2, ArgumentType.STRING).map(BaseArgument::asString),
-                Arrays.merge(String[]::new, oraxenItems, "all", "result", "ingredient")).orElse("all");
+                Arrays.merge(String[]::new, oraxenItems, "all", "result", "ingredient", "name")).orElse("");
             switch (recipeName) {
             case "all":
                 break;
             case "result":
-                Optional<ItemBuilder> option000 = get(arguments, 3, argument -> item(argument));
+                Optional<ItemStack> option000 = get(arguments, 3, argument -> generalItem(argument));
                 if (!option000.isPresent()) {
                     Message.COMMAND_RECIPE_NO_ITEM.send(sender);
                     return;
                 }
-                ItemStack filterItem0 = option000.get().build();
+                ItemStack filterItem0 = option000.get();
                 recipes = recipes
                     .stream()
                     .filter(customRecipe -> customRecipe.getResult().isSimilar(filterItem0))
                     .collect(Collectors.toList());
                 break;
             case "ingredient":
-                Optional<ItemBuilder> option001 = get(arguments, 3, argument -> item(argument));
+                Optional<ItemStack> option001 = get(arguments, 3, argument -> generalItem(argument));
                 if (!option001.isPresent()) {
                     Message.COMMAND_RECIPE_NO_ITEM.send(sender);
                     return;
                 }
-                ItemStack filterItem1 = option001.get().build();
+                ItemStack filterItem1 = option001.get();
                 recipes = recipes
                     .stream()
                     .filter(customRecipe -> customRecipe
                         .getIngredients()
                         .stream()
+                        .filter(itemStack -> itemStack != null)
                         .anyMatch(itemStack -> itemStack.isSimilar(filterItem1)))
                     .collect(Collectors.toList());
                 break;
-            default:
+            case "name":
+                String specifiedName = get(arguments, 3, ArgumentType.STRING)
+                    .map(argument -> argument.asString().getValue())
+                    .orElse(null);
                 recipes = recipes
                     .stream()
-                    .filter(customRecipe -> customRecipe.getName().equals(recipeName))
+                    .filter(customRecipe -> customRecipe.getName().equals(specifiedName))
                     .collect(Collectors.toList());
                 break;
+            default:
+                info.getInfo().sendSimple(sender, info.getLabel());
+                return;
             }
             if (recipes.isEmpty()) {
                 Message.COMMAND_RECIPE_NO_RECIPES.send(sender);
@@ -269,10 +279,39 @@ public class Recipe extends OraxenCommand {
                 completion.add(new StringArgument("{<Name>}"));
                 break;
             case "show":
-                if (count == 3)
+                if (count == 3) {
+                    Optional<String> showType = restrict(
+                        get(arguments, 2, ArgumentType.STRING).map(BaseArgument::asString), "name", "result",
+                        "ingredient");
+                    switch (showType.orElse("")) {
+                    case "name":
+                        completion(completion,
+                            RecipesEventsManager
+                                .get()
+                                .getPermittedRecipes(sender)
+                                .stream()
+                                .map(CustomRecipe::getName)
+                                .filter(value -> value != null)
+                                .toArray(String[]::new));
+                        break;
+                    case "result":
+                    case "ingredient":
+                        completion(completion,
+                            stream(Material.values())
+                                .map(material -> material.name().toLowerCase())
+                                .filter(name -> !name.startsWith("legacy"))
+                                .toArray(String[]::new));
+                        completion(completion, OraxenItems.nameArray());
+                        break;
+                    default:
+                        break;
+                    }
                     break;
+                }
                 completion.add(new StringArgument("all"));
-                completion.add(new StringArgument(""));
+                completion.add(new StringArgument("name"));
+                completion.add(new StringArgument("result"));
+                completion.add(new StringArgument("ingredient"));
                 break;
             default:
                 break;

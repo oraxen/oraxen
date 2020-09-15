@@ -7,9 +7,6 @@ import java.util.List;
 
 public enum Plugin implements ConfigEnum {
 
-    NAME("Plugin.name"),
-    PREFIX("Plugin.prefix"),
-
     REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),
 
     CONFIGS_VERSION("configs_version"),

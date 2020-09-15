@@ -14,7 +14,7 @@ public enum Variable implements IVariable {
     //
     // General Variables
     //
-    PREFIX(true, io.th0rgal.oraxen.settings.Plugin.PREFIX.toString()),
+    PREFIX(true, "&bOraxen &8|&7"),
 
     // Time Units
     TIME_UNIT_NANOSECONDS("NanoSeconds"),

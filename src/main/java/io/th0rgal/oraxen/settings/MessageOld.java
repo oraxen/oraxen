@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.settings;
 
+import io.th0rgal.oraxen.language.LanguageProvider;
+import io.th0rgal.oraxen.language.Variable;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
@@ -42,16 +44,16 @@ public enum MessageOld {
     private final String message;
 
     MessageOld(ChatColor color, String message) {
-        this.message = color + message;
+        this(color + message);
     }
 
     MessageOld(String message) {
-        this.message = message;
+        this.message = ' ' + message;
     }
 
     @Override
     public String toString() {
-        return Plugin.PREFIX + message;
+        return Variable.PREFIX.translate(LanguageProvider.DEFAULT_LANGUAGE) + message;
     }
 
     public void send(CommandSender sender) {

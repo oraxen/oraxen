@@ -83,12 +83,12 @@ public class RecipesEventsManager implements Listener {
     public List<CustomRecipe> getPermittedRecipes(CommandSender sender) {
         return whitelistedCraftRecipesOrdered
             .stream()
-            .filter((customRecipe -> !hasPermission(sender, customRecipe)))
+            .filter(customRecipe -> hasPermission(sender, customRecipe))
             .collect(Collectors.toList());
     }
 
     public boolean hasPermission(CommandSender sender, CustomRecipe recipe) {
-        return (permissionsPerRecipe.containsKey(recipe) && sender.hasPermission(permissionsPerRecipe.get(recipe)));
+        return permissionsPerRecipe.containsKey(recipe) ? sender.hasPermission(permissionsPerRecipe.get(recipe)) : true;
     }
 
 }

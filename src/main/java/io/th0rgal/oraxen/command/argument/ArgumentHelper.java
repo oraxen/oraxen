@@ -14,8 +14,10 @@ import java.util.function.Function;
 
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 
 import com.syntaxphoenix.syntaxapi.command.ArgumentSuperType;
 import com.syntaxphoenix.syntaxapi.command.ArgumentType;
@@ -126,6 +128,20 @@ public abstract class ArgumentHelper {
             return Optional.empty();
         if (argument.getType() == ArgumentType.STRING) {
             return OraxenItems.getOptionalItemById(argument.asString().getValue());
+        }
+        return Optional.empty();
+    }
+
+    public static Optional<ItemStack> generalItem(BaseArgument argument) {
+        if (argument == null)
+            return Optional.empty();
+        if (argument.getType() == ArgumentType.STRING) {
+            String value = argument.asString().getValue();
+            try {
+                return Optional.of(new ItemStack(Material.valueOf(value.toUpperCase().replaceFirst("MINECRAFT:", ""))));
+            } catch (IllegalArgumentException ignore) {
+                return OraxenItems.getOptionalItemById(value.replaceFirst("oraxen:", "")).map(ItemBuilder::build);
+            }
         }
         return Optional.empty();
     }
