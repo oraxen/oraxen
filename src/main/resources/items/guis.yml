@@ -41,5 +41,3 @@ example_lower_section:
   Pack:
     generate_model: false
     model: lower_section
-
-
