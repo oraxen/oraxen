@@ -39,8 +39,7 @@ public class FileInventory extends FastInv {
                 material = "PAPER";
 
             try {
-                ItemBuilder isOraxenItems = new ItemBuilder(OraxenItems.getItemById(material).build().clone());
-                itemStack = isOraxenItems
+                itemStack = new ItemBuilder(OraxenItems.getItemById(material).build())
                     .setDisplayName(ChatColor.GREEN + ymlFile.getName())
                     .setLore(new ArrayList<>())
                     .build();

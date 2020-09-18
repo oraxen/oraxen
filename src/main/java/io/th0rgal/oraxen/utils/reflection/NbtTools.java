@@ -2,11 +2,11 @@ package io.th0rgal.oraxen.utils.reflection;
 
 import static io.th0rgal.oraxen.utils.reflection.ReflectionProvider.ORAXEN;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.util.Optional;
 
 import com.syntaxphoenix.syntaxapi.nbt.NbtCompound;
@@ -33,14 +33,13 @@ public class NbtTools {
 
         try {
 
-            PipedInputStream input = new PipedInputStream();
-            PipedOutputStream output = new PipedOutputStream(input);
+            byte[] bytes = SERIALIZER.toBytes(new NbtNamedTag("root", compound));
 
-            SERIALIZER.toStream(new NbtNamedTag("root", compound), output);
-            Object minecraft = option0.get().run("read", new DataInputStream(input));
+            ByteArrayInputStream stream = new ByteArrayInputStream(bytes);
 
-            input.close();
-            output.close();
+            Object minecraft = option0.get().run("read", new DataInputStream(stream));
+
+            stream.close();
 
             return minecraft;
 
@@ -58,14 +57,13 @@ public class NbtTools {
 
         try {
 
-            PipedInputStream input = new PipedInputStream();
-            PipedOutputStream output = new PipedOutputStream(input);
+            ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
-            option0.get().run("write", compound, new DataOutputStream(output));
-            NbtTag tag = DESERIALIZER.fromStream(input).getTag();
+            option0.get().run("write", compound, new DataOutputStream(stream));
 
-            input.close();
-            output.close();
+            NbtTag tag = DESERIALIZER.fromStream(new ByteArrayInputStream(stream.toByteArray())).getTag();
+
+            stream.close();
 
             return tag.getType() == NbtType.COMPOUND ? (NbtCompound) tag : new NbtCompound();
 
