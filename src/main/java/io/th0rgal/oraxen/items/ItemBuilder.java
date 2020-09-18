@@ -221,6 +221,10 @@ public class ItemBuilder {
         customItemData.set(name, tag);
         return this;
     }
+    
+    public NbtCompound getNbtData(boolean override) {
+        return override ? overrideData : customItemData;
+    }
 
     public ItemBuilder setNbtTags(NbtCompound compound) {
         customItemData.getValue().putAll(compound.getValue());
@@ -301,12 +305,12 @@ public class ItemBuilder {
     @SuppressWarnings("unchecked")
     public ItemBuilder regen() {
 
+        ItemStack itemStack = ItemTools.fromNbtCompound(overrideData);
+        
+        overrideData.remove("oraxenData");
+        
         if (!customItemData.isEmpty())
             overrideData.set("oraxenData", customItemData);
-
-        ItemStack itemStack = ItemTools.fromNbtCompound(overrideData);
-
-        overrideData.remove("oraxenData");
 
         /*
          * CHANGING ITEM
