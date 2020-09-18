@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils.reflection;
 
+import java.io.DataInput;
 import java.io.DataInputStream;
 import java.io.DataOutput;
 
@@ -30,6 +31,7 @@ public class Reflections {
         // NMS
         provider
             .createNMSReflect("nms_nbt_stream_tools", "NBTCompressedStreamTools")
+            .searchMethod("read", "a", DataInput.class)
             .searchMethod("read", "a", DataInputStream.class)
             .searchMethod("write", "a", nbtTagCompoundClass, DataOutput.class);
 
