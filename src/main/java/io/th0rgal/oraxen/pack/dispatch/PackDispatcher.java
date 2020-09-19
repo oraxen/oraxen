@@ -27,7 +27,7 @@ public class PackDispatcher {
 
     public static void sendWelcomeMessage(Player player) {
         BaseComponent[] components = Pack.JOIN_MESSAGE_CONTENT.toMiniMessage("pack_url", url);
-        long delay = (long) Pack.JOIN_MESSAGE_DELAY.getValue();
+        long delay = (int) Pack.JOIN_MESSAGE_DELAY.getValue();
         if (delay == -1)
             player.spigot().sendMessage(components);
         else
