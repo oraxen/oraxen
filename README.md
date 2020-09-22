@@ -42,7 +42,7 @@ Oraxen is a minecraft plugin that allows you to modify the game by adding new it
 
 ## Configuration
 ### Creating a new item is super easy
-![Demo image for item configuration](https://oraxen.com/thread/demo_conf.svg)
+![Demo image for item configuration](https://oraxen.com/thread/example_config.svg)
 
 ## License
 *Click here to read [the entire license](https://github.com/Th0rgal/Oraxen/blob/master/LICENSE.md).* 
