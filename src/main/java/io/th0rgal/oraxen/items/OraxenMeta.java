@@ -9,6 +9,7 @@ public class OraxenMeta {
     private int customModelData;
     private String modelName;
     private String blockingModel;
+    private List<String> pullingModels;
     private List<String> layers;
     private String parentModel;
     private boolean generate_model;
@@ -27,6 +28,9 @@ public class OraxenMeta {
         this.hasPackInfos = true;
         this.modelName = readModelName(configurationSection, "model");
         this.blockingModel = readModelName(configurationSection, "blocking_model");
+        this.pullingModels = configurationSection.isList("pulling_models")
+                ? configurationSection.getStringList("pulling_models")
+                : null;
         this.layers = configurationSection.getStringList("textures");
         // can't be refactored with for each or stream because it'll throw
         // ConcurrentModificationException
@@ -76,6 +80,14 @@ public class OraxenMeta {
 
     public String getBlockingModelName() {
         return blockingModel;
+    }
+
+    public boolean hasPullingModels() {
+        return pullingModels != null && !pullingModels.isEmpty();
+    }
+
+    public List<String> getPullingModels() {
+        return pullingModels;
     }
 
     public boolean hasLayers() {

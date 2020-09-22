@@ -16,7 +16,8 @@ public enum Plugin implements ConfigEnum {
 
     RESET_RECIPES("Misc.reset_recipes"),
     ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass"),
-    SHIELD_DISPLAY("Misc.shield_display");
+    SHIELD_DISPLAY("Misc.shield_display"),
+    BOW_DISPLAY("Misc.bow_display");
 
     private final Object value;
 
