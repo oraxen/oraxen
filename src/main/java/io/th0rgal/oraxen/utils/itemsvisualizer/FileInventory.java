@@ -11,6 +11,7 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
@@ -33,25 +34,27 @@ public class FileInventory extends FastInv {
             File ymlFile = Iterables.get(collection, i);
             ItemStack itemStack = null;
             String material = settings
-                .getString(String.format("gui_inventory.%s", FilenameUtils.removeExtension(ymlFile.getName())),
-                    "PAPER");
+                    .getString(String.format("gui_inventory.%s", FilenameUtils.removeExtension(ymlFile.getName())),
+                            "PAPER");
             if (material == null)
                 material = "PAPER";
 
             try {
                 itemStack = new ItemBuilder(OraxenItems.getItemById(material).build())
-                    .setDisplayName(ChatColor.GREEN + ymlFile.getName())
-                    .setLore(new ArrayList<>())
-                    .build();
+                        .addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
+                        .setDisplayName(ChatColor.GREEN + ymlFile.getName())
+                        .setLore(new ArrayList<>())
+                        .build();
             } catch (Exception e) {
                 try {
                     itemStack = new ItemBuilder(Material.getMaterial(material.toUpperCase()))
-                        .setDisplayName(ChatColor.GREEN + ymlFile.getName())
-                        .build();
+                            .addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
+                            .setDisplayName(ChatColor.GREEN + ymlFile.getName())
+                            .build();
                 } catch (Exception ignored) {
                     itemStack = new ItemBuilder(Material.PAPER)
-                        .setDisplayName(ChatColor.GREEN + ymlFile.getName())
-                        .build();
+                            .setDisplayName(ChatColor.GREEN + ymlFile.getName())
+                            .build();
                 }
             }
 
@@ -59,28 +62,28 @@ public class FileInventory extends FastInv {
                 // avoid possible bug if isOraxenItems is available but can't be an itemstack
                 itemStack = new ItemBuilder(Material.PAPER).setDisplayName(ChatColor.GREEN + ymlFile.getName()).build();
             setItem(i - page * 2 * 9, itemStack,
-                e -> new ItemsInventory(0, page, ymlFile).open((Player) e.getWhoClicked()));
+                    e -> new ItemsInventory(0, page, ymlFile).open((Player) e.getWhoClicked()));
         }
 
         setItem(getInventory().getSize() - 5,
-            new ItemBuilder(Material.BARRIER).setDisplayName(ChatColor.RED + "close").build(),
-            e -> e.getWhoClicked().closeInventory());
+                new ItemBuilder(Material.BARRIER).setDisplayName(ChatColor.RED + "close").build(),
+                e -> e.getWhoClicked().closeInventory());
 
         if (page > 0)
             setItem(getInventory().getSize() - 6,
-                new ItemBuilder(Material.ARROW)
-                    .setAmount(page)
-                    .setDisplayName(ChatColor.YELLOW + "open page " + page)
-                    .build(),
-                e -> new FileInventory(page - 1).open((Player) e.getWhoClicked()));
+                    new ItemBuilder(Material.ARROW)
+                            .setAmount(page)
+                            .setDisplayName(ChatColor.YELLOW + "open page " + page)
+                            .build(),
+                    e -> new FileInventory(page - 1).open((Player) e.getWhoClicked()));
 
         if (!lastPage)
             setItem(getInventory().getSize() - 4,
-                new ItemBuilder(Material.ARROW)
-                    .setAmount(page + 2)
-                    .setDisplayName(ChatColor.RED + "open page " + (page + 2))
-                    .build(),
-                e -> new FileInventory(page + 1).open((Player) e.getWhoClicked()));
+                    new ItemBuilder(Material.ARROW)
+                            .setAmount(page + 2)
+                            .setDisplayName(ChatColor.RED + "open page " + (page + 2))
+                            .build(),
+                    e -> new FileInventory(page + 1).open((Player) e.getWhoClicked()));
 
     }
 }
