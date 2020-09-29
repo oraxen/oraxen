@@ -1,9 +1,6 @@
 configs_version: 4
 
 Plugin:
-  name: "Oraxen"
-  prefix: "&bOraxen &8|&7 "
-
   commands:
     repair:
       oraxen_durability_only: false # will not repair vanilla items if set to true
