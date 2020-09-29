@@ -42,7 +42,7 @@ public class LanguageProvider {
             setLanguageOfIfNotExists(player, DEFAULT_LANGUAGE);
             return;
         }
-        setLanguageOf(player, Translations.MANAGER.getLanguage(locale, RequestType.ID));
+        setLanguageOfIfNotExists(player, Translations.MANAGER.getLanguage(locale, RequestType.ID));
     }
 
 }
