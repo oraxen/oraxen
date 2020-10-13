@@ -6,8 +6,8 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class HarvestingMechanic extends Mechanic {
 
-    private int radius;
-    private int height;
+    private final int radius;
+    private final int height;
 
     public HarvestingMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
