@@ -106,4 +106,5 @@ shadowJar {
     }
 }
 
+compileJava.dependsOn clean
 build.dependsOn shadowJar
