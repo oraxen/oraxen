@@ -23,9 +23,15 @@ public class BigMiningMechanicListener implements Listener {
 
     private final MechanicFactory factory;
     private int blocksToProcess = 0;
+    private final WorldGuardCompatibility worldGuardCompatibility;
 
     public BigMiningMechanicListener(MechanicFactory factory) {
         this.factory = factory;
+        if (CompatibilitiesManager.isCompatibilityEnabled("WorldGuard"))
+            worldGuardCompatibility = (WorldGuardCompatibility) CompatibilitiesManager
+                    .getActiveCompatibility("WorldGuard");
+        else
+            worldGuardCompatibility = null;
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -33,11 +39,8 @@ public class BigMiningMechanicListener implements Listener {
 
         Player player = event.getPlayer();
 
-        if (CompatibilitiesManager.isCompatibilityEnabled("WorldGuard")
-            && !((WorldGuardCompatibility) CompatibilitiesManager.getActiveCompatibility("WorldGuard"))
-                .canBreak(event.getPlayer(), event.getBlock())) {
+        if (worldGuardCompatibility != null && !worldGuardCompatibility.canBreak(event.getPlayer(), event.getBlock()))
             return;
-        }
 
         if (blocksToProcess > 0) {
             blocksToProcess -= 1;
@@ -67,7 +70,7 @@ public class BigMiningMechanicListener implements Listener {
             for (double relativeY = -mechanic.getRadius(); relativeY <= mechanic.getRadius(); relativeY++)
                 for (double relativeDepth = 0; relativeDepth < mechanic.getDepth(); relativeDepth++) {
                     tempLocation = transpose(initialLocation, blockFace, relativeX, relativeY,
-                        relativeDepth * modifier);
+                            relativeDepth * modifier);
                     if (tempLocation.equals(initialLocation))
                         continue;
                     breakBlock(player, tempLocation.getBlock(), item);
@@ -78,7 +81,7 @@ public class BigMiningMechanicListener implements Listener {
         if (block.isLiquid() || Constants.UNBREAKABLE_BLOCKS.contains(block.getType()))
             return;
         blocksToProcess += 1; // to avoid this method to call itself <- need other way to handle players using
-                              // the same tool at the same time
+        // the same tool at the same time
         BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
         Bukkit.getPluginManager().callEvent(blockBreakEvent);
         if (!blockBreakEvent.isCancelled())
@@ -93,7 +96,7 @@ public class BigMiningMechanicListener implements Listener {
      * certain axis
      */
     private Location transpose(Location location, BlockFace blockFace, double relativeX, double relativeY,
-        double relativeDepth) {
+                               double relativeDepth) {
         location = location.clone();
         if (blockFace == BlockFace.WEST || blockFace == BlockFace.EAST) // WEST_EAST axis != X
             location.add(relativeDepth, relativeX, relativeY);
