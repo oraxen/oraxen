@@ -40,9 +40,7 @@ public class PredicatesGenerator {
         // specific items
         switch (material) {
             case SHIELD:
-                overrides.add(getOverride("blocking", 1, "item/bow_pulling_0"));
-                overrides.add(getOverride("blocking", 1, "item/bow_pulling_0"));
-                overrides.add(getOverride("blocking", 1, "item/bow_pulling_0"));
+                overrides.add(getOverride("blocking", 1, "item/shield_blocking"));
                 json.addProperty("gui_light", "front");
                 json.add("display", new JsonParser().parse(Plugin.SHIELD_DISPLAY.toString()).getAsJsonObject());
                 break;
