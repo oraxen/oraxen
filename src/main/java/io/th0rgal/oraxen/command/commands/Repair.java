@@ -45,7 +45,7 @@ public class Repair extends OraxenCommand {
         CommandSender sender = info.getSender();
 
         if (Conditions
-                .mixed(Conditions.reqPerm(OraxenPermission.COMMAND_RECIPE), Conditions.player(Message.NOT_PLAYER))
+                .mixed(Conditions.reqPerm(OraxenPermission.COMMAND_REPAIR), Conditions.player(Message.NOT_PLAYER))
                 .isFalse(sender)) {
             return;
         }
