@@ -28,7 +28,7 @@ public class NbtTools {
     public static Object toMinecraft(NbtCompound compound) {
 
         Optional<Reflect> option0 = ORAXEN.getOptionalReflect("nms_nbt_stream_tools");
-        if (option0.isEmpty())
+        if (!option0.isPresent())
             throw new IllegalStateException("Oraxen Reflections aren't setup properly?");
 
         try {
