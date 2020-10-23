@@ -30,39 +30,45 @@ public class PackReceiver implements Listener {
         PlayerResourcePackStatusEvent.Status status = event.getStatus();
 
         switch (status) {
-            case ACCEPTED -> {
+
+            case ACCEPTED:
                 action = MessageAction.fromString((String) Pack.RECEIVE_ALLOWED_MESSAGE_ACTION.getValue());
                 message = (boolean) Pack.RECEIVE_ALLOWED_SEND_MESSAGE.getValue();
                 delay = (int) Pack.RECEIVE_ALLOWED_MESSAGE_DELAY.getValue();
                 period = (int) Pack.RECEIVE_ALLOWED_MESSAGE_PERIOD.getValue();
                 components = Pack.RECEIVE_ALLOWED_MESSAGE.toMiniMessageList();
                 commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
-            }
-            case DECLINED -> {
+                break;
+
+            case DECLINED:
                 action = MessageAction.fromString((String) Pack.RECEIVE_DENIED_MESSAGE_ACTION.getValue());
                 message = (boolean) Pack.RECEIVE_DENIED_SEND_MESSAGE.getValue();
                 delay = (int) Pack.RECEIVE_DENIED_MESSAGE_DELAY.getValue();
                 period = (int) Pack.RECEIVE_DENIED_MESSAGE_PERIOD.getValue();
                 components = Pack.RECEIVE_DENIED_MESSAGE.toMiniMessageList();
                 commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
-            }
-            case FAILED_DOWNLOAD -> {
+                break;
+
+            case FAILED_DOWNLOAD:
                 action = MessageAction.fromString((String) Pack.RECEIVE_FAILED_MESSAGE_ACTION.getValue());
                 message = (boolean) Pack.RECEIVE_FAILED_SEND_MESSAGE.getValue();
                 delay = (int) Pack.RECEIVE_FAILED_MESSAGE_DELAY.getValue();
                 period = (int) Pack.RECEIVE_FAILED_MESSAGE_PERIOD.getValue();
                 components = Pack.RECEIVE_FAILED_MESSAGE.toMiniMessageList();
                 commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
-            }
-            case SUCCESSFULLY_LOADED -> {
+                break;
+
+            case SUCCESSFULLY_LOADED:
                 action = MessageAction.fromString((String) Pack.RECEIVE_LOADED_MESSAGE_ACTION.getValue());
                 message = (boolean) Pack.RECEIVE_LOADED_SEND_MESSAGE.getValue();
                 delay = (int) Pack.RECEIVE_LOADED_MESSAGE_DELAY.getValue();
                 period = (int) Pack.RECEIVE_LOADED_MESSAGE_PERIOD.getValue();
                 components = Pack.RECEIVE_LOADED_MESSAGE.toMiniMessageList();
                 commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
-            }
-            default -> throw new IllegalStateException("Unexpected value: " + status);
+                break;
+
+            default:
+                throw new IllegalStateException("Unexpected value: " + status);
         }
 
         if (message && !components.isEmpty())
