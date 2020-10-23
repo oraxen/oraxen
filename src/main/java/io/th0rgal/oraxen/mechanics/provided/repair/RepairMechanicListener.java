@@ -25,6 +25,7 @@ public class RepairMechanicListener implements Listener {
     public void onRepairItem(InventoryClickEvent event) {
 
         ItemStack item = event.getCursor();
+        if (item == null) return;
         String itemID = OraxenItems.getIdByItem(item);
         if (factory.isNotImplementedIn(itemID))
             return;
@@ -38,7 +39,7 @@ public class RepairMechanicListener implements Listener {
         String toRepairId = OraxenItems.getIdByItem(toRepair);
         ItemMeta toRepairMeta = toRepair.getItemMeta();
         Damageable damageable = (Damageable) toRepairMeta;
-        if (!(toRepairMeta instanceof Damageable))
+        if (toRepairMeta == null)
             return;
 
         if (durabilityFactory.isNotImplementedIn(toRepairId)) {

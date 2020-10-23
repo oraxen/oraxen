@@ -12,9 +12,9 @@ import java.util.*;
 
 public class PotionEffectsMechanic extends Mechanic {
 
-    private Set<PotionEffect> effects = new HashSet<>();
-    private Set<PotionEffectType> overridedTypes = new HashSet<>();
-    private Map<UUID, Set<PotionEffect>> previousPlayerEffects = new HashMap<>();
+    private final Set<PotionEffect> effects = new HashSet<>();
+    private final Set<PotionEffectType> overridedTypes = new HashSet<>();
+    private final Map<UUID, Set<PotionEffect>> previousPlayerEffects = new HashMap<>();
 
     public PotionEffectsMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);

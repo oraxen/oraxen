@@ -17,6 +17,7 @@ public enum Pack implements ConfigEnum {
 
     UPLOAD_TYPE("upload.type"),
     UPLOAD("upload.enabled"),
+    UPLOAD_BUNGEECORD("upload.bungeecord"),
     UPLOAD_OPTIONS("upload.options"),
 
     POLYMATH_SERVER("upload.polymath.server"),

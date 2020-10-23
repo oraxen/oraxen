@@ -21,10 +21,9 @@ import java.util.zip.ZipInputStream;
 public class ResourcePack {
 
     private static File modelsFolder;
-    private static File assetsFolder;
     private static final List<Consumer<File>> PACK_MODIFIERS = new ArrayList<>();
     JavaPlugin plugin;
-    private File pack;
+    private final File pack;
     byte[] sha1;
 
     public ResourcePack(JavaPlugin plugin) {
@@ -33,7 +32,7 @@ public class ResourcePack {
         makeDirsIfNotExists(packFolder);
 
         File texturesFolder = new File(packFolder, "textures");
-        assetsFolder = new File(packFolder, "assets");
+        File assetsFolder = new File(packFolder, "assets");
         modelsFolder = new File(packFolder, "models");
 
         boolean extractModels = !modelsFolder.exists();

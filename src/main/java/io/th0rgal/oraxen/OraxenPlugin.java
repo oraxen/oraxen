@@ -38,6 +38,8 @@ public class OraxenPlugin extends JavaPlugin {
     private UploadManager uploadManager;
 
     private static OraxenPlugin oraxen;
+    private static final String pluginChannel = "OraxenBungee";
+    private static boolean isBungee = false;
 
     public OraxenPlugin() throws Exception {
         oraxen = this;
@@ -85,11 +87,23 @@ public class OraxenPlugin extends JavaPlugin {
         new ArmorListener(Plugin.ARMOR_EQUIP_EVENT_BYPASS.getAsStringList()).registerEvents(this);
         postLoading(resourcePack, configsManager);
         Logs.log(ChatColor.GREEN + "Successfully loaded on " + OS.getOs().getPlatformName());
+
+        try {
+            // Enabled Bungeecord Plugin
+            getServer().getMessenger().registerOutgoingPluginChannel(this, pluginChannel);
+            isBungee = true;
+        } catch (Exception notBungee) {
+            Logs.log(ChatColor.DARK_RED + "OraxenBungee not found !");
+        }
     }
 
     public void onDisable() {
         unregisterListeners();
         CompatibilitiesManager.disableCompatibilities();
+        if (isBungee) {
+            getServer().getMessenger().unregisterOutgoingPluginChannel(this, pluginChannel);
+        }
+
         Logs.log(ChatColor.GREEN + "Successfully unloaded");
     }
 
@@ -116,5 +130,9 @@ public class OraxenPlugin extends JavaPlugin {
     public UploadManager getUploadManager() {
         return uploadManager;
     }
+
+    public static String getPluginChannel() { return pluginChannel; }
+
+    public static boolean hasBungeeEnabled() { return isBungee; }
 
 }

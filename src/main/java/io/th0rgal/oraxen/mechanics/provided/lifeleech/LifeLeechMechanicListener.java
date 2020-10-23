@@ -32,32 +32,18 @@ public class LifeLeechMechanicListener implements Listener {
         ItemStack item = damager.getInventory().getItemInMainHand();
         String itemID = OraxenItems.getIdByItem(item);
 
-        if (factory.isNotImplementedIn(itemID))
-            return;
+        if (factory.isNotImplementedIn(itemID)) return;
 
         LifeLeechMechanic mechanic = (LifeLeechMechanic) factory.getMechanic(itemID);
         double health = damager.getHealth() + mechanic.getAmount();
-        /**
-         * double maxHealth =
-         * damager.getAttribute(Attribute.GENERIC_MAX_HEALTH).getDefaultValue();
-         *
-         * Fixe d'un bug duquel le maxHealth n'est pas bien compté. Fixe d'un second byg
-         * que le GENERIC_MAX_HEALTH avec getDefaultValue ne dépasse pas les 20
-         */
-
         double maxHealth = damager.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
-
         damager.setHealth(Math.min(health, maxHealth));
-        LivingEntity damaged = (LivingEntity) event.getEntity();
-        /**
-         * Could not pass event EntityDamageByEntityEvent to Oraxen v1.35.2
-         * java.lang.IllegalArgumentException: Health must be between 0 and 20.0, but
-         * was -1.8572006225585938. (attribute base value: 20.0) at
-         * org.bukkit.craftbukkit.v1_15_R1.entity.CraftLivingEntity.setHealth(CraftLivingEntity.java:112)
-         * ~[server.jar:git-Purpur-"6158389"]
-         */
-        damaged
-            .setHealth(
-                damaged.getHealth() - mechanic.getAmount() <= 0 ? 0.0 : damaged.getHealth() - mechanic.getAmount());
+        if (event.getEntity() instanceof LivingEntity) {
+            LivingEntity damaged = (LivingEntity) event.getEntity();
+            damaged
+                    .setHealth(
+                            damaged.getHealth() - mechanic.getAmount() <= 0 ? 0.0 : damaged.getHealth() - mechanic.getAmount());
+        }
+
     }
 }

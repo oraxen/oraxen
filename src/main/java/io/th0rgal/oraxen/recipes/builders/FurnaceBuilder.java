@@ -14,7 +14,7 @@ public class FurnaceBuilder extends RecipeBuilder {
     private String cookingTimeInput;
     private String experienceInput;
 
-    private InputProvider[] providers = new InputProvider[2];
+    private final InputProvider[] providers = new InputProvider[2];
 
     public FurnaceBuilder(Player player) {
         super(player, "furnace");

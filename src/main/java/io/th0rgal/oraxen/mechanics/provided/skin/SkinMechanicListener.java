@@ -19,12 +19,12 @@ public class SkinMechanicListener implements Listener {
     public void onInventoryClick(InventoryClickEvent event) {
         ItemStack skin = event.getCursor();
         ItemStack skinnable = event.getCurrentItem();
+        if (skin == null || skin.getItemMeta() == null || skinnable == null || skinnable.getItemMeta() == null) return;
         String skinItemID = OraxenItems.getIdByItem(skin);
         String skinnableItemID = OraxenItems.getIdByItem(skinnable);
         if (factory.isNotImplementedIn(skinItemID)
             || SkinnableMechanicFactory.get().isNotImplementedIn(skinnableItemID))
             return;
-
         if (!skin.getItemMeta().hasCustomModelData() || skin.getType() != skinnable.getType())
             return;
 

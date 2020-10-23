@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.pack.upload;
 
+import com.google.common.io.ByteArrayDataOutput;
+import com.google.common.io.ByteStreams;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.pack.dispatch.PackDispatcher;
 import io.th0rgal.oraxen.pack.dispatch.PackSender;
@@ -16,16 +18,20 @@ import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.Plugin;
 
+import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.ProviderNotFoundException;
 import java.util.List;
 
+import static org.bukkit.Bukkit.getServer;
+
+@SuppressWarnings("UnstableApiUsage")
 public class UploadManager {
 
-    private Plugin plugin;
-    private boolean enabled;
-    private HostingProvider hostingProvider;
+    private final Plugin plugin;
+    private final boolean enabled;
+    private final HostingProvider hostingProvider;
 
     private PackReceiver receiver;
     private PackSender sender;
@@ -48,13 +54,33 @@ public class UploadManager {
                 Logs.log(ChatColor.RED, "Resourcepack not uploaded");
                 return;
             }
-            Logs
-                .log(ChatColor.GREEN, "Resourcepack uploaded on url " + hostingProvider.getPackURL() + " in "
-                    + (System.currentTimeMillis() - time) + "ms");
-            PackDispatcher.setPackURL(hostingProvider.getPackURL());
-            PackDispatcher.setSha1(hostingProvider.getSHA1());
-            if (((boolean) Pack.SEND_PACK.getValue() || (boolean) Pack.SEND_JOIN_MESSAGE.getValue()) && sender == null)
-                Bukkit.getPluginManager().registerEvents(sender = new PackSender(), plugin);
+            if ((boolean) Pack.UPLOAD_BUNGEECORD.getValue() && OraxenPlugin.hasBungeeEnabled()) {
+                try {
+                    //ByteArrayOutputStream stream = new ByteArrayOutputStream();
+                    ByteArrayDataOutput out = ByteStreams.newDataOutput();
+                    out.writeUTF("PackURL");
+                    out.writeUTF(hostingProvider.getPackURL());
+                    out.writeUTF("SHA1");
+                    out.write(hostingProvider.getSHA1());
+                    getServer().sendPluginMessage(OraxenPlugin.get(), "BungeeCord", out.toByteArray());
+                } catch (Exception exception) {
+                    Logs.log(ChatColor.DARK_RED, "Request to Bungeecord has failed : " + exception.getMessage() + "\nRessource pack on your server");
+                    Logs.log(ChatColor.GREEN, "Resourcepack uploaded on url " + hostingProvider.getPackURL() + " in " + (System.currentTimeMillis() - time) + "ms");
+                    PackDispatcher.setPackURL(hostingProvider.getPackURL());
+                    PackDispatcher.setSha1(hostingProvider.getSHA1());
+                    if (((boolean) Pack.SEND_PACK.getValue() || (boolean) Pack.SEND_JOIN_MESSAGE.getValue()) && sender == null)
+                        Bukkit.getPluginManager().registerEvents(sender = new PackSender(), plugin);
+                }
+            } else {
+                Logs
+                        .log(ChatColor.GREEN, "Resourcepack uploaded on url " + hostingProvider.getPackURL() + " in "
+                                + (System.currentTimeMillis() - time) + "ms");
+                PackDispatcher.setPackURL(hostingProvider.getPackURL());
+                PackDispatcher.setSha1(hostingProvider.getSHA1());
+                if (((boolean) Pack.SEND_PACK.getValue() || (boolean) Pack.SEND_JOIN_MESSAGE.getValue()) && sender == null)
+                    Bukkit.getPluginManager().registerEvents(sender = new PackSender(), plugin);
+            }
+
         });
     }
 
@@ -66,7 +92,7 @@ public class UploadManager {
         case "cmd":
             final ConfigurationSection opt = (ConfigurationSection) Pack.UPLOAD_OPTIONS.getValue();
             final List<String> args = opt.getStringList("args");
-            if (args == null || args.isEmpty())
+            if (args.isEmpty())
                 throw new ProviderNotFoundException("No command line.");
             String placeholder = opt.getString("placeholder", "${file}");
             return new Sh(Sh.path(placeholder, args));

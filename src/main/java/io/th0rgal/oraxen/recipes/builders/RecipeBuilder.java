@@ -81,7 +81,7 @@ public abstract class RecipeBuilder {
         return config;
     }
 
-    public void saveConfig() {
+    public synchronized void saveConfig() {
         try {
             config.save(configFile);
         } catch (IOException e) {
