@@ -93,8 +93,6 @@ shadowJar {
         exclude("io.th0rgal.oraxen.api.*")
         exclude("com.syntaxphoenix.syntaxapi.*")
     }
-    archiveClassifier.set(pluginVersion)
-    archiveClassifier.set(pluginVersion)
 
     manifest {
         attributes(
