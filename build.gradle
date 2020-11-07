@@ -6,10 +6,12 @@ plugins {
     id "eclipse"
     id "maven-publish"
     id "com.github.johnrengelman.shadow" version "5.2.0"
+    id 'maven'
 }
 
 group "io.th0rgal"
-def pluginVersion = "1.60.2"
+def pluginVersion = "1.61.0"
+version = pluginVersion
 
 repositories {
     mavenCentral()
