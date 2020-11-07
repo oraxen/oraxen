@@ -78,10 +78,9 @@ public class ItemBuilder {
 
         if (itemMeta instanceof PotionMeta) {
             PotionMeta potionMeta = (PotionMeta) itemMeta;
-
             this.color = potionMeta.getColor();
             this.potionData = potionMeta.getBasePotionData();
-            this.potionEffects = potionMeta.getCustomEffects();
+            this.potionEffects = new ArrayList<>(potionMeta.getCustomEffects());
         }
 
         if (itemMeta instanceof SkullMeta)
@@ -117,8 +116,8 @@ public class ItemBuilder {
 
         this.overrideData = ItemTools.toNbtCompound(itemStack);
         this.customItemData = overrideData.hasKey("oraxenData", NbtType.COMPOUND)
-            ? overrideData.getCompound("oraxenData")
-            : new NbtCompound();
+                ? overrideData.getCompound("oraxenData")
+                : new NbtCompound();
 
         this.enchantments = new HashMap<>();
 
@@ -187,7 +186,7 @@ public class ItemBuilder {
     public <T, Z> Z getCustomTag(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType) {
         for (Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
             if (dataSpace.getKey().getNamespacedKey().equals(namespacedKey)
-                && dataSpace.getKey().getDataType().equals(dataType))
+                    && dataSpace.getKey().getDataType().equals(dataType))
                 return (Z) dataSpace.getValue();
         return null;
     }
@@ -221,7 +220,7 @@ public class ItemBuilder {
         customItemData.set(name, tag);
         return this;
     }
-    
+
     public NbtCompound getNbtData(boolean override) {
         return override ? overrideData : customItemData;
     }
@@ -306,9 +305,9 @@ public class ItemBuilder {
     public ItemBuilder regen() {
 
         ItemStack itemStack = ItemTools.fromNbtCompound(overrideData);
-        
+
         overrideData.remove("oraxenData");
-        
+
         if (!customItemData.isEmpty())
             overrideData.set("oraxenData", customItemData);
 
@@ -405,9 +404,9 @@ public class ItemBuilder {
         if (!persistentDataMap.isEmpty())
             for (Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
                 itemMeta
-                    .getPersistentDataContainer()
-                    .set(dataSpace.getKey().getNamespacedKey(),
-                        (PersistentDataType<?, Object>) dataSpace.getKey().getDataType(), dataSpace.getValue());
+                        .getPersistentDataContainer()
+                        .set(dataSpace.getKey().getNamespacedKey(),
+                                (PersistentDataType<?, Object>) dataSpace.getKey().getDataType(), dataSpace.getValue());
 
         itemMeta.setLore(lore);
 

@@ -43,7 +43,7 @@ example_sword:
     # - operations: 0 for ADD_NUMBER, 1 for ADD_SCALAR, 2 for MULTIPLY_SCALAR_1;
     # - uuid: put a random uuid, generate one here: https://www.uuidgenerator.net/
     # - slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
-    - {name: "oraxen_speed", attribute: GENERIC_MOVEMENT_SPEED, amount: 0.1, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HAND}
+    - { name: "oraxen_speed", attribute: GENERIC_MOVEMENT_SPEED, amount: 0.1, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HAND }
 
   Enchantments:
     protection: 4
@@ -53,6 +53,20 @@ example_sword:
   Mechanics:
     durability:
       value: 10
+
+example_potion:
+  displayname: "&8Wither Potion"
+  material: SPLASH_POTION
+  injectID: false # allow Oraxen to recognise the item if true or not set
+  color: 34, 0, 10
+  PotionEffects:
+    # - type: Get the list here: https://hub.spigotmc.org/javadocs/bukkit/org/bukkit/potion/PotionEffectType.html
+    # - duration: in ticks
+    # - amplifier: potion effects level
+    # - ambient: true/false, makes potion effect produce more, translucent, particles.
+    # - particles: true/false, whether this effect has particles or not
+    # - icon: true/false, whether this effect has an icon or not
+    - { type: WITHER, duration: 200, amplifier: 2, ambient: false, particles: true, icon: true }
 
 amethyst:
   displayname: "&dAmethyst"
