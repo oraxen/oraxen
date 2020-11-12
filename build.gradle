@@ -6,7 +6,6 @@ plugins {
     id "eclipse"
     id "maven-publish"
     id "com.github.johnrengelman.shadow" version "5.2.0"
-    id 'maven'
 }
 
 group "io.th0rgal"
@@ -33,7 +32,7 @@ repositories {
     //PlaceHolderAPI
     maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
     //EffectLib
-    maven { url 'http://maven.elmakers.com/repository/' }
+    maven { url 'https://maven.elmakers.com/repository/' }
     //sk89q-repo
     maven { url 'https://maven.enginehub.org/repo/' }
     jcenter() // needed for building shadow from protocolLib 4.5.0
