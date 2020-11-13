@@ -55,10 +55,10 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     private void pluginDependent() {
-        PluginManager manager = Bukkit.getPluginManager();
-        if (manager.getPlugin("ProtocolLib") != null) {
-            this.inputProvider = () -> new SignMenuFactory(this).newProvider();
-        } else {
+        try {
+             Class.forName("com.comphenix.protocol");
+             this.inputProvider = () -> new SignMenuFactory(this).newProvider();
+        } catch (ClassNotFoundException ProtocolLibNotFound) {
             ChatInputProvider.load(this);
             this.inputProvider = ChatInputProvider::getFree;
         }
