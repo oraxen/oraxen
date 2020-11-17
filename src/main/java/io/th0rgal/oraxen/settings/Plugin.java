@@ -10,6 +10,9 @@ public enum Plugin implements ConfigEnum {
     REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),
 
     CONFIGS_VERSION("configs_version"),
+    HEX_SUPPORTED("ConfigsTools.hexColorCodes.enabled_support"),
+    HEX_PREFIX("ConfigsTools.hexColorCodes.prefix"),
+    HEX_SUFFIX("ConfigsTools.hexColorCodes.suffix"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),
     AUTOMATICALLY_SET_MODEL_ID("ConfigsTools.automatically_set_model_id"),
     ERROR_ITEM("ConfigsTools.error_item"),
