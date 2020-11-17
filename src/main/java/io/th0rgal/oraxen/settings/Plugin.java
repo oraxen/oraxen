@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.settings;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.ChatColor;
 
 import java.util.List;
@@ -39,7 +40,7 @@ public enum Plugin implements ConfigEnum {
 
     @Override
     public String toString() {
-        return ChatColor.translateAlternateColorCodes('&', this.value.toString());
+        return Utils.handleColors(this.value.toString());
     }
 
 }

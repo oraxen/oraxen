@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.settings.Plugin;
+import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -55,7 +56,7 @@ public class ItemParser {
     public ItemBuilder buildItem() {
         ItemBuilder item = new ItemBuilder(type);
         if (section.contains("displayname"))
-            item.setDisplayName(ChatColor.translateAlternateColorCodes('&', section.getString("displayname")));
+            item.setDisplayName(Utils.handleColors(section.getString("displayname")));
         return applyConfig(item);
     }
 
@@ -67,7 +68,7 @@ public class ItemParser {
         if (section.contains("lore")) {
             List<String> lore = section.getStringList("lore");
             for (int i = 0; i < lore.size(); i++)
-                lore.set(i, ChatColor.translateAlternateColorCodes('&', lore.get(i)));
+                lore.set(i, Utils.handleColors(lore.get(i)));
             item.setLore(lore);
         }
 

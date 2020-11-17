@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.settings;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageParser;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.ChatColor;
@@ -74,7 +75,7 @@ public enum Pack implements ConfigEnum {
             message = String.join("\n", config.getStringList(section));
         else
             message = config.getString(section);
-        return MiniMessageParser.parseFormat(ChatColor.translateAlternateColorCodes('&', message), placeholders);
+        return MiniMessageParser.parseFormat(Utils.handleColors(message), placeholders);
     }
 
     public List<BaseComponent[]> toMiniMessageList(String... placeholders) {
@@ -85,17 +86,17 @@ public enum Pack implements ConfigEnum {
                 .getStringList(section)
                 .forEach(message -> messages
                     .add(MiniMessageParser
-                        .parseFormat(ChatColor.translateAlternateColorCodes('&', message), placeholders)));
+                        .parseFormat(Utils.handleColors(message), placeholders)));
         else
             messages
                 .add(MiniMessageParser
-                    .parseFormat(ChatColor.translateAlternateColorCodes('&', config.getString(section)), placeholders));
+                    .parseFormat(Utils.handleColors(config.getString(section)), placeholders));
         return messages;
     }
 
     @Override
     public String toString() {
-        return ChatColor.translateAlternateColorCodes('&', this.getValue().toString());
+        return Utils.handleColors(this.getValue().toString());
     }
 
 }

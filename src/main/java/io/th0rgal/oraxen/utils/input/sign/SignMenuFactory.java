@@ -8,6 +8,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.nbt.NbtCompound;
 
+import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.input.InputProvider;
 
 import org.bukkit.Bukkit;
@@ -194,7 +195,7 @@ public final class SignMenuFactory {
         }
 
         private String color(String input) {
-            return ChatColor.translateAlternateColorCodes('&', input);
+            return Utils.handleColors(input);
         }
     }
 }
