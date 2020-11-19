@@ -24,7 +24,7 @@ public class Utils {
     private static final boolean HEX_SUPPORTED = (boolean) Plugin.HEX_SUPPORTED.getValue();
 
     public static String handleColors(String message) {
-        return HEX_SUPPORTED
+        return HEX_SUPPORTED && message.contains(Plugin.HEX_PREFIX.toString()) && message.contains(Plugin.HEX_SUFFIX.toString())
                 ? ChatColor.translateAlternateColorCodes('&',
                 translateHexColorCodes(Plugin.HEX_PREFIX.toString(), message, Plugin.HEX_SUFFIX.toString()))
                 : ChatColor.translateAlternateColorCodes('&', message);
