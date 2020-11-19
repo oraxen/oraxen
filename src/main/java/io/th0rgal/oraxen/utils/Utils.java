@@ -24,10 +24,16 @@ public class Utils {
     private static final boolean HEX_SUPPORTED = (boolean) Plugin.HEX_SUPPORTED.getValue();
 
     public static String handleColors(String message) {
-        return HEX_SUPPORTED && message.contains(Plugin.HEX_PREFIX.toString()) && message.contains(Plugin.HEX_SUFFIX.toString())
+        return HEX_SUPPORTED && message.contains(Plugin.HEX_PREFIX.toLegacyString()) && message.contains(Plugin.HEX_SUFFIX.toLegacyString())
                 ? ChatColor.translateAlternateColorCodes('&',
-                translateHexColorCodes(Plugin.HEX_PREFIX.toString(), message, Plugin.HEX_SUFFIX.toString()))
+                translateHexColorCodes(Plugin.HEX_PREFIX.toLegacyString(), message, Plugin.HEX_SUFFIX.toLegacyString()))
                 : ChatColor.translateAlternateColorCodes('&', message);
+    }
+
+    public static String handleColors(String message, boolean forceLegacyTranslate) {
+        return (forceLegacyTranslate)
+                ? ChatColor.translateAlternateColorCodes('&', message)
+                : handleColors(message);
     }
 
     // all credits go to https://www.spigotmc.org/threads/hex-color-code-translate.449748/#post-3867804

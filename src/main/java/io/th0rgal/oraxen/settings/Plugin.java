@@ -38,6 +38,10 @@ public enum Plugin implements ConfigEnum {
         return (List<String>) value;
     }
 
+    public String toLegacyString() {
+        return Utils.handleColors(this.value.toString(), true);
+    }
+
     @Override
     public String toString() {
         return Utils.handleColors(this.value.toString());
