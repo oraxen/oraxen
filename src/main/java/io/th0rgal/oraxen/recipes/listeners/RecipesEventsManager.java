@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.recipes.CustomRecipe;
 
 import java.util.stream.Collectors;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -62,7 +63,6 @@ public class RecipesEventsManager implements Listener {
             if (whitelistedRecipe.equals(current))
                 return;
         }
-
         event.getInventory().setResult(new ItemStack(Material.AIR));
     }
 
@@ -89,7 +89,7 @@ public class RecipesEventsManager implements Listener {
     }
 
     public boolean hasPermission(CommandSender sender, CustomRecipe recipe) {
-        return !permissionsPerRecipe.containsKey(recipe) || sender.hasPermission(permissionsPerRecipe.get(recipe));
+        return permissionsPerRecipe.containsKey(recipe) && sender.hasPermission(permissionsPerRecipe.get(recipe));
     }
 
 }
