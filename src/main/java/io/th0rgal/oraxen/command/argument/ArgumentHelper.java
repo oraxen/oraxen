@@ -2,13 +2,7 @@ package io.th0rgal.oraxen.command.argument;
 
 import static io.th0rgal.oraxen.command.argument.function.FunctionHelper.*;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -213,8 +207,7 @@ public abstract class ArgumentHelper {
                 return collection0
                     .stream()
                     .unordered()
-                    .min((p1, p2) -> Double
-                        .compare(ORIGIN.distanceSquared(p1.getLocation()), ORIGIN.distanceSquared(p2.getLocation())))
+                    .min(Comparator.comparingDouble(p -> ORIGIN.distanceSquared(p.getLocation())))
                     .map(player -> new Player[] { player });
             case 's':
                 if (sender == null)

@@ -30,7 +30,7 @@ public abstract class RecipeLoader {
             return OraxenItems.getItemById(resultSection.getString("oraxen_item")).build();
 
         if (resultSection.isString("minecraft_type"))
-            return new ItemStack(Material.getMaterial(resultSection.getString("minecraft_type")));
+            return new ItemStack(Material.getMaterial(resultSection.getString("minecraft_type").toUpperCase()));
 
         return resultSection.getItemStack("minecraft_item");
 

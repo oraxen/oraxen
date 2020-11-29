@@ -16,8 +16,9 @@ public class BlockMechanic extends Mechanic {
 
     private String model;
     private final int customVariation;
+    private final String mushroomType;
     private final Drop drop;
-    private final Sound breakSound;
+    private final String breakSound;
 
     @SuppressWarnings("unchecked")
     public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -32,8 +33,11 @@ public class BlockMechanic extends Mechanic {
 
         this.customVariation = section.getInt("custom_variation");
 
+        // Add More Mushroom Block !
+        this.mushroomType = section.getString("block_type") != null ? section.getString("block_type") : "MUSHROOM_STEM";
+
         if (section.isString("break_sound"))
-            this.breakSound = Sound.valueOf(section.getString("break_sound").toUpperCase());
+            this.breakSound = section.getString("break_sound"); // Because its better if custom sound Texture Pack
         else
             this.breakSound = null;
 
@@ -60,6 +64,10 @@ public class BlockMechanic extends Mechanic {
         return customVariation;
     }
 
+    public Material getMushroomType() {
+        return Material.getMaterial(mushroomType.toUpperCase());
+    }
+
     public Drop getDrop() {
         return drop;
     }
@@ -68,7 +76,7 @@ public class BlockMechanic extends Mechanic {
         return this.breakSound != null;
     }
 
-    public Sound getBreakSound() {
+    public String getBreakSound() {
         return this.breakSound;
     }
 

@@ -1,7 +1,9 @@
 package io.th0rgal.oraxen.mechanics.provided.potioneffects;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 
 import org.bukkit.entity.Player;
@@ -12,9 +14,9 @@ import java.util.*;
 
 public class PotionEffectsMechanic extends Mechanic {
 
-    private Set<PotionEffect> effects = new HashSet<>();
-    private Set<PotionEffectType> overridedTypes = new HashSet<>();
-    private Map<UUID, Set<PotionEffect>> previousPlayerEffects = new HashMap<>();
+    private final Set<PotionEffect> effects = new HashSet<>();
+    private final Set<PotionEffectType> overridedTypes = new HashSet<>();
+    private final Map<UUID, Set<PotionEffect>> previousPlayerEffects = new HashMap<>();
 
     public PotionEffectsMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
@@ -41,6 +43,11 @@ public class PotionEffectsMechanic extends Mechanic {
             icon);
         effects.add(potionEffect);
         overridedTypes.add(potionEffect.getType());
+    }
+
+    public void onTotemofUndying(Player player) {
+        // Pas besoin de vérifier, le totem d'immortalité clear tous les effets !
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> player.addPotionEffects(effects), 20);
     }
 
     public void onItemPlaced(Player player) {
