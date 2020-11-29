@@ -6,8 +6,8 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class BigMiningMechanic extends Mechanic {
 
-    private int radius;
-    private int depth;
+    private final int radius;
+    private final int depth;
 
     public BigMiningMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
