@@ -33,7 +33,7 @@ import java.util.function.Consumer;
 
 public class BedrockBreakMechanicManager {
 
-    private Map<Location, BukkitScheduler> breakerPerLocation = new HashMap<>();
+    private final Map<Location, BukkitScheduler> breakerPerLocation = new HashMap<>();
     private final ProtocolManager protocolManager;
 
     private void sendBlockBreak(Player player, Location location, int stage) {
