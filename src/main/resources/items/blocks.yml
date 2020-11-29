@@ -76,7 +76,7 @@ ruby_ore:
       - ruby_ore
   Mechanics:
     block:
-      block_type: red_mushroom_block
+      block_type: mushroom_stem 
       break_sound: BLOCK_STONE_BREAK
       custom_variation: 3
       model: ruby_ore
