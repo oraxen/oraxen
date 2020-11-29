@@ -5,7 +5,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import org.bukkit.configuration.ConfigurationSection;
 
 public class SoulBoundMechanic extends Mechanic {
-    private double loseChance;
+    private final double loseChance;
 
     public SoulBoundMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);

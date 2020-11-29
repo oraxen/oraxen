@@ -6,7 +6,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class SmeltingMechanic extends Mechanic {
 
-    private boolean playSound;
+    private final boolean playSound;
 
     public SmeltingMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);

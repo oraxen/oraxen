@@ -10,10 +10,10 @@ import org.bukkit.entity.Player;
 
 public class CommandsMechanic extends Mechanic {
 
-    private CommandsParser commandsParser;
+    private final CommandsParser commandsParser;
     private boolean oneUsage;
     private String permission;
-    private TimersFactory timersFactory;
+    private final TimersFactory timersFactory;
 
     public CommandsMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);

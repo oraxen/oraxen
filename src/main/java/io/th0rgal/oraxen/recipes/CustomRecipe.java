@@ -11,9 +11,9 @@ import java.util.Map;
 
 public class CustomRecipe {
 
-    private String name;
-    private ItemStack result;
-    private List<ItemStack> ingredients;
+    private final String name;
+    private final ItemStack result;
+    private final List<ItemStack> ingredients;
     private boolean ordered;
 
     public CustomRecipe(String name, ItemStack result, List<ItemStack> ingredients) {

@@ -12,9 +12,9 @@ import java.util.Random;
 
 public class ThorMechanic extends Mechanic {
 
-    private int lightningBoltsAmount;
-    private double randomLocationVariation;
-    private TimersFactory timersFactory;
+    private final int lightningBoltsAmount;
+    private final double randomLocationVariation;
+    private final TimersFactory timersFactory;
 
     public ThorMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);

@@ -6,7 +6,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class SkinMechanic extends Mechanic {
 
-    private boolean consume;
+    private final boolean consume;
 
     public SkinMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);

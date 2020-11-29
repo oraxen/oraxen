@@ -33,7 +33,9 @@ public class BlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onMushroomPhysics(BlockPhysicsEvent event) {
-        if (event.getChangedType() == Material.MUSHROOM_STEM) {
+        if (event.getChangedType() == Material.MUSHROOM_STEM||
+                event.getChangedType() != Material.BROWN_MUSHROOM_BLOCK ||
+                event.getChangedType() != Material.RED_MUSHROOM_BLOCK) {
             event.setCancelled(true);
             event.getBlock().getState().update(true, false);
         }
@@ -42,7 +44,9 @@ public class BlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(BlockBreakEvent event) {
         Block block = event.getBlock();
-        if (block.getType() != Material.MUSHROOM_STEM || event.isCancelled() || !event.isDropItems())
+        if (block.getType() != Material.MUSHROOM_STEM ||
+                block.getType() != Material.BROWN_MUSHROOM_BLOCK ||
+                block.getType() != Material.RED_MUSHROOM_BLOCK || event.isCancelled() || !event.isDropItems())
             return;
 
         MultipleFacing blockFacing = (MultipleFacing) block.getBlockData();
@@ -58,8 +62,10 @@ public class BlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingMushroomBlock(BlockPlaceEvent event) {
 
-        if (event.getBlockPlaced().getType() != Material.MUSHROOM_STEM
-            || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
+        if (event.getBlockPlaced().getType() != Material.MUSHROOM_STEM ||
+                event.getBlockPlaced().getType() != Material.BROWN_MUSHROOM_BLOCK ||
+                event.getBlockPlaced().getType() != Material.RED_MUSHROOM_BLOCK ||
+             OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
 
         Block block = event.getBlock();
@@ -102,7 +108,7 @@ public class BlockMechanicListener implements Listener {
         BlockState currentBlockState = target.getState();
 
         // determines the new block data of the block
-        MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(Material.MUSHROOM_STEM);
+        MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(((BlockMechanic) factory.getMechanic(itemID)).getMushroomType());
         int customVariation = ((BlockMechanic) factory.getMechanic(itemID)).getCustomVariation();
         Utils.setBlockFacing(newBlockData, customVariation);
 

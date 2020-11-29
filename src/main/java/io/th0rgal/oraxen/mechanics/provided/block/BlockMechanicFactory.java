@@ -56,8 +56,8 @@ public class BlockMechanicFactory extends MechanicFactory {
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         BlockMechanic mechanic = new BlockMechanic(this, itemMechanicConfiguration);
         MUSHROOM_STEM_BLOCKSTATE_OVERRIDES
-            .add(getBlockstateOverride(mechanic.getModel(itemMechanicConfiguration.getParent().getParent()),
-                mechanic.getCustomVariation()));
+                .add(getBlockstateOverride(mechanic.getModel(itemMechanicConfiguration.getParent().getParent()),
+                        mechanic.getCustomVariation()));
         BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
