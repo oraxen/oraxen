@@ -66,7 +66,7 @@ public class SmeltingMechanicListener implements Listener {
         if (item == null)
             return null; // Because item can be null
         Optional<Reflect> recipeIteratorReflect = ORAXEN.getOptionalReflect("cb_recipeiterator");
-        if (recipeIteratorReflect.isEmpty())
+        if (!recipeIteratorReflect.isPresent())
             throw new IllegalStateException("Oraxen Reflections aren't setup properly?");
         Iterator<Recipe> recipeIterator = (Iterator<Recipe>) recipeIteratorReflect.get().init();
 
