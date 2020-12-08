@@ -70,7 +70,7 @@ public class MechanicsManager {
         registerMechanicFactory("harvesting", HarvestingMechanicFactory.class);
         //
         // dependent
-        registerMechanicFactoryIfTrue(clazz -> Bukkit.getPluginManager().getPlugin("ProtocolLib") != null,
+        registerMechanicFactoryIfTrue(clazz -> OraxenPlugin.getProtocolLib(),
             "bedrockbreak", BedrockBreakMechanicFactory.class);
     }
 
