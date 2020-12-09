@@ -38,6 +38,7 @@ public class OraxenPlugin extends JavaPlugin {
     private UploadManager uploadManager;
 
     private static OraxenPlugin oraxen;
+    private static boolean protocolLib = false;
 
     public OraxenPlugin() throws Exception {
         oraxen = this;
@@ -57,6 +58,7 @@ public class OraxenPlugin extends JavaPlugin {
     private void pluginDependent() {
         try {
              Class.forName("com.comphenix.protocol");
+             protocolLib = true;
              this.inputProvider = () -> new SignMenuFactory(this).newProvider();
         } catch (ClassNotFoundException ProtocolLibNotFound) {
             ChatInputProvider.load(this);
@@ -103,6 +105,10 @@ public class OraxenPlugin extends JavaPlugin {
 
     public static OraxenPlugin get() {
         return oraxen;
+    }
+    
+    public static boolean getProtocolLib() {
+        return protocolLib;   
     }
 
     public InputProvider getInputProvider() {
