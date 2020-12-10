@@ -33,8 +33,8 @@ public class BlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onMushroomPhysics(BlockPhysicsEvent event) {
-        if (event.getChangedType() == Material.MUSHROOM_STEM||
-                event.getChangedType() != Material.BROWN_MUSHROOM_BLOCK ||
+        if (event.getChangedType() == Material.MUSHROOM_STEM &&
+                event.getChangedType() != Material.BROWN_MUSHROOM_BLOCK &&
                 event.getChangedType() != Material.RED_MUSHROOM_BLOCK) {
             event.setCancelled(true);
             event.getBlock().getState().update(true, false);
@@ -44,9 +44,11 @@ public class BlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(BlockBreakEvent event) {
         Block block = event.getBlock();
-        if (block.getType() != Material.MUSHROOM_STEM ||
-                block.getType() != Material.BROWN_MUSHROOM_BLOCK ||
-                block.getType() != Material.RED_MUSHROOM_BLOCK || event.isCancelled() || !event.isDropItems())
+        if ((block.getType() != Material.MUSHROOM_STEM &&
+                block.getType() != Material.BROWN_MUSHROOM_BLOCK &&
+                block.getType() != Material.RED_MUSHROOM_BLOCK) ||
+                event.isCancelled() ||
+                !event.isDropItems())
             return;
 
         MultipleFacing blockFacing = (MultipleFacing) block.getBlockData();
@@ -62,10 +64,10 @@ public class BlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingMushroomBlock(BlockPlaceEvent event) {
 
-        if (event.getBlockPlaced().getType() != Material.MUSHROOM_STEM ||
-                event.getBlockPlaced().getType() != Material.BROWN_MUSHROOM_BLOCK ||
-                event.getBlockPlaced().getType() != Material.RED_MUSHROOM_BLOCK ||
-             OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
+        if ((event.getBlockPlaced().getType() != Material.MUSHROOM_STEM &&
+                event.getBlockPlaced().getType() != Material.BROWN_MUSHROOM_BLOCK &&
+                event.getBlockPlaced().getType() != Material.RED_MUSHROOM_BLOCK) ||
+                !OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
 
         Block block = event.getBlock();
@@ -76,8 +78,8 @@ public class BlockMechanicListener implements Listener {
 
     // not static here because only instanciated once I think
     private final List<Material> replaceableBlocks = Arrays
-        .asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,
-            Material.LARGE_FERN);
+            .asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,
+                    Material.LARGE_FERN);
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrePlacingCustomBlock(PlayerInteractEvent event) {
@@ -116,7 +118,7 @@ public class BlockMechanicListener implements Listener {
         target.setBlockData(newBlockData); // false to cancel physic
 
         BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player,
-            true, event.getHand());
+                true, event.getHand());
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
@@ -131,9 +133,9 @@ public class BlockMechanicListener implements Listener {
         Location playerLocation = player.getLocation();
         Location blockLocation = block.getLocation();
         return playerLocation.getBlockX() == blockLocation.getBlockX()
-            && (playerLocation.getBlockY() == blockLocation.getBlockY()
+                && (playerLocation.getBlockY() == blockLocation.getBlockY()
                 || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
-            && playerLocation.getBlockZ() == blockLocation.getBlockZ();
+                && playerLocation.getBlockZ() == blockLocation.getBlockZ();
     }
 
 }
