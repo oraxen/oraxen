@@ -5,11 +5,11 @@ plugins {
     id "idea"
     id "eclipse"
     id "maven-publish"
-    id "com.github.johnrengelman.shadow" version "5.2.0"
+    id "com.github.johnrengelman.shadow" version "6.1.0"
 }
 
 group "io.th0rgal"
-def pluginVersion = "1.64.1"
+def pluginVersion = "1.64.2"
 version = pluginVersion
 
 repositories {
@@ -55,22 +55,21 @@ dependencies {
     compileOnly group: "org.spigotmc", name: "spigot", version: "1.14.4-R0.1-SNAPSHOT"
     compileOnly group: "org.spigotmc", name: "spigot-api", version: "1.14.4-R0.1-SNAPSHOT"
     compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "+"
-    compileOnly group: "io.lumine.xikage", name: "MythicMobs", version: "4.9.2"
+    compileOnly group: "io.lumine.xikage", name: "MythicMobs", version: "4.10.0"
     compileOnly group: "com.github.Hazebyte", name: "CrateReloadedAPI", version: "5318abfccc"
-    compileOnly group: "com.sk89q.worldguard", name: "worldguard-bukkit", version: "LATEST"
-    compileOnly group: "com.sk89q.worldguard", name: "worldguard-bukkit", version: "+"
+    compileOnly group: "com.sk89q.worldguard", name: "worldguard-bukkit", version: "7.0.4"
     compileOnly fileTree(dir: "libs/compile", include: ["*.jar"])
     implementation fileTree(dir: "libs/implement", include: ["*.jar"])
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '1.7'
-    implementation group: 'org.yaml', name: 'snakeyaml', version: '1.25'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.2'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'version', version: '2.0.2'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'nbt', version: '2.0.2'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'config-base', version: '2.0.2'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'alias', version: '2.0.2'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'logging', version: '2.0.2'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'exception', version: '2.0.2'
+    implementation group: 'org.yaml', name: 'snakeyaml', version: '1.27'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.3'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'version', version: '2.0.4'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'nbt', version: '2.0.4'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'config-base', version: '2.0.3'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'alias', version: '2.0.3'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'logging', version: '2.0.3'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'exception', version: '2.0.3'
 }
 
 processResources {
