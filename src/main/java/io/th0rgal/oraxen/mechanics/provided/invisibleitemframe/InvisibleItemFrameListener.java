@@ -51,7 +51,7 @@ public class InvisibleItemFrameListener implements Listener {
                 ItemFrame itemFrame = (ItemFrame) event.getRightClicked();
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
                     if (itemFrame.getItem().getType() != Material.AIR) {
-                        itemFrame.setVisible(false); # Need 1.16
+                        itemFrame.setVisible(false); // Need 1.16 
                     }
                 }, 1L);
             }
