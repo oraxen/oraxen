@@ -110,3 +110,14 @@ fire:
   Pack:
     generate_model: false
     model: block/fire_floor0 # so we use the already existing fire model
+    
+    
+    
+item_frame_invisible:
+  displayname: "&dInvisible Itemframe"
+  material: ITEM_FRAME
+  lore:
+    - "&8» &7Only 1.16+"
+  Mechanics:
+    invisible_frame:
+      enable: true
