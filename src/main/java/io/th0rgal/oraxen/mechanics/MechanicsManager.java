@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory
 import io.th0rgal.oraxen.mechanics.provided.energyblast.EnergyBlastMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.harvesting.HarvestingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.hat.HatMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.invisibleitemframe.InvisibleItemFrameFactory;
 import io.th0rgal.oraxen.mechanics.provided.lifeleech.LifeLeechMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.potioneffects.PotionEffectsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.repair.RepairMechanicFactory;
@@ -72,6 +73,10 @@ public class MechanicsManager {
         // dependent
         registerMechanicFactoryIfTrue(clazz -> OraxenPlugin.getProtocolLib(),
             "bedrockbreak", BedrockBreakMechanicFactory.class);
+
+        // Dispo only +1.16 (20w10a)
+        if (Bukkit.getVersion().contains("1.16") || Bukkit.getVersion().contains("1.17")) registerMechanicFactory("invisible_frame", InvisibleItemFrameFactory.class);
+
     }
 
     public static void registerMechanicFactoryIfTrue(ICondition<Class<? extends MechanicFactory>> condition,
