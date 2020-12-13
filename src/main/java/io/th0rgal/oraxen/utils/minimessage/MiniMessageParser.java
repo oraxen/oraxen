@@ -48,6 +48,7 @@ import static io.th0rgal.oraxen.utils.minimessage.Constants.SEPARATOR;
 import static io.th0rgal.oraxen.utils.minimessage.Constants.TAG_END;
 import static io.th0rgal.oraxen.utils.minimessage.Constants.TAG_START;
 
+@SuppressWarnings("deprecation")
 public class MiniMessageParser {
 
     // regex group names
@@ -56,13 +57,13 @@ public class MiniMessageParser {
     private static final String INNER = "inner";
     private static final String END = "end";
     // https://regex101.com/r/8VZ7uA/5
-    private static Pattern pattern = Pattern
+    private static final Pattern PATTERN = Pattern
             .compile("((?<start><)(?<token>([^<>]+)|([^<>]+\"(?<inner>[^\"]+)\"))(?<end>>))+?");
 
     @Nonnull
     public static String escapeTokens(@Nonnull String richMessage) {
         StringBuilder sb = new StringBuilder();
-        Matcher matcher = pattern.matcher(richMessage);
+        Matcher matcher = PATTERN.matcher(richMessage);
         int lastEnd = 0;
         while (matcher.find()) {
             int startIndex = matcher.start();
@@ -96,7 +97,7 @@ public class MiniMessageParser {
     @Nonnull
     public static String stripTokens(@Nonnull String richMessage) {
         StringBuilder sb = new StringBuilder();
-        Matcher matcher = pattern.matcher(richMessage);
+        Matcher matcher = PATTERN.matcher(richMessage);
         int lastEnd = 0;
         while (matcher.find()) {
             int startIndex = matcher.start();
@@ -154,7 +155,7 @@ public class MiniMessageParser {
         Stack<ChatColor> colors = new Stack<>();
         EnumSet<TextDecoration> decorations = EnumSet.noneOf(TextDecoration.class);
 
-        Matcher matcher = pattern.matcher(richMessage);
+        Matcher matcher = PATTERN.matcher(richMessage);
         int lastEnd = 0;
         while (matcher.find()) {
             int startIndex = matcher.start();
