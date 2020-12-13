@@ -46,8 +46,11 @@ public class PotionEffectsMechanic extends Mechanic {
     }
 
     public void onTotemofUndying(Player player) {
-        // Pas besoin de vérifier, le totem d'immortalité clear tous les effets !
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> player.addPotionEffects(effects), 20);
+        if (player.isDead()) return; // Player is dead
+        for (PotionEffect effect : player.getActivePotionEffects()) {
+            player.removePotionEffect(effect.getType());
+        }
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> player.addPotionEffects(effects), 20);    
     }
 
     public void onItemPlaced(Player player) {

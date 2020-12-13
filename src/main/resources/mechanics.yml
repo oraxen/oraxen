@@ -28,6 +28,10 @@ skin:
 skinnable:
   enabled: true
 
+# Only 1.16+
+invisible_frame:
+  enabled: true
+
 # COMBAT
 
 thor:
