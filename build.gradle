@@ -9,7 +9,7 @@ plugins {
 }
 
 group "io.th0rgal"
-def pluginVersion = "1.64.3"
+def pluginVersion = "1.65.0"
 version = pluginVersion
 
 repositories {
