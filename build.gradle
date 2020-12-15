@@ -61,7 +61,6 @@ dependencies {
     compileOnly fileTree(dir: "libs/compile", include: ["*.jar"])
     implementation fileTree(dir: "libs/implement", include: ["*.jar"])
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
-    implementation group: 'org.bstats', name: 'bstats-bukkit', version: '1.7'
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.27'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.3'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'version', version: '2.0.4'
