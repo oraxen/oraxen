@@ -38,6 +38,7 @@ public class PotionEffectsMechanicListener implements Listener {
 
     @EventHandler
     public void onEntityResurrectEvent(EntityResurrectEvent resurrectEvent) {
+        if (true) return; //Todo need fix strange error
         if (resurrectEvent.getEntity().getType().equals(EntityType.PLAYER)) {
             Player player = (Player) resurrectEvent.getEntity();
             // Stuff du joueur
