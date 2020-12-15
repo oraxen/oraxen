@@ -37,7 +37,6 @@ public class OraxenPlugin extends JavaPlugin {
     private UploadManager uploadManager;
 
     private static OraxenPlugin oraxen;
-    private static boolean protocolLib = false;
 
     public OraxenPlugin() throws Exception {
         oraxen = this;
@@ -55,13 +54,11 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     private void pluginDependent() {
-        try {
-             Class.forName("com.comphenix.protocol");
-             protocolLib = true;
-             this.inputProvider = () -> new SignMenuFactory(this).newProvider();
-        } catch (ClassNotFoundException ProtocolLibNotFound) {
+        if (!getProtocolLib()) {
             ChatInputProvider.load(this);
             this.inputProvider = ChatInputProvider::getFree;
+        } else {
+            this.inputProvider = () -> new SignMenuFactory(this).newProvider();
         }
     }
 
@@ -106,8 +103,8 @@ public class OraxenPlugin extends JavaPlugin {
         return oraxen;
     }
     
-    public static boolean getProtocolLib() {
-        return protocolLib;   
+    public static boolean getProtocolLib() {    
+        return Bukkit.getPluginManager().getPlugin("ProtocolLib") != null;
     }
 
     public InputProvider getInputProvider() {
