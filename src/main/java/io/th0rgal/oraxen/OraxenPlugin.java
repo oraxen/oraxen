@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.settings.ConfigsManager;
 import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.settings.Plugin;
+import io.th0rgal.oraxen.utils.Metrics.Metrics;
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
 import io.th0rgal.oraxen.utils.fastinv.FastInvManager;
@@ -21,15 +22,13 @@ import io.th0rgal.oraxen.utils.input.InputProvider;
 import io.th0rgal.oraxen.utils.input.chat.ChatInputProvider;
 import io.th0rgal.oraxen.utils.input.sign.SignMenuFactory;
 import io.th0rgal.oraxen.utils.logs.Logs;
-
-import java.util.function.Supplier;
-
-import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.function.Supplier;
 
 public class OraxenPlugin extends JavaPlugin {
 
