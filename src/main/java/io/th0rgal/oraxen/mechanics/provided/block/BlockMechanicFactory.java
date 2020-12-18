@@ -9,7 +9,12 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.utils.Utils;
 
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
+import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.configuration.ConfigurationSection;
+
 import java.io.File;
 import java.util.*;
 
@@ -43,15 +48,6 @@ public class BlockMechanicFactory extends MechanicFactory {
         return mushroomStem.toString();
     }
 
-    public static JsonObject getBlockstateOverride(String modelName, int when) {
-        JsonObject content = new JsonObject();
-        JsonObject model = new JsonObject();
-        model.addProperty("model", modelName);
-        content.add("apply", model);
-        content.add("when", Utils.getBlockstateWhenFields(when));
-        return content;
-    }
-
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         BlockMechanic mechanic = new BlockMechanic(this, itemMechanicConfiguration);
@@ -63,8 +59,55 @@ public class BlockMechanicFactory extends MechanicFactory {
         return mechanic;
     }
 
+    public static JsonObject getBlockstateOverride(String modelName, int when) {
+        JsonObject content = new JsonObject();
+        JsonObject model = new JsonObject();
+        model.addProperty("model", modelName);
+        content.add("apply", model);
+        content.add("when", Utils.getBlockstateWhenFields(when));
+        return content;
+    }
+
     public static BlockMechanic getBlockMechanic(int customVariation) {
         return BLOCK_PER_VARIATION.get(customVariation);
+    }
+
+    /**
+     * Attempts to set the block directly to the model and texture of an Oraxen item.
+     *
+     * @param block  The block to update.
+     * @param itemId The Oraxen item ID.
+     */
+    public static void setBlockModel(Block block, String itemId) {
+        final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("block");
+        BlockMechanic blockMechanic = (BlockMechanic) mechanicFactory.getMechanic(itemId);
+        MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(Material.MUSHROOM_STEM);
+        Utils.setBlockFacing(newBlockData, blockMechanic.getCustomVariation());
+        block.setBlockData(newBlockData, false);
+    }
+
+    /**
+     * Attempts to set the block directly to the model and texture of an Oraxen item.
+     *
+     * @param block             The block to update.
+     * @param itemId            The Oraxen item ID.
+     * @param blockDataMaterial The material to utilize for block data (Default should be 'MUSHROOM_STEM').
+     * @return Whether the process was successful.
+     */
+    public static boolean setBlockModel(Block block, String itemId, String blockDataMaterial) {
+        if (block == null || itemId == null || itemId.isEmpty()) return false;
+
+        final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("block");
+        final BlockMechanic blockMechanic = (BlockMechanic) mechanicFactory.getMechanic(itemId);
+
+        Material material;
+        if (blockDataMaterial == null || blockDataMaterial.isEmpty()) material = Material.MUSHROOM_STEM;
+        else material = Material.getMaterial(blockDataMaterial.toUpperCase().replace(" ", "_").replace("-", "_"));
+
+        final MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(blockDataMaterial);
+        Utils.setBlockFacing(newBlockData, blockMechanic.getCustomVariation());
+        block.setBlockData(newBlockData, false);
+        return true;
     }
 
 }

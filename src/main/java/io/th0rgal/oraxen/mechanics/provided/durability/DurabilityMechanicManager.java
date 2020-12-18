@@ -29,22 +29,25 @@ public class DurabilityMechanicManager implements Listener {
         DurabilityMechanic durabilityMechanic = (DurabilityMechanic) factory.getMechanic(itemID);
 
         ItemMeta itemMeta = item.getItemMeta();
+        if (itemMeta == null) return;
         PersistentDataContainer persistentDataContainer = itemMeta.getPersistentDataContainer();
-        int realDurabilityLeft = persistentDataContainer
-            .get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER) - event.getDamage();
+        if (persistentDataContainer.has(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER)) {
+            int realDurabilityLeft = persistentDataContainer
+                    .get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER) - event.getDamage();
+            if (realDurabilityLeft > 0) {
+                double realMaxDurability = durabilityMechanic.getItemMaxDurability(); // because int rounded values suck
+                persistentDataContainer
+                        .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realDurabilityLeft);
+                ((Damageable) itemMeta)
+                        .setDamage((int) (item.getType().getMaxDurability()
+                                - realDurabilityLeft / realMaxDurability * item.getType().getMaxDurability()));
+                item.setItemMeta(itemMeta);
+            } else {
+                item.setAmount(0);
+            }
 
-        if (realDurabilityLeft > 0) {
-            double realMaxDurability = durabilityMechanic.getItemMaxDurability(); // because int rounded values suck
-            persistentDataContainer
-                .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realDurabilityLeft);
-            ((Damageable) itemMeta)
-                .setDamage((int) (item.getType().getMaxDurability()
-                    - realDurabilityLeft / realMaxDurability * item.getType().getMaxDurability()));
-            item.setItemMeta(itemMeta);
-        } else {
-            item.setAmount(0);
         }
-
+        
     }
 
 }

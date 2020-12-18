@@ -46,6 +46,7 @@ import static io.th0rgal.oraxen.utils.minimessage.Constants.TAG_END;
 import static io.th0rgal.oraxen.utils.minimessage.Constants.TAG_START;
 import static io.th0rgal.oraxen.utils.minimessage.Constants.UNDERLINED;
 
+@SuppressWarnings("deprecation")
 public class MiniMessageSerializer {
 
     @Nonnull

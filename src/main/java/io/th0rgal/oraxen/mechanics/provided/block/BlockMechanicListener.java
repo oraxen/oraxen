@@ -33,9 +33,9 @@ public class BlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onMushroomPhysics(BlockPhysicsEvent event) {
-        if (event.getChangedType() == Material.MUSHROOM_STEM &&
-                event.getChangedType() != Material.BROWN_MUSHROOM_BLOCK &&
-                event.getChangedType() != Material.RED_MUSHROOM_BLOCK) {
+        if (event.getChangedType() == Material.MUSHROOM_STEM ||
+                event.getChangedType() == Material.BROWN_MUSHROOM_BLOCK ||
+                event.getChangedType() == Material.RED_MUSHROOM_BLOCK) {
             event.setCancelled(true);
             event.getBlock().getState().update(true, false);
         }
@@ -46,9 +46,7 @@ public class BlockMechanicListener implements Listener {
         Block block = event.getBlock();
         if ((block.getType() != Material.MUSHROOM_STEM &&
                 block.getType() != Material.BROWN_MUSHROOM_BLOCK &&
-                block.getType() != Material.RED_MUSHROOM_BLOCK) ||
-                event.isCancelled() ||
-                !event.isDropItems())
+                block.getType() != Material.RED_MUSHROOM_BLOCK) || event.isCancelled() || !event.isDropItems())
             return;
 
         MultipleFacing blockFacing = (MultipleFacing) block.getBlockData();

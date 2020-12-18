@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.settings.ConfigsManager;
 import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.settings.Plugin;
+import io.th0rgal.oraxen.utils.Metrics.Metrics;
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
 import io.th0rgal.oraxen.utils.fastinv.FastInvManager;
@@ -21,15 +22,13 @@ import io.th0rgal.oraxen.utils.input.InputProvider;
 import io.th0rgal.oraxen.utils.input.chat.ChatInputProvider;
 import io.th0rgal.oraxen.utils.input.sign.SignMenuFactory;
 import io.th0rgal.oraxen.utils.logs.Logs;
-
-import java.util.function.Supplier;
-
-import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+
+import java.util.function.Supplier;
 
 public class OraxenPlugin extends JavaPlugin {
 
@@ -38,7 +37,6 @@ public class OraxenPlugin extends JavaPlugin {
     private UploadManager uploadManager;
 
     private static OraxenPlugin oraxen;
-    private static boolean protocolLib = false;
 
     public OraxenPlugin() throws Exception {
         oraxen = this;
@@ -56,13 +54,11 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     private void pluginDependent() {
-        try {
-             Class.forName("com.comphenix.protocol");
-             protocolLib = true;
-             this.inputProvider = () -> new SignMenuFactory(this).newProvider();
-        } catch (ClassNotFoundException ProtocolLibNotFound) {
+        if (!getProtocolLib()) {
             ChatInputProvider.load(this);
             this.inputProvider = ChatInputProvider::getFree;
+        } else {
+            this.inputProvider = () -> new SignMenuFactory(this).newProvider();
         }
     }
 
@@ -107,8 +103,8 @@ public class OraxenPlugin extends JavaPlugin {
         return oraxen;
     }
     
-    public static boolean getProtocolLib() {
-        return protocolLib;   
+    public static boolean getProtocolLib() {    
+        return Bukkit.getPluginManager().getPlugin("ProtocolLib") != null;
     }
 
     public InputProvider getInputProvider() {
