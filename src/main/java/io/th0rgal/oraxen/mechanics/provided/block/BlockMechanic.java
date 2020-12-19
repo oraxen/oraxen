@@ -12,13 +12,24 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 
+import io.th0rgal.oraxen.mechanics.Mechanic;
+import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.drops.Drop;
+import io.th0rgal.oraxen.utils.drops.Loot;
+import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.configuration.ConfigurationSection;
+
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+
 public class BlockMechanic extends Mechanic {
 
     private String model;
     private final int customVariation;
-    private final String mushroomType;
     private final Drop drop;
-    private final String breakSound;
+    private final Sound breakSound;
 
     @SuppressWarnings("unchecked")
     public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -33,11 +44,8 @@ public class BlockMechanic extends Mechanic {
 
         this.customVariation = section.getInt("custom_variation");
 
-        // Add More Mushroom Block !
-        this.mushroomType = section.getString("block_type") != null ? section.getString("block_type") : "MUSHROOM_STEM";
-
         if (section.isString("break_sound"))
-            this.breakSound = section.getString("break_sound"); // Because its better if custom sound Texture Pack
+            this.breakSound = Sound.valueOf(section.getString("break_sound").toUpperCase());
         else
             this.breakSound = null;
 
@@ -48,7 +56,7 @@ public class BlockMechanic extends Mechanic {
         }
         if (drop.isString("minimal_tool"))
             this.drop = new Drop(loots, drop.getBoolean("silktouch"), drop.getBoolean("fortune"), getItemID(),
-                Material.getMaterial(drop.getString("minimal_tool")));
+                    Material.getMaterial(drop.getString("minimal_tool")));
         else
             this.drop = new Drop(loots, drop.getBoolean("silktouch"), drop.getBoolean("fortune"), getItemID());
     }
@@ -64,10 +72,6 @@ public class BlockMechanic extends Mechanic {
         return customVariation;
     }
 
-    public Material getMushroomType() {
-        return Material.getMaterial(mushroomType.toUpperCase());
-    }
-
     public Drop getDrop() {
         return drop;
     }
@@ -76,7 +80,7 @@ public class BlockMechanic extends Mechanic {
         return this.breakSound != null;
     }
 
-    public String getBreakSound() {
+    public Sound getBreakSound() {
         return this.breakSound;
     }
 
