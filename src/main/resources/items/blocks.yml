@@ -22,9 +22,6 @@
 # o italic
 # r reset (reset format and color)
 
-# Features !
-# block_type => mushroom_stem / red_mushroom_block / brown_mushroom_block
-# Warning, use red_mushroom_block or brown_mushroom_block can broke default texture !!!!!!
 
 caveblock:
   displayname: "&7Cave Block"
@@ -34,7 +31,6 @@ caveblock:
     model: caveblock
   Mechanics:
     block:
-      block_type: mushroom_stem
       break_sound: BLOCK_GLASS_BREAK
       custom_variation: 1
       model: caveblock
@@ -54,7 +50,6 @@ amethyst_ore:
       - amethyst_ore
   Mechanics:
     block:
-      block_type: mushroom_stem
       break_sound: BLOCK_STONE_BREAK
       custom_variation: 2
       model: amethyst_ore
@@ -76,7 +71,6 @@ ruby_ore:
       - ruby_ore
   Mechanics:
     block:
-      block_type: mushroom_stem 
       break_sound: BLOCK_STONE_BREAK
       custom_variation: 3
       model: ruby_ore
@@ -98,7 +92,6 @@ onyx_ore:
       - onyx_ore
   Mechanics:
     block:
-      block_type: mushroom_stem
       break_sound: BLOCK_STONE_BREAK
       custom_variation: 4
       model: onyx_ore
@@ -120,7 +113,6 @@ orax_ore:
       - orax_ore
   Mechanics:
     block:
-      block_type: mushroom_stem
       break_sound: BLOCK_STONE_BREAK
       custom_variation: 5
       model: orax_ore
