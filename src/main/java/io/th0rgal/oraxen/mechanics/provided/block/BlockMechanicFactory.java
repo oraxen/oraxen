@@ -8,7 +8,6 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.utils.Utils;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -16,7 +15,10 @@ import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class BlockMechanicFactory extends MechanicFactory {
 
@@ -48,6 +50,15 @@ public class BlockMechanicFactory extends MechanicFactory {
         return mushroomStem.toString();
     }
 
+    public static JsonObject getBlockstateOverride(String modelName, int when) {
+        JsonObject content = new JsonObject();
+        JsonObject model = new JsonObject();
+        model.addProperty("model", modelName);
+        content.add("apply", model);
+        content.add("when", Utils.getBlockstateWhenFields(when));
+        return content;
+    }
+
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         BlockMechanic mechanic = new BlockMechanic(this, itemMechanicConfiguration);
@@ -57,15 +68,6 @@ public class BlockMechanicFactory extends MechanicFactory {
         BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
-    }
-
-    public static JsonObject getBlockstateOverride(String modelName, int when) {
-        JsonObject content = new JsonObject();
-        JsonObject model = new JsonObject();
-        model.addProperty("model", modelName);
-        content.add("apply", model);
-        content.add("when", Utils.getBlockstateWhenFields(when));
-        return content;
     }
 
     public static BlockMechanic getBlockMechanic(int customVariation) {
@@ -104,10 +106,11 @@ public class BlockMechanicFactory extends MechanicFactory {
         if (blockDataMaterial == null || blockDataMaterial.isEmpty()) material = Material.MUSHROOM_STEM;
         else material = Material.getMaterial(blockDataMaterial.toUpperCase().replace(" ", "_").replace("-", "_"));
 
-        final MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(blockDataMaterial);
+        final MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(material);
         Utils.setBlockFacing(newBlockData, blockMechanic.getCustomVariation());
         block.setBlockData(newBlockData, false);
         return true;
     }
+
 
 }
