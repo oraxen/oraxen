@@ -76,3 +76,10 @@ ice_staff:
   Pack:
     generate_model: false
     model: ice_staff
+
+cristal_axe:
+  displayname: "&bCristal Axe"
+  material: DIAMOND_AXE
+  Pack:
+    generate_model: false
+    model: cristal_axe
