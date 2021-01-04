@@ -51,6 +51,10 @@ bigmining:
 
 smelting:
   enabled: true
+  # To remove an item that should not be cooked, add it here !
+  blacklist_cooked:
+    - WET_SPONGE
+
 
 bottledexp:
   enabled: true
