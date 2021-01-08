@@ -98,6 +98,18 @@ battle_axe:
     generate_model: false
     model: battle_axe
 
+withooker:
+  displayname: "&bWithooker"
+  material: WOODEN_HOE
+  unbreakable: true
+  Pack:
+    generate_model: false
+    model: withooker
+  Mechanics:
+    witherskull:
+      charged: false
+      delay: 3000 # in milliseconds (3000ms = 3s)
+
 divine_shield:
   displayname: '&eDivine Shield'
   material: SHIELD

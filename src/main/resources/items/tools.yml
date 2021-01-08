@@ -52,14 +52,6 @@ bedrock_pickaxe:
       period: 10
       probability: 1
 
-withooker:
-  displayname: "&bWithooker"
-  material: WOODEN_HOE
-  unbreakable: true
-  Pack:
-    generate_model: false
-    model: withooker
-
 emerald_hammer:
   displayname: "&aEmerald Hammer"
   material: DIAMOND_PICKAXE
