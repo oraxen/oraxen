@@ -21,6 +21,8 @@ public enum Message implements IMessage {
     WORK_IN_PROGRESS(true, "$prefix &7This feature is &dwork in progress&7!"),
     NOT_PLAYER(true, "$prefix &7This can &conly &7be done as a &cplayer&7!"),
     COOL_DOWN(true, "&aWait Another $time $unit!"),
+    RELOAD(true, "$prefix $reloaded successfully reloaded"),
+    PACK_REGENERATED("$prefix resourcepack successfully regenerated"),
 
     //
     // Command Messages

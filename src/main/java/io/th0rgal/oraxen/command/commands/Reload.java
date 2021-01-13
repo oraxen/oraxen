@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.command.commands;
 
 import static io.th0rgal.oraxen.command.argument.ArgumentHelper.*;
 
+import io.th0rgal.oraxen.language.Message;
+import io.th0rgal.oraxen.utils.general.Placeholder;
 import org.bukkit.command.CommandSender;
 
 import com.syntaxphoenix.syntaxapi.command.Arguments;
@@ -19,7 +21,6 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.language.Translations;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.recipes.RecipesManager;
-import io.th0rgal.oraxen.settings.MessageOld;
 
 public class Reload extends OraxenCommand {
 
@@ -40,29 +41,29 @@ public class Reload extends OraxenCommand {
             return;
 
         switch (get(arguments, 1, Reloadable::fromArgument).orElse(Reloadable.ALL)) {
-        case ITEMS:
-            reloadItems(sender);
-            break;
+            case ITEMS:
+                reloadItems(sender);
+                break;
 
-        case PACK:
-            reloadPack(OraxenPlugin.get(), sender);
-            break;
+            case PACK:
+                reloadPack(OraxenPlugin.get(), sender);
+                break;
 
-        case RECIPES:
-            RecipesManager.reload(OraxenPlugin.get());
-            break;
+            case RECIPES:
+                RecipesManager.reload(OraxenPlugin.get());
+                break;
 
-        case MESSAGES:
-            Translations.MANAGER.reloadCatch();
-            break;
+            case MESSAGES:
+                Translations.MANAGER.reloadCatch();
+                break;
 
-        default:
-            OraxenPlugin oraxen = OraxenPlugin.get();
-            Translations.MANAGER.reloadCatch();
-            reloadItems(sender);
-            reloadPack(oraxen, sender);
-            RecipesManager.reload(oraxen);
-            break;
+            default:
+                OraxenPlugin oraxen = OraxenPlugin.get();
+                Translations.MANAGER.reloadCatch();
+                reloadItems(sender);
+                reloadPack(oraxen, sender);
+                RecipesManager.reload(oraxen);
+                break;
         }
     }
 
@@ -81,12 +82,12 @@ public class Reload extends OraxenCommand {
     }
 
     private static void reloadItems(CommandSender sender) {
-        MessageOld.RELOAD.send(sender, "items");
+        Message.RELOAD.send(sender, Placeholder.of("reloaded", "items"));
         OraxenItems.loadItems();
     }
 
     private static void reloadPack(OraxenPlugin plugin, CommandSender sender) {
-        MessageOld.REGENERATED.send(sender, "resourcepack");
+        Message.PACK_REGENERATED.send(sender);
         ResourcePack resourcePack = new ResourcePack(plugin);
         plugin.getUploadManager().uploadAsyncAndSendToPlayers(resourcePack);
     }

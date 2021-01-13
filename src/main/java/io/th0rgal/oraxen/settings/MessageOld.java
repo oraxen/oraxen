@@ -34,8 +34,6 @@ public enum MessageOld {
     CONFIGS_NOT_UPDATED(ChatColor.GREEN, "Configs version number is consistent: skipping updating"),
     CONFIGS_UPDATING_FAILED(ChatColor.RED, "Configs updating failed, please post an issue on github"),
 
-    RELOAD(ChatColor.GREEN, "%s successfully reloaded"),
-    REGENERATED(ChatColor.GREEN, "%s successfully regenerated"),
     SAVE_RECIPE(ChatColor.GREEN, "You sucessfully saved the recipe \"%s\". Restart the server to enable new crafts."),
 
     NOT_ENOUGH_EXP(ChatColor.GREEN, "You need more experience to do this"),
