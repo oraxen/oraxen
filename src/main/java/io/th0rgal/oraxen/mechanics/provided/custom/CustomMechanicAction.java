@@ -8,4 +8,8 @@ public class CustomMechanicAction {
 
     }
 
+    public void run(CustomMechanicWrapper wrapper) {
+
+    }
+
 }
