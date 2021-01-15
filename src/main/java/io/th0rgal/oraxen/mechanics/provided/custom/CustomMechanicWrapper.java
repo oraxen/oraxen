@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.custom;
 
-import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.Collections;
@@ -9,13 +10,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class CustomMechanicWrapper {
 
-
     public enum Field {
         PLAYER("player"),
         TARGET("target"),
         SERVER("server"),
         ALL("all"),
-        CONSOLE("console");
+        CONSOLE("console"),
+        OP("op"),
+        NORMAL("normal"),
+        COMMAND("command");
 
         private final String name;
         private static final Map<String, Field> ENUM_MAP;
@@ -64,6 +67,20 @@ public class CustomMechanicWrapper {
 
             default:
                 return null;
+        }
+    }
+
+    public CommandSender getCommandSender(Field field) {
+        switch (field) {
+
+            case PLAYER:
+                return this.player;
+
+            case TARGET:
+                return this.target;
+
+            default:
+                return Bukkit.getConsoleSender();
         }
     }
 

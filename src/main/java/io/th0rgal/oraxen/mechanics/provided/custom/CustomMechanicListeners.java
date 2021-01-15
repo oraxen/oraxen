@@ -12,12 +12,6 @@ import java.util.List;
 
 public class CustomMechanicListeners {
 
-    private final CustomMechanicFactory factory;
-
-    public CustomMechanicListeners(CustomMechanicFactory factory) {
-        this.factory = factory;
-    }
-
     protected boolean registerListener(String eventName, CustomMechanicAction action, CustomMechanicCondition condition) {
         Listener listener;
         switch (eventName) {
