@@ -19,9 +19,10 @@ public class CustomMechanic extends Mechanic {
         super(mechanicFactory, section);
         CustomMechanicListeners customMechanicListeners = new CustomMechanicListeners();
         for (String subMechanicName : section.getKeys(false)) {
-            CustomMechanicAction action = new CustomMechanicAction(section.getStringList("actions"));
-            CustomMechanicCondition condition = new CustomMechanicCondition(section.getStringList("conditions"));
-            customMechanicListeners.registerListener(section.getString("event"), action, condition);
+            ConfigurationSection subsection = section.getConfigurationSection(subMechanicName);
+            CustomMechanicAction action = new CustomMechanicAction(subsection.getStringList("actions"));
+            CustomMechanicCondition condition = new CustomMechanicCondition(subsection.getStringList("conditions"));
+            customMechanicListeners.registerListener(mechanicFactory, subsection.getString("event"), action, condition);
         }
     }
 

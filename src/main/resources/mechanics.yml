@@ -32,6 +32,8 @@ skinnable:
 invisible_frame:
   enabled: true
 
+custom:
+  enabled: true
 
 # COMBAT
 

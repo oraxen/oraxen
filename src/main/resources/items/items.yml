@@ -54,6 +54,18 @@ example_sword:
     durability:
       value: 10
 
+example_custom_mechanic:
+  displayname: "&c&lMy Item With A Custom Mechanic"
+  material: DIAMOND_SWORD
+  Mechanics:
+    custom:
+      test:
+        event: "click:right:all"
+        conditions:
+          - "has_permission:player:example.permission"
+        actions:
+          - "command:server:normal:this is a test"
+
 example_potion:
   displayname: "&8Wither Potion"
   material: SPLASH_POTION

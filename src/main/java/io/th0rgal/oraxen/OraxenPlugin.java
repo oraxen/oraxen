@@ -77,6 +77,7 @@ public class OraxenPlugin extends JavaPlugin {
         CompatibilitiesManager.enableNativeCompatibilities();
         pluginManager.callEvent(new OraxenConfigEvent());
         OraxenItems.loadItems(configsManager);
+        MechanicsManager.unloadListeners(); // we need to avoid double loading
         ResourcePack resourcePack = new ResourcePack(this);
         RecipesManager.load(this);
         FastInvManager.register(this);
@@ -102,8 +103,8 @@ public class OraxenPlugin extends JavaPlugin {
     public static OraxenPlugin get() {
         return oraxen;
     }
-    
-    public static boolean getProtocolLib() {    
+
+    public static boolean getProtocolLib() {
         return Bukkit.getPluginManager().getPlugin("ProtocolLib") != null;
     }
 
