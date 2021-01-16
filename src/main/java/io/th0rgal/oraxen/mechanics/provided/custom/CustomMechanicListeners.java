@@ -14,10 +14,10 @@ public class CustomMechanicListeners {
 
     protected boolean registerListener(String eventName, CustomMechanicAction action, CustomMechanicCondition condition) {
         Listener listener;
-        switch (eventName) {
-
-            case "test":
-                listener = null;
+        String[] fields = eventName.split(":");
+        switch (fields[0]) {
+            case "click":
+                listener = new ClickListener(fields, action, condition);
                 break;
 
             default:
