@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.event.config.OraxenConfigEvent;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.settings.update.ExampleUpdate;
+import io.th0rgal.oraxen.settings.update.ToolTypesUpdate;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
@@ -44,6 +45,7 @@ public class ConfigsManager implements Listener {
     @EventHandler
     public void onUpdate(OraxenConfigEvent event) {
         event.registerUpdates(ExampleUpdate.class);
+        event.registerUpdates(ToolTypesUpdate.class);
     }
 
     public boolean validatesConfig() {
