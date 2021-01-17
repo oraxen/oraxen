@@ -77,7 +77,7 @@ public class OraxenPlugin extends JavaPlugin {
         CompatibilitiesManager.enableNativeCompatibilities();
         pluginManager.callEvent(new OraxenConfigEvent());
         OraxenItems.loadItems(configsManager);
-        MechanicsManager.unloadListeners(); // we need to avoid double loading
+        //MechanicsManager.unloadListeners(); // we need to avoid double loading
         ResourcePack resourcePack = new ResourcePack(this);
         RecipesManager.load(this);
         FastInvManager.register(this);

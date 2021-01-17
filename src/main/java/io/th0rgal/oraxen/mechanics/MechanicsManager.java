@@ -13,6 +13,7 @@ import io.th0rgal.oraxen.mechanics.provided.energyblast.EnergyBlastMechanicFacto
 import io.th0rgal.oraxen.mechanics.provided.harvesting.HarvestingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.hat.HatMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.invisibleitemframe.InvisibleItemFrameFactory;
+import io.th0rgal.oraxen.mechanics.provided.itemtype.ItemTypeMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.lifeleech.LifeLeechMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.potioneffects.PotionEffectsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.repair.RepairMechanicFactory;
@@ -56,6 +57,7 @@ public class MechanicsManager {
         registerMechanicFactory("soulbound", SoulBoundMechanicFactory.class);
         registerMechanicFactory("skin", SkinMechanicFactory.class);
         registerMechanicFactory("skinnable", SkinnableMechanicFactory.class);
+        registerMechanicFactory("itemtype", ItemTypeMechanicFactory.class);
         registerMechanicFactory("custom", CustomMechanicFactory.class);
 
         // combat

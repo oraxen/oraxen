@@ -14,6 +14,7 @@ import java.util.List;
 public class CustomMechanic extends Mechanic {
 
     private boolean oneUsage;
+    private static final List<String> LOADED_VARIANTS = new ArrayList<>();
 
     public CustomMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
@@ -22,7 +23,10 @@ public class CustomMechanic extends Mechanic {
             ConfigurationSection subsection = section.getConfigurationSection(subMechanicName);
             CustomMechanicAction action = new CustomMechanicAction(subsection.getStringList("actions"));
             CustomMechanicCondition condition = new CustomMechanicCondition(subsection.getStringList("conditions"));
-            customMechanicListeners.registerListener(mechanicFactory, subsection.getString("event"), action, condition);
+            if (!LOADED_VARIANTS.contains(section.getName())) {
+                LOADED_VARIANTS.add(section.getName());
+                customMechanicListeners.registerListener(mechanicFactory, subsection.getString("event"), action, condition);
+            }
         }
     }
 
