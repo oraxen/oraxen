@@ -48,15 +48,14 @@ public class SmeltingMechanicListener implements Listener {
         ItemStack loot = furnace(new ItemStack(event.getBlock().getType()));
         if (loot == null)
             return; // not recipe
-        if (blackListCookedItem(event.getBlock().getType())) return;
         ItemMeta itemMeta = item.getItemMeta();
         if (itemMeta == null) return;
 
-        if (itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
+        if (event.getBlock().getType().toString().contains("ORE") && itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
             loot.setAmount(1 + new Random().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
         }
         event.setDropItems(false);
-        Location location = event.getBlock().getLocation().add(0,0.5,0);
+        Location location = event.getBlock().getLocation().add(0, 0.5, 0);
         if (location.getWorld() == null) return;
         location.getWorld().dropItemNaturally(location, loot);
         SmeltingMechanic mechanic = (SmeltingMechanic) factory.getMechanic(itemID);
@@ -83,13 +82,6 @@ public class SmeltingMechanicListener implements Listener {
                 return new ItemStack(recipe.getResult().getType(), item.getAmount());
         }
         return null; // return result furnace :)
-    }
-
-    private boolean blackListCookedItem(Material material) {
-        YamlConfiguration smelt_blacklist = new ResourcesManager(OraxenPlugin.get()).getSettings();
-        List<String> materialList = smelt_blacklist.getStringList("smelting.blacklist_cooked");
-        if (materialList.isEmpty()) return false;
-        return materialList.contains(material.name().toUpperCase(Locale.ROOT));
     }
 
 }
