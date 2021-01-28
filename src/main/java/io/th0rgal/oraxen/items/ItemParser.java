@@ -1,11 +1,16 @@
 package io.th0rgal.oraxen.items;
 
+import com.syntaxphoenix.syntaxapi.nbt.NbtInt;
+import com.syntaxphoenix.syntaxapi.nbt.NbtString;
+import com.syntaxphoenix.syntaxapi.nbt.NbtTag;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.settings.MessageOld;
 import io.th0rgal.oraxen.settings.Plugin;
 import io.th0rgal.oraxen.utils.Utils;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -128,6 +133,36 @@ public class ItemParser {
                 item
                         .addEnchant(EnchantmentWrapper.getByKey(NamespacedKey.minecraft(enchant)),
                                 enchantSection.getInt(enchant));
+        }
+
+        if (section.contains("NBTTags")) {
+
+            @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
+            List<LinkedHashMap<String, ?>> tagsList = (List<LinkedHashMap<String, ?>>) section.getList("NBTTags");
+
+            for (LinkedHashMap<String, ?> tag : tagsList) {
+                String type = tag.get("type").toString();
+                String field = tag.get("name").toString();
+                NbtTag nbtTag;
+
+                switch (type) {
+                    case "int":
+                        nbtTag = new NbtInt(Integer.parseInt(tag.get("value").toString()));
+                        break;
+
+                    case "String":
+                        nbtTag = new NbtString(tag.get("value").toString());
+                        break;
+
+                    default:
+                        nbtTag = null;
+                        MessageOld.WRONG_TYPE.send(Bukkit.getConsoleSender());
+                        break;
+
+                }
+                item.setNbtTag(field, nbtTag);
+
+            }
         }
 
         if (section.isConfigurationSection("Mechanics")) {
