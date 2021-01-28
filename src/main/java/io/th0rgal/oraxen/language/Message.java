@@ -22,7 +22,8 @@ public enum Message implements IMessage {
     NOT_PLAYER(true, "$prefix &7This can &conly &7be done as a &cplayer&7!"),
     COOL_DOWN(true, "&aWait Another $time $unit!"),
     RELOAD(true, "$prefix $reloaded successfully reloaded"),
-    PACK_REGENERATED("$prefix resourcepack successfully regenerated"),
+    PACK_REGENERATED(true, "$prefix resourcepack successfully regenerated"),
+    INVALID_NBT_VALUE(true, "$prefix the provided NBT cannot be parsed"),
 
     //
     // Command Messages

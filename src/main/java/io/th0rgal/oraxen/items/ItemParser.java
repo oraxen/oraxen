@@ -1,9 +1,10 @@
 package io.th0rgal.oraxen.items;
 
-import com.syntaxphoenix.syntaxapi.nbt.NbtInt;
-import com.syntaxphoenix.syntaxapi.nbt.NbtString;
-import com.syntaxphoenix.syntaxapi.nbt.NbtTag;
+import com.syntaxphoenix.syntaxapi.nbt.*;
+import com.syntaxphoenix.syntaxapi.nbt.tools.MojangsonParseException;
+import com.syntaxphoenix.syntaxapi.nbt.tools.MojangsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.language.Message;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -135,33 +136,18 @@ public class ItemParser {
                                 enchantSection.getInt(enchant));
         }
 
-        if (section.contains("NBTTags")) {
-
-            @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
-            List<LinkedHashMap<String, ?>> tagsList = (List<LinkedHashMap<String, ?>>) section.getList("NBTTags");
-
-            for (LinkedHashMap<String, ?> tag : tagsList) {
-                String type = tag.get("type").toString();
-                String field = tag.get("name").toString();
-                NbtTag nbtTag;
-
-                switch (type) {
-                    case "int":
-                        nbtTag = new NbtInt(Integer.parseInt(tag.get("value").toString()));
-                        break;
-
-                    case "String":
-                        nbtTag = new NbtString(tag.get("value").toString());
-                        break;
-
-                    default:
-                        nbtTag = null;
-                        MessageOld.WRONG_TYPE.send(Bukkit.getConsoleSender());
-                        break;
-
+        if (section.isString("NBTData")) {
+            NbtNamedTag rootTag;
+            try {
+                rootTag = MojangsonParser.parse(section.getString("NBTData"));
+                if (rootTag.getTag() != null && rootTag.getTag().getType() == NbtType.COMPOUND) {
+                    NbtCompound compound = (NbtCompound) rootTag.getTag(); // Because we need a compound
+                    for (String key : compound.getKeys()) {
+                        item.setNbtTag(key, compound.get(key));
+                    }
                 }
-                item.setNbtTag(field, nbtTag);
-
+            } catch (MojangsonParseException ignore) {
+                Message.INVALID_NBT_VALUE.send(Bukkit.getConsoleSender());
             }
         }
 
