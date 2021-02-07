@@ -9,6 +9,11 @@ Pack:
   generation:
     generate: true
     compression: BEST_COMPRESSION # see Deflater.class
+    # protection will use several methods to make your pack impossible to extract
+    # with usual tools (native windows unzip, 7zip, winrar, etc) without altering
+    # its integrity. Be careful if you activate this option to not try to extract
+    # the pack or you might fill your disk.
+    protection: true
     comment: "The content of this texture pack
      \nbelongs to the owner of the Oraxen
      \nplugin and any complete or partial

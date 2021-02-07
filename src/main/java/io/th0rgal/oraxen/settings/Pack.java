@@ -14,6 +14,7 @@ public enum Pack implements ConfigEnum {
 
     GENERATE("generation.generate"),
     COMPRESSION("generation.compression"),
+    PROTECTION("generation.protection"),
     COMMENT("generation.comment"),
 
     UPLOAD_TYPE("upload.type"),
