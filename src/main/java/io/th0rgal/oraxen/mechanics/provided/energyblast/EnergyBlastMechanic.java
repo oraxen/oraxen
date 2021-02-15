@@ -14,7 +14,7 @@ import java.util.Objects;
 public class EnergyBlastMechanic extends Mechanic {
 
     private final Particle particle;
-    private final Particle.DustOptions particleColor;
+    private Particle.DustOptions particleColor = null;
     private final double damage;
     private final int length;
     private final TimersFactory timersFactory;
@@ -23,12 +23,15 @@ public class EnergyBlastMechanic extends Mechanic {
         super(mechanicFactory, section);
         ConfigurationSection particleSection = section.getConfigurationSection("particle");
         assert particleSection != null;
-        ConfigurationSection colorSection = particleSection.getConfigurationSection("color");
+
         this.particle = Particle.valueOf(particleSection.getString("type"));
-        this.particleColor = new Particle.DustOptions(Color
-            .fromRGB(Objects.requireNonNull(colorSection).getInt("red"), colorSection.getInt("green"),
-                colorSection.getInt("blue")),
-            particleSection.getInt("size"));
+        if (particleSection.isConfigurationSection("color")) {
+            ConfigurationSection colorSection = particleSection.getConfigurationSection("color");
+            this.particleColor = new Particle.DustOptions(Color
+                    .fromRGB(Objects.requireNonNull(colorSection).getInt("red"), colorSection.getInt("green"),
+                            colorSection.getInt("blue")),
+                    particleSection.getInt("size"));
+        }
         this.damage = section.getDouble("damage");
         this.length = section.getInt("length");
         this.timersFactory = new TimersFactory(section.getLong("delay"));
