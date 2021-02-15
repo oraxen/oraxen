@@ -117,3 +117,17 @@ divine_shield:
     generate_model: false
     model: divine_shield
     blocking_model: divine_shield_blocking
+
+magic_book:
+  displayname: '&bMagic Book'
+  material: DIAMOND_SWORD
+  Pack:
+    generate_model: false
+    model: magic_book
+  Mechanics:
+    energyblast:
+      delay: 20000
+      length: 5
+      damage: 10.0
+      particle:
+        type: PORTAL
