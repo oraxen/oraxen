@@ -24,7 +24,7 @@
 
 anubis_head:
   displayname: "&9Anubis Head"
-  material: LEATHER_CHESTPLATE
+  material: DIAMOND
   lore:
     - "&8» &7NightVision when worn"
   AttributeModifiers:
@@ -45,7 +45,7 @@ anubis_head:
 
 crown:
   displayname: "&6Crown"
-  material: LEATHER_CHESTPLATE
+  material: DIAMOND
   AttributeModifiers:
     - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
@@ -58,7 +58,7 @@ crown:
 
 pharaoh_head:
   displayname: "&6Pharaoh Head"
-  material: LEATHER_CHESTPLATE
+  material: DIAMOND
   AttributeModifiers:
     - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
@@ -71,7 +71,7 @@ pharaoh_head:
 
 witch_hat:
   displayname: "&5Witch Hat"
-  material: LEATHER_CHESTPLATE
+  material: DIAMOND
   AttributeModifiers:
     - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
@@ -84,7 +84,7 @@ witch_hat:
 
 space_helmet:
   displayname: "&fSpace Helmet"
-  material: LEATHER_CHESTPLATE
+  material: DIAMOND
   Pack:
     generate_model: false
     model: space_helmet
