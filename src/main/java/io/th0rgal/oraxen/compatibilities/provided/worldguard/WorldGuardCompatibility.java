@@ -13,16 +13,16 @@ import org.bukkit.entity.Player;
 
 public class WorldGuardCompatibility extends CompatibilityProvider<WorldGuardPlugin> {
 
-    public boolean canBreak(Player player, Block block) {
+    public boolean cannotBreak(Player player, Block block) {
         LocalPlayer localPlayer = plugin.wrapPlayer(player);
         RegionQuery query = WorldGuard.getInstance().getPlatform().getRegionContainer().createQuery();
         boolean canBypass = WorldGuard
-            .getInstance()
-            .getPlatform()
-            .getSessionManager()
-            .hasBypass(localPlayer, BukkitAdapter.adapt(player.getWorld()));
-        return canBypass || query.testBuild(BukkitAdapter.adapt(block.getLocation()), localPlayer, Flags.BLOCK_BREAK)
-            || player.hasPermission("oraxen.worldguard.bypass") || player.hasPermission("oraxen.worldguard.*");
+                .getInstance()
+                .getPlatform()
+                .getSessionManager()
+                .hasBypass(localPlayer, BukkitAdapter.adapt(player.getWorld()));
+        return !canBypass && !query.testBuild(BukkitAdapter.adapt(block.getLocation()), localPlayer, Flags.BLOCK_BREAK)
+                && !player.hasPermission("oraxen.worldguard.bypass") && !player.hasPermission("oraxen.worldguard.*");
     }
 
 }

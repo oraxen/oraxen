@@ -39,7 +39,7 @@ public class BigMiningMechanicListener implements Listener {
 
         Player player = event.getPlayer();
 
-        if (worldGuardCompatibility != null && !worldGuardCompatibility.canBreak(event.getPlayer(), event.getBlock()))
+        if (worldGuardCompatibility != null && worldGuardCompatibility.cannotBreak(event.getPlayer(), event.getBlock()))
             return;
 
         if (blocksToProcess > 0) {

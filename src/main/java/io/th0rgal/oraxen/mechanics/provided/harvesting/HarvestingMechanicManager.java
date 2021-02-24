@@ -57,7 +57,7 @@ public class HarvestingMechanicManager implements Listener {
         for (Block block : getNearbyBlocks(event.getClickedBlock().getLocation(), mechanic.getRadius(),
                 mechanic.getHeight())) {
             if (block.getBlockData() instanceof Ageable) {
-                if (worldGuardCompatibility != null && !worldGuardCompatibility.canBreak(player, block))
+                if (worldGuardCompatibility != null && worldGuardCompatibility.cannotBreak(player, block))
                     return;
                 Ageable ageable = (Ageable) block.getBlockData();
                 if (ageable.getAge() == ageable.getMaximumAge()) {
