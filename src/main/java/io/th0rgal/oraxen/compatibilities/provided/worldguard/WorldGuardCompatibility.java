@@ -8,10 +8,14 @@ import com.sk89q.worldguard.protection.flags.Flags;
 import com.sk89q.worldguard.protection.regions.RegionQuery;
 import io.th0rgal.oraxen.compatibilities.CompatibilityProvider;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 
 public class WorldGuardCompatibility extends CompatibilityProvider<WorldGuardPlugin> {
+
+    public WorldGuardCompatibility() {
+    }
 
     public boolean cannotBreak(Player player, Block block) {
         LocalPlayer localPlayer = plugin.wrapPlayer(player);
