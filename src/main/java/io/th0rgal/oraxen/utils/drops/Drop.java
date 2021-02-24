@@ -47,8 +47,9 @@ public class Drop {
         ItemTypeMechanicFactory factory = ItemTypeMechanicFactory.get();
         String itemType;
         if (factory.isNotImplementedIn(itemID)) {
-            itemType = itemInHand.getType().toString().split("_")[0];
-            if (!hierarchy.contains(itemType))
+            String[] content = itemInHand.getType().toString().split("_");
+            itemType = content[0];
+            if (!hierarchy.contains(itemType) || content.length < 2)
                 return false;
         } else {
             ItemTypeMechanic mechanic = (ItemTypeMechanic) factory.getMechanic(itemID);
