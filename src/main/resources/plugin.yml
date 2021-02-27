@@ -1,9 +1,8 @@
-main: io.th0rgal.oraxen.OraxenPlugin
+main: com.oraxen.Oraxen
 name: Oraxen
 version: ${projectVersion}
 author: Th0rgal
 api-version: "1.14"
-softdepend: [ProtocolLib, MythicMobs, CrateReloaded, BossShopPro]
 commands:
   oraxen:
     description: Main command of Oraxen.

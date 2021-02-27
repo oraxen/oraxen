@@ -10,8 +10,8 @@ plugins {
 
 apply plugin: 'maven'
 
-group "io.th0rgal"
-def pluginVersion = "1.69.0"
+group "com.oraxen"
+def pluginVersion = "dev-2.0.0"
 version = pluginVersion
 
 repositories {
@@ -55,22 +55,24 @@ tasks.withType(JavaCompile) {
 dependencies {
     // The Spigot API with no shadowing. Requires the OSS repo.
     compileOnly group: "org.spigotmc", name: "spigot", version: "1.16.4-R0.1-SNAPSHOT"
-    compileOnly group: "org.spigotmc", name: "spigot-api", version: "1.16.5-R0.1-SNAPSHOT"
-    compileOnly group: "com.github.dmulloy2", name: "ProtocolLib", version: "4.5.1"
-    compileOnly group: "io.lumine.xikage", name: "MythicMobs", version: "4.10.0"
-    compileOnly group: "com.github.Hazebyte", name: "CrateReloadedAPI", version: "5318abfccc"
-    compileOnly group: "com.sk89q.worldguard", name: "worldguard-bukkit", version: "7.0.4"
+    
+    // Implement some libs
     compileOnly fileTree(dir: "libs/compile", include: ["*.jar"])
     implementation fileTree(dir: "libs/implement", include: ["*.jar"])
-    implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
-    implementation group: 'org.yaml', name: 'snakeyaml', version: '1.27'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.3'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'version', version: '2.0.4'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'nbt', version: '2.0.4'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'config-base', version: '2.0.3'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'alias', version: '2.0.3'
+    
+    // Implement some dependencies
+    implementation group: 'org.pf4j', name: 'pf4j', version: '3.5.0'
+    implementation group: 'org.reflections', name: 'reflections', version: '0.9.11'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'net', version: '2.0.6'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'java', version: '2.0.6'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'command', version: '2.0.5'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'event', version: '2.0.3'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'random', version: '2.0.3'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'thread', version: '2.0.3'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'logging', version: '2.0.3'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'exception', version: '2.0.3'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'version', version: '2.0.3'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'config-yaml', version: '2.0.3'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'service-base', version: '2.0.3'
 }
 
 processResources {
@@ -85,14 +87,11 @@ java {
 }
 
 shadowJar {
-    relocate "org.bstats.bukkit", "io.th0rgal.oraxen.shaded.bstats"
-    relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.shaded.syntaxapi"
-    relocate "org.yaml.snakeyaml", "io.th0rgal.oraxen.shaded.snakeyaml"
+	pluginVersion = pluginVersion + "-B" + LocalDateTime.now().format("YYYY-DDD-AAAAAAAA");
     minimize {
-        exclude("io.th0rgal.oraxen.api.*")
+        exclude("com.oraxen.api.*")
         exclude("com.syntaxphoenix.syntaxapi.*")
     }
-
     manifest {
         attributes(
                 'Built-By': System.properties['user.name'],
