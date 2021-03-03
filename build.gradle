@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'maven'
 
 group "io.th0rgal"
-def pluginVersion = "1.72.1"
+def pluginVersion = "1.72.2"
 version = pluginVersion
 
 repositories {
