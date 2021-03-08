@@ -5,6 +5,7 @@ author: Th0rgal
 api-version: "1.14"
 softdepend: [ProtocolLib, MythicMobs, CrateReloaded, BossShopPro, ItemBridge]
 loadbefore: [Realistic_World]
+load: startup
 commands:
   oraxen:
     description: Main command of Oraxen.
