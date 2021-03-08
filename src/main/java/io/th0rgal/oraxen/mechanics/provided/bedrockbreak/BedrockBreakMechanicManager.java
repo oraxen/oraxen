@@ -50,87 +50,81 @@ public class BedrockBreakMechanicManager {
     public BedrockBreakMechanicManager(BedrockBreakMechanicFactory factory) {
 
         this.protocolManager = ProtocolLibrary.getProtocolManager();
-        protocolManager
-            .addPacketListener(
-                new PacketAdapter(OraxenPlugin.get(), ListenerPriority.LOW, PacketType.Play.Client.BLOCK_DIG) {
-                    @Override
-                    public void onPacketReceiving(PacketEvent event) {
-                        PacketContainer packet = event.getPacket();
-                        Player player = event.getPlayer();
-                        ItemStack item = player.getInventory().getItemInMainHand();
-                        String itemID = OraxenItems.getIdByItem(item);
-                        if (factory.isNotImplementedIn(itemID))
-                            return;
+        protocolManager.addPacketListener(new PacketAdapter(OraxenPlugin.get(), ListenerPriority.LOW, PacketType.Play.Client.BLOCK_DIG) {
+            @Override
+            public void onPacketReceiving(PacketEvent event) {
+                PacketContainer packet = event.getPacket();
+                Player player = event.getPlayer();
+                ItemStack item = player.getInventory().getItemInMainHand();
+                String itemID = OraxenItems.getIdByItem(item);
+                if (factory.isNotImplementedIn(itemID))
+                    return;
 
-                        StructureModifier<BlockPosition> dataTemp = packet.getBlockPositionModifier();
-                        StructureModifier<EnumWrappers.PlayerDigType> data = packet
-                            .getEnumModifier(EnumWrappers.PlayerDigType.class, 2);
+                StructureModifier<BlockPosition> dataTemp = packet.getBlockPositionModifier();
+                StructureModifier<EnumWrappers.PlayerDigType> data = packet.getEnumModifier(EnumWrappers.PlayerDigType.class, 2);
 
-                        EnumWrappers.PlayerDigType type = data.getValues().get(0);
+                EnumWrappers.PlayerDigType type = data.getValues().get(0);
 
-                        BlockPosition pos = dataTemp.getValues().get(0);
-                        World world = player.getWorld();
-                        Block block = world.getBlockAt(pos.getX(), pos.getY(), pos.getZ());
-                        if (!block.getType().equals(Material.BEDROCK))
-                            return;
+                BlockPosition pos = dataTemp.getValues().get(0);
+                World world = player.getWorld();
+                Block block = world.getBlockAt(pos.getX(), pos.getY(), pos.getZ());
+                if (!block.getType().equals(Material.BEDROCK))
+                    return;
 
-                        BedrockBreakMechanic mechanic = (BedrockBreakMechanic) factory.getMechanic(itemID);
+                BedrockBreakMechanic mechanic = (BedrockBreakMechanic) factory.getMechanic(itemID);
 
-                        Location location = block.getLocation();
-                        BedrockBreakMechanicFactory factory = (BedrockBreakMechanicFactory) mechanic.getFactory();
-                        if (factory.isDisabledOnFirstLayer() && location.getBlockY() == 0)
-                            return;
-                        if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
+                Location location = block.getLocation();
+                BedrockBreakMechanicFactory factory = (BedrockBreakMechanicFactory) mechanic.getFactory();
+                if (factory.isDisabledOnFirstLayer() && location.getBlockY() == 0)
+                    return;
+                if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
 
-                            if (breakerPerLocation.containsKey(location))
-                                breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
-                            BukkitScheduler scheduler = Bukkit.getScheduler();
-                            breakerPerLocation.put(location, scheduler);
+                    if (breakerPerLocation.containsKey(location))
+                        breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
+                    BukkitScheduler scheduler = Bukkit.getScheduler();
+                    breakerPerLocation.put(location, scheduler);
 
-                            scheduler.runTaskTimer(OraxenPlugin.get(), new Consumer<BukkitTask>() {
-                                int value = 0;
+                    scheduler.runTaskTimer(OraxenPlugin.get(), new Consumer<BukkitTask>() {
+                        int value = 0;
 
-                                @Override
-                                public void accept(BukkitTask bukkitTask) {
-                                    if (!breakerPerLocation.containsKey(location)) {
-                                        bukkitTask.cancel();
-                                        return;
-                                    }
-                                    value += 1;
+                        @Override
+                        public void accept(BukkitTask bukkitTask) {
+                            if (!breakerPerLocation.containsKey(location)) {
+                                bukkitTask.cancel();
+                                return;
+                            }
+                            value += 1;
 
-                                    sendBlockBreak(player, location, value);
+                            sendBlockBreak(player, location, value);
 
-                                    if (value < 10)
-                                        return;
+                            if (value < 10)
+                                return;
 
-                                    BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
-                                    Bukkit.getPluginManager().callEvent(blockBreakEvent);
-                                    if (!blockBreakEvent.isCancelled()) {
-                                        if (mechanic.bernouilliTest())
-                                            world.dropItemNaturally(location, new ItemStack(Material.BEDROCK));
-                                        world.playSound(location, Sound.ENTITY_WITHER_BREAK_BLOCK, 1F, 0.05F); // nice
-                                                                                                               // song
-                                                                                                               // lol
-                                        world
-                                            .spawnParticle(Particle.BLOCK_CRACK, location, 25, 0.5D, 0.5D, 0.5D,
-                                                block.getBlockData());
-                                        block.breakNaturally();
-                                    }
+                            BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
+                            Bukkit.getPluginManager().callEvent(blockBreakEvent);
+                            if (!blockBreakEvent.isCancelled()) {
+                                if (mechanic.bernouilliTest())
+                                    world.dropItemNaturally(location, new ItemStack(Material.BEDROCK));
+                                world.playSound(location, Sound.ENTITY_WITHER_BREAK_BLOCK, 1F, 0.05F); // nice
+                                                                                                       // song
+                                                                                                       // lol
+                                world.spawnParticle(Particle.BLOCK_CRACK, location, 25, 0.5D, 0.5D, 0.5D, block.getBlockData());
+                                block.breakNaturally();
+                            }
 
-                                    PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player,
-                                        item, factory.getDurabilityCost());
-                                    Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
+                            PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item, factory.getDurabilityCost());
+                            Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
 
-                                    bukkitTask.cancel();
-                                }
-                            }, mechanic.delay, mechanic.period);
-
-                        } else {
-                            breakerPerLocation.remove(location);
-                            sendBlockBreak(player, location, 10);
+                            bukkitTask.cancel();
                         }
-                    }
-                });
+                    }, mechanic.delay, mechanic.period);
+
+                } else {
+                    breakerPerLocation.remove(location);
+                    sendBlockBreak(player, location, 10);
+                }
+            }
+        });
     }
 
 }

@@ -83,10 +83,7 @@ public enum Pack implements ConfigEnum {
         ConfigurationSection config = RESOURCES_MANAGER.getSettings().getConfigurationSection("Pack");
         ArrayList<BaseComponent[]> messages = new ArrayList<>();
         if (config.isList(section))
-            config
-                .getStringList(section)
-                .forEach(
-                    message -> messages.add(MiniMessageParser.parseFormat(Utils.handleColors(message), placeholders)));
+            config.getStringList(section).forEach(message -> messages.add(MiniMessageParser.parseFormat(Utils.handleColors(message), placeholders)));
         else
             messages.add(MiniMessageParser.parseFormat(Utils.handleColors(config.getString(section)), placeholders));
         return messages;

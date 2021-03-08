@@ -48,8 +48,7 @@ public class ResourcePack {
 
                 while (entry != null) {
                     String name = entry.getName();
-                    boolean isSuitable = (extractModels && name.startsWith("pack/models"))
-                        || (extractTextures && name.startsWith("pack/textures"))
+                    boolean isSuitable = (extractModels && name.startsWith("pack/models")) || (extractTextures && name.startsWith("pack/textures"))
                         || (extractassets && name.startsWith("/pack/assets"));
 
                     resourcesManager.extractFileIfTrue(entry, name, isSuitable);
@@ -92,9 +91,7 @@ public class ResourcePack {
                 else
                     // for some reason those breaks are needed to avoid some nasty "memory leak"
                     for (int i = 0; i < items.size(); i++)
-                        if (items.get(i).getOraxenMeta().getCustomModelData() > item
-                            .getOraxenMeta()
-                            .getCustomModelData()) {
+                        if (items.get(i).getOraxenMeta().getCustomModelData() > item.getOraxenMeta().getCustomModelData()) {
                             items.add(i, item);
                             break;
                         } else if (i == items.size() - 1) {
@@ -118,8 +115,7 @@ public class ResourcePack {
         // needs to be ordered, forEach cannot be used
         for (File folder : packFolder.listFiles()) {
             if (folder.isDirectory() && folder.getName().equalsIgnoreCase("assets")) {
-                System.out
-                    .println(ChatColor.DARK_AQUA + "Experimental Custom Assets : You used a custom assets/minecraft !");
+                System.out.println(ChatColor.DARK_AQUA + "Experimental Custom Assets : You used a custom assets/minecraft !");
                 ZipUtils.getAllFiles(folder, assetFoldersCustom);
             } else if (folder.isDirectory()) {
                 ZipUtils.getAllFiles(folder, subfolders);
@@ -167,8 +163,7 @@ public class ResourcePack {
 
         for (Map.Entry<Material, List<ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
             Material entryMaterial = texturedItemsEntry.getKey();
-            PredicatesGenerator predicatesGenerator = new PredicatesGenerator(entryMaterial,
-                texturedItemsEntry.getValue());
+            PredicatesGenerator predicatesGenerator = new PredicatesGenerator(entryMaterial, texturedItemsEntry.getValue());
             String vanillaModelName = predicatesGenerator.getVanillaModelName(entryMaterial) + ".json";
 
             Utils.writeStringToFile(new File(modelsFolder, vanillaModelName), predicatesGenerator.toJSON().toString());

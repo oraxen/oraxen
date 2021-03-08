@@ -115,9 +115,7 @@ public class ItemBuilder {
         this.persistentDataContainer = itemMeta.getPersistentDataContainer();
 
         this.overrideData = ItemTools.toNbtCompound(itemStack);
-        this.customItemData = overrideData.hasKey("oraxenData", NbtType.COMPOUND)
-            ? overrideData.getCompound("oraxenData")
-            : new NbtCompound();
+        this.customItemData = overrideData.hasKey("oraxenData", NbtType.COMPOUND) ? overrideData.getCompound("oraxenData") : new NbtCompound();
 
         this.enchantments = new HashMap<>();
 
@@ -185,8 +183,7 @@ public class ItemBuilder {
     @SuppressWarnings("unchecked")
     public <T, Z> Z getCustomTag(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType) {
         for (Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
-            if (dataSpace.getKey().getNamespacedKey().equals(namespacedKey)
-                && dataSpace.getKey().getDataType().equals(dataType))
+            if (dataSpace.getKey().getNamespacedKey().equals(namespacedKey) && dataSpace.getKey().getDataType().equals(dataType))
                 return (Z) dataSpace.getValue();
         return null;
     }
@@ -405,8 +402,7 @@ public class ItemBuilder {
             for (Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
                 itemMeta
                     .getPersistentDataContainer()
-                    .set(dataSpace.getKey().getNamespacedKey(),
-                        (PersistentDataType<?, Object>) dataSpace.getKey().getDataType(), dataSpace.getValue());
+                    .set(dataSpace.getKey().getNamespacedKey(), (PersistentDataType<?, Object>) dataSpace.getKey().getDataType(), dataSpace.getValue());
 
         itemMeta.setLore(lore);
 

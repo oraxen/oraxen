@@ -21,8 +21,7 @@ public class CustomMechanic extends Mechanic {
             CustomMechanicCondition condition = new CustomMechanicCondition(subsection.getStringList("conditions"));
             if (!LOADED_VARIANTS.contains(section.getName())) {
                 LOADED_VARIANTS.add(section.getName());
-                customMechanicListeners
-                    .registerListener(mechanicFactory, subsection.getString("event"), action, condition);
+                customMechanicListeners.registerListener(mechanicFactory, subsection.getString("event"), action, condition);
             }
         }
     }

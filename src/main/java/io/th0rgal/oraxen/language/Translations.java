@@ -30,8 +30,7 @@ public final class Translations {
         return translate(language.getId(), info, type);
     }
 
-    public static String translate(Language language, CommandInfo info, DescriptionType type,
-        Placeholder... placeholders) {
+    public static String translate(Language language, CommandInfo info, DescriptionType type, Placeholder... placeholders) {
         return translate(language.getId(), info, type, placeholders);
     }
 
@@ -67,8 +66,7 @@ public final class Translations {
         return description(language, type.getId(info));
     }
 
-    public static String translate(String language, CommandInfo info, DescriptionType type,
-        Placeholder... placeholders) {
+    public static String translate(String language, CommandInfo info, DescriptionType type, Placeholder... placeholders) {
         return description(language, type.getId(info), placeholders);
     }
 
@@ -139,10 +137,7 @@ public final class Translations {
     public static String replaceDefaults(String language, String message) {
         if (message.equals(LanguageProvider.NULL_VALUE))
             return message;
-        Placeholder[] placeholders = Arrays
-            .stream(Variable.values())
-            .map(ITranslatable::placeholder)
-            .toArray(Placeholder[]::new);
+        Placeholder[] placeholders = Arrays.stream(Variable.values()).map(ITranslatable::placeholder).toArray(Placeholder[]::new);
         for (Placeholder placeholder : placeholders)
             message = placeholder.replaceTranslated(language, message);
         return message;
@@ -333,15 +328,11 @@ public final class Translations {
          */
 
         public boolean hasTranslation(String language) {
-            return translations.stream().anyMatch(storage -> storage.getLanguage().equals(language))
-                || fallback.getLanguage().equals(language);
+            return translations.stream().anyMatch(storage -> storage.getLanguage().equals(language)) || fallback.getLanguage().equals(language);
         }
 
         public TranslationStorage getTranslation(String language) {
-            Optional<TranslationStorage> option = translations
-                .stream()
-                .filter(storage -> storage.getLanguage().equals(language))
-                .findAny();
+            Optional<TranslationStorage> option = translations.stream().filter(storage -> storage.getLanguage().equals(language)).findAny();
             return option.orElse(fallback);
         }
 

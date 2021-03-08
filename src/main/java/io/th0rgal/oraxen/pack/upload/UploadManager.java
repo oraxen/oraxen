@@ -48,9 +48,7 @@ public class UploadManager {
                 Logs.log(ChatColor.RED, "Resourcepack not uploaded");
                 return;
             }
-            Logs
-                .log(ChatColor.GREEN, "Resourcepack uploaded on url " + hostingProvider.getPackURL() + " in "
-                    + (System.currentTimeMillis() - time) + "ms");
+            Logs.log(ChatColor.GREEN, "Resourcepack uploaded on url " + hostingProvider.getPackURL() + " in " + (System.currentTimeMillis() - time) + "ms");
             PackDispatcher.setPackURL(hostingProvider.getPackURL());
             PackDispatcher.setSha1(hostingProvider.getSHA1());
             if (((boolean) Pack.SEND_PACK.getValue() || (boolean) Pack.SEND_JOIN_MESSAGE.getValue()) && sender == null)
@@ -99,21 +97,16 @@ public class UploadManager {
                     }
                 }
             } catch (Exception e) {
-                throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot found constructor in " + target)
-                    .initCause(e);
+                throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot found constructor in " + target).initCause(e);
             }
             try {
-                return constructor.getParameterCount() == 0 ? constructor.newInstance()
-                    : constructor.newInstance(options);
+                return constructor.getParameterCount() == 0 ? constructor.newInstance() : constructor.newInstance(options);
             } catch (InstantiationException e) {
-                throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot alloc instance for " + target)
-                    .initCause(e);
+                throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot alloc instance for " + target).initCause(e);
             } catch (IllegalAccessException e) {
-                throw (ProviderNotFoundException) new ProviderNotFoundException("Failed to access " + target)
-                    .initCause(e);
+                throw (ProviderNotFoundException) new ProviderNotFoundException("Failed to access " + target).initCause(e);
             } catch (InvocationTargetException e) {
-                throw (ProviderNotFoundException) new ProviderNotFoundException("Exception in allocating instance.")
-                    .initCause(e.getCause());
+                throw (ProviderNotFoundException) new ProviderNotFoundException("Exception in allocating instance.").initCause(e.getCause());
             }
         default:
             throw new ProviderNotFoundException("Unknown provider type: " + Pack.UPLOAD_TYPE);

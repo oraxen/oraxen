@@ -28,9 +28,7 @@ public class OraxenMeta {
         this.hasPackInfos = true;
         this.modelName = readModelName(configurationSection, "model");
         this.blockingModel = readModelName(configurationSection, "blocking_model");
-        this.pullingModels = configurationSection.isList("pulling_models")
-            ? configurationSection.getStringList("pulling_models")
-            : null;
+        this.pullingModels = configurationSection.isList("pulling_models") ? configurationSection.getStringList("pulling_models") : null;
         this.layers = configurationSection.getStringList("textures");
         // can't be refactored with for each or stream because it'll throw
         // ConcurrentModificationException

@@ -41,8 +41,7 @@ public class HatMechanicListener implements Listener {
         PlayerInventory inventory = player.getInventory();
         if (inventory.getHelmet() == null) {
             event.setCancelled(true);
-            ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent(player, ArmorEquipEvent.EquipMethod.ORAXEN_HAT,
-                ArmorType.HELMET, null, item);
+            ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent(player, ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET, null, item);
             Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
             if (armorEquipEvent.isCancelled())
                 return;
@@ -67,8 +66,8 @@ public class HatMechanicListener implements Listener {
         Inventory clickedInventory = e.getClickedInventory();
         ItemStack cursor = e.getCursor();
 
-        if (clickedInventory == null || !clickedInventory.getType().equals(InventoryType.PLAYER)
-            || e.getSlotType() != InventoryType.SlotType.ARMOR || cursor == null)
+        if (clickedInventory == null || !clickedInventory.getType().equals(InventoryType.PLAYER) || e.getSlotType() != InventoryType.SlotType.ARMOR
+            || cursor == null)
             return;
 
         ItemStack clone = cursor.clone();
@@ -81,8 +80,8 @@ public class HatMechanicListener implements Listener {
                 if (factory.isNotImplementedIn(itemID))
                     return;
 
-                ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent((Player) e.getWhoClicked(),
-                    ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET, currentItem, cursor);
+                ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent((Player) e.getWhoClicked(), ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET,
+                    currentItem, cursor);
                 Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
                 if (armorEquipEvent.isCancelled())
                     e.setCancelled(true);
@@ -95,8 +94,8 @@ public class HatMechanicListener implements Listener {
             }
 
             if (currentItem == null || currentItem.getType() == Material.AIR) {
-                ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent((Player) e.getWhoClicked(),
-                    ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET, currentItem, clone);
+                ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent((Player) e.getWhoClicked(), ArmorEquipEvent.EquipMethod.ORAXEN_HAT, ArmorType.HELMET,
+                    currentItem, clone);
                 Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
                 if (armorEquipEvent.isCancelled())
                     return;

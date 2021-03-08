@@ -13,8 +13,7 @@ public class InvisibleItemFrameMechanic extends Mechanic {
     public static final NamespacedKey invisibleKey = new NamespacedKey(OraxenPlugin.get(), "invisible");
 
     public InvisibleItemFrameMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
-        super(mechanicFactory, section,
-            itemBuilder -> itemBuilder.setCustomTag(invisibleKey, PersistentDataType.BYTE, (byte) 1));
+        super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(invisibleKey, PersistentDataType.BYTE, (byte) 1));
         this.isInvisible = section.getBoolean("isInvisible", false);
     }
 

@@ -28,9 +28,7 @@ public abstract class CompletionHelper {
     public static void completionMap(DefaultCompletion completion, Function<String, String> mapper, String... strings) {
         Arguments arguments = completion.getCompletion();
         for (String string : strings) {
-            arguments
-                .add(new StringArgument(
-                    arguments.match((current) -> current.asObject().equals(string)) ? "oraxen:" + string : string));
+            arguments.add(new StringArgument(arguments.match((current) -> current.asObject().equals(string)) ? "oraxen:" + string : string));
         }
     }
 

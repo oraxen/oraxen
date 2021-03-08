@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.utils.reflection.version;
+package io.th0rgal.oraxen.utils.version;
 
 import com.syntaxphoenix.syntaxapi.version.DefaultVersion;
 import com.syntaxphoenix.syntaxapi.version.VersionAnalyzer;
@@ -10,8 +10,11 @@ public class MinecraftVersion extends DefaultVersion {
 
     private final boolean valid;
 
+    /*
+     * 
+     */
+
     private MinecraftVersion(boolean valid) {
-        super();
         this.valid = valid;
     }
 
@@ -25,37 +28,36 @@ public class MinecraftVersion extends DefaultVersion {
         this.valid = true;
     }
 
+    /*
+     * 
+     */
+
     public final boolean isValid() {
         return valid;
     }
 
+    /*
+     * 
+     */
+
     @Override
     protected MinecraftVersion setMajor(int major) {
-        super.setMajor(major);
-        return this;
+        return (MinecraftVersion) super.setMajor(major);
     }
 
     @Override
     protected MinecraftVersion setMinor(int minor) {
-        super.setMinor(minor);
-        return this;
+        return (MinecraftVersion) super.setMinor(minor);
     }
 
     @Override
     protected MinecraftVersion setPatch(int patch) {
-        super.setPatch(patch);
-        return this;
+        return (MinecraftVersion) super.setPatch(patch);
     }
 
-    @Override
-    public MinecraftVersion clone() {
-        return (MinecraftVersion) super.clone();
-    }
-
-    @Override
-    public MinecraftVersion update(int major, int minor, int patch) {
-        return (MinecraftVersion) super.update(major, minor, patch);
-    }
+    /*
+     * 
+     */
 
     @Override
     protected MinecraftVersion init(int major, int minor, int patch) {
@@ -63,9 +65,13 @@ public class MinecraftVersion extends DefaultVersion {
     }
 
     @Override
-    public MinecraftAnalyzer getAnalyzer() {
+    public VersionAnalyzer getAnalyzer() {
         return ANALYZER;
     }
+
+    /*
+     * 
+     */
 
     public static MinecraftVersion fromString(String versionString) {
         return ANALYZER.analyze(versionString);
@@ -81,9 +87,14 @@ public class MinecraftVersion extends DefaultVersion {
         return versions;
     }
 
+    /*
+     * 
+     */
+
     public static class MinecraftAnalyzer implements VersionAnalyzer {
         @Override
         public MinecraftVersion analyze(String formatted) {
+            formatted = formatted.startsWith("v") ? formatted.replaceFirst("v", "") : formatted;
             String[] parts;
             boolean bukkit = false;
             if (formatted.contains(".")) {

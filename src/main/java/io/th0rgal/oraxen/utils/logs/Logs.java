@@ -25,8 +25,7 @@ public class Logs {
     }
 
     public static void log(ChatColor chatColor, String message) {
-        logInfo(
-            Variable.PREFIX.legacyMessage(LanguageProvider.DEFAULT_LANGUAGE) + ' ' + chatColor.toString() + message);
+        logInfo(Variable.PREFIX.legacyMessage(LanguageProvider.DEFAULT_LANGUAGE) + ' ' + chatColor.toString() + message);
     }
 
     public static void logInfo(String message) {

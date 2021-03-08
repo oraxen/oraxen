@@ -24,8 +24,7 @@ public enum RecipeType {
     }
 
     public static Optional<RecipeType> fromArgument(BaseArgument argument) {
-        return Optional
-            .ofNullable(argument.getType() != ArgumentType.STRING ? null : fromString(argument.asString().getValue()));
+        return Optional.ofNullable(argument.getType() != ArgumentType.STRING ? null : fromString(argument.asString().getValue()));
     }
 
 }

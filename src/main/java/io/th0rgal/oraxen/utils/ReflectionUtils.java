@@ -19,13 +19,11 @@ public abstract class ReflectionUtils {
         return new Class<?>[0];
     }
 
-    public static void collectClasses(Class<?> sample, String packageName, Collection<Class<?>> collection,
-        boolean deep) {
+    public static void collectClasses(Class<?> sample, String packageName, Collection<Class<?>> collection, boolean deep) {
         Thread thread = new Thread(() -> acceptJarStream(sample, stream -> {
             JarEntry entry;
             String packagePath = packageName.replace('.', '/');
-            Predicate<String> test = deep ? name -> name.startsWith(packagePath)
-                : name -> name.split("\\.")[0].equals(packagePath);
+            Predicate<String> test = deep ? name -> name.startsWith(packagePath) : name -> name.split("\\.")[0].equals(packagePath);
             while ((entry = stream.getNextJarEntry()) != null) {
                 String name = entry.getName();
                 if (test.test(name) && !name.contains("$")) {

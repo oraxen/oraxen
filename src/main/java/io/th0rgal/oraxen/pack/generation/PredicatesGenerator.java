@@ -53,11 +53,9 @@ public class PredicatesGenerator {
              * parser.parse(pullingPredicate.toString()).getAsJsonObject() This is the
              * easiest (but incredibly slow and inefficient) way to clone a JsonObject
              */
-            overrides
-                .add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_0"));
+            overrides.add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_0"));
             pullingPredicate.addProperty("pull", 0.65);
-            overrides
-                .add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_1"));
+            overrides.add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_1"));
             pullingPredicate.addProperty("pull", 0.9);
             overrides.add(getOverride(pullingPredicate, "item/bow_pulling_2"));
             json.add("display", parser.parse(Plugin.BOW_DISPLAY.toString()).getAsJsonObject());
@@ -68,15 +66,12 @@ public class PredicatesGenerator {
 
         // custom items
         for (ItemBuilder item : items) {
-            overrides
-                .add(getOverride("custom_model_data", item.getOraxenMeta().getCustomModelData(),
-                    item.getOraxenMeta().getModelName()));
+            overrides.add(getOverride("custom_model_data", item.getOraxenMeta().getCustomModelData(), item.getOraxenMeta().getModelName()));
             if (item.getOraxenMeta().hasBlockingModel()) {
                 JsonObject predicate = new JsonObject();
                 predicate.addProperty("blocking", 1);
                 overrides
-                    .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(),
-                        item.getOraxenMeta().getBlockingModelName()));
+                    .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(), item.getOraxenMeta().getBlockingModelName()));
             }
             if (item.getOraxenMeta().hasPullingModels()) {
                 List<String> pullingModels = item.getOraxenMeta().getPullingModels();
@@ -85,9 +80,7 @@ public class PredicatesGenerator {
                     predicate.addProperty("pulling", 1);
                     if (i != 0)
                         predicate.addProperty("pull", i / pullingModels.size());
-                    overrides
-                        .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(),
-                            pullingModels.get((int) i)));
+                    overrides.add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(), pullingModels.get((int) i)));
                 }
             }
 

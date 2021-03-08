@@ -93,9 +93,8 @@ public class MiniMessageSerializer {
             HoverEvent hov = comp.getHoverEvent();
             if (hov != null && (prevComp == null || areDifferent(hov, prevComp.getHoverEvent()))) {
                 sb
-                    .append(startTag(String
-                        .format("%s" + SEPARATOR + "%s" + SEPARATOR + "\"%s\"", HOVER,
-                            hov.getAction().name().toLowerCase(), serialize(hov.getValue()))));
+                    .append(startTag(
+                        String.format("%s" + SEPARATOR + "%s" + SEPARATOR + "\"%s\"", HOVER, hov.getAction().name().toLowerCase(), serialize(hov.getValue()))));
             }
 
             // ## click
@@ -103,9 +102,8 @@ public class MiniMessageSerializer {
             ClickEvent click = comp.getClickEvent();
             if (click != null && (prevComp == null || areDifferent(click, prevComp.getClickEvent()))) {
                 sb
-                    .append(startTag(String
-                        .format("%s" + SEPARATOR + "%s" + SEPARATOR + "\"%s\"", CLICK,
-                            click.getAction().name().toLowerCase(), click.getValue())));
+                    .append(startTag(
+                        String.format("%s" + SEPARATOR + "%s" + SEPARATOR + "\"%s\"", CLICK, click.getAction().name().toLowerCase(), click.getValue())));
             }
 
             // # append text

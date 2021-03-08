@@ -45,34 +45,31 @@ public final class SignMenuFactory {
     }
 
     private void listen() {
-        ProtocolLibrary
-            .getProtocolManager()
-            .addPacketListener(new PacketAdapter(this.plugin, PacketType.Play.Client.UPDATE_SIGN) {
-                @Override
-                public void onPacketReceiving(PacketEvent event) {
-                    Player player = event.getPlayer();
+        ProtocolLibrary.getProtocolManager().addPacketListener(new PacketAdapter(this.plugin, PacketType.Play.Client.UPDATE_SIGN) {
+            @Override
+            public void onPacketReceiving(PacketEvent event) {
+                Player player = event.getPlayer();
 
-                    Menu menu = inputReceivers.remove(player);
+                Menu menu = inputReceivers.remove(player);
 
-                    if (menu == null) {
-                        return;
-                    }
-                    event.setCancelled(true);
-
-                    menu.text = Arrays.asList(event.getPacket().getStringArrays().read(0));
-
-                    boolean success = true;
-
-                    if (menu.response != null)
-                        success = menu.response
-                            .test(player, (menu.setInput(event.getPacket().getStringArrays().read(0))));
-
-                    if (!success && menu.reopenOnFail()) {
-                        Bukkit.getScheduler().runTaskLater(plugin, () -> menu.open(player), 2L);
-                    }
-                    player.sendBlockChange(menu.position.toLocation(player.getWorld()), Material.AIR.createBlockData());
+                if (menu == null) {
+                    return;
                 }
-            });
+                event.setCancelled(true);
+
+                menu.text = Arrays.asList(event.getPacket().getStringArrays().read(0));
+
+                boolean success = true;
+
+                if (menu.response != null)
+                    success = menu.response.test(player, (menu.setInput(event.getPacket().getStringArrays().read(0))));
+
+                if (!success && menu.reopenOnFail()) {
+                    Bukkit.getScheduler().runTaskLater(plugin, () -> menu.open(player), 2L);
+                }
+                player.sendBlockChange(menu.position.toLocation(player.getWorld()), Material.AIR.createBlockData());
+            }
+        });
     }
 
     public Menu newProvider() {
@@ -144,12 +141,8 @@ public final class SignMenuFactory {
 
             player.sendBlockChange(this.position.toLocation(location.getWorld()), Material.OAK_SIGN.createBlockData());
 
-            PacketContainer openSign = ProtocolLibrary
-                .getProtocolManager()
-                .createPacket(PacketType.Play.Server.OPEN_SIGN_EDITOR);
-            PacketContainer signData = ProtocolLibrary
-                .getProtocolManager()
-                .createPacket(PacketType.Play.Server.TILE_ENTITY_DATA);
+            PacketContainer openSign = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.OPEN_SIGN_EDITOR);
+            PacketContainer signData = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.TILE_ENTITY_DATA);
 
             openSign.getBlockPositionModifier().write(0, this.position);
 
@@ -157,9 +150,7 @@ public final class SignMenuFactory {
 
             IntStream
                 .range(0, SIGN_LINES)
-                .forEach(line -> signNBT
-                    .put("Text" + (line + 1),
-                        text.size() > line ? String.format(NBT_FORMAT, color(text.get(line))) : " "));
+                .forEach(line -> signNBT.put("Text" + (line + 1), text.size() > line ? String.format(NBT_FORMAT, color(text.get(line))) : " "));
 
             signNBT.put("x", this.position.getX());
             signNBT.put("y", this.position.getY());

@@ -91,10 +91,6 @@ public final class FastInvManager {
      * Close all open FastInv inventories
      */
     public static void closeAll() {
-        Bukkit
-            .getOnlinePlayers()
-            .stream()
-            .filter(p -> p.getOpenInventory().getTopInventory().getHolder() instanceof FastInv)
-            .forEach(Player::closeInventory);
+        Bukkit.getOnlinePlayers().stream().filter(p -> p.getOpenInventory().getTopInventory().getHolder() instanceof FastInv).forEach(Player::closeInventory);
     }
 }

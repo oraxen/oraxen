@@ -26,8 +26,7 @@ public enum Reloadable {
     }
 
     public static Optional<Reloadable> fromArgument(BaseArgument argument) {
-        return Optional
-            .ofNullable(argument.getType() != ArgumentType.STRING ? null : fromString(argument.asString().getValue()));
+        return Optional.ofNullable(argument.getType() != ArgumentType.STRING ? null : fromString(argument.asString().getValue()));
     }
 
 }

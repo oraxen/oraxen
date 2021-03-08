@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.mechanics;
 
+import static io.th0rgal.oraxen.OraxenVersion.*;
+
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.command.condition.ICondition;
 import io.th0rgal.oraxen.mechanics.provided.bedrockbreak.BedrockBreakMechanicFactory;
@@ -25,6 +27,7 @@ import io.th0rgal.oraxen.mechanics.provided.thor.ThorMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.witherskull.WitherSkullMechanicFactory;
 import io.th0rgal.oraxen.settings.ConfigUpdater;
 import io.th0rgal.oraxen.settings.ResourcesManager;
+
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -77,31 +80,28 @@ public class MechanicsManager {
         registerMechanicFactory("harvesting", HarvestingMechanicFactory.class);
         //
         // dependent
-        registerMechanicFactoryIfTrue(clazz -> OraxenPlugin.getProtocolLib(), "bedrockbreak",
-            BedrockBreakMechanicFactory.class);
+        registerMechanicFactoryIfTrue(clazz -> OraxenPlugin.getProtocolLib(), "bedrockbreak", BedrockBreakMechanicFactory.class);
 
         // Dispo only +1.16 (20w10a)
-        if (Bukkit.getVersion().contains("1.16") || Bukkit.getVersion().contains("1.17"))
-            registerMechanicFactory("invisible_frame", InvisibleItemFrameFactory.class);
+        registerMechanicFactoryIfTrue(clazz -> minor(oraxen(), 1, 16) >= 0, "invisible_frame", InvisibleItemFrameFactory.class);
 
     }
 
-    public static void registerMechanicFactoryIfTrue(ICondition<Class<? extends MechanicFactory>> condition,
-        String mechanicId, Class<? extends MechanicFactory> mechanicFactoryClass) {
+    public static void registerMechanicFactoryIfTrue(ICondition<Class<? extends MechanicFactory>> condition, String mechanicId,
+        Class<? extends MechanicFactory> mechanicFactoryClass) {
         if (condition.isFalse(mechanicFactoryClass))
             return;
         registerMechanicFactory(mechanicId, mechanicFactoryClass);
     }
 
-    public static void registerMechanicFactoryIfFalse(ICondition<Class<? extends MechanicFactory>> condition,
-        String mechanicId, Class<? extends MechanicFactory> mechanicFactoryClass) {
+    public static void registerMechanicFactoryIfFalse(ICondition<Class<? extends MechanicFactory>> condition, String mechanicId,
+        Class<? extends MechanicFactory> mechanicFactoryClass) {
         if (condition.isTrue(mechanicFactoryClass))
             return;
         registerMechanicFactory(mechanicId, mechanicFactoryClass);
     }
 
-    public static void registerMechanicFactory(String mechanicId,
-        Class<? extends MechanicFactory> mechanicFactoryClass) {
+    public static void registerMechanicFactory(String mechanicId, Class<? extends MechanicFactory> mechanicFactoryClass) {
         Entry<File, YamlConfiguration> mechanicsEntry = new ResourcesManager(OraxenPlugin.get()).getMechanicsEntry();
         YamlConfiguration mechanicsConfig = mechanicsEntry.getValue();
         boolean updated = ConfigUpdater.update(mechanicsEntry.getKey(), mechanicsConfig);
@@ -109,12 +109,9 @@ public class MechanicsManager {
             ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicId);
             if (factorySection.getBoolean("enabled"))
                 try {
-                    MechanicFactory factory = mechanicFactoryClass
-                        .getConstructor(ConfigurationSection.class)
-                        .newInstance(factorySection);
+                    MechanicFactory factory = mechanicFactoryClass.getConstructor(ConfigurationSection.class).newInstance(factorySection);
                     FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException
-                    | NoSuchMethodException e) {
+                } catch (InstantiationException | IllegalAccessException | InvocationTargetException | NoSuchMethodException e) {
                     e.printStackTrace();
                 }
         }

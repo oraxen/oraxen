@@ -58,18 +58,11 @@ public class OraxenItems {
     }
 
     public static List<ItemBuilder> getUnexcludedItems() {
-        return itemStream()
-            .filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
-            .collect(Collectors.toList());
+        return itemStream().filter(item -> !item.getOraxenMeta().isExcludedFromInventory()).collect(Collectors.toList());
     }
 
     public static List<ItemBuilder> getUnexcludedItems(File file) {
-        return map
-            .get(file)
-            .values()
-            .stream()
-            .filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
-            .collect(Collectors.toList());
+        return map.get(file).values().stream().filter(item -> !item.getOraxenMeta().isExcludedFromInventory()).collect(Collectors.toList());
     }
 
     public static List<ItemStack> getItemStacksByName(List<List<String>> lists) {

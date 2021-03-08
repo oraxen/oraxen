@@ -57,9 +57,7 @@ public class Recipe extends OraxenCommand {
 
         CommandSender sender = info.getSender();
 
-        if (Conditions
-            .mixed(Conditions.reqPerm(OraxenPermission.COMMAND_RECIPE), Conditions.player(Message.NOT_PLAYER))
-            .isFalse(sender)) {
+        if (Conditions.mixed(Conditions.reqPerm(OraxenPermission.COMMAND_RECIPE), Conditions.player(Message.NOT_PLAYER)).isFalse(sender)) {
             return;
         }
 
@@ -68,8 +66,7 @@ public class Recipe extends OraxenCommand {
             return;
         }
 
-        Optional<String> option0 = restrict(get(arguments, 1, ArgumentType.STRING).map(BaseArgument::asString),
-            "builder", "save", "show");
+        Optional<String> option0 = restrict(get(arguments, 1, ArgumentType.STRING).map(BaseArgument::asString), "builder", "save", "show");
         if (!option0.isPresent()) {
             info.getInfo().sendSimple(sender, info.getLabel());
             return;
@@ -99,29 +96,22 @@ public class Recipe extends OraxenCommand {
                 break;
             case FURNACE:
                 recipe0 = recipe0 != null ? recipe0 : new FurnaceBuilder(player);
-                Optional<Boolean> option02 = restrict(
-                    get(arguments, 3, ArgumentType.STRING).map(BaseArgument::asString), "cookingtime", "experience")
-                        .map(value -> value.equals("cookingtime"));
+                Optional<Boolean> option02 = restrict(get(arguments, 3, ArgumentType.STRING).map(BaseArgument::asString), "cookingtime", "experience")
+                    .map(value -> value.equals("cookingtime"));
                 if (option02.isPresent()) {
                     if (recipe0 instanceof FurnaceBuilder) {
                         FurnaceBuilder furnace = (FurnaceBuilder) recipe0;
                         InputProvider input = OraxenPlugin.get().getInputProvider();
                         if (option02.get()) {
                             if (input.hasMultipleLines()) {
-                                input
-                                    .setMessage(String
-                                        .join(InputProvider.LINE, "200", "Please enter the", "Cooking time",
-                                            "(Default is: 200)"));
+                                input.setMessage(String.join(InputProvider.LINE, "200", "Please enter the", "Cooking time", "(Default is: 200)"));
                             } else {
                                 input.setMessage("Please enter the Cooking time (Default is: 200)");
                             }
                             furnace.setCookingTimeProvider(input);
                         } else {
                             if (input.hasMultipleLines()) {
-                                input
-                                    .setMessage(String
-                                        .join(InputProvider.LINE, "200", "Please enter the", "Experience amount",
-                                            "(Default is: 200)"));
+                                input.setMessage(String.join(InputProvider.LINE, "200", "Please enter the", "Experience amount", "(Default is: 200)"));
                             } else {
                                 input.setMessage("Please enter the Experience amount (Default is: 200)");
                             }
@@ -147,17 +137,14 @@ public class Recipe extends OraxenCommand {
                 return;
             }
 
-            Optional<String> option1 = get(arguments, 2, ArgumentType.STRING)
-                .map(argument -> argument.asString().getValue());
+            Optional<String> option1 = get(arguments, 2, ArgumentType.STRING).map(argument -> argument.asString().getValue());
             if (!option1.isPresent()) {
                 info.getInfo().sendSimple(sender, info.getLabel());
                 return;
             }
 
             String name = option1.get();
-            String permission = get(arguments, 3, ArgumentType.STRING)
-                .map(argument -> argument.asString().getValue())
-                .orElse(null);
+            String permission = get(arguments, 3, ArgumentType.STRING).map(argument -> argument.asString().getValue()).orElse(null);
 
             if (permission == null)
                 recipe.saveRecipe(name);
@@ -185,10 +172,7 @@ public class Recipe extends OraxenCommand {
                     return;
                 }
                 ItemStack filterItem0 = option000.get();
-                recipes = recipes
-                    .stream()
-                    .filter(customRecipe -> customRecipe.getResult().isSimilar(filterItem0))
-                    .collect(Collectors.toList());
+                recipes = recipes.stream().filter(customRecipe -> customRecipe.getResult().isSimilar(filterItem0)).collect(Collectors.toList());
                 break;
             case "ingredient":
                 Optional<ItemStack> option001 = get(arguments, 3, argument -> generalItem(argument));
@@ -207,13 +191,8 @@ public class Recipe extends OraxenCommand {
                     .collect(Collectors.toList());
                 break;
             case "name":
-                String specifiedName = get(arguments, 3, ArgumentType.STRING)
-                    .map(argument -> argument.asString().getValue())
-                    .orElse(null);
-                recipes = recipes
-                    .stream()
-                    .filter(customRecipe -> customRecipe.getName().equals(specifiedName))
-                    .collect(Collectors.toList());
+                String specifiedName = get(arguments, 3, ArgumentType.STRING).map(argument -> argument.asString().getValue()).orElse(null);
+                recipes = recipes.stream().filter(customRecipe -> customRecipe.getName().equals(specifiedName)).collect(Collectors.toList());
                 break;
             default:
                 info.getInfo().sendSimple(sender, info.getLabel());
@@ -236,9 +215,7 @@ public class Recipe extends OraxenCommand {
         DefaultCompletion completion = new DefaultCompletion();
         CommandSender sender = info.getSender();
 
-        if (Conditions
-            .mixed(Conditions.hasPerm(OraxenPermission.COMMAND_RECIPE), Conditions.player())
-            .isFalse(sender)) {
+        if (Conditions.mixed(Conditions.hasPerm(OraxenPermission.COMMAND_RECIPE), Conditions.player()).isFalse(sender)) {
             return completion;
         }
 
@@ -258,8 +235,7 @@ public class Recipe extends OraxenCommand {
                 if (!edit)
                     break;
                 if (count == 3) {
-                    Optional<Boolean> option1 = get(arguments, 2, RecipeType::fromArgument)
-                        .map(type -> type == RecipeType.FURNACE);
+                    Optional<Boolean> option1 = get(arguments, 2, RecipeType::fromArgument).map(type -> type == RecipeType.FURNACE);
                     if (!option1.orElse(false))
                         break;
                     completion(completion, "cookingtime", "experience");
@@ -280,9 +256,7 @@ public class Recipe extends OraxenCommand {
                 break;
             case "show":
                 if (count == 3) {
-                    Optional<String> showType = restrict(
-                        get(arguments, 2, ArgumentType.STRING).map(BaseArgument::asString), "name", "result",
-                        "ingredient");
+                    Optional<String> showType = restrict(get(arguments, 2, ArgumentType.STRING).map(BaseArgument::asString), "name", "result", "ingredient");
                     switch (showType.orElse("")) {
                     case "name":
                         completion(completion,

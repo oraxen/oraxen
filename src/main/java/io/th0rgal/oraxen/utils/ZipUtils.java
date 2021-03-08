@@ -32,8 +32,7 @@ public class ZipUtils {
                 fileList.add(file);
     }
 
-    public static void writeZipFile(File outputFile, File directoryToZip,
-        Map<String, List<File>> fileListByZipDirectory) {
+    public static void writeZipFile(File outputFile, File directoryToZip, Map<String, List<File>> fileListByZipDirectory) {
 
         try {
             FileOutputStream fos = new FileOutputStream(outputFile);
@@ -54,8 +53,7 @@ public class ZipUtils {
         }
     }
 
-    public static void addToZip(File directoryToZip, File file, String inZipDirectory, ZipOutputStream zos)
-        throws IOException {
+    public static void addToZip(File directoryToZip, File file, String inZipDirectory, ZipOutputStream zos) throws IOException {
 
         FileInputStream fis = new FileInputStream(file);
 

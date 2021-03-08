@@ -44,19 +44,14 @@ public class Repair extends OraxenCommand {
     public void execute(MinecraftInfo info, Arguments arguments) {
         CommandSender sender = info.getSender();
 
-        if (Conditions
-            .mixed(Conditions.reqPerm(OraxenPermission.COMMAND_REPAIR), Conditions.player(Message.NOT_PLAYER))
-            .isFalse(sender)) {
+        if (Conditions.mixed(Conditions.reqPerm(OraxenPermission.COMMAND_REPAIR), Conditions.player(Message.NOT_PLAYER)).isFalse(sender)) {
             return;
         }
 
         Player player = (Player) sender;
-        if (get(arguments, 1, ArgumentType.STRING)
-            .map(argument -> argument.asString().getValue().equals("all"))
-            .orElse(false) && OraxenPermission.COMMAND_REPAIR_EVERYTHING.has(sender)) {
-            ItemStack[] items = Arrays
-                .merge(ItemStack[]::new, player.getInventory().getStorageContents(),
-                    player.getInventory().getArmorContents());
+        if (get(arguments, 1, ArgumentType.STRING).map(argument -> argument.asString().getValue().equals("all")).orElse(false)
+            && OraxenPermission.COMMAND_REPAIR_EVERYTHING.has(sender)) {
+            ItemStack[] items = Arrays.merge(ItemStack[]::new, player.getInventory().getStorageContents(), player.getInventory().getArmorContents());
             int failed = 0;
             for (ItemStack item : items) {
                 if (item == null || item.getType() == Material.AIR)
@@ -82,9 +77,7 @@ public class Repair extends OraxenCommand {
     public DefaultCompletion complete(MinecraftInfo info, Arguments arguments) {
         DefaultCompletion completion = new DefaultCompletion();
 
-        if (Conditions
-            .mixed(Conditions.hasPerm(OraxenPermission.COMMAND_REPAIR_EVERYTHING), Conditions.player())
-            .isFalse(info.getSender())) {
+        if (Conditions.mixed(Conditions.hasPerm(OraxenPermission.COMMAND_REPAIR_EVERYTHING), Conditions.player()).isFalse(info.getSender())) {
             return completion;
         }
 
@@ -111,12 +104,10 @@ public class Repair extends OraxenCommand {
             DurabilityMechanic durabilityMechanic = (DurabilityMechanic) durabilityFactory.getMechanic(itemId);
             PersistentDataContainer persistentDataContainer = itemMeta.getPersistentDataContainer();
             int realMaxDurability = durabilityMechanic.getItemMaxDurability();
-            int damage = realMaxDurability
-                - persistentDataContainer.get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER);
+            int damage = realMaxDurability - persistentDataContainer.get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER);
             if (damage == 0) // full durability
                 return false;
-            persistentDataContainer
-                .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realMaxDurability);
+            persistentDataContainer.set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realMaxDurability);
         }
         damageable.setDamage(0);
         itemStack.setItemMeta((ItemMeta) damageable);

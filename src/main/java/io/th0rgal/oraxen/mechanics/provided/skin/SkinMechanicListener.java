@@ -21,8 +21,7 @@ public class SkinMechanicListener implements Listener {
         ItemStack skinnable = event.getCurrentItem();
         String skinItemID = OraxenItems.getIdByItem(skin);
         String skinnableItemID = OraxenItems.getIdByItem(skinnable);
-        if (factory.isNotImplementedIn(skinItemID)
-            || SkinnableMechanicFactory.get().isNotImplementedIn(skinnableItemID))
+        if (factory.isNotImplementedIn(skinItemID) || SkinnableMechanicFactory.get().isNotImplementedIn(skinnableItemID))
             return;
 
         if (!skin.getItemMeta().hasCustomModelData() || skin.getType() != skinnable.getType())

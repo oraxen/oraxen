@@ -15,8 +15,7 @@ import java.util.List;
 
 public class CustomMechanicListeners {
 
-    protected boolean registerListener(MechanicFactory factory, String eventName, CustomMechanicAction action,
-        CustomMechanicCondition condition) {
+    protected boolean registerListener(MechanicFactory factory, String eventName, CustomMechanicAction action, CustomMechanicCondition condition) {
         Listener listener;
         String[] fields = eventName.split(":");
         switch (fields[0]) {
@@ -57,8 +56,7 @@ class ClickListener extends AbstractListener {
 
     List<Action> actions = new ArrayList<>();
 
-    ClickListener(MechanicFactory factory, String[] fields, CustomMechanicAction action,
-        CustomMechanicCondition condition) {
+    ClickListener(MechanicFactory factory, String[] fields, CustomMechanicAction action, CustomMechanicCondition condition) {
         super(factory, action, condition);
         if (fields[1].equals("right"))
             if (fields[2].equals("air"))

@@ -153,8 +153,7 @@ public class OS {
             return null;
     }
 
-    private OsInfo getPlatformNameFromFile(final String name, final String version, final String arch,
-        final String filename) {
+    private OsInfo getPlatformNameFromFile(final String name, final String version, final String arch, final String filename) {
         if (filename == null)
             return null;
         File f = new File(filename);
@@ -168,8 +167,7 @@ public class OS {
         return null;
     }
 
-    OsInfo readPlatformName(final String name, final String version, final String arch, final BufferedReader br)
-        throws IOException {
+    OsInfo readPlatformName(final String name, final String version, final String arch, final BufferedReader br) throws IOException {
         String line;
         String lineToReturn = null;
         int lineNb = 0;
@@ -195,8 +193,7 @@ public class OS {
         return null;
     }
 
-    OsInfo readPlatformNameFromLsb(final String name, final String version, final String arch, final BufferedReader br)
-        throws IOException {
+    OsInfo readPlatformNameFromLsb(final String name, final String version, final String arch, final BufferedReader br) throws IOException {
         String distribDescription = null;
         String distribCodename = null;
 

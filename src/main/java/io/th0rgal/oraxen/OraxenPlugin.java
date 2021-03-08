@@ -28,18 +28,19 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import com.syntaxphoenix.syntaxapi.utils.java.tools.Container;
+
 import java.util.function.Supplier;
 
 public class OraxenPlugin extends JavaPlugin {
+
+    private static final Container<OraxenPlugin> PLUGIN = Container.of();
 
     private Supplier<InputProvider> inputProvider;
     private CommandProvider commandProvider;
     private UploadManager uploadManager;
 
-    private static OraxenPlugin oraxen;
-
     public OraxenPlugin() throws Exception {
-        oraxen = this;
         Logs.enableFilter();
     }
 
@@ -92,6 +93,7 @@ public class OraxenPlugin extends JavaPlugin {
         unregisterListeners();
         CompatibilitiesManager.disableCompatibilities();
         Logs.log(ChatColor.GREEN + "Successfully unloaded");
+        PLUGIN.replace(null);
     }
 
     private void unregisterListeners() {
@@ -103,7 +105,11 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     public static OraxenPlugin get() {
-        return oraxen;
+        return PLUGIN.orElseGet(() -> {
+            OraxenPlugin plugin = OraxenPlugin.getPlugin(OraxenPlugin.class);
+            PLUGIN.replace(plugin);
+            return plugin;
+        });
     }
 
     public static boolean getProtocolLib() {

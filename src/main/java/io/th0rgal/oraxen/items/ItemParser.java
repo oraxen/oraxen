@@ -45,9 +45,7 @@ public class ItemParser {
             ConfigurationSection packSection = section.getConfigurationSection("Pack");
             this.oraxenMeta.setPackInfos(packSection);
             if (packSection.isInt("custom_model_data"))
-                MODEL_DATAS_BY_ID
-                    .put(section.getName(),
-                        new ModelData(type, oraxenMeta.getModelName(), packSection.getInt("custom_model_data")));
+                MODEL_DATAS_BY_ID.put(section.getName(), new ModelData(type, oraxenMeta.getModelName(), packSection.getInt("custom_model_data")));
         }
     }
 
@@ -81,18 +79,14 @@ public class ItemParser {
 
         if (section.contains("color")) {
             String[] colors = section.getString("color").split(", ");
-            item
-                .setColor(org.bukkit.Color
-                    .fromRGB(Integer.parseInt(colors[0]), Integer.parseInt(colors[1]), Integer.parseInt(colors[2])));
+            item.setColor(org.bukkit.Color.fromRGB(Integer.parseInt(colors[0]), Integer.parseInt(colors[1]), Integer.parseInt(colors[2])));
         }
 
         if (section.contains("excludeFromInventory") && section.getBoolean("excludeFromInventory"))
             oraxenMeta.setExcludedFromInventory();
 
         if (!section.contains("injectID") || section.getBoolean("injectId"))
-            item
-                .setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING,
-                    section.getName());
+            item.setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING, section.getName());
 
         if (section.contains("ItemFlags")) {
             List<String> itemFlags = section.getStringList("ItemFlags");
@@ -102,8 +96,7 @@ public class ItemParser {
 
         if (section.contains("PotionEffects")) {
             @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
-            List<LinkedHashMap<String, Object>> potionEffects = (List<LinkedHashMap<String, Object>>) section
-                .getList("PotionEffects");
+            List<LinkedHashMap<String, Object>> potionEffects = (List<LinkedHashMap<String, Object>>) section.getList("PotionEffects");
             for (Map<String, Object> serializedPotionEffect : potionEffects) {
                 PotionEffectType effect = PotionEffectType.getByName((String) serializedPotionEffect.get("type"));
                 int duration = (int) serializedPotionEffect.get("duration");
@@ -117,8 +110,7 @@ public class ItemParser {
 
         if (section.contains("AttributeModifiers")) {
             @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
-            List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section
-                .getList("AttributeModifiers");
+            List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section.getList("AttributeModifiers");
             for (LinkedHashMap<String, Object> attributeJson : attributes) {
                 AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
                 Attribute attribute = Attribute.valueOf((String) attributeJson.get("attribute"));

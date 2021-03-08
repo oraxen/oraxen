@@ -35,8 +35,7 @@ public enum Message implements IMessage {
     COMMAND_HELP_INFO_LINE(true, "&8- &7$content"),
     COMMAND_HELP_INFO_SHORT(true, "$prefix &3/oraxen &b$label $usage &8- &7$description"),
     COMMAND_HELP_INFO_HEADER(true, "$prefix &7Info => &3$label $page"),
-    COMMAND_HELP_INFO_DETAILED(true, "$header", "", "$line1", "$line2", "$line3", "$line4", "$line5", "$line6", "",
-        "$header"),
+    COMMAND_HELP_INFO_DETAILED(true, "$header", "", "$line1", "$line2", "$line3", "$line4", "$line5", "$line6", "", "$header"),
 
     // Recipe
     COMMAND_RECIPE_NO_BUILDER(true, "$prefix &7Please &ccreate an recipe&7 first!"),
@@ -67,14 +66,11 @@ public enum Message implements IMessage {
         BaseComponent[] line = new BaseComponent[] { new TextComponent("\n") };
         int length = values.length - 1;
         for (int index = 0; index < values.length; index++) {
-            list
-                .add(legacy ? TextComponent.fromLegacyText(values[index].replace('&', ChatColor.COLOR_CHAR))
-                    : MiniMessageParser.parseFormat(values[index]));
+            list.add(legacy ? TextComponent.fromLegacyText(values[index].replace('&', ChatColor.COLOR_CHAR)) : MiniMessageParser.parseFormat(values[index]));
             if (index != length)
                 list.add(line);
         }
-        this.value = MiniMessageSerializer
-            .serialize(list.stream().flatMap(Arrays::stream).toArray(BaseComponent[]::new));
+        this.value = MiniMessageSerializer.serialize(list.stream().flatMap(Arrays::stream).toArray(BaseComponent[]::new));
     }
 
     Message(BaseComponent[] components) {

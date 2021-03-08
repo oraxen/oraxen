@@ -64,8 +64,7 @@ public class Timer {
 
     public void sendToPlayer(Player player, TimeUnit timeUnit) {
         Message.COOL_DOWN
-            .send(player, Placeholder.of("time", getRemainingTime(timeUnit)),
-                Placeholder.of("unit", Variable.valueOf("TIME_UNIT_" + timeUnit.name())));
+            .send(player, Placeholder.of("time", getRemainingTime(timeUnit)), Placeholder.of("unit", Variable.valueOf("TIME_UNIT_" + timeUnit.name())));
     }
 
 }

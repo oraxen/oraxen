@@ -281,10 +281,7 @@ public class FastInv implements InventoryHolder {
      */
     public int[] getBorders() {
         int size = inventory.getSize();
-        return IntStream
-            .range(0, size)
-            .filter(i -> size < 27 || i < 9 || i % 9 == 0 || (i - 8) % 9 == 0 || i > size - 9)
-            .toArray();
+        return IntStream.range(0, size).filter(i -> size < 27 || i < 9 || i % 9 == 0 || (i - 8) % 9 == 0 || i > size - 9).toArray();
     }
 
     /**

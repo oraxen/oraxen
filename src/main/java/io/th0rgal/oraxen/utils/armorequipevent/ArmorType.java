@@ -30,8 +30,7 @@ public enum ArmorType {
         if (ArmorListener.isAirOrNull(itemStack))
             return null;
         String itemID = OraxenItems.getIdByItem(itemStack);
-        if (OraxenItems.exists(itemID) && HatMechanicFactory.get() != null
-            && !HatMechanicFactory.get().isNotImplementedIn(itemID))
+        if (OraxenItems.exists(itemID) && HatMechanicFactory.get() != null && !HatMechanicFactory.get().isNotImplementedIn(itemID))
             return HELMET;
         String type = itemStack.getType().name();
         if (type.endsWith("_HELMET") || type.endsWith("_SKULL"))

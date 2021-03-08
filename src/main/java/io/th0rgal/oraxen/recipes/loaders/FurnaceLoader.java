@@ -14,8 +14,8 @@ public class FurnaceLoader extends RecipeLoader {
     @Override
     public void registerRecipe() {
         FurnaceRecipe recipe = new FurnaceRecipe(getNamespacedKey(), getResult(),
-            getRecipeChoice(Objects.requireNonNull(getSection().getConfigurationSection("input"))),
-            getSection().getInt("experience"), getSection().getInt("cookingTime"));
+            getRecipeChoice(Objects.requireNonNull(getSection().getConfigurationSection("input"))), getSection().getInt("experience"),
+            getSection().getInt("cookingTime"));
         // addToWhitelistedRecipes(recipe); <- no whitelist for furnace recipes
         loadRecipe(recipe);
     }

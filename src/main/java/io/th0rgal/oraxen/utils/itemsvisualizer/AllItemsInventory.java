@@ -30,24 +30,17 @@ public class AllItemsInventory extends FastInv {
         }
 
         // close item
-        setItem(getInventory().getSize() - 5,
-            new ItemBuilder(Material.BARRIER).setDisplayName(ChatColor.RED + "close").build(),
+        setItem(getInventory().getSize() - 5, new ItemBuilder(Material.BARRIER).setDisplayName(ChatColor.RED + "close").build(),
             e -> e.getWhoClicked().closeInventory());
 
         if (page > 0)
             setItem(getInventory().getSize() - 6,
-                new ItemBuilder(Material.ARROW)
-                    .setAmount(page)
-                    .setDisplayName(ChatColor.YELLOW + "open page " + page)
-                    .build(),
+                new ItemBuilder(Material.ARROW).setAmount(page).setDisplayName(ChatColor.YELLOW + "open page " + page).build(),
                 e -> new AllItemsInventory(page - 1).open((Player) e.getWhoClicked()));
 
         if (!lastPage)
             setItem(getInventory().getSize() - 4,
-                new ItemBuilder(Material.ARROW)
-                    .setAmount(page + 2)
-                    .setDisplayName(ChatColor.RED + "open page " + (page + 2))
-                    .build(),
+                new ItemBuilder(Material.ARROW).setAmount(page + 2).setDisplayName(ChatColor.RED + "open page " + (page + 2)).build(),
                 e -> new AllItemsInventory(page + 1).open((Player) e.getWhoClicked()));
 
     }

@@ -165,9 +165,7 @@ public abstract class ArgumentHelper {
                     return collection0
                         .stream()
                         .unordered()
-                        .min((p1, p2) -> Double
-                            .compare(ORIGIN.distanceSquared(p1.getLocation()),
-                                ORIGIN.distanceSquared(p2.getLocation())))
+                        .min((p1, p2) -> Double.compare(ORIGIN.distanceSquared(p1.getLocation()), ORIGIN.distanceSquared(p2.getLocation())))
                         .map(player -> player);
                 case 's':
                     if (sender == null)
@@ -177,12 +175,7 @@ public abstract class ArgumentHelper {
                     Collection<? extends Player> collection = Bukkit.getOnlinePlayers();
                     if (collection.isEmpty())
                         return Optional.empty();
-                    return collection
-                        .stream()
-                        .unordered()
-                        .skip((int) (collection.size() * Math.random()))
-                        .findFirst()
-                        .map(player -> player);
+                    return collection.stream().unordered().skip((int) (collection.size() * Math.random())).findFirst().map(player -> player);
                 default:
                     return Optional.empty();
                 }
@@ -212,19 +205,12 @@ public abstract class ArgumentHelper {
             case 's':
                 if (sender == null)
                     return Optional.empty();
-                return Optional
-                    .ofNullable(sender instanceof Player ? (Player) sender : null)
-                    .map(player -> new Player[] { player });
+                return Optional.ofNullable(sender instanceof Player ? (Player) sender : null).map(player -> new Player[] { player });
             case 'r':
                 Collection<? extends Player> collection = Bukkit.getOnlinePlayers();
                 if (collection.isEmpty())
                     return Optional.empty();
-                return collection
-                    .stream()
-                    .unordered()
-                    .skip((int) (collection.size() * Math.random()))
-                    .findFirst()
-                    .map(player -> new Player[] { player });
+                return collection.stream().unordered().skip((int) (collection.size() * Math.random())).findFirst().map(player -> new Player[] { player });
             case 'a':
                 Collection<? extends Player> collection1 = Bukkit.getOnlinePlayers();
                 if (collection1.isEmpty())
@@ -234,8 +220,7 @@ public abstract class ArgumentHelper {
                 return Optional.empty();
             }
         }
-        return ofGet(() -> Bukkit.getPlayer(UUID.fromString(value)), () -> Bukkit.getPlayer(value))
-            .map(player -> new Player[] { player });
+        return ofGet(() -> Bukkit.getPlayer(UUID.fromString(value)), () -> Bukkit.getPlayer(value)).map(player -> new Player[] { player });
     }
 
     public static Optional<Player[]> players(CommandSender sender, BaseArgument argument) {

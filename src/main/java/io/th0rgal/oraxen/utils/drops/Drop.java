@@ -20,8 +20,7 @@ public class Drop {
     String minimalType;
     final String sourceID;
 
-    public Drop(List<String> hierarchy, List<Loot> loots, boolean silktouch, boolean fortune, String sourceID,
-        String minimalType) {
+    public Drop(List<String> hierarchy, List<Loot> loots, boolean silktouch, boolean fortune, String sourceID, String minimalType) {
         this.hierarchy = hierarchy;
         this.loots = loots;
         this.silktouch = silktouch;
@@ -69,8 +68,7 @@ public class Drop {
 
         int fortuneMultiplier = 1;
         if (fortune && itemInHand.getItemMeta().hasEnchant(Enchantment.LOOT_BONUS_BLOCKS))
-            fortuneMultiplier += new Random()
-                .nextInt(itemInHand.getItemMeta().getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS));
+            fortuneMultiplier += new Random().nextInt(itemInHand.getItemMeta().getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS));
 
         for (Loot loot : loots) {
             loot.dropNaturally(location, fortuneMultiplier);

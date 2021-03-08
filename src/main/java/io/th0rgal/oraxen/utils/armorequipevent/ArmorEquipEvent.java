@@ -26,8 +26,8 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
      * @param oldArmorPiece The ItemStack of the armor removed.
      * @param newArmorPiece The ItemStack of the armor added.
      */
-    public ArmorEquipEvent(final Player player, final EquipMethod equipType, final ArmorType type,
-        final ItemStack oldArmorPiece, final ItemStack newArmorPiece) {
+    public ArmorEquipEvent(final Player player, final EquipMethod equipType, final ArmorType type, final ItemStack oldArmorPiece,
+        final ItemStack newArmorPiece) {
         super(player);
         this.equipType = equipType;
         this.type = type;

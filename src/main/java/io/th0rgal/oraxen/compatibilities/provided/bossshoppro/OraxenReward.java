@@ -31,15 +31,12 @@ public class OraxenReward extends BSRewardType {
 
     @Override
     @SuppressWarnings("unchecked")
-    public boolean canBuy(Player player, BSBuy bsBuy, boolean message_if_no_success, Object reward,
-        ClickType clickType) {
+    public boolean canBuy(Player player, BSBuy bsBuy, boolean message_if_no_success, Object reward, ClickType clickType) {
         if (!ClassManager.manager.getSettings().getInventoryFullDropItems()) {
             List<ItemStack> items = (List<ItemStack>) reward;
             if (!ClassManager.manager.getItemStackChecker().hasFreeSpace(player, items)) {
                 if (message_if_no_success) {
-                    ClassManager.manager
-                        .getMessageHandler()
-                        .sendMessage("Main.InventoryFull", player, null, player, bsBuy.getShop(), null, bsBuy);
+                    ClassManager.manager.getMessageHandler().sendMessage("Main.InventoryFull", player, null, player, bsBuy.getShop(), null, bsBuy);
                 }
                 return false;
             }
@@ -55,18 +52,14 @@ public class OraxenReward extends BSRewardType {
         if (!(itemStacks.isEmpty())) {
             for (ItemStack itemStack : itemStacks)
                 if (itemStack.getType() != Material.AIR)
-                    ClassManager.manager
-                        .getItemStackCreator()
-                        .giveItem(player, bsBuy, itemStack, itemStack.getAmount(), true);
+                    ClassManager.manager.getItemStackCreator().giveItem(player, bsBuy, itemStack, itemStack.getAmount(), true);
         }
     }
 
     @Override
     @SuppressWarnings("unchecked")
     public String getDisplayReward(Player player, BSBuy bsBuy, Object reward, ClickType clickType) {
-        String items_formatted = ClassManager.manager
-            .getItemStackTranslator()
-            .getFriendlyText((List<ItemStack>) reward);
+        String items_formatted = ClassManager.manager.getItemStackTranslator().getFriendlyText((List<ItemStack>) reward);
         return ClassManager.manager.getMessageHandler().get("Display.Item").replace("%items%", items_formatted);
     }
 

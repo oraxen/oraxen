@@ -91,9 +91,7 @@ public class ChatInputProvider implements InputProvider {
         if (this.userId != null)
             return;
         if (message == null || player == null) {
-            Logs
-                .log(ChatColor.RED, "No message set for ChatInputProvider [player: "
-                    + (player == null ? null : player.getUniqueId().toString()) + "]");
+            Logs.log(ChatColor.RED, "No message set for ChatInputProvider [player: " + (player == null ? null : player.getUniqueId().toString()) + "]");
             return;
         }
         player.sendMessage(message);

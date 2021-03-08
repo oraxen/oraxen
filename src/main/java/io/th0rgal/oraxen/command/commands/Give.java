@@ -53,8 +53,9 @@ public class Give extends OraxenCommand {
         Player[] players = option0.get();
         ItemBuilder itemBuilder = option1.get();
 
-        int amount = range(get(arguments, 3, ArgumentSuperType.NUMBER).map(argument -> argument.asNumeric().asNumber()),
-            1, 2304).map(Number::intValue).orElse(1);
+        int amount = range(get(arguments, 3, ArgumentSuperType.NUMBER).map(argument -> argument.asNumeric().asNumber()), 1, 2304)
+            .map(Number::intValue)
+            .orElse(1);
         int max = itemBuilder.getMaxStackSize();
         int slots = amount / max + (max % amount > 0 ? 1 : 0);
         ItemStack[] items = itemBuilder.buildArray(slots > 36 ? (amount = max * 36) : amount);
@@ -81,8 +82,7 @@ public class Give extends OraxenCommand {
 
         if (count == 1) {
             completion(completion,
-                Conditions.player().isTrue(info.getSender()) ? (new String[] { "@a", "@r", "@s", "@p" })
-                    : (new String[] { "@a", "@r", "@p" }));
+                Conditions.player().isTrue(info.getSender()) ? (new String[] { "@a", "@r", "@s", "@p" }) : (new String[] { "@a", "@r", "@p" }));
             Player[] players = Bukkit.getOnlinePlayers().toArray(new Player[0]);
             for (int index = 0; index < players.length; index++)
                 completion.add(new StringArgument(players[index].getName()));
@@ -91,8 +91,7 @@ public class Give extends OraxenCommand {
         } else if (count == 3) {
             Optional<ItemBuilder> item = get(arguments, 2, argument -> item(argument));
             if (item.isPresent())
-                completion
-                    .add(new StringArgument("{<amount>} | min = 1 / max = " + (item.get().getMaxStackSize() * 36)));
+                completion.add(new StringArgument("{<amount>} | min = 1 / max = " + (item.get().getMaxStackSize() * 36)));
         }
         return completion;
     }

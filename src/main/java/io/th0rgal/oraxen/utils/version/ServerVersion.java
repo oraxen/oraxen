@@ -1,31 +1,28 @@
-package io.th0rgal.oraxen.utils.reflection.version;
+package io.th0rgal.oraxen.utils.version;
 
 import com.syntaxphoenix.syntaxapi.utils.java.Strings;
-import com.syntaxphoenix.syntaxapi.version.DefaultVersion;
 import com.syntaxphoenix.syntaxapi.version.Version;
 import com.syntaxphoenix.syntaxapi.version.VersionAnalyzer;
 import com.syntaxphoenix.syntaxapi.version.VersionFormatter;
 
-public class ServerVersion extends DefaultVersion {
+public class ServerVersion extends Version {
 
     public static final ServerAnalyzer ANALYZER = new ServerAnalyzer();
 
     protected int refaction;
 
+    /*
+     * 
+     */
+
     public ServerVersion() {
-        this(0);
-    }
-
-    public ServerVersion(int major) {
-        this(major, 0);
-    }
-
-    public ServerVersion(int major, int minor) {
-        this(major, minor, 0);
+        super();
+        refaction = 0;
     }
 
     public ServerVersion(int major, int minor, int patch) {
-        this(major, minor, patch, 0);
+        super(major, minor, patch);
+        refaction = 0;
     }
 
     public ServerVersion(int major, int minor, int patch, int refaction) {
@@ -33,60 +30,101 @@ public class ServerVersion extends DefaultVersion {
         this.refaction = refaction;
     }
 
+    /*
+     * 
+     */
+
     public int getRefaction() {
         return refaction;
     }
 
-    @Override
-    protected ServerVersion setMajor(int major) {
-        super.setMajor(major);
-        return this;
-    }
-
-    @Override
-    protected ServerVersion setMinor(int minor) {
-        super.setMinor(minor);
-        return this;
-    }
-
-    @Override
-    protected ServerVersion setPatch(int patch) {
-        super.setPatch(patch);
-        return this;
-    }
+    /*
+     * 
+     */
 
     protected ServerVersion setRefaction(int refaction) {
         this.refaction = refaction;
         return this;
     }
 
+    /*
+     * 
+     */
+
     @Override
     public boolean isHigher(Version version) {
-        if (super.isHigher(version))
+        if (getMajor() > version.getMajor()) {
             return true;
+        }
+        if (getMajor() < version.getMajor()) {
+            return false;
+        }
+        if (getMinor() > version.getMinor()) {
+            return true;
+        }
+        if (getMinor() < version.getMinor()) {
+            return false;
+        }
+        if (getPatch() > version.getPatch()) {
+            return true;
+        }
+        if (getPatch() < version.getPatch()) {
+            return false;
+        }
         if (version instanceof ServerVersion) {
             ServerVersion other = (ServerVersion) version;
-            return refaction > other.refaction;
-        } else
-            return refaction > 0;
+            if (refaction > other.refaction) {
+                return true;
+            }
+            if (refaction < other.refaction) {
+                return false;
+            }
+        } else if (refaction > 0) {
+            return true;
+        }
+        return false;
     }
 
     @Override
     public boolean isSimilar(Version version) {
-        return super.isSimilar(version)
-            && ((version instanceof ServerVersion) && refaction == ((ServerVersion) version).refaction);
+        return super.isSimilar(version) && (version instanceof ServerVersion ? ((ServerVersion) version).refaction == refaction : refaction == 0);
     }
 
     @Override
     public boolean isLower(Version version) {
-        if (super.isHigher(version))
+        if (getMajor() < version.getMajor()) {
             return true;
+        }
+        if (getMajor() > version.getMajor()) {
+            return false;
+        }
+        if (getMinor() < version.getMinor()) {
+            return true;
+        }
+        if (getMinor() > version.getMinor()) {
+            return false;
+        }
+        if (getPatch() < version.getPatch()) {
+            return true;
+        }
+        if (getPatch() > version.getPatch()) {
+            return false;
+        }
         if (version instanceof ServerVersion) {
             ServerVersion other = (ServerVersion) version;
-            return refaction < other.refaction;
+            if (refaction < other.refaction) {
+                return true;
+            }
+            if (refaction > other.refaction) {
+                return false;
+            }
         }
         return false;
     }
+
+    /*
+     * 
+     */
 
     @Override
     public ServerVersion clone() {
@@ -95,7 +133,7 @@ public class ServerVersion extends DefaultVersion {
 
     @Override
     public ServerVersion update(int major, int minor, int patch) {
-        return update(major, minor, patch, 0);
+        return ((ServerVersion) super.update(major, minor, patch)).setRefaction(refaction);
     }
 
     public ServerVersion update(int major, int minor, int patch, int refaction) {
@@ -104,12 +142,16 @@ public class ServerVersion extends DefaultVersion {
 
     @Override
     protected ServerVersion init(int major, int minor, int patch) {
-        return (ServerVersion) super.init(major, minor, patch);
+        return new ServerVersion(major, minor, patch);
     }
+
+    /*
+     * 
+     */
 
     @Override
     public ServerAnalyzer getAnalyzer() {
-        return ANALYZER;
+        return new ServerAnalyzer();
     }
 
     @Override
@@ -134,6 +176,10 @@ public class ServerVersion extends DefaultVersion {
             return builder.toString();
         };
     }
+
+    /*
+     * 
+     */
 
     public static class ServerAnalyzer implements VersionAnalyzer {
         @Override

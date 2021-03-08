@@ -28,9 +28,7 @@ public final class ConsoleAdapter implements BiConsumer<Boolean, String> {
     }
 
     public ConsoleAdapter send(String message) {
-        sender
-            .sendMessage(
-                Variable.PREFIX.legacyMessage(LanguageProvider.DEFAULT_LANGUAGE) + ' ' + Utils.handleColors(message));
+        sender.sendMessage(Variable.PREFIX.legacyMessage(LanguageProvider.DEFAULT_LANGUAGE) + ' ' + Utils.handleColors(message));
         return this;
     }
 

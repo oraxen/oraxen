@@ -48,15 +48,12 @@ public class RecipesEventsManager implements Listener {
             return;
         boolean containsOraxenItem = OraxenItems.exists(OraxenItems.getIdByItem(result));
         if (!containsOraxenItem)
-            if (Arrays
-                .stream(event.getInventory().getMatrix())
-                .anyMatch(ingredient -> OraxenItems.exists(OraxenItems.getIdByItem(ingredient)))) {
+            if (Arrays.stream(event.getInventory().getMatrix()).anyMatch(ingredient -> OraxenItems.exists(OraxenItems.getIdByItem(ingredient)))) {
                 containsOraxenItem = true;
             }
         if (!containsOraxenItem || recipe == null)
             return;
-        CustomRecipe current = new CustomRecipe(null, recipe.getResult(),
-            Arrays.asList(event.getInventory().getMatrix()));
+        CustomRecipe current = new CustomRecipe(null, recipe.getResult(), Arrays.asList(event.getInventory().getMatrix()));
         for (CustomRecipe whitelistedRecipe : whitelistedCraftRecipes) {
             if (whitelistedRecipe.equals(current))
                 return;
@@ -82,8 +79,7 @@ public class RecipesEventsManager implements Listener {
     public List<CustomRecipe> getPermittedRecipes(CommandSender sender) {
         return whitelistedCraftRecipesOrdered
             .stream()
-            .filter(
-                customRecipe -> !permissionsPerRecipe.containsKey(customRecipe) || hasPermission(sender, customRecipe))
+            .filter(customRecipe -> !permissionsPerRecipe.containsKey(customRecipe) || hasPermission(sender, customRecipe))
             .collect(Collectors.toList());
     }
 

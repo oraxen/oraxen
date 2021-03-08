@@ -74,9 +74,7 @@ public class PackReceiver implements Listener {
         if (message && !components.isEmpty())
             Bukkit
                 .getScheduler()
-                .runTaskLater(OraxenPlugin.get(),
-                    () -> sendMessageLoop(event.getPlayer(), ComponentMessage.convert(components, period, action)),
-                    delay);
+                .runTaskLater(OraxenPlugin.get(), () -> sendMessageLoop(event.getPlayer(), ComponentMessage.convert(components, period, action)), delay);
 
         commands.perform(event.getPlayer());
     }
@@ -85,10 +83,7 @@ public class PackReceiver implements Listener {
         ComponentMessage nextMessage = messages.remove(0);
         nextMessage.sendTo(receiver);
         if (!messages.isEmpty())
-            Bukkit
-                .getScheduler()
-                .runTaskLater(OraxenPlugin.get(), () -> sendMessageLoop(receiver, messages),
-                    nextMessage.getDelay() * 20L);
+            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> sendMessageLoop(receiver, messages), nextMessage.getDelay() * 20L);
     }
 
 }

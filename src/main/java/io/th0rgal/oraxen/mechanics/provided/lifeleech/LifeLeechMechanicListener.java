@@ -42,9 +42,7 @@ public class LifeLeechMechanicListener implements Listener {
         damager.setHealth(Math.min(health, maxHealth));
         if (event.getEntity() instanceof LivingEntity) {
             LivingEntity damaged = (LivingEntity) event.getEntity();
-            damaged
-                .setHealth(
-                    damaged.getHealth() - mechanic.getAmount() <= 0 ? 0.0 : damaged.getHealth() - mechanic.getAmount());
+            damaged.setHealth(damaged.getHealth() - mechanic.getAmount() <= 0 ? 0.0 : damaged.getHealth() - mechanic.getAmount());
         }
     }
 }

@@ -55,23 +55,13 @@ public class CommandRedirect implements CommandExecutor, TabCompleter {
         String label = process.isValid() ? process.getLabel() : "";
 
         if (!process.isValid() || process.getCommand() == null) {
-            provider
-                .getInfos()
-                .stream()
-                .map(CommandInfo::getName)
-                .filter(value -> matches(label, value))
-                .forEach(output::add);
+            provider.getInfos().stream().map(CommandInfo::getName).filter(value -> matches(label, value)).forEach(output::add);
             return output;
         }
 
         BaseCommand command = process.getCommand();
         if (!(command instanceof OraxenCommand)) {
-            provider
-                .getInfos()
-                .stream()
-                .map(CommandInfo::getName)
-                .filter(value -> matches(label, value))
-                .forEach(output::add);
+            provider.getInfos().stream().map(CommandInfo::getName).filter(value -> matches(label, value)).forEach(output::add);
             return output;
         }
 
@@ -98,8 +88,7 @@ public class CommandRedirect implements CommandExecutor, TabCompleter {
 
     private CommandProcess prepare(CommandSender sender, String[] arguments) {
         CommandProcess process = manager.process(arguments);
-        process
-            .setInfoConstructor((manager, label) -> new MinecraftInfo(manager, label, provider.getInfo(label), sender));
+        process.setInfoConstructor((manager, label) -> new MinecraftInfo(manager, label, provider.getInfo(label), sender));
         return process;
     }
 

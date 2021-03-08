@@ -32,10 +32,7 @@ public class PackDispatcher {
         if (delay == -1 || !delayed)
             player.spigot().sendMessage(components);
         else
-            Bukkit
-                .getScheduler()
-                .runTaskLaterAsynchronously(OraxenPlugin.get(), () -> player.spigot().sendMessage(components),
-                    delay * 20L);
+            Bukkit.getScheduler().runTaskLaterAsynchronously(OraxenPlugin.get(), () -> player.spigot().sendMessage(components), delay * 20L);
     }
 
 }

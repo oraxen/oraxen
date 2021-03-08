@@ -18,9 +18,7 @@ public class CustomLogger extends PluginLogger {
     @Override
     public void log(LogRecord logRecord) {
         if (logRecord != null && logRecord.getLevel() != Level.INFO) {
-            logRecord
-                .setMessage(
-                    Variable.PREFIX.legacyMessage(LanguageProvider.DEFAULT_LANGUAGE) + ' ' + logRecord.getMessage());
+            logRecord.setMessage(Variable.PREFIX.legacyMessage(LanguageProvider.DEFAULT_LANGUAGE) + ' ' + logRecord.getMessage());
             super.log(logRecord);
         }
     }

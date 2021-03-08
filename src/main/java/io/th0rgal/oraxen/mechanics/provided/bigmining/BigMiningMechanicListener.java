@@ -28,8 +28,7 @@ public class BigMiningMechanicListener implements Listener {
     public BigMiningMechanicListener(MechanicFactory factory) {
         this.factory = factory;
         if (CompatibilitiesManager.isCompatibilityEnabled("WorldGuard"))
-            worldGuardCompatibility = (WorldGuardCompatibility) CompatibilitiesManager
-                .getActiveCompatibility("WorldGuard");
+            worldGuardCompatibility = (WorldGuardCompatibility) CompatibilitiesManager.getActiveCompatibility("WorldGuard");
         else
             worldGuardCompatibility = null;
     }
@@ -69,8 +68,7 @@ public class BigMiningMechanicListener implements Listener {
         for (double relativeX = -mechanic.getRadius(); relativeX <= mechanic.getRadius(); relativeX++)
             for (double relativeY = -mechanic.getRadius(); relativeY <= mechanic.getRadius(); relativeY++)
                 for (double relativeDepth = 0; relativeDepth < mechanic.getDepth(); relativeDepth++) {
-                    tempLocation = transpose(initialLocation, blockFace, relativeX, relativeY,
-                        relativeDepth * modifier);
+                    tempLocation = transpose(initialLocation, blockFace, relativeX, relativeY, relativeDepth * modifier);
                     if (tempLocation.equals(initialLocation))
                         continue;
                     breakBlock(player, tempLocation.getBlock(), item);
@@ -95,8 +93,7 @@ public class BigMiningMechanicListener implements Listener {
      * It converts a relative location in 2d into another location in 3d on a
      * certain axis
      */
-    private Location transpose(Location location, BlockFace blockFace, double relativeX, double relativeY,
-        double relativeDepth) {
+    private Location transpose(Location location, BlockFace blockFace, double relativeX, double relativeY, double relativeDepth) {
         location = location.clone();
         if (blockFace == BlockFace.WEST || blockFace == BlockFace.EAST) // WEST_EAST axis != X
             location.add(relativeDepth, relativeX, relativeY);

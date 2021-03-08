@@ -112,8 +112,7 @@ public interface ITranslatable extends IEnum {
         send(sender, LanguageProvider.getLanguageOf(sender), placeholders, additional);
     }
 
-    public default void send(CommandSender sender, Language language, Placeholder[] placeholders,
-        Placeholder... additional) {
+    public default void send(CommandSender sender, Language language, Placeholder[] placeholders, Placeholder... additional) {
         send(sender, language, Arrays.merge(Placeholder[]::new, placeholders, additional));
     }
 

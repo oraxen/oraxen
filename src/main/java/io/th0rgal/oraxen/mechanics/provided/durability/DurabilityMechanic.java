@@ -17,8 +17,7 @@ public class DurabilityMechanic extends Mechanic {
          * We give: - an instance of the Factory which created the mechanic - the
          * section used to configure the mechanic - the item modifier(s)
          */
-        super(mechanicFactory, section,
-            item -> item.setCustomTag(NAMESPACED_KEY, PersistentDataType.INTEGER, section.getInt("value")));
+        super(mechanicFactory, section, item -> item.setCustomTag(NAMESPACED_KEY, PersistentDataType.INTEGER, section.getInt("value")));
         this.itemDurability = section.getInt("value");
     }
 
