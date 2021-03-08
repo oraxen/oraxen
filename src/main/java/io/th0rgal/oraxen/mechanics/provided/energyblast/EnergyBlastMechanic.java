@@ -28,9 +28,9 @@ public class EnergyBlastMechanic extends Mechanic {
         if (particleSection.isConfigurationSection("color")) {
             ConfigurationSection colorSection = particleSection.getConfigurationSection("color");
             this.particleColor = new Particle.DustOptions(Color
-                    .fromRGB(Objects.requireNonNull(colorSection).getInt("red"), colorSection.getInt("green"),
-                            colorSection.getInt("blue")),
-                    particleSection.getInt("size"));
+                .fromRGB(Objects.requireNonNull(colorSection).getInt("red"), colorSection.getInt("green"),
+                    colorSection.getInt("blue")),
+                particleSection.getInt("size"));
         }
         this.damage = section.getDouble("damage");
         this.length = section.getInt("length");

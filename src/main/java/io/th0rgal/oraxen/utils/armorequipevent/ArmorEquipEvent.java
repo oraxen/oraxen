@@ -55,6 +55,7 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
      *
      * @param cancel If this event should be cancelled.
      */
+    @Override
     public final void setCancelled(final boolean cancel) {
         this.cancel = cancel;
     }
@@ -64,6 +65,7 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
      *
      * @return If this event is cancelled
      */
+    @Override
     public final boolean isCancelled() {
         return cancel;
     }
@@ -74,6 +76,7 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
 
     /**
      * Returns the last equipped armor piece, could be a piece of armor, or null
+     * 
      * @return the old armor piece
      */
     public final ItemStack getOldArmorPiece() {
@@ -86,6 +89,7 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
 
     /**
      * Returns the newly equipped armor, could be a piece of armor, or null
+     * 
      * @return the new armor piece
      */
     public final ItemStack getNewArmorPiece() {
@@ -98,6 +102,7 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
 
     /**
      * Gets the method used to either equip or unequip an armor piece.
+     * 
      * @return the equip method
      */
     public EquipMethod getMethod() {

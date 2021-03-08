@@ -11,6 +11,7 @@ public interface ValueConsumer<E> extends Consumer<E> {
 
     void consume(E value) throws Exception;
 
+    @Override
     public default void accept(E value) {
         try {
             consume(value);

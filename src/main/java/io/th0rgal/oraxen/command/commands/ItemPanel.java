@@ -35,16 +35,16 @@ public class ItemPanel extends OraxenCommand {
         CommandSender sender = info.getSender();
 
         if (Conditions
-                .mixed(Conditions.reqPerm(OraxenPermission.COMMAND_INVENTORY), Conditions.player(Message.NOT_PLAYER))
-                .isFalse(sender)) {
+            .mixed(Conditions.reqPerm(OraxenPermission.COMMAND_INVENTORY), Conditions.player(Message.NOT_PLAYER))
+            .isFalse(sender)) {
             return;
         }
 
         Player player = (Player) sender;
 
         if (get(arguments, 1, ArgumentType.STRING)
-                .map(argument -> argument.asString().getValue().equals("all"))
-                .orElse(false)) {
+            .map(argument -> argument.asString().getValue().equals("all"))
+            .orElse(false)) {
             new AllItemsInventory(0).open(player);
         } else {
             new FileInventory(0).open(player);

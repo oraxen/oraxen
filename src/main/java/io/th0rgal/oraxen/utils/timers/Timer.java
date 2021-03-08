@@ -33,7 +33,6 @@ public class Timer {
         this.timeUnit = timeUnit;
     }
 
-
     public void reset() {
         lastUsage = timeUnit.convert(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     }
@@ -47,7 +46,8 @@ public class Timer {
     }
 
     public long getRemainingTime(TimeUnit timeUnit) {
-        return timeUnit.convert(lastUsage, this.timeUnit) + timeUnit.convert(delay, this.timeUnit) - timeUnit.convert(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
+        return timeUnit.convert(lastUsage, this.timeUnit) + timeUnit.convert(delay, this.timeUnit)
+            - timeUnit.convert(System.currentTimeMillis(), TimeUnit.MILLISECONDS);
     }
 
     public TimeUnit getTimeUnit() {
@@ -62,8 +62,10 @@ public class Timer {
         return getRemainingTime(timeUnit) + " " + timeUnit.name();
     }
 
-    public void sendToPlayer(Player player, TimeUnit timeUnit){
-        Message.COOL_DOWN.send(player, Placeholder.of("time", getRemainingTime(timeUnit)), Placeholder.of("unit", Variable.valueOf("TIME_UNIT_" + timeUnit.name())));
+    public void sendToPlayer(Player player, TimeUnit timeUnit) {
+        Message.COOL_DOWN
+            .send(player, Placeholder.of("time", getRemainingTime(timeUnit)),
+                Placeholder.of("unit", Variable.valueOf("TIME_UNIT_" + timeUnit.name())));
     }
 
 }

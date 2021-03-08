@@ -91,10 +91,12 @@ public class UpdateInfo implements Comparable<UpdateInfo> {
     public int compareTo(UpdateInfo info) {
         return Integer.compare(update.priority(), info.update.priority());
     }
-    
+
     @Override
     public String toString() {
-        return method.getDeclaringClass().getSimpleName() + "(" + instance + ")" + " in " + method.getName() + " only files at '" + getPathAsString() + "' with required " + update.required() + " updates to " + update.version() + " and priority of " + update.priority();
+        return method.getDeclaringClass().getSimpleName() + "(" + instance + ")" + " in " + method.getName()
+            + " only files at '" + getPathAsString() + "' with required " + update.required() + " updates to "
+            + update.version() + " and priority of " + update.priority();
     }
 
 }

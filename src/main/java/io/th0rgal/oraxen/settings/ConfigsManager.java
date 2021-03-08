@@ -124,9 +124,9 @@ public class ConfigsManager implements Listener {
     public Map<File, Map<String, ItemBuilder>> parsesConfigs() {
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
         List<File> configs = Arrays
-                .stream(getItemsFiles())
-                .filter(file -> file.getName().endsWith(".yml"))
-                .collect(Collectors.toList());
+            .stream(getItemsFiles())
+            .filter(file -> file.getName().endsWith(".yml"))
+            .collect(Collectors.toList());
         for (File file : configs) {
             parseMap.put(file, parsesConfig(YamlConfiguration.loadConfiguration(file), file));
         }
@@ -152,10 +152,10 @@ public class ConfigsManager implements Listener {
                 map.put(entry.getKey(), itemParser.buildItem());
             } catch (Exception e) {
                 map
-                        .put(entry.getKey(),
-                                errorItem
-                                        .buildItem(String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD
-                                                + e.getClass().getSimpleName() + ": " + ChatColor.RED + entry.getKey()));
+                    .put(entry.getKey(),
+                        errorItem
+                            .buildItem(String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD
+                                + e.getClass().getSimpleName() + ": " + ChatColor.RED + entry.getKey()));
                 Logs.logError("ERROR BUILDING ITEM \"" + entry.getKey() + "\"");
                 e.printStackTrace();
             }

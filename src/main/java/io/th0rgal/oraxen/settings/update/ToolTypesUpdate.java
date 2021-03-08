@@ -6,7 +6,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 public class ToolTypesUpdate {
 
-    @Update(path = {"items", "blocks"}, version = 202101171304L)
+    @Update(path = { "items", "blocks" }, version = 202101171304L)
     public static void updateItemTypes(YamlConfiguration config) {
 
         for (String sectionName : config.getKeys(false)) {

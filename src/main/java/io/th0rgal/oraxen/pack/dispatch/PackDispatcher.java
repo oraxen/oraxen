@@ -20,7 +20,8 @@ public class PackDispatcher {
     }
 
     public static void sendPack(Player player) {
-        player.setResourcePack(
+        player
+            .setResourcePack(
                 // minecraft has known bugs with ssl protocol
                 url.replace("https://", "http://"), sha1);
     }
@@ -32,9 +33,9 @@ public class PackDispatcher {
             player.spigot().sendMessage(components);
         else
             Bukkit
-                    .getScheduler()
-                    .runTaskLaterAsynchronously(OraxenPlugin.get(), () -> player.spigot().sendMessage(components),
-                            delay * 20L);
+                .getScheduler()
+                .runTaskLaterAsynchronously(OraxenPlugin.get(), () -> player.spigot().sendMessage(components),
+                    delay * 20L);
     }
 
 }

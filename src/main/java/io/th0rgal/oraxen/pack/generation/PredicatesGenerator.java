@@ -39,40 +39,44 @@ public class PredicatesGenerator {
 
         // specific items
         switch (material) {
-            case SHIELD:
-                overrides.add(getOverride("blocking", 1, "item/shield_blocking"));
-                json.addProperty("gui_light", "front");
-                json.add("display", new JsonParser().parse(Plugin.SHIELD_DISPLAY.toString()).getAsJsonObject());
-                break;
+        case SHIELD:
+            overrides.add(getOverride("blocking", 1, "item/shield_blocking"));
+            json.addProperty("gui_light", "front");
+            json.add("display", new JsonParser().parse(Plugin.SHIELD_DISPLAY.toString()).getAsJsonObject());
+            break;
 
-            case BOW:
-                JsonParser parser = new JsonParser();
-                JsonObject pullingPredicate = new JsonObject();
-                pullingPredicate.addProperty("pulling", 1);
-                /*
-                    parser.parse(pullingPredicate.toString()).getAsJsonObject()
-                    This is the easiest (but incredibly slow and inefficient) way to clone a JsonObject
-                 */
-                overrides.add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_0"));
-                pullingPredicate.addProperty("pull", 0.65);
-                overrides.add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_1"));
-                pullingPredicate.addProperty("pull", 0.9);
-                overrides.add(getOverride(pullingPredicate, "item/bow_pulling_2"));
-                json.add("display", parser.parse(Plugin.BOW_DISPLAY.toString()).getAsJsonObject());
-                break;
+        case BOW:
+            JsonParser parser = new JsonParser();
+            JsonObject pullingPredicate = new JsonObject();
+            pullingPredicate.addProperty("pulling", 1);
+            /*
+             * parser.parse(pullingPredicate.toString()).getAsJsonObject() This is the
+             * easiest (but incredibly slow and inefficient) way to clone a JsonObject
+             */
+            overrides
+                .add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_0"));
+            pullingPredicate.addProperty("pull", 0.65);
+            overrides
+                .add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_1"));
+            pullingPredicate.addProperty("pull", 0.9);
+            overrides.add(getOverride(pullingPredicate, "item/bow_pulling_2"));
+            json.add("display", parser.parse(Plugin.BOW_DISPLAY.toString()).getAsJsonObject());
+            break;
+        default:
+            break;
         }
 
         // custom items
         for (ItemBuilder item : items) {
             overrides
-                    .add(getOverride("custom_model_data", item.getOraxenMeta().getCustomModelData(),
-                            item.getOraxenMeta().getModelName()));
+                .add(getOverride("custom_model_data", item.getOraxenMeta().getCustomModelData(),
+                    item.getOraxenMeta().getModelName()));
             if (item.getOraxenMeta().hasBlockingModel()) {
                 JsonObject predicate = new JsonObject();
                 predicate.addProperty("blocking", 1);
                 overrides
-                        .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(),
-                                item.getOraxenMeta().getBlockingModelName()));
+                    .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(),
+                        item.getOraxenMeta().getBlockingModelName()));
             }
             if (item.getOraxenMeta().hasPullingModels()) {
                 List<String> pullingModels = item.getOraxenMeta().getPullingModels();
@@ -82,8 +86,8 @@ public class PredicatesGenerator {
                     if (i != 0)
                         predicate.addProperty("pull", i / pullingModels.size());
                     overrides
-                            .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(),
-                                    pullingModels.get((int) i)));
+                        .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(),
+                            pullingModels.get((int) i)));
                 }
             }
 
@@ -120,7 +124,7 @@ public class PredicatesGenerator {
     }
 
     // not static here because only instanciated once I think
-    private final String[] tools = new String[]{"PICKAXE", "SWORD", "HOE", "AXE", "SHOVEL"};
+    private final String[] tools = new String[] { "PICKAXE", "SWORD", "HOE", "AXE", "SHOVEL" };
 
     private String getParent(Material material) {
         if (material.isBlock())

@@ -41,29 +41,29 @@ public class Reload extends OraxenCommand {
             return;
 
         switch (get(arguments, 1, Reloadable::fromArgument).orElse(Reloadable.ALL)) {
-            case ITEMS:
-                reloadItems(sender);
-                break;
+        case ITEMS:
+            reloadItems(sender);
+            break;
 
-            case PACK:
-                reloadPack(OraxenPlugin.get(), sender);
-                break;
+        case PACK:
+            reloadPack(OraxenPlugin.get(), sender);
+            break;
 
-            case RECIPES:
-                RecipesManager.reload(OraxenPlugin.get());
-                break;
+        case RECIPES:
+            RecipesManager.reload(OraxenPlugin.get());
+            break;
 
-            case MESSAGES:
-                Translations.MANAGER.reloadCatch();
-                break;
+        case MESSAGES:
+            Translations.MANAGER.reloadCatch();
+            break;
 
-            default:
-                OraxenPlugin oraxen = OraxenPlugin.get();
-                Translations.MANAGER.reloadCatch();
-                reloadItems(sender);
-                reloadPack(oraxen, sender);
-                RecipesManager.reload(oraxen);
-                break;
+        default:
+            OraxenPlugin oraxen = OraxenPlugin.get();
+            Translations.MANAGER.reloadCatch();
+            reloadItems(sender);
+            reloadPack(oraxen, sender);
+            RecipesManager.reload(oraxen);
+            break;
         }
     }
 
@@ -76,7 +76,8 @@ public class Reload extends OraxenCommand {
 
         if (arguments.count() == 1) {
             Reloadable[] types = Reloadable.values();
-            for (Reloadable type : types) completion.add(new StringArgument(type.name()));
+            for (Reloadable type : types)
+                completion.add(new StringArgument(type.name()));
         }
         return completion;
     }

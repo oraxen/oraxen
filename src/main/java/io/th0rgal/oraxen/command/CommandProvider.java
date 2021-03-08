@@ -85,7 +85,8 @@ public class CommandProvider {
     }
 
     public CommandProvider addAll(CommandInfo... infos) {
-        for (CommandInfo info : infos) add(info);
+        for (CommandInfo info : infos)
+            add(info);
         return this;
     }
 
@@ -97,7 +98,8 @@ public class CommandProvider {
     }
 
     public CommandProvider removeAll(CommandInfo... infos) {
-        for (CommandInfo info : infos) remove(info);
+        for (CommandInfo info : infos)
+            remove(info);
         return this;
     }
 

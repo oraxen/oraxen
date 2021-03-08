@@ -43,7 +43,6 @@ public class CustomMechanicWrapper {
         }
     }
 
-
     private Player player;
 
     public void setPlayer(Player player) {
@@ -59,28 +58,28 @@ public class CustomMechanicWrapper {
     public Player getPlayer(Field field) {
         switch (field) {
 
-            case PLAYER:
-                return this.player;
+        case PLAYER:
+            return this.player;
 
-            case TARGET:
-                return this.target;
+        case TARGET:
+            return this.target;
 
-            default:
-                return null;
+        default:
+            return null;
         }
     }
 
     public CommandSender getCommandSender(Field field) {
         switch (field) {
 
-            case PLAYER:
-                return this.player;
+        case PLAYER:
+            return this.player;
 
-            case TARGET:
-                return this.target;
+        case TARGET:
+            return this.target;
 
-            default:
-                return Bukkit.getConsoleSender();
+        default:
+            return Bukkit.getConsoleSender();
         }
     }
 

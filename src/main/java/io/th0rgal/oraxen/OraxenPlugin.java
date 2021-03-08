@@ -62,6 +62,7 @@ public class OraxenPlugin extends JavaPlugin {
         }
     }
 
+    @Override
     public void onEnable() {
         ConfigsManager configsManager = new ConfigsManager(this);
         if (!configsManager.validatesConfig()) {
@@ -77,7 +78,7 @@ public class OraxenPlugin extends JavaPlugin {
         CompatibilitiesManager.enableNativeCompatibilities();
         pluginManager.callEvent(new OraxenConfigEvent());
         OraxenItems.loadItems(configsManager);
-        //MechanicsManager.unloadListeners(); // we need to avoid double loading
+        // MechanicsManager.unloadListeners(); // we need to avoid double loading
         ResourcePack resourcePack = new ResourcePack(this);
         RecipesManager.load(this);
         FastInvManager.register(this);
@@ -86,6 +87,7 @@ public class OraxenPlugin extends JavaPlugin {
         Logs.log(ChatColor.GREEN + "Successfully loaded on " + OS.getOs().getPlatformName());
     }
 
+    @Override
     public void onDisable() {
         unregisterListeners();
         CompatibilitiesManager.disableCompatibilities();

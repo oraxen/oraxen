@@ -36,7 +36,7 @@ public enum Variable implements IVariable {
 
     Variable(boolean legacy, String value) {
         this(legacy ? TextComponent.fromLegacyText(value.replace('&', ChatColor.COLOR_CHAR))
-                : MiniMessageParser.parseFormat(value));
+            : MiniMessageParser.parseFormat(value));
     }
 
     Variable(BaseComponent[] components) {

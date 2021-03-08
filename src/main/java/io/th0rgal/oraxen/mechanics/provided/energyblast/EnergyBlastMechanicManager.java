@@ -71,7 +71,6 @@ public class EnergyBlastMechanicManager implements Listener {
         playEffect(player, mechanic);
     }
 
-
     private void playEffect(Player player, EnergyBlastMechanic mechanic) {
         new BukkitRunnable() {
             final Vector dir = player.getLocation().getDirection().normalize();
@@ -83,7 +82,7 @@ public class EnergyBlastMechanicManager implements Listener {
             final double increment = (2 * Math.PI) / circlePoints;
             double circlePointOffset = 0;
             int beamLength = mechanic.getLength() * 2;
-            final double radiusShrinkage = radius / (double) ((beamLength + 2) / 2);
+            final double radiusShrinkage = radius / ((beamLength + 2) / 2);
 
             @Override
             public void run() {
@@ -114,7 +113,8 @@ public class EnergyBlastMechanicManager implements Listener {
                     spawnParticle(playerLoc.getWorld(), playerLoc, mechanic, 1000, 0.3, 0.3, 0.3, 0.3);
                     for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, 0.5, 0.5, 0.5))
                         if (entity instanceof LivingEntity && entity != player) {
-                            EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, mechanic.getDamage() * 3.0);
+                            EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(player, entity,
+                                EntityDamageEvent.DamageCause.MAGIC, mechanic.getDamage() * 3.0);
                             Bukkit.getPluginManager().callEvent(event);
                             if (!event.isCancelled()) {
                                 entity.setLastDamageCause(event);
@@ -128,7 +128,8 @@ public class EnergyBlastMechanicManager implements Listener {
                 playerLoc.add(dir);
                 for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, radius, radius, radius))
                     if (entity instanceof LivingEntity && entity != player) {
-                        EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, mechanic.getDamage());
+                        EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(player, entity,
+                            EntityDamageEvent.DamageCause.MAGIC, mechanic.getDamage());
                         Bukkit.getPluginManager().callEvent(event);
                         if (!event.isCancelled()) {
                             entity.setLastDamageCause(event);
@@ -148,11 +149,11 @@ public class EnergyBlastMechanicManager implements Listener {
     }
 
     private void spawnParticle(World world, Location location, EnergyBlastMechanic mechanic, int amount, double offsetX,
-                               double offsetY, double offsetZ, double extra) {
+        double offsetY, double offsetZ, double extra) {
         if (mechanic.getParticle() == Particle.REDSTONE)
             world
-                    .spawnParticle(Particle.REDSTONE, location, amount, offsetX, offsetY, offsetZ, extra,
-                            mechanic.getParticleColor());
+                .spawnParticle(Particle.REDSTONE, location, amount, offsetX, offsetY, offsetZ, extra,
+                    mechanic.getParticleColor());
         else
             world.spawnParticle(mechanic.getParticle(), location, amount, offsetX, offsetY, offsetZ, extra);
     }

@@ -29,7 +29,7 @@ public class BigMiningMechanicListener implements Listener {
         this.factory = factory;
         if (CompatibilitiesManager.isCompatibilityEnabled("WorldGuard"))
             worldGuardCompatibility = (WorldGuardCompatibility) CompatibilitiesManager
-                    .getActiveCompatibility("WorldGuard");
+                .getActiveCompatibility("WorldGuard");
         else
             worldGuardCompatibility = null;
     }
@@ -70,7 +70,7 @@ public class BigMiningMechanicListener implements Listener {
             for (double relativeY = -mechanic.getRadius(); relativeY <= mechanic.getRadius(); relativeY++)
                 for (double relativeDepth = 0; relativeDepth < mechanic.getDepth(); relativeDepth++) {
                     tempLocation = transpose(initialLocation, blockFace, relativeX, relativeY,
-                            relativeDepth * modifier);
+                        relativeDepth * modifier);
                     if (tempLocation.equals(initialLocation))
                         continue;
                     breakBlock(player, tempLocation.getBlock(), item);
@@ -96,7 +96,7 @@ public class BigMiningMechanicListener implements Listener {
      * certain axis
      */
     private Location transpose(Location location, BlockFace blockFace, double relativeX, double relativeY,
-                               double relativeDepth) {
+        double relativeDepth) {
         location = location.clone();
         if (blockFace == BlockFace.WEST || blockFace == BlockFace.EAST) // WEST_EAST axis != X
             location.add(relativeDepth, relativeX, relativeY);

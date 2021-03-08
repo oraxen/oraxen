@@ -7,5 +7,5 @@ public class MixedCommandCondition extends MixedCondition<CommandSender> {
     public MixedCommandCondition(CommandCondition... conditions) {
         super(conditions);
     }
-    
+
 }

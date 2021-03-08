@@ -84,7 +84,7 @@ public abstract class ConfigUpdater {
                 if (info.apply(file, config))
                     version = infos.getKey().longValue();
             }
-            if(++executed == amount)
+            if (++executed == amount)
                 break;
         }
         config.set("version", version);

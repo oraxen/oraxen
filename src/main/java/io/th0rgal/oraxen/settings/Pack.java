@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.minimessage.MiniMessageParser;
 import net.md_5.bungee.api.chat.BaseComponent;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
@@ -65,10 +64,11 @@ public enum Pack implements ConfigEnum {
         this.section = section;
     }
 
+    @Override
     public Object getValue() {
         return RESOURCES_MANAGER.getSettings().getConfigurationSection("Pack").get(section);
     }
-    
+
     public BaseComponent[] toMiniMessage(String... placeholders) {
         ConfigurationSection config = RESOURCES_MANAGER.getSettings().getConfigurationSection("Pack");
         String message;
@@ -85,13 +85,10 @@ public enum Pack implements ConfigEnum {
         if (config.isList(section))
             config
                 .getStringList(section)
-                .forEach(message -> messages
-                    .add(MiniMessageParser
-                        .parseFormat(Utils.handleColors(message), placeholders)));
+                .forEach(
+                    message -> messages.add(MiniMessageParser.parseFormat(Utils.handleColors(message), placeholders)));
         else
-            messages
-                .add(MiniMessageParser
-                    .parseFormat(Utils.handleColors(config.getString(section)), placeholders));
+            messages.add(MiniMessageParser.parseFormat(Utils.handleColors(config.getString(section)), placeholders));
         return messages;
     }
 

@@ -18,7 +18,7 @@ public class RecipeShowcase extends FastInv {
 
     public RecipeShowcase(int page, List<CustomRecipe> filteredRecipes) {
         super(6 * 9, filteredRecipes.get(page).getResult().getItemMeta().getDisplayName()
-                + (filteredRecipes.get(page).isOrdered() ? "" : "  (Shapeless)"));
+            + (filteredRecipes.get(page).isOrdered() ? "" : "  (Shapeless)"));
 
         // Current Recipe
         CustomRecipe currentRecipe = filteredRecipes.get(page);
@@ -57,29 +57,27 @@ public class RecipeShowcase extends FastInv {
 
         // Close RecipeShowcase inventory button
         setItem(49, new ItemBuilder(Material.BARRIER).setDisplayName(ChatColor.RED + "Close").build(),
-                e -> e.getWhoClicked().closeInventory());
+            e -> e.getWhoClicked().closeInventory());
 
         // Previous Page button
         if (page > 0)
             setItem(28,
-                    (OraxenItems.getItemById("arrow_previous_icon") == null
-                            ? new ItemBuilder(Material.ARROW)
-                            : OraxenItems.getItemById("arrow_previous_icon"))
-                            .setAmount(page)
-                            .setDisplayName(ChatColor.YELLOW + "Open page " + page)
-                            .build(),
-                    e -> new RecipeShowcase(page - 1, filteredRecipes).open((Player) e.getWhoClicked()));
+                (OraxenItems.getItemById("arrow_previous_icon") == null ? new ItemBuilder(Material.ARROW)
+                    : OraxenItems.getItemById("arrow_previous_icon"))
+                        .setAmount(page)
+                        .setDisplayName(ChatColor.YELLOW + "Open page " + page)
+                        .build(),
+                e -> new RecipeShowcase(page - 1, filteredRecipes).open((Player) e.getWhoClicked()));
 
         // Next page button
         if (!lastPage)
             setItem(34,
-                    (OraxenItems.getItemById("arrow_next_icon") == null
-                            ? new ItemBuilder(Material.ARROW)
-                            : OraxenItems.getItemById("arrow_next_icon"))
-                            .setAmount(page + 2)
-                            .setDisplayName(ChatColor.YELLOW + "Open page " + (page + 2))
-                            .build(),
-                    e -> new RecipeShowcase(page + 1, filteredRecipes).open((Player) e.getWhoClicked()));
+                (OraxenItems.getItemById("arrow_next_icon") == null ? new ItemBuilder(Material.ARROW)
+                    : OraxenItems.getItemById("arrow_next_icon"))
+                        .setAmount(page + 2)
+                        .setDisplayName(ChatColor.YELLOW + "Open page " + (page + 2))
+                        .build(),
+                e -> new RecipeShowcase(page + 1, filteredRecipes).open((Player) e.getWhoClicked()));
     }
 
     private void fillRect(int fromRow, int fromColumn, int toRow, int toColumn, ItemStack item) {
@@ -114,7 +112,7 @@ public class RecipeShowcase extends FastInv {
         if (page != -1) {
             int finalPage = page;
             setItem(slot, new ItemBuilder(itemStack).build(),
-                    e -> new RecipeShowcase(finalPage, filteredRecipes).open((Player) e.getWhoClicked()));
+                e -> new RecipeShowcase(finalPage, filteredRecipes).open((Player) e.getWhoClicked()));
         } else {
             setItem(slot, itemStack);
         }

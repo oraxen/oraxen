@@ -36,7 +36,7 @@ public enum Message implements IMessage {
     COMMAND_HELP_INFO_SHORT(true, "$prefix &3/oraxen &b$label $usage &8- &7$description"),
     COMMAND_HELP_INFO_HEADER(true, "$prefix &7Info => &3$label $page"),
     COMMAND_HELP_INFO_DETAILED(true, "$header", "", "$line1", "$line2", "$line3", "$line4", "$line5", "$line6", "",
-            "$header"),
+        "$header"),
 
     // Recipe
     COMMAND_RECIPE_NO_BUILDER(true, "$prefix &7Please &ccreate an recipe&7 first!"),
@@ -56,7 +56,6 @@ public enum Message implements IMessage {
     //
     ;
 
-
     private final String value;
 
     Message(String value) {
@@ -65,17 +64,17 @@ public enum Message implements IMessage {
 
     Message(boolean legacy, String... values) {
         ArrayList<BaseComponent[]> list = new ArrayList<>();
-        BaseComponent[] line = new BaseComponent[]{new TextComponent("\n")};
+        BaseComponent[] line = new BaseComponent[] { new TextComponent("\n") };
         int length = values.length - 1;
         for (int index = 0; index < values.length; index++) {
             list
-                    .add(legacy ? TextComponent.fromLegacyText(values[index].replace('&', ChatColor.COLOR_CHAR))
-                            : MiniMessageParser.parseFormat(values[index]));
+                .add(legacy ? TextComponent.fromLegacyText(values[index].replace('&', ChatColor.COLOR_CHAR))
+                    : MiniMessageParser.parseFormat(values[index]));
             if (index != length)
                 list.add(line);
         }
         this.value = MiniMessageSerializer
-                .serialize(list.stream().flatMap(Arrays::stream).toArray(BaseComponent[]::new));
+            .serialize(list.stream().flatMap(Arrays::stream).toArray(BaseComponent[]::new));
     }
 
     Message(BaseComponent[] components) {

@@ -1,15 +1,11 @@
 package io.th0rgal.oraxen.mechanics.provided.smelting;
 
 import com.syntaxphoenix.syntaxapi.reflection.Reflect;
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.settings.ResourcesManager;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.Sound;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -49,14 +45,17 @@ public class SmeltingMechanicListener implements Listener {
         if (loot == null)
             return; // not recipe
         ItemMeta itemMeta = item.getItemMeta();
-        if (itemMeta == null) return;
+        if (itemMeta == null)
+            return;
 
-        if (event.getBlock().getType().toString().contains("ORE") && itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
+        if (event.getBlock().getType().toString().contains("ORE")
+            && itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
             loot.setAmount(1 + new Random().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
         }
         event.setDropItems(false);
         Location location = event.getBlock().getLocation().add(0, 0.5, 0);
-        if (location.getWorld() == null) return;
+        if (location.getWorld() == null)
+            return;
         location.getWorld().dropItemNaturally(location, loot);
         SmeltingMechanic mechanic = (SmeltingMechanic) factory.getMechanic(itemID);
         if (mechanic.playSound()) {

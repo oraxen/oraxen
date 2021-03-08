@@ -24,30 +24,33 @@ public class Utils {
     private static final boolean HEX_SUPPORTED = (boolean) Plugin.HEX_SUPPORTED.getValue();
 
     public static String handleColors(String message) {
-        return HEX_SUPPORTED && message.contains(Plugin.HEX_PREFIX.toLegacyString()) && message.contains(Plugin.HEX_SUFFIX.toLegacyString())
-                ? ChatColor.translateAlternateColorCodes('&',
-                translateHexColorCodes(Plugin.HEX_PREFIX.toLegacyString(), message, Plugin.HEX_SUFFIX.toLegacyString()))
+        return HEX_SUPPORTED && message.contains(Plugin.HEX_PREFIX.toLegacyString())
+            && message.contains(Plugin.HEX_SUFFIX.toLegacyString())
+                ? ChatColor
+                    .translateAlternateColorCodes(
+                        '&',
+                        translateHexColorCodes(Plugin.HEX_PREFIX.toLegacyString(), message,
+                            Plugin.HEX_SUFFIX.toLegacyString()))
                 : ChatColor.translateAlternateColorCodes('&', message);
     }
 
     public static String handleColors(String message, boolean forceLegacyTranslate) {
-        return (forceLegacyTranslate)
-                ? ChatColor.translateAlternateColorCodes('&', message)
-                : handleColors(message);
+        return (forceLegacyTranslate) ? ChatColor.translateAlternateColorCodes('&', message) : handleColors(message);
     }
 
-    // all credits go to https://www.spigotmc.org/threads/hex-color-code-translate.449748/#post-3867804
+    // all credits go to
+    // https://www.spigotmc.org/threads/hex-color-code-translate.449748/#post-3867804
     private static String translateHexColorCodes(String startTag, String endTag, String message) {
         final Pattern hexPattern = Pattern.compile(startTag + "([A-Fa-f0-9]{6})" + endTag);
         Matcher matcher = hexPattern.matcher(message);
         StringBuffer buffer = new StringBuffer(message.length() + 4 * 8);
         while (matcher.find()) {
             String group = matcher.group(1);
-            matcher.appendReplacement(buffer, COLOR_CHAR + "x"
-                    + COLOR_CHAR + group.charAt(0) + COLOR_CHAR + group.charAt(1)
-                    + COLOR_CHAR + group.charAt(2) + COLOR_CHAR + group.charAt(3)
-                    + COLOR_CHAR + group.charAt(4) + COLOR_CHAR + group.charAt(5)
-            );
+            matcher
+                .appendReplacement(buffer,
+                    COLOR_CHAR + "x" + COLOR_CHAR + group.charAt(0) + COLOR_CHAR + group.charAt(1) + COLOR_CHAR
+                        + group.charAt(2) + COLOR_CHAR + group.charAt(3) + COLOR_CHAR + group.charAt(4) + COLOR_CHAR
+                        + group.charAt(5));
         }
         return matcher.appendTail(buffer).toString();
     }
@@ -71,7 +74,7 @@ public class Utils {
 
     public static int getCode(MultipleFacing blockData) {
         final List<BlockFace> properties = Arrays
-                .asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
+            .asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
         int sum = 0;
         for (BlockFace blockFace : blockData.getFaces())
             sum += (int) Math.pow(2, properties.indexOf(blockFace));
@@ -80,15 +83,15 @@ public class Utils {
 
     public static JsonObject getBlockstateWhenFields(int code) {
         JsonObject whenJson = new JsonObject();
-        final String[] properties = new String[]{"up", "down", "north", "south", "west", "east"};
+        final String[] properties = new String[] { "up", "down", "north", "south", "west", "east" };
         for (int i = 0; i < properties.length; i++)
             whenJson.addProperty(properties[properties.length - 1 - i], (code & 0x1 << i) != 0);
         return whenJson;
     }
 
     public static void setBlockFacing(MultipleFacing blockData, int code) {
-        final BlockFace[] properties = new BlockFace[]{BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH,
-                BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP};
+        final BlockFace[] properties = new BlockFace[] { BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH,
+                BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP };
         for (int i = 0; i < properties.length; i++) {
             blockData.setFace(properties[i], (code & 0x1 << i) != 0);
         }

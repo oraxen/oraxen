@@ -93,6 +93,7 @@ public enum OraxenPermission implements IPermission {
      * Permission check
      */
 
+    @Override
     public boolean required(CommandSender sender) {
         if (!has(sender)) {
             Message.NO_PERMISSION.send(sender, Variable.PREFIX.placeholder(), getPlaceholder());
@@ -101,6 +102,7 @@ public enum OraxenPermission implements IPermission {
         return true;
     }
 
+    @Override
     public boolean required(CommandSender sender, Placeholder... placeholders) {
         if (!has(sender)) {
             Message.NO_PERMISSION.send(sender, placeholders, Variable.PREFIX.placeholder(), getPlaceholder());

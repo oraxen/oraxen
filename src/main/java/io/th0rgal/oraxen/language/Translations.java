@@ -131,7 +131,8 @@ public final class Translations {
     public static String replace(String language, String message, Placeholder... placeholders) {
         if (message.equals(LanguageProvider.NULL_VALUE))
             return message;
-        for (Placeholder placeholder : placeholders) message = placeholder.replace(message);
+        for (Placeholder placeholder : placeholders)
+            message = placeholder.replace(message);
         return replaceDefaults(language, message);
     }
 
@@ -142,7 +143,8 @@ public final class Translations {
             .stream(Variable.values())
             .map(ITranslatable::placeholder)
             .toArray(Placeholder[]::new);
-        for (Placeholder placeholder : placeholders) message = placeholder.replaceTranslated(language, message);
+        for (Placeholder placeholder : placeholders)
+            message = placeholder.replaceTranslated(language, message);
         return message;
     }
 
@@ -331,7 +333,8 @@ public final class Translations {
          */
 
         public boolean hasTranslation(String language) {
-            return translations.stream().anyMatch(storage -> storage.getLanguage().equals(language)) || fallback.getLanguage().equals(language);
+            return translations.stream().anyMatch(storage -> storage.getLanguage().equals(language))
+                || fallback.getLanguage().equals(language);
         }
 
         public TranslationStorage getTranslation(String language) {

@@ -43,9 +43,8 @@ public class Pack extends OraxenCommand {
         if (Conditions.reqPerm(OraxenPermission.COMMAND_PACK).isFalse(sender))
             return;
 
-        Optional<Boolean> option0 = restrict(
-                get(arguments, 1, ArgumentType.STRING).map(BaseArgument::asString), "msg", "send")
-                .map(value -> value.equals("msg"));
+        Optional<Boolean> option0 = restrict(get(arguments, 1, ArgumentType.STRING).map(BaseArgument::asString), "msg",
+            "send").map(value -> value.equals("msg"));
         if (!option0.isPresent()) {
             info.getInfo().sendSimple(sender, info.getLabel());
             return;
@@ -82,10 +81,11 @@ public class Pack extends OraxenCommand {
             completion(completion, "msg", "send");
         } else if (count == 2) {
             completion(completion,
-                    Conditions.player().isTrue(info.getSender()) ? (new String[]{"@a", "@r", "@s", "@p"})
-                            : (new String[]{"@a", "@r", "@p"}));
+                Conditions.player().isTrue(info.getSender()) ? (new String[] { "@a", "@r", "@s", "@p" })
+                    : (new String[] { "@a", "@r", "@p" }));
             Player[] players = Bukkit.getOnlinePlayers().toArray(new Player[0]);
-            for (Player player : players) completion.add(new StringArgument(player.getName()));
+            for (Player player : players)
+                completion.add(new StringArgument(player.getName()));
         }
 
         return completion;

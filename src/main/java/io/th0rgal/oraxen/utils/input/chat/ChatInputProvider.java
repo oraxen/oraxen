@@ -60,6 +60,7 @@ public class ChatInputProvider implements InputProvider {
         return userId;
     }
 
+    @Override
     public ChatInputProvider setMessage(String message) {
         this.message = message;
         return this;
@@ -74,11 +75,13 @@ public class ChatInputProvider implements InputProvider {
         return userId == null;
     }
 
+    @Override
     public ChatInputProvider reopenOnFail(boolean state) {
         this.reopenOnFail = state;
         return this;
     }
 
+    @Override
     public boolean reopenOnFail() {
         return reopenOnFail;
     }

@@ -66,8 +66,8 @@ public class BlockMechanicFactory extends MechanicFactory {
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         BlockMechanic mechanic = new BlockMechanic(this, itemMechanicConfiguration);
         MUSHROOM_STEM_BLOCKSTATE_OVERRIDES
-                .add(getBlockstateOverride(mechanic.getModel(itemMechanicConfiguration.getParent().getParent()),
-                        mechanic.getCustomVariation()));
+            .add(getBlockstateOverride(mechanic.getModel(itemMechanicConfiguration.getParent().getParent()),
+                mechanic.getCustomVariation()));
         BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
@@ -78,7 +78,8 @@ public class BlockMechanicFactory extends MechanicFactory {
     }
 
     /**
-     * Attempts to set the block directly to the model and texture of an Oraxen item.
+     * Attempts to set the block directly to the model and texture of an Oraxen
+     * item.
      *
      * @param block  The block to update.
      * @param itemId The Oraxen item ID.
@@ -92,28 +93,32 @@ public class BlockMechanicFactory extends MechanicFactory {
     }
 
     /**
-     * Attempts to set the block directly to the model and texture of an Oraxen item.
+     * Attempts to set the block directly to the model and texture of an Oraxen
+     * item.
      *
      * @param block             The block to update.
      * @param itemId            The Oraxen item ID.
-     * @param blockDataMaterial The material to utilize for block data (Default should be 'MUSHROOM_STEM').
+     * @param blockDataMaterial The material to utilize for block data (Default
+     *                          should be 'MUSHROOM_STEM').
      * @return Whether the process was successful.
      */
     public static boolean setBlockModel(Block block, String itemId, String blockDataMaterial) {
-        if (block == null || itemId == null || itemId.isEmpty()) return false;
+        if (block == null || itemId == null || itemId.isEmpty())
+            return false;
 
         final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("block");
         final BlockMechanic blockMechanic = (BlockMechanic) mechanicFactory.getMechanic(itemId);
 
         Material material;
-        if (blockDataMaterial == null || blockDataMaterial.isEmpty()) material = Material.MUSHROOM_STEM;
-        else material = Material.getMaterial(blockDataMaterial.toUpperCase().replace(" ", "_").replace("-", "_"));
+        if (blockDataMaterial == null || blockDataMaterial.isEmpty())
+            material = Material.MUSHROOM_STEM;
+        else
+            material = Material.getMaterial(blockDataMaterial.toUpperCase().replace(" ", "_").replace("-", "_"));
 
         final MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(material);
         Utils.setBlockFacing(newBlockData, blockMechanic.getCustomVariation());
         block.setBlockData(newBlockData, false);
         return true;
     }
-
 
 }

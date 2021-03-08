@@ -16,21 +16,21 @@ public class CustomMechanicAction {
 
             CustomAction action;
             switch (params[0]) {
-                case "command":
-                    action = new CommandAction(params);
-                    break;
+            case "command":
+                action = new CommandAction(params);
+                break;
 
-                case "message":
-                    action = null;
-                    break;
+            case "message":
+                action = null;
+                break;
 
-                case "title":
-                    action = null;
-                    break;
+            case "title":
+                action = null;
+                break;
 
-                default:
-                    action = null;
-                    break;
+            default:
+                action = null;
+                break;
             }
 
             actions.add(action);
@@ -43,7 +43,6 @@ public class CustomMechanicAction {
     }
 
 }
-
 
 abstract class CustomAction {
 
@@ -60,6 +59,7 @@ abstract class CustomAction {
 class CommandAction extends CustomAction {
 
     private final CustomMechanicWrapper.Field commandSender;
+    @SuppressWarnings("unused")
     private final boolean op;
     private final String command;
 

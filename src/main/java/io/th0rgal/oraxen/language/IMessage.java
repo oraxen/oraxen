@@ -9,10 +9,12 @@ public interface IMessage extends ITranslatable {
         return TranslationType.MESSAGE;
     }
 
+    @Override
     public default String translate(String language) {
         return Translations.translate(language, this);
     }
 
+    @Override
     public default String translate(String language, Placeholder... placeholders) {
         return Translations.translate(language, this, placeholders);
     }

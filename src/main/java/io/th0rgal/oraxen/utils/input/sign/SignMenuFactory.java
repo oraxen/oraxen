@@ -12,7 +12,6 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.input.InputProvider;
 
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -119,11 +118,13 @@ public final class SignMenuFactory {
             return this.position;
         }
 
+        @Override
         public Menu reopenOnFail(boolean state) {
             this.reopenOnFail = state;
             return this;
         }
 
+        @Override
         public boolean reopenOnFail() {
             return reopenOnFail;
         }

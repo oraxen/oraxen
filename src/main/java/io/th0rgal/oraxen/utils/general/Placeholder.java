@@ -56,7 +56,8 @@ public class Placeholder {
     }
 
     public Placeholder(String placeholder, ITranslatable translatable) {
-        this(placeholder, translatable.type(), translatable.translationId(), translatable.value()); //lgtm [java/dereferenced-value-may-be-null]
+        this(placeholder, translatable.type(), translatable.translationId(), translatable.value()); // lgtm
+                                                                                                    // [java/dereferenced-value-may-be-null]
     }
 
     public Placeholder(String placeholder, TranslationType type, String id, Object value) {

@@ -7,6 +7,7 @@ import org.bukkit.configuration.ConfigurationSection;
 public class ItemTypeMechanicFactory extends MechanicFactory {
 
     private static ItemTypeMechanicFactory instance;
+
     public static ItemTypeMechanicFactory get() {
         return instance;
     }

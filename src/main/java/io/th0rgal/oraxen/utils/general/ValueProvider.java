@@ -4,7 +4,7 @@ import java.util.Optional;
 
 @FunctionalInterface
 public interface ValueProvider<E> {
-    
+
     public static <E> Optional<E> option(ValueProvider<E> provider) {
         return provider.optional();
     }

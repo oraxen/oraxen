@@ -30,7 +30,7 @@ public class HarvestingMechanicManager implements Listener {
         this.factory = factory;
         if (CompatibilitiesManager.isCompatibilityEnabled("WorldGuard"))
             worldGuardCompatibility = (WorldGuardCompatibility) CompatibilitiesManager
-                    .getActiveCompatibility("WorldGuard");
+                .getActiveCompatibility("WorldGuard");
         else
             worldGuardCompatibility = null;
     }
@@ -55,7 +55,7 @@ public class HarvestingMechanicManager implements Listener {
         Player player = event.getPlayer();
 
         for (Block block : getNearbyBlocks(event.getClickedBlock().getLocation(), mechanic.getRadius(),
-                mechanic.getHeight())) {
+            mechanic.getHeight())) {
             if (block.getBlockData() instanceof Ageable) {
                 if (worldGuardCompatibility != null && worldGuardCompatibility.cannotBreak(player, block))
                     return;
@@ -65,16 +65,16 @@ public class HarvestingMechanicManager implements Listener {
                     block.setBlockData(ageable);
                     List<ItemStack> drops = new ArrayList<>();
                     switch (block.getType()) {
-                        case WHEAT:
-                            drops.add(new ItemStack(Material.WHEAT));
-                            drops.add(new ItemStack(Material.WHEAT_SEEDS));
-                            break;
-                        case BEETROOTS:
-                            drops.add(new ItemStack(Material.BEETROOT));
-                            drops.add(new ItemStack(Material.BEETROOT_SEEDS));
-                            break;
-                        default:
-                            drops.addAll(block.getDrops());
+                    case WHEAT:
+                        drops.add(new ItemStack(Material.WHEAT));
+                        drops.add(new ItemStack(Material.WHEAT_SEEDS));
+                        break;
+                    case BEETROOTS:
+                        drops.add(new ItemStack(Material.BEETROOT));
+                        drops.add(new ItemStack(Material.BEETROOT_SEEDS));
+                        break;
+                    default:
+                        drops.addAll(block.getDrops());
                     }
                     for (ItemStack itemStack : drops)
                         giveItem(player, itemStack);
@@ -87,11 +87,11 @@ public class HarvestingMechanicManager implements Listener {
     private static List<Block> getNearbyBlocks(Location location, int radius, int height) {
         List<Block> blocks = new ArrayList<>();
         for (int x = location.getBlockX() - Math.floorDiv(radius, 2); x <= location.getBlockX()
-                + Math.floorDiv(radius, 2); x++) {
+            + Math.floorDiv(radius, 2); x++) {
             for (int y = location.getBlockY() - Math.floorDiv(height, 2); y <= location.getBlockY()
-                    + Math.floorDiv(height, 2); y++)
+                + Math.floorDiv(height, 2); y++)
                 for (int z = location.getBlockZ() - Math.floorDiv(radius, 2); z <= location.getBlockZ()
-                        + Math.floorDiv(radius, 2); z++) {
+                    + Math.floorDiv(radius, 2); z++) {
                     blocks.add(Objects.requireNonNull(location.getWorld()).getBlockAt(x, y, z));
                 }
         }

@@ -15,12 +15,12 @@ public class CustomMechanicCondition {
 
             switch (conditionFields[0]) {
 
-                case "has_permission":
-                    conditions.add(new HasPermission(conditionFields));
-                    break;
+            case "has_permission":
+                conditions.add(new HasPermission(conditionFields));
+                break;
 
-                default:
-                    break;
+            default:
+                break;
             }
         }
     }

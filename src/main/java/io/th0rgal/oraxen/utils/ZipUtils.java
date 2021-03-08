@@ -8,7 +8,6 @@ import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -34,7 +33,7 @@ public class ZipUtils {
     }
 
     public static void writeZipFile(File outputFile, File directoryToZip,
-                                    Map<String, List<File>> fileListByZipDirectory) {
+        Map<String, List<File>> fileListByZipDirectory) {
 
         try {
             FileOutputStream fos = new FileOutputStream(outputFile);
@@ -56,7 +55,7 @@ public class ZipUtils {
     }
 
     public static void addToZip(File directoryToZip, File file, String inZipDirectory, ZipOutputStream zos)
-            throws IOException {
+        throws IOException {
 
         FileInputStream fis = new FileInputStream(file);
 

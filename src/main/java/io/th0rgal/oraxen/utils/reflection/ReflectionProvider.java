@@ -40,7 +40,7 @@ public class ReflectionProvider {
     public ReflectionProvider(ReflectCache cache, Consumer<ReflectionProvider> setup) {
         this.cache = cache;
         this.server = ServerVersion.ANALYZER
-                .analyze(Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3]);
+            .analyze(Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3]);
         this.minecraft = MinecraftVersion.fromString(Bukkit.getVersion().split(" ")[2].replace(")", ""));
         String serverString = server.toString();
         this.cbPath = String.format(CB_PATH_FORMAT, serverString, "%s");
