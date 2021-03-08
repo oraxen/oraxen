@@ -145,17 +145,20 @@ public class ConfigsManager implements Listener {
         Map<String, ItemBuilder> map = new LinkedHashMap<>();
         for (Map.Entry<String, ItemParser> entry : parseMap.entrySet()) {
             ItemParser itemParser = entry.getValue();
-            try {
-                map.put(entry.getKey(), itemParser.buildItem());
-            } catch (Exception e) {
-                map
-                    .put(entry.getKey(), errorItem
-                        .buildItem(String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD + e.getClass().getSimpleName() + ": " + ChatColor.RED + entry.getKey()));
-                Logs.logError("ERROR BUILDING ITEM \"" + entry.getKey() + "\"");
-                e.printStackTrace();
+            if (itemParser.canBeBuilt()) {
+                try {
+                    map.put(entry.getKey(), itemParser.buildItem());
+                } catch (Exception e) {
+                    map
+                        .put(entry.getKey(), errorItem
+                            .buildItem(
+                                String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD + e.getClass().getSimpleName() + ": " + ChatColor.RED + entry.getKey()));
+                    Logs.logError("ERROR BUILDING ITEM \"" + entry.getKey() + "\"");
+                    e.printStackTrace();
+                }
+                if (itemParser.isConfigUpdated())
+                    configUpdated = true;
             }
-            if (itemParser.isConfigUpdated())
-                configUpdated = true;
         }
         if (configUpdated)
             try {

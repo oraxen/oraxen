@@ -4,10 +4,9 @@ import com.syntaxphoenix.syntaxapi.reflection.ClassCache;
 import com.syntaxphoenix.syntaxapi.reflection.Reflect;
 import com.syntaxphoenix.syntaxapi.reflection.ReflectCache;
 
+import io.th0rgal.oraxen.OraxenVersion;
 import io.th0rgal.oraxen.utils.version.MinecraftVersion;
 import io.th0rgal.oraxen.utils.version.ServerVersion;
-
-import org.bukkit.Bukkit;
 
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -41,11 +40,10 @@ public class ReflectionProvider {
 
     public ReflectionProvider(ReflectCache cache, Consumer<ReflectionProvider> setup) {
         this.cache = cache;
-        this.server = ServerVersion.ANALYZER.analyze(Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3]);
-        this.minecraft = MinecraftVersion.fromString(Bukkit.getVersion().split(" ")[2].replace(")", ""));
-        String serverString = server.toString();
-        this.cbPath = String.format(CB_PATH_FORMAT, serverString, "%s");
-        this.nmsPath = String.format(NMS_PATH_FORMAT, serverString, "%s");
+        this.server = OraxenVersion.server();
+        this.minecraft = OraxenVersion.minecraft();
+        this.cbPath = String.format(CB_PATH_FORMAT, OraxenVersion.serverAsString(), "%s");
+        this.nmsPath = String.format(NMS_PATH_FORMAT, OraxenVersion.serverAsString(), "%s");
         if (setup != null)
             setup.accept(this);
     }

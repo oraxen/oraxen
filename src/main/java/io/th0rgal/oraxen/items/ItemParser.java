@@ -4,12 +4,17 @@ import com.syntaxphoenix.syntaxapi.nbt.*;
 import com.syntaxphoenix.syntaxapi.nbt.tools.MojangsonParseException;
 import com.syntaxphoenix.syntaxapi.nbt.tools.MojangsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.OraxenVersion;
 import io.th0rgal.oraxen.language.Message;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.settings.Plugin;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.plugin.PluginPackage;
+import io.th0rgal.oraxen.utils.plugin.PluginSettings;
+import io.th0rgal.oraxen.utils.version.MinecraftVersion;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -26,6 +31,8 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Optional;
 import java.util.function.Function;
 
 public class ItemParser {
@@ -36,6 +43,7 @@ public class ItemParser {
     private final ConfigurationSection section;
     private final Material type;
     private boolean configUpdated = false;
+    private final HashMap<String, MinecraftVersion> dependencies = new HashMap<>();
 
     public ItemParser(ConfigurationSection section) {
         this.section = section;
@@ -47,6 +55,35 @@ public class ItemParser {
             if (packSection.isInt("custom_model_data"))
                 MODEL_DATAS_BY_ID.put(section.getName(), new ModelData(type, oraxenMeta.getModelName(), packSection.getInt("custom_model_data")));
         }
+        if (section.contains("depends") && section.isList("depends")) {
+            List<String> dependents = section.getStringList("depends");
+            for (String dependent : dependents) {
+                if (!dependent.contains("@")) {
+                    dependencies.put(dependent, new MinecraftVersion());
+                    continue;
+                }
+                String[] parts = dependent.split("@", 2);
+                MinecraftVersion version = MinecraftVersion.fromString(parts[1]);
+                if (version == null) {
+                    continue;
+                }
+                dependencies.put(parts[0], version);
+            }
+        }
+    }
+
+    public boolean canBeBuilt() {
+        if (dependencies.isEmpty()) {
+            return true;
+        }
+        PluginSettings settings = OraxenVersion.PLUGIN;
+        for (Entry<String, MinecraftVersion> entry : dependencies.entrySet()) {
+            Optional<PluginPackage> option = settings.searchPackage(entry.getKey());
+            if (!option.filter(plugin -> entry.getValue().compareTo(option.get().getVersion()) >= 0).isPresent()) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public ItemBuilder buildItem(String name) {

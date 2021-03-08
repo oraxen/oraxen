@@ -5,11 +5,13 @@ import org.bukkit.Bukkit;
 import com.syntaxphoenix.syntaxapi.utils.java.tools.Container;
 import com.syntaxphoenix.syntaxapi.version.Version;
 
+import io.th0rgal.oraxen.utils.plugin.PluginSettings;
 import io.th0rgal.oraxen.utils.version.MinecraftVersion;
 import io.th0rgal.oraxen.utils.version.ServerVersion;
 
 public final class OraxenVersion {
-
+    
+    public static final PluginSettings PLUGIN = new PluginSettings();
     public static final OraxenVersion INSTANCE = new OraxenVersion();
 
     public static MinecraftVersion oraxen() {
@@ -24,6 +26,18 @@ public final class OraxenVersion {
         return INSTANCE.getServer();
     }
 
+    public static String oraxenAsString() {
+        return INSTANCE.getOraxenAsString();
+    }
+
+    public static String minecraftAsString() {
+        return INSTANCE.getMinecraftAsString();
+    }
+
+    public static String serverAsString() {
+        return INSTANCE.getServerAsString();
+    }
+
     private OraxenVersion() {
     }
 
@@ -31,25 +45,53 @@ public final class OraxenVersion {
     private final Container<MinecraftVersion> minecraft = Container.of();
     private final Container<MinecraftVersion> oraxen = Container.of();
 
+    private final Container<String> serverString = Container.of();
+    private final Container<String> minecraftString = Container.of();
+    private final Container<String> oraxenString = Container.of();
+
+    public String getOraxenAsString() {
+        return oraxenString.orElseGet(() -> {
+            String versionString = OraxenPlugin.get().getDescription().getVersion();
+            oraxenString.replace(versionString);
+            return versionString;
+        });
+    }
+
     public MinecraftVersion getOraxen() {
         return oraxen.orElseGet(() -> {
-            MinecraftVersion version = MinecraftVersion.fromString(OraxenPlugin.get().getDescription().getVersion());
+            MinecraftVersion version = MinecraftVersion.fromString(getOraxenAsString());
             oraxen.replace(version);
             return version;
         });
     }
 
+    public String getMinecraftAsString() {
+        return minecraftString.orElseGet(() -> {
+            String versionString = Bukkit.getVersion().split(" ")[2].replace(")", "");
+            oraxenString.replace(versionString);
+            return versionString;
+        });
+    }
+
     public MinecraftVersion getMinecraft() {
         return minecraft.orElseGet(() -> {
-            MinecraftVersion version = MinecraftVersion.fromString(Bukkit.getVersion().split(" ")[2].replace(")", ""));
+            MinecraftVersion version = MinecraftVersion.fromString(getMinecraftAsString());
             minecraft.replace(version);
             return version;
         });
     }
 
+    public String getServerAsString() {
+        return serverString.orElseGet(() -> {
+            String versionString = Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3];
+            oraxenString.replace(versionString);
+            return versionString;
+        });
+    }
+
     public ServerVersion getServer() {
         return server.orElseGet(() -> {
-            ServerVersion version = ServerVersion.ANALYZER.analyze(Bukkit.getServer().getClass().getPackage().getName().replace(".", ",").split(",")[3]);
+            ServerVersion version = ServerVersion.ANALYZER.analyze(getServerAsString());
             server.replace(version);
             return version;
         });
