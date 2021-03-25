@@ -96,6 +96,7 @@ public class Utils {
 
     public static void writeStringToFile(File file, String content) {
         try {
+            file.getParentFile().mkdirs();
             BufferedWriter writer = new BufferedWriter(new FileWriter(file));
             writer.write(content);
             writer.flush();
