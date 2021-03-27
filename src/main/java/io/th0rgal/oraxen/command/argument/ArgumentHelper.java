@@ -13,10 +13,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
-import com.syntaxphoenix.syntaxapi.command.ArgumentSuperType;
-import com.syntaxphoenix.syntaxapi.command.ArgumentType;
-import com.syntaxphoenix.syntaxapi.command.Arguments;
-import com.syntaxphoenix.syntaxapi.command.BaseArgument;
+import com.syntaxphoenix.syntaxapi.command.*;
 import com.syntaxphoenix.syntaxapi.command.arguments.StringArgument;
 
 import io.th0rgal.oraxen.items.ItemBuilder;
@@ -120,9 +117,10 @@ public abstract class ArgumentHelper {
     public static Optional<ItemBuilder> item(BaseArgument argument) {
         if (argument == null)
             return Optional.empty();
-        if (argument.getType() == ArgumentType.STRING) {
+        if (argument.getType().equals(ArgumentType.STRING))
             return OraxenItems.getOptionalItemById(argument.asString().getValue());
-        }
+        else if (argument instanceof NumericArgument)
+            return OraxenItems.getOptionalItemById(((NumericArgument) argument).asNumber().toString());
         return Optional.empty();
     }
 
