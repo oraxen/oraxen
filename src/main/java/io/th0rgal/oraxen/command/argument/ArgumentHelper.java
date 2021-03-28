@@ -117,10 +117,10 @@ public abstract class ArgumentHelper {
     public static Optional<ItemBuilder> item(BaseArgument argument) {
         if (argument == null)
             return Optional.empty();
-        if (argument.getType().equals(ArgumentType.STRING))
+        if (argument.getType() == ArgumentType.STRING)
             return OraxenItems.getOptionalItemById(argument.asString().getValue());
-        else if (argument instanceof NumericArgument)
-            return OraxenItems.getOptionalItemById(((NumericArgument) argument).asNumber().toString());
+        else if (argument.getSuperType() == ArgumentSuperType.NUMBER)
+            return OraxenItems.getOptionalItemById(argument.asObject().toString());
         return Optional.empty();
     }
 
