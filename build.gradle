@@ -8,11 +8,12 @@ plugins {
     id "com.github.johnrengelman.shadow" version "6.1.0"
 }
 
-apply plugin: 'maven'
+//apply plugin: 'maven'
 
 group "io.th0rgal"
-def pluginVersion = "1.73.1"
+def pluginVersion = "1.73.2"
 version = pluginVersion
+sourceCompatibility = '8'
 
 repositories {
     mavenCentral()
@@ -56,7 +57,7 @@ dependencies {
     // The Spigot API with no shadowing. Requires the OSS repo.
     compileOnly group: "org.spigotmc", name: "spigot", version: "1.16.4-R0.1-SNAPSHOT"
     compileOnly group: "org.spigotmc", name: "spigot-api", version: "1.16.5-R0.1-SNAPSHOT"
-    compileOnly group: "com.github.dmulloy2", name: "ProtocolLib", version: "4.5.1"
+    compileOnly group: "com.comphenix.protocol", name: "ProtocolLib", version: "4.6.0";
     compileOnly group: "io.lumine.xikage", name: "MythicMobs", version: "4.11.2"
     compileOnly group: "com.github.Hazebyte", name: "CrateReloadedAPI", version: "5318abfccc"
     compileOnly group: "com.sk89q.worldguard", name: "worldguard-bukkit", version: "7.0.4"
