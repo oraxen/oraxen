@@ -17,10 +17,10 @@ public class Help extends OraxenCommand {
 
     public static CommandInfo info() {
         return new CommandInfo("help", COMMAND, "?")
-            .setUsage("{<command> / <page>}")
-            .setDescription("Oraxen help command")
-            .setDetailedDescription("/oraxen help {<page>} - List all commands with their short description",
-                "/oraxen help <command> {<page>} - Show a command's detailed description");
+                .setUsage("{<command> / <page>}")
+                .setDescription("Oraxen help command")
+                .setDetailedDescription("/oraxen help {<page>} - List all commands with their short description",
+                        "/oraxen help <command> {<page>} - Show a command's detailed description");
     }
 
     private Help() {
@@ -31,6 +31,7 @@ public class Help extends OraxenCommand {
         CommandSender sender = info.getSender();
         if (Conditions.reqPerm(OraxenPermission.COMMAND_HELP).isFalse(sender))
             return;
+        int count = arguments.count();
         Message.WORK_IN_PROGRESS.send(info.getSender());
     }
 
