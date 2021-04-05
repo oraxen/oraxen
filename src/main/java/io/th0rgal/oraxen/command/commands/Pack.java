@@ -81,11 +81,7 @@ public class Pack extends OraxenCommand {
         if (count == 1) {
             completion(completion, "msg", "send");
         } else if (count == 2) {
-            completion(completion,
-                    Conditions.player().isTrue(info.getSender()) ? (new String[]{"@a", "@r", "@s", "@p"})
-                            : (new String[]{"@a", "@r", "@p"}));
-            Player[] players = Bukkit.getOnlinePlayers().toArray(new Player[0]);
-            for (Player player : players) completion.add(new StringArgument(player.getName()));
+            Give.baseCommand(info, completion);
         }
 
         return completion;

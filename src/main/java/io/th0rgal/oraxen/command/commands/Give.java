@@ -80,19 +80,23 @@ public class Give extends OraxenCommand {
         int count = arguments.count();
 
         if (count == 1) {
-            completion(completion,
-                    Conditions.player().isTrue(info.getSender()) ? (new String[]{"@a", "@r", "@s", "@p"})
-                            : (new String[]{"@a", "@r", "@p"}));
-            Player[] players = Bukkit.getOnlinePlayers().toArray(new Player[0]);
-            for (Player player : players) completion.add(new StringArgument(player.getName()));
+            baseCommand(info, completion);
         } else if (count == 2) {
             completion(completion, OraxenItems.nameArray());
         } else if (count == 3) {
-            Optional<ItemBuilder> item = get(arguments, 2, argument -> item(argument));
+            Optional<ItemBuilder> item = get(arguments, 2, ArgumentHelper::item);
             item.ifPresent(itemBuilder -> completion
                     .add(new StringArgument("{<amount>} | min = 1 / max = " + (itemBuilder.getMaxStackSize() * 36))));
         }
         return completion;
+    }
+
+    static void baseCommand(MinecraftInfo info, DefaultCompletion completion) {
+        completion(completion,
+                Conditions.player().isTrue(info.getSender()) ? (new String[]{"@a", "@r", "@s", "@p"})
+                        : (new String[]{"@a", "@r", "@p"}));
+        Player[] players = Bukkit.getOnlinePlayers().toArray(new Player[0]);
+        for (Player player : players) completion.add(new StringArgument(player.getName()));
     }
 
 }
