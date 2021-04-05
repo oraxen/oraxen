@@ -60,6 +60,23 @@ public class PredicatesGenerator {
                 overrides.add(getOverride(pullingPredicate, "item/bow_pulling_2"));
                 json.add("display", parser.parse(Plugin.BOW_DISPLAY.toString()).getAsJsonObject());
                 break;
+
+
+            case CROSSBOW:
+                parser = new JsonParser();
+                pullingPredicate = new JsonObject();
+                pullingPredicate.addProperty("pulling", 1);
+                /*
+                    parser.parse(pullingPredicate.toString()).getAsJsonObject()
+                    This is the easiest (but incredibly slow and inefficient) way to clone a JsonObject
+                 */
+                overrides.add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/crossbow_pulling_0"));
+                pullingPredicate.addProperty("pull", 0.65);
+                overrides.add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/crossbow_pulling_1"));
+                pullingPredicate.addProperty("pull", 0.9);
+                overrides.add(getOverride(pullingPredicate, "item/crossbow_pulling_2"));
+                json.add("display", parser.parse(Plugin.CROSSBOW_DISPLAY.toString()).getAsJsonObject());
+                break;
         }
 
         // custom items
@@ -112,11 +129,13 @@ public class PredicatesGenerator {
     }
 
     public String getVanillaTextureName(Material material) {
-        if (material.isBlock()) {
+        if (material.isBlock())
             return "block/" + material.toString().toLowerCase();
-        } else {
+        else if (material == Material.CROSSBOW)
+            return "item/crossbow_standby";
+        else
             return "item/" + material.toString().toLowerCase();
-        }
+
     }
 
     // not static here because only instanciated once I think
