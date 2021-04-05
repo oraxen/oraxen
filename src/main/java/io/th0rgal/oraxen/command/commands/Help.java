@@ -6,7 +6,10 @@ import com.syntaxphoenix.syntaxapi.command.DefaultCompletion;
 import io.th0rgal.oraxen.command.CommandInfo;
 import io.th0rgal.oraxen.command.MinecraftInfo;
 import io.th0rgal.oraxen.command.OraxenCommand;
+import io.th0rgal.oraxen.command.condition.Conditions;
+import io.th0rgal.oraxen.command.permission.OraxenPermission;
 import io.th0rgal.oraxen.language.Message;
+import org.bukkit.command.CommandSender;
 
 public class Help extends OraxenCommand {
 
@@ -25,6 +28,9 @@ public class Help extends OraxenCommand {
 
     @Override
     public void execute(MinecraftInfo info, Arguments arguments) {
+        CommandSender sender = info.getSender();
+        if (Conditions.reqPerm(OraxenPermission.COMMAND_HELP).isFalse(sender))
+            return;
         Message.WORK_IN_PROGRESS.send(info.getSender());
     }
 
