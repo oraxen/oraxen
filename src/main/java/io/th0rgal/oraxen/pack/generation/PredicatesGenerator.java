@@ -25,12 +25,12 @@ public class PredicatesGenerator {
 
         // textures
         JsonObject textures = new JsonObject();
-        textures.addProperty("layer0", getVanillaTextureName(material));
+        textures.addProperty("layer0", getVanillaTextureName(material, false));
 
         // to support colored leather armors + potions
         ItemMeta exampleMeta = new ItemStack(material).getItemMeta();
         if (exampleMeta instanceof LeatherArmorMeta || exampleMeta instanceof PotionMeta)
-            textures.addProperty("layer1", getVanillaTextureName(material) + "_overlay");
+            textures.addProperty("layer1", getVanillaTextureName(material, false) + "_overlay");
 
         json.add("textures", textures);
 
@@ -125,13 +125,13 @@ public class PredicatesGenerator {
     }
 
     public String getVanillaModelName(Material material) {
-        return getVanillaTextureName(material);
+        return getVanillaTextureName(material, true);
     }
 
-    public String getVanillaTextureName(Material material) {
+    public String getVanillaTextureName(Material material, boolean model) {
         if (material.isBlock())
             return "block/" + material.toString().toLowerCase();
-        else if (material == Material.CROSSBOW)
+        else if (!model && material == Material.CROSSBOW)
             return "item/crossbow_standby";
         else
             return "item/" + material.toString().toLowerCase();
