@@ -5,6 +5,7 @@ import static io.th0rgal.oraxen.command.argument.CompletionHelper.*;
 
 import java.util.Optional;
 
+import io.th0rgal.oraxen.command.argument.ArgumentHelper;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -45,7 +46,7 @@ public class Give extends OraxenCommand {
             return;
 
         Optional<Player[]> option0 = get(arguments, 1, argument -> players(sender, argument));
-        Optional<ItemBuilder> option1 = get(arguments, 2, argument -> item(argument));
+        Optional<ItemBuilder> option1 = get(arguments, 2, ArgumentHelper::item);
         if (!(option0.isPresent() && option1.isPresent())) {
             info.getInfo().sendSimple(sender, info.getLabel());
             return;
@@ -54,20 +55,19 @@ public class Give extends OraxenCommand {
         ItemBuilder itemBuilder = option1.get();
 
         int amount = range(get(arguments, 3, ArgumentSuperType.NUMBER).map(argument -> argument.asNumeric().asNumber()),
-            1, 2304).map(Number::intValue).orElse(1);
+                1, 2304).map(Number::intValue).orElse(1);
         int max = itemBuilder.getMaxStackSize();
         int slots = amount / max + (max % amount > 0 ? 1 : 0);
         ItemStack[] items = itemBuilder.buildArray(slots > 36 ? (amount = max * 36) : amount);
-        for (int index = 0; index < players.length; index++)
-            players[index].getInventory().addItem(items);
+        for (Player player : players) player.getInventory().addItem(items);
         if (players.length == 1)
             Message.COMMAND_GIVE_PLAYER
-                .send(sender, Placeholder.of("player", players[0].getName()), Placeholder.of("amount", amount),
-                    Placeholder.of("item", OraxenItems.getIdByItem(itemBuilder)));
+                    .send(sender, Placeholder.of("player", players[0].getName()), Placeholder.of("amount", amount),
+                            Placeholder.of("item", OraxenItems.getIdByItem(itemBuilder)));
         else
             Message.COMMAND_GIVE_PLAYERS
-                .send(sender, Placeholder.of("players", players.length), Placeholder.of("amount", amount),
-                    Placeholder.of("item", OraxenItems.getIdByItem(itemBuilder)));
+                    .send(sender, Placeholder.of("players", players.length), Placeholder.of("amount", amount),
+                            Placeholder.of("item", OraxenItems.getIdByItem(itemBuilder)));
     }
 
     @Override
@@ -81,18 +81,16 @@ public class Give extends OraxenCommand {
 
         if (count == 1) {
             completion(completion,
-                Conditions.player().isTrue(info.getSender()) ? (new String[] { "@a", "@r", "@s", "@p" })
-                    : (new String[] { "@a", "@r", "@p" }));
+                    Conditions.player().isTrue(info.getSender()) ? (new String[]{"@a", "@r", "@s", "@p"})
+                            : (new String[]{"@a", "@r", "@p"}));
             Player[] players = Bukkit.getOnlinePlayers().toArray(new Player[0]);
-            for (int index = 0; index < players.length; index++)
-                completion.add(new StringArgument(players[index].getName()));
+            for (Player player : players) completion.add(new StringArgument(player.getName()));
         } else if (count == 2) {
             completion(completion, OraxenItems.nameArray());
         } else if (count == 3) {
             Optional<ItemBuilder> item = get(arguments, 2, argument -> item(argument));
-            if (item.isPresent())
-                completion
-                    .add(new StringArgument("{<amount>} | min = 1 / max = " + (item.get().getMaxStackSize() * 36)));
+            item.ifPresent(itemBuilder -> completion
+                    .add(new StringArgument("{<amount>} | min = 1 / max = " + (itemBuilder.getMaxStackSize() * 36))));
         }
         return completion;
     }
