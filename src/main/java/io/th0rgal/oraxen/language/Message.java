@@ -32,8 +32,9 @@ public enum Message implements IMessage {
 
     // Help
     COMMAND_HELP_INFO_PAGE(true, "&8[&b$current &7/ &3$total&8]"),
+    COMMAND_HELP_INFO_CONTENT("&b$label $usage &8- &7$description"),
     COMMAND_HELP_INFO_LINE(true, "&8- &7$content"),
-    COMMAND_HELP_INFO_SHORT(true, "$prefix &3/oraxen &b$label $usage &8- &7$description"),
+    COMMAND_HELP_INFO_SHORT(true, "$prefix &3/oraxen $content"),
     COMMAND_HELP_INFO_HEADER(true, "$prefix &7Info => &3$label $page"),
     COMMAND_HELP_INFO_DETAILED(true, "$header", "", "$line1", "$line2", "$line3", "$line4", "$line5", "$line6", "",
             "$header"),

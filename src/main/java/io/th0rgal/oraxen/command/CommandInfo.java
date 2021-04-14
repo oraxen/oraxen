@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Function;
 
+import io.th0rgal.oraxen.language.LanguageProvider;
 import org.bukkit.command.CommandSender;
 
 import com.syntaxphoenix.syntaxapi.command.CommandManager;
@@ -145,9 +146,16 @@ public class CommandInfo {
      */
 
     public void sendSimple(CommandSender sender, String label) {
-        Message.COMMAND_HELP_INFO_SHORT
-                .send(sender, Placeholder.of("label", label), Placeholder.of("usage", this, DescriptionType.USAGE),
-                        Placeholder.of("description", this, DescriptionType.SIMPLE));
+        Message.COMMAND_HELP_INFO_SHORT.send(sender,
+                Placeholder.of("content", Message.COMMAND_HELP_INFO_CONTENT.legacyMessage(LanguageProvider.getLanguageOf(sender), getContentPlaceholders(label))));
+    }
+
+    public Placeholder[] getContentPlaceholders(String label) {
+        return new Placeholder[]{
+                Placeholder.of("label", label),
+                Placeholder.of("usage", this, DescriptionType.USAGE),
+                Placeholder.of("description", this, DescriptionType.SIMPLE)
+        };
     }
 
 }
