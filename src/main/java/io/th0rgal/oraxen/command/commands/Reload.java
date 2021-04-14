@@ -27,7 +27,7 @@ public class Reload extends OraxenCommand {
     public static final OraxenCommand COMMAND = new Reload();
 
     public static CommandInfo info() {
-        return new CommandInfo("reload", COMMAND, "rl");
+        return new CommandInfo("reload", COMMAND, "rl").setDescription("Reload Oraxen components");
     }
 
     private Reload() {
