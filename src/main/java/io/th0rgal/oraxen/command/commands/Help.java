@@ -51,8 +51,8 @@ public class Help extends OraxenCommand {
         String header = Message.COMMAND_HELP_INFO_HEADER.legacyMessage(language, Placeholder.of("label", "Commands"), Placeholder.of("page", pageHeader));
         sender.sendMessage(header);
         for (CommandInfo command : infos) {
-            Message.COMMAND_HELP_INFO_CONTENT.send(sender, language,
-                    Placeholder.of("content", Message.COMMAND_HELP_INFO_PAGE.legacyMessage(language, command.getContentPlaceholders(command.getName()))));
+            Message.COMMAND_HELP_INFO_LINE.send(sender, language,
+                    Placeholder.of("content", Message.COMMAND_HELP_INFO_CONTENT.legacyMessage(language, command.getContentPlaceholders(command.getName()))));
         }
         sender.sendMessage(header);
     }
