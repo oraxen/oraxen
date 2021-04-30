@@ -34,7 +34,7 @@ public class Sh implements HostingProvider {
     }
 
     @Override
-    public boolean uploadPack(File resourcePack) {
+    public boolean uploadPack(File resourcePack) throws Exception {
         final List<String> cmd = commands.apply(resourcePack.getPath());
         ProcessBuilder builder = new ProcessBuilder(cmd);
         final SecurityManager sm = System.getSecurityManager();
