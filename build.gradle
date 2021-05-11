@@ -5,13 +5,13 @@ plugins {
     id "idea"
     id "eclipse"
     id "maven-publish"
-    id "com.github.johnrengelman.shadow" version "6.1.0"
+    id "com.github.johnrengelman.shadow" version "7.0.0"
 }
 
 apply plugin: 'maven'
 
 group "io.th0rgal"
-def pluginVersion = "1.74.0"
+def pluginVersion = "1.75.0"
 version = pluginVersion
 
 repositories {
@@ -56,19 +56,19 @@ dependencies {
     // The Spigot API with no shadowing. Requires the OSS repo.
     compileOnly group: "org.spigotmc", name: "spigot", version: "1.16.4-R0.1-SNAPSHOT"
     compileOnly group: "org.spigotmc", name: "spigot-api", version: "1.16.5-R0.1-SNAPSHOT"
-    compileOnly group: "com.github.dmulloy2", name: "ProtocolLib", version: "4.5.1"
+    compileOnly group: "com.github.dmulloy2", name: "ProtocolLib", version: "4.6.0"
     compileOnly group: "io.lumine.xikage", name: "MythicMobs", version: "4.11.2"
     compileOnly group: "com.github.Hazebyte", name: "CrateReloadedAPI", version: "5318abfccc"
     compileOnly group: "com.sk89q.worldguard", name: "worldguard-bukkit", version: "7.0.4"
     compileOnly group: "com.github.jojodmo", name: "ItemBridge", version: "-SNAPSHOT"
     compileOnly fileTree(dir: "libs/compile", include: ["*.jar"])
     implementation fileTree(dir: "libs/implement", include: ["*.jar"])
-    implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
+    implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.190107'
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.28'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.4'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.8'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'version', version: '2.0.4'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'nbt', version: '2.0.5'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'config-base', version: '2.0.4'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'config-base', version: '2.0.8'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'alias', version: '2.0.8'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'logging', version: '2.0.4'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'exception', version: '2.0.4'

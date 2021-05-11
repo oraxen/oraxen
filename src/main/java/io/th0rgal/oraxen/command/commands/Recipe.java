@@ -46,7 +46,7 @@ public class Recipe extends OraxenCommand {
     public static final OraxenCommand COMMAND = new Recipe();
 
     public static CommandInfo info() {
-        return new CommandInfo("recipe", COMMAND);
+        return new CommandInfo("recipe", COMMAND).setDescription("Recipes related commands");
     }
 
     private Recipe() {

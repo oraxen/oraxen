@@ -4,7 +4,7 @@ import java.io.File;
 
 public interface HostingProvider {
 
-    boolean uploadPack(File resourcePack);
+    boolean uploadPack(File resourcePack) throws Exception;
 
     String getPackURL();
 

@@ -19,6 +19,7 @@ import org.bukkit.plugin.Plugin;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.ProviderNotFoundException;
+import java.security.ProviderException;
 import java.util.List;
 
 public class UploadManager {
@@ -37,6 +38,10 @@ public class UploadManager {
     }
 
     public void uploadAsyncAndSendToPlayers(ResourcePack resourcePack) {
+        uploadAsyncAndSendToPlayers(resourcePack, false);
+    }
+
+    public void uploadAsyncAndSendToPlayers(ResourcePack resourcePack, boolean updateSend) {
         if (!enabled)
             return;
         if ((boolean) Pack.RECEIVE_ENABLED.getValue() && receiver == null)
@@ -55,70 +60,81 @@ public class UploadManager {
             PackDispatcher.setSha1(hostingProvider.getSHA1());
             if (((boolean) Pack.SEND_PACK.getValue() || (boolean) Pack.SEND_JOIN_MESSAGE.getValue()) && sender == null)
                 Bukkit.getPluginManager().registerEvents(sender = new PackSender(), plugin);
+            if ((boolean) Pack.SEND_PACK.getValue() && updateSend) {
+                for(Player player : Bukkit.getOnlinePlayers()) {
+                    PackDispatcher.sendPack(player);
+                }
+            }
         });
     }
 
     private HostingProvider getHostingProvider() {
-        switch (Pack.UPLOAD_TYPE.toString().toLowerCase()) {
-        case "polymath":
-            return new Polymath(Pack.POLYMATH_SERVER.toString());
-        case "sh":
-        case "cmd":
-            final ConfigurationSection opt = (ConfigurationSection) Pack.UPLOAD_OPTIONS.getValue();
-            final List<String> args = opt.getStringList("args");
-            if (args.isEmpty())
-                throw new ProviderNotFoundException("No command line.");
-            String placeholder = opt.getString("placeholder", "${file}");
-            return new Sh(Sh.path(placeholder, args));
-        case "external":
-            Class<?> target;
-            final ConfigurationSection options = (ConfigurationSection) Pack.UPLOAD_OPTIONS.getValue();
-            String klass = options.getString("class");
-            if (klass == null)
-                throw new ProviderNotFoundException("No provider set.");
-            try {
-                target = Class.forName(klass);
-            } catch (Throwable any) {
-                ProviderNotFoundException error = new ProviderNotFoundException("Provider not found: " + klass);
-                error.addSuppressed(any);
-                throw error;
-            }
-            if (!HostingProvider.class.isAssignableFrom(target)) {
-                throw new ProviderNotFoundException(target + " is not a valid HostingProvider.");
-            }
-            Class<? extends HostingProvider> implement = target.asSubclass(HostingProvider.class);
-            Constructor<? extends HostingProvider> constructor;
-            try {
+        try {
+            switch (Pack.UPLOAD_TYPE.toString().toLowerCase()) {
+            case "polymath":
+                return new Polymath(Pack.POLYMATH_SERVER.toString());
+            case "sh":
+            case "cmd":
+                final ConfigurationSection opt = (ConfigurationSection) Pack.UPLOAD_OPTIONS.getValue();
+                final List<String> args = opt.getStringList("args");
+                if (args.isEmpty())
+                    throw new ProviderNotFoundException("No command line.");
+                String placeholder = opt.getString("placeholder", "${file}");
+                return new Sh(Sh.path(placeholder, args));
+            case "external":
+                Class<?> target;
+                final ConfigurationSection options = (ConfigurationSection) Pack.UPLOAD_OPTIONS.getValue();
+                String klass = options.getString("class");
+                if (klass == null)
+                    throw new ProviderNotFoundException("No provider set.");
                 try {
-                    constructor = implement.getConstructor(ConfigurationSection.class);
-                } catch (Exception notFound) {
-                    try {
-                        constructor = implement.getConstructor();
-                    } catch (Exception ignore) {
-                        throw notFound; // Use (Lorg/bukkit/configuration/ConfigurationSection;)V to Exception
-                    }
+                    target = Class.forName(klass);
+                } catch (Throwable any) {
+                    ProviderNotFoundException error = new ProviderNotFoundException("Provider not found: " + klass);
+                    error.addSuppressed(any);
+                    throw error;
                 }
-            } catch (Exception e) {
-                throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot found constructor in " + target)
-                    .initCause(e);
+                if (!HostingProvider.class.isAssignableFrom(target)) {
+                    throw new ProviderNotFoundException(target + " is not a valid HostingProvider.");
+                }
+                Class<? extends HostingProvider> implement = target.asSubclass(HostingProvider.class);
+                Constructor<? extends HostingProvider> constructor;
+                try {
+                    try {
+                        constructor = implement.getConstructor(ConfigurationSection.class);
+                    } catch (Exception notFound) {
+                        try {
+                            constructor = implement.getConstructor();
+                        } catch (Exception ignore) {
+                            // For catching reasons
+                            throw (ProviderNotFoundException) new ProviderNotFoundException("Invalid provider: " + target).initCause(ignore); // Use (Lorg/bukkit/configuration/ConfigurationSection;)V to Exception
+                        }
+                    }
+                } catch (Exception e) {
+                    throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot found constructor in " + target)
+                        .initCause(e);
+                }
+                try {
+                    return constructor.getParameterCount() == 0 ? constructor.newInstance()
+                        : constructor.newInstance(options);
+                } catch (InstantiationException e) {
+                    throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot alloc instance for " + target)
+                        .initCause(e);
+                } catch (IllegalAccessException e) {
+                    throw (ProviderNotFoundException) new ProviderNotFoundException("Failed to access " + target)
+                        .initCause(e);
+                } catch (InvocationTargetException e) {
+                    throw (ProviderNotFoundException) new ProviderNotFoundException("Exception in allocating instance.")
+                        .initCause(e.getCause());
+                }
+            default:
+                throw new ProviderNotFoundException("Unknown provider type: " + Pack.UPLOAD_TYPE);
             }
-            try {
-                return constructor.getParameterCount() == 0 ? constructor.newInstance()
-                    : constructor.newInstance(options);
-            } catch (InstantiationException e) {
-                throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot alloc instance for " + target)
-                    .initCause(e);
-            } catch (IllegalAccessException e) {
-                throw (ProviderNotFoundException) new ProviderNotFoundException("Failed to access " + target)
-                    .initCause(e);
-            } catch (InvocationTargetException e) {
-                throw (ProviderNotFoundException) new ProviderNotFoundException("Exception in allocating instance.")
-                    .initCause(e.getCause());
-            }
-        default:
-            throw new ProviderNotFoundException("Unknown provider type: " + Pack.UPLOAD_TYPE);
+        } catch(Exception exception) {
+            throw new ProviderException("Failed to upload resourcepack via " + Pack.UPLOAD_TYPE.toString(), exception);
+        } catch(ProviderNotFoundException exp) {
+            throw exp;
         }
-
     }
 
 }

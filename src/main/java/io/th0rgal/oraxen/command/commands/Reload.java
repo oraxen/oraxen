@@ -27,7 +27,7 @@ public class Reload extends OraxenCommand {
     public static final OraxenCommand COMMAND = new Reload();
 
     public static CommandInfo info() {
-        return new CommandInfo("reload", COMMAND, "rl");
+        return new CommandInfo("reload", COMMAND, "rl").setDescription("Reload Oraxen components");
     }
 
     private Reload() {
@@ -89,7 +89,7 @@ public class Reload extends OraxenCommand {
     private static void reloadPack(OraxenPlugin plugin, CommandSender sender) {
         Message.PACK_REGENERATED.send(sender);
         ResourcePack resourcePack = new ResourcePack(plugin);
-        plugin.getUploadManager().uploadAsyncAndSendToPlayers(resourcePack);
+        plugin.getUploadManager().uploadAsyncAndSendToPlayers(resourcePack, true);
     }
 
 }

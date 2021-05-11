@@ -70,7 +70,7 @@ public enum Message implements IMessage {
         int length = values.length - 1;
         for (int index = 0; index < values.length; index++) {
             list
-                    .add(legacy ? TextComponent.fromLegacyText(values[index].replace('&', ChatColor.COLOR_CHAR))
+                    .add(legacy ? TextComponent.fromLegacyText(ChatColor.translateAlternateColorCodes('&', values[index]))
                             : MiniMessageParser.parseFormat(values[index]));
             if (index != length)
                 list.add(line);

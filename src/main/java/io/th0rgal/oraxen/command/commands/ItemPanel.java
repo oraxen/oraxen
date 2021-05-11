@@ -24,7 +24,7 @@ public class ItemPanel extends OraxenCommand {
     public static final OraxenCommand COMMAND = new ItemPanel();
 
     public static CommandInfo info() {
-        return new CommandInfo("inventory", COMMAND, "inv");
+        return new CommandInfo("inventory", COMMAND, "inv").setDescription("Show oraxen items in an inventory");
     }
 
     private ItemPanel() {
