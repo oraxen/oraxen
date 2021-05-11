@@ -29,7 +29,7 @@ public class Pack extends OraxenCommand {
     public static final OraxenCommand COMMAND = new Pack();
 
     public static CommandInfo info() {
-        return new CommandInfo("pack", COMMAND, "menu");
+        return new CommandInfo("pack", COMMAND, "menu").setDescription("ResourcePack related commands");
     }
 
     private Pack() {

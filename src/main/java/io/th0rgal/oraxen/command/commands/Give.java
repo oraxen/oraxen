@@ -31,7 +31,7 @@ public class Give extends OraxenCommand {
     public static final OraxenCommand COMMAND = new Give();
 
     public static CommandInfo info() {
-        return new CommandInfo("give", COMMAND);
+        return new CommandInfo("give", COMMAND).setDescription("Give an Oraxen item to a player");
     }
 
     private Give() {

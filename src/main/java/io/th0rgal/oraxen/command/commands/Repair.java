@@ -34,7 +34,7 @@ public class Repair extends OraxenCommand {
     public static final OraxenCommand COMMAND = new Repair();
 
     public static CommandInfo info() {
-        return new CommandInfo("repair", COMMAND);
+        return new CommandInfo("repair", COMMAND).setDescription("Repair an Oraxen or a Vanilla item");
     }
 
     private Repair() {
