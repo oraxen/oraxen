@@ -89,7 +89,7 @@ public class Reload extends OraxenCommand {
     private static void reloadPack(OraxenPlugin plugin, CommandSender sender) {
         Message.PACK_REGENERATED.send(sender);
         ResourcePack resourcePack = new ResourcePack(plugin);
-        plugin.getUploadManager().uploadAsyncAndSendToPlayers(resourcePack);
+        plugin.getUploadManager().uploadAsyncAndSendToPlayers(resourcePack, true);
     }
 
 }

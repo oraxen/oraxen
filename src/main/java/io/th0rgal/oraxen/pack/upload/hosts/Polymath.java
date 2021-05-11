@@ -19,7 +19,7 @@ public class Polymath implements HostingProvider {
     }
 
     @Override
-    public boolean uploadPack(File resourcePack) {
+    public boolean uploadPack(File resourcePack) throws Exception {
         try {
             CUrl curl = new CUrl(serverAddress + "upload")
                     .form("id", "%%__USER__%%")
