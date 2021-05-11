@@ -25,7 +25,6 @@ public class ResourcePack {
     private static final List<Consumer<File>> PACK_MODIFIERS = new ArrayList<>();
     JavaPlugin plugin;
     private final File pack;
-    byte[] sha1;
 
     public ResourcePack(JavaPlugin plugin) {
         this.plugin = plugin;

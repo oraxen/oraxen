@@ -8,7 +8,7 @@ plugins {
     id "com.github.johnrengelman.shadow" version "7.0.0"
 }
 
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 group "io.th0rgal"
 def pluginVersion = "1.75.0"
@@ -37,7 +37,6 @@ repositories {
     maven { url 'https://maven.enginehub.org/repo/' }
     //CodeMc (bstats)
     maven { url "https://repo.codemc.org/repository/maven-public" }
-    jcenter() // needed for building shadow from protocolLib 4.5.0
 }
 
 compileJava {
