@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.provided.bigmining.BigMiningMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.bottledexp.BottledExpMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.commands.CommandsMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.consumable.ConsumableMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.custom.CustomMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.energyblast.EnergyBlastMechanicFactory;
@@ -58,6 +59,7 @@ public class MechanicsManager {
         registerMechanicFactory("skin", SkinMechanicFactory.class);
         registerMechanicFactory("skinnable", SkinnableMechanicFactory.class);
         registerMechanicFactory("itemtype", ItemTypeMechanicFactory.class);
+        registerMechanicFactory("consumable", ConsumableMechanicFactory.class);
         registerMechanicFactory("custom", CustomMechanicFactory.class);
 
         // combat

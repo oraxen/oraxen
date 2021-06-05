@@ -35,6 +35,9 @@ skin:
 skinnable:
   enabled: true
 
+consumable:
+  enabled: true
+
 # Only 1.16+
 invisible_frame:
   enabled: true
