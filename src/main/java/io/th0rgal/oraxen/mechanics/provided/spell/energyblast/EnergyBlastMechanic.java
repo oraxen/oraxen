@@ -1,7 +1,8 @@
-package io.th0rgal.oraxen.mechanics.provided.energyblast;
+package io.th0rgal.oraxen.mechanics.provided.spell.energyblast;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.spell.SpellMechanic;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.oraxen.utils.timers.TimersFactory;
 import org.bukkit.Color;
@@ -11,13 +12,12 @@ import org.bukkit.entity.Player;
 
 import java.util.Objects;
 
-public class EnergyBlastMechanic extends Mechanic {
+public class EnergyBlastMechanic extends SpellMechanic {
 
     private final Particle particle;
     private Particle.DustOptions particleColor = null;
     private final double damage;
     private final int length;
-    private final TimersFactory timersFactory;
 
     public EnergyBlastMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
@@ -34,7 +34,6 @@ public class EnergyBlastMechanic extends Mechanic {
         }
         this.damage = section.getDouble("damage");
         this.length = section.getInt("length");
-        this.timersFactory = new TimersFactory(section.getLong("delay"));
     }
 
     public Particle.DustOptions getParticleColor() {
@@ -43,10 +42,6 @@ public class EnergyBlastMechanic extends Mechanic {
 
     public double getDamage() {
         return damage;
-    }
-
-    public Timer getTimer(Player player) {
-        return timersFactory.getTimer(player);
     }
 
     public int getLength() {

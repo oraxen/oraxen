@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.mechanics.provided.witherskull;
+package io.th0rgal.oraxen.mechanics.provided.spell.witherskull;
 
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -44,6 +44,7 @@ public class WitherSkullMechanicListener implements Listener {
             return;
         }
         playerTimer.reset();
+        mechanic.removeCharge(item);
         Location spawningLocation = player.getLocation().add(0, 1, 0);
         Vector direction = player.getLocation().getDirection();
         spawningLocation.add(direction.normalize().multiply(2));
