@@ -38,7 +38,11 @@ public abstract class SpellMechanic extends Mechanic {
                         return item;
                     }
                     List<String> lore = new ArrayList<>();
-                    lore.add("Charges " + section.getInt("charges") + "/" + section.getInt("charges"));
+                    if(item.getLore() != null && !item.getLore().isEmpty()){
+                        lore = item.getLore();
+                        lore.add(0,"");
+                    }
+                    lore.add(0,"Charges " + section.getInt("charges") + "/" + section.getInt("charges"));
                     return item.setLore(lore);
                 });
 
@@ -74,8 +78,12 @@ public abstract class SpellMechanic extends Mechanic {
             }
 
             persistentDataContainer.set(NAMESPACED_KEY, PersistentDataType.INTEGER, chargesLeft - 1);
-            List<String> lore = new ArrayList<>();
-            lore.add("Charges " + (chargesLeft - 1) + "/" + this.getMaxCharges());
+
+            if(!item.getItemMeta().hasLore()){
+                return;
+            }
+            List<String> lore = item.getItemMeta().getLore();
+            lore.set(0, "Charges " + (chargesLeft - 1) + "/" + this.getMaxCharges());
             itemMeta.setLore(lore);
             item.setItemMeta(itemMeta);
         }
