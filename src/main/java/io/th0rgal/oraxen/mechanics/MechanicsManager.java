@@ -22,6 +22,7 @@ import io.th0rgal.oraxen.mechanics.provided.skin.SkinMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.skinnable.SkinnableMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.smelting.SmeltingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.soulbound.SoulBoundMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.spell.fireball.FireballMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.spell.thor.ThorMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.spell.witherskull.WitherSkullMechanicFactory;
 import io.th0rgal.oraxen.settings.ConfigUpdater;
@@ -60,6 +61,7 @@ public class MechanicsManager {
         registerMechanicFactory("skinnable", SkinnableMechanicFactory.class);
         registerMechanicFactory("itemtype", ItemTypeMechanicFactory.class);
         registerMechanicFactory("consumable", ConsumableMechanicFactory.class);
+        registerMechanicFactory("fireball", FireballMechanicFactory.class);
         registerMechanicFactory("custom", CustomMechanicFactory.class);
 
         // combat
