@@ -145,6 +145,10 @@ public class ItemBuilder {
         return this;
     }
 
+    public List<String> getLore() {
+        return this.lore;
+    }
+
     public ItemBuilder setUnbreakable(boolean unbreakable) {
         this.unbreakable = unbreakable;
         return this;

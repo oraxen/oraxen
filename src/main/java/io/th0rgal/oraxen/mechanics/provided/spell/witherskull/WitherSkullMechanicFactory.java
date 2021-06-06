@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.mechanics.provided.witherskull;
+package io.th0rgal.oraxen.mechanics.provided.spell.witherskull;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;

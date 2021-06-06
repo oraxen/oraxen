@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.mechanics.provided.energyblast;
+package io.th0rgal.oraxen.mechanics.provided.spell.energyblast;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
@@ -67,7 +67,7 @@ public class EnergyBlastMechanicManager implements Listener {
             Location loc = destination.add(direction);
             spawnParticle(loc.getWorld(), loc, mechanic);
         }
-
+        mechanic.removeCharge(item);
         playEffect(player, mechanic);
     }
 
