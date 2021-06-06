@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'maven-publish'
 
 group "io.th0rgal"
-def pluginVersion = "1.75.1"
+def pluginVersion = "1.76.0"
 version = pluginVersion
 
 repositories {
