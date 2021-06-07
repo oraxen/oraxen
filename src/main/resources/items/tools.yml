@@ -31,7 +31,7 @@ obsidian_pickaxe:
     generate_model: true
     parent_model: "item/handheld"
     textures:
-      - obsidian_pickaxe.png
+      - default/obsidian_pickaxe.png
   Mechanics:
     durability:
       value: 15000 #diamond sword is 1561
@@ -43,7 +43,7 @@ bedrock_pickaxe:
     - "&8» &7Mine bedrock blocks"
   Pack:
     generate_model: false
-    model: bedrock_pickaxe
+    model: default/bedrock_pickaxe
   Mechanics:
     durability:
       value: 5000 #diamond sword is 1561
@@ -61,7 +61,7 @@ emerald_hammer:
     generate_model: true
     parent_model: "item/handheld"
     textures:
-      - emerald_hammer.png
+      - default/emerald_hammer.png
   Mechanics:
     bigmining:
       radius: 1
@@ -76,7 +76,7 @@ amethyst_hammer:
     generate_model: true
     parent_model: "item/handheld"
     textures:
-      - amethyst_hammer.png
+      - default/amethyst_hammer.png
   Mechanics:
     bigmining:
       radius: 1
@@ -91,7 +91,7 @@ onyx_hammer:
     generate_model: true
     parent_model: "item/handheld"
     textures:
-      - onyx_hammer.png
+      - default/onyx_hammer.png
   Mechanics:
     durability:
       value: 3122
@@ -108,7 +108,7 @@ orax_hammer:
     generate_model: true
     parent_model: "item/handheld"
     textures:
-      - orax_hammer.png
+      - default/orax_hammer.png
   Mechanics:
     durability:
       value: 4683
@@ -126,7 +126,7 @@ fire_hammer:
     generate_model: true
     parent_model: "item/handheld"
     textures:
-      - fire_hammer.png
+      - default/fire_hammer.png
   Mechanics:
     smelting:
       enabled: true
@@ -147,7 +147,7 @@ iron_cog:
     generate_model: true
     parent_model: "item/handheld"
     textures:
-      - iron_cog.png
+      - default/iron_cog.png
   Mechanics:
     repair:
       ratio: 0.10
@@ -162,7 +162,7 @@ gold_cog:
     generate_model: true
     parent_model: "item/handheld"
     textures:
-      - gold_cog.png
+      - default/gold_cog.png
   Mechanics:
     repair:
       ratio: 0.50
@@ -177,7 +177,7 @@ diamond_cog:
     generate_model: true
     parent_model: "item/handheld"
     textures:
-      - diamond_cog.png
+      - default/diamond_cog.png
   Mechanics:
     repair:
       ratio: 1.0
@@ -189,7 +189,7 @@ iron_serpe:
     generate_model: true
     parent_model: "item/handheld"
     textures:
-      - iron_serpe.png
+      - default/iron_serpe.png
   Mechanics:
     harvesting:
       radius: 5

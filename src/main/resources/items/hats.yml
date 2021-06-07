@@ -32,7 +32,7 @@ anubis_head:
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
   Pack:
     generate_model: false
-    model: anubis_head # .json extension is not mandatory
+    model: default/anubis_head # .json extension is not mandatory
   Mechanics:
     hat:
       enabled: true
@@ -51,7 +51,7 @@ crown:
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
   Pack:
     generate_model: false
-    model: crown
+    model: default/crown
   Mechanics:
     hat:
       enabled: true
@@ -64,7 +64,7 @@ pharaoh_head:
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
   Pack:
     generate_model: false
-    model: pharaoh_head
+    model: default/pharaoh_head
   Mechanics:
     hat:
       enabled: true
@@ -77,7 +77,7 @@ witch_hat:
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
   Pack:
     generate_model: false
-    model: witch_hat
+    model: default/witch_hat
   Mechanics:
     hat:
       enabled: true
@@ -87,7 +87,7 @@ space_helmet:
   material: DIAMOND
   Pack:
     generate_model: false
-    model: space_helmet
+    model: default/space_helmet
   Mechanics:
     hat:
       enabled: true

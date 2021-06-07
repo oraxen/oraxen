@@ -87,7 +87,7 @@ amethyst:
     generate_model: true
     parent_model: "item/generated"
     textures:
-      - amethyst.png # .png extension is not mandatory
+      - default/amethyst.png # .png extension is not mandatory
 
 ruby:
   displayname: "&cRuby"
@@ -96,7 +96,7 @@ ruby:
     generate_model: true
     parent_model: "item/generated"
     textures:
-      - ruby.png # .png extension is not mandatory
+      - default/ruby.png # .png extension is not mandatory
 
 onyx:
   displayname: "&8Onyx"
@@ -105,7 +105,7 @@ onyx:
     generate_model: true
     parent_model: "item/generated"
     textures:
-      - onyx.png # .png extension is not mandatory
+      - default/onyx.png # .png extension is not mandatory
 
 orax:
   displayname: "&bOrax"
@@ -114,7 +114,7 @@ orax:
     generate_model: true
     parent_model: "item/generated"
     textures:
-      - orax.png # .png extension is not mandatory
+      - default/orax.png # .png extension is not mandatory
 
 fire:
   displayname: "&6Fire"

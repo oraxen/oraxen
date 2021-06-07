@@ -23,6 +23,16 @@ block:
     - NETHERITE
   enabled: true
 
+noteblock:
+  tool_types:
+    - WOODEN
+    - STONE
+    - IRON
+    - GOLDEN
+    - DIAMOND
+    - NETHERITE
+  enabled: true
+
 hat:
   enabled: true
 
