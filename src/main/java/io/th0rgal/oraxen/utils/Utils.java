@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.utils;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.settings.Plugin;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.MultipleFacing;
 
@@ -105,5 +106,9 @@ public class Utils {
             e.printStackTrace();
         }
     }
+
+    public static final List<Material> REPLACEABLE_BLOCKS = Arrays
+            .asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,
+                    Material.LARGE_FERN);
 
 }
