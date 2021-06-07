@@ -1,15 +1,12 @@
 package io.th0rgal.oraxen.mechanics.provided.noteblock;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,9 +16,6 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.Arrays;
-import java.util.List;
-
 public class NoteBlockMechanicListener implements Listener {
 
     private final MechanicFactory factory;
@@ -30,23 +24,25 @@ public class NoteBlockMechanicListener implements Listener {
         this.factory = factory;
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onBlockEvent(BlockBreakEvent event) {
-        Block upperBlock = event.getBlock().getWorld().getBlockAt(event.getBlock().getLocation().add(0, 1, 0));
-        if (upperBlock.getType() == Material.NOTE_BLOCK) {
-            NoteBlock blockData = (NoteBlock) upperBlock.getBlockData().clone();
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
-                upperBlock.setBlockData(blockData);
-            }, 0L);
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBlockPhysics(BlockPhysicsEvent event) {
+        Block aboveBlock = event.getBlock().getLocation().add(0, 1, 0).getBlock();
+        if (aboveBlock.getType() == Material.NOTE_BLOCK) {
+            updateAndCheck(event.getBlock().getLocation());
+            event.setCancelled(true);
         }
+        if (event.getBlock().getType() == Material.NOTE_BLOCK)
+            event.setCancelled(true);
+        event.getBlock().getState().update(true, false);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onNoteblocksPhysics(BlockPhysicsEvent event) {
-        if (event.getChangedType() == Material.NOTE_BLOCK) {
-            event.setCancelled(true);
-            event.getBlock().getState().update(true, false);
-        }
+    public void updateAndCheck(Location loc) {
+        Block block = loc.add(0, 1, 0).getBlock();
+        if (block.getType() == Material.NOTE_BLOCK)
+            block.getState().update(true, true);
+        Location nextBlock = block.getLocation().add(0, 1, 0);
+        if (nextBlock.getBlock().getType() == Material.NOTE_BLOCK)
+            updateAndCheck(block.getLocation());
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
