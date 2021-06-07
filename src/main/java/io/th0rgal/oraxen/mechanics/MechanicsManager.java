@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.provided.commands.CommandsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.consumable.ConsumableMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.custom.CustomMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.spell.energyblast.EnergyBlastMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.harvesting.HarvestingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.hat.HatMechanicFactory;
@@ -55,6 +56,7 @@ public class MechanicsManager {
         registerMechanicFactory("commands", CommandsMechanicFactory.class);
         registerMechanicFactory("potioneffects", PotionEffectsMechanicFactory.class);
         registerMechanicFactory("block", BlockMechanicFactory.class);
+        registerMechanicFactory("noteblock", NoteBlockMechanicFactory.class);
         registerMechanicFactory("hat", HatMechanicFactory.class);
         registerMechanicFactory("soulbound", SoulBoundMechanicFactory.class);
         registerMechanicFactory("skin", SkinMechanicFactory.class);
