@@ -13,6 +13,9 @@ commands:
 armorpotioneffects:
   enabled: true
 
+consumablepotioneffects:
+  enabled: true
+
 # legacy blocks using mushroom stems
 block:
   tool_types:

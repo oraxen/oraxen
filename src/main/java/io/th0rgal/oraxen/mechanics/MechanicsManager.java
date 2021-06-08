@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.mechanics.provided.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.bottledexp.BottledExpMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.commands.CommandsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.consumable.ConsumableMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.consumablepotioneffects.ConsumablePotionEffectsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.custom.CustomMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.noteblock.NoteBlockMechanicFactory;
@@ -55,6 +56,7 @@ public class MechanicsManager {
         registerMechanicFactory("repair", RepairMechanicFactory.class);
         registerMechanicFactory("commands", CommandsMechanicFactory.class);
         registerMechanicFactory("armorpotioneffects", ArmorPotionEffectsMechanicFactory.class);
+        registerMechanicFactory("consumablepotioneffects", ConsumablePotionEffectsMechanicFactory.class);
         registerMechanicFactory("block", BlockMechanicFactory.class);
         registerMechanicFactory("noteblock", NoteBlockMechanicFactory.class);
         registerMechanicFactory("hat", HatMechanicFactory.class);
