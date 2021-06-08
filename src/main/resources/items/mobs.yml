@@ -28,4 +28,4 @@ goblin_beetle:
   excludeFromInventory: true
   Pack:
     generate_model: false
-    model: goblin_beetle
+    model: default/goblin_beetle

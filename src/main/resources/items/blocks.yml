@@ -28,17 +28,17 @@ caveblock:
   material: DIAMOND
   Pack:
     generate_model: false # because this is a block, a 2nd model pointing to specified one will be generated anyway
-    model: caveblock
+    model: default/caveblock
   Mechanics:
-    block:
+    noteblock:
       break_sound: BLOCK_GLASS_BREAK
-      custom_variation: 1
-      model: caveblock
+      custom_variation: 0
+      model: default/caveblock
       drop:
         silktouch: false # enable if you want to cancel loots and drop the block when a silktouch pickaxe is used
         minimal_type: STONE
         loots:
-          - {oraxen_item: caveblock, probability: 1.0} # item_section: probability of loot
+          - { oraxen_item: caveblock, probability: 1.0 } # item_section: probability of loot
 
 amethyst_ore:
   displayname: '&dAmethyst Ore'
@@ -47,11 +47,11 @@ amethyst_ore:
     generate_model: true
     parent_model: block/cube_all
     textures:
-      - amethyst_ore
+      - default/amethyst_ore
   Mechanics:
-    block:
+    noteblock:
       break_sound: BLOCK_STONE_BREAK
-      custom_variation: 2
+      custom_variation: 1
       model: amethyst_ore
       drop:
         silktouch: true
@@ -68,11 +68,11 @@ ruby_ore:
     generate_model: true
     parent_model: block/cube_all
     textures:
-      - ruby_ore
+      - default/ruby_ore
   Mechanics:
-    block:
+    noteblock:
       break_sound: BLOCK_STONE_BREAK
-      custom_variation: 3
+      custom_variation: 2
       model: ruby_ore
       drop:
         silktouch: true
@@ -89,11 +89,11 @@ onyx_ore:
     generate_model: true
     parent_model: block/cube_all
     textures:
-      - onyx_ore
+      - default/onyx_ore
   Mechanics:
-    block:
+    noteblock:
       break_sound: BLOCK_STONE_BREAK
-      custom_variation: 4
+      custom_variation: 3
       model: onyx_ore
       drop:
         silktouch: true
@@ -110,11 +110,11 @@ orax_ore:
     generate_model: true
     parent_model: block/cube_all
     textures:
-      - orax_ore
+      - default/orax_ore
   Mechanics:
-    block:
+    noteblock:
       break_sound: BLOCK_STONE_BREAK
-      custom_variation: 5
+      custom_variation: 4
       model: orax_ore
       drop:
         silktouch: true

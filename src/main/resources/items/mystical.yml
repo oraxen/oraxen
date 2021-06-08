@@ -27,7 +27,7 @@ legendary_hammer:
   material: DIAMOND_PICKAXE
   Pack:
     generate_model: false
-    model: legendary_hammer
+    model: default/legendary_hammer
   Mechanics:
     durability:
       value: 10000 #diamond sword is 1561
@@ -37,14 +37,14 @@ earth_hammer:
   material: DIAMOND_PICKAXE
   Pack:
     generate_model: false
-    model: earth_hammer
+    model: default/earth_hammer
 
 magical_wand:
   displayname: "&bMagical Wand"
   material: WOODEN_HOE
   Pack:
     generate_model: false
-    model: magical_wand
+    model: default/magical_wand
   Mechanics:
     energyblast:
       delay: 20000
@@ -65,7 +65,7 @@ magical_axe:
     - "&8» &7Convert experience to bottles"
   Pack:
     generate_model: false
-    model: magical_axe
+    model: default/magical_axe
   Mechanics:
     bottledexp: # Because exp converting is cheated
       ratio: 0.95 # So you'll lose 1/20 of your exp by converting it
@@ -75,14 +75,14 @@ ice_staff:
   material: WOODEN_HOE
   Pack:
     generate_model: false
-    model: ice_staff
+    model: default/ice_staff
 
 cristal_axe:
   displayname: "&bCristal Axe"
   material: DIAMOND_AXE
   Pack:
     generate_model: false
-    model: cristal_axe
+    model: default/cristal_axe
 
 battle_axe:
   displayname: '&6Battle Axe'
@@ -96,7 +96,7 @@ battle_axe:
       slot: HAND
   Pack:
     generate_model: false
-    model: battle_axe
+    model: default/battle_axe
 
 withooker:
   displayname: "&bWithooker"
@@ -104,7 +104,7 @@ withooker:
   unbreakable: true
   Pack:
     generate_model: false
-    model: withooker
+    model: default/withooker
   Mechanics:
     witherskull:
       charged: false
@@ -115,15 +115,15 @@ divine_shield:
   material: SHIELD
   Pack:
     generate_model: false
-    model: divine_shield
-    blocking_model: divine_shield_blocking
+    model: default/divine_shield
+    blocking_model: default/divine_shield_blocking
 
 magic_book:
   displayname: '&bMagic Book'
   material: DIAMOND_SWORD
   Pack:
     generate_model: false
-    model: magic_book
+    model: default/magic_book
   Mechanics:
     energyblast:
       delay: 20000

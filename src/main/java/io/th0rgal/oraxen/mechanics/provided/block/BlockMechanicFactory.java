@@ -46,7 +46,7 @@ public class BlockMechanicFactory extends MechanicFactory {
         JsonObject mushroomStem = new JsonObject();
         JsonArray multipart = new JsonArray();
         // adds default override
-        multipart.add(getBlockstateOverride("mushroom_stem", 15));
+        multipart.add(getBlockstateOverride("required/mushroom_stem", 15));
         for (JsonObject override : MUSHROOM_STEM_BLOCKSTATE_OVERRIDES)
             multipart.add(override);
         mushroomStem.add("multipart", multipart);

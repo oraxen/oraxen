@@ -34,7 +34,7 @@ storm_sword:
     - "&8» &7Right click to strike lightning"
   Pack:
     generate_model: false
-    model: storm_sword
+    model: default/storm_sword
   Mechanics:
     thor:
       lightning_bolts_amount: 5
@@ -51,7 +51,7 @@ energy_crystal_sword:
     - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
   Pack:
     generate_model: false
-    model: energy_crystal_sword
+    model: default/energy_crystal_sword
 
 glass_sword:
   displayname: "&fGlass Sword"
@@ -67,7 +67,7 @@ glass_sword:
     generate_model: true
     parent_model: "item/handheld"
     textures:
-      - glass_sword.png
+      - default/glass_sword.png
   Mechanics:
     durability:
       value: 8
@@ -86,7 +86,7 @@ obsidian_sword:
     generate_model: true
     parent_model: "item/handheld"
     textures:
-      - obsidian_sword.png
+      - default/obsidian_sword.png
   Mechanics:
     durability:
       value: 10000
@@ -103,7 +103,7 @@ blood_sword:
     - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 1.6, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
   Pack:
     generate_model: false
-    model: blood_sword
+    model: default/blood_sword
   Mechanics:
     lifeleech:
       amount: 2 # the amount of 1/2 hearts that you'll steal to your opponents
@@ -115,7 +115,7 @@ octavia_sword:
   material: DIAMOND_SWORD
   Pack:
     generate_model: false
-    model: octavia_sword
+    model: default/octavia_sword
   Mechanics:
     durability:
       value: 600 #diamond sword is 1561
@@ -125,7 +125,7 @@ dagger:
   material: DIAMOND_SWORD
   Pack:
     generate_model: false
-    model: dagger
+    model: default/dagger
   Mechanics:
     durability:
       value: 10 #diamond sword is 1561
@@ -140,7 +140,7 @@ katana:
     - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 5, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
   Pack:
     generate_model: false
-    model: katana
+    model: default/katana
   Mechanics:
     durability:
       value: 1000 #diamond sword is 1561
@@ -157,8 +157,8 @@ combat_bow:
       slot: HAND
   Pack:
     generate_model: false
-    model: combat_bow
+    model: default/combat_bow
     pulling_models:
-      - "combat_bow_pulling_0"
-      - "combat_bow_pulling_1"
-      - "combat_bow_pulling_2"
+      - default/combat_bow_pulling_0
+      - default/combat_bow_pulling_1
+      - default/combat_bow_pulling_2

@@ -8,7 +8,7 @@ great_sword:
   material: DIAMOND_SWORD
   Pack:
     generate_model: false
-    model: great_sword
+    model: default/great_sword
   Mechanics:
     skin:
       consume: true
@@ -18,7 +18,7 @@ bone_sword:
   material: DIAMOND_SWORD
   Pack:
     generate_model: false
-    model: bone_sword
+    model: default/bone_sword
   Mechanics:
     skin:
       consume: true
@@ -28,7 +28,7 @@ wood_sword:
   material: DIAMOND_SWORD
   Pack:
     generate_model: false
-    model: wood_sword
+    model: default/wood_sword
   Mechanics:
     skin:
       consume: true
