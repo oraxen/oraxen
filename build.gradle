@@ -5,7 +5,7 @@ plugins {
     id "idea"
     id "eclipse"
     id "maven-publish"
-    id "com.github.johnrengelman.shadow" version "7.0.0"
+    id "com.github.johnrengelman.shadow" version "+"
 }
 
 apply plugin: 'maven-publish'
@@ -109,3 +109,15 @@ shadowJar {
 
 compileJava.dependsOn clean
 build.dependsOn shadowJar
+publishing {
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = "https://maven.pkg.github.com/oraxen/Oraxen"
+            credentials {
+                username = System.getenv("GITHUB_ACTOR")
+                password = System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
+}
