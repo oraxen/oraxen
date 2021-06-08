@@ -120,4 +120,9 @@ publishing {
             }
         }
     }
+    publications {
+        grp(MavenPublication) {
+            from(components.java)
+        }
+    }
 }
