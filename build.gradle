@@ -68,7 +68,7 @@ dependencies {
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.28'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.8'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'version', version: '2.0.10'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'nbt', version: '2.0.5'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'nbt', version: '2.0.10'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'config-base', version: '2.0.8'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'alias', version: '2.0.9'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'logging', version: '2.0.9'
