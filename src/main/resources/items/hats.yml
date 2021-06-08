@@ -36,7 +36,7 @@ anubis_head:
   Mechanics:
     hat:
       enabled: true
-    potioneffects:
+    armorpotioneffects:
       night_vision:
         amplifier: 0
         ambient: true # Makes potion effect produce more, translucent, particles.

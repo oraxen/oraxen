@@ -10,7 +10,7 @@ repair:
 commands:
   enabled: true
 
-potioneffects:
+armorpotioneffects:
   enabled: true
 
 # legacy blocks using mushroom stems

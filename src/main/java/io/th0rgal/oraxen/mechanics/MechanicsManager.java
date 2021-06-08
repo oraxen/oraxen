@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.command.condition.ICondition;
+import io.th0rgal.oraxen.mechanics.provided.armorpotioneffects.ArmorPotionEffectsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.bedrockbreak.BedrockBreakMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.bigmining.BigMiningMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.block.BlockMechanicFactory;
@@ -17,7 +18,6 @@ import io.th0rgal.oraxen.mechanics.provided.hat.HatMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.invisibleitemframe.InvisibleItemFrameFactory;
 import io.th0rgal.oraxen.mechanics.provided.itemtype.ItemTypeMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.lifeleech.LifeLeechMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.potioneffects.PotionEffectsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.repair.RepairMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.skin.SkinMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.skinnable.SkinnableMechanicFactory;
@@ -54,7 +54,7 @@ public class MechanicsManager {
         registerMechanicFactory("durability", DurabilityMechanicFactory.class);
         registerMechanicFactory("repair", RepairMechanicFactory.class);
         registerMechanicFactory("commands", CommandsMechanicFactory.class);
-        registerMechanicFactory("potioneffects", PotionEffectsMechanicFactory.class);
+        registerMechanicFactory("armorpotioneffects", ArmorPotionEffectsMechanicFactory.class);
         registerMechanicFactory("block", BlockMechanicFactory.class);
         registerMechanicFactory("noteblock", NoteBlockMechanicFactory.class);
         registerMechanicFactory("hat", HatMechanicFactory.class);
