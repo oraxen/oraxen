@@ -72,7 +72,7 @@ dependencies {
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'config-base', version: '2.0.8'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'alias', version: '2.0.9'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'logging', version: '2.0.9'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'exception', version: '2.0.8'
+    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'exception', version: '2.0.9'
 }
 
 processResources {
