@@ -22,6 +22,9 @@
     <a href="https://docs.oraxen.com/" alt="Docs (gitbook)">
         <img src="https://img.shields.io/badge/docs-gitbook-brightgreen"/>
     </a>
+    <a href="https://github.com/oraxen/Oraxen/actions" alt="Action Status (Github)">
+        <img src="https://github.com/oraxen/Oraxen/actions/workflows/build.yml/badge.svg">
+    </a>
 </p>
 
 ## What is it?
