@@ -1,4 +1,4 @@
-name: Java CI
+name: Oraxen Build Java 16
 
 on: [push]
 
