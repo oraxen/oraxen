@@ -46,14 +46,14 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     private String getBlockstateContent() {
-        JsonObject mushroomStem = new JsonObject();
+        JsonObject noteblock = new JsonObject();
         JsonArray multipart = new JsonArray();
         // adds default override
         multipart.add(getBlockstateOverride("required/note_block", "harp"));
         for (JsonObject override : BLOCKSTATE_OVERRIDES)
             multipart.add(override);
-        mushroomStem.add("multipart", multipart);
-        return mushroomStem.toString();
+        noteblock.add("multipart", multipart);
+        return noteblock.toString();
     }
 
     public static String getInstrumentName(int id) {
