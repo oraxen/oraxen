@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'maven-publish'
 
 group "io.th0rgal"
-def pluginVersion = "1.77.1"
+def pluginVersion = "1.78.0"
 ext.jitpackGroup = group + ".oraxen"
 ext.jitpackVersion = 'main-' + pluginVersion
 version = pluginVersion

@@ -16,7 +16,7 @@ public enum Variable implements IVariable {
     //
     PREFIX(true, "&bOraxen &8|&7"),
 
-    // Time Units
+    // Time UnitsS
     TIME_UNIT_NANOSECONDS("NanoSeconds"),
     TIME_UNIT_MICROSECONDS("MicroSeconds"),
     TIME_UNIT_MILLISECONDS("MilliSeconds"),
