@@ -31,9 +31,11 @@ public class NoteBlockMechanicListener implements Listener {
             updateAndCheck(event.getBlock().getLocation());
             event.setCancelled(true);
         }
-        if (event.getBlock().getType() == Material.NOTE_BLOCK)
+        if (event.getBlock().getType() == Material.NOTE_BLOCK) {
             event.setCancelled(true);
-        event.getBlock().getState().update(true, false);
+            event.getBlock().getState().update(true, false);
+        }
+
     }
 
     public void updateAndCheck(Location loc) {
