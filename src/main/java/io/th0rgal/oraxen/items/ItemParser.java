@@ -1,16 +1,11 @@
 package io.th0rgal.oraxen.items;
 
-import com.syntaxphoenix.syntaxapi.nbt.*;
-import com.syntaxphoenix.syntaxapi.nbt.tools.MojangsonParseException;
-import com.syntaxphoenix.syntaxapi.nbt.tools.MojangsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.language.Message;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.settings.Plugin;
 import io.th0rgal.oraxen.utils.Utils;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -132,21 +127,6 @@ public class ItemParser {
                 item
                         .addEnchant(EnchantmentWrapper.getByKey(NamespacedKey.minecraft(enchant)),
                                 enchantSection.getInt(enchant));
-        }
-
-        if (section.isString("NBTData")) {
-            NbtNamedTag rootTag;
-            try {
-                rootTag = MojangsonParser.parse(section.getString("NBTData"));
-                if (rootTag.getTag() != null && rootTag.getTag().getType() == NbtType.COMPOUND) {
-                    NbtCompound compound = (NbtCompound) rootTag.getTag(); // Because we need a compound
-                    for (String key : compound.getKeys()) {
-                        item.setNbtTag(key, compound.get(key));
-                    }
-                }
-            } catch (MojangsonParseException ignore) {
-                Message.INVALID_NBT_VALUE.send(Bukkit.getConsoleSender());
-            }
         }
 
         if (section.isConfigurationSection("Mechanics")) {
