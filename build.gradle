@@ -29,8 +29,6 @@ repositories {
     maven { url "https://repo.dmulloy2.net/nexus/repository/public/" }
     //Minecraft repo (commodore)
     maven { url "https://libraries.minecraft.net/" }
-    //MythicMobs
-    maven { url "https://mvn.lumine.io/repository/maven-public/" }
     //PlaceHolderAPI
     maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
     //EffectLib
@@ -44,7 +42,6 @@ repositories {
 compileJava {
     options.compilerArgs += ["-parameters"]
     options.fork = true
-    options.forkOptions.executable = 'javac'
     options.encoding = "UTF-8"
 }
 
@@ -58,7 +55,6 @@ dependencies {
     compileOnly group: "org.spigotmc", name: "spigot", version: "1.16.5-R0.1-SNAPSHOT"
     compileOnly group: "org.spigotmc", name: "spigot-api", version: "1.16.5-R0.1-SNAPSHOT"
     compileOnly group: "com.github.dmulloy2", name: "ProtocolLib", version: "4.6.0"
-    compileOnly group: "io.lumine.xikage", name: "MythicMobs", version: "4.12.0"
     compileOnly group: "com.github.Hazebyte", name: "CrateReloadedAPI", version: "5318abfccc"
     compileOnly group: "com.sk89q.worldguard", name: "worldguard-bukkit", version: "7.0.5"
     compileOnly group: "com.github.jojodmo", name: "ItemBridge", version: "-SNAPSHOT"
