@@ -87,7 +87,6 @@ java {
 }
 
 shadowJar {
-    relocate "org.bstats.bukkit", "io.th0rgal.oraxen.shaded.bstats"
     relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.shaded.syntaxapi"
     relocate "org.yaml.snakeyaml", "io.th0rgal.oraxen.shaded.snakeyaml"
     minimize {
