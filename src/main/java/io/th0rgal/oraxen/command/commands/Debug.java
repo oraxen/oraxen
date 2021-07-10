@@ -13,7 +13,6 @@ import io.th0rgal.oraxen.command.MinecraftInfo;
 import io.th0rgal.oraxen.command.OraxenCommand;
 import io.th0rgal.oraxen.command.permission.OraxenPermission;
 import io.th0rgal.oraxen.utils.OS;
-import io.th0rgal.oraxen.utils.reflection.ReflectionProvider;
 
 public final class Debug extends OraxenCommand {
 
@@ -51,8 +50,6 @@ public final class Debug extends OraxenCommand {
 
         JsonObject minecraftJson = new JsonObject();
         minecraftJson.addProperty("name", Bukkit.getVersion());
-        minecraftJson.addProperty("server", ReflectionProvider.ORAXEN.getServerVersion().toString());
-        minecraftJson.addProperty("minecraft", ReflectionProvider.ORAXEN.getMinecraftVersion().toString());
 
         report.add("operating_system", operatingSystemJson);
         report.add("plugin", pluginJson);
