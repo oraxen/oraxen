@@ -380,7 +380,6 @@ public class ItemBuilder {
         int rest = max == amount ? amount : amount % max;
         int iterations = amount > max ? (amount - rest) / max : 0;
         ItemStack[] output = new ItemStack[iterations + (rest > 0 ? 1 : 0)];
-        System.out.println(max + "/" + rest + "/" + iterations);
         for (int index = 0; index < iterations; index++) {
             ItemStack clone = built.clone();
             clone.setAmount(max);
