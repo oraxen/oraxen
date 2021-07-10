@@ -2,11 +2,6 @@ package io.th0rgal.oraxen.items;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
-import com.syntaxphoenix.syntaxapi.nbt.NbtCompound;
-import com.syntaxphoenix.syntaxapi.nbt.NbtTag;
-import com.syntaxphoenix.syntaxapi.nbt.NbtType;
-
-import io.th0rgal.oraxen.utils.reflection.ItemTools;
 
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -52,9 +47,6 @@ public class ItemBuilder {
     private List<String> lore;
     private final PersistentDataContainer persistentDataContainer;
     private final Map<Enchantment, Integer> enchantments;
-
-    private final NbtCompound overrideData;
-    private final NbtCompound customItemData;
 
     public ItemBuilder(Material material) {
         this(new ItemStack(material));
@@ -113,11 +105,6 @@ public class ItemBuilder {
             this.lore = itemMeta.getLore();
 
         this.persistentDataContainer = itemMeta.getPersistentDataContainer();
-
-        this.overrideData = ItemTools.toNbtCompound(itemStack);
-        this.customItemData = overrideData.hasKey("oraxenData", NbtType.COMPOUND)
-                ? overrideData.getCompound("oraxenData")
-                : new NbtCompound();
 
         this.enchantments = new HashMap<>();
 
@@ -206,38 +193,6 @@ public class ItemBuilder {
         return this;
     }
 
-    public ItemBuilder setOverrideTag(String name, NbtTag tag) {
-        overrideData.set(name, tag);
-        return this;
-    }
-
-    public ItemBuilder setOverrideTags(NbtCompound compound) {
-        overrideData.getValue().putAll(compound.getValue());
-        return this;
-    }
-
-    public NbtTag getOverrideTag(String name) {
-        return overrideData.get(name);
-    }
-
-    public ItemBuilder setNbtTag(String name, NbtTag tag) {
-        customItemData.set(name, tag);
-        return this;
-    }
-
-    public NbtCompound getNbtData(boolean override) {
-        return override ? overrideData : customItemData;
-    }
-
-    public ItemBuilder setNbtTags(NbtCompound compound) {
-        customItemData.getValue().putAll(compound.getValue());
-        return this;
-    }
-
-    public NbtTag getNbtTag(String name) {
-        return customItemData.get(name);
-    }
-
     public ItemBuilder addItemFlags(ItemFlag... itemFlags) {
         if (this.itemFlags == null)
             this.itemFlags = new HashSet<>();
@@ -308,12 +263,7 @@ public class ItemBuilder {
     @SuppressWarnings("unchecked")
     public ItemBuilder regen() {
 
-        ItemStack itemStack = ItemTools.fromNbtCompound(overrideData);
-
-        overrideData.remove("oraxenData");
-
-        if (!customItemData.isEmpty())
-            overrideData.set("oraxenData", customItemData);
+        ItemStack itemStack = this.itemStack;
 
         /*
          * CHANGING ITEM
@@ -430,7 +380,6 @@ public class ItemBuilder {
         int rest = max == amount ? amount : amount % max;
         int iterations = amount > max ? (amount - rest) / max : 0;
         ItemStack[] output = new ItemStack[iterations + (rest > 0 ? 1 : 0)];
-        System.out.println(max + "/" + rest + "/" + iterations);
         for (int index = 0; index < iterations; index++) {
             ItemStack clone = built.clone();
             clone.setAmount(max);

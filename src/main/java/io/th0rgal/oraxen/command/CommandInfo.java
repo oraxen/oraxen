@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.command;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.function.Function;
 
 import io.th0rgal.oraxen.language.LanguageProvider;
@@ -16,7 +17,6 @@ import io.th0rgal.oraxen.language.DescriptionType;
 import io.th0rgal.oraxen.language.Message;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.general.Placeholder;
-import io.th0rgal.oraxen.utils.reflection.JavaTools;
 
 public class CommandInfo {
 
@@ -112,8 +112,8 @@ public class CommandInfo {
         return alias.getAliases();
     }
 
-    public ArrayList<String> getAliasesAsList() {
-        return JavaTools.asList(getAliases());
+    public List<String> getAliasesAsList() {
+        return Arrays.asList(getAliases());
     }
 
     public OraxenCommand getCommand() {
