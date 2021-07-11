@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.NoteBlock;
@@ -14,6 +15,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 public class NoteBlockMechanicListener implements Listener {
@@ -54,16 +56,25 @@ public class NoteBlockMechanicListener implements Listener {
                 && block != null
                 && block.getType() == Material.NOTE_BLOCK) {
             NoteBlock blockData = (NoteBlock) block.getBlockData();
-            ItemStack clicked = event.getPlayer().getInventory().getItem(event.getHand());
+            ItemStack clicked = event.getItem();
             if (blockData.getInstrument() != Instrument.PIANO && (clicked == null
-                    || clicked.getType() == Material.AIR
-                    || clicked.getType() == Material.LAVA_BUCKET
-                    || clicked.getType() == Material.WATER_BUCKET
-                    || !clicked.getType().isBlock())) {
+                    || clicked.getType() == Material.AIR)) {
                 event.setCancelled(true);
+                return;
+            }
+            Material type = clicked.getType();
+            if (type == Material.LAVA_BUCKET)
+                type = Material.LAVA;
+            if (type == Material.WATER_BUCKET)
+                type = Material.WATER;
+            if (type.isBlock()) {
+                event.setCancelled(true);
+                makePlayerPlaceBlock(event.getPlayer(), event.getHand(), event.getItem(), event.getClickedBlock(),
+                        event.getBlockFace(), Bukkit.createBlockData(type));
             }
         }
     }
+
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onNotePlayed(NotePlayEvent event) {
@@ -113,35 +124,14 @@ public class NoteBlockMechanicListener implements Listener {
 
         Player player = event.getPlayer();
         Block placedAgainst = event.getClickedBlock();
-        Block target;
-        Material type = placedAgainst.getType();
-        if (Utils.REPLACEABLE_BLOCKS.contains(type))
-            target = placedAgainst;
-        else {
-            target = placedAgainst.getRelative(event.getBlockFace());
-            if (target.getType() != Material.AIR && target.getType() != Material.WATER && target.getType() != Material.CAVE_AIR)
-                return;
-        }
-
-        if (isStandingInside(player, target))
-            return;
-
-        // determines the old informations of the block
-        BlockData curentBlockData = target.getBlockData();
-        BlockState currentBlockState = target.getState();
 
         // determines the new block data of the block
         int customVariation = ((NoteBlockMechanic) factory.getMechanic(itemID)).getCustomVariation();
-        target.setBlockData(NoteBlockMechanicFactory.createNoteBlockData(customVariation), false);
 
-        BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player,
-                true, event.getHand());
-        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
-        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled())
-            target.setBlockData(curentBlockData, false); // false to cancel physic
+        makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
+                placedAgainst, event.getBlockFace(), NoteBlockMechanicFactory.createNoteBlockData(customVariation));
+
         event.setCancelled(true);
-        if (!player.getGameMode().equals(GameMode.CREATIVE))
-            item.setAmount(item.getAmount() - 1);
 
     }
 
@@ -152,6 +142,37 @@ public class NoteBlockMechanicListener implements Listener {
                 && (playerLocation.getBlockY() == blockLocation.getBlockY()
                 || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
                 && playerLocation.getBlockZ() == blockLocation.getBlockZ();
+    }
+
+    private boolean makePlayerPlaceBlock(Player player, EquipmentSlot hand, ItemStack item,
+                                         Block placedAgainst, BlockFace face, BlockData newBlock) {
+        Block target;
+        Material type = placedAgainst.getType();
+        if (Utils.REPLACEABLE_BLOCKS.contains(type))
+            target = placedAgainst;
+        else {
+            target = placedAgainst.getRelative(face);
+            if (!target.getType().isAir() && target.getType() != Material.WATER && target.getType() != Material.LAVA)
+                return false;
+        }
+        if (isStandingInside(player, target))
+            return false;
+        target.setBlockData(newBlock, false);
+
+        // determines the old informations of the block
+        BlockData curentBlockData = target.getBlockData();
+        BlockState currentBlockState = target.getState();
+
+        BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player,
+                true, hand);
+        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
+        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled())
+            target.setBlockData(curentBlockData, false); // false to cancel physic
+
+        if (!player.getGameMode().equals(GameMode.CREATIVE))
+            item.setAmount(item.getAmount() - 1);
+
+        return true;
     }
 
 }
