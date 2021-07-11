@@ -47,16 +47,21 @@ public class NoteBlockMechanicListener implements Listener {
             updateAndCheck(block.getLocation());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK
                 && block != null
                 && block.getType() == Material.NOTE_BLOCK) {
-
             NoteBlock blockData = (NoteBlock) block.getBlockData();
-            if (blockData.getInstrument() != Instrument.PIANO)
+            ItemStack clicked = event.getPlayer().getInventory().getItem(event.getHand());
+            if (blockData.getInstrument() != Instrument.PIANO && (clicked == null
+                    || clicked.getType() == Material.AIR
+                    || clicked.getType() == Material.LAVA_BUCKET
+                    || clicked.getType() == Material.WATER_BUCKET
+                    || !clicked.getType().isBlock())) {
                 event.setCancelled(true);
+            }
         }
     }
 
