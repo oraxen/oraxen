@@ -7,14 +7,11 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import io.th0rgal.oraxen.utils.input.InputProvider;
 
 public class FurnaceBuilder extends RecipeBuilder {
 
     private String cookingTimeInput;
     private String experienceInput;
-
-    private final InputProvider[] providers = new InputProvider[2];
 
     public FurnaceBuilder(Player player) {
         super(player, "furnace");
@@ -53,24 +50,6 @@ public class FurnaceBuilder extends RecipeBuilder {
 
         saveConfig();
         close();
-    }
-
-    public void setExperienceProvider(InputProvider experienceProvider) {
-        if (providers[0] != null)
-            providers[0].close();
-        providers[0] = experienceProvider.onRespond((player, provider) -> {
-            this.experienceInput = provider.getInput()[0];
-            return true;
-        });
-    }
-
-    public void setCookingTimeProvider(InputProvider cookingTimeProvider) {
-        if (providers[1] != null)
-            providers[1].close();
-        providers[1] = cookingTimeProvider.onRespond((player, provider) -> {
-            this.cookingTimeInput = provider.getInput()[0];
-            return true;
-        });
     }
 
 }

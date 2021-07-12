@@ -40,14 +40,7 @@ repositories {
 }
 
 compileJava {
-    options.compilerArgs += ["-parameters"]
-    options.fork = true
     options.encoding = "UTF-8"
-}
-
-tasks.withType(JavaCompile) {
-    options.compilerArgs << '-Xlint:unchecked'
-    options.deprecation = true
 }
 
 dependencies {
@@ -64,7 +57,7 @@ dependencies {
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.28'
     implementation "net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT"
     implementation "net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT"
-    implementation 'dev.jorel.CommandAPI:commandapi-shade:6.0.4'
+    implementation 'dev.jorel.CommandAPI:commandapi-shade:6.1.0'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.9'
     //implementation group: 'com.syntaxphoenix.syntaxapi', name: 'nbt', version: '2.0.10'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'version', version: '2.0.10'
@@ -88,11 +81,12 @@ java {
 shadowJar {
     relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.shaded.syntaxapi"
     relocate "org.yaml.snakeyaml", "io.th0rgal.oraxen.shaded.snakeyaml"
+    /*
     minimize {
         exclude("io.th0rgal.oraxen.api.*")
         exclude("com.syntaxphoenix.syntaxapi.*")
     }
-
+    */
     manifest {
         attributes(
                 'Built-By': System.properties['user.name'],

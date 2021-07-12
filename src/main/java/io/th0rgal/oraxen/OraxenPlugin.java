@@ -1,5 +1,8 @@
 package io.th0rgal.oraxen;
 
+import dev.jorel.commandapi.CommandAPI;
+import dev.jorel.commandapi.CommandAPIConfig;
+import io.th0rgal.oraxen.commands.CommandsManager;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.OraxenItems;
@@ -12,9 +15,6 @@ import io.th0rgal.oraxen.utils.metrics.Metrics;
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
 import io.th0rgal.oraxen.utils.fastinv.FastInvManager;
-import io.th0rgal.oraxen.utils.input.InputProvider;
-import io.th0rgal.oraxen.utils.input.chat.ChatInputProvider;
-import io.th0rgal.oraxen.utils.input.sign.SignMenuFactory;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
@@ -24,11 +24,8 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.util.function.Supplier;
-
 public class OraxenPlugin extends JavaPlugin {
 
-    private Supplier<InputProvider> inputProvider;
     private UploadManager uploadManager;
     private static OraxenPlugin oraxen;
     private YamlConfiguration settings;
@@ -43,27 +40,26 @@ public class OraxenPlugin extends JavaPlugin {
     private void postLoading(ResourcePack resourcePack, ConfigsManager configsManager) {
         (this.uploadManager = new UploadManager(this)).uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
-        pluginDependent();
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> OraxenItems.loadItems(configsManager));
     }
 
-    private void pluginDependent() {
-        if (!getProtocolLib()) {
-            ChatInputProvider.load(this);
-            this.inputProvider = ChatInputProvider::getFree;
-        } else this.inputProvider = () -> new SignMenuFactory(this).newProvider();
+    public void onLoad() {
+        CommandAPI.onLoad(new CommandAPIConfig().silentLogs(true));
     }
 
     public void onEnable() {
+        CommandAPI.onEnable(this);
         ConfigsManager configsManager = new ConfigsManager(this);
         if (!configsManager.validatesConfig()) {
             Logs.logError("unable to validate config");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
-        audience = BukkitAudiences.create(this);
         settings = configsManager.getSettings();
         language = configsManager.getLanguage();
+
+        new CommandsManager().loadCommands();
+        audience = BukkitAudiences.create(this);
         PluginManager pluginManager = Bukkit.getPluginManager();
         pluginManager.registerEvents(configsManager, this);
         MechanicsManager.registerNativeMechanics();
@@ -86,8 +82,6 @@ public class OraxenPlugin extends JavaPlugin {
 
     private void unregisterListeners() {
         MechanicsManager.unloadListeners();
-        if (ChatInputProvider.LISTENER != null)
-            HandlerList.unregisterAll(ChatInputProvider.LISTENER);
         HandlerList.unregisterAll(this);
     }
 
@@ -99,14 +93,9 @@ public class OraxenPlugin extends JavaPlugin {
         return Bukkit.getPluginManager().getPlugin("ProtocolLib") != null;
     }
 
-    public InputProvider getInputProvider() {
-        return inputProvider.get();
-    }
-
     public UploadManager getUploadManager() {
         return uploadManager;
     }
-
 
     public YamlConfiguration getSettings() {
         return settings;

@@ -58,7 +58,7 @@ public class ConfigsManager implements Listener {
         settings = validate(resourcesManager, "settings.yml", defaultSettings);
         File languagesFolder = new File(plugin.getDataFolder(), "languages");
         languagesFolder.mkdir();
-        String languageFile = "languages" + File.pathSeparator + settings.getString(Settings.PLUGIN_LANGUAGE.toString()) + ".yml";
+        String languageFile  = "languages/" + settings.getString(Settings.PLUGIN_LANGUAGE.getPath()) + ".yml";
         language = validate(resourcesManager, languageFile, defaultLanguage);
 
         // check itemsFolder

@@ -23,23 +23,23 @@ public enum Settings {
     BOW_DISPLAY("Misc.bow_display"),
     CROSSBOW_DISPLAY("Misc.crossbow_display"),
 
-    GENERATE("generation.generate"),
-    COMPRESSION("generation.compression"),
-    PROTECTION("generation.protection"),
-    COMMENT("generation.comment"),
+    GENERATE("Pack.generation.generate"),
+    COMPRESSION("Pack.generation.compression"),
+    PROTECTION("Pack.generation.protection"),
+    COMMENT("Pack.generation.comment"),
 
-    UPLOAD_TYPE("upload.type"),
-    UPLOAD("upload.enabled"),
-    UPLOAD_OPTIONS("upload.options"),
+    UPLOAD_TYPE("Pack.upload.type"),
+    UPLOAD("Pack.upload.enabled"),
+    UPLOAD_OPTIONS("Pack.upload.options"),
 
-    POLYMATH_SERVER("upload.polymath.server"),
+    POLYMATH_SERVER("Pack.upload.polymath.server"),
 
-    SEND_PACK("dispatch.send_pack"),
-    SEND_JOIN_MESSAGE("dispatch.join_message.enabled"),
-    JOIN_MESSAGE_DELAY("dispatch.join_message.delay"),
-    JOIN_MESSAGE_CONTENT("dispatch.join_message.content"),
+    SEND_PACK("Pack.dispatch.send_pack"),
+    SEND_JOIN_MESSAGE("Pack.dispatch.join_message.enabled"),
+    JOIN_MESSAGE_DELAY("Pack.dispatch.join_message.delay"),
+    JOIN_MESSAGE_CONTENT("Pack.dispatch.join_message.content"),
 
-    RECEIVE_ENABLED("receive.enabled"),
+    RECEIVE_ENABLED("Pack.receive.enabled"),
 
     RECEIVE_ALLOWED_SEND_MESSAGE("Pack.receive.accepted.actions.message.enabled"),
     RECEIVE_ALLOWED_MESSAGE_PERIOD("Pack.receive.accepted.actions.message.period"),
@@ -73,6 +73,10 @@ public enum Settings {
 
     Settings(String path) {
         this.path = path;
+    }
+
+    public String getPath() {
+        return path;
     }
 
     public Object getValue() {
