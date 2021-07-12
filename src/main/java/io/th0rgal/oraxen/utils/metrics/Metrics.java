@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.utils.Metrics;
+package io.th0rgal.oraxen.utils.metrics;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;

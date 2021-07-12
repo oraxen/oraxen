@@ -5,7 +5,7 @@ plugins {
     id "idea"
     id "eclipse"
     id "maven-publish"
-    id "com.github.johnrengelman.shadow" version "+"
+    id "com.github.johnrengelman.shadow" version '7.0.0'
 }
 
 apply plugin: 'maven-publish'
@@ -62,6 +62,9 @@ dependencies {
     implementation fileTree(dir: "libs/implement", include: ["*.jar"])
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.190107'
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.28'
+    implementation "net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT"
+    implementation "net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT"
+    implementation 'dev.jorel.CommandAPI:commandapi-shade:6.0.4'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.9'
     //implementation group: 'com.syntaxphoenix.syntaxapi', name: 'nbt', version: '2.0.10'
     implementation group: 'com.syntaxphoenix.syntaxapi', name: 'version', version: '2.0.10'

@@ -1,0 +1,40 @@
+general:
+  prefix: "Oraxen | "
+  no_permission: "<prefix> &7You're lacking the permission &c<permission> &7to do this!"
+  work_in_progress: "<prefix> &7This feature is &dwork in progress&7!"
+  not_player: "<prefix> &7This can &conly &7be done as a &cplayer&7!"
+  cooldown: "&aWait Another <time> <unit>!"
+  reload: "<prefix> successfully reloaded"
+  pack_regenerated: "<prefix> resourcepack successfully regenerated"
+  updating_config: "Configuration option \"%s\" not found, adding it!"
+  configs_validation_failed: "Configurations validation failed, plugin automatically disabled!"
+  repaired_items: "%s item(s) were successfully repaired!"
+  cannot_be_repaired: "The Item \"%s\" cannot be repaired!"
+  cannot_be_repaired_invalid: "You need to hold an valid Item in your hand!"
+  zip_browse_error: "An error occured browsing the zip"
+  dont_have_permission: "You need the permission %s to do this"
+  mechanic_doesnt_exist: "The mechanic %s doesn't exist"
+  bad_recipe: "The recipe \"%s\" is invalid, please ensure all its ingredients exist in your config"
+  item_not_found: "Item \"%s\" not found"
+  plugin_hooks: "Plugin \"%s\" detected, enabling hooks"
+  plugin_unhooks: "Unhooking plugin \"%s\""
+  not_enough_exp: "You need more experience to do this"
+
+command:
+  not_exist: "<prefix> &7The command '&c<name>&7' doesn't exist!"
+  help: "<red>test"
+
+  recipe:
+    no_builder: "<prefix> &7Please &ccreate an recipe&7 first!"
+    no_furnace: "<prefix> &7This option is only avaiable for &cFurnace Recipes&7!"
+    no_name: "<prefix> &7Please &cspecify a name &7for the recipe!"
+    no_recipes: "<prefix> &7There are no recipes to show!"
+    no_item: "<prefix> &7Please specify an item!"
+    save: "<prefix> &7Recipe '&a<name>&7' saved &asuccessfully&7!"
+
+  give:
+    player: "<prefix> &7You gave '&a<player>&7' &3<amount> <item>&7!"
+    players: "<prefix> &7You gave &a<players> players &3<amount> <item>&7!"
+
+mechanics:
+  not_enough_exp: "<prefix> &aYou need more experience to do this"

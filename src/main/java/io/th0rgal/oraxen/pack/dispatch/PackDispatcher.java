@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.settings.Pack;
+import io.th0rgal.oraxen.config.Settings;
 import net.md_5.bungee.api.chat.BaseComponent;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -26,8 +26,8 @@ public class PackDispatcher {
     }
 
     public static void sendWelcomeMessage(Player player, boolean delayed) {
-        BaseComponent[] components = Pack.JOIN_MESSAGE_CONTENT.toMiniMessage("pack_url", url);
-        long delay = (int) Pack.JOIN_MESSAGE_DELAY.getValue();
+        BaseComponent[] components = null; // Pack.JOIN_MESSAGE_CONTENT.toMiniMessage("pack_url", url)
+        long delay = (int) Settings.JOIN_MESSAGE_DELAY.getValue();
         if (delay == -1 || !delayed)
             player.spigot().sendMessage(components);
         else

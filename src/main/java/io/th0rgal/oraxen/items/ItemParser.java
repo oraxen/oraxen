@@ -1,10 +1,10 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.settings.Plugin;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -55,7 +55,7 @@ public class ItemParser {
     public ItemBuilder buildItem() {
         ItemBuilder item = new ItemBuilder(type);
         if (section.contains("displayname"))
-            item.setDisplayName(Utils.handleColors(section.getString("displayname")));
+            item.setDisplayName(section.getString("displayname"));
         return applyConfig(item);
     }
 
@@ -67,7 +67,7 @@ public class ItemParser {
         if (section.contains("lore")) {
             List<String> lore = section.getStringList("lore");
             for (int i = 0; i < lore.size(); i++)
-                lore.set(i, Utils.handleColors(lore.get(i)));
+                lore.set(i, lore.get(i));
             item.setLore(lore);
         }
 
@@ -148,7 +148,7 @@ public class ItemParser {
                 customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getDurability();
             } else {
                 customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
-                if ((boolean) Plugin.AUTOMATICALLY_SET_MODEL_ID.getValue()) {
+                if (Settings.AUTOMATICALLY_SET_MODEL_ID.toBool()) {
                     this.configUpdated = true;
                     section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
                 }

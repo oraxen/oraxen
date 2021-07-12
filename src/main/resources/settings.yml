@@ -1,6 +1,5 @@
-configs_version: 5
-
 Plugin:
+  language: "english"
   commands:
     repair:
       oraxen_durability_only: false # will not repair vanilla items if set to true

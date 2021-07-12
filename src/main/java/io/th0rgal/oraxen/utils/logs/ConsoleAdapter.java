@@ -2,13 +2,10 @@ package io.th0rgal.oraxen.utils.logs;
 
 import java.util.function.BiConsumer;
 
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.command.ConsoleCommandSender;
-
-import io.th0rgal.oraxen.language.LanguageProvider;
-import io.th0rgal.oraxen.language.Variable;
 
 public final class ConsoleAdapter implements BiConsumer<Boolean, String> {
 
@@ -20,7 +17,7 @@ public final class ConsoleAdapter implements BiConsumer<Boolean, String> {
     }
 
     /*
-     * 
+     *
      */
 
     @Override
@@ -29,7 +26,7 @@ public final class ConsoleAdapter implements BiConsumer<Boolean, String> {
     }
 
     public ConsoleAdapter send(String message) {
-        sender.sendMessage(Variable.PREFIX.legacyMessage(LanguageProvider.DEFAULT_LANGUAGE) + ' ' + Utils.handleColors(message));
+        sender.sendMessage(Message.PREFIX.toString() + ' ' + message);
         return this;
     }
 

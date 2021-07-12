@@ -2,7 +2,7 @@ package io.th0rgal.oraxen.recipes.builders;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.settings.ResourcesManager;
+import io.th0rgal.oraxen.config.ResourcesManager;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;

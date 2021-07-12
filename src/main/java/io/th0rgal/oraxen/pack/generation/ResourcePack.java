@@ -1,10 +1,10 @@
 package io.th0rgal.oraxen.pack.generation;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.settings.Pack;
-import io.th0rgal.oraxen.settings.ResourcesManager;
+import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.ZipUtils;
 
@@ -63,7 +63,7 @@ public class ResourcePack {
 
         this.pack = new File(packFolder, packFolder.getName() + ".zip");
 
-        if (!Boolean.parseBoolean(Pack.GENERATE.toString()))
+        if (!Settings.GENERATE.toBool())
             return;
 
         if (pack.exists())

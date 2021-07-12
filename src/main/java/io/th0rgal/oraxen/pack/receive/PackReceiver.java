@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.pack.receive;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.settings.Pack;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.commands.CommandsParser;
 import io.th0rgal.oraxen.utils.message.ComponentMessage;
 import io.th0rgal.oraxen.utils.message.MessageAction;
@@ -14,6 +14,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PackReceiver implements Listener {
@@ -32,39 +33,39 @@ public class PackReceiver implements Listener {
         switch (status) {
 
             case ACCEPTED:
-                action = MessageAction.fromString((String) Pack.RECEIVE_ALLOWED_MESSAGE_ACTION.getValue());
-                message = (boolean) Pack.RECEIVE_ALLOWED_SEND_MESSAGE.getValue();
-                delay = (int) Pack.RECEIVE_ALLOWED_MESSAGE_DELAY.getValue();
-                period = (int) Pack.RECEIVE_ALLOWED_MESSAGE_PERIOD.getValue();
-                components = Pack.RECEIVE_ALLOWED_MESSAGE.toMiniMessageList();
-                commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
+                action = MessageAction.fromString(Settings.RECEIVE_ALLOWED_MESSAGE_ACTION.toString());
+                message = Settings.RECEIVE_ALLOWED_SEND_MESSAGE.toBool();
+                delay = (int) Settings.RECEIVE_ALLOWED_MESSAGE_DELAY.getValue();
+                period = (int) Settings.RECEIVE_ALLOWED_MESSAGE_PERIOD.getValue();
+                components = new ArrayList<>();
+                commands = new CommandsParser((ConfigurationSection) Settings.RECEIVE_ALLOWED_COMMANDS.getValue());
                 break;
 
             case DECLINED:
-                action = MessageAction.fromString((String) Pack.RECEIVE_DENIED_MESSAGE_ACTION.getValue());
-                message = (boolean) Pack.RECEIVE_DENIED_SEND_MESSAGE.getValue();
-                delay = (int) Pack.RECEIVE_DENIED_MESSAGE_DELAY.getValue();
-                period = (int) Pack.RECEIVE_DENIED_MESSAGE_PERIOD.getValue();
-                components = Pack.RECEIVE_DENIED_MESSAGE.toMiniMessageList();
-                commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
+                action = MessageAction.fromString(Settings.RECEIVE_DENIED_MESSAGE_ACTION.toString());
+                message = Settings.RECEIVE_DENIED_SEND_MESSAGE.toBool();
+                delay = (int) Settings.RECEIVE_DENIED_MESSAGE_DELAY.getValue();
+                period = (int) Settings.RECEIVE_DENIED_MESSAGE_PERIOD.getValue();
+                components = new ArrayList<>();
+                commands = new CommandsParser((ConfigurationSection) Settings.RECEIVE_ALLOWED_COMMANDS.getValue());
                 break;
 
             case FAILED_DOWNLOAD:
-                action = MessageAction.fromString((String) Pack.RECEIVE_FAILED_MESSAGE_ACTION.getValue());
-                message = (boolean) Pack.RECEIVE_FAILED_SEND_MESSAGE.getValue();
-                delay = (int) Pack.RECEIVE_FAILED_MESSAGE_DELAY.getValue();
-                period = (int) Pack.RECEIVE_FAILED_MESSAGE_PERIOD.getValue();
-                components = Pack.RECEIVE_FAILED_MESSAGE.toMiniMessageList();
-                commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
+                action = MessageAction.fromString(Settings.RECEIVE_FAILED_MESSAGE_ACTION.toString());
+                message = Settings.RECEIVE_FAILED_SEND_MESSAGE.toBool();
+                delay = (int) Settings.RECEIVE_FAILED_MESSAGE_DELAY.getValue();
+                period = (int) Settings.RECEIVE_FAILED_MESSAGE_PERIOD.getValue();
+                components = new ArrayList<>();
+                commands = new CommandsParser((ConfigurationSection) Settings.RECEIVE_ALLOWED_COMMANDS.getValue());
                 break;
 
             case SUCCESSFULLY_LOADED:
-                action = MessageAction.fromString((String) Pack.RECEIVE_LOADED_MESSAGE_ACTION.getValue());
-                message = (boolean) Pack.RECEIVE_LOADED_SEND_MESSAGE.getValue();
-                delay = (int) Pack.RECEIVE_LOADED_MESSAGE_DELAY.getValue();
-                period = (int) Pack.RECEIVE_LOADED_MESSAGE_PERIOD.getValue();
-                components = Pack.RECEIVE_LOADED_MESSAGE.toMiniMessageList();
-                commands = new CommandsParser((ConfigurationSection) Pack.RECEIVE_ALLOWED_COMMANDS.getValue());
+                action = MessageAction.fromString(Settings.RECEIVE_LOADED_MESSAGE_ACTION.toString());
+                message = Settings.RECEIVE_LOADED_SEND_MESSAGE.toBool();
+                delay = (int) Settings.RECEIVE_LOADED_MESSAGE_DELAY.getValue();
+                period = (int) Settings.RECEIVE_LOADED_MESSAGE_PERIOD.getValue();
+                components = new ArrayList<>();
+                commands = new CommandsParser((ConfigurationSection) Settings.RECEIVE_ALLOWED_COMMANDS.getValue());
                 break;
 
             default:

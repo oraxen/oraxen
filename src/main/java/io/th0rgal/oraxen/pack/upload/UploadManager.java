@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.upload;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.dispatch.PackDispatcher;
 import io.th0rgal.oraxen.pack.dispatch.PackSender;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
@@ -8,13 +9,11 @@ import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
 import io.th0rgal.oraxen.pack.upload.hosts.Sh;
-import io.th0rgal.oraxen.settings.Pack;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Constructor;
@@ -33,7 +32,7 @@ public class UploadManager {
 
     public UploadManager(Plugin plugin) {
         this.plugin = plugin;
-        this.enabled = (boolean) Pack.UPLOAD.getValue();
+        this.enabled = Settings.UPLOAD.toBool();
         this.hostingProvider = getHostingProvider();
     }
 
@@ -44,7 +43,7 @@ public class UploadManager {
     public void uploadAsyncAndSendToPlayers(ResourcePack resourcePack, boolean updateSend) {
         if (!enabled)
             return;
-        if ((boolean) Pack.RECEIVE_ENABLED.getValue() && receiver == null)
+        if (Settings.RECEIVE_ENABLED.toBool() && receiver == null)
             Bukkit.getPluginManager().registerEvents(receiver = new PackReceiver(), plugin);
         long time = System.currentTimeMillis();
         Logs.log(ChatColor.GREEN, "Automatic upload of the resource pack is enabled, uploading...");
@@ -57,7 +56,7 @@ public class UploadManager {
                     + (System.currentTimeMillis() - time) + "ms");
             PackDispatcher.setPackURL(hostingProvider.getPackURL());
             PackDispatcher.setSha1(hostingProvider.getSHA1());
-            if (((boolean) Pack.SEND_PACK.getValue() || (boolean) Pack.SEND_JOIN_MESSAGE.getValue()) && sender == null)
+            if ((Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) && sender == null)
                 Bukkit.getPluginManager().registerEvents(sender = new PackSender(), plugin);
             /* Too much pain for people trying to configure mechanics
             if ((boolean) Pack.SEND_PACK.getValue() && updateSend)
@@ -68,12 +67,12 @@ public class UploadManager {
     }
 
     private HostingProvider getHostingProvider() {
-        switch (Pack.UPLOAD_TYPE.toString().toLowerCase()) {
+        switch (Settings.UPLOAD_TYPE.toString().toLowerCase()) {
             case "polymath":
-                return new Polymath(Pack.POLYMATH_SERVER.toString());
+                return new Polymath(Settings.POLYMATH_SERVER.toString());
             case "sh":
             case "cmd":
-                final ConfigurationSection opt = (ConfigurationSection) Pack.UPLOAD_OPTIONS.getValue();
+                final ConfigurationSection opt = (ConfigurationSection) Settings.UPLOAD_OPTIONS.getValue();
                 final List<String> args = opt.getStringList("args");
                 if (args.isEmpty())
                     throw new ProviderNotFoundException("No command line.");
@@ -81,7 +80,7 @@ public class UploadManager {
                 return new Sh(Sh.path(placeholder, args));
             case "external":
                 Class<?> target;
-                final ConfigurationSection options = (ConfigurationSection) Pack.UPLOAD_OPTIONS.getValue();
+                final ConfigurationSection options = (ConfigurationSection) Settings.UPLOAD_OPTIONS.getValue();
                 String klass = options.getString("class");
                 if (klass == null)
                     throw new ProviderNotFoundException("No provider set.");
@@ -126,7 +125,7 @@ public class UploadManager {
                             .initCause(e.getCause());
                 }
             default:
-                throw new ProviderNotFoundException("Unknown provider type: " + Pack.UPLOAD_TYPE);
+                throw new ProviderNotFoundException("Unknown provider type: " + Settings.UPLOAD_TYPE);
         }
 
     }

@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.settings.Pack;
+import io.th0rgal.oraxen.config.Settings;
+import org.bukkit.plugin.Plugin;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -8,7 +9,6 @@ import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -40,9 +40,9 @@ public class ZipUtils {
             FileOutputStream fos = new FileOutputStream(outputFile);
             ZipOutputStream zos = new ZipOutputStream(fos);
 
-            int compressionLevel = Deflater.class.getDeclaredField(Pack.COMPRESSION.toString()).getInt(null);
+            int compressionLevel = Deflater.class.getDeclaredField(Settings.COMPRESSION.toString()).getInt(null);
             zos.setLevel(compressionLevel);
-            zos.setComment(Pack.COMMENT.toString());
+            zos.setComment(Settings.COMMENT.toString());
 
             for (Map.Entry<String, List<File>> inZipDirectoryFiles : fileListByZipDirectory.entrySet())
                 for (File file : inZipDirectoryFiles.getValue())
@@ -79,7 +79,7 @@ public class ZipUtils {
 
         zos.closeEntry();
         fis.close();
-        if (!Boolean.parseBoolean(Pack.PROTECTION.toString()))
+        if (!(Settings.PROTECTION.toBool()))
             return;
         zipEntry.setCrc(bytes.length);
         zipEntry.setSize(new BigInteger(bytes).mod(BigInteger.valueOf(Long.MAX_VALUE)).longValue());

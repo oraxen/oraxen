@@ -1,8 +1,6 @@
 package io.th0rgal.oraxen.utils.timers;
 
-import io.th0rgal.oraxen.language.Message;
-import io.th0rgal.oraxen.language.Variable;
-import io.th0rgal.oraxen.utils.general.Placeholder;
+import io.th0rgal.oraxen.config.Message;
 import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
@@ -62,8 +60,8 @@ public class Timer {
         return getRemainingTime(timeUnit) + " " + timeUnit.name();
     }
 
-    public void sendToPlayer(Player player, TimeUnit timeUnit){
-        Message.COOL_DOWN.send(player, Placeholder.of("time", getRemainingTime(timeUnit)), Placeholder.of("unit", Variable.valueOf("TIME_UNIT_" + timeUnit.name())));
+    public void sendToPlayer(Player player, TimeUnit timeUnit) {
+        Message.COOLDOWN.send(player, "time", getRemainingTime(timeUnit) + timeUnit.name());
     }
 
 }

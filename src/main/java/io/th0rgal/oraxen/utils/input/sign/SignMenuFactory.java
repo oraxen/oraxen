@@ -195,7 +195,7 @@ public final class SignMenuFactory {
         }
 
         private String color(String input) {
-            return Utils.handleColors(input);
+            return ChatColor.translateAlternateColorCodes('&', input);
         }
     }
 }

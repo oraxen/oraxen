@@ -1,9 +1,9 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.settings.ConfigsManager;
+import io.th0rgal.oraxen.config.ConfigsManager;
 
-import io.th0rgal.oraxen.settings.MessageOld;
+import io.th0rgal.oraxen.config.Message;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -81,7 +81,7 @@ public class OraxenItems {
                     if (isAnItem(param[1]))
                         itemStack[0] = getItemById(param[1]).build().clone();
                     else
-                        MessageOld.ITEM_NOT_FOUND.logError(param[1]);
+                        Message.ITEM_NOT_FOUND.log("item", param[1]);
                     break;
                 case "amount":
                     itemStack[0].setAmount(Integer.parseInt(param[1]));
