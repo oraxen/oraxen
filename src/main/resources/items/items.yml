@@ -66,6 +66,18 @@ example_custom_mechanic:
         actions:
           - "command:server:normal:this is a test"
 
+example_command_mechanic:
+  displayname: "&c&lMy Item That Gives Diamond Swords"
+  material: DIAMOND_SWORD
+  Mechanics:
+    commands:
+      cooldown: 5000 # example cooldown in milliseconds. This is optional
+      permission: "my.awesome.perm" # required permission. This is optional
+      one_usage: false # should the amount decrease when used? Default: false
+      console:
+        # e.g. the player gives himself a diamond sword
+        - "give %p% diamond_sword 1"
+
 example_potion:
   displayname: "&8Wither Potion"
   material: SPLASH_POTION

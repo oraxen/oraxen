@@ -46,6 +46,7 @@ public class CommandsMechanicListener implements Listener {
         }
 
         Timer playerTimer = mechanic.getTimer(player);
+        System.out.println(playerTimer.getRemainingTime());
         if (!playerTimer.isFinished()) {
             mechanic.getTimer(player).sendToPlayer(player, TimeUnit.SECONDS);
             return;

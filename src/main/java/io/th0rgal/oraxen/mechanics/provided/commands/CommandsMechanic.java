@@ -26,7 +26,7 @@ public class CommandsMechanic extends Mechanic {
         if (section.isString("permission"))
             this.permission = section.getString("permission");
 
-        this.timersFactory = new TimersFactory(section.getLong("delay"));
+        this.timersFactory = new TimersFactory(section.getLong("cooldown"));
 
     }
 
