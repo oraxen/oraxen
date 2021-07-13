@@ -19,14 +19,6 @@ public class Logs {
         field.set(OraxenPlugin.get(), LOGGER);
     }
 
-    public static void log(String message) {
-        log(ChatColor.GRAY, message);
-    }
-
-    public static void log(ChatColor chatColor, String message) {
-        logInfo(Message.PREFIX.toString() + ' ' + chatColor.toString() + message);
-    }
-
     public static void logInfo(String message) {
         Bukkit.getConsoleSender().sendMessage(message);
     }

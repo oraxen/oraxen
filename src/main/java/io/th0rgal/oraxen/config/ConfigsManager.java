@@ -58,7 +58,7 @@ public class ConfigsManager implements Listener {
         settings = validate(resourcesManager, "settings.yml", defaultSettings);
         File languagesFolder = new File(plugin.getDataFolder(), "languages");
         languagesFolder.mkdir();
-        String languageFile  = "languages/" + settings.getString(Settings.PLUGIN_LANGUAGE.getPath()) + ".yml";
+        String languageFile = "languages/" + settings.getString(Settings.PLUGIN_LANGUAGE.getPath()) + ".yml";
         language = validate(resourcesManager, languageFile, defaultLanguage);
 
         // check itemsFolder
@@ -105,7 +105,7 @@ public class ConfigsManager implements Listener {
 
     public Map<String, ItemBuilder> parsesConfig(YamlConfiguration config, File itemFile) {
         Map<String, ItemParser> parseMap = new LinkedHashMap<>();
-        ItemParser errorItem = new ItemParser((ConfigurationSection) Settings.ERROR_ITEM.getValue());
+        ItemParser errorItem = new ItemParser(Settings.ERROR_ITEM.toConfigSection());
         for (String itemSectionName : config.getKeys(false)) {
             if (!config.isConfigurationSection(itemSectionName))
                 continue;

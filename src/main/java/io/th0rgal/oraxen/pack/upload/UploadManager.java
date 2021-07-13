@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.upload;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.dispatch.PackDispatcher;
 import io.th0rgal.oraxen.pack.dispatch.PackSender;
@@ -46,14 +47,15 @@ public class UploadManager {
         if (Settings.RECEIVE_ENABLED.toBool() && receiver == null)
             Bukkit.getPluginManager().registerEvents(receiver = new PackReceiver(), plugin);
         long time = System.currentTimeMillis();
-        Logs.log(ChatColor.GREEN, "Automatic upload of the resource pack is enabled, uploading...");
+        Message.PACK_UPLOADING.log("prefix", Message.PREFIX.toString());
         Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
             if (!hostingProvider.uploadPack(resourcePack.getFile())) {
-                Logs.log(ChatColor.RED, "Resourcepack not uploaded");
+                Message.PACK_NOT_UPLOADED.log();
                 return;
             }
-            Logs.log(ChatColor.GREEN, "Resourcepack uploaded on url " + hostingProvider.getPackURL() + " in "
-                    + (System.currentTimeMillis() - time) + "ms");
+            Message.PACK_UPLOADED.log(
+                    "url", hostingProvider.getPackURL(), "delay", String.valueOf(System.currentTimeMillis() - time));
+
             PackDispatcher.setPackURL(hostingProvider.getPackURL());
             PackDispatcher.setSha1(hostingProvider.getSHA1());
             if ((Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) && sender == null)

@@ -32,13 +32,15 @@ Pack:
       delay: -1
       content: # you can also use & color codes for simple messages but <balise> mini message formatting is better because
         # it supports custom actions (click, hover, etc) and also multiple lines messages
-        - "<dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>"
-        - ""
-        - "<gray><bold>To see the new items you need to use a special resourcepack (but don't worry, this doesn't prevent you from using yours at the same time).</bold>"
-        - ""
-        - "<dark_gray>»<gray> To try to load it directly from the game, <click:run_command:/oraxen pack send><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click>"
-        - ""
-        - "<dark_gray>»<gray> To download it from the internet, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ install it from Options/ResourcePacks in your game\"><green><bold>CLICK HERE</bold></hover></click>"
+        "
+        <dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>
+
+        <gray><bold>To see the new items you need to use a special resourcepack (but don't worry, this doesn't prevent you from using yours at the same time).</bold>
+
+        <dark_gray>»<gray> To try to load it directly from the game, <click:run_command:/oraxen pack send><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click>
+
+        <dark_gray>»<gray> To download it from the internet, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ install it from Options/ResourcePacks in your game\"><green><bold>CLICK HERE</bold></hover></click>
+        "
 
   receive:
     enabled: true
@@ -54,8 +56,7 @@ Pack:
           # You only need a period if you send multiple messages of type ACTION_BAR or TITLE
           period: -1
           # Click and Hover elements are only available by using the CHAT type
-          messages:
-            - "&a&lResourcePack successfully loaded!"
+          content: "&a&lResourcePack successfully loaded!"
 
         # If you need to send commands
         commands:
@@ -74,9 +75,7 @@ Pack:
           # You only need a period if you send multiple messages of type ACTION_BAR or TITLE
           period: 3
           # Click and Hover elements are only available by using the CHAT type
-          messages:
-            - "&a&lResourcePack accepted!"
-            - "Thank you"
+          content: "&a&lResourcePack accepted \nThank you"
         # If you need to send commands
         commands:
           console: [ ]
@@ -94,8 +93,7 @@ Pack:
           # You can put any value here because this is a CHAT message
           period: -1
           # Click and Hover elements are only available by using the CHAT type
-          messages:
-            - "<red>You refused the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:/oraxen pack get><hover:show_text:\"<green>Display more informations\"><green><bold>CLICK HERE</bold></hover></click> <red>or type <bold>/o pack"
+          content: "<red>You refused the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:/oraxen pack get><hover:show_text:\"<green>Display more informations\"><green><bold>CLICK HERE</bold></hover></click> <red>or type <bold>/o pack"
         # If you need to send commands
         commands:
           console: [ ]
@@ -113,8 +111,7 @@ Pack:
           # You can put any value here because this is a CHAT message
           period: -1
           # Click and Hover elements are only available by using the CHAT type
-          messages:
-            - "<red>You failed to download the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:/oraxen pack get><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click> <red>to retry or type <bold>/o pack</bold> and download it from the internet"
+          content: "<red>You failed to download the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:/oraxen pack get><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click> <red>to retry or type <bold>/o pack</bold> and download it from the internet"
         # If you need to send commands
         commands:
           console: [ ]

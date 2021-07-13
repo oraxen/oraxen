@@ -1,7 +1,9 @@
 package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import org.bukkit.configuration.ConfigurationSection;
 
+import java.lang.module.Configuration;
 import java.util.List;
 
 public enum Settings {
@@ -94,6 +96,10 @@ public enum Settings {
 
     public List<String> toStringList() {
         return OraxenPlugin.get().getSettings().getStringList(path);
+    }
+
+    public ConfigurationSection toConfigSection() {
+        return OraxenPlugin.get().getSettings().getConfigurationSection(path);
     }
 
 }

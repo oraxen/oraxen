@@ -21,6 +21,7 @@ public class OraxenItems {
     private static Map<File, Map<String, ItemBuilder>> map;
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
     private static ConfigsManager configsManager;
+    private static String[] items;
 
     public static void loadItems(ConfigsManager configsManager) {
         OraxenItems.configsManager = configsManager;
@@ -29,6 +30,10 @@ public class OraxenItems {
 
     public static void loadItems() {
         map = configsManager.parsesConfigs();
+        List<String> itemsList = new ArrayList<>();
+        for (Map<String, ItemBuilder> subMap : map.values())
+            itemsList.addAll(subMap.keySet());
+        items = itemsList.toArray(new String[0]);;
     }
 
     public static String getIdByItem(ItemBuilder item) {
@@ -133,6 +138,10 @@ public class OraxenItems {
 
     public static Stream<Entry<String, ItemBuilder>> entryStream() {
         return map.values().stream().flatMap(map -> map.entrySet().stream());
+    }
+
+    public static String[] getItemNames() {
+        return items;
     }
 
 }

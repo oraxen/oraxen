@@ -4,6 +4,7 @@ import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIConfig;
 import io.th0rgal.oraxen.commands.CommandsManager;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -18,7 +19,6 @@ import io.th0rgal.oraxen.utils.fastinv.FastInvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
@@ -26,7 +26,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class OraxenPlugin extends JavaPlugin {
 
-    private UploadManager uploadManager;
     private static OraxenPlugin oraxen;
     private YamlConfiguration settings;
     private YamlConfiguration language;
@@ -38,7 +37,7 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     private void postLoading(ResourcePack resourcePack, ConfigsManager configsManager) {
-        (this.uploadManager = new UploadManager(this)).uploadAsyncAndSendToPlayers(resourcePack);
+        (new UploadManager(this)).uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> OraxenItems.loadItems(configsManager));
     }
@@ -49,17 +48,17 @@ public class OraxenPlugin extends JavaPlugin {
 
     public void onEnable() {
         CommandAPI.onEnable(this);
+        audience = BukkitAudiences.create(this);
         ConfigsManager configsManager = new ConfigsManager(this);
         if (!configsManager.validatesConfig()) {
             Logs.logError("unable to validate config");
             getServer().getPluginManager().disablePlugin(this);
             return;
+        } else {
+            language = configsManager.getLanguage();
+            settings = configsManager.getSettings();
         }
-        settings = configsManager.getSettings();
-        language = configsManager.getLanguage();
-
         new CommandsManager().loadCommands();
-        audience = BukkitAudiences.create(this);
         PluginManager pluginManager = Bukkit.getPluginManager();
         pluginManager.registerEvents(configsManager, this);
         MechanicsManager.registerNativeMechanics();
@@ -71,13 +70,13 @@ public class OraxenPlugin extends JavaPlugin {
         FastInvManager.register(this);
         new ArmorListener(Settings.ARMOR_EQUIP_EVENT_BYPASS.toStringList()).registerEvents(this);
         postLoading(resourcePack, configsManager);
-        Logs.log(ChatColor.GREEN + "Successfully loaded on " + OS.getOs().getPlatformName());
+        Message.PLUGIN_LOADED.log("os", OS.getOs().getPlatformName());
     }
 
     public void onDisable() {
         unregisterListeners();
         CompatibilitiesManager.disableCompatibilities();
-        Logs.log(ChatColor.GREEN + "Successfully unloaded");
+        Message.PLUGIN_UNLOADED.log();
     }
 
     private void unregisterListeners() {
@@ -91,10 +90,6 @@ public class OraxenPlugin extends JavaPlugin {
 
     public static boolean getProtocolLib() {
         return Bukkit.getPluginManager().getPlugin("ProtocolLib") != null;
-    }
-
-    public UploadManager getUploadManager() {
-        return uploadManager;
     }
 
     public YamlConfiguration getSettings() {
