@@ -30,12 +30,18 @@ logs:
 command:
   not_exist: "<prefix>&7The command '&c<name>&7' doesn't exist!"
   help: "<prefix><#b8bbc2>Available commands
-        \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv ><#6f737d>/g
+        \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv ><#6f737d>/o
           <#b8bbc2>inventory <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> show oraxen items in inventory
-        \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/g
+        \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
+          <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> repair one or all your items
+        \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
           <#b8bbc2>give <#43c9fa>target <#fa4362>item <#43fa8c>amount</click></hover>  <#6f737d>»<#b8bbc2> give an oraxen item
-        \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/g
-          <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> repair one or all your items"
+        \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
+          <#b8bbc2>recipes show <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> show recipes
+        \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
+          <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> open recipes builder
+        \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
+          <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> save recipe"
 
   recipe:
     no_builder: "<prefix>&7Please &ccreate an recipe&7 first!"

@@ -46,7 +46,7 @@ public enum Message {
     RECIPE_NO_NAME("command.recipe.no_name"),
     RECIPE_NO_RECIPE("command.recipe.no_recipes"),
     RECIPE_NO_ITEM("command.recipe.no_item"),
-    SAVE("command.recipe.save"),
+    RECIPE_SAVE("command.recipe.save"),
 
     GIVE_PLAYER("command.give.player"),
     GIVE_PLAYERS("command.give.players"),
