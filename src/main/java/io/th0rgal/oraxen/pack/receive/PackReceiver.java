@@ -74,7 +74,6 @@ public class PackReceiver implements Listener {
                     .getScheduler()
                     .runTaskLater(OraxenPlugin.get(),
                             () -> sendMessage(event.getPlayer(), action, component), delay * 20L);
-        System.out.println("delay:" + delay * 20L);
         commands.perform(event.getPlayer());
     }
 
