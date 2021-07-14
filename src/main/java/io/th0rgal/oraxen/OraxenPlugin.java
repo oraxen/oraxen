@@ -30,6 +30,7 @@ public class OraxenPlugin extends JavaPlugin {
     private YamlConfiguration settings;
     private YamlConfiguration language;
     private BukkitAudiences audience;
+    private UploadManager uploadManager;
 
     public OraxenPlugin() throws Exception {
         oraxen = this;
@@ -37,7 +38,8 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     private void postLoading(ResourcePack resourcePack, ConfigsManager configsManager) {
-        (new UploadManager(this)).uploadAsyncAndSendToPlayers(resourcePack);
+        UploadManager uploadManager = new UploadManager(this);
+        uploadManager.uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> OraxenItems.loadItems(configsManager));
     }
@@ -49,15 +51,7 @@ public class OraxenPlugin extends JavaPlugin {
     public void onEnable() {
         CommandAPI.onEnable(this);
         audience = BukkitAudiences.create(this);
-        ConfigsManager configsManager = new ConfigsManager(this);
-        if (!configsManager.validatesConfig()) {
-            Logs.logError("unable to validate config");
-            getServer().getPluginManager().disablePlugin(this);
-            return;
-        } else {
-            language = configsManager.getLanguage();
-            settings = configsManager.getSettings();
-        }
+        ConfigsManager configsManager = reloadConfigs();
         new CommandsManager().loadCommands();
         PluginManager pluginManager = Bukkit.getPluginManager();
         pluginManager.registerEvents(configsManager, this);
@@ -104,4 +98,19 @@ public class OraxenPlugin extends JavaPlugin {
         return audience;
     }
 
+    public ConfigsManager reloadConfigs() {
+        ConfigsManager configsManager = new ConfigsManager(this);
+        if (!configsManager.validatesConfig()) {
+            Logs.logError("unable to validate config");
+            getServer().getPluginManager().disablePlugin(this);
+        } else {
+            language = configsManager.getLanguage();
+            settings = configsManager.getSettings();
+        }
+        return configsManager;
+    }
+
+    public UploadManager getUploadManager() {
+        return uploadManager;
+    }
 }

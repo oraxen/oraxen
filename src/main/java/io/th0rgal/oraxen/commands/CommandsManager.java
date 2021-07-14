@@ -5,6 +5,7 @@ import dev.jorel.commandapi.arguments.*;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.pack.dispatch.PackDispatcher;
 import io.th0rgal.oraxen.utils.itemsvisualizer.AllItemsInventory;
 import io.th0rgal.oraxen.utils.itemsvisualizer.FileInventory;
 import org.bukkit.entity.Player;
@@ -18,12 +19,27 @@ public class CommandsManager {
                 .withPermission("oraxen.command")
                 .withSubcommand(getInvCommand())
                 .withSubcommand(getGiveCommand())
+                .withSubcommand(getPackCommand())
                 .withSubcommand((new RepairCommand()).getRepairCommand())
                 .withSubcommand((new RecipesCommand()).getRecipesCommand())
+                .withSubcommand((new ReloadCommand()).getReloadCommand())
                 .executes((sender, args) -> {
                     Message.COMMAND_HELP.send(sender);
                 })
                 .register();
+    }
+
+    private CommandAPICommand getPackCommand() {
+        return new CommandAPICommand("pack")
+                .withPermission("oraxen.command.pack")
+                .withArguments(new StringArgument("action").replaceSuggestions(info -> new String[]{"send", "msg"}))
+                .withArguments(new PlayerArgument("target"))
+                .executes((sender, args) -> {
+                    Player target = (Player) args[1];
+                    if (args[0].equals("msg"))
+                        PackDispatcher.sendWelcomeMessage(target, false);
+                    else PackDispatcher.sendPack(target);
+                });
     }
 
     private CommandAPICommand getInvCommand() {
