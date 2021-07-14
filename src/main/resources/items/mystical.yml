@@ -23,7 +23,7 @@
 # r reset (reset format and color)
 
 legendary_hammer:
-  displayname: "&6Legendary Hammer"
+  displayname: "<gradient:#F06966:#FAD6A6>Legendary Hammer"
   material: DIAMOND_PICKAXE
   Pack:
     generate_model: false
@@ -33,14 +33,14 @@ legendary_hammer:
       value: 10000 #diamond sword is 1561
 
 earth_hammer:
-  displayname: "&aEarth Hammer"
+  displayname: "<gradient:#89E59D:#37C6BA>Earth Hammer"
   material: DIAMOND_PICKAXE
   Pack:
     generate_model: false
     model: default/earth_hammer
 
 magical_wand:
-  displayname: "&bMagical Wand"
+  displayname: "<gradient:#3685EC:#72C1E4>Magical Wand"
   material: WOODEN_HOE
   Pack:
     generate_model: false
@@ -59,10 +59,10 @@ magical_wand:
           blue: 255
 
 magical_axe:
-  displayname: "&aAxe of Experience"
+  displayname: "<gradient:#89E59D:#37C6BA>Axe of Experience"
   material: DIAMOND_AXE
   lore:
-    - "&8» &7Convert experience to bottles"
+    - "<#6f737d>» <#D5D6D8>Convert experience to bottles"
   Pack:
     generate_model: false
     model: default/magical_axe
@@ -71,21 +71,21 @@ magical_axe:
       ratio: 0.95 # So you'll lose 1/20 of your exp by converting it
 
 ice_staff:
-  displayname: "&bIce Staff"
+  displayname: "<gradient:#3685EC:#72C1E4>Ice Staff"
   material: WOODEN_HOE
   Pack:
     generate_model: false
     model: default/ice_staff
 
 cristal_axe:
-  displayname: "&bCristal Axe"
+  displayname: "<gradient:#3685EC:#72C1E4>Cristal Axe"
   material: DIAMOND_AXE
   Pack:
     generate_model: false
     model: default/cristal_axe
 
 battle_axe:
-  displayname: '&6Battle Axe'
+  displayname: '<gradient:#F06966:#FAD6A6>Battle Axe'
   material: DIAMOND_AXE
   AttributeModifiers:
     - name: oraxen
@@ -99,7 +99,7 @@ battle_axe:
     model: default/battle_axe
 
 withooker:
-  displayname: "&bWithooker"
+  displayname: "<gradient:#3685EC:#72C1E4>Withooker"
   material: WOODEN_HOE
   unbreakable: true
   Pack:
@@ -111,7 +111,7 @@ withooker:
       delay: 3000 # in milliseconds (3000ms = 3s)
 
 divine_shield:
-  displayname: '&eDivine Shield'
+  displayname: '<gradient:#F69D84:#FAD98D>Divine Shield'
   material: SHIELD
   Pack:
     generate_model: false
@@ -119,7 +119,7 @@ divine_shield:
     blocking_model: default/divine_shield_blocking
 
 magic_book:
-  displayname: '&bMagic Book'
+  displayname: '<gradient:#3685EC:#72C1E4>Magic Book'
   material: DIAMOND_SWORD
   Pack:
     generate_model: false

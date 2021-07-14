@@ -23,10 +23,10 @@
 # r reset (reset format and color)
 
 anubis_head:
-  displayname: "&9Anubis Head"
+  displayname: "<gradient:#3948AE:#6699FF>Anubis Head"
   material: DIAMOND
   lore:
-    - "&8» &7NightVision when worn"
+    - "<#6f737d>» <#D5D6D8>NightVision when worn"
   AttributeModifiers:
     - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
@@ -44,7 +44,7 @@ anubis_head:
         icon: true # whether this effect has an icon or not
 
 crown:
-  displayname: "&6Crown"
+  displayname: "<gradient:#F06966:#FAD6A6>Crown"
   material: DIAMOND
   AttributeModifiers:
     - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
@@ -57,7 +57,7 @@ crown:
       enabled: true
 
 pharaoh_head:
-  displayname: "&6Pharaoh Head"
+  displayname: "<gradient:#F06966:#FAD6A6>Pharaoh Head"
   material: DIAMOND
   AttributeModifiers:
     - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
@@ -70,7 +70,7 @@ pharaoh_head:
       enabled: true
 
 witch_hat:
-  displayname: "&5Witch Hat"
+  displayname: "<gradient:#DF98FA:#9055FF>Witch Hat"
   material: DIAMOND
   AttributeModifiers:
     - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
@@ -83,7 +83,7 @@ witch_hat:
       enabled: true
 
 space_helmet:
-  displayname: "&fSpace Helmet"
+  displayname: "<#D5D6D8>Space Helmet"
   material: DIAMOND
   Pack:
     generate_model: false

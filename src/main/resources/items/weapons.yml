@@ -23,7 +23,7 @@
 # r reset (reset format and color)
 
 storm_sword:
-  displayname: "&bStorm Sword"
+  displayname: "<gradient:#3685EC:#72C1E4>Storm Sword"
   material: DIAMOND_SWORD
   AttributeModifiers:
     # diamond sword has an attack damage of 7
@@ -31,7 +31,7 @@ storm_sword:
     # it has two times more full-strength attacks per second than diamond sword
     - {name: "oraxen", attribute: GENERIC_ATTACK_SPEED, amount: 3.2, operation: 0, uuid: 35f224b1-bd48-4ca1-bd0e-bbb760b2aa0c, slot: HAND}
   lore:
-    - "&8» &7Right click to strike lightning"
+    - "<#6f737d>» <#D5D6D8>Right click to strike lightning"
   Pack:
     generate_model: false
     model: default/storm_sword
@@ -42,7 +42,7 @@ storm_sword:
       delay: 20000 # in milliseconds (20000ms = 20s)
 
 energy_crystal_sword:
-  displayname: "&bEnergy Crystal Sword"
+  displayname: "<gradient:#3685EC:#72C1E4>Energy Crystal Sword"
   material: DIAMOND_SWORD
   AttributeModifiers:
     # diamond sword has an attack damage of 7
@@ -54,10 +54,10 @@ energy_crystal_sword:
     model: default/energy_crystal_sword
 
 glass_sword:
-  displayname: "&fGlass Sword"
+  displayname: "<#D5D6D8>Glass Sword"
   material: DIAMOND_SWORD
   lore:
-    - "&8» &7Fragile"
+    - "<#6f737d>» <#D5D6D8>Fragile"
   AttributeModifiers:
     # diamond sword has an attack damage of 7
     - {name: "oraxen", attribute: GENERIC_ATTACK_DAMAGE, amount: 10, operation: 0, uuid: d1fe3908-8aa8-49bb-8c1f-907b765a43ab, slot: HAND}
@@ -73,10 +73,10 @@ glass_sword:
       value: 8
 
 obsidian_sword:
-  displayname: "&dObsidian Sword"
+  displayname: "<gradient:#4B36B1:#6699FF>Obsidian Sword"
   material: DIAMOND_SWORD
   lore:
-    - "&8» &7Ludicrous durability"
+    - "<#6f737d>» <#D5D6D8>Ludicrous durability"
   AttributeModifiers:
     # diamond sword has an attack damage of 7
     - {name: "oraxen", attribute: GENERIC_ATTACK_DAMAGE, amount: 6, operation: 0, uuid: d1fe3908-8aa8-49bb-8c1f-907b765a43ab, slot: HAND}
@@ -92,10 +92,10 @@ obsidian_sword:
       value: 10000
 
 blood_sword:
-  displayname: "&cBlood Sword"
+  displayname: "<gradient:#FA7CBB:#F14658>Blood Sword"
   material: DIAMOND_SWORD
   lore:
-    - "&8» &7Steal the life of your enemies"
+    - "<#6f737d>» <#D5D6D8>Steal the life of your enemies"
   AttributeModifiers:
     # diamond sword has an attack damage of 7
     - {name: "oraxen", attribute: GENERIC_ATTACK_DAMAGE, amount: 8, operation: 0, uuid: d1fe3908-8aa8-49bb-8c1f-907b765a43ab, slot: HAND}
@@ -111,7 +111,7 @@ blood_sword:
       value: 500 #diamond sword is 1561
 
 octavia_sword:
-  displayname: "&7Octavia Sword"
+  displayname: "<#D5D6D8>Octavia Sword"
   material: DIAMOND_SWORD
   Pack:
     generate_model: false
@@ -121,7 +121,7 @@ octavia_sword:
       value: 600 #diamond sword is 1561
 
 dagger:
-  displayname: "&cDagger"
+  displayname: "<gradient:#FA7CBB:#F14658>Dagger"
   material: DIAMOND_SWORD
   Pack:
     generate_model: false
@@ -131,7 +131,7 @@ dagger:
       value: 10 #diamond sword is 1561
 
 katana:
-  displayname: "&eKatana"
+  displayname: "<gradient:#F69D84:#FAD98D>Katana"
   material: DIAMOND_SWORD
   AttributeModifiers:
     # diamond sword has an attack damage of 7
@@ -146,7 +146,7 @@ katana:
       value: 1000 #diamond sword is 1561
 
 combat_bow:
-  displayname: '&eCombat Bow'
+  displayname: '<gradient:#F69D84:#FAD98D>Combat Bow'
   material: BOW
   AttributeModifiers:
     - name: oraxen

@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
 import com.google.gson.JsonObject;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -19,6 +20,11 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Utils {
+
+    public static final LegacyComponentSerializer LEGACY_COMPONENT_SERIALIZER = LegacyComponentSerializer.builder()
+            .hexColors()
+            .useUnusualXRepeatedCharacterHexFormat()
+            .build();
 
     public static List<String> toLowercaseList(String... values) {
         ArrayList<String> list = new ArrayList<>();

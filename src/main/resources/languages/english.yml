@@ -2,7 +2,7 @@ general:
   prefix: "<gradient:#9055FF:#13E2DA>Oraxen <#282B3F>| "
   no_permission: "<prefix><#fa4943>You're lacking the permission <b><permission></b> to do this!"
   work_in_progress: "<prefix><#facc43>This feature is work in progress!"
-  not_player: "<prefix><#fa4943>This can only be done as a player&7!"
+  not_player: "<prefix><#fa4943>This can only be done as a player!"
   cooldown: "<prefix><#facc43>Wait Another <time> <unit>!"
   reload: "<prefix><#55ffa4>Successfully reloaded"
   pack_uploading: "<prefix><#D5D6D8>Automatic upload of the resource pack is enabled, uploading..."
@@ -59,7 +59,7 @@ command:
   recipe:
     no_builder: "<prefix><#fa4943>Please create a recipe first!"
     no_furnace: "<prefix><#fa4943>This option is only available for Furnace Recipes!"
-    no_name: "<prefix><#fa4943>Please &cspecify a name for the recipe!"
+    no_name: "<prefix><#fa4943>Please <gradient:#FA7CBB:#F14658>specify a name for the recipe!"
     no_recipes: "<prefix><#fa4943>There are no recipes to show!"
     no_item: "<prefix><#fa4943>Please specify an item!"
     save: "<prefix><#55ffa4>Recipe '<name>' saved successfully!"

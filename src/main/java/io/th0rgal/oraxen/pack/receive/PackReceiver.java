@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.pack.receive;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.commands.CommandsParser;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
@@ -20,11 +21,6 @@ import org.jetbrains.annotations.NotNull;
 import java.time.Duration;
 
 public class PackReceiver implements Listener {
-
-    private final LegacyComponentSerializer serializer = LegacyComponentSerializer.builder()
-            .hexColors()
-            .useUnusualXRepeatedCharacterHexFormat()
-            .build();
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerUpdatesPackStatus(PlayerResourcePackStatusEvent event) {
@@ -84,7 +80,7 @@ public class PackReceiver implements Listener {
     private void sendMessage(Player receiver, String action, Component message) {
         @NotNull Audience audience = OraxenPlugin.get().getAudience().sender(receiver);
         switch (action) {
-            case "KICK" -> receiver.kickPlayer(serializer.serialize(message));
+            case "KICK" -> receiver.kickPlayer(Utils.LEGACY_COMPONENT_SERIALIZER.serialize(message));
             case "CHAT" -> audience.sendMessage(message);
             case "ACTION_BAR" -> audience.sendActionBar(message);
             case "TITLE" -> audience.showTitle(Title.title(null, message,
