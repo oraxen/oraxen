@@ -81,6 +81,7 @@ java {
 shadowJar {
     relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.shaded.syntaxapi"
     relocate "org.yaml.snakeyaml", "io.th0rgal.oraxen.shaded.snakeyaml"
+    relocate "net.kyori", "io.th0rgal.oraxen.shaded.kyori"
     /*
     minimize {
         exclude("io.th0rgal.oraxen.api.*")

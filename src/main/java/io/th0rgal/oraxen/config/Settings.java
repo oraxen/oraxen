@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.config;
 import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.lang.module.Configuration;
 import java.util.List;
 
 public enum Settings {
@@ -47,28 +46,28 @@ public enum Settings {
     RECEIVE_ALLOWED_MESSAGE_PERIOD("Pack.receive.accepted.actions.message.period"),
     RECEIVE_ALLOWED_MESSAGE_DELAY("Pack.receive.accepted.actions.message.delay"),
     RECEIVE_ALLOWED_MESSAGE_ACTION("Pack.receive.accepted.actions.message.type"),
-    RECEIVE_ALLOWED_MESSAGE("Pack.receive.accepted.actions.message.messages"),
+    RECEIVE_ALLOWED_MESSAGE("Pack.receive.accepted.actions.message.content"),
     RECEIVE_ALLOWED_COMMANDS("Pack.receive.accepted.actions.commands"),
 
     RECEIVE_LOADED_SEND_MESSAGE("Pack.receive.loaded.actions.message.enabled"),
     RECEIVE_LOADED_MESSAGE_PERIOD("Pack.receive.loaded.actions.message.period"),
     RECEIVE_LOADED_MESSAGE_DELAY("Pack.receive.loaded.actions.message.delay"),
     RECEIVE_LOADED_MESSAGE_ACTION("Pack.receive.loaded.actions.message.type"),
-    RECEIVE_LOADED_MESSAGE("Pack.receive.loaded.actions.message.messages"),
+    RECEIVE_LOADED_MESSAGE("Pack.receive.loaded.actions.message.content"),
     RECEIVE_LOADED_COMMANDS("Pack.receive.loaded.actions.commands"),
 
     RECEIVE_FAILED_SEND_MESSAGE("Pack.receive.failed_download.actions.message.enabled"),
     RECEIVE_FAILED_MESSAGE_PERIOD("Pack.receive.failed_download.actions.message.period"),
     RECEIVE_FAILED_MESSAGE_DELAY("Pack.receive.failed_download.actions.message.delay"),
     RECEIVE_FAILED_MESSAGE_ACTION("Pack.receive.failed_download.actions.message.type"),
-    RECEIVE_FAILED_MESSAGE("Pack.receive.failed_download.actions.message.messages"),
+    RECEIVE_FAILED_MESSAGE("Pack.receive.failed_download.actions.message.content"),
     RECEIVE_FAILED_COMMANDS("Pack.receive.failed_download.actions.commands"),
 
     RECEIVE_DENIED_SEND_MESSAGE("Pack.receive.denied.actions.message.enabled"),
     RECEIVE_DENIED_MESSAGE_PERIOD("Pack.receive.denied.actions.message.period"),
     RECEIVE_DENIED_MESSAGE_DELAY("Pack.receive.denied.actions.message.delay"),
     RECEIVE_DENIED_MESSAGE_ACTION("Pack.receive.denied.actions.message.type"),
-    RECEIVE_DENIED_MESSAGE("Pack.receive.denied.actions.message.messages"),
+    RECEIVE_DENIED_MESSAGE("Pack.receive.denied.actions.message.content"),
     RECEIVE_DENIED_COMMANDS("Pack.receive.denied.actions.commands");
 
     private final String path;

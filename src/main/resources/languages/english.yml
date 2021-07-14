@@ -46,6 +46,15 @@ command:
           <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> open recipes builder
         \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
           <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> save recipe"
+  join: "
+        <dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>
+
+        <gray><bold>To see the new items you need to use a special resourcepack (but don't worry, this doesn't prevent you from using yours at the same time).</bold>
+
+        <dark_gray>»<gray> To try to load it directly from the game, <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click>
+
+        <dark_gray>»<gray> To download it from the internet, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ install it from Options/ResourcePacks in your game\"><green><bold>CLICK HERE</bold></hover></click>
+        "
 
   recipe:
     no_builder: "<prefix><#fa4943>Please create a recipe first!"
