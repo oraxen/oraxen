@@ -38,7 +38,7 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     private void postLoading(ResourcePack resourcePack, ConfigsManager configsManager) {
-        UploadManager uploadManager = new UploadManager(this);
+        uploadManager = new UploadManager(this);
         uploadManager.uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> OraxenItems.loadItems(configsManager));

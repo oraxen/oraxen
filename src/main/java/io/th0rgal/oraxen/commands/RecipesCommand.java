@@ -1,10 +1,12 @@
 package io.th0rgal.oraxen.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.arguments.IntegerArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
+import io.th0rgal.oraxen.recipes.builders.FurnaceBuilder;
 import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
 import io.th0rgal.oraxen.recipes.builders.ShapedBuilder;
 import io.th0rgal.oraxen.recipes.builders.ShapelessBuilder;
@@ -57,14 +59,59 @@ public class RecipesCommand {
     private CommandAPICommand getBuilderCommand() {
         return new CommandAPICommand("builder")
                 .withPermission("oraxen.command.recipes.builder")
-                .withArguments(new StringArgument("type").replaceSuggestions(info -> new String[]{"shaped", "shapeless"}))
+                .withSubcommand(getShapedBuilderCommand())
+                .withSubcommand(getShapelessBuilderCommand())
+                .withSubcommand(getFurnaceBuilderCommand())
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
                         RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
-                        switch (((String) args[0]).toUpperCase()) {
-                            case "SHAPED" -> (recipe != null ? recipe : new ShapedBuilder(player)).open();
-                            case "SHAPELESS" -> (recipe != null ? recipe : new ShapelessBuilder(player)).open();
+                        if (recipe != null)
+                            recipe.open();
+                        else
+                            Message.RECIPE_NO_BUILDER.send(sender);
+                    } else
+                        Message.NOT_PLAYER.send(sender);
+                });
+    }
+
+    private CommandAPICommand getShapedBuilderCommand() {
+        return new CommandAPICommand("shaped")
+                .withPermission("oraxen.command.recipes.builder")
+                .executes((sender, args) -> {
+                    if (sender instanceof Player player) {
+                        RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                        (recipe != null ? recipe : new ShapedBuilder(player)).open();
+                    } else
+                        Message.NOT_PLAYER.send(sender);
+                });
+    }
+
+    private CommandAPICommand getShapelessBuilderCommand() {
+        return new CommandAPICommand("shapeless")
+                .withPermission("oraxen.command.recipes.builder")
+                .executes((sender, args) -> {
+                    if (sender instanceof Player player) {
+                        RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                        (recipe != null ? recipe : new ShapelessBuilder(player)).open();
+                    } else
+                        Message.NOT_PLAYER.send(sender);
+                });
+    }
+
+    private CommandAPICommand getFurnaceBuilderCommand() {
+        return new CommandAPICommand("furnace")
+                .withPermission("oraxen.command.recipes.builder")
+                .withArguments(new IntegerArgument("cookingtime"))
+                .withArguments(new IntegerArgument("experience"))
+                .executes((sender, args) -> {
+                    if (sender instanceof Player player) {
+                        RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                        recipe = recipe != null ? recipe : new FurnaceBuilder(player);
+                        if (recipe instanceof FurnaceBuilder furnace) {
+                            furnace.setCookingTime((Integer) args[0]);
+                            furnace.setExperience((Integer) args[1]);
                         }
+                        recipe.open();
                     } else
                         Message.NOT_PLAYER.send(sender);
                 });

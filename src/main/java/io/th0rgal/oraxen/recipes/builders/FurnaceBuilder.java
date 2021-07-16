@@ -10,8 +10,8 @@ import org.bukkit.inventory.ItemStack;
 
 public class FurnaceBuilder extends RecipeBuilder {
 
-    private String cookingTimeInput;
-    private String experienceInput;
+    private int cookingTime;
+    private int experience;
 
     public FurnaceBuilder(Player player) {
         super(player, "furnace");
@@ -34,22 +34,22 @@ public class FurnaceBuilder extends RecipeBuilder {
         ConfigurationSection newCraftSection = getConfig().createSection(name);
         setSerializedItem(newCraftSection.createSection("result"), content[2]);
         setSerializedItem(newCraftSection.createSection("input"), content[0]);
-
-        if (cookingTimeInput != null)
-            newCraftSection.set("cookingTime", Integer.parseInt(cookingTimeInput));
-        else
-            newCraftSection.set("cookingTime", 200);
-
-        if (experienceInput != null)
-            newCraftSection.set("experience", Integer.parseInt(experienceInput));
-        else
-            newCraftSection.set("experience", 200);
+        newCraftSection.set("cookingTime", cookingTime);
+        newCraftSection.set("experience", experience);
 
         if (permission != null)
             newCraftSection.set("permission", permission);
 
         saveConfig();
         close();
+    }
+
+    public void setCookingTime(int cookingTime) {
+        this.cookingTime = cookingTime;
+    }
+
+    public void setExperience(int experience) {
+        this.experience = experience;
     }
 
 }
