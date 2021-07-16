@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
 import com.google.gson.JsonObject;
-import io.th0rgal.oraxen.settings.Plugin;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;
@@ -21,37 +21,10 @@ import java.util.regex.Pattern;
 
 public class Utils {
 
-    private static final char COLOR_CHAR = ChatColor.COLOR_CHAR;
-    private static final boolean HEX_SUPPORTED = (boolean) Plugin.HEX_SUPPORTED.getValue();
-
-    public static String handleColors(String message) {
-        return HEX_SUPPORTED && message.contains(Plugin.HEX_PREFIX.toLegacyString()) && message.contains(Plugin.HEX_SUFFIX.toLegacyString())
-                ? ChatColor.translateAlternateColorCodes('&',
-                translateHexColorCodes(Plugin.HEX_PREFIX.toLegacyString(), message, Plugin.HEX_SUFFIX.toLegacyString()))
-                : ChatColor.translateAlternateColorCodes('&', message);
-    }
-
-    public static String handleColors(String message, boolean forceLegacyTranslate) {
-        return (forceLegacyTranslate)
-                ? ChatColor.translateAlternateColorCodes('&', message)
-                : handleColors(message);
-    }
-
-    // all credits go to https://www.spigotmc.org/threads/hex-color-code-translate.449748/#post-3867804
-    private static String translateHexColorCodes(String startTag, String endTag, String message) {
-        final Pattern hexPattern = Pattern.compile(startTag + "([A-Fa-f0-9]{6})" + endTag);
-        Matcher matcher = hexPattern.matcher(message);
-        StringBuffer buffer = new StringBuffer(message.length() + 4 * 8);
-        while (matcher.find()) {
-            String group = matcher.group(1);
-            matcher.appendReplacement(buffer, COLOR_CHAR + "x"
-                    + COLOR_CHAR + group.charAt(0) + COLOR_CHAR + group.charAt(1)
-                    + COLOR_CHAR + group.charAt(2) + COLOR_CHAR + group.charAt(3)
-                    + COLOR_CHAR + group.charAt(4) + COLOR_CHAR + group.charAt(5)
-            );
-        }
-        return matcher.appendTail(buffer).toString();
-    }
+    public static final LegacyComponentSerializer LEGACY_COMPONENT_SERIALIZER = LegacyComponentSerializer.builder()
+            .hexColors()
+            .useUnusualXRepeatedCharacterHexFormat()
+            .build();
 
     public static List<String> toLowercaseList(String... values) {
         ArrayList<String> list = new ArrayList<>();

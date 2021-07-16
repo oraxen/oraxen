@@ -1,9 +1,9 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.settings.ConfigsManager;
+import io.th0rgal.oraxen.config.ConfigsManager;
 
-import io.th0rgal.oraxen.settings.MessageOld;
+import io.th0rgal.oraxen.config.Message;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -21,6 +21,7 @@ public class OraxenItems {
     private static Map<File, Map<String, ItemBuilder>> map;
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
     private static ConfigsManager configsManager;
+    private static String[] items;
 
     public static void loadItems(ConfigsManager configsManager) {
         OraxenItems.configsManager = configsManager;
@@ -29,6 +30,10 @@ public class OraxenItems {
 
     public static void loadItems() {
         map = configsManager.parsesConfigs();
+        List<String> itemsList = new ArrayList<>();
+        for (Map<String, ItemBuilder> subMap : map.values())
+            itemsList.addAll(subMap.keySet());
+        items = itemsList.toArray(new String[0]);;
     }
 
     public static String getIdByItem(ItemBuilder item) {
@@ -81,7 +86,7 @@ public class OraxenItems {
                     if (isAnItem(param[1]))
                         itemStack[0] = getItemById(param[1]).build().clone();
                     else
-                        MessageOld.ITEM_NOT_FOUND.logError(param[1]);
+                        Message.ITEM_NOT_FOUND.log("item", param[1]);
                     break;
                 case "amount":
                     itemStack[0].setAmount(Integer.parseInt(param[1]));
@@ -133,6 +138,10 @@ public class OraxenItems {
 
     public static Stream<Entry<String, ItemBuilder>> entryStream() {
         return map.values().stream().flatMap(map -> map.entrySet().stream());
+    }
+
+    public static String[] getItemNames() {
+        return items;
     }
 
 }

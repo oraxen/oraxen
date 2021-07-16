@@ -4,7 +4,7 @@ diamond_sword: # A simple skinnable diamond sword
     skinnable: {}
 
 great_sword:
-  displayname: "&7&lSKIN: &bGreat Sword"
+  displayname: "<#D5D6D8><bold>SKIN: <gradient:#3685EC:#72C1E4>Great Sword"
   material: DIAMOND_SWORD
   Pack:
     generate_model: false
@@ -14,7 +14,7 @@ great_sword:
       consume: true
 
 bone_sword:
-  displayname: "&7&lSKIN: &aBone Sword"
+  displayname: "<#D5D6D8><bold>SKIN: <gradient:#89E59D:#37C6BA>Bone Sword"
   material: DIAMOND_SWORD
   Pack:
     generate_model: false
@@ -24,7 +24,7 @@ bone_sword:
       consume: true
 
 wood_sword:
-  displayname: "&7&lSKIN: &6Wood Sword"
+  displayname: "<#D5D6D8><bold>SKIN: <gradient:#F06966:#FAD6A6>Wood Sword"
   material: DIAMOND_SWORD
   Pack:
     generate_model: false

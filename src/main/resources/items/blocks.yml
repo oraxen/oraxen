@@ -24,7 +24,7 @@
 
 
 caveblock:
-  displayname: "&7Cave Block"
+  displayname: "<#D5D6D8>Cave Block"
   material: DIAMOND
   Pack:
     generate_model: false # because this is a block, a 2nd model pointing to specified one will be generated anyway
@@ -41,7 +41,7 @@ caveblock:
           - { oraxen_item: caveblock, probability: 1.0 } # item_section: probability of loot
 
 amethyst_ore:
-  displayname: '&dAmethyst Ore'
+  displayname: '<gradient:#4B36B1:#6699FF>Amethyst Ore'
   material: DIAMOND
   Pack:
     generate_model: true
@@ -62,7 +62,7 @@ amethyst_ore:
             probability: 1.0
 
 ruby_ore:
-  displayname: '&cRuby Ore'
+  displayname: '<gradient:#FA7CBB:#F14658>Ruby Ore'
   material: DIAMOND
   Pack:
     generate_model: true
@@ -83,7 +83,7 @@ ruby_ore:
             probability: 1.0
 
 onyx_ore:
-  displayname: '&8Onyx Ore'
+  displayname: '<#6f737d>Onyx Ore'
   material: DIAMOND
   Pack:
     generate_model: true
@@ -104,7 +104,7 @@ onyx_ore:
             probability: 1.0
 
 orax_ore:
-  displayname: '&bOrax Ore'
+  displayname: '<gradient:#3685EC:#72C1E4>Orax Ore'
   material: DIAMOND
   Pack:
     generate_model: true

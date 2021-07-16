@@ -1,9 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.bottledexp;
 
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.OraxenItems;
 
-import io.th0rgal.oraxen.language.Message;
-import io.th0rgal.oraxen.settings.MessageOld;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

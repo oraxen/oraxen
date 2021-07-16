@@ -5,13 +5,13 @@ plugins {
     id "idea"
     id "eclipse"
     id "maven-publish"
-    id "com.github.johnrengelman.shadow" version "+"
+    id "com.github.johnrengelman.shadow" version '7.0.0'
 }
 
 apply plugin: 'maven-publish'
 
 group "io.th0rgal"
-def pluginVersion = "1.80.3"
+def pluginVersion = "1.81.0"
 ext.jitpackGroup = group + ".oraxen"
 ext.jitpackVersion = 'main-' + pluginVersion
 version = pluginVersion
@@ -40,14 +40,7 @@ repositories {
 }
 
 compileJava {
-    options.compilerArgs += ["-parameters"]
-    options.fork = true
     options.encoding = "UTF-8"
-}
-
-tasks.withType(JavaCompile) {
-    options.compilerArgs << '-Xlint:unchecked'
-    options.deprecation = true
 }
 
 dependencies {
@@ -62,13 +55,9 @@ dependencies {
     implementation fileTree(dir: "libs/implement", include: ["*.jar"])
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.190107'
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.28'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'reflection', version: '2.0.9'
-    //implementation group: 'com.syntaxphoenix.syntaxapi', name: 'nbt', version: '2.0.10'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'version', version: '2.0.10'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'config-base', version: '2.0.9'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'alias', version: '2.0.9'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'logging', version: '2.0.9'
-    implementation group: 'com.syntaxphoenix.syntaxapi', name: 'exception', version: '2.0.9'
+    implementation "net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT"
+    implementation "net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT"
+    implementation 'dev.jorel.CommandAPI:commandapi-shade:6.1.0'
 }
 
 processResources {
@@ -85,11 +74,13 @@ java {
 shadowJar {
     relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.shaded.syntaxapi"
     relocate "org.yaml.snakeyaml", "io.th0rgal.oraxen.shaded.snakeyaml"
+    relocate "net.kyori", "io.th0rgal.oraxen.shaded.kyori"
+    /*
     minimize {
         exclude("io.th0rgal.oraxen.api.*")
         exclude("com.syntaxphoenix.syntaxapi.*")
     }
-
+    */
     manifest {
         attributes(
                 'Built-By': System.properties['user.name'],

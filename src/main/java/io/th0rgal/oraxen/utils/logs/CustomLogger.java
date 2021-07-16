@@ -1,10 +1,9 @@
 package io.th0rgal.oraxen.utils.logs;
 
+import io.th0rgal.oraxen.config.Message;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginLogger;
-
-import io.th0rgal.oraxen.language.LanguageProvider;
-import io.th0rgal.oraxen.language.Variable;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -16,10 +15,10 @@ public class CustomLogger extends PluginLogger {
     }
 
     @Override
-    public void log(LogRecord logRecord) {
+    public void log(@NotNull LogRecord logRecord) {
         if (logRecord != null && logRecord.getLevel() != Level.INFO) {
             logRecord
-                .setMessage(Variable.PREFIX.legacyMessage(LanguageProvider.DEFAULT_LANGUAGE) + ' ' + logRecord.getMessage());
+                .setMessage(Message.PREFIX.toString() + ' ' + logRecord.getMessage());
             super.log(logRecord);
         }
     }

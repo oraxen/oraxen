@@ -3,8 +3,8 @@ package io.th0rgal.oraxen.pack.generation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.settings.Plugin;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -13,6 +13,7 @@ import org.bukkit.inventory.meta.PotionMeta;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 
 public class PredicatesGenerator {
 
@@ -42,7 +43,7 @@ public class PredicatesGenerator {
             case SHIELD:
                 overrides.add(getOverride("blocking", 1, "item/shield_blocking"));
                 json.addProperty("gui_light", "front");
-                json.add("display", new JsonParser().parse(Plugin.SHIELD_DISPLAY.toString()).getAsJsonObject());
+                json.add("display", new JsonParser().parse(Settings.SHIELD_DISPLAY.toString()).getAsJsonObject());
                 break;
 
             case BOW:
@@ -58,7 +59,7 @@ public class PredicatesGenerator {
                 overrides.add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_1"));
                 pullingPredicate.addProperty("pull", 0.9);
                 overrides.add(getOverride(pullingPredicate, "item/bow_pulling_2"));
-                json.add("display", parser.parse(Plugin.BOW_DISPLAY.toString()).getAsJsonObject());
+                json.add("display", parser.parse(Settings.BOW_DISPLAY.toString()).getAsJsonObject());
                 break;
 
 
@@ -75,7 +76,7 @@ public class PredicatesGenerator {
                 overrides.add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/crossbow_pulling_1"));
                 pullingPredicate.addProperty("pull", 0.9);
                 overrides.add(getOverride(pullingPredicate, "item/crossbow_pulling_2"));
-                json.add("display", parser.parse(Plugin.CROSSBOW_DISPLAY.toString()).getAsJsonObject());
+                json.add("display", parser.parse(Settings.CROSSBOW_DISPLAY.toString()).getAsJsonObject());
                 break;
         }
 

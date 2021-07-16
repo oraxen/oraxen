@@ -1,0 +1,71 @@
+general:
+  prefix: "<gradient:#9055FF:#13E2DA>Oraxen <#282B3F>| "
+  no_permission: "<prefix><#fa4943>You're lacking the permission <b><permission></b> to do this!"
+  work_in_progress: "<prefix><#facc43>This feature is work in progress!"
+  not_player: "<prefix><#fa4943>This can only be done as a player!"
+  cooldown: "<prefix><#facc43>Wait Another <time> <unit>!"
+  reload: "<prefix><#55ffa4>Successfully reloaded"
+  pack_uploading: "<prefix><#D5D6D8>Automatic upload of the resource pack is enabled, uploading..."
+  pack_not_uploaded: "<prefix><#fa4943>Resourcepack not uploaded"
+  pack_uploaded: "<prefix><#55ffa4>Resourcepack uploaded on url <url> in <delay> ms"
+  pack_regenerated: "<prefix><#55ffa4>resourcepack successfully regenerated"
+  updating_config: "<prefix><#facc43>Configuration option \"%s\" not found, adding it!"
+  configs_validation_failed: "<prefix><#fa4943>Configurations validation failed, plugin automatically disabled!"
+  repaired_items: "<prefix><#55ffa4>%s item(s) were successfully repaired!"
+  cannot_be_repaired: "<prefix><#fa4943>The Item \"%s\" cannot be repaired!"
+  cannot_be_repaired_invalid: "<prefix><#fa4943>You need to hold a valid Item in your hand!"
+  zip_browse_error: "<prefix><#fa4943>An error occured browsing the zip"
+  dont_have_permission: "<prefix><#fa4943>You need the permission %s to do this"
+  mechanic_doesnt_exist: "<prefix><#fa4943>The mechanic %s doesn't exist"
+  bad_recipe: "<prefix><#fa4943>The recipe \"%s\" is invalid, please ensure all its ingredients exist in your config"
+  item_not_found: "<prefix><#fa4943>Item \"%s\" not found"
+  plugin_hooks: "<prefix><#55ffa4>Plugin \"%s\" detected, enabling hooks"
+  plugin_unhooks: "<prefix><#55ffa4>Unhooking plugin \"%s\""
+  not_enough_exp: "<prefix><#fa4943>You need more experience to do this"
+
+logs:
+  loaded: "<prefix><#55ffa4>Successfully loaded on <os>"
+  unloaded: "<prefix><#55ffa4>Successfully unloaded"
+
+command:
+  not_exist: "<prefix><#fa4943>The command '<name>' doesn't exist!"
+  help: "<prefix><#b8bbc2>Available commands
+        \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
+          <#b8bbc2>reload <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> reload the plugin
+        \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv ><#6f737d>/o
+          <#b8bbc2>inventory <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> show oraxen items in inventory
+        \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
+          <#b8bbc2>pack <#fa8943>type <#43c9fa>target</click></hover>  <#6f737d>»<#b8bbc2> send oraxen pack
+        \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
+          <#b8bbc2>repair <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> repair one or all your items
+        \n<hover:show_text:\"<gray>fill give command\"><click:SUGGEST_COMMAND:/oraxen give ><#6f737d>/o
+          <#b8bbc2>give <#43c9fa>target <#fa4362>item <#43fa8c>amount</click></hover>  <#6f737d>»<#b8bbc2> give an oraxen item
+        \n<hover:show_text:\"<gray>fill recipes show command\"><click:SUGGEST_COMMAND:/oraxen recipes show ><#6f737d>/o
+          <#b8bbc2>recipes show <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> show recipes
+        \n<hover:show_text:\"<gray>fill recipes builder command\"><click:SUGGEST_COMMAND:/oraxen recipes builder ><#6f737d>/o
+          <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> open recipes builder
+        \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
+          <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> save recipe"
+  join: "
+        <dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>
+
+        <gray><bold>To see the new items you need to use a special resourcepack (but don't worry, this doesn't prevent you from using yours at the same time).</bold>
+
+        <dark_gray>»<gray> To try to load it directly from the game, <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click>
+
+        <dark_gray>»<gray> To download it from the internet, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ install it from Options/ResourcePacks in your game\"><green><bold>CLICK HERE</bold></hover></click>
+        "
+
+  recipe:
+    no_builder: "<prefix><#fa4943>Please create a recipe first!"
+    no_furnace: "<prefix><#fa4943>This option is only available for Furnace Recipes!"
+    no_name: "<prefix><#fa4943>Please <gradient:#FA7CBB:#F14658>specify a name for the recipe!"
+    no_recipes: "<prefix><#fa4943>There are no recipes to show!"
+    no_item: "<prefix><#fa4943>Please specify an item!"
+    save: "<prefix><#55ffa4>Recipe '<name>' saved successfully!"
+
+  give:
+    player: "<prefix><#55ffa4>You gave <#43c9fa><player><#55ffa4> <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
+
+mechanics:
+  not_enough_exp: "<prefix><#fa4943>You need more experience to do this"

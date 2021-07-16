@@ -7,14 +7,11 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 
-import io.th0rgal.oraxen.utils.input.InputProvider;
 
 public class FurnaceBuilder extends RecipeBuilder {
 
-    private String cookingTimeInput;
-    private String experienceInput;
-
-    private final InputProvider[] providers = new InputProvider[2];
+    private int cookingTime;
+    private int experience;
 
     public FurnaceBuilder(Player player) {
         super(player, "furnace");
@@ -37,16 +34,8 @@ public class FurnaceBuilder extends RecipeBuilder {
         ConfigurationSection newCraftSection = getConfig().createSection(name);
         setSerializedItem(newCraftSection.createSection("result"), content[2]);
         setSerializedItem(newCraftSection.createSection("input"), content[0]);
-
-        if (cookingTimeInput != null)
-            newCraftSection.set("cookingTime", Integer.parseInt(cookingTimeInput));
-        else
-            newCraftSection.set("cookingTime", 200);
-
-        if (experienceInput != null)
-            newCraftSection.set("experience", Integer.parseInt(experienceInput));
-        else
-            newCraftSection.set("experience", 200);
+        newCraftSection.set("cookingTime", cookingTime);
+        newCraftSection.set("experience", experience);
 
         if (permission != null)
             newCraftSection.set("permission", permission);
@@ -55,22 +44,12 @@ public class FurnaceBuilder extends RecipeBuilder {
         close();
     }
 
-    public void setExperienceProvider(InputProvider experienceProvider) {
-        if (providers[0] != null)
-            providers[0].close();
-        providers[0] = experienceProvider.onRespond((player, provider) -> {
-            this.experienceInput = provider.getInput()[0];
-            return true;
-        });
+    public void setCookingTime(int cookingTime) {
+        this.cookingTime = cookingTime;
     }
 
-    public void setCookingTimeProvider(InputProvider cookingTimeProvider) {
-        if (providers[1] != null)
-            providers[1].close();
-        providers[1] = cookingTimeProvider.onRespond((player, provider) -> {
-            this.cookingTimeInput = provider.getInput()[0];
-            return true;
-        });
+    public void setExperience(int experience) {
+        this.experience = experience;
     }
 
 }

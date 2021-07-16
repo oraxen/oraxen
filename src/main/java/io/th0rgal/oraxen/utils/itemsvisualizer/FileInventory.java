@@ -5,7 +5,7 @@ import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.settings.ResourcesManager;
+import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.utils.fastinv.FastInv;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

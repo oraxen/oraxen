@@ -24,7 +24,7 @@
 
 example_sword:
 
-  displayname: "&c&lMy Custom Sword"
+  displayname: "<gradient:#FA7CBB:#F14658><bold>My Custom Sword"
   material: WOODEN_SWORD
   injectID: false # allow Oraxen to recognise the item if true or not set
   durability: 10
@@ -55,7 +55,7 @@ example_sword:
       value: 10
 
 example_custom_mechanic:
-  displayname: "&c&lMy Item With A Custom Mechanic"
+  displayname: "<gradient:#FA7CBB:#F14658><bold>My Item With A Custom Mechanic"
   material: DIAMOND_SWORD
   Mechanics:
     custom:
@@ -67,7 +67,7 @@ example_custom_mechanic:
           - "command:server:normal:this is a test"
 
 example_command_mechanic:
-  displayname: "&c&lMy Item That Gives Diamond Swords"
+  displayname: "<gradient:#FA7CBB:#F14658><bold>My Item That Gives Diamond Swords"
   material: DIAMOND_SWORD
   Mechanics:
     commands:
@@ -79,7 +79,7 @@ example_command_mechanic:
         - "give %p% diamond_sword 1"
 
 example_potion:
-  displayname: "&8Wither Potion"
+  displayname: "<#6f737d>Wither Potion"
   material: SPLASH_POTION
   injectID: false # allow Oraxen to recognise the item if true or not set
   color: 34, 0, 10
@@ -93,7 +93,7 @@ example_potion:
     - { type: WITHER, duration: 200, amplifier: 2, ambient: false, particles: true, icon: true }
 
 miner_sandwitch:
-  displayname: "&eMiner's sandwitch"
+  displayname: "<gradient:#F69D84:#FAD98D>Miner's sandwitch"
   material: COOKED_BEEF
   Pack:
     generate_model: true
@@ -110,7 +110,7 @@ miner_sandwitch:
         duration: 72000 # one hour in ticks
 
 amethyst:
-  displayname: "&dAmethyst"
+  displayname: "<gradient:#4B36B1:#6699FF>Amethyst"
   material: DIAMOND
   Pack:
     generate_model: true
@@ -119,7 +119,7 @@ amethyst:
       - default/amethyst.png # .png extension is not mandatory
 
 ruby:
-  displayname: "&cRuby"
+  displayname: "<gradient:#FA7CBB:#F14658>Ruby"
   material: DIAMOND
   Pack:
     generate_model: true
@@ -128,7 +128,7 @@ ruby:
       - default/ruby.png # .png extension is not mandatory
 
 onyx:
-  displayname: "&8Onyx"
+  displayname: "<#6f737d>Onyx"
   material: DIAMOND
   Pack:
     generate_model: true
@@ -137,7 +137,7 @@ onyx:
       - default/onyx.png # .png extension is not mandatory
 
 orax:
-  displayname: "&bOrax"
+  displayname: "<gradient:#3685EC:#72C1E4>Orax"
   material: DIAMOND
   Pack:
     generate_model: true
@@ -146,17 +146,17 @@ orax:
       - default/orax.png # .png extension is not mandatory
 
 fire:
-  displayname: "&6Fire"
+  displayname: "<gradient:#F06966:#FAD6A6>Fire"
   material: DIAMOND
   Pack:
     generate_model: false
     model: block/fire_floor0 # so we use the already existing fire model
 
 item_frame_invisible:
-  displayname: "&dInvisible Itemframe"
+  displayname: "<gradient:#4B36B1:#6699FF>Invisible Itemframe"
   material: ITEM_FRAME
   lore:
-    - "&8» &7Only 1.16+"
+    - "<#6f737d>» <#D5D6D8>Only 1.16+"
   Mechanics:
     invisible_frame:
       enable: true

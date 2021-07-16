@@ -1,8 +1,7 @@
 package io.th0rgal.oraxen.utils.logs;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.language.LanguageProvider;
-import io.th0rgal.oraxen.language.Variable;
+import io.th0rgal.oraxen.config.Message;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -18,14 +17,6 @@ public class Logs {
         Field field = JavaPlugin.class.getDeclaredField("logger");
         field.setAccessible(true);
         field.set(OraxenPlugin.get(), LOGGER);
-    }
-
-    public static void log(String message) {
-        log(ChatColor.GRAY, message);
-    }
-
-    public static void log(ChatColor chatColor, String message) {
-        logInfo(Variable.PREFIX.legacyMessage(LanguageProvider.DEFAULT_LANGUAGE) + ' ' + chatColor.toString() + message);
     }
 
     public static void logInfo(String message) {

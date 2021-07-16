@@ -5,7 +5,7 @@ import io.th0rgal.oraxen.compatibilities.provided.cratereloaded.CrateReloadedCom
 import io.th0rgal.oraxen.compatibilities.provided.itembridge.ItemBridgeCompatibility;
 //import io.th0rgal.oraxen.compatibilities.provided.mythicmobs.MythicMobsCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.worldguard.WorldGuardCompatibility;
-import io.th0rgal.oraxen.settings.MessageOld;
+import io.th0rgal.oraxen.config.Message;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.InvocationTargetException;
@@ -37,7 +37,7 @@ public class CompatibilitiesManager {
                 CompatibilityProvider<?> compatibilityProvider = COMPATIBILITY_PROVIDERS.get(pluginName).getConstructor().newInstance();
                 compatibilityProvider.enable(pluginName);
                 ACTIVE_COMPATIBILITY_PROVIDERS.put(pluginName, compatibilityProvider);
-                MessageOld.PLUGIN_HOOKS.log(pluginName);
+                Message.PLUGIN_HOOKS.log();
                 return true;
             }
         } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
@@ -54,7 +54,7 @@ public class CompatibilitiesManager {
             if (ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).isEnabled())
                 ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).disable();
             ACTIVE_COMPATIBILITY_PROVIDERS.remove(pluginName);
-            MessageOld.PLUGIN_UNHOOKS.log(pluginName);
+            Message.PLUGIN_UNHOOKS.log();
             return true;
         } catch (Exception e) {
             e.printStackTrace();
@@ -67,10 +67,7 @@ public class CompatibilitiesManager {
         try {
             if (compatibilityPluginName != null && clazz != null) {
                 COMPATIBILITY_PROVIDERS.put(compatibilityPluginName, clazz);
-                if (tryEnable)
-                    return enableCompatibility(compatibilityPluginName);
-                else
-                    return true;
+                return !tryEnable || enableCompatibility(compatibilityPluginName);
             }
         } catch (Exception e) {
             e.printStackTrace();

@@ -84,6 +84,14 @@ public class RecipesEventsManager implements Listener {
                 .collect(Collectors.toList());
     }
 
+    public String[] getPermittedRecipesName(CommandSender sender) {
+        return getPermittedRecipes(sender)
+                .stream()
+                .map(CustomRecipe::getName)
+                .toArray(String[]::new);
+    }
+
+
     public boolean hasPermission(CommandSender sender, CustomRecipe recipe) {
         return permissionsPerRecipe.containsKey(recipe) && sender.hasPermission(permissionsPerRecipe.get(recipe));
     }
