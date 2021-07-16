@@ -23,6 +23,7 @@ public class CommandsManager {
                 .withSubcommand((new RepairCommand()).getRepairCommand())
                 .withSubcommand((new RecipesCommand()).getRecipesCommand())
                 .withSubcommand((new ReloadCommand()).getReloadCommand())
+                .withSubcommand((new DebugCommand()).getDebugCommand())
                 .executes((sender, args) -> {
                     Message.COMMAND_HELP.send(sender);
                 })
@@ -45,7 +46,7 @@ public class CommandsManager {
     private CommandAPICommand getInvCommand() {
         return new CommandAPICommand("inventory")
                 .withAliases("inv")
-                .withPermission("oraxen.command.inventory")
+                .withPermission("oraxen.command.inventory.view")
                 .withArguments(new StringArgument("type").replaceSuggestions(info -> new String[]{"all", "sorted"}))
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {

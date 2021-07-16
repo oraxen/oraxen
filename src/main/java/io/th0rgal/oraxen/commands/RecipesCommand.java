@@ -129,11 +129,6 @@ public class RecipesCommand {
                             return;
                         }
                         String name = (String) args[0];
-                        String permission = null;
-                        if (permission == null)
-                            recipe.saveRecipe(name);
-                        else
-                            recipe.saveRecipe(name, permission);
                         Message.RECIPE_SAVE.send(sender, "name", name);
                     } else
                         Message.NOT_PLAYER.send(sender);

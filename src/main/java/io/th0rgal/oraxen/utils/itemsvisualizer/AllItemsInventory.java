@@ -57,7 +57,7 @@ public class AllItemsInventory extends FastInv {
     }
 
     static void sharedGive(HumanEntity humanEntity, ItemStack item) {
-        if (humanEntity.hasPermission("oraxen.command.inv.give")) {
+        if (humanEntity.hasPermission("oraxen.command.inventory.give")) {
             if (humanEntity.getInventory().firstEmpty() != -1)
                 humanEntity.getInventory().addItem(item);
             else {
@@ -65,7 +65,7 @@ public class AllItemsInventory extends FastInv {
                 humanEntity.getWorld().dropItem(humanEntity.getLocation(), item);
             }
         } else {
-            Message.NO_PERMISSION.send(humanEntity, "permission", "oraxen.command.inv.give");
+            Message.NO_PERMISSION.send(humanEntity, "permission", "oraxen.command.inventory.give");
         }
     }
 
