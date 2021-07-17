@@ -77,7 +77,7 @@ public class FontManager {
     private String[] createMiniPlaceholders() {
         List<String> placeholders = new ArrayList<>();
         for (Map.Entry<String, Glyph> entry : glyphMap.entrySet()) {
-            placeholders.add("emoji:" + entry.getKey());
+            placeholders.add("glyph:" + entry.getKey());
             placeholders.add(String.valueOf(entry.getValue().character()));
         }
         return placeholders.toArray(new String[0]);
