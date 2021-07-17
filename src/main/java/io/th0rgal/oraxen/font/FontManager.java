@@ -80,7 +80,6 @@ public class FontManager {
             placeholders.add("emoji:" + entry.getKey());
             placeholders.add(String.valueOf(entry.getValue().character()));
         }
-        System.out.println(placeholders);
         return placeholders.toArray(new String[0]);
     }
 
