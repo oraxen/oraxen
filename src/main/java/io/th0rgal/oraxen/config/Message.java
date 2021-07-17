@@ -67,12 +67,12 @@ public enum Message {
 
     @Override
     public String toString() {
-        return OraxenPlugin.get().getLanguage().getString(path);
+        return OraxenPlugin.get().getConfigsManager().getLanguage().getString(path);
     }
 
     public void send(CommandSender sender, String... placeholders) {
         OraxenPlugin.get().getAudience().sender(sender).sendMessage(
-                MiniMessage.get().parse(OraxenPlugin.get().getLanguage().getString(path),
+                MiniMessage.get().parse(OraxenPlugin.get().getConfigsManager().getLanguage().getString(path),
                         ArrayUtils.addAll(new String[]{"prefix", Message.PREFIX.toString()}, placeholders)));
     }
 

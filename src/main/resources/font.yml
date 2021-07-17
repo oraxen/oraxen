@@ -1,0 +1,15 @@
+settings:
+  # Should Oraxen automatically generate default.json according to your settings?
+  automatically_generate: true
+
+glyphs:
+
+  heart:
+    code: 3000
+    texture: default/chat/heart
+    ascent: 8
+    height: 8
+    chat:
+      placeholders:
+        - "<3"
+      permission: "oraxen.emoji.heart"

@@ -1,18 +1,22 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.font.FontManager;
+import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.ZipUtils;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
@@ -21,12 +25,13 @@ import java.util.zip.ZipInputStream;
 public class ResourcePack {
 
     private static File modelsFolder;
+    private static File fontFolder;
     private static File assetsFolder;
     private static final List<Consumer<File>> PACK_MODIFIERS = new ArrayList<>();
     JavaPlugin plugin;
     private final File pack;
 
-    public ResourcePack(JavaPlugin plugin) {
+    public ResourcePack(JavaPlugin plugin, FontManager fontManager) {
         this.plugin = plugin;
         File packFolder = new File(plugin.getDataFolder(), "pack");
         makeDirsIfNotExists(packFolder);
@@ -34,6 +39,8 @@ public class ResourcePack {
         File texturesFolder = new File(packFolder, "textures");
         assetsFolder = new File(packFolder, "assets");
         modelsFolder = new File(packFolder, "models");
+        fontFolder = new File(packFolder, "font");
+        ;
 
         boolean extractModels = !modelsFolder.exists();
         boolean extractTextures = !texturesFolder.exists();
@@ -104,6 +111,7 @@ public class ResourcePack {
             }
         }
         generatePredicates(texturedItems);
+        generateFont(fontManager);
         for (Consumer<File> packModifier : PACK_MODIFIERS) {
             packModifier.accept(packFolder);
         }
@@ -172,6 +180,19 @@ public class ResourcePack {
 
             Utils.writeStringToFile(new File(modelsFolder, vanillaModelName), predicatesGenerator.toJSON().toString());
         }
+    }
+
+    private void generateFont(FontManager fontManager) {
+        if (!fontManager.autoGenerate)
+            return;
+        makeDirsIfNotExists(fontFolder);
+        File fontFile = new File(fontFolder, "default.json");
+        JsonObject output = new JsonObject();
+        JsonArray providers = new JsonArray();
+        for (Glyph glyph : fontManager.getGlyphs())
+            providers.add(glyph.toJson());
+        output.add("providers", providers);
+        Utils.writeStringToFile(fontFile, output.toString());
     }
 
 }

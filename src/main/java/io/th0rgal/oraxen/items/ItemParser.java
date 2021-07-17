@@ -18,10 +18,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 
 public class ItemParser {
@@ -48,7 +45,8 @@ public class ItemParser {
     }
 
     private String parseComponentString(String miniString) {
-        return Utils.LEGACY_COMPONENT_SERIALIZER.serialize(MiniMessage.get().parse(miniString));
+        return Utils.LEGACY_COMPONENT_SERIALIZER.serialize(MiniMessage.get()
+                .parse(miniString, OraxenPlugin.get().getFontManager().getMiniMessagePlaceholders()));
     }
 
     public ItemBuilder buildItem(String name) {

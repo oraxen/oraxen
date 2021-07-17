@@ -4,6 +4,7 @@ import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.StringArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.recipes.RecipesManager;
@@ -19,29 +20,17 @@ public class ReloadCommand {
                         new String[]{"items", "pack", "recipes", "messages", "all"}))
                 .executes((sender, args) -> {
                     switch (((String) args[0]).toUpperCase()) {
-                        case "ITEMS":
-                            reloadItems(sender);
-                            break;
-
-                        case "PACK":
-                            reloadPack(OraxenPlugin.get(), sender);
-                            break;
-
-                        case "RECIPES":
-                            RecipesManager.reload(OraxenPlugin.get());
-                            break;
-
-                        case "CONFIGS":
-                            OraxenPlugin.get().reloadConfigs();
-                            break;
-
-                        default:
+                        case "ITEMS" -> reloadItems(sender);
+                        case "PACK" -> reloadPack(OraxenPlugin.get(), sender);
+                        case "RECIPES" -> RecipesManager.reload(OraxenPlugin.get());
+                        case "CONFIGS" -> OraxenPlugin.get().reloadConfigs();
+                        default -> {
                             OraxenPlugin oraxen = OraxenPlugin.get();
                             OraxenPlugin.get().reloadConfigs();
                             reloadItems(sender);
                             reloadPack(oraxen, sender);
                             RecipesManager.reload(oraxen);
-                            break;
+                        }
                     }
                 });
     }
@@ -53,7 +42,8 @@ public class ReloadCommand {
 
     private static void reloadPack(OraxenPlugin plugin, CommandSender sender) {
         Message.PACK_REGENERATED.send(sender);
-        ResourcePack resourcePack = new ResourcePack(plugin);
+        OraxenPlugin.get().setFontManager(new FontManager(OraxenPlugin.get().getConfigsManager().getFont()));
+        ResourcePack resourcePack = new ResourcePack(plugin, OraxenPlugin.get().getFontManager());
         plugin.getUploadManager().uploadAsyncAndSendToPlayers(resourcePack, true);
     }
 

@@ -7,28 +7,32 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class ConfigsManager implements Listener {
+public class ConfigsManager {
 
     private final JavaPlugin plugin;
     private final YamlConfiguration defaultSettings;
+    private final YamlConfiguration defaultFont;
     private final YamlConfiguration defaultLanguage;
     private YamlConfiguration settings;
+    private YamlConfiguration font;
     private YamlConfiguration language;
     private File itemsFolder;
 
     public ConfigsManager(JavaPlugin plugin) {
         this.plugin = plugin;
         defaultSettings = extractDefault("settings.yml");
+        defaultFont = extractDefault("font.yml");
         defaultLanguage = extractDefault("languages/english.yml");
     }
 
@@ -38,6 +42,10 @@ public class ConfigsManager implements Listener {
 
     public YamlConfiguration getLanguage() {
         return language != null ? language : defaultLanguage;
+    }
+
+    public YamlConfiguration getFont() {
+        return font != null ? font : defaultFont;
     }
 
     private YamlConfiguration extractDefault(String source) {
@@ -56,6 +64,7 @@ public class ConfigsManager implements Listener {
     public boolean validatesConfig() {
         ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
         settings = validate(resourcesManager, "settings.yml", defaultSettings);
+        font = validate(resourcesManager, "font.yml", defaultFont);
         File languagesFolder = new File(plugin.getDataFolder(), "languages");
         languagesFolder.mkdir();
         String languageFile = "languages/" + settings.getString(Settings.PLUGIN_LANGUAGE.getPath()) + ".yml";

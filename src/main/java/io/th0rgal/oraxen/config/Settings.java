@@ -81,7 +81,7 @@ public enum Settings {
     }
 
     public Object getValue() {
-        return OraxenPlugin.get().getSettings().get(path);
+        return OraxenPlugin.get().getConfigsManager().getSettings().get(path);
     }
 
     @Override
@@ -94,11 +94,11 @@ public enum Settings {
     }
 
     public List<String> toStringList() {
-        return OraxenPlugin.get().getSettings().getStringList(path);
+        return OraxenPlugin.get().getConfigsManager().getSettings().getStringList(path);
     }
 
     public ConfigurationSection toConfigSection() {
-        return OraxenPlugin.get().getSettings().getConfigurationSection(path);
+        return OraxenPlugin.get().getConfigsManager().getSettings().getConfigurationSection(path);
     }
 
 }
