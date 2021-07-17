@@ -3,10 +3,6 @@ package io.th0rgal.oraxen.recipes.listeners;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
-
-import java.util.stream.Collectors;
-
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
@@ -19,6 +15,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RecipesEventsManager implements Listener {
 
@@ -49,7 +46,8 @@ public class RecipesEventsManager implements Listener {
             return;
         boolean containsOraxenItem = false;
         if (!containsOraxenItem)
-            if (Arrays.stream(event.getInventory().getMatrix()).anyMatch(ingredient -> OraxenItems.exists(OraxenItems.getIdByItem(ingredient)))) {
+            if (Arrays.stream(event.getInventory().getMatrix()).anyMatch(ingredient ->
+                    OraxenItems.exists(OraxenItems.getIdByItem(ingredient)))) {
                 containsOraxenItem = true;
             }
         if (!containsOraxenItem || recipe == null) return;

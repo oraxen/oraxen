@@ -41,7 +41,8 @@ public class InvisibleItemFrameListener implements Listener {
             }
 
             String itemID = OraxenItems.getIdByItem(frame);
-            if (!factory.isNotImplementedIn(itemID))  event.getEntity().getPersistentDataContainer().set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
+            if (!factory.isNotImplementedIn(itemID))  event.getEntity().getPersistentDataContainer()
+                    .set(invisibleKey, PersistentDataType.BYTE, (byte) 1);
         }
 
         @EventHandler(ignoreCancelled = true)

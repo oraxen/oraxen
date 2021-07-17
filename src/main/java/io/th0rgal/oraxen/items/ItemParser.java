@@ -40,7 +40,8 @@ public class ItemParser {
             if (packSection.isInt("custom_model_data"))
                 MODEL_DATAS_BY_ID
                         .put(section.getName(),
-                                new ModelData(type, oraxenMeta.getModelName(), packSection.getInt("custom_model_data")));
+                                new ModelData(type, oraxenMeta.getModelName(),
+                                        packSection.getInt("custom_model_data")));
         }
     }
 
@@ -81,7 +82,9 @@ public class ItemParser {
             String[] colors = section.getString("color").split(", ");
             item
                     .setColor(org.bukkit.Color
-                            .fromRGB(Integer.parseInt(colors[0]), Integer.parseInt(colors[1]), Integer.parseInt(colors[2])));
+                            .fromRGB(Integer.parseInt(colors[0]),
+                                    Integer.parseInt(colors[1]),
+                                    Integer.parseInt(colors[2])));
         }
 
         if (section.contains("excludeFromInventory") && section.getBoolean("excludeFromInventory"))

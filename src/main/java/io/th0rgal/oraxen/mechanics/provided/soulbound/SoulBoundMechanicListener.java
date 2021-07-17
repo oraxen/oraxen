@@ -15,7 +15,7 @@ import java.util.Random;
 
 public class SoulBoundMechanicListener implements Listener {
     private final SoulBoundMechanicFactory factory;
-    private final HashMap<Player, List<ItemStack>> SOUL_BOUND_ITEMS = new HashMap<>();
+    private final HashMap<Player, List<ItemStack>> soulBoundItems = new HashMap<>();
 
     public SoulBoundMechanicListener(SoulBoundMechanicFactory factory) {
         this.factory = factory;
@@ -37,22 +37,22 @@ public class SoulBoundMechanicListener implements Listener {
             }
         }
         if (!items.isEmpty()) {
-            SOUL_BOUND_ITEMS.put(event.getEntity(), items);
+            soulBoundItems.put(event.getEntity(), items);
             event.getDrops().removeAll(items);
         }
     }
 
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
-        if (!SOUL_BOUND_ITEMS.containsKey(event.getPlayer()))
+        if (!soulBoundItems.containsKey(event.getPlayer()))
             return;
         Player player = event.getPlayer();
-        for (ItemStack item : SOUL_BOUND_ITEMS.get(player)) {
+        for (ItemStack item : soulBoundItems.get(player)) {
             if (player.getInventory().firstEmpty() != -1)
                 player.getInventory().addItem(item);
             else
                 player.getWorld().dropItem(player.getLocation(), item);
         }
-        SOUL_BOUND_ITEMS.remove(player);
+        soulBoundItems.remove(player);
     }
 }

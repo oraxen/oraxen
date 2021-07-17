@@ -3,8 +3,10 @@ package io.th0rgal.oraxen.mechanics.provided.block;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
-
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
@@ -19,9 +21,6 @@ import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class BlockMechanicListener implements Listener {
 
@@ -88,7 +87,8 @@ public class BlockMechanicListener implements Listener {
             target = placedAgainst;
         else {
             target = placedAgainst.getRelative(event.getBlockFace());
-            if (target.getType() != Material.AIR && target.getType() != Material.WATER && target.getType() != Material.CAVE_AIR)
+            if (target.getType() != Material.AIR && target.getType() != Material.WATER
+                    && target.getType() != Material.CAVE_AIR)
                 return;
         }
         if (isStandingInside(player, target))

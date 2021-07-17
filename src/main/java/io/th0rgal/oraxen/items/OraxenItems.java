@@ -33,7 +33,7 @@ public class OraxenItems {
         List<String> itemsList = new ArrayList<>();
         for (Map<String, ItemBuilder> subMap : map.values())
             itemsList.addAll(subMap.keySet());
-        items = itemsList.toArray(new String[0]);;
+        items = itemsList.toArray(new String[0]);
     }
 
     public static String getIdByItem(ItemBuilder item) {
@@ -43,11 +43,6 @@ public class OraxenItems {
     public static String getIdByItem(ItemStack item) {
         return (item == null || !item.hasItemMeta() || item.getItemMeta().getPersistentDataContainer().isEmpty()) ? null
             : item.getItemMeta().getPersistentDataContainer().get(ITEM_ID, PersistentDataType.STRING);
-    }
-
-    @Deprecated
-    public static boolean isAnItem(String itemId) {
-        return exists(itemId);
     }
 
     public static boolean exists(String itemId) {
@@ -83,7 +78,7 @@ public class OraxenItems {
             list.stream().map(line -> line.split(":")).forEach(param -> {
                 switch (param[0].toLowerCase()) {
                 case "type":
-                    if (isAnItem(param[1]))
+                    if (exists(param[1]))
                         itemStack[0] = getItemById(param[1]).build().clone();
                     else
                         Message.ITEM_NOT_FOUND.log("item", param[1]);

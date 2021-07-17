@@ -14,24 +14,12 @@ public class CustomMechanicAction {
         for (String eventName : eventNames) {
             String[] params = eventName.split(":");
 
-            CustomAction action;
-            switch (params[0]) {
-                case "command":
-                    action = new CommandAction(params);
-                    break;
-
-                case "message":
-                    action = null;
-                    break;
-
-                case "title":
-                    action = null;
-                    break;
-
-                default:
-                    action = null;
-                    break;
-            }
+            CustomAction action = switch (params[0]) {
+                case "command" -> new CommandAction(params);
+                case "message" -> null;
+                case "title" -> null;
+                default -> null;
+            };
 
             actions.add(action);
         }

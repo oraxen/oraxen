@@ -4,15 +4,14 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.utils.fastinv.FastInv;
-
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public class RecipeShowcase extends FastInv {
 
@@ -24,10 +23,7 @@ public class RecipeShowcase extends FastInv {
         CustomRecipe currentRecipe = filteredRecipes.get(page);
 
         // Check if last page
-        boolean lastPage = false;
-        if (filteredRecipes.size() - 1 == page) {
-            lastPage = true;
-        }
+        boolean lastPage = filteredRecipes.size() - 1 == page;
 
         // Display Result
         setItem(4, new ItemBuilder(currentRecipe.getResult()).build());

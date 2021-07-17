@@ -56,25 +56,23 @@ public class HarvestingMechanicManager implements Listener {
 
         for (Block block : getNearbyBlocks(event.getClickedBlock().getLocation(), mechanic.getRadius(),
                 mechanic.getHeight())) {
-            if (block.getBlockData() instanceof Ageable) {
+            if (block.getBlockData() instanceof Ageable ageable) {
                 if (worldGuardCompatibility != null && worldGuardCompatibility.cannotBreak(player, block))
                     return;
-                Ageable ageable = (Ageable) block.getBlockData();
                 if (ageable.getAge() == ageable.getMaximumAge()) {
                     ageable.setAge(0);
                     block.setBlockData(ageable);
                     List<ItemStack> drops = new ArrayList<>();
                     switch (block.getType()) {
-                        case WHEAT:
+                        case WHEAT -> {
                             drops.add(new ItemStack(Material.WHEAT));
                             drops.add(new ItemStack(Material.WHEAT_SEEDS));
-                            break;
-                        case BEETROOTS:
+                        }
+                        case BEETROOTS -> {
                             drops.add(new ItemStack(Material.BEETROOT));
                             drops.add(new ItemStack(Material.BEETROOT_SEEDS));
-                            break;
-                        default:
-                            drops.addAll(block.getDrops());
+                        }
+                        default -> drops.addAll(block.getDrops());
                     }
                     for (ItemStack itemStack : drops)
                         giveItem(player, itemStack);

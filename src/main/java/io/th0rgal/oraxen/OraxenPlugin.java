@@ -59,7 +59,6 @@ public class OraxenPlugin extends JavaPlugin {
         fontManager = new FontManager(configsManager.getFont());
         OraxenItems.loadItems(configsManager);
         fontManager.registerEvents();
-        //MechanicsManager.unloadListeners(); // we need to avoid double loading
         ResourcePack resourcePack = new ResourcePack(this, fontManager);
         RecipesManager.load(this);
         FastInvManager.register(this);

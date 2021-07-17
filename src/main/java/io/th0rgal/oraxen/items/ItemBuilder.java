@@ -68,8 +68,7 @@ public class ItemBuilder {
         if (itemMeta instanceof LeatherArmorMeta)
             this.color = ((LeatherArmorMeta) itemMeta).getColor();
 
-        if (itemMeta instanceof PotionMeta) {
-            PotionMeta potionMeta = (PotionMeta) itemMeta;
+        if (itemMeta instanceof PotionMeta potionMeta) {
             this.color = potionMeta.getColor();
             this.potionData = potionMeta.getBasePotionData();
             this.potionEffects = new ArrayList<>(potionMeta.getCustomEffects());
@@ -78,8 +77,7 @@ public class ItemBuilder {
         if (itemMeta instanceof SkullMeta)
             this.owningPlayer = ((SkullMeta) itemMeta).getOwningPlayer();
 
-        if (itemMeta instanceof TropicalFishBucketMeta) {
-            TropicalFishBucketMeta tropicalFishBucketMeta = (TropicalFishBucketMeta) itemMeta;
+        if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta) {
             this.bodyColor = tropicalFishBucketMeta.getBodyColor();
             this.pattern = tropicalFishBucketMeta.getPattern();
             this.patternColor = tropicalFishBucketMeta.getPatternColor();
@@ -279,24 +277,21 @@ public class ItemBuilder {
         ItemMeta itemMeta = itemStack.getItemMeta();
 
         // durability
-        if (itemMeta instanceof Damageable) {
-            Damageable damageable = (Damageable) itemMeta;
+        if (itemMeta instanceof Damageable damageable) {
             if (durability != damageable.getDamage()) {
                 damageable.setDamage(durability);
                 itemMeta = (ItemMeta) damageable;
             }
         }
 
-        if (itemMeta instanceof LeatherArmorMeta) {
-            LeatherArmorMeta leatherArmorMeta = (LeatherArmorMeta) itemMeta;
+        if (itemMeta instanceof LeatherArmorMeta leatherArmorMeta) {
             if (color != null && !color.equals(leatherArmorMeta.getColor())) {
                 leatherArmorMeta.setColor(color);
                 itemMeta = leatherArmorMeta;
             }
         }
 
-        if (itemMeta instanceof PotionMeta) {
-            PotionMeta potionMeta = (PotionMeta) itemMeta;
+        if (itemMeta instanceof PotionMeta potionMeta) {
 
             if (color != null && !color.equals(potionMeta.getColor()))
                 potionMeta.setColor(color);
@@ -311,8 +306,7 @@ public class ItemBuilder {
             itemMeta = potionMeta;
         }
 
-        if (itemMeta instanceof SkullMeta) {
-            SkullMeta skullMeta = (SkullMeta) itemMeta;
+        if (itemMeta instanceof SkullMeta skullMeta) {
             OfflinePlayer defaultOwningPlayer = skullMeta.getOwningPlayer();
             if (!owningPlayer.equals(defaultOwningPlayer)) {
                 skullMeta.setOwningPlayer(owningPlayer);
@@ -320,8 +314,7 @@ public class ItemBuilder {
             }
         }
 
-        if (itemMeta instanceof TropicalFishBucketMeta) {
-            TropicalFishBucketMeta tropicalFishBucketMeta = (TropicalFishBucketMeta) itemMeta;
+        if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta) {
 
             DyeColor defaultColor = tropicalFishBucketMeta.getBodyColor();
             if (!bodyColor.equals(defaultColor))

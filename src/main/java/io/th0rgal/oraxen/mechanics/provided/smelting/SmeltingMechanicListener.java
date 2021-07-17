@@ -45,7 +45,8 @@ public class SmeltingMechanicListener implements Listener {
         ItemMeta itemMeta = item.getItemMeta();
         if (itemMeta == null) return;
 
-        if (event.getBlock().getType().toString().contains("ORE") && itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
+        if (event.getBlock().getType().toString().contains("ORE")
+                && itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
             loot.setAmount(1 + new Random().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
         }
         event.setDropItems(false);
@@ -62,9 +63,8 @@ public class SmeltingMechanicListener implements Listener {
         if (item == null)
             return null; // Because item can be null
         for (Recipe recipe : Bukkit.getRecipesFor(item)) {
-            if (!(recipe instanceof CookingRecipe<?>))
+            if (!(recipe instanceof CookingRecipe<?> cookingRecipe))
                 continue;
-            CookingRecipe<?> cookingRecipe = (CookingRecipe<?>) recipe;
             if (cookingRecipe.getInputChoice().test(item))
                 return new ItemStack(recipe.getResult().getType(), item.getAmount());
         }
