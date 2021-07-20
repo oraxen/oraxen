@@ -15,7 +15,7 @@ import io.th0rgal.oraxen.mechanics.provided.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.spell.energyblast.EnergyBlastMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.harvesting.HarvestingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.hat.HatMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.invisibleitemframe.InvisibleItemFrameFactory;
+import io.th0rgal.oraxen.mechanics.provided.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.itemtype.ItemTypeMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.lifeleech.LifeLeechMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.repair.RepairMechanicFactory;
@@ -87,7 +87,8 @@ public class MechanicsManager {
             registerMechanicFactory("bedrockbreak", BedrockBreakMechanicFactory.class);
 
         // Dispo only +1.16 (20w10a)
-        if (Bukkit.getVersion().contains("1.16") || Bukkit.getVersion().contains("1.17")) registerMechanicFactory("invisible_frame", InvisibleItemFrameFactory.class);
+        if (Bukkit.getVersion().contains("1.16") || Bukkit.getVersion().contains("1.17"))
+            registerMechanicFactory("furniture", FurnitureFactory.class);
 
     }
 

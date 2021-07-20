@@ -151,12 +151,3 @@ fire:
   Pack:
     generate_model: false
     model: block/fire_floor0 # so we use the already existing fire model
-
-item_frame_invisible:
-  displayname: "<gradient:#4B36B1:#6699FF>Invisible Itemframe"
-  material: ITEM_FRAME
-  lore:
-    - "<#6f737d>» <#D5D6D8>Only 1.16+"
-  Mechanics:
-    invisible_frame:
-      enable: true

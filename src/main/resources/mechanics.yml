@@ -53,7 +53,7 @@ consumable:
   enabled: true
 
 # Only 1.16+
-invisible_frame:
+furniture:
   enabled: true
 
 itemtype:
