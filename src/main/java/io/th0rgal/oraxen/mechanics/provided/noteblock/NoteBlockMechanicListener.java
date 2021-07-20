@@ -57,19 +57,18 @@ public class NoteBlockMechanicListener implements Listener {
                 && block.getType() == Material.NOTE_BLOCK) {
             NoteBlock blockData = (NoteBlock) block.getBlockData();
             ItemStack clicked = event.getItem();
-            if (blockData.getInstrument() != Instrument.PIANO && (clicked == null
-                    || clicked.getType() == Material.AIR)) {
-                event.setCancelled(true);
+            event.setCancelled(true);
+            if (clicked == null)
                 return;
-            }
             Material type = clicked.getType();
+            if (type == null || clicked.getType().isInteractable())
+                return;
             if (type == Material.LAVA_BUCKET)
                 type = Material.LAVA;
             if (type == Material.WATER_BUCKET)
                 type = Material.WATER;
             if (type.isBlock()) {
-                event.setCancelled(true);
-                makePlayerPlaceBlock(event.getPlayer(), event.getHand(), event.getItem(), event.getClickedBlock(),
+                makePlayerPlaceBlock(event.getPlayer(), event.getHand(), event.getItem(), block,
                         event.getBlockFace(), Bukkit.createBlockData(type));
             }
         }
@@ -157,17 +156,19 @@ public class NoteBlockMechanicListener implements Listener {
         }
         if (isStandingInside(player, target))
             return false;
-        target.setBlockData(newBlock, false);
 
         // determines the old informations of the block
         BlockData curentBlockData = target.getBlockData();
+        target.setBlockData(newBlock, false);
         BlockState currentBlockState = target.getState();
 
         BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player,
                 true, hand);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
-        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled())
+        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
+            return false;
+        }
 
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
