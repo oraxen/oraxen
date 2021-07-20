@@ -14,7 +14,7 @@ public record Glyph(String name, char character, String texture, int ascent,
         chars.add(String.valueOf(character));
         output.add("chars", chars);
         output.addProperty("file", texture);
-        output.addProperty("ascent", 8);
+        output.addProperty("ascent", ascent);
         output.addProperty("height", height);
         output.addProperty("type", "bitmap");
         return output;

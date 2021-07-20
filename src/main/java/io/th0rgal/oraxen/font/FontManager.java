@@ -50,7 +50,7 @@ public class FontManager {
             if (!texture.endsWith(".png"))
                 texture += ".png";
             Glyph glyph = new Glyph(glyphName, (char) glyphSection.getInt("code"), texture,
-                    glyphSection.getInt("ascent"), glyphSection.getInt("ascent"), permission, placeholders);
+                    glyphSection.getInt("ascent"), glyphSection.getInt("height"), permission, placeholders);
             glyphMap.put(glyphName, glyph);
             reverse.put(glyph.character(), glyphName);
             for (String placeholder : placeholders)
