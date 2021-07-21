@@ -48,7 +48,6 @@ bedrock_pickaxe:
     durability:
       value: 5000 #diamond sword is 1561
     bedrockbreak:
-      delay: 0
       period: 10
       probability: 1
 
