@@ -67,7 +67,6 @@ processResources {
 }
 
 java {
-    withJavadocJar()
     withSourcesJar()
 }
 
