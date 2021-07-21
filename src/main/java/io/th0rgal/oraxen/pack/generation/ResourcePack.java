@@ -192,7 +192,7 @@ public class ResourcePack {
         for (Glyph glyph : fontManager.getGlyphs())
             providers.add(glyph.toJson());
         output.add("providers", providers);
-        Utils.writeStringToFile(fontFile, output.toString());
+        Utils.writeStringToFile(fontFile, output.toString().replace("\\\\u", "\\u"));
     }
 
 }

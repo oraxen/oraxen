@@ -11,7 +11,9 @@ public record Glyph(String name, char character, String texture, int ascent,
     public JsonObject toJson() {
         JsonObject output = new JsonObject();
         JsonArray chars = new JsonArray();
-        chars.add(String.valueOf(character));
+        String hexCode = Integer.toHexString(character);
+        // unfortunately we don't have the choice, this is a windows bug
+        chars.add("\\u" + ("0000" + hexCode).substring(hexCode.length()));
         output.add("chars", chars);
         output.addProperty("file", texture);
         output.addProperty("ascent", ascent);
