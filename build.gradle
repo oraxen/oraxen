@@ -47,7 +47,7 @@ dependencies {
     // The Spigot API with no shadowing. Requires the OSS repo.
     compileOnly group: "org.spigotmc", name: "spigot", version: "1.16.5-R0.1-SNAPSHOT"
     compileOnly group: "org.spigotmc", name: "spigot-api", version: "1.16.5-R0.1-SNAPSHOT"
-    compileOnly group: "com.github.dmulloy2", name: "ProtocolLib", version: "4.6.0"
+    compileOnly group: "com.github.dmulloy2", name: "ProtocolLib", version: "4.7.0"
     compileOnly group: "com.github.Hazebyte", name: "CrateReloadedAPI", version: "5318abfccc"
     compileOnly group: "com.sk89q.worldguard", name: "worldguard-bukkit", version: "7.0.5"
     compileOnly group: "com.github.jojodmo", name: "ItemBridge", version: "-SNAPSHOT"
