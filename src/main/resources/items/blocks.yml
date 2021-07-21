@@ -123,3 +123,12 @@ orax_ore:
         loots:
           - oraxen_item: orax
             probability: 1.0
+
+wheelbarrow:
+  displayname: "Wheelbarrow"
+  material: DIAMOND
+  Mechanics:
+    furniture:
+      barrier: false
+      rotation: NONE
+      facing: UP
