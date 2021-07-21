@@ -94,3 +94,11 @@ shadowJar {
 
 compileJava.dependsOn clean
 build.dependsOn shadowJar
+
+publishing {
+    publications {
+        grp(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
