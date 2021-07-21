@@ -11,7 +11,7 @@ import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
 import io.th0rgal.oraxen.recipes.builders.ShapedBuilder;
 import io.th0rgal.oraxen.recipes.builders.ShapelessBuilder;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
-import io.th0rgal.oraxen.utils.recipeshowcase.RecipeShowcase;
+import io.th0rgal.oraxen.commands.recipeshowcase.RecipeShowcase;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.entity.Player;
 

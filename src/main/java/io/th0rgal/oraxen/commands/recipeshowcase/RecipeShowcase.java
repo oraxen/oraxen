@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.utils.recipeshowcase;
+package io.th0rgal.oraxen.commands.recipeshowcase;
 
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;

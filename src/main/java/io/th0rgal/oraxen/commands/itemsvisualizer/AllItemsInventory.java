@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.utils.itemsvisualizer;
+package io.th0rgal.oraxen.commands.itemsvisualizer;
 
 import com.google.common.collect.Iterables;
 import io.th0rgal.oraxen.config.Message;

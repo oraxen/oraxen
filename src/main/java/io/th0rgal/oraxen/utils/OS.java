@@ -44,19 +44,19 @@ public class OS {
     }
 
     public String getName() {
-        return osInfo.getName();
+        return osInfo.name();
     }
 
     public String getArch() {
-        return osInfo.getArch();
+        return osInfo.arch();
     }
 
     public String getVersion() {
-        return osInfo.getVersion();
+        return osInfo.version();
     }
 
     public String getPlatformName() {
-        return osInfo.getPlatformName();
+        return osInfo.platformName();
     }
 
     private static final Map<String, String> macOs = new HashMap<>();
@@ -154,7 +154,7 @@ public class OS {
     }
 
     private OsInfo getPlatformNameFromFile(final String name, final String version, final String arch,
-        final String filename) {
+                                           final String filename) {
         if (filename == null)
             return null;
         File f = new File(filename);
@@ -169,7 +169,7 @@ public class OS {
     }
 
     OsInfo readPlatformName(final String name, final String version, final String arch, final BufferedReader br)
-        throws IOException {
+            throws IOException {
         String line;
         String lineToReturn = null;
         int lineNb = 0;
@@ -196,7 +196,7 @@ public class OS {
     }
 
     OsInfo readPlatformNameFromLsb(final String name, final String version, final String arch, final BufferedReader br)
-        throws IOException {
+            throws IOException {
         String distribDescription = null;
         String distribCodename = null;
 
@@ -212,34 +212,7 @@ public class OS {
         return null;
     }
 
-    static class OsInfo {
-        private final String name;
-        private final String arch;
-        private final String version;
-        private final String platformName;
-
-        private OsInfo(final String name, final String version, final String arch, final String platformName) {
-            this.name = name;
-            this.arch = arch;
-            this.version = version;
-            this.platformName = platformName;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public String getArch() {
-            return arch;
-        }
-
-        public String getVersion() {
-            return version;
-        }
-
-        public String getPlatformName() {
-            return platformName;
-        }
+    record OsInfo(String name, String version, String arch, String platformName) {
     }
 
 }

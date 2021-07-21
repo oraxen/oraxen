@@ -8,9 +8,6 @@ import java.util.function.Predicate;
 import java.util.jar.JarEntry;
 import java.util.jar.JarInputStream;
 
-import io.th0rgal.oraxen.utils.general.ValueConsumer;
-import io.th0rgal.oraxen.utils.general.ValueProvider;
-
 public abstract class ReflectionUtils {
 
     public static Class<?>[] getClasses(Class<?> sample, String packageName, boolean deep) {
@@ -20,12 +17,12 @@ public abstract class ReflectionUtils {
     }
 
     public static void collectClasses(Class<?> sample, String packageName, Collection<Class<?>> collection,
-        boolean deep) {
+                                      boolean deep) {
         Thread thread = new Thread(() -> acceptJarStream(sample, stream -> {
             JarEntry entry;
             String packagePath = packageName.replace('.', '/');
             Predicate<String> test = deep ? name -> name.startsWith(packagePath)
-                : name -> name.split("\\.")[0].equals(packagePath);
+                    : name -> name.split("\\.")[0].equals(packagePath);
             while ((entry = stream.getNextJarEntry()) != null) {
                 String name = entry.getName();
                 if (test.test(name) && !name.contains("$")) {
@@ -43,7 +40,7 @@ public abstract class ReflectionUtils {
 
     public static void acceptJarStream(Class<?> sample, ValueConsumer<JarInputStream> consumer) {
         Optional<JarInputStream> option = getJarStream(sample);
-        if (!option.isPresent())
+        if (option.isEmpty())
             return;
         option.ifPresent(consumer);
         try {

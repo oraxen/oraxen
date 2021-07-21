@@ -6,8 +6,8 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.pack.dispatch.PackDispatcher;
-import io.th0rgal.oraxen.utils.itemsvisualizer.AllItemsInventory;
-import io.th0rgal.oraxen.utils.itemsvisualizer.FileInventory;
+import io.th0rgal.oraxen.commands.itemsvisualizer.AllItemsInventory;
+import io.th0rgal.oraxen.commands.itemsvisualizer.FileInventory;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
