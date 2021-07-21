@@ -12,6 +12,7 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -19,6 +20,8 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -41,7 +44,7 @@ public class BreakerSystem {
 
     private void sendBlockBreak(Player player, Location location, int stage) {
         PacketContainer fakeAnimation = protocolManager.createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
-        fakeAnimation.getIntegers().write(0, player.getEntityId() + 1).write(1, stage);
+        fakeAnimation.getIntegers().write(0, location.hashCode()).write(1, stage);
         fakeAnimation.getBlockPositionModifier().write(0, new BlockPosition(location.toVector()));
         try {
             protocolManager.sendServerPacket(player, fakeAnimation);
@@ -58,6 +61,8 @@ public class BreakerSystem {
                             public void onPacketReceiving(PacketEvent event) {
                                 PacketContainer packet = event.getPacket();
                                 Player player = event.getPlayer();
+                                if (player.getGameMode() == GameMode.CREATIVE)
+                                    return;
                                 ItemStack item = player.getInventory().getItemInMainHand();
 
                                 StructureModifier<BlockPosition> dataTemp = packet.getBlockPositionModifier();
@@ -81,9 +86,14 @@ public class BreakerSystem {
                                 event.setCancelled(true);
 
                                 Location location = block.getLocation();
-                                if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
 
+                                if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
                                     long period = triggeredModifier.getPeriod(player, block, item);
+                                    Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
+                                            player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING,
+                                                    (int) (period * 11),
+                                                    Integer.MAX_VALUE,
+                                                    false, false, false)));
 
                                     if (breakerPerLocation.containsKey(location))
                                         breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
@@ -100,30 +110,41 @@ public class BreakerSystem {
                                                 bukkitTask.cancel();
                                                 return;
                                             }
-                                            value += 1;
+
                                             for (Entity entity : world.getNearbyEntities(location, 16, 16, 16))
                                                 if (entity instanceof Player viewer)
                                                     sendBlockBreak(viewer, location, value);
 
-                                            if (value < 10)
+                                            if (value++ < 10)
                                                 return;
 
                                             BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
                                             Bukkit.getPluginManager().callEvent(blockBreakEvent);
                                             if (!blockBreakEvent.isCancelled())
                                                 modifier.breakBlock(player, block, item);
-
+                                            Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
+                                                    player.removePotionEffect(PotionEffectType.SLOW_DIGGING));
+                                            breakerPerLocation.remove(location);
+                                            for (Entity entity : world.getNearbyEntities(location, 16, 16, 16))
+                                                if (entity instanceof Player viewer)
+                                                    sendBlockBreak(player, location, 10);
                                             bukkitTask.cancel();
                                         }
                                     }, period, period);
 
                                 } else {
+                                    Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
+                                        player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+                                        for (Entity entity : world.getNearbyEntities(location, 16, 16, 16))
+                                            if (entity instanceof Player viewer)
+                                                sendBlockBreak(player, location, 10);
+                                    });
+
                                     breakerPerLocation.remove(location);
-                                    sendBlockBreak(player, location, 10);
+
                                 }
                             }
                         });
     }
-
 
 }

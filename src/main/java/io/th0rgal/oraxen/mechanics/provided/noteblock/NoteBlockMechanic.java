@@ -17,6 +17,9 @@ public class NoteBlockMechanic extends Mechanic {
     private final int customVariation;
     private final Drop drop;
     private final Sound breakSound;
+    protected final boolean hasHardness;
+    private int period;
+    private List<String> bestTools;
 
     @SuppressWarnings("unchecked")
     public NoteBlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -36,17 +39,33 @@ public class NoteBlockMechanic extends Mechanic {
             this.breakSound = null;
 
         List<Loot> loots = new ArrayList<>();
-        ConfigurationSection drop = section.getConfigurationSection("drop");
-        for (LinkedHashMap<String, Object> lootConfig : (List<LinkedHashMap<String, Object>>) drop.getList("loots")) {
-            loots.add(new Loot(lootConfig));
-        }
+        if (section.isConfigurationSection("drop")) {
+            ConfigurationSection drop = section.getConfigurationSection("drop");
+            for (LinkedHashMap<String, Object> lootConfig : (List<LinkedHashMap<String, Object>>)
+                    drop.getList("loots"))
+                loots.add(new Loot(lootConfig));
 
-        if (drop.isString("minimal_type")) {
-            NoteBlockMechanicFactory mechanic = (NoteBlockMechanicFactory) mechanicFactory;
-            this.drop = new Drop(mechanic.toolTypes, loots, drop.getBoolean("silktouch"), drop.getBoolean("fortune"), getItemID(),
-                    drop.getString("minimal_type"));
+            if (drop.isString("minimal_type")) {
+                NoteBlockMechanicFactory mechanic = (NoteBlockMechanicFactory) mechanicFactory;
+                this.drop = new Drop(mechanic.toolTypes, loots, drop.getBoolean("silktouch"),
+                        drop.getBoolean("fortune"), getItemID(),
+                        drop.getString("minimal_type"));
+            } else
+                this.drop = new Drop(loots, drop.getBoolean("silktouch"), drop.getBoolean("fortune"),
+                        getItemID());
         } else
-            this.drop = new Drop(loots, drop.getBoolean("silktouch"), drop.getBoolean("fortune"), getItemID());
+            this.drop = new Drop(loots, false, false, getItemID());
+
+        if (section.isConfigurationSection("hardness")) {
+            ConfigurationSection hardnessSection = section.getConfigurationSection("hardness");
+            hasHardness = true;
+            period = hardnessSection.getInt("period");
+            this.bestTools = hardnessSection.isList("best_tools")
+                    ? hardnessSection.getStringList("best_tools")
+                    : new ArrayList<>();
+        } else {
+            hasHardness = false;
+        }
     }
 
     public String getModel(ConfigurationSection section) {
@@ -70,6 +89,14 @@ public class NoteBlockMechanic extends Mechanic {
 
     public Sound getBreakSound() {
         return this.breakSound;
+    }
+
+    public int getPeriod() {
+        return period;
+    }
+
+    public List<String> getBestTools() {
+        return bestTools;
     }
 
 }

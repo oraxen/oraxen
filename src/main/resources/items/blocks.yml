@@ -34,9 +34,10 @@ caveblock:
       break_sound: BLOCK_GLASS_BREAK
       custom_variation: 0
       model: default/caveblock
+      hardness:
+        period: 1
       drop:
         silktouch: false # enable if you want to cancel loots and drop the block when a silktouch pickaxe is used
-        minimal_type: STONE
         loots:
           - { oraxen_item: caveblock, probability: 1.0 } # item_section: probability of loot
 
@@ -53,6 +54,10 @@ amethyst_ore:
       break_sound: BLOCK_STONE_BREAK
       custom_variation: 1
       model: amethyst_ore
+      hardness:
+        period: 6
+        best_tools:
+          - PICKAXE
       drop:
         silktouch: true
         fortune: true
@@ -74,6 +79,10 @@ ruby_ore:
       break_sound: BLOCK_STONE_BREAK
       custom_variation: 2
       model: ruby_ore
+      hardness:
+        period: 7
+        best_tools:
+          - PICKAXE
       drop:
         silktouch: true
         fortune: true
@@ -95,6 +104,10 @@ onyx_ore:
       break_sound: BLOCK_STONE_BREAK
       custom_variation: 3
       model: onyx_ore
+      hardness:
+        period: 8
+        best_tools:
+          - PICKAXE
       drop:
         silktouch: true
         fortune: true
@@ -116,6 +129,10 @@ orax_ore:
       break_sound: BLOCK_STONE_BREAK
       custom_variation: 4
       model: orax_ore
+      hardness:
+        period: 8
+        best_tools:
+          - PICKAXE
       drop:
         silktouch: true
         fortune: true
@@ -123,12 +140,3 @@ orax_ore:
         loots:
           - oraxen_item: orax
             probability: 1.0
-
-wheelbarrow:
-  displayname: "Wheelbarrow"
-  material: DIAMOND
-  Mechanics:
-    furniture:
-      barrier: false
-      rotation: NONE
-      facing: UP

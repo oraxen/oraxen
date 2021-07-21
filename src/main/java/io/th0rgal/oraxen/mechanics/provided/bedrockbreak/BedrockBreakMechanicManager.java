@@ -18,8 +18,6 @@ public class BedrockBreakMechanicManager {
 
 
     public BedrockBreakMechanicManager(BedrockBreakMechanicFactory factory) {
-
-
         BreakerSystem.MODIFIERS.add(new HardnessModifier() {
 
             @Override

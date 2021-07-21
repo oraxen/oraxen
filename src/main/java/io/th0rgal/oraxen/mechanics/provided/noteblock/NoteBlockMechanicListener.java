@@ -3,6 +3,8 @@ package io.th0rgal.oraxen.mechanics.provided.noteblock;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
+import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -18,12 +20,15 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
+
 public class NoteBlockMechanicListener implements Listener {
 
     private final MechanicFactory factory;
 
     public NoteBlockMechanicListener(NoteBlockMechanicFactory factory) {
         this.factory = factory;
+        BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -132,6 +137,62 @@ public class NoteBlockMechanicListener implements Listener {
 
         event.setCancelled(true);
 
+    }
+
+    @SuppressWarnings("deprecation")
+    private HardnessModifier getHardnessModifier() {
+        return new HardnessModifier() {
+
+            @Override
+            public boolean isTriggered(Player player, Block block, ItemStack tool) {
+                if (block.getType() != Material.NOTE_BLOCK)
+                    return false;
+                NoteBlock noteBlok = (NoteBlock) block.getBlockData();
+                int code = (int) (noteBlok.getInstrument().getType()) * 25
+                        + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26;
+                NoteBlockMechanic noteBlockMechanic = NoteBlockMechanicFactory
+                        .getBlockMechanic(code);
+                return noteBlockMechanic != null && noteBlockMechanic.hasHardness;
+            }
+
+            @Override
+            public void breakBlock(Player player, Block block, ItemStack tool) {
+                block.setType(Material.AIR);
+            }
+
+            @Override
+            public long getPeriod(Player player, Block block, ItemStack tool) {
+                NoteBlock noteBlok = (NoteBlock) block.getBlockData();
+                NoteBlockMechanic noteBlockMechanic = NoteBlockMechanicFactory
+                        .getBlockMechanic((int) (noteBlok.getInstrument().getType()) * 25
+                                + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
+
+                long period = noteBlockMechanic.getPeriod();
+                double modifier = 1;
+
+                String itemID = OraxenItems.getIdByItem(tool);
+                String type = tool == null ? "AIR" : tool.getType().toString().toUpperCase();
+                boolean bestTool = false;
+                List<String> bestTools = noteBlockMechanic.getBestTools();
+                if ((itemID != null && bestTools.contains(itemID.toUpperCase())
+                        || noteBlockMechanic.getBestTools().contains(type)))
+                    bestTool = true;
+                else for (String toolName : bestTools) {
+                    if (type.endsWith(toolName.toUpperCase())) {
+                        bestTool = true;
+                        break;
+                    }
+                }
+                if (noteBlockMechanic.getDrop().isToolEnough(tool)) {
+                    if (bestTool)
+                        modifier *= 0.4;
+                    int diff = noteBlockMechanic.getDrop().getDiff(tool);
+                    if (diff >= 1)
+                        modifier *= Math.pow(0.9, diff);
+                }
+                return (long) (period * modifier);
+            }
+        };
     }
 
     private boolean isStandingInside(Player player, Block block) {

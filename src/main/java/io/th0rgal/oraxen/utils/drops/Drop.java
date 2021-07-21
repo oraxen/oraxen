@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.utils.drops;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.itemtype.ItemTypeMechanicFactory;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Location;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
@@ -39,23 +38,28 @@ public class Drop {
         hasMinimalType = false;
     }
 
+    public String getItemType(ItemStack itemInHand) {
+        String itemID = OraxenItems.getIdByItem(itemInHand);
+        ItemTypeMechanicFactory factory = ItemTypeMechanicFactory.get();
+        if (factory.isNotImplementedIn(itemID)) {
+            String[] content = itemInHand.getType().toString().split("_");
+            return content.length >= 2 ? content[0] : "";
+        } else {
+            ItemTypeMechanic mechanic = (ItemTypeMechanic) factory.getMechanic(itemID);
+            return mechanic.itemType;
+        }
+    }
+
     public boolean isToolEnough(ItemStack itemInHand) {
         if (!hasMinimalType)
             return true;
+        String itemType = getItemType(itemInHand);
+        return !itemType.isEmpty() && hierarchy.contains(itemType)
+                && (hierarchy.indexOf(itemType) >= hierarchy.indexOf(minimalType));
+    }
 
-        String itemID = OraxenItems.getIdByItem(itemInHand);
-        ItemTypeMechanicFactory factory = ItemTypeMechanicFactory.get();
-        String itemType;
-        if (factory.isNotImplementedIn(itemID)) {
-            String[] content = itemInHand.getType().toString().split("_");
-            itemType = content[0];
-            if (!hierarchy.contains(itemType) || content.length < 2)
-                return false;
-        } else {
-            ItemTypeMechanic mechanic = (ItemTypeMechanic) factory.getMechanic(itemID);
-            itemType = mechanic.itemType;
-        }
-        return (hierarchy.indexOf(itemType) >= hierarchy.indexOf(minimalType));
+    public int getDiff(ItemStack item) {
+        return (minimalType == null) ? 0 : hierarchy.indexOf(getItemType(item)) - hierarchy.indexOf(minimalType);
     }
 
     public void spawns(Location location, ItemStack itemInHand) {

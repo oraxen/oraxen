@@ -19,7 +19,7 @@ public class BedrockBreakMechanic extends Mechanic {
          */
         super(mechanicFactory, section);
         this.delay = section.getLong("delay");
-        this.period = section.getLong("period");
+        this.period = section.getLong("hardness");
         this.probability = (int) (1D / section.getDouble("probability"));
     }
 

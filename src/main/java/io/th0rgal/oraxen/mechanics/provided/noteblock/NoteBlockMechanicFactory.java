@@ -13,7 +13,6 @@ import org.bukkit.Instrument;
 import org.bukkit.Material;
 import org.bukkit.Note;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -26,7 +25,7 @@ import java.util.Map;
 public class NoteBlockMechanicFactory extends MechanicFactory {
 
     private static final List<JsonObject> BLOCKSTATE_OVERRIDES = new ArrayList<>();
-    private static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
+    public static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
     public final List<String> toolTypes;
 
     public NoteBlockMechanicFactory(ConfigurationSection section) {
@@ -57,40 +56,24 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     public static String getInstrumentName(int id) {
-        switch (id / 25 % 384) {
-            case 1:
-                return "basedrum";
-            case 2:
-                return "snare";
-            case 3:
-                return "hat";
-            case 4:
-                return "bass";
-            case 5:
-                return "flute";
-            case 6:
-                return "bell";
-            case 7:
-                return "guitar";
-            case 8:
-                return "chime";
-            case 9:
-                return "xylophone";
-            case 10:
-                return "iron_xylophone";
-            case 11:
-                return "cow_bell";
-            case 12:
-                return "didgeridoo";
-            case 13:
-                return "bit";
-            case 14:
-                return "banjo";
-            case 15:
-                return "pling";
-            default:
-                return "harp";
-        }
+        return switch (id / 25 % 384) {
+            case 1 -> "basedrum";
+            case 2 -> "snare";
+            case 3 -> "hat";
+            case 4 -> "bass";
+            case 5 -> "flute";
+            case 6 -> "bell";
+            case 7 -> "guitar";
+            case 8 -> "chime";
+            case 9 -> "xylophone";
+            case 10 -> "iron_xylophone";
+            case 11 -> "cow_bell";
+            case 12 -> "didgeridoo";
+            case 13 -> "bit";
+            case 14 -> "banjo";
+            case 15 -> "pling";
+            default -> "harp";
+        };
     }
 
     public static JsonObject getBlockstateOverride(String modelName, int id) {

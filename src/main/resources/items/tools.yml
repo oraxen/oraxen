@@ -48,7 +48,7 @@ bedrock_pickaxe:
     durability:
       value: 5000 #diamond sword is 1561
     bedrockbreak:
-      period: 10
+      hardness: 10
       probability: 1
 
 emerald_hammer:
