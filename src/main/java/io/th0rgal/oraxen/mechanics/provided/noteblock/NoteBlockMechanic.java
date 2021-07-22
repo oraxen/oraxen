@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.noteblock;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.drops.Drop;
@@ -19,7 +20,6 @@ public class NoteBlockMechanic extends Mechanic {
     private final Sound breakSound;
     protected final boolean hasHardness;
     private int period;
-    private List<String> bestTools;
 
     @SuppressWarnings("unchecked")
     public NoteBlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -47,22 +47,23 @@ public class NoteBlockMechanic extends Mechanic {
 
             if (drop.isString("minimal_type")) {
                 NoteBlockMechanicFactory mechanic = (NoteBlockMechanicFactory) mechanicFactory;
+                List<String> bestTools = drop.isList("best_tools")
+                        ? drop.getStringList("best_tools")
+                        : new ArrayList<>();
                 this.drop = new Drop(mechanic.toolTypes, loots, drop.getBoolean("silktouch"),
                         drop.getBoolean("fortune"), getItemID(),
-                        drop.getString("minimal_type"));
+                        drop.getString("minimal_type"),
+                        bestTools);
             } else
                 this.drop = new Drop(loots, drop.getBoolean("silktouch"), drop.getBoolean("fortune"),
                         getItemID());
         } else
             this.drop = new Drop(loots, false, false, getItemID());
 
-        if (section.isConfigurationSection("hardness")) {
-            ConfigurationSection hardnessSection = section.getConfigurationSection("hardness");
+        // hardness requires protocollib
+        if (OraxenPlugin.getProtocolLib() && section.isInt("hardness")) {
             hasHardness = true;
-            period = hardnessSection.getInt("period");
-            this.bestTools = hardnessSection.isList("best_tools")
-                    ? hardnessSection.getStringList("best_tools")
-                    : new ArrayList<>();
+            period = section.getInt("hardness");
         } else {
             hasHardness = false;
         }
@@ -93,10 +94,6 @@ public class NoteBlockMechanic extends Mechanic {
 
     public int getPeriod() {
         return period;
-    }
-
-    public List<String> getBestTools() {
-        return bestTools;
     }
 
 }

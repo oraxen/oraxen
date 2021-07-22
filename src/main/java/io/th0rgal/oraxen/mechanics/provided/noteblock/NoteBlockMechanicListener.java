@@ -20,8 +20,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.List;
-
 public class NoteBlockMechanicListener implements Listener {
 
     private final MechanicFactory factory;
@@ -169,23 +167,8 @@ public class NoteBlockMechanicListener implements Listener {
 
                 long period = noteBlockMechanic.getPeriod();
                 double modifier = 1;
-
-                String itemID = OraxenItems.getIdByItem(tool);
-                String type = tool == null ? "AIR" : tool.getType().toString().toUpperCase();
-                boolean bestTool = false;
-                List<String> bestTools = noteBlockMechanic.getBestTools();
-                if ((itemID != null && bestTools.contains(itemID.toUpperCase())
-                        || noteBlockMechanic.getBestTools().contains(type)))
-                    bestTool = true;
-                else for (String toolName : bestTools) {
-                    if (type.endsWith(toolName.toUpperCase())) {
-                        bestTool = true;
-                        break;
-                    }
-                }
-                if (noteBlockMechanic.getDrop().isToolEnough(tool)) {
-                    if (bestTool)
-                        modifier *= 0.4;
+                if (noteBlockMechanic.getDrop().canDrop(tool)) {
+                    modifier *= 0.4;
                     int diff = noteBlockMechanic.getDrop().getDiff(tool);
                     if (diff >= 1)
                         modifier *= Math.pow(0.9, diff);

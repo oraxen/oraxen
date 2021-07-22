@@ -43,8 +43,11 @@ public class BlockMechanic extends Mechanic {
 
         if (drop.isString("minimal_type")) {
             BlockMechanicFactory mechanic = (BlockMechanicFactory) mechanicFactory;
-            this.drop = new Drop(mechanic.toolTypes, loots, drop.getBoolean("silktouch"), drop.getBoolean("fortune"), getItemID(),
-                    drop.getString("minimal_type"));
+            this.drop = new Drop(mechanic.toolTypes, loots, drop.getBoolean("silktouch"),
+                    drop.getBoolean("fortune"),
+                    getItemID(),
+                    drop.getString("minimal_type"),
+                    new ArrayList<>());
         } else
             this.drop = new Drop(loots, drop.getBoolean("silktouch"), drop.getBoolean("fortune"), getItemID());
     }

@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -18,9 +19,11 @@ public class Drop {
     final boolean fortune;
     private final boolean hasMinimalType;
     String minimalType;
+    private final List<String> bestTools;
     final String sourceID;
 
-    public Drop(List<String> hierarchy, List<Loot> loots, boolean silktouch, boolean fortune, String sourceID, String minimalType) {
+    public Drop(List<String> hierarchy, List<Loot> loots, boolean silktouch, boolean fortune, String sourceID,
+                String minimalType, List<String> bestTools) {
         this.hierarchy = hierarchy;
         this.loots = loots;
         this.silktouch = silktouch;
@@ -28,6 +31,7 @@ public class Drop {
         this.sourceID = sourceID;
         hasMinimalType = true;
         this.minimalType = minimalType;
+        this.bestTools = bestTools;
     }
 
     public Drop(List<Loot> loots, boolean silktouch, boolean fortune, String sourceID) {
@@ -36,6 +40,7 @@ public class Drop {
         this.fortune = fortune;
         this.sourceID = sourceID;
         hasMinimalType = false;
+        this.bestTools = new ArrayList<>();
     }
 
     public String getItemType(ItemStack itemInHand) {
@@ -50,12 +55,32 @@ public class Drop {
         }
     }
 
+    public boolean canDrop(ItemStack itemInHand) {
+        return isToolEnough(itemInHand) && isTypeEnough(itemInHand);
+    }
+
+    public boolean isTypeEnough(ItemStack itemInHand) {
+        if (hasMinimalType) {
+            String itemType = getItemType(itemInHand);
+            return !itemType.isEmpty() && hierarchy.contains(itemType)
+                    && (hierarchy.indexOf(itemType) >= hierarchy.indexOf(minimalType));
+        }
+        return true;
+    }
+
     public boolean isToolEnough(ItemStack itemInHand) {
-        if (!hasMinimalType)
-            return true;
-        String itemType = getItemType(itemInHand);
-        return !itemType.isEmpty() && hierarchy.contains(itemType)
-                && (hierarchy.indexOf(itemType) >= hierarchy.indexOf(minimalType));
+        if (!bestTools.isEmpty()) {
+            String itemID = OraxenItems.getIdByItem(itemInHand);
+            String type = itemInHand == null ? "AIR" : itemInHand.getType().toString().toUpperCase();
+            if ((itemID != null && bestTools.contains(itemID.toUpperCase())
+                    || bestTools.contains(type)))
+                return true;
+            else for (String toolName : bestTools)
+                if (type.endsWith(toolName.toUpperCase()))
+                    return true;
+            return false;
+        }
+        return true;
     }
 
     public int getDiff(ItemStack item) {
@@ -63,7 +88,7 @@ public class Drop {
     }
 
     public void spawns(Location location, ItemStack itemInHand) {
-        if (!isToolEnough(itemInHand))
+        if (!canDrop(itemInHand))
             return;
 
         if (silktouch && itemInHand.getItemMeta().hasEnchant(Enchantment.SILK_TOUCH)) {
