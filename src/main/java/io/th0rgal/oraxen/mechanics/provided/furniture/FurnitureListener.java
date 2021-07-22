@@ -20,6 +20,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -71,6 +72,22 @@ public class FurnitureListener implements Listener {
                 return 1;
             }
         };
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onFurnitureBreak(BlockBreakEvent event) {
+        Block block = event.getBlock();
+        if (block.getType() != Material.BARRIER || event.getPlayer().getGameMode() != GameMode.CREATIVE)
+            return;
+        for (Entity entity : block.getWorld().getNearbyEntities(block.getLocation(), 1, 1, 1))
+            if (entity instanceof ItemFrame frame
+                    && entity.getLocation().getBlockX() == block.getX()
+                    && entity.getLocation().getBlockY() == block.getY()
+                    && entity.getLocation().getBlockZ() == block.getZ()
+                    && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING)) {
+                frame.remove();
+                return;
+            }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
