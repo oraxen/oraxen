@@ -1,10 +1,13 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
-import org.bukkit.plugin.Plugin;
 
 import java.io.*;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
 import java.util.Arrays;
 import java.util.List;
@@ -58,7 +61,17 @@ public class ZipUtils {
     public static void addToZip(File directoryToZip, File file, String inZipDirectory, ZipOutputStream zos)
             throws IOException {
 
-        FileInputStream fis = new FileInputStream(file);
+        InputStream fis;
+
+        if (file.getName().endsWith(".json")) {
+            String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
+            String[] placeholders = OraxenPlugin.get().getFontManager().getMiniMessagePlaceholders();
+            for (int i = 0; i < placeholders.length; i += 2)
+                content = content.replace("<" + placeholders[i] + ">", placeholders[i + 1]);
+            fis = new ByteArrayInputStream(content.getBytes());
+        } else {
+            fis = new FileInputStream(file);
+        }
 
         // we want the zipEntry's path to be a relative path that is relative
         // to the directory being zipped, so chop off the rest of the path

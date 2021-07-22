@@ -122,8 +122,8 @@ orax_ore:
           - oraxen_item: orax
             probability: 1.0
 
-pot:
-  displayname: "<gray>Pot"
+table:
+  displayname: "<gray>Table"
   material: DIAMOND
   Mechanics:
     furniture:
@@ -133,7 +133,7 @@ pot:
       drop: # useless if you are not using a barrier
         silktouch: false
         loots:
-          - { oraxen_item: pot, probability: 1.0 }
+          - { oraxen_item: table, probability: 1.0 }
   Pack:
     generate_model: false
-    model: test/pot
+    model: default/table

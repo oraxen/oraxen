@@ -40,10 +40,11 @@ public class ResourcePack {
         assetsFolder = new File(packFolder, "assets");
         modelsFolder = new File(packFolder, "models");
         fontFolder = new File(packFolder, "font");
-        ;
+        File langFolder = new File(packFolder, "lang");
 
         boolean extractModels = !modelsFolder.exists();
         boolean extractTextures = !texturesFolder.exists();
+        boolean extractLang = !langFolder.exists();
         boolean extractassets = !assetsFolder.exists();
 
         if (extractModels || extractTextures || extractassets) {
@@ -56,6 +57,7 @@ public class ResourcePack {
                     String name = entry.getName();
                     boolean isSuitable = (extractModels && name.startsWith("pack/models"))
                             || (extractTextures && name.startsWith("pack/textures"))
+                            || (extractLang && name.startsWith("pack/lang"))
                             || (extractassets && name.startsWith("/pack/assets"));
 
                     resourcesManager.extractFileIfTrue(entry, name, isSuitable);

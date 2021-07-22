@@ -4,8 +4,14 @@ settings:
 
 glyphs:
 
-  heart:
+  logo:
     code: 3000
+    texture: required/logo
+    ascent: 0
+    height: 36
+
+  heart:
+    code: 3001
     texture: default/chat/heart
     ascent: 8
     height: 8
