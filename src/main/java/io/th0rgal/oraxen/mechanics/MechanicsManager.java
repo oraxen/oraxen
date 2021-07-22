@@ -36,7 +36,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,66 +47,65 @@ public class MechanicsManager {
     private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
     private static final List<Listener> MECHANICS_LISTENERS = new ArrayList<>();
 
+    @FunctionalInterface
+    public interface FactoryConstructor {
+        MechanicFactory create(ConfigurationSection section);
+    }
+
     public static void registerNativeMechanics() {
         // misc
-        registerMechanicFactory("durability", DurabilityMechanicFactory.class);
-        registerMechanicFactory("repair", RepairMechanicFactory.class);
-        registerMechanicFactory("commands", CommandsMechanicFactory.class);
-        registerMechanicFactory("armorpotioneffects", ArmorPotionEffectsMechanicFactory.class);
-        registerMechanicFactory("consumablepotioneffects", ConsumablePotionEffectsMechanicFactory.class);
-        registerMechanicFactory("block", BlockMechanicFactory.class);
-        registerMechanicFactory("noteblock", NoteBlockMechanicFactory.class);
+        registerMechanicFactory("durability", DurabilityMechanicFactory::new);
+        registerMechanicFactory("repair", RepairMechanicFactory::new);
+        registerMechanicFactory("commands", CommandsMechanicFactory::new);
+        registerMechanicFactory("armorpotioneffects", ArmorPotionEffectsMechanicFactory::new);
+        registerMechanicFactory("consumablepotioneffects", ConsumablePotionEffectsMechanicFactory::new);
+        registerMechanicFactory("block", BlockMechanicFactory::new);
+        registerMechanicFactory("noteblock", NoteBlockMechanicFactory::new);
         // Available only with 1.16+ (20w10a)
         if (Bukkit.getVersion().contains("1.16") || Bukkit.getVersion().contains("1.17"))
-            registerMechanicFactory("furniture", FurnitureFactory.class);
-        registerMechanicFactory("hat", HatMechanicFactory.class);
-        registerMechanicFactory("soulbound", SoulBoundMechanicFactory.class);
-        registerMechanicFactory("skin", SkinMechanicFactory.class);
-        registerMechanicFactory("skinnable", SkinnableMechanicFactory.class);
-        registerMechanicFactory("itemtype", ItemTypeMechanicFactory.class);
-        registerMechanicFactory("consumable", ConsumableMechanicFactory.class);
-        registerMechanicFactory("fireball", FireballMechanicFactory.class);
-        registerMechanicFactory("custom", CustomMechanicFactory.class);
+            registerMechanicFactory("furniture", FurnitureFactory::new);
+        registerMechanicFactory("hat", HatMechanicFactory::new);
+        registerMechanicFactory("soulbound", SoulBoundMechanicFactory::new);
+        registerMechanicFactory("skin", SkinMechanicFactory::new);
+        registerMechanicFactory("skinnable", SkinnableMechanicFactory::new);
+        registerMechanicFactory("itemtype", ItemTypeMechanicFactory::new);
+        registerMechanicFactory("consumable", ConsumableMechanicFactory::new);
+        registerMechanicFactory("fireball", FireballMechanicFactory::new);
+        registerMechanicFactory("custom", CustomMechanicFactory::new);
 
         // combat
         //
         // native
-        registerMechanicFactory("thor", ThorMechanicFactory.class);
-        registerMechanicFactory("lifeleech", LifeLeechMechanicFactory.class);
-        registerMechanicFactory("energyblast", EnergyBlastMechanicFactory.class);
-        registerMechanicFactory("witherskull", WitherSkullMechanicFactory.class);
+        registerMechanicFactory("thor", ThorMechanicFactory::new);
+        registerMechanicFactory("lifeleech", LifeLeechMechanicFactory::new);
+        registerMechanicFactory("energyblast", EnergyBlastMechanicFactory::new);
+        registerMechanicFactory("witherskull", WitherSkullMechanicFactory::new);
 
         // farming
         //
         // native
-        registerMechanicFactory("bigmining", BigMiningMechanicFactory.class);
-        registerMechanicFactory("smelting", SmeltingMechanicFactory.class);
-        registerMechanicFactory("bottledexp", BottledExpMechanicFactory.class);
-        registerMechanicFactory("harvesting", HarvestingMechanicFactory.class);
+        registerMechanicFactory("bigmining", BigMiningMechanicFactory::new);
+        registerMechanicFactory("smelting", SmeltingMechanicFactory::new);
+        registerMechanicFactory("bottledexp", BottledExpMechanicFactory::new);
+        registerMechanicFactory("harvesting", HarvestingMechanicFactory::new);
         //
         // dependent
         if (OraxenPlugin.getProtocolLib())
-            registerMechanicFactory("bedrockbreak", BedrockBreakMechanicFactory.class);
+            registerMechanicFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
 
     }
 
     public static void registerMechanicFactory(String mechanicId,
-                                               Class<? extends MechanicFactory> mechanicFactoryClass) {
+                                               FactoryConstructor constructor) {
         Entry<File, YamlConfiguration> mechanicsEntry = new ResourcesManager(OraxenPlugin.get()).getMechanicsEntry();
         YamlConfiguration mechanicsConfig = mechanicsEntry.getValue();
         boolean updated = false;
         if (mechanicsConfig.getKeys(false).contains(mechanicId)) {
             ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicId);
-            if (factorySection.getBoolean("enabled"))
-                try {
-                    MechanicFactory factory = mechanicFactoryClass
-                            .getConstructor(ConfigurationSection.class)
-                            .newInstance(factorySection);
-                    FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
-                } catch (InstantiationException | IllegalAccessException | InvocationTargetException
-                        | NoSuchMethodException e) {
-                    e.printStackTrace();
-                }
+            if (factorySection.getBoolean("enabled")) {
+                MechanicFactory factory = constructor.create(factorySection);
+                FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
+            }
         }
         if (updated)
             try {
