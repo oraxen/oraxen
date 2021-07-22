@@ -3,18 +3,26 @@
 ## Special thanks for all the people who had helped this project so far:
 
 ### Code improvement
+
 > Developers who have contributed to the source code
+
 * [AntoineJT](https://github.com/AntoineJT): made greats refactors.
-* [yzl210](https://github.com/yzl210): active contributor, introduced mythicmobs support, shapeless+furnace recipes and much more
+* [yzl210](https://github.com/yzl210): active contributor, introduced mythicmobs support, shapeless+furnace recipes and
+  much more
 * [Lauriichan](https://github.com/Lauriichan): did a great work with the recipes, commands and multiple refactors
 * [Brett Saunders](https://github.com/brettsaunders21): introduced an awesome display inventory for recipes
 * [DoctaEnkoda](https://github.com/DoctaEnkoda): multiple improvements (worked on recipes and fixed bugs)
 * [Karlatemp](https://github.com/Karlatemp): added support for external hosting providers
-* [MrMicky](https://github.com/MrMicky-FR): developer of [FastInv](https://github.com/MrMicky-FR/FastInv) (used in this plugin)
-* [MiniDigger](https://github.com/MiniDigger): developer of [MiniMessage](https://github.com/MiniDigger/MiniMessage) (used in this plugin)
+* [Auxilor](https://github.com/Auxilor): fixed jitpack configuration
+* [MrMicky](https://github.com/MrMicky-FR): developer of [FastInv](https://github.com/MrMicky-FR/FastInv) (used in this
+  plugin)
+* [MiniDigger](https://github.com/MiniDigger): developer of [MiniMessage](https://github.com/MiniDigger/MiniMessage) (
+  used in this plugin)
 
 ### Early supporters
+
 > Users who bought the plugin during its beta (version 0.x) and decided to trust me and support the project while it was not yet finished.
+
 1. [arturek1666](https://www.spigotmc.org/members/arturek1666.172791/)
 2. [zebulun](https://www.spigotmc.org/members/zebulun.298908/)
 3. [TemperTantrum](https://www.spigotmc.org/members/tempertantrum.66354/)
@@ -72,11 +80,15 @@
 55. [feixiangtian](https://www.spigotmc.org/members/feixiangtian.837890/)
 
 ### Idea givers
+
 > People who have given ideas to improve Oraxen
+
 * [MiniDigger](https://www.spigotmc.org/members/minidigger.6039/): suggested to generate custom models id automatically
 
 ### Correctors
+
 > Persons who have identified spelling errors (including in the doc)
+
 * Jeroen
 * [craterhater](https://www.spigotmc.org/members/craterhater.49025/)
 
