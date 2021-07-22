@@ -145,6 +145,10 @@ wheelbarrow:
   material: DIAMOND
   Mechanics:
     furniture:
-      barrier: false
       rotation: NONE
       facing: UP
+      barrier: true
+      drop: # useless if you are not using a barrier
+        silktouch: false
+        loots:
+          - { oraxen_item: wheelbarrow, probability: 1.0 }

@@ -1,8 +1,11 @@
 package io.th0rgal.oraxen.mechanics.provided.furniture;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
+import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -31,9 +34,43 @@ public class FurnitureListener implements Listener {
 
     private final MechanicFactory factory;
 
-
     public FurnitureListener(MechanicFactory factory) {
         this.factory = factory;
+        BreakerSystem.MODIFIERS.add(getHardnessModifier());
+    }
+
+    private HardnessModifier getHardnessModifier() {
+        return new HardnessModifier() {
+
+            @Override
+            public boolean isTriggered(Player player, Block block, ItemStack tool) {
+                return block.getType() == Material.BARRIER;
+            }
+
+            @Override
+            public void breakBlock(Player player, Block block, ItemStack tool) {
+                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
+                    for (Entity entity : block.getWorld().getNearbyEntities(block.getLocation(), 1, 1, 1))
+                        if (entity instanceof ItemFrame frame
+                                && entity.getLocation().getBlockX() == block.getX()
+                                && entity.getLocation().getBlockY() == block.getY()
+                                && entity.getLocation().getBlockZ() == block.getZ()
+                                && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING)) {
+                            block.setType(Material.AIR);
+                            FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic
+                                    (entity.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING));
+                            mechanic.getDrop().spawns(block.getLocation(), tool);
+                            frame.remove();
+                            return;
+                        }
+                });
+            }
+
+            @Override
+            public long getPeriod(Player player, Block block, ItemStack tool) {
+                return 1;
+            }
+        };
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)

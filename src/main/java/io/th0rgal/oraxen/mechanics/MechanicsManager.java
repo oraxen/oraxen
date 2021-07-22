@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.mechanics.provided.armorpotioneffects.ArmorPotionEffectsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.bedrockbreak.BedrockBreakMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.bigmining.BigMiningMechanicFactory;
@@ -11,22 +12,21 @@ import io.th0rgal.oraxen.mechanics.provided.consumable.ConsumableMechanicFactory
 import io.th0rgal.oraxen.mechanics.provided.consumablepotioneffects.ConsumablePotionEffectsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.custom.CustomMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.noteblock.NoteBlockMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.spell.energyblast.EnergyBlastMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.harvesting.HarvestingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.hat.HatMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.itemtype.ItemTypeMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.lifeleech.LifeLeechMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.repair.RepairMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.skin.SkinMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.skinnable.SkinnableMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.smelting.SmeltingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.soulbound.SoulBoundMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.spell.energyblast.EnergyBlastMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.spell.fireball.FireballMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.spell.thor.ThorMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.spell.witherskull.WitherSkullMechanicFactory;
-import io.th0rgal.oraxen.config.ResourcesManager;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -57,6 +57,9 @@ public class MechanicsManager {
         registerMechanicFactory("consumablepotioneffects", ConsumablePotionEffectsMechanicFactory.class);
         registerMechanicFactory("block", BlockMechanicFactory.class);
         registerMechanicFactory("noteblock", NoteBlockMechanicFactory.class);
+        // Available only with 1.16+ (20w10a)
+        if (Bukkit.getVersion().contains("1.16") || Bukkit.getVersion().contains("1.17"))
+            registerMechanicFactory("furniture", FurnitureFactory.class);
         registerMechanicFactory("hat", HatMechanicFactory.class);
         registerMechanicFactory("soulbound", SoulBoundMechanicFactory.class);
         registerMechanicFactory("skin", SkinMechanicFactory.class);
@@ -85,10 +88,6 @@ public class MechanicsManager {
         // dependent
         if (OraxenPlugin.getProtocolLib())
             registerMechanicFactory("bedrockbreak", BedrockBreakMechanicFactory.class);
-
-        // Dispo only +1.16 (20w10a)
-        if (Bukkit.getVersion().contains("1.16") || Bukkit.getVersion().contains("1.17"))
-            registerMechanicFactory("furniture", FurnitureFactory.class);
 
     }
 

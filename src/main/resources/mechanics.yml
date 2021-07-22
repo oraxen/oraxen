@@ -37,6 +37,17 @@ noteblock:
     - NETHERITE
   enabled: true
 
+# Only 1.16+
+furniture:
+  tool_types:
+    - WOODEN
+    - STONE
+    - IRON
+    - GOLDEN
+    - DIAMOND
+    - NETHERITE
+  enabled: true
+
 hat:
   enabled: true
 
@@ -50,10 +61,6 @@ skinnable:
   enabled: true
 
 consumable:
-  enabled: true
-
-# Only 1.16+
-furniture:
   enabled: true
 
 itemtype:
