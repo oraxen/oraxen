@@ -2,25 +2,7 @@
 # EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
 # Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
 # Random UUID generator: https://www.uuidgenerator.net/
-
-# Color codes (put & behind the code):
-# 0 black         # f white
-# 1 dark_blue     # 9 blue
-# 2 dark_green    # a green
-# 3 dark_aqua     # b aqua
-# 4 dark_red      # c red
-# 5 dark_purple   # d light_purple (pink)
-# 6 gold          # e yellow
-# 7 gray
-# 8 dark_gray
-
-# Formating codes (like color codes):
-# k obfuscated (changing randomly)
-# l bold
-# m strikethrough
-# n underline
-# o italic
-# r reset (reset format and color)
+# Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 anubis_head:
   displayname: "<gradient:#3948AE:#6699FF>Anubis Head"
