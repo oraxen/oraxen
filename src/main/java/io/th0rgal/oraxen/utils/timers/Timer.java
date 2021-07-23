@@ -61,7 +61,8 @@ public class Timer {
     }
 
     public void sendToPlayer(Player player, TimeUnit timeUnit) {
-        Message.COOLDOWN.send(player, "time", getRemainingTime(timeUnit) + timeUnit.name());
+        Message.COOLDOWN.send(player, "time", String.valueOf(getRemainingTime(timeUnit)),
+                "unit", timeUnit.name().toLowerCase());
     }
 
 }
