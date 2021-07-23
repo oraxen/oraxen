@@ -137,3 +137,51 @@ table:
   Pack:
     generate_model: false
     model: default/table
+
+cart:
+  displayname: "<gray>Cart"
+  material: DIAMOND
+  Mechanics:
+    furniture:
+      rotation: NONE
+      facing: UP
+      barrier: true
+      drop: # useless if you are not using a barrier
+        silktouch: false
+        loots:
+          - { oraxen_item: cart, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/cart
+
+chair:
+  displayname: "<gray>Chair"
+  material: DIAMOND
+  Mechanics:
+    furniture:
+      rotation: NONE
+      facing: UP
+      barrier: true
+      drop: # useless if you are not using a barrier
+        silktouch: false
+        loots:
+          - { oraxen_item: chair, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/chair
+
+coach:
+  displayname: "<gray>Coach"
+  material: DIAMOND
+  Mechanics:
+    furniture:
+      rotation: NONE
+      facing: UP
+      barrier: true
+      drop: # useless if you are not using a barrier
+        silktouch: false
+        loots:
+          - { oraxen_item: coach, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/coach
