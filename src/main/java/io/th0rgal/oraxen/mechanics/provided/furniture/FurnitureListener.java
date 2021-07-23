@@ -6,10 +6,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
@@ -142,7 +139,10 @@ public class FurnitureListener implements Listener {
             frame.setPersistent(true);
             frame.setItemDropChance(0);
             frame.setItem(clone);
-            frame.setRotation(mechanic.getRotation());
+            if (mechanic.hasRotation())
+                frame.setRotation(mechanic.getRotation());
+            else
+                frame.setRotation(getRotation(player.getEyeLocation().getYaw()));
             frame.setFacingDirection(mechanic.getFacing());
             frame.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, itemID);
         });
@@ -151,6 +151,10 @@ public class FurnitureListener implements Listener {
             item.setAmount(item.getAmount() - 1);
 
         if (mechanic.hasBarrier()) target.setType(Material.BARRIER);
+    }
+
+    private Rotation getRotation(double yaw) {
+        return Rotation.values()[(int) (((yaw + 180) * 8 / 360) + 0.5) % 8];
     }
 
     @EventHandler(ignoreCancelled = true)

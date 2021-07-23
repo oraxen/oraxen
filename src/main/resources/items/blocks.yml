@@ -127,7 +127,6 @@ table:
   material: DIAMOND
   Mechanics:
     furniture:
-      rotation: NONE
       facing: UP
       barrier: true
       drop: # useless if you are not using a barrier
@@ -143,7 +142,6 @@ cart:
   material: DIAMOND
   Mechanics:
     furniture:
-      rotation: NONE
       facing: UP
       barrier: true
       drop: # useless if you are not using a barrier
@@ -159,7 +157,6 @@ chair:
   material: DIAMOND
   Mechanics:
     furniture:
-      rotation: NONE
       facing: UP
       barrier: true
       drop: # useless if you are not using a barrier
@@ -175,7 +172,6 @@ coach:
   material: DIAMOND
   Mechanics:
     furniture:
-      rotation: NONE
       facing: UP
       barrier: true
       drop: # useless if you are not using a barrier

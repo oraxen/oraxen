@@ -18,7 +18,8 @@ import java.util.List;
 public class FurnitureMechanic extends Mechanic {
 
     private final boolean barrier;
-    private final Rotation rotation;
+    private final boolean hasRotation;
+    private Rotation rotation;
     private final BlockFace facing;
     public static final NamespacedKey FURNITURE_KEY = new NamespacedKey(OraxenPlugin.get(), "furniture");
     private final Drop drop;
@@ -28,7 +29,12 @@ public class FurnitureMechanic extends Mechanic {
         super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY,
                 PersistentDataType.BYTE, (byte) 1));
         this.barrier = OraxenPlugin.getProtocolLib() && section.getBoolean("barrier", false);
-        this.rotation = Rotation.valueOf(section.getString("rotation", "NONE").toUpperCase());
+        if (section.isString("rotation")) {
+            this.rotation = Rotation.valueOf(section.getString("rotation", "NONE").toUpperCase());
+            hasRotation = true;
+        } else {
+            hasRotation = false;
+        }
         this.facing = BlockFace.valueOf(section.getString("facing", "UP").toUpperCase());
 
         List<Loot> loots = new ArrayList<>();
@@ -57,6 +63,10 @@ public class FurnitureMechanic extends Mechanic {
 
     public boolean hasBarrier() {
         return barrier;
+    }
+
+    public boolean hasRotation() {
+        return hasRotation;
     }
 
     public Rotation getRotation() {
