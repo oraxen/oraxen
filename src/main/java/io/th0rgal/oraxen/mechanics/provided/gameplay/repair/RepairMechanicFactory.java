@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.mechanics.provided.misc.repair;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.repair;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
