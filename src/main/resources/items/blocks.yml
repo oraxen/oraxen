@@ -156,7 +156,10 @@ chair:
     furniture:
       facing: UP
       barrier: true
-      drop: # useless if you are not using a barrier
+      # this option requires barrier: true
+      seat: { height: 0, yaw: 0 }
+      # this option requires barrier: true
+      drop:
         silktouch: false
         loots:
           - { oraxen_item: chair, probability: 1.0 }

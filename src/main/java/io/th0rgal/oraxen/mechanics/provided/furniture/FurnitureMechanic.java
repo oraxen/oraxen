@@ -20,8 +20,12 @@ public class FurnitureMechanic extends Mechanic {
     private final boolean barrier;
     private final boolean hasRotation;
     private Rotation rotation;
+    private final boolean hasSeat;
+    private float seatHeight;
+    private float seatYaw;
     private final BlockFace facing;
     public static final NamespacedKey FURNITURE_KEY = new NamespacedKey(OraxenPlugin.get(), "furniture");
+    public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
     private final Drop drop;
 
     @SuppressWarnings("unchecked")
@@ -32,9 +36,17 @@ public class FurnitureMechanic extends Mechanic {
         if (section.isString("rotation")) {
             this.rotation = Rotation.valueOf(section.getString("rotation", "NONE").toUpperCase());
             hasRotation = true;
-        } else {
+        } else
             hasRotation = false;
-        }
+
+        if (section.isConfigurationSection("seat")) {
+            ConfigurationSection seatSection = section.getConfigurationSection("seat");
+            hasSeat = true;
+            seatHeight = (float) seatSection.getDouble("height");
+            seatYaw = (float) seatSection.getDouble("yaw");
+        } else
+            hasSeat = false;
+
         this.facing = BlockFace.valueOf(section.getString("facing", "UP").toUpperCase());
 
         List<Loot> loots = new ArrayList<>();
@@ -71,6 +83,18 @@ public class FurnitureMechanic extends Mechanic {
 
     public Rotation getRotation() {
         return rotation;
+    }
+
+    public boolean hasSeat() {
+        return hasSeat;
+    }
+
+    public float getSeatHeight() {
+        return seatHeight;
+    }
+
+    public float getSeatYaw() {
+        return seatYaw;
     }
 
     public BlockFace getFacing() {
