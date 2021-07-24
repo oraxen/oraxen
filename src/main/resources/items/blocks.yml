@@ -35,10 +35,7 @@ amethyst_ore:
       break_sound: BLOCK_STONE_BREAK
       custom_variation: 1
       model: amethyst_ore
-      hardness:
-        period: 6
-        best_tools:
-          - PICKAXE
+      hardness: 6
       drop:
         silktouch: true
         fortune: true
