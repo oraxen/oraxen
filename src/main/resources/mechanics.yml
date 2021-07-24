@@ -1,22 +1,30 @@
 # MISCELLANEOUS
 
-durability:
-  enabled: true
-
-repair:
-  enabled: true
-  oraxen_durability_only: false
-
 commands:
   enabled: true
 
 armorpotioneffects:
   enabled: true
 
+consumable:
+  enabled: true
+
 consumablepotioneffects:
   enabled: true
 
-# legacy blocks using mushroom stems
+custom:
+  enabled: true
+
+itemtype:
+  enabled: true
+
+soulbound:
+  enabled: true
+
+
+# GAMEPLAY
+
+# legacy blocks using mushroom stems, prefer to use noteblock
 block:
   tool_types:
     - WOODEN
@@ -48,10 +56,20 @@ furniture:
     - NETHERITE
   enabled: true
 
-hat:
+durability:
   enabled: true
 
-soulbound:
+repair:
+  enabled: true
+  oraxen_durability_only: false
+
+
+# COSMETIC
+
+aura:
+  enabled: true
+
+hat:
   enabled: true
 
 skin:
@@ -60,19 +78,8 @@ skin:
 skinnable:
   enabled: true
 
-consumable:
-  enabled: true
-
-itemtype:
-  enabled: true
-
-custom:
-  enabled: true
 
 # COMBAT
-
-thor:
-  enabled: true
 
 lifeleech:
   enabled: true
@@ -80,11 +87,15 @@ lifeleech:
 energyblast:
   enabled: true
 
+fireball:
+  enabled: true
+
+thor:
+  enabled: true
+
 witherskull:
   enabled: true
 
-fireball:
-  enabled: true
 
 # FARMING
 
