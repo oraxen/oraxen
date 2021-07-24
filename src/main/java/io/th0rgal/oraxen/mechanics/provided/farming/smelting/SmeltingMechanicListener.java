@@ -2,10 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.farming.smelting;
 
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Sound;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -65,6 +62,11 @@ public class SmeltingMechanicListener implements Listener {
     private ItemStack furnace(ItemStack item) {
         if (item == null)
             return null; // Because item can be null
+        String type = item.getType().toString();
+        if (type.startsWith("RAW_") && !type.endsWith("_BLOCK")) {
+            item.setType(Material.valueOf(item.getType().toString().substring(4) + "_INGOT"));
+            return item;
+        }
         for (Recipe recipe : Bukkit.getRecipesFor(item)) {
             if (!(recipe instanceof CookingRecipe<?> cookingRecipe))
                 continue;
