@@ -2,31 +2,31 @@ package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ResourcesManager;
-import io.th0rgal.oraxen.mechanics.provided.armorpotioneffects.ArmorPotionEffectsMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.bedrockbreak.BedrockBreakMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.bigmining.BigMiningMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.block.BlockMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.bottledexp.BottledExpMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.commands.CommandsMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.consumable.ConsumableMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.consumablepotioneffects.ConsumablePotionEffectsMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.custom.CustomMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.durability.DurabilityMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.furniture.FurnitureFactory;
-import io.th0rgal.oraxen.mechanics.provided.harvesting.HarvestingMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.hat.HatMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.itemtype.ItemTypeMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.lifeleech.LifeLeechMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.noteblock.NoteBlockMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.repair.RepairMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.skin.SkinMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.skinnable.SkinnableMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.smelting.SmeltingMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.soulbound.SoulBoundMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.spell.energyblast.EnergyBlastMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.spell.fireball.FireballMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.spell.thor.ThorMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.spell.witherskull.WitherSkullMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.AuraMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.armorpotioneffects.ArmorPotionEffectsMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.farming.bedrockbreak.BedrockBreakMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.farming.bigmining.BigMiningMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.farming.bottledexp.BottledExpMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.consumable.ConsumableMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.consumablepotioneffects.ConsumablePotionEffectsMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.mechanics.provided.farming.harvesting.HarvestingMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.cosmetic.hat.HatMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.combat.lifeleech.LifeLeechMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.repair.RepairMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.cosmetic.skin.SkinMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.cosmetic.skinnable.SkinnableMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.farming.smelting.SmeltingMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.soulbound.SoulBoundMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.combat.spell.energyblast.EnergyBlastMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.combat.spell.fireball.FireballMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.combat.spell.thor.ThorMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.combat.spell.witherskull.WitherSkullMechanicFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -54,42 +54,39 @@ public class MechanicsManager {
 
     public static void registerNativeMechanics() {
         // misc
-        registerMechanicFactory("durability", DurabilityMechanicFactory::new);
         registerMechanicFactory("repair", RepairMechanicFactory::new);
-        registerMechanicFactory("commands", CommandsMechanicFactory::new);
         registerMechanicFactory("armorpotioneffects", ArmorPotionEffectsMechanicFactory::new);
         registerMechanicFactory("consumablepotioneffects", ConsumablePotionEffectsMechanicFactory::new);
-        registerMechanicFactory("block", BlockMechanicFactory::new);
-        registerMechanicFactory("noteblock", NoteBlockMechanicFactory::new);
-        // Available only with 1.16+ (20w10a)
-        if (Bukkit.getVersion().contains("1.16") || Bukkit.getVersion().contains("1.17"))
-            registerMechanicFactory("furniture", FurnitureFactory::new);
-        registerMechanicFactory("hat", HatMechanicFactory::new);
         registerMechanicFactory("soulbound", SoulBoundMechanicFactory::new);
-        registerMechanicFactory("skin", SkinMechanicFactory::new);
-        registerMechanicFactory("skinnable", SkinnableMechanicFactory::new);
         registerMechanicFactory("itemtype", ItemTypeMechanicFactory::new);
         registerMechanicFactory("consumable", ConsumableMechanicFactory::new);
-        registerMechanicFactory("fireball", FireballMechanicFactory::new);
         registerMechanicFactory("custom", CustomMechanicFactory::new);
 
+        // gameplay
+        registerMechanicFactory("durability", DurabilityMechanicFactory::new);
+        registerMechanicFactory("block", BlockMechanicFactory::new);
+        registerMechanicFactory("noteblock", NoteBlockMechanicFactory::new);
+        if (Bukkit.getVersion().contains("1.16") || Bukkit.getVersion().contains("1.17"))
+            registerMechanicFactory("furniture", FurnitureFactory::new);
+
+        // cosmetic
+        registerMechanicFactory("aura", AuraMechanicFactory::new);
+        registerMechanicFactory("hat", HatMechanicFactory::new);
+        registerMechanicFactory("skin", SkinMechanicFactory::new);
+        registerMechanicFactory("skinnable", SkinnableMechanicFactory::new);
+
         // combat
-        //
-        // native
         registerMechanicFactory("thor", ThorMechanicFactory::new);
         registerMechanicFactory("lifeleech", LifeLeechMechanicFactory::new);
         registerMechanicFactory("energyblast", EnergyBlastMechanicFactory::new);
         registerMechanicFactory("witherskull", WitherSkullMechanicFactory::new);
+        registerMechanicFactory("fireball", FireballMechanicFactory::new);
 
         // farming
-        //
-        // native
         registerMechanicFactory("bigmining", BigMiningMechanicFactory::new);
         registerMechanicFactory("smelting", SmeltingMechanicFactory::new);
         registerMechanicFactory("bottledexp", BottledExpMechanicFactory::new);
         registerMechanicFactory("harvesting", HarvestingMechanicFactory::new);
-        //
-        // dependent
         if (OraxenPlugin.getProtocolLib())
             registerMechanicFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
 

@@ -1,8 +1,8 @@
 package io.th0rgal.oraxen.utils.drops;
 
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.mechanics.provided.itemtype.ItemTypeMechanic;
-import io.th0rgal.oraxen.mechanics.provided.itemtype.ItemTypeMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
+import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
 import org.bukkit.Location;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemStack;
