@@ -59,13 +59,6 @@ ice_staff:
     generate_model: false
     model: default/ice_staff
 
-cristal_axe:
-  displayname: "<gradient:#3685EC:#72C1E4>Cristal Axe"
-  material: DIAMOND_AXE
-  Pack:
-    generate_model: false
-    model: default/cristal_axe
-
 battle_axe:
   displayname: '<gradient:#F06966:#FAD6A6>Battle Axe'
   material: DIAMOND_AXE
@@ -107,6 +100,9 @@ magic_book:
     generate_model: false
     model: default/magic_book
   Mechanics:
+    aura:
+      type: simple
+      particle: PORTAL
     energyblast:
       delay: 20000
       length: 5

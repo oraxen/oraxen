@@ -1,9 +1,14 @@
 package io.th0rgal.oraxen.mechanics.provided.cosmetic.aura;
 
+import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerItemHeldEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -18,9 +23,37 @@ public class AuraMechanicListener implements Listener {
         registeredPlayers = new HashMap<>();
     }
 
+    public void enable(Player player, AuraMechanic mechanic) {
+        disable(player);
+        mechanic.add(player);
+        registeredPlayers.put(player, mechanic);
+    }
+
+    public void disable(Player player) {
+        AuraMechanic aura = registeredPlayers.remove(player);
+        if (aura != null)
+            aura.remove(player);
+    }
+
     @EventHandler(priority = EventPriority.LOW)
-    public void register(Player player, AuraMechanic mechanic) {
-        registeredPlayers.remove(player);
+    public void unregister(PlayerQuitEvent event) {
+        disable(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.LOW)
+    public void register(PlayerItemHeldEvent event) {
+        Player player = event.getPlayer();
+        Inventory inventory = player.getInventory();
+        ItemStack item = inventory.getItem(event.getNewSlot());
+        String itemID = OraxenItems.getIdByItem(item);
+        if (factory.isNotImplementedIn(itemID)) {
+            item = inventory.getItem(event.getPreviousSlot());
+            itemID = OraxenItems.getIdByItem(item);
+            if (!factory.isNotImplementedIn(itemID))
+                disable(player);
+        } else
+            enable(player, (AuraMechanic) factory.getMechanic(itemID));
+
     }
 
 }

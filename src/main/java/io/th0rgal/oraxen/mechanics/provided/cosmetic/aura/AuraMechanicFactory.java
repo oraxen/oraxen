@@ -8,8 +8,6 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class AuraMechanicFactory extends MechanicFactory {
 
-
-
     public AuraMechanicFactory(ConfigurationSection section) {
         super(section);
         MechanicsManager.registerListeners(OraxenPlugin.get(), new AuraMechanicListener(this));
