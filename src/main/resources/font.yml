@@ -7,7 +7,7 @@ glyphs:
   logo:
     code: 3000
     texture: required/logo
-    ascent: 0
+    ascent: 20
     height: 36
 
   heart:
