@@ -20,7 +20,6 @@ public class AuraMechanic extends Mechanic {
     public AuraMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
         particle = Particle.valueOf(section.getString("particle"));
-        System.out.println("alpha");
         switch (section.getString("type")) {
             case "simple" -> aura = new SimpleAura(this);
             default -> aura = null;
