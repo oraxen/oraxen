@@ -19,6 +19,9 @@
     <a href="https://lgtm.com/projects/g/oraxen/Oraxen/context:java">
         <img alt="Language grade: Java" src="https://img.shields.io/lgtm/grade/java/github/oraxen/Oraxen"/>
     </a>
+    <a href="https://discord.gg/4Qk5kBT9UX" alt="discord">
+        <img src="https://img.shields.io/discord/480068531132563476?label=chat&logo=discord"/>
+    </a>
     <a href="https://docs.oraxen.com/" alt="Docs (gitbook)">
         <img src="https://img.shields.io/badge/docs-gitbook-brightgreen"/>
     </a>
