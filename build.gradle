@@ -53,6 +53,7 @@ dependencies {
     compileOnly group: "com.github.jojodmo", name: "ItemBridge", version: "-SNAPSHOT"
     compileOnly fileTree(dir: "libs/compile", include: ["*.jar"])
     implementation fileTree(dir: "libs/implement", include: ["*.jar"])
+    implementation "org.bstats:bstats-bukkit:2.2.1"
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.190107'
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.28'
     implementation "net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT"
@@ -73,6 +74,7 @@ java {
 shadowJar {
     relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.shaded.syntaxapi"
     relocate "org.yaml.snakeyaml", "io.th0rgal.oraxen.shaded.snakeyaml"
+    relocate "org.bstats", "io.th0rgal.guardian.shaded.bstats"
     relocate "net.kyori", "io.th0rgal.oraxen.shaded.kyori"
     /*
     minimize {
