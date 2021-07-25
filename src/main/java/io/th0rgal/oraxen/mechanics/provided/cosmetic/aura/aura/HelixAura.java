@@ -10,18 +10,17 @@ public class HelixAura extends Aura {
         super(mechanic);
     }
 
-    private float y = 1;
+    private double y = 0;
 
     @Override
     protected void spawnParticles(Player player) {
+        y %= Math.PI;
         y += 0.085;
-        y %= 3.5;
         int radius = 2;
-        float x = (float) (radius * Math.cos(y * 8));
-        float z = (float) (radius * Math.sin(y * 8));
-        Location loc = player.getLocation().clone().add(x / (1.5 * y), y - 1, z / (1.5 * y));
-        player.spawnParticle(mechanic.particle,
-                loc, 0, 0, 0, 0, 1);
+        double x = radius * Math.cos(2 * y);
+        double z = radius * Math.sin(2 * y);
+        Location location = player.getLocation().clone().add(x / (1 + y * y * 0.75), y, z / (1 + y * y * 0.75));
+        player.spawnParticle(mechanic.particle, location, 0, 0, 0, 0, 1);
     }
 
     @Override
