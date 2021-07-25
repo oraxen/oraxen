@@ -21,7 +21,7 @@ import java.util.Objects;
 public class RecipesManager {
 
     public static void load(JavaPlugin plugin) {
-        if ((boolean) Settings.RESET_RECIPES.getValue())
+        if (Settings.RESET_RECIPES.toBool())
             Bukkit.resetRecipes();
         Bukkit.getPluginManager().registerEvents(new RecipesBuilderEvents(), plugin);
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
@@ -34,7 +34,7 @@ public class RecipesManager {
     }
 
     public static void reload(JavaPlugin plugin) {
-        if ((boolean) Settings.RESET_RECIPES.getValue())
+        if (Settings.RESET_RECIPES.toBool())
             Bukkit.resetRecipes();
         RecipesEventsManager.get().resetRecipes();
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
@@ -64,18 +64,18 @@ public class RecipesManager {
     private static void registerRecipeByType(File configFile, ConfigurationSection recipeSection) {
         try {
             switch (configFile.getName()) {
-            case "shaped.yml":
-                new ShapedLoader(recipeSection).registerRecipe();
-                break;
-            case "shapeless.yml":
-                new ShapelessLoader(recipeSection).registerRecipe();
-                break;
-            case "furnace.yml":
-                new FurnaceLoader(recipeSection).registerRecipe();
-                break;
-            default:
-                Logs.logError(configFile.getName());
-                break;
+                case "shaped.yml":
+                    new ShapedLoader(recipeSection).registerRecipe();
+                    break;
+                case "shapeless.yml":
+                    new ShapelessLoader(recipeSection).registerRecipe();
+                    break;
+                case "furnace.yml":
+                    new FurnaceLoader(recipeSection).registerRecipe();
+                    break;
+                default:
+                    Logs.logError(configFile.getName());
+                    break;
             }
         } catch (NullPointerException exception) {
             Message.BAD_RECIPE.log("recipe", recipeSection.getName());
