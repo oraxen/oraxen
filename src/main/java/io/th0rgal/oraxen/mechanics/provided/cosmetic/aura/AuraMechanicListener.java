@@ -46,12 +46,9 @@ public class AuraMechanicListener implements Listener {
         Inventory inventory = player.getInventory();
         ItemStack item = inventory.getItem(event.getNewSlot());
         String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID)) {
-            item = inventory.getItem(event.getPreviousSlot());
-            itemID = OraxenItems.getIdByItem(item);
-            if (!factory.isNotImplementedIn(itemID))
-                disable(player);
-        } else
+        if (factory.isNotImplementedIn(itemID))
+            disable(player);
+        else
             enable(player, (AuraMechanic) factory.getMechanic(itemID));
 
     }
