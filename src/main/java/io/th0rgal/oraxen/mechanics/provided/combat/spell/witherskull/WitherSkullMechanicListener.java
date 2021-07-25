@@ -14,8 +14,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
 
-import java.util.concurrent.TimeUnit;
-
 public class WitherSkullMechanicListener implements Listener {
 
     private final MechanicFactory factory;
@@ -40,7 +38,7 @@ public class WitherSkullMechanicListener implements Listener {
         Timer playerTimer = mechanic.getTimer(player);
 
         if (!playerTimer.isFinished()) {
-            mechanic.getTimer(player).sendToPlayer(player, TimeUnit.SECONDS);
+            mechanic.getTimer(player).sendToPlayer(player);
             return;
         }
         playerTimer.reset();

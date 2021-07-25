@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.worldguard.WorldGuardCompatibility;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.timers.Timer;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -20,6 +21,7 @@ import org.bukkit.inventory.ItemStack;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 public class HarvestingMechanicManager implements Listener {
 
@@ -50,9 +52,18 @@ public class HarvestingMechanicManager implements Listener {
         if (factory.isNotImplementedIn(itemID))
             return;
 
+        Player player = event.getPlayer();
+
         HarvestingMechanic mechanic = (HarvestingMechanic) factory.getMechanic(itemID);
 
-        Player player = event.getPlayer();
+        Timer playerTimer = mechanic.getTimer(player);
+
+        if (!playerTimer.isFinished()) {
+            mechanic.getTimer(player).sendToPlayer(player);
+            return;
+        }
+
+        playerTimer.reset();
 
         for (Block block : getNearbyBlocks(event.getClickedBlock().getLocation(), mechanic.getRadius(),
                 mechanic.getHeight())) {

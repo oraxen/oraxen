@@ -38,7 +38,7 @@ public class ThorMechanicListener implements Listener {
         Timer playerTimer = mechanic.getTimer(player);
 
         if (!playerTimer.isFinished()) {
-            mechanic.getTimer(player).sendToPlayer(player, TimeUnit.SECONDS);
+            mechanic.getTimer(player).sendToPlayer(player);
             return;
         }
 

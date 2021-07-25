@@ -22,8 +22,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.util.concurrent.TimeUnit;
-
 public class EnergyBlastMechanicManager implements Listener {
 
     private final MechanicFactory factory;
@@ -52,7 +50,7 @@ public class EnergyBlastMechanicManager implements Listener {
         Timer playerTimer = mechanic.getTimer(player);
 
         if (!playerTimer.isFinished()) {
-            mechanic.getTimer(player).sendToPlayer(player, TimeUnit.SECONDS);
+            mechanic.getTimer(player).sendToPlayer(player);
             return;
         }
 

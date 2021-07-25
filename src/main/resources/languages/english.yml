@@ -3,7 +3,7 @@ general:
   no_permission: "<prefix><#fa4943>You're lacking the permission <b><permission></b> to do this!"
   work_in_progress: "<prefix><#facc43>This feature is work in progress!"
   not_player: "<prefix><#fa4943>This can only be done as a player!"
-  cooldown: "<prefix><#facc43>Wait Another <time> <unit>!"
+  cooldown: "<prefix><#facc43>Please wait Another <time> seconds!"
   reload: "<prefix><#55ffa4>Successfully reloaded"
   pack_uploading: "<prefix><#D5D6D8>Automatic upload of the resource pack is enabled, uploading..."
   pack_not_uploaded: "<prefix><#fa4943>Resourcepack not uploaded"

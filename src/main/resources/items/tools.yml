@@ -173,5 +173,6 @@ iron_serpe:
       - default/iron_serpe.png
   Mechanics:
     harvesting:
+      cooldown: 10000 # 10 seconds
       radius: 5
       height: 3
