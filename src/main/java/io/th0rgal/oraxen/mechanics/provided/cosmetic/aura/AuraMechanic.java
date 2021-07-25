@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.cosmetic.aura;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.Aura;
+import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.HelixAura;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.aura.SimpleAura;
 import org.bukkit.Particle;
 import org.bukkit.configuration.ConfigurationSection;
@@ -22,6 +23,7 @@ public class AuraMechanic extends Mechanic {
         particle = Particle.valueOf(section.getString("particle"));
         switch (section.getString("type")) {
             case "simple" -> aura = new SimpleAura(this);
+            case "helix" -> aura = new HelixAura(this);
             default -> aura = null;
         }
         players = new HashSet<>();

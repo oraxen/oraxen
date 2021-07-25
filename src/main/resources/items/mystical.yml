@@ -28,6 +28,9 @@ magical_wand:
     generate_model: false
     model: default/magical_wand
   Mechanics:
+    aura:
+      type: helix
+      particle: SOUL_FIRE_FLAME
     energyblast:
       delay: 20000
       length: 5
