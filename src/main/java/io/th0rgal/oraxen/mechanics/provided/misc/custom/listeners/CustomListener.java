@@ -23,13 +23,10 @@ public abstract class CustomListener implements Listener {
         this.event = event;
         this.conditions = conditions;
         this.actions = actions;
-        System.out.println("CREATING OBJECT WITH ACTIONS:");
     }
 
     public void register() {
         Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
-        for (CustomAction action : actions)
-            System.out.println("registered: " + action.getParams());
     }
 
     public void unregister() {

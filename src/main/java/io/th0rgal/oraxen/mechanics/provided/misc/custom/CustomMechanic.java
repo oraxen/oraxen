@@ -25,16 +25,13 @@ public class CustomMechanic extends Mechanic {
             ConfigurationSection subsection = section.getConfigurationSection(subMechanicName);
             String key = subsection.getCurrentPath();
             if (LOADED_VARIANTS.containsKey(key)) {
-                System.out.println("unregistered: " + key);
                 LOADED_VARIANTS.get(key).unregister();
             }
 
             List<CustomAction> actions = new ArrayList<>();
             for (String action : subsection.getStringList("actions")) {
                 actions.add(new CustomAction(action));
-                System.out.println(action);
             }
-            System.out.println("actions:" + actions);
 
             List<CustomCondition> conditions = new ArrayList<>();
             for (String condition : subsection.getStringList("conditions"))
@@ -44,7 +41,6 @@ public class CustomMechanic extends Mechanic {
                     .getListener(getItemID(), conditions, actions);
 
             listener.register();
-            System.out.println("registered: " + key);
             LOADED_VARIANTS.put(key, listener);
         }
     }
