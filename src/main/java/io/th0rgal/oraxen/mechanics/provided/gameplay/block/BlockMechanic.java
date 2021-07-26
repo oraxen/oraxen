@@ -17,6 +17,7 @@ public class BlockMechanic extends Mechanic {
     private final int customVariation;
     private final Drop drop;
     private final Sound breakSound;
+    private final Sound placeSound;
 
     @SuppressWarnings("unchecked")
     public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -34,6 +35,12 @@ public class BlockMechanic extends Mechanic {
             this.breakSound = Sound.valueOf(section.getString("break_sound").toUpperCase());
         else
             this.breakSound = null;
+
+        if (section.isString("place_sound"))
+            this.placeSound = Sound.valueOf(section.getString("place_sound").toUpperCase());
+        else
+            this.placeSound = null;
+
 
         List<Loot> loots = new ArrayList<>();
         ConfigurationSection drop = section.getConfigurationSection("drop");
@@ -74,5 +81,14 @@ public class BlockMechanic extends Mechanic {
     public Sound getBreakSound() {
         return this.breakSound;
     }
+
+    public boolean hasPlaceSound() {
+        return this.placeSound != null;
+    }
+
+    public Sound getPlaceSound() {
+        return this.placeSound;
+    }
+
 
 }

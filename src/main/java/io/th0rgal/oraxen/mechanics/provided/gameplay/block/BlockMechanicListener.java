@@ -100,7 +100,8 @@ public class BlockMechanicListener implements Listener {
 
         // determines the new block data of the block
         MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(Material.MUSHROOM_STEM);
-        int customVariation = ((BlockMechanic) factory.getMechanic(itemID)).getCustomVariation();
+        BlockMechanic mechanic = ((BlockMechanic) factory.getMechanic(itemID));
+        int customVariation = mechanic.getCustomVariation();
         Utils.setBlockFacing(newBlockData, customVariation);
 
         // set the new block
@@ -111,7 +112,10 @@ public class BlockMechanicListener implements Listener {
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
+            return;
         }
+        if (mechanic.hasPlaceSound())
+            target.getWorld().playSound(target.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
         event.setCancelled(true);
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
