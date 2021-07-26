@@ -87,7 +87,7 @@ public class ConfigsManager {
         for (String key : defaultConfiguration.getKeys(true))
             if (configuration.get(key) == null) {
                 updated = true;
-                Message.UPDATING_CONFIG.log();
+                Message.UPDATING_CONFIG.log("option", key);
                 configuration.set(key, defaultConfiguration.get(key));
             }
         if (updated)

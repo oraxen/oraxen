@@ -37,7 +37,7 @@ public class RepairCommand {
                         } else {
                             if (player.hasPermission("oraxen.command.repair.all")) {
                                 ItemStack[] items = (ItemStack[]) ArrayUtils.addAll(player.getInventory().getStorageContents(),
-                                                player.getInventory().getArmorContents());
+                                        player.getInventory().getArmorContents());
                                 int failed = 0;
                                 for (ItemStack item : items) {
                                     if (item == null || item.getType() == Material.AIR)
@@ -47,10 +47,10 @@ public class RepairCommand {
                                         failed++;
                                     }
                                 }
-                                Message.REPAIRED_ITEMS.send(sender);
-                            } else {
+                                Message.REPAIRED_ITEMS.send(sender, "amount", String.valueOf(items.length - failed));
+                            } else
                                 Message.NO_PERMISSION.send(sender);
-                            }
+
                         }
                     } else {
                         Message.NOT_PLAYER.send(sender);

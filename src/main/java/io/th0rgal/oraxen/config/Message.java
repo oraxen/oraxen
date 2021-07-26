@@ -25,8 +25,6 @@ public enum Message {
     CANNOT_BE_REPAIRED("general.cannot_be_repaired"),
     CANNOT_BE_REPAIRED_INVALID("general.cannot_be_repaired_invalid"),
     ZIP_BROWSE_ERROR("general.zip_browse_error"),
-    DONT_HAVE_PERMISSION("general.dont_have_permission"),
-    MECHANIC_DOESNT_EXIST("general.mechanic_doesnt_exist"),
     BAD_RECIPE("general.bad_recipe"),
     ITEM_NOT_FOUND("general.item_not_found"),
     PLUGIN_HOOKS("general.plugin_hooks"),
