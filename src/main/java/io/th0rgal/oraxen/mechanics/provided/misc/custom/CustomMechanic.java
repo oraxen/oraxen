@@ -2,6 +2,9 @@ package io.th0rgal.oraxen.mechanics.provided.misc.custom;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomAction;
+import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomCondition;
+import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomEvent;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners.CustomListener;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -14,8 +17,6 @@ public class CustomMechanic extends Mechanic {
 
     private boolean oneUsage;
     private static final Map<String, CustomListener> LOADED_VARIANTS = new HashMap<>();
-    private final List<CustomEvent> actions = new ArrayList<>();
-
 
     public CustomMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
@@ -23,21 +24,27 @@ public class CustomMechanic extends Mechanic {
         for (String subMechanicName : section.getKeys(false)) {
             ConfigurationSection subsection = section.getConfigurationSection(subMechanicName);
             String key = subsection.getCurrentPath();
-            if (LOADED_VARIANTS.containsKey(key))
+            if (LOADED_VARIANTS.containsKey(key)) {
+                System.out.println("unregistered: " + key);
                 LOADED_VARIANTS.get(key).unregister();
+            }
 
             List<CustomAction> actions = new ArrayList<>();
-            for (String action : subsection.getStringList("actions"))
-                actions.add(CustomAction.get(action));
+            for (String action : subsection.getStringList("actions")) {
+                actions.add(new CustomAction(action));
+                System.out.println(action);
+            }
+            System.out.println("actions:" + actions);
 
             List<CustomCondition> conditions = new ArrayList<>();
             for (String condition : subsection.getStringList("conditions"))
-                conditions.add(CustomCondition.get(condition));
+                conditions.add(new CustomCondition(condition));
 
-            CustomListener listener = CustomEvent.get(subsection.getString("event"))
+            CustomListener listener = new CustomEvent(subsection.getString("event"))
                     .getListener(getItemID(), conditions, actions);
 
             listener.register();
+            System.out.println("registered: " + key);
             LOADED_VARIANTS.put(key, listener);
         }
     }

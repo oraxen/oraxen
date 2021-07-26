@@ -1,7 +1,9 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.mechanics.provided.misc.custom.*;
+import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomAction;
+import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomCondition;
+import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomEvent;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
@@ -21,10 +23,13 @@ public abstract class CustomListener implements Listener {
         this.event = event;
         this.conditions = conditions;
         this.actions = actions;
+        System.out.println("CREATING OBJECT WITH ACTIONS:");
     }
 
     public void register() {
         Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
+        for (CustomAction action : actions)
+            System.out.println("registered: " + action.getParams());
     }
 
     public void unregister() {

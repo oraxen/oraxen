@@ -2,9 +2,9 @@ package io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomAction;
-import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomCondition;
-import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomEvent;
+import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomAction;
+import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomCondition;
+import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomEvent;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -73,7 +73,7 @@ public class ClickListener extends CustomListener {
                 return;
             Player player = event.getPlayer();
             for (CustomCondition condition : conditions)
-                switch (condition) {
+                switch (condition.type) {
                     case HAS_PERMISSION -> {
                         if (!player.hasPermission(condition.getParams().get(0)))
                             return;
@@ -81,7 +81,7 @@ public class ClickListener extends CustomListener {
                 }
 
             for (CustomAction action : actions) {
-                switch (action) {
+                switch (action.type) {
                     case COMMAND -> {
                         CommandSender sender;
                         switch (action.getParams().get(0)) {
