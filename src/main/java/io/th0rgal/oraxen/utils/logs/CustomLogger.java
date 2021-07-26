@@ -17,8 +17,11 @@ public class CustomLogger extends PluginLogger {
     @Override
     public void log(@NotNull LogRecord logRecord) {
         if (logRecord != null && logRecord.getLevel() != Level.INFO) {
-            logRecord
-                .setMessage(Message.PREFIX.toString() + ' ' + logRecord.getMessage());
+            try {
+                logRecord.setMessage(Message.PREFIX.toString() + ' ' + logRecord.getMessage());
+            } catch (NullPointerException exception) {
+                logRecord.setMessage("Oraxen | " + logRecord.getMessage());
+            }
             super.log(logRecord);
         }
     }
