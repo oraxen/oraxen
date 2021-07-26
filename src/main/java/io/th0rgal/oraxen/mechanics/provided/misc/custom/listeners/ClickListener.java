@@ -94,11 +94,11 @@ public class ClickListener extends CustomListener {
                     }
 
                     case MESSAGE -> OraxenPlugin.get().getAudience().sender(player)
-                            .sendMessage(MiniMessage.get().parse(action.getParams().get(1)));
+                            .sendMessage(MiniMessage.get().parse(action.getParams().get(0)));
 
                     case ACTIONBAR -> {
                         OraxenPlugin.get().getAudience().sender(player)
-                                .sendActionBar(MiniMessage.get().parse(action.getParams().get(1)));
+                                .sendActionBar(MiniMessage.get().parse(action.getParams().get(0)));
                     }
                 }
             }
