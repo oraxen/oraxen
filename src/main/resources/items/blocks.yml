@@ -14,6 +14,7 @@ caveblock:
   Mechanics:
     noteblock:
       break_sound: BLOCK_GLASS_BREAK
+      place_sound: BLOCK_GLASS_PLACE
       custom_variation: 0
       model: default/caveblock
       hardness: 1
@@ -33,6 +34,7 @@ amethyst_ore:
   Mechanics:
     noteblock:
       break_sound: BLOCK_STONE_BREAK
+      place_sound: BLOCK_STONE_PLACE
       custom_variation: 1
       model: amethyst_ore
       hardness: 6
@@ -57,6 +59,7 @@ ruby_ore:
   Mechanics:
     noteblock:
       break_sound: BLOCK_STONE_BREAK
+      place_sound: BLOCK_STONE_PLACE
       custom_variation: 2
       model: ruby_ore
       hardness: 7
@@ -82,6 +85,7 @@ onyx_ore:
   Mechanics:
     noteblock:
       break_sound: BLOCK_STONE_BREAK
+      place_sound: BLOCK_STONE_PLACE
       custom_variation: 3
       model: onyx_ore
       hardness: 8
@@ -106,6 +110,7 @@ orax_ore:
   Mechanics:
     noteblock:
       break_sound: BLOCK_STONE_BREAK
+      place_sound: BLOCK_STONE_PLACE
       custom_variation: 4
       model: orax_ore
       hardness: 8
