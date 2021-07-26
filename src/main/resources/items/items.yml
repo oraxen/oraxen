@@ -42,11 +42,11 @@ example_custom_mechanic:
   Mechanics:
     custom:
       test:
-        event: "click:right:all"
+        event: "CLICK:right:all"
         conditions:
-          - "has_permission:player:example.permission"
+          - "HAS_PERMISSION:example.permission"
         actions:
-          - "command:server:normal:this is a test"
+          - "COMMAND:console:give <player> cooked_beef 1"
 
 example_command_mechanic:
   displayname: "<gradient:#FA7CBB:#F14658><bold>My Item That Gives Diamond Swords"
