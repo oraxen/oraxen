@@ -62,6 +62,8 @@ public class FurnitureListener implements Listener {
                             if (entity.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
                                 Entity stand = Bukkit.getEntity(UUID.fromString(entity.getPersistentDataContainer()
                                         .get(SEAT_KEY, PersistentDataType.STRING)));
+                                for (Entity passenger : stand.getPassengers())
+                                    stand.removePassenger(passenger);
                                 stand.remove();
                             }
                             block.setType(Material.AIR);
@@ -217,7 +219,7 @@ public class FurnitureListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock() == null)
             return;
         Block block = event.getClickedBlock();
-        if (block.getType() != Material.BARRIER)
+        if (block.getType() != Material.BARRIER || event.getPlayer().isSneaking())
             return;
         for (Entity entity : block.getWorld().getNearbyEntities(block.getLocation(), 1, 1, 1))
             if (entity instanceof ItemFrame frame
@@ -227,7 +229,10 @@ public class FurnitureListener implements Listener {
                     && entity.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
                 String entityId = entity.getPersistentDataContainer().get(SEAT_KEY, PersistentDataType.STRING);
                 Entity stand = Bukkit.getEntity(UUID.fromString(entityId));
-                stand.addPassenger(event.getPlayer());
+                if (stand.getPassengers().size() == 0) {
+                    stand.addPassenger(event.getPlayer());
+                    event.setCancelled(true);
+                }
                 return;
             }
     }
