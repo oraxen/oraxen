@@ -14,10 +14,11 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class FurnitureMechanic extends Mechanic {
 
-    private final boolean barrier;
+    private final List<BlockLocation> barriers;
     private final boolean hasRotation;
     private Rotation rotation;
     private final boolean hasSeat;
@@ -26,13 +27,22 @@ public class FurnitureMechanic extends Mechanic {
     private final BlockFace facing;
     public static final NamespacedKey FURNITURE_KEY = new NamespacedKey(OraxenPlugin.get(), "furniture");
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
+    public static final NamespacedKey ROOT_KEY = new NamespacedKey(OraxenPlugin.get(), "root");
+    public static final NamespacedKey ORIENTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "orientation");
     private final Drop drop;
 
     @SuppressWarnings("unchecked")
     public FurnitureMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY,
                 PersistentDataType.BYTE, (byte) 1));
-        this.barrier = OraxenPlugin.getProtocolLib() && section.getBoolean("barrier", false);
+
+        this.barriers = new ArrayList<>();
+        if (OraxenPlugin.getProtocolLib() && section.getBoolean("barrier", false))
+            barriers.add(new BlockLocation(0, 0, 0));
+        if (OraxenPlugin.getProtocolLib() && section.isList("barriers"))
+            for (Object barrierObject : section.getList("barriers"))
+                this.barriers.add(new BlockLocation((Map<String, Object>) barrierObject));
+
         if (section.isString("rotation")) {
             this.rotation = Rotation.valueOf(section.getString("rotation", "NONE").toUpperCase());
             hasRotation = true;
@@ -73,8 +83,12 @@ public class FurnitureMechanic extends Mechanic {
 
     }
 
-    public boolean hasBarrier() {
-        return barrier;
+    public boolean hasBarriers() {
+        return !barriers.isEmpty();
+    }
+
+    public List<BlockLocation> getBarriers() {
+        return barriers;
     }
 
     public boolean hasRotation() {

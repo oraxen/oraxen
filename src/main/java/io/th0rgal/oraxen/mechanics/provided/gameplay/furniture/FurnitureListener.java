@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import de.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -27,11 +28,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.FURNITURE_KEY;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.SEAT_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.*;
 
 public class FurnitureListener implements Listener {
 
@@ -53,11 +55,28 @@ public class FurnitureListener implements Listener {
             @Override
             public void breakBlock(Player player, Block block, ItemStack tool) {
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
-                    for (Entity entity : block.getWorld().getNearbyEntities(block.getLocation(), 1, 1, 1))
+
+                    final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
+                    if (!customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING))
+                        return;
+                    String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
+                    FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
+                    BlockLocation rootBlockLocation = new BlockLocation(customBlockData.get(ROOT_KEY,
+                            PersistentDataType.STRING));
+                    Location rootLocation = rootBlockLocation.toLocation(block.getWorld());
+
+                    for (Location location : getLocations(customBlockData
+                                    .get(ORIENTATION_KEY, PersistentDataType.FLOAT),
+                            rootLocation,
+                            mechanic.getBarriers())) {
+                        location.getBlock().setType(Material.AIR);
+                    }
+
+                    for (Entity entity : rootLocation.getWorld().getNearbyEntities(rootLocation, 1, 1, 1))
                         if (entity instanceof ItemFrame frame
-                                && entity.getLocation().getBlockX() == block.getX()
-                                && entity.getLocation().getBlockY() == block.getY()
-                                && entity.getLocation().getBlockZ() == block.getZ()
+                                && entity.getLocation().getBlockX() == rootLocation.getX()
+                                && entity.getLocation().getBlockY() == rootLocation.getY()
+                                && entity.getLocation().getBlockZ() == rootLocation.getZ()
                                 && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING)) {
                             if (entity.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
                                 Entity stand = Bukkit.getEntity(UUID.fromString(entity.getPersistentDataContainer()
@@ -66,12 +85,9 @@ public class FurnitureListener implements Listener {
                                     stand.removePassenger(passenger);
                                 stand.remove();
                             }
-                            block.setType(Material.AIR);
-                            FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic
-                                    (entity.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING));
-                            mechanic.getDrop().spawns(block.getLocation(), tool);
                             frame.remove();
-                            return;
+                            rootLocation.getBlock().setType(Material.AIR);
+                            mechanic.getDrop().spawns(block.getLocation(), tool);
                         }
                 });
             }
@@ -131,11 +147,12 @@ public class FurnitureListener implements Listener {
         clone.setItemMeta(meta);
         Rotation rotation = mechanic.hasRotation()
                 ? mechanic.getRotation()
-                : getRotation(player.getEyeLocation().getYaw());
-
+                : getRotation(player.getEyeLocation().getYaw(),
+                mechanic.hasBarriers()
+                        && mechanic.getBarriers().size() > 1);
+        float yaw = getYaw(rotation) + mechanic.getSeatYaw();
         String entityId;
         if (mechanic.hasSeat()) {
-            float yaw = getYaw(rotation) + mechanic.getSeatYaw();
             ArmorStand seat = target.getWorld().spawn(target.getLocation()
                     .add(0.5, mechanic.getSeatHeight() - 1, 0.5), ArmorStand.class, (ArmorStand stand) -> {
                 stand.setVisible(false);
@@ -169,11 +186,24 @@ public class FurnitureListener implements Listener {
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
 
-        if (mechanic.hasBarrier()) target.setType(Material.BARRIER);
+        if (mechanic.hasBarriers())
+            for (Location location : getLocations(yaw, target.getLocation(), mechanic.getBarriers())) {
+                Block block = location.getBlock();
+                PersistentDataContainer data = new CustomBlockData(block, OraxenPlugin.get());
+                data.set(FURNITURE_KEY, PersistentDataType.STRING, itemID);
+                if (mechanic.hasSeat())
+                    data.set(SEAT_KEY, PersistentDataType.STRING, entityId);
+                data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(target.getLocation()).toString());
+                data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
+                block.setType(Material.BARRIER);
+            }
     }
 
-    private Rotation getRotation(double yaw) {
-        return Rotation.values()[(int) (((Location.normalizeYaw((float) yaw) + 180) * 8 / 360) + 0.5) % 8];
+    private Rotation getRotation(double yaw, boolean restricted) {
+        int id = (int) (((Location.normalizeYaw((float) yaw) + 180) * 8 / 360) + 0.5) % 8;
+        if (restricted && id % 2 != 0)
+            id -= 1;
+        return Rotation.values()[id];
     }
 
     private float getYaw(Rotation rotation) {
@@ -198,6 +228,7 @@ public class FurnitureListener implements Listener {
         Block block = event.getBlock();
         if (block.getType() != Material.BARRIER || event.getPlayer().getGameMode() != GameMode.CREATIVE)
             return;
+
         for (Entity entity : block.getWorld().getNearbyEntities(block.getLocation(), 1, 1, 1))
             if (entity instanceof ItemFrame frame
                     && entity.getLocation().getBlockX() == block.getX()
@@ -248,6 +279,13 @@ public class FurnitureListener implements Listener {
                 && (playerLocation.getBlockY() == blockLocation.getBlockY()
                 || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
                 && playerLocation.getBlockZ() == blockLocation.getBlockZ();
+    }
+
+    private List<Location> getLocations(float rotation, Location center, List<BlockLocation> relativeCoordinates) {
+        List<Location> output = new ArrayList<>();
+        for (BlockLocation modifier : relativeCoordinates)
+            output.add(modifier.groundRotate(rotation).add(center));
+        return output;
     }
 
 }

@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'maven-publish'
 
 group "io.th0rgal"
-def pluginVersion = "1.90.0"
+def pluginVersion = "1.91.0"
 ext.jitpackGroup = group + ".oraxen"
 ext.jitpackVersion = 'main-' + pluginVersion
 version = pluginVersion
@@ -19,24 +19,26 @@ version = pluginVersion
 repositories {
     mavenCentral()
     mavenLocal()
-    //Spigot
+    // Spigot
     maven { url "https://hub.spigotmc.org/nexus/content/repositories/snapshots/" }
-    //Because Spigot depends on Bungeecord ChatComponent-API
+    // Because Spigot depends on Bungeecord ChatComponent-API
     maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
-    //JitPack
+    // JitPack
     maven { url 'https://jitpack.io' }
-    //ProtocolLib
+    // ProtocolLib
     maven { url "https://repo.dmulloy2.net/nexus/repository/public/" }
-    //Minecraft repo (commodore)
+    // Minecraft repo (commodore)
     maven { url "https://libraries.minecraft.net/" }
-    //PlaceHolderAPI
+    // PlaceHolderAPI
     maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
-    //EffectLib
+    // EffectLib
     maven { url 'https://maven.elmakers.com/repository/' }
-    //sk89q-repo
+    // sk89q-repo
     maven { url 'https://maven.enginehub.org/repo/' }
-    //CodeMc (bstats)
+    // CodeMc (bstats)
     maven { url "https://repo.codemc.org/repository/maven-public" }
+    // CustomBlockData
+    maven { url "https://repo.jeff-media.de/maven2" }
 }
 
 compileJava {
@@ -59,6 +61,7 @@ dependencies {
     implementation "net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT"
     implementation "net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT"
     implementation 'dev.jorel.CommandAPI:commandapi-shade:6.1.0'
+    implementation 'de.jeff_media:CustomBlockData:1.0-SNAPSHOT'
 }
 
 processResources {
@@ -67,21 +70,12 @@ processResources {
     }
 }
 
-java {
-    withSourcesJar()
-}
-
 shadowJar {
     relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.shaded.syntaxapi"
     relocate "org.yaml.snakeyaml", "io.th0rgal.oraxen.shaded.snakeyaml"
     relocate "org.bstats", "io.th0rgal.guardian.shaded.bstats"
     relocate "net.kyori", "io.th0rgal.oraxen.shaded.kyori"
-    /*
-    minimize {
-        exclude("io.th0rgal.oraxen.api.*")
-        exclude("com.syntaxphoenix.syntaxapi.*")
-    }
-    */
+    relocate "de.jeff_media.customblockdata", "io.th0rgal.oraxen.shaded.customblockdata"
     manifest {
         attributes(
                 'Built-By': System.properties['user.name'],
