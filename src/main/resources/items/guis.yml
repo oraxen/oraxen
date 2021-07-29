@@ -1,6 +1,6 @@
 arrow_next_icon:
   displayname: "&0"
-  material: DIAMOND
+  material: PAPER
   excludeFromInventory: true
   Pack:
     generate_model: true
@@ -10,7 +10,7 @@ arrow_next_icon:
 
 arrow_previous_icon:
   displayname: "&0"
-  material: DIAMOND
+  material: PAPER
   excludeFromInventory: true
   Pack:
     generate_model: true
@@ -20,7 +20,7 @@ arrow_previous_icon:
 
 recipe_showcase:
   displayname: "&0"
-  material: DIAMOND
+  material: PAPER
   excludeFromInventory: true
   Pack:
     generate_model: false
@@ -28,7 +28,7 @@ recipe_showcase:
 
 example_upper_section:
   displayname: "&0"
-  material: DIAMOND
+  material: PAPER
   excludeFromInventory: true
   Pack:
     generate_model: false
@@ -36,7 +36,7 @@ example_upper_section:
 
 example_lower_section:
   displayname: "&0"
-  material: DIAMOND
+  material: PAPER
   excludeFromInventory: true
   Pack:
     generate_model: false

@@ -120,7 +120,7 @@ fire_hammer:
 
 iron_cog:
   displayname: "<#D5D6D8>Iron Cog"
-  material: DIAMOND
+  material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Click on a damaged item to repair"
     - "   <#D5D6D8>10% of its maximum durability"
@@ -135,7 +135,7 @@ iron_cog:
 
 gold_cog:
   displayname: "<gradient:#F06966:#FAD6A6>Gold Cog"
-  material: DIAMOND
+  material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Click on a damaged item to repair"
     - "   <#D5D6D8>50% of its maximum durability"
@@ -150,7 +150,7 @@ gold_cog:
 
 diamond_cog:
   displayname: "<gradient:#3685EC:#72C1E4>Diamond Cog"
-  material: DIAMOND
+  material: PAPER
   lore:
     - "<#6f737d>» <#D5D6D8>Click on a damaged item to repair"
     - "   <#D5D6D8>100% of its maximum durability"

@@ -7,7 +7,7 @@
 
 caveblock:
   displayname: "<#D5D6D8>Cave Block"
-  material: DIAMOND
+  material: PAPER
   Pack:
     generate_model: false # because this is a block, a 2nd model pointing to specified one will be generated anyway
     model: default/caveblock
@@ -25,7 +25,7 @@ caveblock:
 
 amethyst_ore:
   displayname: '<gradient:#4B36B1:#6699FF>Amethyst Ore'
-  material: DIAMOND
+  material: PAPER
   Pack:
     generate_model: true
     parent_model: block/cube_all
@@ -50,7 +50,7 @@ amethyst_ore:
 
 ruby_ore:
   displayname: '<gradient:#FA7CBB:#F14658>Ruby Ore'
-  material: DIAMOND
+  material: PAPER
   Pack:
     generate_model: true
     parent_model: block/cube_all
@@ -76,7 +76,7 @@ ruby_ore:
 
 onyx_ore:
   displayname: '<#6f737d>Onyx Ore'
-  material: DIAMOND
+  material: PAPER
   Pack:
     generate_model: true
     parent_model: block/cube_all
@@ -101,7 +101,7 @@ onyx_ore:
 
 orax_ore:
   displayname: '<gradient:#3685EC:#72C1E4>Orax Ore'
-  material: DIAMOND
+  material: PAPER
   Pack:
     generate_model: true
     parent_model: block/cube_all
@@ -126,7 +126,7 @@ orax_ore:
 
 table:
   displayname: "<gray>Table"
-  material: DIAMOND
+  material: PAPER
   Mechanics:
     furniture:
       facing: UP
@@ -141,7 +141,7 @@ table:
 
 cart:
   displayname: "<gray>Cart"
-  material: DIAMOND
+  material: PAPER
   Mechanics:
     furniture:
       facing: UP
@@ -156,7 +156,7 @@ cart:
 
 chair:
   displayname: "<gray>Chair"
-  material: DIAMOND
+  material: PAPER
   Mechanics:
     furniture:
       facing: UP
@@ -174,7 +174,7 @@ chair:
 
 coach:
   displayname: "<gray>Coach"
-  material: DIAMOND
+  material: PAPER
   Mechanics:
     furniture:
       facing: UP
