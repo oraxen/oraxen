@@ -122,6 +122,11 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         return BLOCK_PER_VARIATION.get(customVariation);
     }
 
+    /**
+     * Generate a NoteBlock blockdata from its id
+     *
+     * @param id  The block id.
+     */
     @SuppressWarnings("deprecation")
     public static NoteBlock createNoteBlockData(int id) {
         /* We have 16 instruments with 25 notes. All of those blocks can be powered.
