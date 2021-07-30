@@ -226,6 +226,7 @@ gui_inventory:
   items: ruby
   mobs: goblin_beetle
   mystical: legendary_hammer
+  plants: weed_leaf
   skins: wood_sword
   tools: iron_serpe
   weapons: energy_crystal_sword

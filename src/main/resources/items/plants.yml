@@ -1,0 +1,171 @@
+weed_leaf:
+  displayname: "<gradient:#46EEAA:#2CBFC7>Weed Leaf"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    textures:
+      - default/weed/leaf
+
+weed_seed:
+  displayname: "<gradient:#46EEAA:#2CBFC7>Weed Seed"
+  material: PAPER
+  Pack:
+    generate_model: true
+    parent_model: "item/generated"
+    textures:
+      - default/weed/seed
+
+weed_plant_stage0:
+  material: PAPER
+  Mechanics:
+    furniture:
+      facing: UP
+      barrier: true
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: weed_seed, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/weed/stage0
+
+weed_plant_stage1:
+  material: PAPER
+  Mechanics:
+    furniture:
+      facing: UP
+      barrier: true
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: weed_seed, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/weed/stage1
+
+weed_plant_stage2:
+  material: PAPER
+  Mechanics:
+    furniture:
+      facing: UP
+      barrier: true
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: weed_seed, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/weed/stage2
+
+weed_plant_stage3:
+  material: PAPER
+  Mechanics:
+    furniture:
+      facing: UP
+      barrier: true
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: weed_seed, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/weed/stage3
+
+weed_plant_stage4:
+  material: PAPER
+  Mechanics:
+    furniture:
+      facing: UP
+      barrier: true
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: weed_seed, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/weed/stage4
+
+weed_plant_stage5:
+  material: PAPER
+  Mechanics:
+    furniture:
+      facing: UP
+      barrier: true
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: weed_seed, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/weed/stage5
+
+weed_plant_stage6:
+  material: PAPER
+  Mechanics:
+    furniture:
+      facing: UP
+      barrier: true
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: weed_seed, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/weed/stage6
+
+weed_plant_stage7:
+  material: PAPER
+  Mechanics:
+    furniture:
+      facing: UP
+      barrier: true
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: weed_seed, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/weed/stage7
+
+weed_plant_stage8:
+  material: PAPER
+  Mechanics:
+    furniture:
+      facing: UP
+      barrier: true
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: weed_seed, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/weed/stage8
+
+weed_plant_stage9:
+  material: PAPER
+  Mechanics:
+    furniture:
+      facing: UP
+      barrier: true
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: weed_seed, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/weed/stage9
+
+weed_plant_stage10:
+  material: PAPER
+  Mechanics:
+    furniture:
+      facing: UP
+      barrier: true
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: weed_seed, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/weed/stage10
