@@ -1,3 +1,10 @@
+# Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+# Potion effects list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionEffectType.html
+# Random UUID generator: https://www.uuidgenerator.net/
+# Color codes: https://docs.adventure.kyori.net/minimessage.html#format
+
 diamond_sword: # A simple skinnable diamond sword
   material: DIAMOND_SWORD
   Mechanics:
