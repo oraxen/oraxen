@@ -54,6 +54,8 @@ furniture:
     - GOLDEN
     - DIAMOND
     - NETHERITE
+  # ticks between each check for plant growth
+  evolution_check_delay: 200
   enabled: true
 
 durability:

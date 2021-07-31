@@ -91,7 +91,8 @@ public class Drop {
         if (!canDrop(itemInHand))
             return;
 
-        if (silktouch && itemInHand.getItemMeta().hasEnchant(Enchantment.SILK_TOUCH)) {
+        if (silktouch && itemInHand != null && itemInHand.hasItemMeta()
+                && itemInHand.getItemMeta().hasEnchant(Enchantment.SILK_TOUCH)) {
             location.getWorld().dropItemNaturally(location, OraxenItems.getItemById(sourceID).build());
             return;
         }

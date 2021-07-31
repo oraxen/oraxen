@@ -24,13 +24,9 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.*;
@@ -55,7 +51,6 @@ public class FurnitureListener implements Listener {
             @Override
             public void breakBlock(Player player, Block block, ItemStack tool) {
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
-
                     final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
                     if (!customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING))
                         return;
@@ -63,32 +58,9 @@ public class FurnitureListener implements Listener {
                     FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
                     BlockLocation rootBlockLocation = new BlockLocation(customBlockData.get(ROOT_KEY,
                             PersistentDataType.STRING));
-                    Location rootLocation = rootBlockLocation.toLocation(block.getWorld());
-
-                    for (Location location : getLocations(customBlockData
-                                    .get(ORIENTATION_KEY, PersistentDataType.FLOAT),
-                            rootLocation,
-                            mechanic.getBarriers())) {
-                        location.getBlock().setType(Material.AIR);
-                    }
-
-                    for (Entity entity : rootLocation.getWorld().getNearbyEntities(rootLocation, 1, 1, 1))
-                        if (entity instanceof ItemFrame frame
-                                && entity.getLocation().getBlockX() == rootLocation.getX()
-                                && entity.getLocation().getBlockY() == rootLocation.getY()
-                                && entity.getLocation().getBlockZ() == rootLocation.getZ()
-                                && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING)) {
-                            if (entity.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
-                                Entity stand = Bukkit.getEntity(UUID.fromString(entity.getPersistentDataContainer()
-                                        .get(SEAT_KEY, PersistentDataType.STRING)));
-                                for (Entity passenger : stand.getPassengers())
-                                    stand.removePassenger(passenger);
-                                stand.remove();
-                            }
-                            frame.remove();
-                            rootLocation.getBlock().setType(Material.AIR);
-                            mechanic.getDrop().spawns(block.getLocation(), tool);
-                        }
+                    if (mechanic.remove(block.getWorld(), rootBlockLocation, customBlockData
+                            .get(ORIENTATION_KEY, PersistentDataType.FLOAT)))
+                        mechanic.getDrop().spawns(block.getLocation(), tool);
                 });
             }
 
@@ -122,6 +94,7 @@ public class FurnitureListener implements Listener {
         }
         if (isStandingInside(player, target))
             return;
+
         for (Entity entity : target.getWorld().getNearbyEntities(target.getLocation(), 1, 1, 1))
             if (entity instanceof ItemFrame
                     && entity.getLocation().getBlockX() == target.getX()
@@ -131,7 +104,13 @@ public class FurnitureListener implements Listener {
 
         BlockData curentBlockData = target.getBlockData();
         FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
-        target.setType(Material.AIR);
+
+        if (mechanic.farmlandRequired &&
+                target.getLocation().clone().subtract(0, 1, 0).getBlock().getType()
+                        != Material.FARMLAND)
+            return;
+
+        target.setType(Material.AIR, false);
         BlockState currentBlockState = target.getState();
 
         BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player,
@@ -141,16 +120,13 @@ public class FurnitureListener implements Listener {
             target.setBlockData(curentBlockData, false); // false to cancel physic
             return;
         }
-        ItemStack clone = item.clone();
-        ItemMeta meta = clone.getItemMeta();
-        meta.setDisplayName("");
-        clone.setItemMeta(meta);
         Rotation rotation = mechanic.hasRotation()
                 ? mechanic.getRotation()
                 : getRotation(player.getEyeLocation().getYaw(),
                 mechanic.hasBarriers()
                         && mechanic.getBarriers().size() > 1);
-        float yaw = getYaw(rotation) + mechanic.getSeatYaw();
+
+        float yaw = mechanic.getYaw(rotation) + mechanic.getSeatYaw();
         String entityId;
         if (mechanic.hasSeat()) {
             ArmorStand seat = target.getWorld().spawn(target.getLocation()
@@ -169,34 +145,9 @@ public class FurnitureListener implements Listener {
             entityId = seat.getUniqueId().toString();
         } else entityId = null;
 
-        ItemFrame itemFrame = target.getWorld().spawn(target.getLocation(), ItemFrame.class, (ItemFrame frame) -> {
-            frame.setVisible(false);
-            frame.setFixed(true);
-            frame.setPersistent(true);
-            frame.setItemDropChance(0);
-            frame.setItem(clone);
-            frame.setRotation(rotation);
-            frame.setFacingDirection(mechanic.getFacing());
-            frame.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, itemID);
-            if (mechanic.hasSeat())
-                frame.getPersistentDataContainer().set(SEAT_KEY, PersistentDataType.STRING, entityId);
-        });
-
-
+        mechanic.place(rotation, yaw, target.getLocation(), entityId);
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
-
-        if (mechanic.hasBarriers())
-            for (Location location : getLocations(yaw, target.getLocation(), mechanic.getBarriers())) {
-                Block block = location.getBlock();
-                PersistentDataContainer data = new CustomBlockData(block, OraxenPlugin.get());
-                data.set(FURNITURE_KEY, PersistentDataType.STRING, itemID);
-                if (mechanic.hasSeat())
-                    data.set(SEAT_KEY, PersistentDataType.STRING, entityId);
-                data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(target.getLocation()).toString());
-                data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
-                block.setType(Material.BARRIER);
-            }
     }
 
     private Rotation getRotation(double yaw, boolean restricted) {
@@ -204,10 +155,6 @@ public class FurnitureListener implements Listener {
         if (restricted && id % 2 != 0)
             id -= 1;
         return Rotation.values()[id];
-    }
-
-    private float getYaw(Rotation rotation) {
-        return (Arrays.asList(Rotation.values()).indexOf(rotation) * 360f) / 8f;
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -279,13 +226,6 @@ public class FurnitureListener implements Listener {
                 && (playerLocation.getBlockY() == blockLocation.getBlockY()
                 || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
                 && playerLocation.getBlockZ() == blockLocation.getBlockZ();
-    }
-
-    private List<Location> getLocations(float rotation, Location center, List<BlockLocation> relativeCoordinates) {
-        List<Location> output = new ArrayList<>();
-        for (BlockLocation modifier : relativeCoordinates)
-            output.add(modifier.groundRotate(rotation).add(center));
-        return output;
     }
 
 }
