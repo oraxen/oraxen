@@ -43,8 +43,11 @@ public class EvolutionTask extends BukkitRunnable {
                     if (evolutionStep > evolution.getDelay()) {
                         if (!evolution.bernoulliTest())
                             continue;
-                        mechanic.remove(world, new BlockLocation(frame.getLocation()),
-                                rotation);
+                        if (mechanic.hasBarriers())
+                            mechanic.removeSolid(world, new BlockLocation(frame.getLocation()),
+                                    rotation);
+                        else
+                            mechanic.removeAirFurniture(frame);
                         FurnitureMechanic nextMechanic = (FurnitureMechanic)
                                 furnitureFactory.getMechanic(evolution.getNextStage());
                         nextMechanic.place(frame.getRotation(),

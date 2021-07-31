@@ -154,7 +154,7 @@ public class FurnitureMechanic extends Mechanic {
 
         ItemFrame itemFrame = location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) -> {
             frame.setVisible(false);
-            frame.setFixed(true);
+            frame.setFixed(false);
             frame.setPersistent(true);
             frame.setItemDropChance(0);
             if (placedItem == null) {
@@ -186,7 +186,7 @@ public class FurnitureMechanic extends Mechanic {
             }
     }
 
-    public boolean remove(World world, BlockLocation rootBlockLocation, float orientation) {
+    public boolean removeSolid(World world, BlockLocation rootBlockLocation, float orientation) {
         Location rootLocation = rootBlockLocation.toLocation(world);
 
         for (Location location : getLocations(orientation,
@@ -215,6 +215,17 @@ public class FurnitureMechanic extends Mechanic {
         return false;
     }
 
+    public void removeAirFurniture(ItemFrame frame) {
+        if (frame.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
+            Entity stand = Bukkit.getEntity(UUID.fromString(frame.getPersistentDataContainer()
+                    .get(SEAT_KEY, PersistentDataType.STRING)));
+            for (Entity passenger : stand.getPassengers())
+                stand.removePassenger(passenger);
+            stand.remove();
+        }
+        frame.remove();
+    }
+
     public List<Location> getLocations(float rotation, Location center, List<BlockLocation> relativeCoordinates) {
         List<Location> output = new ArrayList<>();
         for (BlockLocation modifier : relativeCoordinates)
@@ -224,5 +235,16 @@ public class FurnitureMechanic extends Mechanic {
 
     public float getYaw(Rotation rotation) {
         return (Arrays.asList(Rotation.values()).indexOf(rotation) * 360f) / 8f;
+    }
+
+    public static ItemFrame getItemFrame(Location location) {
+        for (Entity entity : location.getWorld().getNearbyEntities(location, 1, 1, 1))
+            if (entity instanceof ItemFrame frame
+                    && entity.getLocation().getBlockX() == location.getBlockX()
+                    && entity.getLocation().getBlockY() == location.getBlockY()
+                    && entity.getLocation().getBlockZ() == location.getBlockZ()
+                    && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING))
+                return frame;
+        return null;
     }
 }
