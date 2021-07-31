@@ -66,6 +66,7 @@ public class NoteBlockMechanic extends Mechanic {
             period = section.getInt("hardness");
         } else {
             hasHardness = false;
+
         }
     }
 

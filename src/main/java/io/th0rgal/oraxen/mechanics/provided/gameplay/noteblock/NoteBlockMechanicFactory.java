@@ -27,9 +27,11 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     private static final List<JsonObject> BLOCKSTATE_OVERRIDES = new ArrayList<>();
     public static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
     public final List<String> toolTypes;
+    private static NoteBlockMechanicFactory instance;
 
     public NoteBlockMechanicFactory(ConfigurationSection section) {
         super(section);
+        instance = this;
         toolTypes = section.getStringList("tool_types");
 
         // this modifier should be executed when all the items have been parsed, just
@@ -122,10 +124,27 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         return BLOCK_PER_VARIATION.get(customVariation);
     }
 
+    public static NoteBlockMechanicFactory getInstance() {
+        return instance;
+    }
+
+    /**
+     * Generate a NoteBlock blockdata from an oraxen id
+     *
+     * @param itemID The id of an item implementing NoteBlockMechanic
+     */
+    public NoteBlock createNoteBlockData(String itemID) {
+        /* We have 16 instruments with 25 notes. All of those blocks can be powered.
+         * That's: 16*25*2 = 800 variations. The first 25 variations of PIANO (not powered)
+         * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
+         */
+        return createNoteBlockData(((NoteBlockMechanic) getInstance().getMechanic(itemID)).getCustomVariation());
+    }
+
     /**
      * Generate a NoteBlock blockdata from its id
      *
-     * @param id  The block id.
+     * @param id The block id.
      */
     @SuppressWarnings("deprecation")
     public static NoteBlock createNoteBlockData(int id) {
