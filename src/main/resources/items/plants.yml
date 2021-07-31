@@ -5,47 +5,21 @@
 # Random UUID generator: https://www.uuidgenerator.net/
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
-weed_leaf:
-  displayname: "<gradient:#46EEAA:#2CBFC7>Weed Leaf"
+grape:
+  displayname: "<gradient:#ED7B84:#9055FF>Grape"
   material: COOKED_BEEF
   Pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
-      - default/weed/leaf
-  Mechanics:
-    consumablepotioneffects:
-      confusion:
-        amplifier: 0
-        ambient: true # Makes potion effect produce more, translucent, particles.
-        particles: true # whether this effect has particles or not
-        icon: true # whether this effect has an icon or not
-        duration: 200 # 10 seconds in ticks
-      speed:
-        amplifier: 0
-        ambient: true # Makes potion effect produce more, translucent, particles.
-        particles: true # whether this effect has particles or not
-        icon: true # whether this effect has an icon or not
-        duration: 6000 # 5 minutes
-      saturation:
-        amplifier: 1
-        ambient: true # Makes potion effect produce more, translucent, particles.
-        particles: true # whether this effect has particles or not
-        icon: true # whether this effect has an icon or not
-        duration: 6000 # 5 minutes
-      levitation:
-        amplifier: 0
-        ambient: true # Makes potion effect produce more, translucent, particles.
-        particles: true # whether this effect has particles or not
-        icon: true # whether this effect has an icon or not
-        duration: 5 # 5 ticks
+      - default/grape
 
-weed_seed:
-  displayname: "<gradient:#46EEAA:#2CBFC7>Weed Seed"
+grape_seeds:
+  displayname: "<gradient:#46EEAA:#2CBFC7>Grape Seeds"
   material: PAPER
   Mechanics:
     furniture:
-      item: weed_plant_stage0
+      item: grape_stage0
       facing: UP
       barrier: false
       farmland_required: true
@@ -53,46 +27,25 @@ weed_seed:
         delay: 10000
         probability: 0.5
         light_boost: true
-        next_stage: weed_plant_stage1
+        next_stage: grape_stage1
       drop:
         silktouch: true
         loots:
-          - { oraxen_item: weed_seed, probability: 1.0 }
+          - { oraxen_item: grape_seeds, probability: 1.0 }
   Pack:
     generate_model: true
     parent_model: "item/generated"
     textures:
-      - default/weed/seed
+      - default/grape_seeds
 
-weed_plant_stage0:
+grape_stage0:
   material: PAPER
   excludeFromInventory: true
   Pack:
     generate_model: false
-    model: default/weed/stage0
+    model: default/grape/stage0
 
-weed_plant_stage1:
-  material: PAPER
-  excludeFromInventory: true
-  Mechanics:
-    furniture:
-      facing: UP
-      barrier: false
-      farmland_required: true
-      evolution:
-        delay: 10000
-        probability: 0.5
-        light_boost: true
-        next_stage: weed_plant_stage2
-      drop:
-        silktouch: true
-        loots:
-          - { oraxen_item: weed_seed, probability: 1.0 }
-  Pack:
-    generate_model: false
-    model: default/weed/stage1
-
-weed_plant_stage2:
+grape_stage1:
   material: PAPER
   excludeFromInventory: true
   Mechanics:
@@ -104,16 +57,58 @@ weed_plant_stage2:
         delay: 10000
         probability: 0.5
         light_boost: true
-        next_stage: weed_plant_stage3
+        next_stage: grape_stage2
       drop:
         silktouch: true
         loots:
-          - { oraxen_item: weed_seed, probability: 1.0 }
+          - { oraxen_item: grape_seeds, probability: 1.0 }
   Pack:
     generate_model: false
-    model: default/weed/stage2
+    model: default/grape/stage1
 
-weed_plant_stage3:
+grape_stage2:
+  material: PAPER
+  excludeFromInventory: true
+  Mechanics:
+    furniture:
+      facing: UP
+      barrier: false
+      farmland_required: true
+      evolution:
+        delay: 10000
+        probability: 0.5
+        light_boost: true
+        next_stage: grape_stage3
+      drop:
+        silktouch: true
+        loots:
+          - { oraxen_item: grape_seeds, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/grape/stage2
+
+grape_stage3:
+  material: PAPER
+  excludeFromInventory: true
+  Mechanics:
+    furniture:
+      facing: UP
+      barrier: false
+      farmland_required: true
+      evolution:
+        delay: 10000
+        probability: 0.5
+        light_boost: true
+        next_stage: grape_stage4
+      drop:
+        silktouch: true
+        loots:
+          - { oraxen_item: grape_seeds, probability: 1.0 }
+  Pack:
+    generate_model: false
+    model: default/grape/stage3
+
+grape_stage4:
   material: PAPER
   excludeFromInventory: true
   Mechanics:
@@ -124,8 +119,8 @@ weed_plant_stage3:
       drop:
         silktouch: true
         loots:
-          - { oraxen_item: weed_seed, max_amount: 2, probability: 0.75 }
-          - { oraxen_item: weed_leaf, max_amount: 5, probability: 0.55 }
+          - { oraxen_item: grape_seeds, max_amount: 2, probability: 0.75 }
+          - { oraxen_item: grape, max_amount: 2, probability: 0.55 }
   Pack:
     generate_model: false
-    model: default/weed/stage3
+    model: default/grape/stage4
