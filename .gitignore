@@ -1,5 +1,6 @@
 # Default resources
 src/main/resources/pack/models
+src/main/resources/pack/shaders
 src/main/resources/pack/textures
 
 ### Intellij+all ###
