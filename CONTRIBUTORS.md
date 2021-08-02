@@ -84,6 +84,7 @@
 > People who have given ideas to improve Oraxen
 
 * [MiniDigger](https://www.spigotmc.org/members/minidigger.6039/): suggested to generate custom models id automatically
+* [Ancientkingg](https://github.com/Ancientkingg): helped to introduce custom textured armors without optifine
 
 ### Correctors
 
