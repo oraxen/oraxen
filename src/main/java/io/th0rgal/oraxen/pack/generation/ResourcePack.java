@@ -36,6 +36,7 @@ public class ResourcePack {
         makeDirsIfNotExists(packFolder);
 
         File texturesFolder = new File(packFolder, "textures");
+        File shadersFolder = new File(packFolder, "shaders");
         assetsFolder = new File(packFolder, "assets");
         modelsFolder = new File(packFolder, "models");
         fontFolder = new File(packFolder, "font");
@@ -43,10 +44,11 @@ public class ResourcePack {
 
         boolean extractModels = !modelsFolder.exists();
         boolean extractTextures = !texturesFolder.exists();
+        boolean extractShaders = !shadersFolder.exists();
         boolean extractLang = !langFolder.exists();
         boolean extractassets = !assetsFolder.exists();
 
-        if (extractModels || extractTextures || extractassets) {
+        if (extractModels || extractTextures || extractShaders || extractLang || extractassets) {
             ZipInputStream zip = ResourcesManager.browse();
             try {
                 ZipEntry entry = zip.getNextEntry();
@@ -56,6 +58,7 @@ public class ResourcePack {
                     String name = entry.getName();
                     boolean isSuitable = (extractModels && name.startsWith("pack/models"))
                             || (extractTextures && name.startsWith("pack/textures"))
+                            || (extractTextures && name.startsWith("pack/shaders"))
                             || (extractLang && name.startsWith("pack/lang"))
                             || (extractassets && name.startsWith("/pack/assets"));
 
