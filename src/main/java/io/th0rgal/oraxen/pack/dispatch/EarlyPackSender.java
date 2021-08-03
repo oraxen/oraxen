@@ -10,6 +10,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
@@ -50,14 +51,16 @@ public class EarlyPackSender extends PackSender {
                 @Override
                 public void onPacketSending(PacketEvent event) {
                     PacketContainer newPacket = event.getPacket();
-                    if (newPacket.getMeta("oraxen").isPresent())
+                    if (newPacket.getMeta("oraxen").isPresent()) {
+                        newPacket.removeMeta("oraxen");
                         return;
+                    }
                     event.setCancelled(true);
-
                     try {
                         newPacket.setMeta("oraxen", true);
                         protocolManager.sendServerPacket(event.getPlayer(), newPacket);
-                        sendPack(event.getPlayer());
+                        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(),
+                                () -> sendPack(event.getPlayer()), 1);
                     } catch (InvocationTargetException e) {
                         e.printStackTrace();
                     }
