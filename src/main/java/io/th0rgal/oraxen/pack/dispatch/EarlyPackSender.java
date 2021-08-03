@@ -49,19 +49,7 @@ public class EarlyPackSender extends PackSender {
             new PacketAdapter(OraxenPlugin.get(), ListenerPriority.LOW, PacketType.Play.Server.LOGIN) {
                 @Override
                 public void onPacketSending(PacketEvent event) {
-                    PacketContainer newPacket = event.getPacket();
-                    if (newPacket.getMeta("oraxen").isPresent()) {
-                        newPacket.removeMeta("oraxen");
-                        return;
-                    }
-                    event.setCancelled(true);
-                    try {
-                        newPacket.setMeta("oraxen", true);
-                        protocolManager.sendServerPacket(event.getPlayer(), newPacket);
-                        sendPack(event.getPlayer());
-                    } catch (InvocationTargetException e) {
-                        e.printStackTrace();
-                    }
+                    sendPack(event.getPlayer());
                 }
             };
 }
