@@ -31,7 +31,7 @@ Pack:
     send_pack_advanced:
       enabled: true
       mandatory: true
-      message: "<#D5D6D8>Accept the pack to enjoy a full <gradient:#9055FF:#13E2DA>Oraxen<#D5D6D8> experience"
+      message: "<#fa4943>Accept the pack to enjoy a full <b><gradient:#9055FF:#13E2DA>Oraxen</b><#fa4943> experience"
     join_message:
       enabled: false
       delay: -1
