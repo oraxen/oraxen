@@ -83,8 +83,9 @@
 
 > People who have given ideas to improve Oraxen
 
-* [MiniDigger](https://www.spigotmc.org/members/minidigger.6039/): suggested to generate custom models id automatically
+* [MiniDigger](https://github.com/MiniDigger): suggested to generate custom models id automatically
 * [Ancientkingg](https://github.com/Ancientkingg): helped to introduce custom textured armors without optifine
+* [DeltaEvo](https://github.com/DeltaEvo): suggested to send the resourcepack at the beginning of the login sequence
 
 ### Correctors
 
