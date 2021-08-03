@@ -10,7 +10,6 @@ import com.comphenix.protocol.events.PacketEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
@@ -47,7 +46,7 @@ public class EarlyPackSender extends PackSender {
 
 
     private final PacketAdapter listener =
-            new PacketAdapter(OraxenPlugin.get(), ListenerPriority.LOW, PacketType.Login.Server.SUCCESS) {
+            new PacketAdapter(OraxenPlugin.get(), ListenerPriority.LOW, PacketType.Play.Server.LOGIN) {
                 @Override
                 public void onPacketSending(PacketEvent event) {
                     PacketContainer newPacket = event.getPacket();
@@ -59,8 +58,7 @@ public class EarlyPackSender extends PackSender {
                     try {
                         newPacket.setMeta("oraxen", true);
                         protocolManager.sendServerPacket(event.getPlayer(), newPacket);
-                        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(),
-                                () -> sendPack(event.getPlayer()), 1);
+                        sendPack(event.getPlayer());
                     } catch (InvocationTargetException e) {
                         e.printStackTrace();
                     }
