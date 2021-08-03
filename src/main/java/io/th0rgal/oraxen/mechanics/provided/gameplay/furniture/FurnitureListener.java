@@ -11,7 +11,10 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.entity.*;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -20,6 +23,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -213,28 +217,30 @@ public class FurnitureListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
+    public void onPlayerRotateFurniture(PlayerInteractEntityEvent event) {
+        if (event.getRightClicked() instanceof ItemFrame
+                && event.getRightClicked().getPersistentDataContainer()
+                .has(FURNITURE_KEY, PersistentDataType.STRING))
+            event.setCancelled(true);
+    }
+
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerClickOnFurniture(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock() == null)
             return;
         Block block = event.getClickedBlock();
         if (block.getType() != Material.BARRIER || event.getPlayer().isSneaking())
             return;
-        for (Entity entity : block.getWorld().getNearbyEntities(block.getLocation(), 1, 1, 1))
-            if (entity instanceof ItemFrame frame
-                    && entity.getLocation().getBlockX() == block.getX()
-                    && entity.getLocation().getBlockY() == block.getY()
-                    && entity.getLocation().getBlockZ() == block.getZ()
-                    && entity.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
-                String entityId = entity.getPersistentDataContainer().get(SEAT_KEY, PersistentDataType.STRING);
-                Entity stand = Bukkit.getEntity(UUID.fromString(entityId));
-                if (stand.getPassengers().size() == 0) {
-                    stand.addPassenger(event.getPlayer());
-                    event.setCancelled(true);
-                }
-                return;
-            }
+        ItemFrame frame = getItemFrame(block.getLocation());
+        if (frame == null)
+            return;
+        String entityId = frame.getPersistentDataContainer().get(SEAT_KEY, PersistentDataType.STRING);
+        Entity stand = Bukkit.getEntity(UUID.fromString(entityId));
+        if (stand.getPassengers().size() == 0) {
+            stand.addPassenger(event.getPlayer());
+            event.setCancelled(true);
+        }
     }
-
 
     private boolean isStandingInside(Player player, Block block) {
         Location playerLocation = player.getLocation();
