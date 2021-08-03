@@ -27,6 +27,8 @@ Pack:
 
   dispatch:
     send_pack: true
+    # this option requires ProtocolLib and will make the pack loading more fluid
+    send_pack_early: true
     join_message:
       enabled: false
       delay: -1

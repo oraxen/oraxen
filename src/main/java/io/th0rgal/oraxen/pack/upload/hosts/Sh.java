@@ -100,7 +100,17 @@ public class Sh implements HostingProvider {
     }
 
     @Override
+    public String getMinecraftPackURL() {
+        return result;
+    }
+
+    @Override
     public byte[] getSHA1() {
         return sha1;
+    }
+
+    @Override
+    public String getOriginalSHA1() {
+        return null; // todo
     }
 }

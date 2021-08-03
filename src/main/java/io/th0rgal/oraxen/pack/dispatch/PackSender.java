@@ -1,20 +1,38 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerJoinEvent;
+import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
 
-public class PackSender implements Listener {
+public abstract class PackSender {
 
-    @EventHandler(priority = EventPriority.NORMAL)
-    public void onPlayerConnect(PlayerJoinEvent event) {
-        if (Settings.SEND_JOIN_MESSAGE.toBool())
-            PackDispatcher.sendWelcomeMessage(event.getPlayer(), true);
-        if (Settings.SEND_PACK.toBool()) {
-            PackDispatcher.sendPack(event.getPlayer());
-        }
+    protected final HostingProvider hostingProvider;
+
+
+    public PackSender(HostingProvider hostingProvider) {
+        this.hostingProvider = hostingProvider;
+    }
+
+    public abstract void register();
+
+    public abstract void unregister();
+    
+    public abstract void sendPack(Player player);
+
+    protected void sendWelcomeMessage(Player player, boolean delayed) {
+        long delay = (int) Settings.JOIN_MESSAGE_DELAY.getValue();
+        if (delay == -1 || !delayed)
+            Message.COMMAND_JOIN_MESSAGE.send(player, "pack_url", hostingProvider.getPackURL());
+        else
+            Bukkit
+                    .getScheduler()
+                    .runTaskLaterAsynchronously(OraxenPlugin.get(),
+                            () -> Message.COMMAND_JOIN_MESSAGE.send(player, "pack_url"
+                                    , hostingProvider.getPackURL()),
+                            delay * 20L);
     }
 
 }

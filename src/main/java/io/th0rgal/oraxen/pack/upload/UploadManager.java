@@ -3,17 +3,15 @@ package io.th0rgal.oraxen.pack.upload;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.pack.dispatch.PackDispatcher;
+import io.th0rgal.oraxen.pack.dispatch.BukkitPackSender;
+import io.th0rgal.oraxen.pack.dispatch.EarlyPackSender;
 import io.th0rgal.oraxen.pack.dispatch.PackSender;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
 import io.th0rgal.oraxen.pack.upload.hosts.Sh;
-import io.th0rgal.oraxen.utils.logs.Logs;
-
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.Plugin;
 
@@ -27,6 +25,7 @@ public class UploadManager {
     private final Plugin plugin;
     private final boolean enabled;
     private final HostingProvider hostingProvider;
+    private PackSender packSender;
 
     private PackReceiver receiver;
     private PackSender sender;
@@ -34,7 +33,15 @@ public class UploadManager {
     public UploadManager(Plugin plugin) {
         this.plugin = plugin;
         this.enabled = Settings.UPLOAD.toBool();
-        this.hostingProvider = getHostingProvider();
+        this.hostingProvider = createHostingProvider();
+    }
+
+    public HostingProvider getHostingProvider() {
+        return hostingProvider;
+    }
+
+    public PackSender getSender() {
+        return packSender;
     }
 
     public void uploadAsyncAndSendToPlayers(ResourcePack resourcePack) {
@@ -56,10 +63,11 @@ public class UploadManager {
             Message.PACK_UPLOADED.log(
                     "url", hostingProvider.getPackURL(), "delay", String.valueOf(System.currentTimeMillis() - time));
 
-            PackDispatcher.setPackURL(hostingProvider.getPackURL());
-            PackDispatcher.setSha1(hostingProvider.getSHA1());
-            if ((Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) && sender == null)
-                Bukkit.getPluginManager().registerEvents(sender = new PackSender(), plugin);
+            if ((Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) && sender == null) {
+                packSender = (OraxenPlugin.getProtocolLib() && Settings.SEND_PACK_EARLY.toBool())
+                        ? new EarlyPackSender(hostingProvider) : new BukkitPackSender(hostingProvider);
+                packSender.register();
+            }
             /* Too much pain for people trying to configure mechanics
             if ((boolean) Pack.SEND_PACK.getValue() && updateSend)
                 for (Player player : Bukkit.getOnlinePlayers())
@@ -68,7 +76,7 @@ public class UploadManager {
         });
     }
 
-    private HostingProvider getHostingProvider() {
+    private HostingProvider createHostingProvider() {
         switch (Settings.UPLOAD_TYPE.toString().toLowerCase()) {
             case "polymath":
                 return new Polymath(Settings.POLYMATH_SERVER.toString());

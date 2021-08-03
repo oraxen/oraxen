@@ -2,10 +2,10 @@ package io.th0rgal.oraxen.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.*;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.pack.dispatch.PackDispatcher;
 import io.th0rgal.oraxen.commands.itemsvisualizer.AllItemsInventory;
 import io.th0rgal.oraxen.commands.itemsvisualizer.FileInventory;
 import org.bukkit.entity.Player;
@@ -38,8 +38,10 @@ public class CommandsManager {
                 .executes((sender, args) -> {
                     Player target = (Player) args[1];
                     if (args[0].equals("msg"))
-                        PackDispatcher.sendWelcomeMessage(target, false);
-                    else PackDispatcher.sendPack(target);
+                        Message.COMMAND_JOIN_MESSAGE.send(target, "pack_url",
+                                OraxenPlugin.get().getUploadManager().getHostingProvider().getPackURL());
+                    else
+                        OraxenPlugin.get().getUploadManager().getSender().sendPack(target);
                 });
     }
 

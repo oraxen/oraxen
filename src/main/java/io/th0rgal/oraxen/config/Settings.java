@@ -36,9 +36,9 @@ public enum Settings {
     POLYMATH_SERVER("Pack.upload.polymath.server"),
 
     SEND_PACK("Pack.dispatch.send_pack"),
+    SEND_PACK_EARLY("Pack.dispatch.send_pack_early"),
     SEND_JOIN_MESSAGE("Pack.dispatch.join_message.enabled"),
     JOIN_MESSAGE_DELAY("Pack.dispatch.join_message.delay"),
-    JOIN_MESSAGE_CONTENT("Pack.dispatch.join_message.content"),
 
     RECEIVE_ENABLED("Pack.receive.enabled"),
 

@@ -8,6 +8,10 @@ public interface HostingProvider {
 
     String getPackURL();
 
+    String getMinecraftPackURL();
+
     byte[] getSHA1();
+
+    String getOriginalSHA1();
 
 }

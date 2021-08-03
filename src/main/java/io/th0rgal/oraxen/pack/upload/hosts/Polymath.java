@@ -12,6 +12,7 @@ public class Polymath implements HostingProvider {
 
     private final String serverAddress;
     private String packUrl;
+    private String minecraftPackURL;
     private String sha1;
 
     public Polymath(String serverAddress) {
@@ -28,6 +29,7 @@ public class Polymath implements HostingProvider {
                     .parse(new String(curl.exec(), StandardCharsets.UTF_8));
             if (jsonOutput.has("url") || jsonOutput.has("sha1")) {
                 packUrl = jsonOutput.get("url").getAsString();
+                minecraftPackURL = packUrl.replace("https://", "http://");
                 sha1 = jsonOutput.get("sha1").getAsString();
                 return true;
             } else if (jsonOutput.has("error")) {
@@ -51,6 +53,11 @@ public class Polymath implements HostingProvider {
     }
 
     @Override
+    public String getMinecraftPackURL() {
+        return minecraftPackURL;
+    }
+
+    @Override
     public byte[] getSHA1() {
         int len = sha1.length();
         byte[] data = new byte[len / 2];
@@ -59,6 +66,11 @@ public class Polymath implements HostingProvider {
                     + Character.digit(sha1.charAt(i + 1), 16));
         }
         return data;
+    }
+
+    @Override
+    public String getOriginalSHA1() {
+        return sha1;
     }
 
 }
