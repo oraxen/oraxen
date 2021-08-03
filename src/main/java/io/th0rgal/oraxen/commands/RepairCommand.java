@@ -49,7 +49,7 @@ public class RepairCommand {
                                 }
                                 Message.REPAIRED_ITEMS.send(sender, "amount", String.valueOf(items.length - failed));
                             } else
-                                Message.NO_PERMISSION.send(sender);
+                                Message.NO_PERMISSION.send(sender, "permission", "oraxen.command.repair.all");
 
                         }
                     } else {
