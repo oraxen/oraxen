@@ -28,7 +28,10 @@ Pack:
   dispatch:
     send_pack: true
     # this option requires ProtocolLib and will make the pack loading more fluid
-    send_pack_early: true
+    send_pack_advanced:
+      enabled: true
+      mandatory: true
+      message: "<#D5D6D8>Accept the pack to enjoy a full <gradient:#9055FF:#13E2DA>Oraxen<#D5D6D8> experience"
     join_message:
       enabled: false
       delay: -1

@@ -4,7 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.dispatch.BukkitPackSender;
-import io.th0rgal.oraxen.pack.dispatch.EarlyPackSender;
+import io.th0rgal.oraxen.pack.dispatch.AdvancedPackSender;
 import io.th0rgal.oraxen.pack.dispatch.PackSender;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.receive.PackReceiver;
@@ -64,8 +64,8 @@ public class UploadManager {
                     "url", hostingProvider.getPackURL(), "delay", String.valueOf(System.currentTimeMillis() - time));
 
             if ((Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) && sender == null) {
-                packSender = (OraxenPlugin.getProtocolLib() && Settings.SEND_PACK_EARLY.toBool())
-                        ? new EarlyPackSender(hostingProvider) : new BukkitPackSender(hostingProvider);
+                packSender = (OraxenPlugin.getProtocolLib() && Settings.SEND_PACK_ADVANCED.toBool())
+                        ? new AdvancedPackSender(hostingProvider) : new BukkitPackSender(hostingProvider);
                 packSender.register();
             }
             /* Too much pain for people trying to configure mechanics
