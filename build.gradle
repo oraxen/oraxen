@@ -103,8 +103,9 @@ publishing {
         }
     }
     publications {
-        grp(MavenPublication) {
-            from(components.java)
+        shadow(MavenPublication) {
+            from components.java
+            artifact shadowJar
         }
     }
 }
