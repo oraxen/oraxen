@@ -10,8 +10,20 @@ glyphs:
     ascent: 20
     height: 36
 
-  heart:
+  menu_banner:
     code: 3001
+    texture: default/ui/menu_banner
+    ascent: -14
+    height: 256
+
+  menu_negative_shift:
+    code: 3002
+    texture: required/null
+    ascent: -32768
+    height: -145
+
+  heart:
+    code: 3003
     texture: default/chat/heart
     ascent: 8
     height: 8
