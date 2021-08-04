@@ -18,14 +18,15 @@ import io.th0rgal.oraxen.mechanics.provided.farming.harvesting.HarvestingMechani
 import io.th0rgal.oraxen.mechanics.provided.farming.smelting.SmeltingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.repair.RepairMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.armorpotioneffects.ArmorPotionEffectsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.consumable.ConsumableMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.consumablepotioneffects.ConsumablePotionEffectsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.repair.RepairMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.soulbound.SoulBoundMechanicFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -47,11 +48,6 @@ public class MechanicsManager {
     private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
     private static final List<Listener> MECHANICS_LISTENERS = new ArrayList<>();
 
-    @FunctionalInterface
-    public interface FactoryConstructor {
-        MechanicFactory create(ConfigurationSection section);
-    }
-
     public static void registerNativeMechanics() {
         // misc
         registerMechanicFactory("armorpotioneffects", ArmorPotionEffectsMechanicFactory::new);
@@ -64,6 +60,7 @@ public class MechanicsManager {
         // gameplay
         registerMechanicFactory("repair", RepairMechanicFactory::new);
         registerMechanicFactory("durability", DurabilityMechanicFactory::new);
+        registerMechanicFactory("efficiency", EfficiencyMechanicFactory::new);
         registerMechanicFactory("block", BlockMechanicFactory::new);
         registerMechanicFactory("noteblock", NoteBlockMechanicFactory::new);
         if (Bukkit.getVersion().contains("1.16") || Bukkit.getVersion().contains("1.17"))
@@ -92,40 +89,45 @@ public class MechanicsManager {
 
     }
 
-    public static void registerMechanicFactory(String mechanicId,
-                                               FactoryConstructor constructor) {
-        Entry<File, YamlConfiguration> mechanicsEntry = new ResourcesManager(OraxenPlugin.get()).getMechanicsEntry();
-        YamlConfiguration mechanicsConfig = mechanicsEntry.getValue();
-        boolean updated = false;
+    public static void registerMechanicFactory(final String mechanicId,
+                                               final FactoryConstructor constructor) {
+        final Entry<File, YamlConfiguration> mechanicsEntry = new ResourcesManager(OraxenPlugin.get()).getMechanicsEntry();
+        final YamlConfiguration mechanicsConfig = mechanicsEntry.getValue();
+        final boolean updated = false;
         if (mechanicsConfig.getKeys(false).contains(mechanicId)) {
-            ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicId);
+            final ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicId);
             if (factorySection.getBoolean("enabled")) {
-                MechanicFactory factory = constructor.create(factorySection);
+                final MechanicFactory factory = constructor.create(factorySection);
                 FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
             }
         }
         if (updated)
             try {
                 mechanicsConfig.save(mechanicsEntry.getKey());
-            } catch (IOException e) {
+            } catch (final IOException e) {
                 e.printStackTrace();
             }
     }
 
-    public static void registerListeners(JavaPlugin plugin, Listener... listeners) {
-        for (Listener listener : listeners) {
+    public static void registerListeners(final JavaPlugin plugin, final Listener... listeners) {
+        for (final Listener listener : listeners) {
             Bukkit.getPluginManager().registerEvents(listener, plugin);
             MECHANICS_LISTENERS.add(listener);
         }
     }
 
     public static void unloadListeners() {
-        for (Listener listener : MECHANICS_LISTENERS)
+        for (final Listener listener : MECHANICS_LISTENERS)
             HandlerList.unregisterAll(listener);
     }
 
-    public static MechanicFactory getMechanicFactory(String mechanicID) {
+    public static MechanicFactory getMechanicFactory(final String mechanicID) {
         return FACTORIES_BY_MECHANIC_ID.get(mechanicID);
+    }
+
+    @FunctionalInterface
+    public interface FactoryConstructor {
+        MechanicFactory create(ConfigurationSection section);
     }
 
 }

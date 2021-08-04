@@ -6,7 +6,7 @@
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 arrow_next_icon:
-  displayname: "&0"
+  displayname: "<black>"
   material: PAPER
   excludeFromInventory: true
   Pack:
@@ -16,7 +16,7 @@ arrow_next_icon:
       - required/arrow_next_icon.png # .png extension is not mandatory
 
 arrow_previous_icon:
-  displayname: "&0"
+  displayname: "<black>"
   material: PAPER
   excludeFromInventory: true
   Pack:
@@ -26,7 +26,7 @@ arrow_previous_icon:
       - required/arrow_previous_icon.png # .png extension is not mandatory
 
 recipe_showcase:
-  displayname: "&0"
+  displayname: "<black>"
   material: PAPER
   excludeFromInventory: true
   Pack:
@@ -34,7 +34,7 @@ recipe_showcase:
     model: required/recipe_showcase
 
 example_upper_section:
-  displayname: "&0"
+  displayname: "<black>"
   material: PAPER
   excludeFromInventory: true
   Pack:
@@ -42,7 +42,7 @@ example_upper_section:
     model: default/upper_section
 
 example_lower_section:
-  displayname: "&0"
+  displayname: "<black>"
   material: PAPER
   excludeFromInventory: true
   Pack:

@@ -49,17 +49,12 @@ example_custom_mechanic:
         actions:
           - "COMMAND:console:give <player> cooked_beef 1"
 
-example_command_mechanic:
-  displayname: "<gradient:#FA7CBB:#F14658><bold>My Item That Gives Diamond Swords"
-  material: DIAMOND_SWORD
+example_efficiency_pickaxe:
+  displayname: "<gradient:#59A7EA:#F1D2FF><bold>Turbo Pickaxe"
+  material: DIAMOND_PICKAXE
   Mechanics:
-    commands:
-      cooldown: 5000 # example cooldown in milliseconds. This is optional
-      permission: "my.awesome.perm" # required permission. This is optional
-      one_usage: false # should the amount decrease when used? Default: false
-      console:
-        # e.g. the player gives himself a diamond sword
-        - "give %p% diamond_sword 1"
+    efficiency:
+      amount: 25
 
 example_potion:
   displayname: "<#6f737d>Wither Potion"
