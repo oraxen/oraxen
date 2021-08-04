@@ -54,7 +54,14 @@ example_efficiency_pickaxe:
   material: DIAMOND_PICKAXE
   Mechanics:
     efficiency:
-      amount: 25
+      amount: 3
+
+example_slow_pickaxe:
+  displayname: "<gradient:#59A7EA:#F1D2FF><bold>Slow Pickaxe"
+  material: DIAMOND_PICKAXE
+  Mechanics:
+    efficiency:
+      amount: -3
 
 example_potion:
   displayname: "<#6f737d>Wither Potion"

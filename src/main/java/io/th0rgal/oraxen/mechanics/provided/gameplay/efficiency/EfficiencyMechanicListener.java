@@ -40,7 +40,7 @@ public class EfficiencyMechanicListener implements Listener {
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
                         player.addPotionEffect(new PotionEffect(mechanic.getType(),
                                 20 * 60 * 5,
-                                mechanic.getAmount(),
+                                mechanic.getAmount() - 1,
                                 false, false, false)));
             else
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
