@@ -16,8 +16,9 @@ public class FontManager {
     private final Map<Character, String> reverse;
     private final FontEvents fontEvents;
     private final String[] miniMessagePlaceholders;
+    private final String[] zipPlaceholders;
 
-    public FontManager(YamlConfiguration fontConfiguration) {
+    public FontManager(final YamlConfiguration fontConfiguration) {
         autoGenerate = fontConfiguration.getBoolean("settings.automatically_generate");
         glyphMap = new HashMap<>();
         glyphByPlaceholder = new HashMap<>();
@@ -25,6 +26,7 @@ public class FontManager {
         fontEvents = new FontEvents(this);
         loadGlyphs(fontConfiguration.getConfigurationSection("glyphs"));
         miniMessagePlaceholders = createMiniPlaceholders();
+        zipPlaceholders = createZipPlaceholders();
     }
 
     public void registerEvents() {
@@ -35,13 +37,13 @@ public class FontManager {
         HandlerList.unregisterAll(fontEvents);
     }
 
-    private void loadGlyphs(ConfigurationSection section) {
-        for (String glyphName : section.getKeys(false)) {
-            ConfigurationSection glyphSection = section.getConfigurationSection(glyphName);
+    private void loadGlyphs(final ConfigurationSection section) {
+        for (final String glyphName : section.getKeys(false)) {
+            final ConfigurationSection glyphSection = section.getConfigurationSection(glyphName);
             String[] placeholders = new String[0];
             String permission = null;
             if (glyphSection.isConfigurationSection("chat")) {
-                ConfigurationSection chatSection = glyphSection.getConfigurationSection("chat");
+                final ConfigurationSection chatSection = glyphSection.getConfigurationSection("chat");
                 placeholders = chatSection.getStringList("placeholders").toArray(new String[0]);
                 if (chatSection.isString("permission"))
                     permission = chatSection.getString("permission");
@@ -49,11 +51,11 @@ public class FontManager {
             String texture = glyphSection.getString("texture");
             if (!texture.endsWith(".png"))
                 texture += ".png";
-            Glyph glyph = new Glyph(glyphName, (char) glyphSection.getInt("code"), texture,
+            final Glyph glyph = new Glyph(glyphName, (char) glyphSection.getInt("code"), texture,
                     glyphSection.getInt("ascent"), glyphSection.getInt("height"), permission, placeholders);
             glyphMap.put(glyphName, glyph);
             reverse.put(glyph.character(), glyphName);
-            for (String placeholder : placeholders)
+            for (final String placeholder : placeholders)
                 glyphByPlaceholder.put(placeholder, glyph);
         }
     }
@@ -62,11 +64,11 @@ public class FontManager {
         return glyphMap.values();
     }
 
-    public Glyph getGlyphFromName(String name) {
+    public Glyph getGlyphFromName(final String name) {
         return glyphMap.get(name);
     }
 
-    public Glyph getGlyphFromPlaceholder(String word) {
+    public Glyph getGlyphFromPlaceholder(final String word) {
         return glyphByPlaceholder.get(word);
     }
 
@@ -75,8 +77,8 @@ public class FontManager {
     }
 
     private String[] createMiniPlaceholders() {
-        List<String> placeholders = new ArrayList<>();
-        for (Map.Entry<String, Glyph> entry : glyphMap.entrySet()) {
+        final List<String> placeholders = new ArrayList<>();
+        for (final Map.Entry<String, Glyph> entry : glyphMap.entrySet()) {
             placeholders.add("glyph:" + entry.getKey());
             placeholders.add(String.valueOf(entry.getValue().character()));
         }
@@ -85,6 +87,20 @@ public class FontManager {
 
     public String[] getMiniMessagePlaceholders() {
         return miniMessagePlaceholders;
+    }
+
+    private String[] createZipPlaceholders() {
+        final List<String> placeholders = new ArrayList<>();
+        for (final Map.Entry<String, Glyph> entry : glyphMap.entrySet()) {
+            placeholders.add("<glyph:" + entry.getKey() + ">");
+            placeholders.add(entry.getValue().getHexcode());
+        }
+        return placeholders.toArray(new String[0]);
+    }
+
+
+    public String[] getZipPlaceholders() {
+        return zipPlaceholders;
     }
 
 }

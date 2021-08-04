@@ -23,40 +23,40 @@ import java.util.zip.ZipInputStream;
 
 public class ResourcePack {
 
+    private static final List<Consumer<File>> PACK_MODIFIERS = new ArrayList<>();
     private static File modelsFolder;
     private static File fontFolder;
     private static File assetsFolder;
-    private static final List<Consumer<File>> PACK_MODIFIERS = new ArrayList<>();
-    JavaPlugin plugin;
     private final File pack;
+    JavaPlugin plugin;
 
-    public ResourcePack(JavaPlugin plugin, FontManager fontManager) {
+    public ResourcePack(final JavaPlugin plugin, final FontManager fontManager) {
         this.plugin = plugin;
-        File packFolder = new File(plugin.getDataFolder(), "pack");
+        final File packFolder = new File(plugin.getDataFolder(), "pack");
         makeDirsIfNotExists(packFolder);
 
-        File texturesFolder = new File(packFolder, "textures");
-        File shadersFolder = new File(packFolder, "shaders");
+        final File texturesFolder = new File(packFolder, "textures");
+        final File shadersFolder = new File(packFolder, "shaders");
         assetsFolder = new File(packFolder, "assets");
         modelsFolder = new File(packFolder, "models");
         fontFolder = new File(packFolder, "font");
-        File langFolder = new File(packFolder, "lang");
+        final File langFolder = new File(packFolder, "lang");
 
-        boolean extractModels = !modelsFolder.exists();
-        boolean extractTextures = !texturesFolder.exists();
-        boolean extractShaders = !shadersFolder.exists();
-        boolean extractLang = !langFolder.exists();
-        boolean extractassets = !assetsFolder.exists();
+        final boolean extractModels = !modelsFolder.exists();
+        final boolean extractTextures = !texturesFolder.exists();
+        final boolean extractShaders = !shadersFolder.exists();
+        final boolean extractLang = !langFolder.exists();
+        final boolean extractassets = !assetsFolder.exists();
 
         if (extractModels || extractTextures || extractShaders || extractLang || extractassets) {
-            ZipInputStream zip = ResourcesManager.browse();
+            final ZipInputStream zip = ResourcesManager.browse();
             try {
                 ZipEntry entry = zip.getNextEntry();
-                ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
+                final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
 
                 while (entry != null) {
-                    String name = entry.getName();
-                    boolean isSuitable = (extractModels && name.startsWith("pack/models"))
+                    final String name = entry.getName();
+                    final boolean isSuitable = (extractModels && name.startsWith("pack/models"))
                             || (extractTextures && name.startsWith("pack/textures"))
                             || (extractTextures && name.startsWith("pack/shaders"))
                             || (extractLang && name.startsWith("pack/lang"))
@@ -67,12 +67,12 @@ public class ResourcePack {
                 }
                 zip.closeEntry();
                 zip.close();
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
                 ex.printStackTrace();
             }
         }
 
-        this.pack = new File(packFolder, packFolder.getName() + ".zip");
+        pack = new File(packFolder, packFolder.getName() + ".zip");
 
         if (!Settings.GENERATE.toBool())
             return;
@@ -84,16 +84,14 @@ public class ResourcePack {
         extractInPackIfNotExists(plugin, new File(packFolder, "pack.png"));
 
         // Sorting items to keep only one with models (and generate it if needed)
-        Map<Material, List<ItemBuilder>> texturedItems = new HashMap<>();
-        for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
-            ItemBuilder item = entry.getValue();
+        final Map<Material, List<ItemBuilder>> texturedItems = new HashMap<>();
+        for (final Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
+            final ItemBuilder item = entry.getValue();
             if (item.getOraxenMeta().hasPackInfos()) {
-                if (item.getOraxenMeta().shouldGenerateModel()) {
-                    Utils
-                            .writeStringToFile(new File(modelsFolder, item.getOraxenMeta().getModelName() + ".json"),
-                                    new ModelGenerator(item.getOraxenMeta()).getJson().toString());
-                }
-                List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
+                if (item.getOraxenMeta().shouldGenerateModel()) Utils
+                        .writeStringToFile(new File(modelsFolder, item.getOraxenMeta().getModelName() + ".json"),
+                                new ModelGenerator(item.getOraxenMeta()).getJson().toString());
+                final List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
                 // todo: could be improved by using
                 // items.get(i).getOraxenMeta().getCustomModelData() when
                 // items.add(customModelData, item) with catch when not possible
@@ -116,80 +114,76 @@ public class ResourcePack {
         }
         generatePredicates(texturedItems);
         generateFont(fontManager);
-        for (Consumer<File> packModifier : PACK_MODIFIERS) {
-            packModifier.accept(packFolder);
-        }
+        for (final Consumer<File> packModifier : PACK_MODIFIERS) packModifier.accept(packFolder);
 
         // zipping resourcepack
-        List<File> rootFolder = new ArrayList<>();
+        final List<File> rootFolder = new ArrayList<>();
         ZipUtils.getFilesInFolder(packFolder, rootFolder, packFolder.getName() + ".zip");
 
-        List<File> subfolders = new ArrayList<>();
-        List<File> assetFoldersCustom = new ArrayList<>();
+        final List<File> subfolders = new ArrayList<>();
+        final List<File> assetFoldersCustom = new ArrayList<>();
         // needs to be ordered, forEach cannot be used
-        for (File folder : packFolder.listFiles()) {
+        for (final File folder : packFolder.listFiles())
             if (folder.isDirectory() && folder.getName().equalsIgnoreCase("assets"))
                 ZipUtils.getAllFiles(folder, assetFoldersCustom);
             else if (folder.isDirectory())
                 ZipUtils.getAllFiles(folder, subfolders);
-        }
 
         rootFolder.addAll(assetFoldersCustom);
 
-        Map<String, List<File>> fileListByZipDirectory = new LinkedHashMap<>();
+        final Map<String, List<File>> fileListByZipDirectory = new LinkedHashMap<>();
         fileListByZipDirectory.put("assets/minecraft", subfolders);
         fileListByZipDirectory.put("", rootFolder);
-
         ZipUtils.writeZipFile(pack, packFolder, fileListByZipDirectory);
-    }
-
-    public File getFile() {
-        return pack;
     }
 
     public static File getAssetsFolder() {
         return assetsFolder;
     }
 
-    private void extractInPackIfNotExists(JavaPlugin plugin, File file) {
+    @SafeVarargs
+    public static void addModifiers(final Consumer<File>... modifiers) {
+        PACK_MODIFIERS.addAll(Arrays.asList(modifiers));
+    }
+
+    public File getFile() {
+        return pack;
+    }
+
+    private void extractInPackIfNotExists(final JavaPlugin plugin, final File file) {
         if (!file.exists())
             plugin.saveResource("pack/" + file.getName(), true);
     }
 
-    private void makeDirsIfNotExists(File folder) {
+    private void makeDirsIfNotExists(final File folder) {
         if (!folder.exists())
             folder.mkdirs();
     }
 
-    @SafeVarargs
-    public static void addModifiers(Consumer<File>... modifiers) {
-        PACK_MODIFIERS.addAll(Arrays.asList(modifiers));
-    }
-
-    private void generatePredicates(Map<Material, List<ItemBuilder>> texturedItems) {
-        File itemsFolder = new File(modelsFolder, "item");
+    private void generatePredicates(final Map<Material, List<ItemBuilder>> texturedItems) {
+        final File itemsFolder = new File(modelsFolder, "item");
         makeDirsIfNotExists(itemsFolder);
-        File blocksFolder = new File(modelsFolder, "block");
+        final File blocksFolder = new File(modelsFolder, "block");
         makeDirsIfNotExists(blocksFolder);
 
-        for (Map.Entry<Material, List<ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
-            Material entryMaterial = texturedItemsEntry.getKey();
-            PredicatesGenerator predicatesGenerator = new PredicatesGenerator(entryMaterial,
+        for (final Map.Entry<Material, List<ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
+            final Material entryMaterial = texturedItemsEntry.getKey();
+            final PredicatesGenerator predicatesGenerator = new PredicatesGenerator(entryMaterial,
                     texturedItemsEntry.getValue());
-            String vanillaModelName = predicatesGenerator.getVanillaModelName(entryMaterial) + ".json";
+            final String vanillaModelName = predicatesGenerator.getVanillaModelName(entryMaterial) + ".json";
 
             Utils.writeStringToFile(new File(modelsFolder, vanillaModelName), predicatesGenerator.toJSON().toString());
         }
     }
 
-    private void generateFont(FontManager fontManager) {
+    private void generateFont(final FontManager fontManager) {
         if (!fontManager.autoGenerate)
             return;
         makeDirsIfNotExists(fontFolder);
-        File fontFile = new File(fontFolder, "default.json");
-        JsonObject output = new JsonObject();
-        JsonArray providers = new JsonArray();
-        for (Glyph glyph : fontManager.getGlyphs())
+        final File fontFile = new File(fontFolder, "default.json");
+        final JsonObject output = new JsonObject();
+        final JsonArray providers = new JsonArray();
+        for (final Glyph glyph : fontManager.getGlyphs())
             providers.add(glyph.toJson());
         output.add("providers", providers);
         Utils.writeStringToFile(fontFile, output.toString().replace("\\\\u", "\\u"));
