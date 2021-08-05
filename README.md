@@ -1,3 +1,18 @@
+<h1>Important ! </h1>
+<h2>Oraxen V2 is just a project. Don't use him on your server ! Or juste send report bug</h2>
+
+
+## Bug Lists
+    - Config never update on new version
+    - use Config.yml instance of settings.yml
+    - Texture pack never update
+
+## New Features
+    - Use Only Java 16+
+    - Use Only Minecraft 1.17+ (1.13/1.14/1.15/1.16 are outdated. Why no update ?)
+    - Use PaperMC and no Spigot (really why use Spigot to 2021 ???)
+    - Add possibilities to create addons without new Plugins
+
 <h1 align="center">
   <br>
   <img src="https://oraxen.com/logo.svg" alt="oraxen.com logo" width="256">
@@ -37,7 +52,7 @@ Oraxen is a minecraft plugin that allows you to modify the game by adding new it
 - Automatically generate the resource-pack
 - Automatically upload the resource-pack
 - Automatically send the resource-pack to your players
-- Allow to create new items in a few lines of configuration
+- Allow creating new items in a few lines of configuration
 - Support custom items, weapons, armors, blocks, and more
 - Modular mechanics system to empower your items
 - Automatically update configurations when you update the plugin
