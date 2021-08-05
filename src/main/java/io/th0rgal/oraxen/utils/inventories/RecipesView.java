@@ -3,22 +3,26 @@ package io.th0rgal.oraxen.utils.inventories;
 import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
-import java.util.Optional;
 
 public class RecipesView {
 
+    private final FontManager fontManager = OraxenPlugin.get().getFontManager();
+    final String menuTexture = ChatColor.WHITE +
+            String.valueOf(fontManager.getGlyphFromName("menu_recipe_shift").character()) +
+            fontManager.getGlyphFromName("menu_recipe").character();
+
     public ChestGui create(final int page, final List<CustomRecipe> filteredRecipes) {
-        final ChestGui gui = new ChestGui(6, filteredRecipes.get(page).getResult().getItemMeta().getDisplayName()
-                + (filteredRecipes.get(page).isOrdered() ? "" : "  (Shapeless)"));
+        final ChestGui gui = new ChestGui(6, menuTexture);
 
         final CustomRecipe currentRecipe = filteredRecipes.get(page);
 
@@ -26,9 +30,6 @@ public class RecipesView {
         final boolean lastPage = filteredRecipes.size() - 1 == page;
         final StaticPane pane = new StaticPane(9, 6);
         pane.addItem(new GuiItem(new ItemBuilder(currentRecipe.getResult()).build()), 4, 0);
-
-        final Optional<ItemBuilder> background = OraxenItems.getOptionalItemById("recipe_showcase");
-        background.ifPresent(itemBuilder -> pane.addItem(new GuiItem(itemBuilder.build()), 0, 5));
 
         final StaticPane ingredientsPane = new StaticPane(3, 3, 3, 3);
         for (int i = 0; i < currentRecipe.getIngredients().size(); i++) {
@@ -49,7 +50,7 @@ public class RecipesView {
                     .setAmount(page)
                     .setDisplayName(ChatColor.YELLOW + "Open page " + page)
                     .build(), event -> create(page - 1,
-                    filteredRecipes).show((Player) event.getWhoClicked())), 1, 3);
+                    filteredRecipes).show(event.getWhoClicked())), 1, 3);
 
 
         // Next page button
@@ -61,7 +62,7 @@ public class RecipesView {
                     .setDisplayName(ChatColor.YELLOW + "Open page " + (page + 2))
                     .build(), event ->
                     create(page + 1, filteredRecipes)
-                            .show((Player) event.getWhoClicked())), 7, 3);
+                            .show(event.getWhoClicked())), 7, 3);
 
         gui.addPane(pane);
         gui.addPane(ingredientsPane);

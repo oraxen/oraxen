@@ -25,14 +25,6 @@ arrow_previous_icon:
     textures:
       - required/arrow_previous_icon.png # .png extension is not mandatory
 
-recipe_showcase:
-  displayname: "<black>"
-  material: PAPER
-  excludeFromInventory: true
-  Pack:
-    generate_model: false
-    model: required/recipe_showcase
-
 example_upper_section:
   displayname: "<black>"
   material: PAPER

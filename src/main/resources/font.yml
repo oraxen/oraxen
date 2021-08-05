@@ -16,14 +16,26 @@ glyphs:
     ascent: -14
     height: 256
 
-  menu_negative_shift:
+  menu_banner_shift:
     code: 3002
     texture: required/null
     ascent: -32768
     height: -145
 
-  heart:
+  menu_recipe:
     code: 3003
+    texture: required/recipe_showcase
+    ascent: 40
+    height: 164
+
+  menu_recipe_shift:
+    code: 3004
+    texture: required/null
+    ascent: -32768
+    height: -9
+
+  heart:
+    code: 3005
     texture: default/chat/heart
     ascent: 8
     height: 8
