@@ -1,10 +1,12 @@
 package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.Utils;
 import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.jetbrains.annotations.NotNull;
 
 public enum Message {
 
@@ -30,6 +32,7 @@ public enum Message {
     PLUGIN_HOOKS("general.plugin_hooks"),
     PLUGIN_UNHOOKS("general.plugin_unhooks"),
     NOT_ENOUGH_EXP("general.not_enough_exp"),
+    BACK_TO_MAIN_MENU("general.back_to_main_menu"),
 
     // logs
     PLUGIN_LOADED("logs.loaded"),
@@ -54,7 +57,7 @@ public enum Message {
 
     private final String path;
 
-    Message(String path) {
+    Message(final String path) {
         this.path = path;
     }
 
@@ -68,13 +71,18 @@ public enum Message {
         return OraxenPlugin.get().getConfigsManager().getLanguage().getString(path);
     }
 
-    public void send(CommandSender sender, String... placeholders) {
+    public void send(final CommandSender sender, final String... placeholders) {
         OraxenPlugin.get().getAudience().sender(sender).sendMessage(
                 MiniMessage.get().parse(OraxenPlugin.get().getConfigsManager().getLanguage().getString(path),
                         ArrayUtils.addAll(new String[]{"prefix", Message.PREFIX.toString()}, placeholders)));
     }
 
-    public void log(String... placeholders) {
+    public @NotNull String toSerializedString() {
+        return Utils.LEGACY_COMPONENT_SERIALIZER.serialize(MiniMessage.get()
+                .parse(toString(), OraxenPlugin.get().getFontManager().getMiniMessagePlaceholders()));
+    }
+
+    public void log(final String... placeholders) {
         send(Bukkit.getConsoleSender(), placeholders);
     }
 

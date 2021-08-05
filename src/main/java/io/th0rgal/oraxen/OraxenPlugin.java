@@ -16,7 +16,7 @@ import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
-import io.th0rgal.oraxen.utils.fastinv.FastInvManager;
+import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
@@ -32,43 +32,55 @@ public class OraxenPlugin extends JavaPlugin {
     private BukkitAudiences audience;
     private UploadManager uploadManager;
     private FontManager fontManager;
+    private InvManager invManager;
 
     public OraxenPlugin() throws Exception {
         oraxen = this;
         Logs.enableFilter();
     }
 
-    private void postLoading(ResourcePack resourcePack, ConfigsManager configsManager) {
+    public static OraxenPlugin get() {
+        return oraxen;
+    }
+
+    public static boolean getProtocolLib() {
+        return Bukkit.getPluginManager().getPlugin("ProtocolLib") != null;
+    }
+
+    private void postLoading(final ResourcePack resourcePack, final ConfigsManager configsManager) {
         uploadManager = new UploadManager(this);
         uploadManager.uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
         Bukkit.getScheduler().runTaskAsynchronously(this, () -> OraxenItems.loadItems(configsManager));
     }
 
+    @Override
     public void onLoad() {
         CommandAPI.onLoad(new CommandAPIConfig().silentLogs(true));
     }
 
+    @Override
     public void onEnable() {
         CommandAPI.onEnable(this);
         audience = BukkitAudiences.create(this);
         reloadConfigs();
         new CommandsManager().loadCommands();
-        PluginManager pluginManager = Bukkit.getPluginManager();
+        final PluginManager pluginManager = Bukkit.getPluginManager();
         MechanicsManager.registerNativeMechanics();
         CompatibilitiesManager.enableNativeCompatibilities();
         fontManager = new FontManager(configsManager.getFont());
         OraxenItems.loadItems(configsManager);
         fontManager.registerEvents();
-        ResourcePack resourcePack = new ResourcePack(this, fontManager);
+        final ResourcePack resourcePack = new ResourcePack(this, fontManager);
         RecipesManager.load(this);
-        FastInvManager.register(this);
+        invManager = new InvManager();
         new ArmorListener(Settings.ARMOR_EQUIP_EVENT_BYPASS.toStringList()).registerEvents(this);
         new BreakerSystem().registerListener();
         postLoading(resourcePack, configsManager);
         Message.PLUGIN_LOADED.log("os", OS.getOs().getPlatformName());
     }
 
+    @Override
     public void onDisable() {
         unregisterListeners();
         CompatibilitiesManager.disableCompatibilities();
@@ -79,14 +91,6 @@ public class OraxenPlugin extends JavaPlugin {
         fontManager.unregisterEvents();
         MechanicsManager.unloadListeners();
         HandlerList.unregisterAll(this);
-    }
-
-    public static OraxenPlugin get() {
-        return oraxen;
-    }
-
-    public static boolean getProtocolLib() {
-        return Bukkit.getPluginManager().getPlugin("ProtocolLib") != null;
     }
 
     public BukkitAudiences getAudience() {
@@ -114,9 +118,13 @@ public class OraxenPlugin extends JavaPlugin {
         return fontManager;
     }
 
-    public void setFontManager(FontManager fontManager) {
+    public void setFontManager(final FontManager fontManager) {
         this.fontManager.unregisterEvents();
         this.fontManager = fontManager;
         fontManager.registerEvents();
+    }
+
+    public InvManager getInvManager() {
+        return invManager;
     }
 }
