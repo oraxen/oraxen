@@ -4,7 +4,6 @@
 
 ## Bug Lists
     - Config never update on new version
-    - use Config.yml instance of settings.yml
     - Texture pack never update
 
 ## New Features
