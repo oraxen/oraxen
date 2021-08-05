@@ -127,6 +127,7 @@ public class RecipesCommand {
                             return;
                         }
                         final String name = (String) args[0];
+                        recipe.saveRecipe(name);
                         Message.RECIPE_SAVE.send(sender, "name", name);
                     } else
                         Message.NOT_PLAYER.send(sender);
