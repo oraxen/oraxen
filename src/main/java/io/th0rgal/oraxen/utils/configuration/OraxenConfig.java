@@ -144,19 +144,40 @@ public class OraxenConfig {
         oraxenRepairDurabilityCommands = getBoolean("Plugin.commands.repair.oraxen_durability_only", oraxenRepairDurabilityCommands);
     }
 
-    public static boolean generationResourcesPack = true;
-    public static String compressionResourcesPack = "BEST_COMPRESSION";
-    public static boolean protectionResourcesPack = true;
-    public static String commentTexturesPack = """
+    public static boolean pack_Generation_Generate = true;
+    public static String pack_Generation_Compression = "BEST_COMPRESSION";
+    public static boolean pack_Generation_Protection = true;
+    public static String pack_Generation_comment = """
             The content of this texture pack
             belongs to the owner of the Oraxen
             plugin and any complete or partial
             use must comply with the terms and
             conditions of Oraxen.""";
-    private static void packGeneration() {
-        generationResourcesPack = getBoolean("Pack.generation.generate", generationResourcesPack);
-        compressionResourcesPack = getString("Pack.generation.compression", compressionResourcesPack);
-        protectionResourcesPack = getBoolean("Pack.generation.protection", protectionResourcesPack);
-        commentTexturesPack = getString("Pack.generation.comment", commentTexturesPack);
+    public static boolean pack_Upload_Enabled = true;
+    public static String pack_Upload_Type = "polymath";
+    public static String pack_Upload_Polymath_Server = "atlas.oraxen.com";
+    public static boolean pack_Dispatch_sendPack = true;
+    public static boolean pack_Dispatch_sendPackAdvanced_Enabled = true;
+    public static boolean pack_Dispatch_sendPackAdvanced_Mandatory = true;
+    public static String pack_Dispatch_sendPackAdvanced_Message = "<#fa4943>Accept the pack to enjoy a full <b><gradient:#9055FF:#13E2DA>Oraxen</b><#fa4943> experience";
+    public static boolean pack_Dispatch_JoinMessage_Enabled = false;
+    public static int pack_Dispatch_JoinMessage_Delay = -1;
+    private static void packConfig() {
+        // Pack.generation[]
+        pack_Generation_Generate = getBoolean("Pack.generation.generate", pack_Generation_Generate);
+        pack_Generation_Compression = getString("Pack.generation.compression", pack_Generation_Compression);
+        pack_Generation_Protection = getBoolean("Pack.generation.protection", pack_Generation_Protection);
+        pack_Generation_comment = getString("Pack.generation.comment", pack_Generation_comment);
+        // Pack.upload[]
+        pack_Upload_Enabled = getBoolean("Pack.upload.enabled", pack_Upload_Enabled);
+        pack_Upload_Type = getString("Pack.upload.type", pack_Upload_Type);
+        pack_Upload_Polymath_Server = getString("Pack.upload.polymath.server", pack_Upload_Polymath_Server);
+        // Pack.dispatch[]
+        pack_Dispatch_sendPack = getBoolean("Pack.dispatch.send_pack", pack_Dispatch_sendPack);
+        pack_Dispatch_sendPackAdvanced_Enabled = getBoolean("Pack.dispatch.send_pack_advanced.enabled", pack_Dispatch_sendPackAdvanced_Enabled);
+        pack_Dispatch_sendPackAdvanced_Mandatory = getBoolean("Pack.dispatch.send_pack_advanced.mandatory", pack_Dispatch_sendPackAdvanced_Mandatory);
+        pack_Dispatch_sendPackAdvanced_Message = getString("Pack.dispatch.send_pack_advanced.message", pack_Dispatch_sendPackAdvanced_Message);
+        pack_Dispatch_JoinMessage_Enabled = getBoolean("Pack.dispatch.join_message.enabled", pack_Dispatch_JoinMessage_Enabled);
+        pack_Dispatch_JoinMessage_Delay = getInt("Pack.dispatch.join_message.delay", pack_Dispatch_JoinMessage_Delay);
     }
 }
