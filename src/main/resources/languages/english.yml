@@ -20,6 +20,7 @@ general:
   plugin_hooks: "<prefix><#55ffa4>Plugin \"<plugin>\" detected, enabling hooks"
   plugin_unhooks: "<prefix><#55ffa4>Unhooking plugin \"<plugin>\""
   not_enough_exp: "<prefix><#fa4943>You need more experience to do this"
+  back_to_main_menu: "<gradient:#FA7CBB:#F14658>Back to main menu"
 
 logs:
   loaded: "<prefix><#55ffa4>Successfully loaded on <os>"

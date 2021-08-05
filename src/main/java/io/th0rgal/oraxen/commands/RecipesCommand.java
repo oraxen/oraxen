@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.commands;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.IntegerArgument;
 import dev.jorel.commandapi.arguments.StringArgument;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
@@ -11,7 +12,6 @@ import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
 import io.th0rgal.oraxen.recipes.builders.ShapedBuilder;
 import io.th0rgal.oraxen.recipes.builders.ShapelessBuilder;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
-import io.th0rgal.oraxen.commands.recipeshowcase.RecipeShowcase;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.entity.Player;
 
@@ -37,20 +37,18 @@ public class RecipesCommand {
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
                         List<CustomRecipe> recipes = RecipesEventsManager.get().getPermittedRecipes(player);
-                        String[] oraxenItems = OraxenItems.nameArray();
-                        String param = (String) args[0];
+                        final String[] oraxenItems = OraxenItems.nameArray();
+                        final String param = (String) args[0];
                         if ("all".equals(param)) {
-                        } else {
-                            recipes = recipes
-                                    .stream()
-                                    .filter(customRecipe -> customRecipe.getName().equals(param))
-                                    .collect(Collectors.toList());
-                        }
+                        } else recipes = recipes
+                                .stream()
+                                .filter(customRecipe -> customRecipe.getName().equals(param))
+                                .collect(Collectors.toList());
                         if (recipes.isEmpty()) {
                             Message.RECIPE_NO_RECIPE.send(sender);
                             return;
                         }
-                        new RecipeShowcase(0, recipes).open(player);
+                        OraxenPlugin.get().getInvManager().getRecipesShowcase(0, recipes).show(player);
                     } else
                         Message.NOT_PLAYER.send(sender);
                 });
@@ -64,7 +62,7 @@ public class RecipesCommand {
                 .withSubcommand(getFurnaceBuilderCommand())
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
-                        RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                        final RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
                         if (recipe != null)
                             recipe.open();
                         else
@@ -79,7 +77,7 @@ public class RecipesCommand {
                 .withPermission("oraxen.command.recipes.builder")
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
-                        RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                        final RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
                         (recipe != null ? recipe : new ShapedBuilder(player)).open();
                     } else
                         Message.NOT_PLAYER.send(sender);
@@ -91,7 +89,7 @@ public class RecipesCommand {
                 .withPermission("oraxen.command.recipes.builder")
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
-                        RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                        final RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
                         (recipe != null ? recipe : new ShapelessBuilder(player)).open();
                     } else
                         Message.NOT_PLAYER.send(sender);
@@ -123,12 +121,12 @@ public class RecipesCommand {
                 .withArguments(new StringArgument("name"))
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
-                        RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                        final RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
                         if (recipe == null) {
                             Message.RECIPE_NO_BUILDER.send(sender);
                             return;
                         }
-                        String name = (String) args[0];
+                        final String name = (String) args[0];
                         recipe.saveRecipe(name);
                         Message.RECIPE_SAVE.send(sender, "name", name);
                     } else

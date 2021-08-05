@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'maven-publish'
 
 group "io.th0rgal"
-def pluginVersion = "1.99.1"
+def pluginVersion = "1.99.2"
 ext.jitpackGroup = group + ".oraxen"
 ext.jitpackVersion = 'main-' + pluginVersion
 version = pluginVersion
@@ -60,6 +60,7 @@ dependencies {
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.28'
     implementation "net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT"
     implementation "net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT"
+    implementation 'com.github.stefvanschie.inventoryframework:IF:0.10.0'
     implementation 'dev.jorel.CommandAPI:commandapi-shade:6.2.0'
     implementation 'de.jeff_media:CustomBlockData:1.0-SNAPSHOT'
 }
