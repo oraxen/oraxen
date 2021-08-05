@@ -22,7 +22,6 @@ import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
-import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class OraxenPlugin extends JavaPlugin {
@@ -54,7 +53,6 @@ public class OraxenPlugin extends JavaPlugin {
         audience = BukkitAudiences.create(this);
         reloadConfigs();
         new CommandsManager().loadCommands();
-        PluginManager pluginManager = Bukkit.getPluginManager();
         MechanicsManager.registerNativeMechanics();
         CompatibilitiesManager.enableNativeCompatibilities();
         fontManager = new FontManager(configsManager.getFont());
@@ -93,13 +91,12 @@ public class OraxenPlugin extends JavaPlugin {
         return audience;
     }
 
-    public ConfigsManager reloadConfigs() {
+    public void reloadConfigs() {
         configsManager = new ConfigsManager(this);
         if (!configsManager.validatesConfig()) {
             Logs.logError("unable to validate config");
             getServer().getPluginManager().disablePlugin(this);
         }
-        return configsManager;
     }
 
     public ConfigsManager getConfigsManager() {
