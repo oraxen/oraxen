@@ -37,7 +37,7 @@ public class FurnitureListener implements Listener {
 
     private final MechanicFactory factory;
 
-    public FurnitureListener(MechanicFactory factory) {
+    public FurnitureListener(final MechanicFactory factory) {
         this.factory = factory;
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
@@ -46,19 +46,19 @@ public class FurnitureListener implements Listener {
         return new HardnessModifier() {
 
             @Override
-            public boolean isTriggered(Player player, Block block, ItemStack tool) {
+            public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
                 return block.getType() == Material.BARRIER;
             }
 
             @Override
-            public void breakBlock(Player player, Block block, ItemStack tool) {
+            public void breakBlock(final Player player, final Block block, final ItemStack tool) {
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
                     final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
                     if (!customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING))
                         return;
-                    String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
-                    FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
-                    BlockLocation rootBlockLocation = new BlockLocation(customBlockData.get(ROOT_KEY,
+                    final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
+                    final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
+                    final BlockLocation rootBlockLocation = new BlockLocation(customBlockData.get(ROOT_KEY,
                             PersistentDataType.STRING));
                     if (mechanic.removeSolid(block.getWorld(), rootBlockLocation, customBlockData
                             .get(ORIENTATION_KEY, PersistentDataType.FLOAT)))
@@ -67,25 +67,25 @@ public class FurnitureListener implements Listener {
             }
 
             @Override
-            public long getPeriod(Player player, Block block, ItemStack tool) {
+            public long getPeriod(final Player player, final Block block, final ItemStack tool) {
                 return 1;
             }
         };
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
-    public void onHangingPlaceEvent(PlayerInteractEvent event) {
+    public void onHangingPlaceEvent(final PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
 
-        ItemStack item = event.getItem();
-        String itemID = OraxenItems.getIdByItem(item);
+        final ItemStack item = event.getItem();
+        final String itemID = OraxenItems.getIdByItem(item);
         if (factory.isNotImplementedIn(itemID))
             return;
-        Player player = event.getPlayer();
-        Block placedAgainst = event.getClickedBlock();
-        Block target;
-        Material type = placedAgainst.getType();
+        final Player player = event.getPlayer();
+        final Block placedAgainst = event.getClickedBlock();
+        final Block target;
+        final Material type = placedAgainst.getType();
         if (Utils.REPLACEABLE_BLOCKS.contains(type))
             target = placedAgainst;
         else {
@@ -97,15 +97,15 @@ public class FurnitureListener implements Listener {
         if (isStandingInside(player, target))
             return;
 
-        for (Entity entity : target.getWorld().getNearbyEntities(target.getLocation(), 1, 1, 1))
+        for (final Entity entity : target.getWorld().getNearbyEntities(target.getLocation(), 1, 1, 1))
             if (entity instanceof ItemFrame
                     && entity.getLocation().getBlockX() == target.getX()
                     && entity.getLocation().getBlockY() == target.getY()
                     && entity.getLocation().getBlockZ() == target.getZ())
                 return;
 
-        BlockData curentBlockData = target.getBlockData();
-        FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
+        final BlockData curentBlockData = target.getBlockData();
+        final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
 
         if (mechanic.farmlandRequired &&
                 target.getLocation().clone().subtract(0, 1, 0).getBlock().getType()
@@ -113,25 +113,25 @@ public class FurnitureListener implements Listener {
             return;
 
         target.setType(Material.AIR, false);
-        BlockState currentBlockState = target.getState();
+        final BlockState currentBlockState = target.getState();
 
-        BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player,
+        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player,
                 true, event.getHand());
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
             return;
         }
-        Rotation rotation = mechanic.hasRotation()
+        final Rotation rotation = mechanic.hasRotation()
                 ? mechanic.getRotation()
                 : getRotation(player.getEyeLocation().getYaw(),
                 mechanic.hasBarriers()
                         && mechanic.getBarriers().size() > 1);
 
-        float yaw = mechanic.getYaw(rotation) + mechanic.getSeatYaw();
-        String entityId;
+        final float yaw = mechanic.getYaw(rotation) + mechanic.getSeatYaw();
+        final String entityId;
         if (mechanic.hasSeat()) {
-            ArmorStand seat = target.getWorld().spawn(target.getLocation()
+            final ArmorStand seat = target.getWorld().spawn(target.getLocation()
                     .add(0.5, mechanic.getSeatHeight() - 1, 0.5), ArmorStand.class, (ArmorStand stand) -> {
                 stand.setVisible(false);
                 stand.setRotation(yaw, 0);
@@ -152,7 +152,7 @@ public class FurnitureListener implements Listener {
             item.setAmount(item.getAmount() - 1);
     }
 
-    private Rotation getRotation(double yaw, boolean restricted) {
+    private Rotation getRotation(final double yaw, final boolean restricted) {
         int id = (int) (((Location.normalizeYaw((float) yaw) + 180) * 8 / 360) + 0.5) % 8;
         if (restricted && id % 2 != 0)
             id -= 1;
@@ -160,19 +160,19 @@ public class FurnitureListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onHangingBreak(HangingBreakEvent event) {
-        PersistentDataContainer container = event.getEntity().getPersistentDataContainer();
+    public void onHangingBreak(final HangingBreakEvent event) {
+        final PersistentDataContainer container = event.getEntity().getPersistentDataContainer();
         if (container.has(FURNITURE_KEY, PersistentDataType.STRING)) {
-            ItemFrame frame = (ItemFrame) event.getEntity();
+            final ItemFrame frame = (ItemFrame) event.getEntity();
 
             if (event.getCause() == HangingBreakEvent.RemoveCause.ENTITY)
                 return;
             event.setCancelled(true);
 
-            String itemID = container.get(FURNITURE_KEY, PersistentDataType.STRING);
+            final String itemID = container.get(FURNITURE_KEY, PersistentDataType.STRING);
             if (!OraxenItems.exists(itemID))
                 return;
-            FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
+            final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
             if (mechanic.hasBarriers())
                 return;
 
@@ -183,15 +183,15 @@ public class FurnitureListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerBreakHanging(EntityDamageByEntityEvent event) {
+    public void onPlayerBreakHanging(final EntityDamageByEntityEvent event) {
         if (event.getEntity() instanceof ItemFrame frame)
             if (event.getDamager() instanceof Player player) {
-                PersistentDataContainer container = frame.getPersistentDataContainer();
+                final PersistentDataContainer container = frame.getPersistentDataContainer();
                 if (container.has(FURNITURE_KEY, PersistentDataType.STRING)) {
-                    String itemID = container.get(FURNITURE_KEY, PersistentDataType.STRING);
+                    final String itemID = container.get(FURNITURE_KEY, PersistentDataType.STRING);
                     if (!OraxenItems.exists(itemID))
                         return;
-                    FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
+                    final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
                     event.setCancelled(true);
                     mechanic.removeAirFurniture(frame);
                     mechanic.getDrop().spawns(frame.getLocation(), player.getInventory().getItemInMainHand());
@@ -200,16 +200,16 @@ public class FurnitureListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onFurnitureBreak(BlockBreakEvent event) {
-        Block block = event.getBlock();
+    public void onFurnitureBreak(final BlockBreakEvent event) {
+        final Block block = event.getBlock();
         if (block.getType() != Material.BARRIER || event.getPlayer().getGameMode() != GameMode.CREATIVE)
             return;
 
-        ItemFrame frame = getItemFrame(block.getLocation());
+        final ItemFrame frame = getItemFrame(block.getLocation());
         if (frame != null) {
             frame.remove();
             if (frame.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
-                Entity stand = Bukkit.getEntity(UUID.fromString(frame.getPersistentDataContainer()
+                final Entity stand = Bukkit.getEntity(UUID.fromString(frame.getPersistentDataContainer()
                         .get(SEAT_KEY, PersistentDataType.STRING)));
                 stand.remove();
             }
@@ -217,7 +217,7 @@ public class FurnitureListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerRotateFurniture(PlayerInteractEntityEvent event) {
+    public void onPlayerRotateFurniture(final PlayerInteractEntityEvent event) {
         if (event.getRightClicked() instanceof ItemFrame
                 && event.getRightClicked().getPersistentDataContainer()
                 .has(FURNITURE_KEY, PersistentDataType.STRING))
@@ -225,26 +225,26 @@ public class FurnitureListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerClickOnFurniture(PlayerInteractEvent event) {
+    public void onPlayerClickOnFurniture(final PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock() == null)
             return;
-        Block block = event.getClickedBlock();
+        final Block block = event.getClickedBlock();
         if (block.getType() != Material.BARRIER || event.getPlayer().isSneaking())
             return;
-        ItemFrame frame = getItemFrame(block.getLocation());
+        final ItemFrame frame = getItemFrame(block.getLocation());
         if (frame == null)
             return;
-        String entityId = frame.getPersistentDataContainer().get(SEAT_KEY, PersistentDataType.STRING);
-        Entity stand = Bukkit.getEntity(UUID.fromString(entityId));
-        if (stand.getPassengers().size() == 0) {
+        final String entityId = frame.getPersistentDataContainer().get(SEAT_KEY, PersistentDataType.STRING);
+        final Entity stand = Bukkit.getEntity(UUID.fromString(entityId));
+        if (stand != null && stand.getPassengers().size() == 0) {
             stand.addPassenger(event.getPlayer());
             event.setCancelled(true);
         }
     }
 
-    private boolean isStandingInside(Player player, Block block) {
-        Location playerLocation = player.getLocation();
-        Location blockLocation = block.getLocation();
+    private boolean isStandingInside(final Player player, final Block block) {
+        final Location playerLocation = player.getLocation();
+        final Location blockLocation = block.getLocation();
         return playerLocation.getBlockX() == blockLocation.getBlockX()
                 && (playerLocation.getBlockY() == blockLocation.getBlockY()
                 || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
