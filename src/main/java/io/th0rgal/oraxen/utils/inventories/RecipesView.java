@@ -65,6 +65,7 @@ public class RecipesView {
 
         gui.addPane(pane);
         gui.addPane(ingredientsPane);
+        gui.setOnGlobalClick(event -> event.setCancelled(true));
         return gui;
     }
 
