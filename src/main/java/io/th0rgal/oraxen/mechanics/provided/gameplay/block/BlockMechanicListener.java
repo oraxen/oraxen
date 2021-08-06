@@ -3,7 +3,11 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
-import org.bukkit.*;
+import io.th0rgal.protectionlib.ProtectionLib;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
@@ -23,12 +27,12 @@ public class BlockMechanicListener implements Listener {
 
     private final MechanicFactory factory;
 
-    public BlockMechanicListener(BlockMechanicFactory factory) {
+    public BlockMechanicListener(final BlockMechanicFactory factory) {
         this.factory = factory;
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onMushroomPhysics(BlockPhysicsEvent event) {
+    public void onMushroomPhysics(final BlockPhysicsEvent event) {
         if (event.getChangedType() == Material.MUSHROOM_STEM) {
             event.setCancelled(true);
             event.getBlock().getState().update(true, false);
@@ -37,13 +41,13 @@ public class BlockMechanicListener implements Listener {
 
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onBreakingCustomBlock(BlockBreakEvent event) {
-        Block block = event.getBlock();
+    public void onBreakingCustomBlock(final BlockBreakEvent event) {
+        final Block block = event.getBlock();
         if (block.getType() != Material.MUSHROOM_STEM || event.isCancelled() || !event.isDropItems())
             return;
 
-        MultipleFacing blockFacing = (MultipleFacing) block.getBlockData();
-        BlockMechanic blockMechanic = BlockMechanicFactory.getBlockMechanic(Utils.getCode(blockFacing));
+        final MultipleFacing blockFacing = (MultipleFacing) block.getBlockData();
+        final BlockMechanic blockMechanic = BlockMechanicFactory.getBlockMechanic(Utils.getCode(blockFacing));
         if (blockMechanic == null)
             return;
         if (blockMechanic.hasBreakSound())
@@ -53,33 +57,33 @@ public class BlockMechanicListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onPlacingMushroomBlock(BlockPlaceEvent event) {
+    public void onPlacingMushroomBlock(final BlockPlaceEvent event) {
 
         if (event.getBlockPlaced().getType() != Material.MUSHROOM_STEM
                 || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
 
-        Block block = event.getBlock();
-        BlockData blockData = block.getBlockData();
+        final Block block = event.getBlock();
+        final BlockData blockData = block.getBlockData();
         Utils.setBlockFacing((MultipleFacing) blockData, 15);
         block.setBlockData(blockData, false);
     }
 
     // not static here because only instanciated once I think
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onPrePlacingCustomBlock(PlayerInteractEvent event) {
+    public void onPrePlacingCustomBlock(final PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
 
-        ItemStack item = event.getItem();
-        String itemID = OraxenItems.getIdByItem(item);
+        final ItemStack item = event.getItem();
+        final String itemID = OraxenItems.getIdByItem(item);
         if (factory.isNotImplementedIn(itemID))
             return;
 
-        Player player = event.getPlayer();
-        Block placedAgainst = event.getClickedBlock();
-        Block target;
-        Material type = placedAgainst.getType();
+        final Player player = event.getPlayer();
+        final Block placedAgainst = event.getClickedBlock();
+        final Block target;
+        final Material type = placedAgainst.getType();
         if (Utils.REPLACEABLE_BLOCKS.contains(type))
             target = placedAgainst;
         else {
@@ -88,23 +92,24 @@ public class BlockMechanicListener implements Listener {
                     && target.getType() != Material.CAVE_AIR)
                 return;
         }
-        if (isStandingInside(player, target))
+        if (isStandingInside(player, target)
+                || !ProtectionLib.canBuild(player, target.getLocation()))
             return;
 
         // determines the old informations of the block
-        BlockData curentBlockData = target.getBlockData();
-        BlockState currentBlockState = target.getState();
+        final BlockData curentBlockData = target.getBlockData();
+        final BlockState currentBlockState = target.getState();
 
         // determines the new block data of the block
-        MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(Material.MUSHROOM_STEM);
-        BlockMechanic mechanic = ((BlockMechanic) factory.getMechanic(itemID));
-        int customVariation = mechanic.getCustomVariation();
+        final MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(Material.MUSHROOM_STEM);
+        final BlockMechanic mechanic = ((BlockMechanic) factory.getMechanic(itemID));
+        final int customVariation = mechanic.getCustomVariation();
         Utils.setBlockFacing(newBlockData, customVariation);
 
         // set the new block
         target.setBlockData(newBlockData); // false to cancel physic
 
-        BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player,
+        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player,
                 true, event.getHand());
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
@@ -119,9 +124,9 @@ public class BlockMechanicListener implements Listener {
 
     }
 
-    private boolean isStandingInside(Player player, Block block) {
-        Location playerLocation = player.getLocation();
-        Location blockLocation = block.getLocation();
+    private boolean isStandingInside(final Player player, final Block block) {
+        final Location playerLocation = player.getLocation();
+        final Location blockLocation = block.getLocation();
         return playerLocation.getBlockX() == blockLocation.getBlockX()
                 && (playerLocation.getBlockY() == blockLocation.getBlockY()
                 || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())

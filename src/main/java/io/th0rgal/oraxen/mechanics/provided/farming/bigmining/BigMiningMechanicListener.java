@@ -1,10 +1,9 @@
 package io.th0rgal.oraxen.mechanics.provided.farming.bigmining;
 
-import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
-import io.th0rgal.oraxen.compatibilities.provided.worldguard.WorldGuardCompatibility;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Constants;
+import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -23,47 +22,38 @@ public class BigMiningMechanicListener implements Listener {
 
     private final MechanicFactory factory;
     private int blocksToProcess = 0;
-    private final WorldGuardCompatibility worldGuardCompatibility;
 
-    public BigMiningMechanicListener(MechanicFactory factory) {
+    public BigMiningMechanicListener(final MechanicFactory factory) {
         this.factory = factory;
-        if (CompatibilitiesManager.isCompatibilityEnabled("WorldGuard"))
-            worldGuardCompatibility = (WorldGuardCompatibility) CompatibilitiesManager
-                    .getActiveCompatibility("WorldGuard");
-        else
-            worldGuardCompatibility = null;
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onBlockBreak(BlockBreakEvent event) {
+    public void onBlockBreak(final BlockBreakEvent event) {
 
-        Player player = event.getPlayer();
-
-        if (worldGuardCompatibility != null && worldGuardCompatibility.cannotBreak(event.getPlayer(), event.getBlock()))
-            return;
+        final Player player = event.getPlayer();
 
         if (blocksToProcess > 0) {
             blocksToProcess -= 1;
             return;
         }
 
-        ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
+        final ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
 
-        String itemID = OraxenItems.getIdByItem(item);
+        final String itemID = OraxenItems.getIdByItem(item);
         if (factory.isNotImplementedIn(itemID))
             return;
 
-        BigMiningMechanic mechanic = (BigMiningMechanic) factory.getMechanic(itemID);
-        List<Block> lastTwoTargetBlocks = player.getLastTwoTargetBlocks(null, 5);
+        final BigMiningMechanic mechanic = (BigMiningMechanic) factory.getMechanic(itemID);
+        final List<Block> lastTwoTargetBlocks = player.getLastTwoTargetBlocks(null, 5);
         if (lastTwoTargetBlocks.size() < 2)
             return;
-        Block nearestBlock = lastTwoTargetBlocks.get(0);
-        Block secondBlock = lastTwoTargetBlocks.get(1);
-        BlockFace blockFace = secondBlock.getFace(nearestBlock);
-        Location secondMinusNearest = secondBlock.getLocation().subtract(nearestBlock.getLocation());
-        int modifier = secondMinusNearest.getBlockX() + secondMinusNearest.getBlockY() + secondMinusNearest.getBlockZ();
+        final Block nearestBlock = lastTwoTargetBlocks.get(0);
+        final Block secondBlock = lastTwoTargetBlocks.get(1);
+        final BlockFace blockFace = secondBlock.getFace(nearestBlock);
+        final Location secondMinusNearest = secondBlock.getLocation().subtract(nearestBlock.getLocation());
+        final int modifier = secondMinusNearest.getBlockX() + secondMinusNearest.getBlockY() + secondMinusNearest.getBlockZ();
 
-        Location initialLocation = event.getBlock().getLocation();
+        final Location initialLocation = event.getBlock().getLocation();
 
         Location tempLocation;
         for (double relativeX = -mechanic.getRadius(); relativeX <= mechanic.getRadius(); relativeX++)
@@ -77,12 +67,14 @@ public class BigMiningMechanicListener implements Listener {
                 }
     }
 
-    private void breakBlock(Player player, Block block, ItemStack itemStack) {
-        if (block.isLiquid() || Constants.UNBREAKABLE_BLOCKS.contains(block.getType()))
+    private void breakBlock(final Player player, final Block block, final ItemStack itemStack) {
+        if (block.isLiquid()
+                || Constants.UNBREAKABLE_BLOCKS.contains(block.getType())
+                || !ProtectionLib.canBreak(player, block.getLocation()))
             return;
         blocksToProcess += 1; // to avoid this method to call itself <- need other way to handle players using
         // the same tool at the same time
-        BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
+        final BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
         Bukkit.getPluginManager().callEvent(blockBreakEvent);
         if (!blockBreakEvent.isCancelled())
             if (blockBreakEvent.isDropItems())
@@ -95,8 +87,8 @@ public class BigMiningMechanicListener implements Listener {
      * It converts a relative location in 2d into another location in 3d on a
      * certain axis
      */
-    private Location transpose(Location location, BlockFace blockFace, double relativeX, double relativeY,
-                               double relativeDepth) {
+    private Location transpose(Location location, final BlockFace blockFace, final double relativeX, final double relativeY,
+                               final double relativeDepth) {
         location = location.clone();
         if (blockFace == BlockFace.WEST || blockFace == BlockFace.EAST) // WEST_EAST axis != X
             location.add(relativeDepth, relativeX, relativeY);

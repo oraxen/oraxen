@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockState;
@@ -94,7 +95,8 @@ public class FurnitureListener implements Listener {
                     && target.getType() != Material.CAVE_AIR)
                 return;
         }
-        if (isStandingInside(player, target))
+        if (isStandingInside(player, target)
+                || !ProtectionLib.canBuild(player, target.getLocation()))
             return;
 
         for (final Entity entity : target.getWorld().getNearbyEntities(target.getLocation(), 1, 1, 1))

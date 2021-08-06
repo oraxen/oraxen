@@ -3,13 +3,13 @@ package io.th0rgal.oraxen.compatibilities;
 import io.th0rgal.oraxen.compatibilities.provided.bossshoppro.BossShopProCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.cratereloaded.CrateReloadedCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.itembridge.ItemBridgeCompatibility;
-//import io.th0rgal.oraxen.compatibilities.provided.mythicmobs.MythicMobsCompatibility;
-import io.th0rgal.oraxen.compatibilities.provided.worldguard.WorldGuardCompatibility;
 import io.th0rgal.oraxen.config.Message;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ConcurrentHashMap;
+
+//import io.th0rgal.oraxen.compatibilities.provided.mythicmobs.MythicMobsCompatibility;
 
 public class CompatibilitiesManager {
 
@@ -22,32 +22,31 @@ public class CompatibilitiesManager {
         addCompatibility("CrateReloaded", CrateReloadedCompatibility.class, true);
         addCompatibility("ItemBridge", ItemBridgeCompatibility.class, true);
         //addCompatibility("MythicMobs", MythicMobsCompatibility.class, true);
-        addCompatibility("WorldGuard", WorldGuardCompatibility.class, true);
     }
 
     public static void disableCompatibilities() {
         ACTIVE_COMPATIBILITY_PROVIDERS.forEach((pluginName, compatibilityProvider) -> disableCompatibility(pluginName));
     }
 
-    public static boolean enableCompatibility(String pluginName) {
+    public static boolean enableCompatibility(final String pluginName) {
         try {
             if (!ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName)
                     && COMPATIBILITY_PROVIDERS.containsKey(pluginName)
                     && Bukkit.getPluginManager().isPluginEnabled(pluginName)) {
-                CompatibilityProvider<?> compatibilityProvider = COMPATIBILITY_PROVIDERS.get(pluginName).getConstructor().newInstance();
+                final CompatibilityProvider<?> compatibilityProvider = COMPATIBILITY_PROVIDERS.get(pluginName).getConstructor().newInstance();
                 compatibilityProvider.enable(pluginName);
                 ACTIVE_COMPATIBILITY_PROVIDERS.put(pluginName, compatibilityProvider);
                 Message.PLUGIN_HOOKS.log("plugin", pluginName);
                 return true;
             }
-        } catch (InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
+        } catch (final InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
             e.printStackTrace();
             return false;
         }
         return false;
     }
 
-    public static boolean disableCompatibility(String pluginName) {
+    public static boolean disableCompatibility(final String pluginName) {
         try {
             if (!ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName))
                 return false;
@@ -56,40 +55,40 @@ public class CompatibilitiesManager {
             ACTIVE_COMPATIBILITY_PROVIDERS.remove(pluginName);
             Message.PLUGIN_UNHOOKS.log("plugin", pluginName);
             return true;
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             return false;
         }
     }
 
-    public static boolean addCompatibility(String compatibilityPluginName,
-                                           Class<? extends CompatibilityProvider<?>> clazz, boolean tryEnable) {
+    public static boolean addCompatibility(final String compatibilityPluginName,
+                                           final Class<? extends CompatibilityProvider<?>> clazz, final boolean tryEnable) {
         try {
             if (compatibilityPluginName != null && clazz != null) {
                 COMPATIBILITY_PROVIDERS.put(compatibilityPluginName, clazz);
                 return !tryEnable || enableCompatibility(compatibilityPluginName);
             }
-        } catch (Exception e) {
+        } catch (final Exception e) {
             e.printStackTrace();
             return false;
         }
         return false;
     }
 
-    public static boolean addCompatibility(String compatibilityPluginName,
-                                           Class<? extends CompatibilityProvider<?>> clazz) {
+    public static boolean addCompatibility(final String compatibilityPluginName,
+                                           final Class<? extends CompatibilityProvider<?>> clazz) {
         return addCompatibility(compatibilityPluginName, clazz, false);
     }
 
-    public static CompatibilityProvider<?> getActiveCompatibility(String pluginName) {
+    public static CompatibilityProvider<?> getActiveCompatibility(final String pluginName) {
         return ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName);
     }
 
-    public static Class<? extends CompatibilityProvider<?>> getCompatibility(String pluginName) {
+    public static Class<? extends CompatibilityProvider<?>> getCompatibility(final String pluginName) {
         return COMPATIBILITY_PROVIDERS.get(pluginName);
     }
 
-    public static boolean isCompatibilityEnabled(String pluginName) {
+    public static boolean isCompatibilityEnabled(final String pluginName) {
         return ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName)
                 && ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).isEnabled();
     }

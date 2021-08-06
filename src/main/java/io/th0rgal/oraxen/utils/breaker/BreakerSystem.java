@@ -11,6 +11,7 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -101,6 +102,8 @@ public class BreakerSystem {
                             return;
 
                         final BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
+                        if (!ProtectionLib.canBreak(player, block.getLocation()))
+                            return;
                         Bukkit.getPluginManager().callEvent(blockBreakEvent);
                         if (!blockBreakEvent.isCancelled())
                             modifier.breakBlock(player, block, item);
