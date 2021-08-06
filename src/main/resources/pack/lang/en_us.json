@@ -2,5 +2,6 @@
   "connect.joining": "",
   "menu.disconnect": "§7                   See you soon!§f<glyph:menu_banner_shift><glyph:menu_banner>",
   "menu.returnToGame": "Back to the Oraxen experience",
-  "menu.game": "<glyph:logo>"
+  "menu.game": "<glyph:logo>",
+  "resourcePack.server.name": "Vanilla Mod"
 }
