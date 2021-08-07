@@ -32,11 +32,10 @@ public class RecipesView {
         final StaticPane pane = new StaticPane(9, 6);
         pane.addItem(new GuiItem(new ItemBuilder(currentRecipe.getResult()).build()), 4, 0);
 
-        final StaticPane ingredientsPane = new StaticPane(3, 3, 3, 3);
         for (int i = 0; i < currentRecipe.getIngredients().size(); i++) {
             final ItemStack itemStack = currentRecipe.getIngredients().get(i);
             if (itemStack != null && itemStack.getType() != Material.AIR)
-                ingredientsPane.addItem(new GuiItem(itemStack), i % 3, i / 3 - 1);
+                pane.addItem(new GuiItem(itemStack), 3 + i % 3, 2 + i / 3);
         }
 
         // Close RecipeShowcase inventory button
@@ -69,7 +68,6 @@ public class RecipesView {
                             .show(event.getWhoClicked())), 7, 3);
 
         gui.addPane(pane);
-        gui.addPane(ingredientsPane);
         gui.setOnGlobalClick(event -> event.setCancelled(true));
         return gui;
     }
