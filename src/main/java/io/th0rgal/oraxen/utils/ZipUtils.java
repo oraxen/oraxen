@@ -41,7 +41,7 @@ public class ZipUtils {
 
         try {
             final FileOutputStream fos = new FileOutputStream(outputFile);
-            final ZipOutputStream zos = new ZipOutputStream(fos);
+            final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8);
 
             final int compressionLevel = Deflater.class.getDeclaredField(Settings.COMPRESSION.toString()).getInt(null);
             zos.setLevel(compressionLevel);
