@@ -83,6 +83,7 @@ public class NoteBlockMechanicListener implements Listener {
             event.setCancelled(true);
     }
 
+    @SuppressWarnings("deprecation")
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
@@ -139,6 +140,7 @@ public class NoteBlockMechanicListener implements Listener {
         return new HardnessModifier() {
 
             @Override
+            @SuppressWarnings("deprecation")
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
                 if (block.getType() != Material.NOTE_BLOCK)
                     return false;
@@ -155,6 +157,7 @@ public class NoteBlockMechanicListener implements Listener {
                 block.setType(Material.AIR);
             }
 
+            @SuppressWarnings("deprecation")
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
                 final NoteBlock noteBlok = (NoteBlock) block.getBlockData();

@@ -4,6 +4,7 @@ import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
@@ -39,7 +40,10 @@ public class RecipesView {
         }
 
         // Close RecipeShowcase inventory button
-        pane.addItem(new GuiItem(new ItemBuilder(Material.BARRIER).setDisplayName(ChatColor.RED + "Close").build(),
+        pane.addItem(new GuiItem((OraxenItems.getItemById("exit_icon") == null
+                ? new ItemBuilder(Material.BARRIER)
+                : OraxenItems.getItemById("exit_icon"))
+                .setDisplayName(Message.EXIT_MENU.toSerializedString()).build(),
                 (event -> event.getWhoClicked().closeInventory())), 4, 5);
 
         // Previous Page button

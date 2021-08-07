@@ -32,7 +32,7 @@ public enum Message {
     PLUGIN_HOOKS("general.plugin_hooks"),
     PLUGIN_UNHOOKS("general.plugin_unhooks"),
     NOT_ENOUGH_EXP("general.not_enough_exp"),
-    BACK_TO_MAIN_MENU("general.back_to_main_menu"),
+    EXIT_MENU("general.exit_menu"),
 
     // logs
     PLUGIN_LOADED("logs.loaded"),

@@ -224,14 +224,30 @@ Misc:
 
 # Better customization for GUI oraxen inv. Oraxen Items Work. its gui_inventory.<name to file without extension yml>
 gui_inventory:
-  armors: emerald_chestplate
-  blocks: orax_ore
-  guis: CHEST
-  hats: crown
-  items: ruby
-  mobs: goblin_beetle
-  mystical: legendary_hammer
-  plants: weed_leaf
-  skins: wood_sword
-  tools: iron_serpe
-  weapons: energy_crystal_sword
+  armors:
+    icon: emerald_chestplate
+    color: <#362753>
+  blocks:
+    icon: orax_ore
+    color: <#EDCDEB>
+  hats:
+    icon: crown
+    color: <#81B125>
+  items:
+    icon: ruby
+    color: <#DA2E45>
+  mystical:
+    icon: legendary_hammer
+    color: <#9AB2E4>
+  plants:
+    icon: weed_leaf
+    color: <#44C886>
+  skins:
+    icon: wood_sword
+    color: <#C48E40>
+  tools:
+    icon: iron_serpe
+    color: <#FFFFFF>
+  weapons:
+    icon: energy_crystal_sword
+    color: <#2FB6FF>

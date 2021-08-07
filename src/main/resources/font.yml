@@ -12,7 +12,7 @@ glyphs:
 
   menu_banner:
     code: 3001
-    texture: default/ui/menu_banner
+    texture: required/ui/menu_banner
     ascent: -14
     height: 256
 
@@ -34,8 +34,32 @@ glyphs:
     ascent: -32768
     height: -9
 
-  heart:
+  menu_items:
     code: 3005
+    texture: required/ui/menu_items
+    ascent: 37
+    height: 256
+
+  menu_items_shift:
+    code: 3006
+    texture: required/null
+    ascent: -32768
+    height: -20
+
+  menu_items_overlay:
+    code: 3007
+    texture: required/ui/menu_items_gems
+    ascent: 37
+    height: 256
+
+  menu_items_overlay_shift:
+    code: 3008
+    texture: required/null
+    ascent: -32768
+    height: -195
+
+  heart:
+    code: 3009
     texture: default/chat/heart
     ascent: 8
     height: 8
