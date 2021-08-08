@@ -67,6 +67,7 @@ public class ZipUtils {
             final String[] placeholders = OraxenPlugin.get().getFontManager().getZipPlaceholders();
             for (int i = 0; i < placeholders.length; i += 2)
                 content = content.replace(placeholders[i], placeholders[i + 1]);
+            content = content.replace("§", "\\u00a7");
             fis = new ByteArrayInputStream(content.getBytes());
         } else fis = new FileInputStream(file);
 
