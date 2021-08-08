@@ -27,6 +27,7 @@ Pack:
 
   dispatch:
     send_pack: true
+    delay: -1
     # this option requires ProtocolLib and will make the pack loading more fluid
     send_pack_advanced:
       enabled: true

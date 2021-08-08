@@ -59,8 +59,17 @@ public class AdvancedPackSender extends PackSender implements Listener {
     public void onPlayerConnect(PlayerJoinEvent event) {
         if (Settings.SEND_JOIN_MESSAGE.toBool())
             sendWelcomeMessage(event.getPlayer(), true);
-        if (Settings.SEND_PACK.toBool())
-            sendPack(event.getPlayer());
+        if (Settings.SEND_PACK.toBool()) {
+            int delay = (int) Settings.SEND_PACK_DELAY.getValue();
+            if(delay < 1)
+                sendPack(event.getPlayer());
+            else
+                Bukkit
+                        .getScheduler()
+                        .runTaskLaterAsynchronously(OraxenPlugin.get(),
+                                () -> sendPack(event.getPlayer()),
+                                delay * 20L);
+        }
     }
 
 }
