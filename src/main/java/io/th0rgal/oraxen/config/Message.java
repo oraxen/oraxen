@@ -51,6 +51,7 @@ public enum Message {
     RECIPE_SAVE("command.recipe.save"),
 
     GIVE_PLAYER("command.give.player"),
+    GIVE_PLAYERS("command.give.players"),
 
     // mechanics
     MECHANICS_NOT_ENOUGH_EXP("mechanics.not_enough_exp");

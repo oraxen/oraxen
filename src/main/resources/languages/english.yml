@@ -65,6 +65,7 @@ command:
 
   give:
     player: "<prefix><#55ffa4>You gave <#43c9fa><player><#55ffa4> <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
+    players: "<prefix><#55ffa4>You gave <#43c9fa><count><#55ffa4> players <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>You need more experience to do this"
