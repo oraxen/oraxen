@@ -15,6 +15,7 @@ public class OraxenMeta {
     private boolean generate_model;
     private boolean hasPackInfos = false;
     private boolean excludedFromInventory = false;
+    private boolean noUpdate = false;
 
     public void setExcludedFromInventory() {
         this.excludedFromInventory = true;
@@ -70,6 +71,10 @@ public class OraxenMeta {
         this.modelName = modelName;
     }
 
+    public void setNoUpdate(boolean noUpdate){
+        this.noUpdate = noUpdate;
+    }
+
     public String getModelName() {
         return modelName;
     }
@@ -104,6 +109,10 @@ public class OraxenMeta {
 
     public boolean shouldGenerateModel() {
         return generate_model;
+    }
+
+    public boolean isNoUpdate(){
+        return noUpdate;
     }
 
 }

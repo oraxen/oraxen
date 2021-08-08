@@ -7,6 +7,7 @@ import dev.jorel.commandapi.arguments.StringArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -22,6 +23,7 @@ public class CommandsManager {
                 .withSubcommand(getInvCommand())
                 .withSubcommand(getGiveCommand())
                 .withSubcommand(getPackCommand())
+                .withSubcommand(getUpdateCommand())
                 .withSubcommand((new RepairCommand()).getRepairCommand())
                 .withSubcommand((new RecipesCommand()).getRecipesCommand())
                 .withSubcommand((new ReloadCommand()).getReloadCommand())
@@ -36,13 +38,13 @@ public class CommandsManager {
         return new CommandAPICommand("pack")
                 .withPermission("oraxen.command.pack")
                 .withArguments(new StringArgument("action").replaceSuggestions(info -> new String[]{"send", "msg"}))
-                .withArguments(new EntitySelectorArgument("target", EntitySelectorArgument.EntitySelector.MANY_PLAYERS))
+                .withArguments(new EntitySelectorArgument("targets", EntitySelectorArgument.EntitySelector.MANY_PLAYERS))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args[1];
                     if (args[0].equals("msg"))
                         for (Player target : targets)
                             Message.COMMAND_JOIN_MESSAGE.send(target, "pack_url",
-                                OraxenPlugin.get().getUploadManager().getHostingProvider().getPackURL());
+                                    OraxenPlugin.get().getUploadManager().getHostingProvider().getPackURL());
                     else {
                         for (Player target : targets)
                             OraxenPlugin.get().getUploadManager().getSender().sendPack(target);
@@ -65,7 +67,7 @@ public class CommandsManager {
     private CommandAPICommand getGiveCommand() {
         return new CommandAPICommand("give")
                 .withPermission("oraxen.command.give")
-                .withArguments(new EntitySelectorArgument("target", EntitySelectorArgument.EntitySelector.MANY_PLAYERS))
+                .withArguments(new EntitySelectorArgument("targets", EntitySelectorArgument.EntitySelector.MANY_PLAYERS))
                 .withArguments(new StringArgument("item").replaceSuggestions(info -> OraxenItems.getItemNames()))
                 .withArguments(new IntegerArgument("amount"))
                 .executes((sender, args) -> {
@@ -82,13 +84,46 @@ public class CommandsManager {
                     if (targets.size() == 1)
                         Message.GIVE_PLAYER
                                 .send(sender, "player", targets.iterator().next().getName(), "amount", String.valueOf(amount),
-                                "item", OraxenItems.getIdByItem(itemBuilder));
-                     else
+                                        "item", OraxenItems.getIdByItem(itemBuilder));
+                    else
                         Message.GIVE_PLAYERS
                                 .send(sender, "count", String.valueOf(targets.size()), "amount", String.valueOf(amount),
                                         "item", OraxenItems.getIdByItem(itemBuilder));
 
 
+                });
+    }
+
+    private CommandAPICommand getUpdateCommand() {
+        return new CommandAPICommand("update")
+                .withPermission("oraxen.command.update")
+                .withArguments(new EntitySelectorArgument("targets", EntitySelectorArgument.EntitySelector.MANY_PLAYERS))
+                .withArguments(new StringArgument("type").replaceSuggestions(info -> new String[]{"hand", "all"}))
+                .executes((sender, args) -> {
+                    Collection<Player> targets = (Collection<Player>) args[0];
+
+                    if ("hand".equals(args[1])) {
+                        for (Player player : targets) {
+                            player.getInventory().setItemInMainHand(ItemUpdater.updateItem(player.getInventory().getItemInMainHand()));
+                            Message.UPDATED_ITEMS.send(sender, "amount", String.valueOf(1), "player", player.getDisplayName());
+                        }
+                    }
+
+                    if (sender.hasPermission("oraxen.command.update.all")) {
+                        for(Player player : targets){
+                            int updated = 0;
+                            for(int i = 0;i < player.getInventory().getSize();i++){
+                                ItemStack oldItem = player.getInventory().getItem(i);
+                                ItemStack newItem = ItemUpdater.updateItem(oldItem);
+                                if(oldItem == null || oldItem.equals(newItem))
+                                    continue;
+                                player.getInventory().setItem(i, newItem);
+                                updated++;
+                            }
+                            Message.UPDATED_ITEMS.send(sender, "amount", String.valueOf(updated), "player", player.getDisplayName());
+                        }
+                    } else
+                        Message.NO_PERMISSION.send(sender, "permission", "oraxen.command.update.all");
                 });
     }
 

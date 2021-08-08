@@ -23,6 +23,7 @@ public enum Settings {
     SHIELD_DISPLAY("Misc.shield_display"),
     BOW_DISPLAY("Misc.bow_display"),
     CROSSBOW_DISPLAY("Misc.crossbow_display"),
+    AUTO_UPDATE_ITEMS("Misc.auto_update_items"),
 
     GENERATE("Pack.generation.generate"),
     COMPRESSION("Pack.generation.compression"),

@@ -26,6 +26,7 @@ public enum Message {
     REPAIRED_ITEMS("general.repaired_items"),
     CANNOT_BE_REPAIRED("general.cannot_be_repaired"),
     CANNOT_BE_REPAIRED_INVALID("general.cannot_be_repaired_invalid"),
+    UPDATED_ITEMS("general.updated_items"),
     ZIP_BROWSE_ERROR("general.zip_browse_error"),
     BAD_RECIPE("general.bad_recipe"),
     ITEM_NOT_FOUND("general.item_not_found"),
