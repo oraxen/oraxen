@@ -3,5 +3,5 @@ name: Oraxen
 version: ${projectVersion}
 author: Th0rgal
 api-version: "1.14"
-softdepend: [ProtocolLib, MythicMobs, CrateReloaded, BossShopPro, ItemBridge]
-loadbefore: [Realistic_World]
+softdepend: [ ProtocolLib, MythicMobs, CrateReloaded, BossShopPro, ItemBridge, WorldGuard, Towny, Factions, Lands ]
+loadbefore: [ Realistic_World ]

@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'maven-publish'
 
 group "io.th0rgal"
-def pluginVersion = "1.100.0"
+def pluginVersion = "1.100.1"
 ext.jitpackGroup = group + ".oraxen"
 ext.jitpackVersion = 'main-' + pluginVersion
 version = pluginVersion
@@ -72,7 +72,7 @@ processResources {
 shadowJar {
     relocate "com.syntaxphoenix.syntaxapi", "io.th0rgal.oraxen.shaded.syntaxapi"
     relocate "org.yaml.snakeyaml", "io.th0rgal.oraxen.shaded.snakeyaml"
-    relocate "org.bstats", "io.th0rgal.guardian.shaded.bstats"
+    relocate "org.bstats", "io.th0rgal.oraxen.shaded.bstats"
     relocate "net.kyori", "io.th0rgal.oraxen.shaded.kyori"
     relocate "de.jeff_media.customblockdata", "io.th0rgal.oraxen.shaded.customblockdata"
     relocate "com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.if"
