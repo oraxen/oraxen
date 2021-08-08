@@ -53,7 +53,7 @@ public class ItemsView {
         }
 
         mainGui.addPane(filesPane);
-        mainGui.setOnGlobalClick(event -> event.setCancelled(true));
+        mainGui.setOnTopClick(event -> event.setCancelled(true));
         return mainGui;
     }
 
