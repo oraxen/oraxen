@@ -2,7 +2,7 @@ package io.th0rgal.oraxen.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.IntegerArgument;
-import dev.jorel.commandapi.arguments.StringArgument;
+import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.OraxenItems;
@@ -30,7 +30,7 @@ public class RecipesCommand {
     private CommandAPICommand getShowCommand() {
         return new CommandAPICommand("show")
                 .withPermission("oraxen.command.recipes.show")
-                .withArguments(new StringArgument("type").replaceSuggestions(info ->
+                .withArguments(new TextArgument("type").replaceSuggestions(info ->
                         (String[]) ArrayUtils.addAll(new String[]{"all"},
                                 RecipesEventsManager.get().getPermittedRecipesName(info.sender())))
                 )
@@ -118,7 +118,7 @@ public class RecipesCommand {
     private CommandAPICommand getSaveCommand() {
         return new CommandAPICommand("save")
                 .withPermission("oraxen.command.recipes.builder")
-                .withArguments(new StringArgument("name"))
+                .withArguments(new TextArgument("name"))
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
                         final RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());

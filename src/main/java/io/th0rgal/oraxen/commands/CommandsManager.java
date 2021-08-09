@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.commands;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.EntitySelectorArgument;
 import dev.jorel.commandapi.arguments.IntegerArgument;
-import dev.jorel.commandapi.arguments.StringArgument;
+import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
@@ -37,7 +37,7 @@ public class CommandsManager {
     private CommandAPICommand getPackCommand() {
         return new CommandAPICommand("pack")
                 .withPermission("oraxen.command.pack")
-                .withArguments(new StringArgument("action").replaceSuggestions(info -> new String[]{"send", "msg"}))
+                .withArguments(new TextArgument("action").replaceSuggestions(info -> new String[]{"send", "msg"}))
                 .withArguments(new EntitySelectorArgument("targets", EntitySelectorArgument.EntitySelector.MANY_PLAYERS))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args[1];
@@ -68,7 +68,7 @@ public class CommandsManager {
         return new CommandAPICommand("give")
                 .withPermission("oraxen.command.give")
                 .withArguments(new EntitySelectorArgument("targets", EntitySelectorArgument.EntitySelector.MANY_PLAYERS))
-                .withArguments(new StringArgument("item").replaceSuggestions(info -> OraxenItems.getItemNames()))
+                .withArguments(new TextArgument("item").replaceSuggestions(info -> OraxenItems.getItemNames()))
                 .withArguments(new IntegerArgument("amount"))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args[0];
@@ -98,7 +98,7 @@ public class CommandsManager {
         return new CommandAPICommand("update")
                 .withPermission("oraxen.command.update")
                 .withArguments(new EntitySelectorArgument("targets", EntitySelectorArgument.EntitySelector.MANY_PLAYERS))
-                .withArguments(new StringArgument("type").replaceSuggestions(info -> new String[]{"hand", "all"}))
+                .withArguments(new TextArgument("type").replaceSuggestions(info -> new String[]{"hand", "all"}))
                 .executes((sender, args) -> {
                     Collection<Player> targets = (Collection<Player>) args[0];
 

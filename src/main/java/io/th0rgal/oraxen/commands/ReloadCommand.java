@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
-import dev.jorel.commandapi.arguments.StringArgument;
+import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.font.FontManager;
@@ -16,7 +16,7 @@ public class ReloadCommand {
         return new CommandAPICommand("reload")
                 .withAliases("rl")
                 .withPermission("oraxen.command.reload")
-                .withArguments(new StringArgument("type").replaceSuggestions(info ->
+                .withArguments(new TextArgument("type").replaceSuggestions(info ->
                         new String[]{"items", "pack", "recipes", "messages", "all"}))
                 .executes((sender, args) -> {
                     switch (((String) args[0]).toUpperCase()) {
