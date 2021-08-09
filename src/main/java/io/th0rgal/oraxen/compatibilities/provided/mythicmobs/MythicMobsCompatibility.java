@@ -1,5 +1,5 @@
 package io.th0rgal.oraxen.compatibilities.provided.mythicmobs;
-/*
+
 import io.lumine.xikage.mythicmobs.MythicMobs;
 import io.lumine.xikage.mythicmobs.adapters.bukkit.BukkitItemStack;
 import io.lumine.xikage.mythicmobs.api.bukkit.events.MythicDropLoadEvent;
@@ -26,4 +26,4 @@ public class MythicMobsCompatibility extends CompatibilityProvider<MythicMobs> {
             }
         }
     }
-}*/
+}
