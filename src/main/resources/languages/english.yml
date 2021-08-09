@@ -14,6 +14,7 @@ general:
   repaired_items: "<prefix><#55ffa4><amount> item(s) were successfully repaired!"
   cannot_be_repaired: "<prefix><#fa4943>This item cannot be repaired!"
   cannot_be_repaired_invalid: "<prefix><#fa4943>You need to hold a valid Item in your hand!"
+  updated_items: "<prefix><#55ffa4><amount> item(s) were successfully updated for <player>!"
   zip_browse_error: "<prefix><#fa4943>An error occured browsing the zip"
   bad_recipe: "<prefix><#fa4943>The recipe \"<recipe>\" is invalid, please ensure all its ingredients exist in your config"
   item_not_found: "<prefix><#fa4943>Item \"<item>\" not found"
@@ -65,6 +66,7 @@ command:
 
   give:
     player: "<prefix><#55ffa4>You gave <#43c9fa><player><#55ffa4> <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
+    players: "<prefix><#55ffa4>You gave <#43c9fa><count><#55ffa4> players <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>You need more experience to do this"

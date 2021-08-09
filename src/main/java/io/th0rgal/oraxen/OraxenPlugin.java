@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.FontManager;
+import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
@@ -73,6 +74,7 @@ public class OraxenPlugin extends JavaPlugin {
         fontManager = new FontManager(configsManager.getFont());
         OraxenItems.loadItems(configsManager);
         fontManager.registerEvents();
+        pluginManager.registerEvents(new ItemUpdater(), this);
         final ResourcePack resourcePack = new ResourcePack(this, fontManager);
         RecipesManager.load(this);
         invManager = new InvManager();

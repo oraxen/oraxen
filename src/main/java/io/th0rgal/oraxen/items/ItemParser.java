@@ -78,6 +78,9 @@ public class ItemParser {
         if (section.contains("unbreakable"))
             item.setUnbreakable(section.getBoolean("unbreakable"));
 
+        if(section.contains("no_auto_update"))
+            oraxenMeta.setNoUpdate(section.getBoolean("no_auto_update"));
+
         if (section.contains("color")) {
             String[] colors = section.getString("color").split(", ");
             item
