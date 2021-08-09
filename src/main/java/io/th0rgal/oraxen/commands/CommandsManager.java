@@ -34,6 +34,7 @@ public class CommandsManager {
                 .register();
     }
 
+    @SuppressWarnings("unchecked")
     private CommandAPICommand getPackCommand() {
         return new CommandAPICommand("pack")
                 .withPermission("oraxen.command.pack")
@@ -42,13 +43,11 @@ public class CommandsManager {
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args[1];
                     if (args[0].equals("msg"))
-                        for (Player target : targets)
+                        for (final Player target : targets)
                             Message.COMMAND_JOIN_MESSAGE.send(target, "pack_url",
                                     OraxenPlugin.get().getUploadManager().getHostingProvider().getPackURL());
-                    else {
-                        for (Player target : targets)
-                            OraxenPlugin.get().getUploadManager().getSender().sendPack(target);
-                    }
+                    else for (final Player target : targets)
+                        OraxenPlugin.get().getUploadManager().getSender().sendPack(target);
                 });
     }
 
@@ -78,7 +77,7 @@ public class CommandsManager {
                     final int slots = amount / max + (max % amount > 0 ? 1 : 0);
                     final ItemStack[] items = itemBuilder.buildArray(slots > 36 ? (amount = max * 36) : amount);
 
-                    for (Player target : targets)
+                    for (final Player target : targets)
                         target.getInventory().addItem(items);
 
                     if (targets.size() == 1)
@@ -100,29 +99,26 @@ public class CommandsManager {
                 .withArguments(new EntitySelectorArgument("targets", EntitySelectorArgument.EntitySelector.MANY_PLAYERS))
                 .withArguments(new TextArgument("type").replaceSuggestions(info -> new String[]{"hand", "all"}))
                 .executes((sender, args) -> {
-                    Collection<Player> targets = (Collection<Player>) args[0];
+                    final Collection<Player> targets = (Collection<Player>) args[0];
 
-                    if ("hand".equals(args[1])) {
-                        for (Player player : targets) {
-                            player.getInventory().setItemInMainHand(ItemUpdater.updateItem(player.getInventory().getItemInMainHand()));
-                            Message.UPDATED_ITEMS.send(sender, "amount", String.valueOf(1), "player", player.getDisplayName());
-                        }
+                    if ("hand".equals(args[1])) for (final Player player : targets) {
+                        player.getInventory().setItemInMainHand(ItemUpdater.updateItem(player.getInventory().getItemInMainHand()));
+                        Message.UPDATED_ITEMS.send(sender, "amount", String.valueOf(1), "player", player.getDisplayName());
                     }
 
-                    if (sender.hasPermission("oraxen.command.update.all")) {
-                        for(Player player : targets){
-                            int updated = 0;
-                            for(int i = 0;i < player.getInventory().getSize();i++){
-                                ItemStack oldItem = player.getInventory().getItem(i);
-                                ItemStack newItem = ItemUpdater.updateItem(oldItem);
-                                if(oldItem == null || oldItem.equals(newItem))
-                                    continue;
-                                player.getInventory().setItem(i, newItem);
-                                updated++;
-                            }
-                            Message.UPDATED_ITEMS.send(sender, "amount", String.valueOf(updated), "player", player.getDisplayName());
+                    if (sender.hasPermission("oraxen.command.update.all")) for (final Player player : targets) {
+                        int updated = 0;
+                        for (int i = 0; i < player.getInventory().getSize(); i++) {
+                            final ItemStack oldItem = player.getInventory().getItem(i);
+                            final ItemStack newItem = ItemUpdater.updateItem(oldItem);
+                            if (oldItem == null || oldItem.equals(newItem))
+                                continue;
+                            player.getInventory().setItem(i, newItem);
+                            updated++;
                         }
-                    } else
+                        Message.UPDATED_ITEMS.send(sender, "amount", String.valueOf(updated), "player", player.getDisplayName());
+                    }
+                    else
                         Message.NO_PERMISSION.send(sender, "permission", "oraxen.command.update.all");
                 });
     }
