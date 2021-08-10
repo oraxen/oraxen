@@ -15,7 +15,6 @@ import java.util.Map;
 
 public class CustomMechanic extends Mechanic {
 
-    private boolean oneUsage;
     private static final Map<String, CustomListener> LOADED_VARIANTS = new HashMap<>();
 
     public CustomMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -23,21 +22,19 @@ public class CustomMechanic extends Mechanic {
 
         for (String subMechanicName : section.getKeys(false)) {
             ConfigurationSection subsection = section.getConfigurationSection(subMechanicName);
+
             String key = subsection.getCurrentPath();
-            if (LOADED_VARIANTS.containsKey(key)) {
-                LOADED_VARIANTS.get(key).unregister();
-            }
+            if (LOADED_VARIANTS.containsKey(key)) LOADED_VARIANTS.get(key).unregister();
 
             List<CustomAction> actions = new ArrayList<>();
-            for (String action : subsection.getStringList("actions")) {
-                actions.add(new CustomAction(action));
-            }
+            for (String action : subsection.getStringList("actions")) actions.add(new CustomAction(action));
 
             List<CustomCondition> conditions = new ArrayList<>();
             for (String condition : subsection.getStringList("conditions"))
                 conditions.add(new CustomCondition(condition));
 
-            CustomListener listener = new CustomEvent(subsection.getString("event"))
+            CustomListener listener = new CustomEvent(subsection.getString("event"),
+                    subsection.getBoolean("one_usage", false))
                     .getListener(getItemID(), conditions, actions);
 
             listener.register();

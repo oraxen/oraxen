@@ -10,11 +10,13 @@ public class CustomEvent {
 
     public final CustomEventType type;
     private final List<String> params = new ArrayList<>();
+    private final boolean oneUsage;
 
-    public CustomEvent(String action) {
+    public CustomEvent(String action, boolean oneUsage) {
         String[] actionParams = action.split(":");
         type = CustomEventType.valueOf(actionParams[0]);
         params.addAll(Arrays.asList(actionParams).subList(1, actionParams.length));
+        this.oneUsage = oneUsage;
     }
 
     public List<String> getParams() {
@@ -27,4 +29,7 @@ public class CustomEvent {
         return type.constructor.create(itemID, this, conditions, actions);
     }
 
+    public boolean isOneUsage() {
+        return oneUsage;
+    }
 }
