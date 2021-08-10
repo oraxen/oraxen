@@ -16,9 +16,6 @@
     <a href="https://bstats.org/plugin/bukkit/Oraxen" alt="bstats players">
         <img src="https://img.shields.io/bstats/players/5371?color=brightgreen"/>
     </a>
-    <a href="https://lgtm.com/projects/g/oraxen/Oraxen/context:java">
-        <img alt="Language grade: Java" src="https://img.shields.io/lgtm/grade/java/github/oraxen/Oraxen"/>
-    </a>
     <a href="https://discord.gg/4Qk5kBT9UX" alt="discord">
         <img src="https://img.shields.io/discord/480068531132563476?label=chat&logo=discord"/>
     </a>
