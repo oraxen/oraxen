@@ -2,7 +2,7 @@ main: io.th0rgal.oraxen.OraxenPlugin
 name: Oraxen
 version: ${projectVersion}
 author: Th0rgal
-api-version: "1.14"
+api-version: "1.16"
 softdepend: [ ProtocolLib, PlaceholderAPI, MythicMobs, CrateReloaded,
               BossShopPro, ItemBridge, WorldGuard, Towny, Factions, Lands ]
 loadbefore: [ Realistic_World ]
