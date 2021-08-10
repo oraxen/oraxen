@@ -149,7 +149,7 @@ public class FurnitureListener implements Listener {
             entityId = seat.getUniqueId().toString();
         } else entityId = null;
 
-        mechanic.place(rotation, yaw, target.getLocation(), entityId);
+        mechanic.place(rotation, yaw, target.getLocation(), entityId, item);
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
     }
