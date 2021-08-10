@@ -37,6 +37,8 @@ repositories {
     maven { url "https://repo.codemc.org/repository/maven-public" }
     // CustomBlockData
     maven { url "https://repo.jeff-media.de/maven2" }
+    // Placeholder API
+    maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
 }
 
 compileJava {
@@ -50,6 +52,7 @@ dependencies {
     compileOnly group: "com.github.dmulloy2", name: "ProtocolLib", version: "4.7.0"
     compileOnly group: "com.github.Hazebyte", name: "CrateReloadedAPI", version: "5318abfccc"
     compileOnly group: "com.github.jojodmo", name: "ItemBridge", version: "-SNAPSHOT"
+    compileOnly 'me.clip:placeholderapi:2.10.10'
     compileOnly fileTree(dir: "libs/compile", include: ["*.jar"])
     implementation fileTree(dir: "libs/implement", include: ["*.jar"])
     implementation "org.bstats:bstats-bukkit:2.2.1"
