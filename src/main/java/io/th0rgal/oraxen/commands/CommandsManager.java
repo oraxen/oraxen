@@ -70,10 +70,10 @@ public class CommandsManager {
         return new CommandAPICommand("give")
                 .withPermission("oraxen.command.give")
                 .withArguments(new EntitySelectorArgument("targets",
-                        EntitySelectorArgument.EntitySelector.MANY_PLAYERS))
-                .withArguments(new TextArgument("item")
-                        .replaceSuggestions(info -> OraxenItems.getItemNames()))
-                .withArguments(new IntegerArgument("amount"))
+                                EntitySelectorArgument.EntitySelector.MANY_PLAYERS),
+                        new TextArgument("item")
+                                .replaceSuggestions(info -> OraxenItems.getItemNames()),
+                        new IntegerArgument("amount"))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args[0];
                     final String itemID = (String) args[1];

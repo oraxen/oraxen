@@ -13,29 +13,32 @@ import org.bukkit.inventory.meta.PotionMeta;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
 
 public class PredicatesGenerator {
 
     private final JsonObject json = new JsonObject();
+    // not static here because only instanciated once I think
+    private final String[] tools = new String[]{"PICKAXE", "SWORD", "HOE", "AXE", "SHOVEL"};
 
-    public PredicatesGenerator(Material material, List<ItemBuilder> items) {
+    public PredicatesGenerator(final Material material, final List<ItemBuilder> items) {
 
         // parent
         json.addProperty("parent", getParent(material));
 
         // textures
-        JsonObject textures = new JsonObject();
+        final JsonObject textures = new JsonObject();
         textures.addProperty("layer0", getVanillaTextureName(material, false));
 
         // to support colored leather armors + potions
-        ItemMeta exampleMeta = new ItemStack(material).getItemMeta();
+        final ItemMeta exampleMeta = new ItemStack(material).getItemMeta();
         if (exampleMeta instanceof LeatherArmorMeta || exampleMeta instanceof PotionMeta)
             textures.addProperty("layer1", getVanillaTextureName(material, false) + "_overlay");
 
         json.add("textures", textures);
 
         // overrides
-        JsonArray overrides = new JsonArray();
+        final JsonArray overrides = new JsonArray();
 
         // specific items
         switch (material) {
@@ -80,21 +83,21 @@ public class PredicatesGenerator {
         }
 
         // custom items
-        for (ItemBuilder item : items) {
+        for (final ItemBuilder item : items) {
             overrides
                     .add(getOverride("custom_model_data", item.getOraxenMeta().getCustomModelData(),
                             item.getOraxenMeta().getModelName()));
             if (item.getOraxenMeta().hasBlockingModel()) {
-                JsonObject predicate = new JsonObject();
+                final JsonObject predicate = new JsonObject();
                 predicate.addProperty("blocking", 1);
                 overrides
                         .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(),
                                 item.getOraxenMeta().getBlockingModelName()));
             }
             if (item.getOraxenMeta().hasPullingModels()) {
-                List<String> pullingModels = item.getOraxenMeta().getPullingModels();
+                final List<String> pullingModels = item.getOraxenMeta().getPullingModels();
                 for (float i = 0; i < pullingModels.size(); i++) {
-                    JsonObject predicate = new JsonObject();
+                    final JsonObject predicate = new JsonObject();
                     predicate.addProperty("pulling", 1);
                     if (i != 0)
                         predicate.addProperty("pull", i / pullingModels.size());
@@ -108,40 +111,37 @@ public class PredicatesGenerator {
         json.add("overrides", overrides);
     }
 
-    private JsonObject getOverride(String property, int propertyValue, String model) {
+    private JsonObject getOverride(final String property, final int propertyValue, final String model) {
         return getOverride(new JsonObject(), property, propertyValue, model);
     }
 
-    private JsonObject getOverride(JsonObject predicate, String property, int propertyValue, String model) {
+    private JsonObject getOverride(final JsonObject predicate, final String property, final int propertyValue, final String model) {
         predicate.addProperty(property, propertyValue);
         return getOverride(predicate, model);
     }
 
-    private JsonObject getOverride(JsonObject predicate, String model) {
-        JsonObject override = new JsonObject();
+    private JsonObject getOverride(final JsonObject predicate, final String model) {
+        final JsonObject override = new JsonObject();
         override.add("predicate", predicate);
         override.addProperty("model", model);
         return override;
     }
 
-    public String getVanillaModelName(Material material) {
+    public String getVanillaModelName(final Material material) {
         return getVanillaTextureName(material, true);
     }
 
-    public String getVanillaTextureName(Material material, boolean model) {
+    public String getVanillaTextureName(final Material material, final boolean model) {
         if (material.isBlock())
-            return "block/" + material.toString().toLowerCase();
+            return "block/" + material.toString().toLowerCase(Locale.ENGLISH);
         else if (!model && material == Material.CROSSBOW)
             return "item/crossbow_standby";
         else
-            return "item/" + material.toString().toLowerCase();
+            return "item/" + material.toString().toLowerCase(Locale.ENGLISH);
 
     }
 
-    // not static here because only instanciated once I think
-    private final String[] tools = new String[]{"PICKAXE", "SWORD", "HOE", "AXE", "SHOVEL"};
-
-    private String getParent(Material material) {
+    private String getParent(final Material material) {
         if (material.isBlock())
             return "block/cube_all";
         if (Arrays.stream(tools).anyMatch(tool -> material.toString().contains(tool)))
@@ -154,7 +154,7 @@ public class PredicatesGenerator {
     }
 
     public JsonObject toJSON() {
-        return this.json;
+        return json;
     }
 
 }
