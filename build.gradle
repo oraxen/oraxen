@@ -61,6 +61,7 @@ dependencies {
     implementation 'com.github.stefvanschie.inventoryframework:IF:0.10.0'
     implementation 'dev.jorel.CommandAPI:commandapi-shade:6.2.0'
     implementation 'de.jeff_media:CustomBlockData:1.0-SNAPSHOT'
+    implementation group: 'de.tr7zw', name: 'item-nbt-api-plugin', version: '2.8.0'
 }
 
 processResources {
@@ -78,6 +79,7 @@ shadowJar {
     relocate "com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.if"
     relocate "com.roxstudio.utils", "io.th0rgal.oraxen.shaded.curl"
     relocate "dev.jorel.commandapi", "io.th0rgal.oraxen.shaded.commandapi"
+    relocate "de.tr7zw","io.th0rgal.oraxen.shaded.nbtapi"
     manifest {
         attributes(
                 'Built-By': System.properties['user.name'],

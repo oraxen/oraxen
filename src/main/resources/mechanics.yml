@@ -21,6 +21,9 @@ itemtype:
 soulbound:
   enabled: true
 
+backpack:
+    enabled: true
+
 
 # GAMEPLAY
 

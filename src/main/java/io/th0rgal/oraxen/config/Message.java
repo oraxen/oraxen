@@ -55,7 +55,8 @@ public enum Message {
     GIVE_PLAYERS("command.give.players"),
 
     // mechanics
-    MECHANICS_NOT_ENOUGH_EXP("mechanics.not_enough_exp");
+    MECHANICS_NOT_ENOUGH_EXP("mechanics.not_enough_exp"),
+    MECHANICS_BACKPACK_STACKED("mechanics.backpack_stacked");
 
     private final String path;
 
