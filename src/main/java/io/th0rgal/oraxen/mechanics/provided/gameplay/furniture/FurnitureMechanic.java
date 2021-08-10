@@ -29,13 +29,13 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey ORIENTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "orientation");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
     public final boolean farmlandRequired;
-    private final String placedItemId;
     private final List<BlockLocation> barriers;
     private final boolean hasRotation;
     private final boolean hasSeat;
     private final BlockFace facing;
     private final Drop drop;
     private final EvolvingFurniture evolvingFurniture;
+    private String placedItemId;
     private ItemStack placedItem;
     private Rotation rotation;
     private float seatHeight;
@@ -46,8 +46,8 @@ public class FurnitureMechanic extends Mechanic {
         super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY,
                 PersistentDataType.BYTE, (byte) 1));
 
-        placedItemId = section.isString("item")
-                ? section.getString("item") : getItemID();
+        if (section.isString("item"))
+            placedItemId = section.getString("item");
 
         barriers = new ArrayList<>();
         if (OraxenPlugin.getProtocolLib() && section.getBoolean("barrier", false))
@@ -158,14 +158,17 @@ public class FurnitureMechanic extends Mechanic {
         return evolvingFurniture;
     }
 
-
-    public void place(Rotation rotation, float yaw, Location location, String entityId) {
+    private void setPlacedItem() {
         if (placedItem == null) {
-            placedItem = OraxenItems.getItemById(placedItemId).build();
+            placedItem = OraxenItems.getItemById(placedItemId != null ? placedItemId : getItemID()).build();
             ItemMeta meta = placedItem.getItemMeta();
             meta.setDisplayName("");
             placedItem.setItemMeta(meta);
         }
+    }
+
+    public void place(Rotation rotation, float yaw, Location location, String entityId) {
+        setPlacedItem();
         place(rotation, yaw, location, entityId, placedItem);
     }
 
@@ -176,7 +179,10 @@ public class FurnitureMechanic extends Mechanic {
             frame.setFixed(false);
             frame.setPersistent(true);
             frame.setItemDropChance(0);
-            frame.setItem(item);
+            if (placedItemId != null) {
+                setPlacedItem();
+                frame.setItem(placedItem);
+            } else frame.setItem(item);
             frame.setRotation(rotation);
             frame.setFacingDirection(getFacing());
             frame.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
