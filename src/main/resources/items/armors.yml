@@ -10,7 +10,6 @@ emerald_helmet:
   material: LEATHER_HELMET
   color: 3, 252, 136 #rgb
   lore:
-    - ""
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
   Mechanics:
     durability:
@@ -39,7 +38,6 @@ emerald_chestplate:
   material: LEATHER_CHESTPLATE
   color: 3, 252, 136
   lore:
-    - ""
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
   Mechanics:
     durability:
@@ -63,7 +61,6 @@ emerald_leggings:
   material: LEATHER_LEGGINGS
   color: 3, 252, 136
   lore:
-    - ""
     - "<#6f737d>» <#D5D6D8>Gives 1.5 extra <glyph:heart>"
   Mechanics:
     durability:
@@ -86,7 +83,6 @@ emerald_boots:
   material: LEATHER_BOOTS
   color: 3, 252, 136
   lore:
-    - ""
     - "<#6f737d>» <#D5D6D8>Gives 1 extra <glyph:heart>"
   Mechanics:
     durability:
