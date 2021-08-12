@@ -20,6 +20,7 @@ import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -101,12 +102,16 @@ public class BreakerSystem {
                         if (value++ < 10)
                             return;
 
-                        final BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
                         if (!ProtectionLib.canBreak(player, block.getLocation()))
                             return;
+                        final BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
                         Bukkit.getPluginManager().callEvent(blockBreakEvent);
-                        if (!blockBreakEvent.isCancelled())
+                        if (!blockBreakEvent.isCancelled()) {
                             modifier.breakBlock(player, block, item);
+                            PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player,
+                                    item, 1);
+                            Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
+                        }
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
                                 player.removePotionEffect(PotionEffectType.SLOW_DIGGING));
                         breakerPerLocation.remove(location);
