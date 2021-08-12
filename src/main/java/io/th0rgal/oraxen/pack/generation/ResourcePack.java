@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.font.Font;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
@@ -185,6 +186,8 @@ public class ResourcePack {
         final JsonArray providers = new JsonArray();
         for (final Glyph glyph : fontManager.getGlyphs())
             providers.add(glyph.toJson());
+        for (final Font font : fontManager.getFonts())
+            providers.add(font.toJson());
         output.add("providers", providers);
         Utils.writeStringToFile(fontFile, output.toString().replace("\\\\u", "\\u"));
     }

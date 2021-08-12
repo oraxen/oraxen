@@ -17,6 +17,7 @@ public class FontManager {
     private final FontEvents fontEvents;
     private final String[] miniMessagePlaceholders;
     private final String[] zipPlaceholders;
+    private final Set<Font> fonts;
 
     public FontManager(final YamlConfiguration fontConfiguration) {
         autoGenerate = fontConfiguration.getBoolean("settings.automatically_generate");
@@ -24,7 +25,11 @@ public class FontManager {
         glyphByPlaceholder = new HashMap<>();
         reverse = new HashMap<>();
         fontEvents = new FontEvents(this);
-        loadGlyphs(fontConfiguration.getConfigurationSection("glyphs"));
+        fonts = new HashSet<>();
+        if (fontConfiguration.isConfigurationSection("glyphs"))
+            loadGlyphs(fontConfiguration.getConfigurationSection("glyphs"));
+        if (fontConfiguration.isConfigurationSection("fonts"))
+            loadFonts(fontConfiguration.getConfigurationSection("fonts"));
         miniMessagePlaceholders = createMiniPlaceholders();
         zipPlaceholders = createZipPlaceholders();
     }
@@ -60,8 +65,25 @@ public class FontManager {
         }
     }
 
+    private void loadFonts(final ConfigurationSection section) {
+        for (final String fontName : section.getKeys(false)) {
+            final ConfigurationSection fontSection = section.getConfigurationSection(fontName);
+            fonts.add(new Font(fontSection.getString("type"),
+                    fontSection.getString("file"),
+                    (float) fontSection.getDouble("shift_x"),
+                    (float) fontSection.getDouble("shift_y"),
+                    (float) fontSection.getDouble("size"),
+                    (float) fontSection.getDouble("oversample")
+            ));
+        }
+    }
+
     public final Collection<Glyph> getGlyphs() {
         return glyphMap.values();
+    }
+
+    public final Collection<Font> getFonts() {
+        return fonts;
     }
 
     public Glyph getGlyphFromName(final String name) {
