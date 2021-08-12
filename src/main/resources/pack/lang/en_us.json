@@ -3,6 +3,7 @@
   "menu.disconnect": "§7                   See you soon!§f<glyph:menu_banner_shift><glyph:menu_banner>",
   "menu.returnToGame": "Back to the Oraxen experience",
   "menu.game": "<glyph:logo>",
+  "item.dyed": "",
   "container.inventory": " Inventory",
   "resourcePack.server.name": "Vanilla Mod"
 }

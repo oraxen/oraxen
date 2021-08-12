@@ -58,8 +58,88 @@ glyphs:
     ascent: -32768
     height: -195
 
-  heart:
+  farmer_tag:
     code: 3009
+    texture: default/chat/farmer_tag
+    ascent: 9
+    height: 10
+    chat:
+      placeholders:
+        - ":farmer:"
+      permission: "oraxen.emoji.farmer"
+
+  explorer_tag:
+    code: 3010
+    texture: default/chat/explorer_tag
+    ascent: 9
+    height: 10
+    chat:
+      placeholders:
+        - ":explorer:"
+      permission: "oraxen.emoji.explorer"
+
+  knight_tag:
+    code: 3011
+    texture: default/chat/knight_tag
+    ascent: 9
+    height: 10
+    chat:
+      placeholders:
+        - ":knight:"
+      permission: "oraxen.emoji.knight"
+
+  lord_tag:
+    code: 3012
+    texture: default/chat/lord_tag
+    ascent: 9
+    height: 10
+    chat:
+      placeholders:
+        - ":lord:"
+      permission: "oraxen.emoji.lord"
+
+  prince_tag:
+    code: 3013
+    texture: default/chat/prince_tag
+    ascent: 9
+    height: 10
+    chat:
+      placeholders:
+        - ":prince:"
+      permission: "oraxen.emoji.prince"
+
+  king_tag:
+    code: 3014
+    texture: default/chat/king_tag
+    ascent: 9
+    height: 10
+    chat:
+      placeholders:
+        - ":king:"
+      permission: "oraxen.emoji.king"
+
+  hero_tag:
+    code: 3015
+    texture: default/chat/hero_tag
+    ascent: 9
+    height: 10
+    chat:
+      placeholders:
+        - ":hero:"
+      permission: "oraxen.emoji.hero"
+
+  god_tag:
+    code: 3016
+    texture: default/chat/god_tag
+    ascent: 9
+    height: 10
+    chat:
+      placeholders:
+        - ":god:"
+      permission: "oraxen.emoji.god"
+
+  heart:
+    code: 3017
     texture: default/chat/heart
     ascent: 8
     height: 8

@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'maven-publish'
 
 group "io.th0rgal"
-def pluginVersion = "1.101.2"
+def pluginVersion = "1.104.1"
 ext.jitpackGroup = group + ".oraxen"
 ext.jitpackVersion = 'main-' + pluginVersion
 version = pluginVersion
@@ -37,6 +37,8 @@ repositories {
     maven { url "https://repo.codemc.org/repository/maven-public" }
     // CustomBlockData
     maven { url "https://repo.jeff-media.de/maven2" }
+    // Placeholder API
+    maven { url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
 }
 
 compileJava {
@@ -50,6 +52,7 @@ dependencies {
     compileOnly group: "com.github.dmulloy2", name: "ProtocolLib", version: "4.7.0"
     compileOnly group: "com.github.Hazebyte", name: "CrateReloadedAPI", version: "5318abfccc"
     compileOnly group: "com.github.jojodmo", name: "ItemBridge", version: "-SNAPSHOT"
+    compileOnly 'me.clip:placeholderapi:2.10.10'
     compileOnly fileTree(dir: "libs/compile", include: ["*.jar"])
     implementation fileTree(dir: "libs/implement", include: ["*.jar"])
     implementation "org.bstats:bstats-bukkit:2.2.1"
@@ -59,7 +62,7 @@ dependencies {
     implementation "net.kyori:adventure-text-minimessage:4.1.0-SNAPSHOT"
     implementation "net.kyori:adventure-platform-bukkit:4.0.0-SNAPSHOT"
     implementation 'com.github.stefvanschie.inventoryframework:IF:0.10.0'
-    implementation 'dev.jorel.CommandAPI:commandapi-shade:6.2.0'
+    implementation 'dev.jorel.CommandAPI:commandapi-shade:6.3.0'
     implementation 'de.jeff_media:CustomBlockData:1.0-SNAPSHOT'
     implementation group: 'de.tr7zw', name: 'item-nbt-api-plugin', version: '2.8.0'
 }

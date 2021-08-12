@@ -149,7 +149,7 @@ public class FurnitureListener implements Listener {
             entityId = seat.getUniqueId().toString();
         } else entityId = null;
 
-        mechanic.place(rotation, yaw, target.getLocation(), entityId);
+        mechanic.place(rotation, yaw, target.getLocation(), entityId, item);
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
     }
@@ -234,7 +234,7 @@ public class FurnitureListener implements Listener {
         if (block.getType() != Material.BARRIER || event.getPlayer().isSneaking())
             return;
         final ItemFrame frame = getItemFrame(block.getLocation());
-        if (frame == null)
+        if (frame == null || !frame.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING))
             return;
         final String entityId = frame.getPersistentDataContainer().get(SEAT_KEY, PersistentDataType.STRING);
         final Entity stand = Bukkit.getEntity(UUID.fromString(entityId));

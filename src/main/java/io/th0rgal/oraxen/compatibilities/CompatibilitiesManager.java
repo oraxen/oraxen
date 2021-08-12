@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.compatibilities.provided.bossshoppro.BossShopProCompati
 import io.th0rgal.oraxen.compatibilities.provided.cratereloaded.CrateReloadedCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.itembridge.ItemBridgeCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.mythicmobs.MythicMobsCompatibility;
+import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PlaceholderAPICompatibility;
 import io.th0rgal.oraxen.config.Message;
 import org.bukkit.Bukkit;
 
@@ -17,6 +18,7 @@ public class CompatibilitiesManager {
 
     public static void enableNativeCompatibilities() {
         new CompatibilityListener();
+        addCompatibility("PlaceholderAPI", PlaceholderAPICompatibility.class, true);
         addCompatibility("BossShopPro", BossShopProCompatibility.class, true);
         addCompatibility("CrateReloaded", CrateReloadedCompatibility.class, true);
         addCompatibility("ItemBridge", ItemBridgeCompatibility.class, true);
@@ -32,7 +34,8 @@ public class CompatibilitiesManager {
             if (!ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName)
                     && COMPATIBILITY_PROVIDERS.containsKey(pluginName)
                     && Bukkit.getPluginManager().isPluginEnabled(pluginName)) {
-                final CompatibilityProvider<?> compatibilityProvider = COMPATIBILITY_PROVIDERS.get(pluginName).getConstructor().newInstance();
+                final CompatibilityProvider<?> compatibilityProvider = COMPATIBILITY_PROVIDERS.
+                        get(pluginName).getConstructor().newInstance();
                 compatibilityProvider.enable(pluginName);
                 ACTIVE_COMPATIBILITY_PROVIDERS.put(pluginName, compatibilityProvider);
                 Message.PLUGIN_HOOKS.log("plugin", pluginName);

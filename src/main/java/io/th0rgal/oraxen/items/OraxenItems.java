@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
-
 import io.th0rgal.oraxen.config.Message;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -17,43 +16,43 @@ import java.util.stream.Stream;
 
 public class OraxenItems {
 
+    public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
     // configuration sections : their OraxenItem wrapper
     private static Map<File, Map<String, ItemBuilder>> map;
-    public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
     private static ConfigsManager configsManager;
     private static String[] items;
 
-    public static void loadItems(ConfigsManager configsManager) {
+    public static void loadItems(final ConfigsManager configsManager) {
         OraxenItems.configsManager = configsManager;
         loadItems();
     }
 
     public static void loadItems() {
         map = configsManager.parsesConfigs();
-        List<String> itemsList = new ArrayList<>();
-        for (Map<String, ItemBuilder> subMap : map.values())
+        final List<String> itemsList = new ArrayList<>();
+        for (final Map<String, ItemBuilder> subMap : map.values())
             itemsList.addAll(subMap.keySet());
         items = itemsList.toArray(new String[0]);
     }
 
-    public static String getIdByItem(ItemBuilder item) {
+    public static String getIdByItem(final ItemBuilder item) {
         return item.getCustomTag(ITEM_ID, PersistentDataType.STRING);
     }
 
-    public static String getIdByItem(ItemStack item) {
+    public static String getIdByItem(final ItemStack item) {
         return (item == null || !item.hasItemMeta() || item.getItemMeta().getPersistentDataContainer().isEmpty()) ? null
             : item.getItemMeta().getPersistentDataContainer().get(ITEM_ID, PersistentDataType.STRING);
     }
 
-    public static boolean exists(String itemId) {
+    public static boolean exists(final String itemId) {
         return entryStream().anyMatch(entry -> entry.getKey().equals(itemId));
     }
 
-    public static Optional<ItemBuilder> getOptionalItemById(String id) {
+    public static Optional<ItemBuilder> getOptionalItemById(final String id) {
         return entryStream().filter(entry -> entry.getKey().equals(id)).findFirst().map(Entry::getValue);
     }
 
-    public static ItemBuilder getItemById(String id) {
+    public static ItemBuilder getItemById(final String id) {
         return getOptionalItemById(id).orElse(null);
     }
 
@@ -63,7 +62,7 @@ public class OraxenItems {
             .collect(Collectors.toList());
     }
 
-    public static List<ItemBuilder> getUnexcludedItems(File file) {
+    public static List<ItemBuilder> getUnexcludedItems(final File file) {
         return map
             .get(file)
             .values()
@@ -72,11 +71,11 @@ public class OraxenItems {
             .collect(Collectors.toList());
     }
 
-    public static List<ItemStack> getItemStacksByName(List<List<String>> lists) {
+    public static List<ItemStack> getItemStacksByName(final List<List<String>> lists) {
         return lists.stream().flatMap(list -> {
-            ItemStack[] itemStack = new ItemStack[] { new ItemStack(Material.AIR) };
+            final ItemStack[] itemStack = new ItemStack[] { new ItemStack(Material.AIR) };
             list.stream().map(line -> line.split(":")).forEach(param -> {
-                switch (param[0].toLowerCase()) {
+                switch (param[0].toLowerCase(Locale.ENGLISH)) {
                 case "type":
                     if (exists(param[1]))
                         itemStack[0] = getItemById(param[1]).build().clone();
