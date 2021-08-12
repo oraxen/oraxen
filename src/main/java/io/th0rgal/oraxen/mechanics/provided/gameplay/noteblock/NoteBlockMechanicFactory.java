@@ -24,10 +24,10 @@ import java.util.Map;
 
 public class NoteBlockMechanicFactory extends MechanicFactory {
 
-    private static final List<JsonObject> BLOCKSTATE_OVERRIDES = new ArrayList<>();
     public static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
-    public final List<String> toolTypes;
+    private static List<JsonObject> blockstateOverrides;
     private static NoteBlockMechanicFactory instance;
+    public final List<String> toolTypes;
 
     public NoteBlockMechanicFactory(ConfigurationSection section) {
         super(section);
@@ -44,17 +44,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
             Utils.writeStringToFile(file, getBlockstateContent());
         });
         MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockMechanicListener(this));
-    }
-
-    private String getBlockstateContent() {
-        JsonObject noteblock = new JsonObject();
-        JsonArray multipart = new JsonArray();
-        // adds default override
-        multipart.add(getBlockstateOverride("required/note_block", "harp"));
-        for (JsonObject override : BLOCKSTATE_OVERRIDES)
-            multipart.add(override);
-        noteblock.add("multipart", multipart);
-        return noteblock.toString();
     }
 
     public static String getInstrumentName(int id) {
@@ -109,36 +98,12 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         return content;
     }
 
-    @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        NoteBlockMechanic mechanic = new NoteBlockMechanic(this, itemMechanicConfiguration);
-        BLOCKSTATE_OVERRIDES
-                .add(getBlockstateOverride(mechanic.getModel(itemMechanicConfiguration.getParent().getParent()),
-                        mechanic.getCustomVariation()));
-        BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
-        addToImplemented(mechanic);
-        return mechanic;
-    }
-
     public static NoteBlockMechanic getBlockMechanic(int customVariation) {
         return BLOCK_PER_VARIATION.get(customVariation);
     }
 
     public static NoteBlockMechanicFactory getInstance() {
         return instance;
-    }
-
-    /**
-     * Generate a NoteBlock blockdata from an oraxen id
-     *
-     * @param itemID The id of an item implementing NoteBlockMechanic
-     */
-    public NoteBlock createNoteBlockData(String itemID) {
-        /* We have 16 instruments with 25 notes. All of those blocks can be powered.
-         * That's: 16*25*2 = 800 variations. The first 25 variations of PIANO (not powered)
-         * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
-         */
-        return createNoteBlockData(((NoteBlockMechanic) getInstance().getMechanic(itemID)).getCustomVariation());
     }
 
     /**
@@ -160,7 +125,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         return noteBlock;
     }
 
-
     /**
      * Attempts to set the block directly to the model and texture of an Oraxen item.
      *
@@ -171,6 +135,42 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("noteblock");
         NoteBlockMechanic noteBlockMechanic = (NoteBlockMechanic) mechanicFactory.getMechanic(itemId);
         block.setBlockData(createNoteBlockData(noteBlockMechanic.getCustomVariation()), false);
+    }
+
+    private String getBlockstateContent() {
+        JsonObject noteblock = new JsonObject();
+        JsonArray multipart = new JsonArray();
+        // adds default override
+        multipart.add(getBlockstateOverride("required/note_block", "harp"));
+        for (JsonObject override : blockstateOverrides)
+            multipart.add(override);
+        noteblock.add("multipart", multipart);
+        return noteblock.toString();
+    }
+
+    @Override
+    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
+        NoteBlockMechanic mechanic = new NoteBlockMechanic(this, itemMechanicConfiguration);
+        blockstateOverrides = new ArrayList<>();
+        blockstateOverrides
+                .add(getBlockstateOverride(mechanic.getModel(itemMechanicConfiguration.getParent().getParent()),
+                        mechanic.getCustomVariation()));
+        BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
+        addToImplemented(mechanic);
+        return mechanic;
+    }
+
+    /**
+     * Generate a NoteBlock blockdata from an oraxen id
+     *
+     * @param itemID The id of an item implementing NoteBlockMechanic
+     */
+    public NoteBlock createNoteBlockData(String itemID) {
+        /* We have 16 instruments with 25 notes. All of those blocks can be powered.
+         * That's: 16*25*2 = 800 variations. The first 25 variations of PIANO (not powered)
+         * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
+         */
+        return createNoteBlockData(((NoteBlockMechanic) getInstance().getMechanic(itemID)).getCustomVariation());
     }
 
 }

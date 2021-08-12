@@ -13,6 +13,7 @@ import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
 import io.th0rgal.oraxen.pack.upload.hosts.Sh;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Constructor;
@@ -23,11 +24,11 @@ import java.util.Locale;
 
 public class UploadManager {
 
+    private static String url;
     private final Plugin plugin;
     private final boolean enabled;
     private final HostingProvider hostingProvider;
     private PackSender packSender;
-
     private PackReceiver receiver;
     private PackSender sender;
 
@@ -68,12 +69,10 @@ public class UploadManager {
                 packSender = (OraxenPlugin.getProtocolLib() && Settings.SEND_PACK_ADVANCED.toBool())
                         ? new AdvancedPackSender(hostingProvider) : new BukkitPackSender(hostingProvider);
                 packSender.register();
+                if (!hostingProvider.getPackURL().equals(url)) for (Player player : Bukkit.getOnlinePlayers())
+                    packSender.sendPack(player);
+                url = hostingProvider.getPackURL();
             }
-            /* Too much pain for people trying to configure mechanics
-            if ((boolean) Pack.SEND_PACK.getValue() && updateSend)
-                for (Player player : Bukkit.getOnlinePlayers())
-                    PackDispatcher.sendPack(player);
-            */
         });
     }
 
