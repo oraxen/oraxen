@@ -32,6 +32,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public NoteBlockMechanicFactory(ConfigurationSection section) {
         super(section);
         instance = this;
+        blockstateOverrides = new ArrayList<>();
         toolTypes = section.getStringList("tool_types");
 
         // this modifier should be executed when all the items have been parsed, just
@@ -151,7 +152,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         NoteBlockMechanic mechanic = new NoteBlockMechanic(this, itemMechanicConfiguration);
-        blockstateOverrides = new ArrayList<>();
         blockstateOverrides
                 .add(getBlockstateOverride(mechanic.getModel(itemMechanicConfiguration.getParent().getParent()),
                         mechanic.getCustomVariation()));
