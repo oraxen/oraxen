@@ -76,7 +76,7 @@ Pack:
     denied:
       actions:
         message:
-          enabled: true
+          enabled: false
           # KICK / CHAT / ACTION_BAR / TITLE
           type: CHAT
           # Delay before the first message to appear, this is in seconds
@@ -92,7 +92,7 @@ Pack:
     failed_download:
       actions:
         message:
-          enabled: true
+          enabled: false
           # KICK / CHAT / ACTION_BAR / TITLE
           type: CHAT
           # Delay before the first message to appear, this is in seconds
