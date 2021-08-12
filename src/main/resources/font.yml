@@ -2,6 +2,16 @@ settings:
   # Should Oraxen automatically generate default.json according to your settings?
   automatically_generate: true
 
+# You can also use ttf  fonts:
+#fonts:
+#  my_cool_font:
+#    type: "ttf"
+#    file: "minecraft:PPP.ttf"
+#    shift_x: 0.0
+#    shift_y: 1.6
+#    size: 8.0
+#    oversample: 10.0
+
 glyphs:
 
   logo:
