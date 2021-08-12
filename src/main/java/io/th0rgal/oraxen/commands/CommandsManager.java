@@ -21,6 +21,7 @@ public class CommandsManager {
                 .withAliases("o", "oxn")
                 .withPermission("oraxen.command")
                 .withSubcommand(getInvCommand())
+                .withSubcommand(getSimpleGiveCommand())
                 .withSubcommand(getGiveCommand())
                 .withSubcommand(getPackCommand())
                 .withSubcommand(getUpdateCommand())
@@ -98,6 +99,34 @@ public class CommandsManager {
                                         "item", itemID);
 
 
+                });
+    }
+
+    @SuppressWarnings("unchecked")
+    private CommandAPICommand getSimpleGiveCommand() {
+        return new CommandAPICommand("give")
+                .withPermission("oraxen.command.give")
+                .withArguments(new EntitySelectorArgument("targets",
+                                EntitySelectorArgument.EntitySelector.MANY_PLAYERS),
+                        new TextArgument("item")
+                                .replaceSuggestions(info -> OraxenItems.getItemNames()))
+                .executes((sender, args) -> {
+                    final Collection<Player> targets = (Collection<Player>) args[0];
+                    final String itemID = (String) args[1];
+                    final ItemBuilder itemBuilder = OraxenItems.getItemById(itemID);
+                    for (final Player target : targets)
+                        target.getInventory().addItem(itemBuilder.build());
+
+                    if (targets.size() == 1)
+                        Message.GIVE_PLAYER
+                                .send(sender, "player", targets.iterator().next().getName(),
+                                        "amount", String.valueOf(1),
+                                        "item", itemID);
+                    else
+                        Message.GIVE_PLAYERS
+                                .send(sender, "count", String.valueOf(targets.size()),
+                                        "amount", String.valueOf(1),
+                                        "item", itemID);
                 });
     }
 
