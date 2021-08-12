@@ -32,8 +32,8 @@ command:
   help: "<prefix><#b8bbc2>Available commands
         \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
           <#b8bbc2>reload <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> reload the plugin
-        \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv ><#6f737d>/o
-          <#b8bbc2>inventory <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> show oraxen items in inventory
+        \n<hover:show_text:\"<gray>fill inv command\"><click:SUGGEST_COMMAND:/oraxen inv><#6f737d>/o
+          <#b8bbc2>inventory</click></hover>  <#6f737d>»<#b8bbc2> show oraxen items in inventory
         \n<hover:show_text:\"<gray>fill pack command\"><click:SUGGEST_COMMAND:/oraxen pack ><#6f737d>/o
           <#b8bbc2>pack <#fa8943>type <#43c9fa>target</click></hover>  <#6f737d>»<#b8bbc2> send oraxen pack
         \n<hover:show_text:\"<gray>fill repair command\"><click:SUGGEST_COMMAND:/oraxen repair ><#6f737d>/o
