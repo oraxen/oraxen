@@ -6,11 +6,24 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import org.bukkit.command.CommandSender;
 
 public class ReloadCommand {
+
+    private static void reloadItems(CommandSender sender) {
+        Message.RELOAD.send(sender, "reloaded", "items");
+        OraxenItems.loadItems();
+    }
+
+    private static void reloadPack(OraxenPlugin plugin, CommandSender sender) {
+        Message.PACK_REGENERATED.send(sender);
+        OraxenPlugin.get().setFontManager(new FontManager(OraxenPlugin.get().getConfigsManager().getFont()));
+        ResourcePack resourcePack = new ResourcePack(plugin, OraxenPlugin.get().getFontManager());
+        plugin.getUploadManager().uploadAsyncAndSendToPlayers(resourcePack, true);
+    }
 
     public CommandAPICommand getReloadCommand() {
         return new CommandAPICommand("reload")
@@ -26,6 +39,8 @@ public class ReloadCommand {
                         case "CONFIGS" -> OraxenPlugin.get().reloadConfigs();
                         default -> {
                             OraxenPlugin oraxen = OraxenPlugin.get();
+                            MechanicsManager.unloadListeners();
+                            MechanicsManager.registerNativeMechanics();
                             OraxenPlugin.get().reloadConfigs();
                             reloadItems(sender);
                             reloadPack(oraxen, sender);
@@ -33,18 +48,6 @@ public class ReloadCommand {
                         }
                     }
                 });
-    }
-
-    private static void reloadItems(CommandSender sender) {
-        Message.RELOAD.send(sender, "reloaded", "items");
-        OraxenItems.loadItems();
-    }
-
-    private static void reloadPack(OraxenPlugin plugin, CommandSender sender) {
-        Message.PACK_REGENERATED.send(sender);
-        OraxenPlugin.get().setFontManager(new FontManager(OraxenPlugin.get().getConfigsManager().getFont()));
-        ResourcePack resourcePack = new ResourcePack(plugin, OraxenPlugin.get().getFontManager());
-        plugin.getUploadManager().uploadAsyncAndSendToPlayers(resourcePack, true);
     }
 
 }
