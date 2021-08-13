@@ -1,0 +1,8 @@
+{
+  "connect.joining": "",
+  "menu.disconnect": "§7                   À bientôt !§f<glyph:menu_banner_shift><glyph:menu_banner>",
+  "menu.returnToGame": "Retourner sur FunWise MC",
+  "menu.game": "<glyph:logo>",
+  "container.inventory": " Inventory",
+  "resourcePack.server.name": "Vanilla Mod"
+}
