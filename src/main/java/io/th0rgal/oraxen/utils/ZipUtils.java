@@ -38,18 +38,34 @@ public class ZipUtils {
 
     public static void writeZipFile(final File outputFile, final File directoryToZip,
                                     final Map<String, List<File>> fileListByZipDirectory) {
-
         try {
             final FileOutputStream fos = new FileOutputStream(outputFile);
             final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8);
-
             final int compressionLevel = Deflater.class.getDeclaredField(Settings.COMPRESSION.toString()).getInt(null);
             zos.setLevel(compressionLevel);
             zos.setComment(Settings.COMMENT.toString());
+            CustomArmorsTextures customArmorsTextures = new CustomArmorsTextures();
             for (final Map.Entry<String, List<File>> inZipDirectoryFiles : fileListByZipDirectory.entrySet())
                 for (final File file : inZipDirectoryFiles.getValue())
-                    if (!file.isDirectory()) // we only zip files, not directories
-                        addToZip(directoryToZip, file, inZipDirectoryFiles.getKey(), zos);
+                    if (!file.isDirectory()) { // we only zip files, not directories
+                        final InputStream fis;
+                        if (file.getName().endsWith(".json")) {
+                            String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
+                            final String[] placeholders = OraxenPlugin.get().getFontManager().getZipPlaceholders();
+                            for (int i = 0; i < placeholders.length; i += 2)
+                                content = content.replace(placeholders[i], placeholders[i + 1]);
+                            content = content.replace("§", "\\u00a7");
+                            fis = new ByteArrayInputStream(content.getBytes());
+                        } else if (customArmorsTextures.registerImage(file)) continue;
+                        else fis = new FileInputStream(file);
+                        addToZip(getZipFilePath(file, directoryToZip, inZipDirectoryFiles), fis, zos);
+                    }
+            if (customArmorsTextures.hasCustomArmors()) {
+                addToZip("assets/minecraft/textures/models/armor/leather_layer_1.png",
+                        customArmorsTextures.getLayerOne(), zos);
+                addToZip("assets/minecraft/textures/models/armor/leather_layer_2.png",
+                        customArmorsTextures.getLayerTwo(), zos);
+            }
             zos.close();
             fos.close();
         } catch (final IOException | NoSuchFieldException | IllegalAccessException e) {
@@ -57,28 +73,21 @@ public class ZipUtils {
         }
     }
 
-    public static void addToZip(final File directoryToZip, final File file, final String inZipDirectory, final ZipOutputStream zos)
-            throws IOException {
-
-        final InputStream fis;
-
-        if (file.getName().endsWith(".json")) {
-            String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
-            final String[] placeholders = OraxenPlugin.get().getFontManager().getZipPlaceholders();
-            for (int i = 0; i < placeholders.length; i += 2)
-                content = content.replace(placeholders[i], placeholders[i + 1]);
-            content = content.replace("§", "\\u00a7");
-            fis = new ByteArrayInputStream(content.getBytes());
-        } else fis = new FileInputStream(file);
-
+    private static String getZipFilePath(File file, File directoryToZip,
+                                         Map.Entry<String, List<File>> inZipDirectoryFiles) throws IOException {
         // we want the zipEntry's path to be a relative path that is relative
         // to the directory being zipped, so chop off the rest of the path
-        String zipFilePath = file.getCanonicalPath().substring(directoryToZip.getCanonicalPath().length() + 1);
+        String zipFilePath = file.getCanonicalPath()
+                .substring(directoryToZip.getCanonicalPath().length() + 1);
         if (OS.getOs().getName().startsWith("Windows"))
             zipFilePath = zipFilePath.replace("\\", "/");
-        if (!inZipDirectory.isEmpty())
-            zipFilePath = inZipDirectory + "/" + zipFilePath;
+        if (!inZipDirectoryFiles.getKey().isEmpty())
+            zipFilePath = inZipDirectoryFiles.getKey() + "/" + zipFilePath;
+        return zipFilePath;
+    }
 
+    public static void addToZip(String zipFilePath, final InputStream fis, final ZipOutputStream zos)
+            throws IOException {
         final ZipEntry zipEntry = new ZipEntry(zipFilePath);
         zipEntry.setLastModifiedTime(FileTime.fromMillis(0L));
         zos.putNextEntry(zipEntry);

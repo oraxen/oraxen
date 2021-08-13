@@ -40,7 +40,6 @@ public enum Message {
     PLUGIN_UNLOADED("logs.unloaded"),
 
     // command
-    COMMAND_NOT_EXIST("command.not_exist"),
     COMMAND_HELP("command.help"),
     COMMAND_JOIN_MESSAGE("command.join"),
 

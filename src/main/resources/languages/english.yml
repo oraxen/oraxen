@@ -28,7 +28,6 @@ logs:
   unloaded: "<prefix><#55ffa4>Successfully unloaded"
 
 command:
-  not_exist: "<prefix><#fa4943>The command '<name>' doesn't exist!"
   help: "<prefix><#b8bbc2>Available commands
         \n<hover:show_text:\"<gray>fill reload command\"><click:SUGGEST_COMMAND:/oraxen reload ><#6f737d>/o
           <#b8bbc2>reload <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> reload the plugin
