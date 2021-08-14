@@ -133,7 +133,9 @@ public class ResourcePack {
         rootFolder.addAll(assetFoldersCustom);
 
         final Map<String, List<File>> fileListByZipDirectory = new LinkedHashMap<>();
+        Collections.sort(subfolders);
         fileListByZipDirectory.put("assets/minecraft", subfolders);
+        Collections.sort(rootFolder);
         fileListByZipDirectory.put("", rootFolder);
         ZipUtils.writeZipFile(pack, packFolder, fileListByZipDirectory);
     }
