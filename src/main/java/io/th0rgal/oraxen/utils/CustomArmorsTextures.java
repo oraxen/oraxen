@@ -1,8 +1,13 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.items.OraxenItems;
+import org.bukkit.Color;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.awt.image.WritableRaster;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,24 +43,33 @@ public class CustomArmorsTextures {
             return true;
         }
 
-        if (file.getName().contains("armor_layer_1")) {
+        if (file.getName().contains("armor_layer_")) {
             BufferedImage image = ImageIO.read(file);
-            layers1.add(image);
-            layer1Width += image.getWidth();
-            if (image.getHeight() > layer1Height)
-                layer1Height = image.getHeight();
+            String prefix = file.getName().split("armor_layer_")[0];
+
+            ItemBuilder builder = null;
+            for (String suffix : new String[]{"helmet", "chestplate", "leggings", "boots"}) {
+                builder = OraxenItems.getItemById(prefix + "chestplate");
+                if (builder != null)
+                    break;
+            }
+            Graphics2D g2d = image.createGraphics();
+            WritableRaster raster = image.getRaster();
+            Color color = builder.getColor();
+            raster.setPixel(0, 0, new int[]{color.getRed(), color.getGreen(), color.getBlue(), 255});
+            if (file.getName().contains("armor_layer_1")) {
+                layers1.add(image);
+                layer1Width += image.getWidth();
+                if (image.getHeight() > layer1Height)
+                    layer1Height = image.getHeight();
+            } else {
+                layers2.add(image);
+                layer2Width += image.getWidth();
+                if (image.getHeight() > layer2Height)
+                    layer2Height = image.getHeight();
+            }
             return true;
         }
-
-        if (file.getName().contains("armor_layer_2")) {
-            BufferedImage image = ImageIO.read(file);
-            layers2.add(image);
-            layer2Width += image.getWidth();
-            if (image.getHeight() > layer2Height)
-                layer2Height = image.getHeight();
-            return true;
-        }
-
         return false;
     }
 

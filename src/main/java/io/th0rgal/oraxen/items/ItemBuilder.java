@@ -140,6 +140,10 @@ public class ItemBuilder {
         return this;
     }
 
+    public Color getColor() {
+        return color;
+    }
+
     public ItemBuilder setColor(final Color color) {
         this.color = color;
         return this;
