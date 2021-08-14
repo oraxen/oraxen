@@ -50,6 +50,15 @@ public class CustomArmorsTextures {
             if (name.endsWith("_e.png"))
                 return true;
 
+            String prefix = name.split("armor_layer_")[0];
+            ItemBuilder builder = null;
+            for (String suffix : new String[]{"helmet", "chestplate", "leggings", "boots"}) {
+                builder = OraxenItems.getItemById(prefix + "chestplate");
+                if (builder != null)
+                    break;
+            }
+            if (builder == null)
+                return true;
             BufferedImage image = ImageIO.read(file);
             File emissiveFile = new File(file.getPath().replace(".png", "_e.png"));
             if (emissiveFile.exists()) {
@@ -58,13 +67,6 @@ public class CustomArmorsTextures {
                         image.getHeight(),
                         image, emissiveImage);
                 setPixel(image.getRaster(), 2, 0, Color.fromRGB(1, 0, 0));
-            }
-            String prefix = name.split("armor_layer_")[0];
-            ItemBuilder builder = null;
-            for (String suffix : new String[]{"helmet", "chestplate", "leggings", "boots"}) {
-                builder = OraxenItems.getItemById(prefix + "chestplate");
-                if (builder != null)
-                    break;
             }
             setPixel(image.getRaster(), 0, 0, builder.getColor());
             if (name.contains("armor_layer_1")) {
