@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.Color;
@@ -53,12 +54,14 @@ public class CustomArmorsTextures {
             String prefix = name.split("armor_layer_")[0];
             ItemBuilder builder = null;
             for (String suffix : new String[]{"helmet", "chestplate", "leggings", "boots"}) {
-                builder = OraxenItems.getItemById(prefix + "chestplate");
+                builder = OraxenItems.getItemById(prefix + suffix);
                 if (builder != null)
                     break;
             }
-            if (builder == null)
+            if (builder == null) {
+                Message.NO_ARMOR_ITEM.log("name", prefix + "<part>", "armor_layer_file", name);
                 return true;
+            }
             BufferedImage image = ImageIO.read(file);
             File emissiveFile = new File(file.getPath().replace(".png", "_e.png"));
             if (emissiveFile.exists()) {

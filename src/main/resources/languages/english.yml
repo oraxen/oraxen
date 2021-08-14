@@ -26,6 +26,7 @@ general:
 logs:
   loaded: "<prefix><#55ffa4>Successfully loaded on <os>"
   unloaded: "<prefix><#55ffa4>Successfully unloaded"
+  no_armor_item: "<prefix><#fa4943>No item matching <name> found. Unable to use <armor_layer_file>"
 
 command:
   help: "<prefix><#b8bbc2>Available commands
