@@ -42,8 +42,8 @@ public class CustomArmorsTextures {
             BufferedImage image = ImageIO.read(file);
             layers1.add(image);
             layer1Width += image.getWidth();
-            if (layer1.getHeight() > layer1Height)
-                layer1Height = layer1.getHeight();
+            if (image.getHeight() > layer1Height)
+                layer1Height = image.getHeight();
             return true;
         }
 
@@ -51,8 +51,8 @@ public class CustomArmorsTextures {
             BufferedImage image = ImageIO.read(file);
             layers2.add(image);
             layer2Width += image.getWidth();
-            if (layer2.getHeight() > layer2Height)
-                layer2Height = layer2.getHeight();
+            if (image.getHeight() > layer2Height)
+                layer2Height = image.getHeight();
             return true;
         }
 
