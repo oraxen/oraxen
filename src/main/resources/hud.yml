@@ -1,0 +1,18 @@
+sprites:
+
+  money:
+    x: 64
+    type: simple
+    settings:
+      permission: "oraxen.hud.money"
+      display: "%money% <glyph:coin>"
+
+  mana_bar:
+    x: 64
+    type: bar
+    settings:
+      permission: "oraxen.hud.mana_bar"
+      symbol_full: <glyph:mana_full>
+      symbol_half: <glyph:mana_half>
+      symbol_empty: <glyph:mana_empty>
+      symbols: 10
