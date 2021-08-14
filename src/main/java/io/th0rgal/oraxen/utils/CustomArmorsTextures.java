@@ -24,10 +24,13 @@ public class CustomArmorsTextures {
     private int layer2Height = 0;
 
     public boolean registerImage(File file) throws IOException {
-        if (!file.getName().endsWith(".png"))
+
+        String name = file.getName();
+
+        if (!name.endsWith(".png"))
             return false;
 
-        if (file.getName().equals("leather_layer_1.png")) {
+        if (name.equals("leather_layer_1.png")) {
             layer1 = ImageIO.read(file);
             layer1Width += layer1.getWidth();
             if (layer1.getHeight() > layer1Height)
@@ -35,7 +38,7 @@ public class CustomArmorsTextures {
             return true;
         }
 
-        if (file.getName().equals("leather_layer_2.png")) {
+        if (name.equals("leather_layer_2.png")) {
             layer2 = ImageIO.read(file);
             layer2Width += layer2.getWidth();
             if (layer2.getHeight() > layer2Height)
@@ -43,21 +46,28 @@ public class CustomArmorsTextures {
             return true;
         }
 
-        if (file.getName().contains("armor_layer_")) {
-            BufferedImage image = ImageIO.read(file);
-            String prefix = file.getName().split("armor_layer_")[0];
+        if (name.contains("armor_layer_")) {
+            if (name.endsWith("_e.png"))
+                return true;
 
+            BufferedImage image = ImageIO.read(file);
+            File emissiveFile = new File(file.getPath().replace(".png", "_e.png"));
+            if (emissiveFile.exists()) {
+                BufferedImage emissiveImage = ImageIO.read(emissiveFile);
+                image = mergeImages(image.getWidth() + emissiveImage.getWidth(),
+                        image.getHeight(),
+                        image, emissiveImage);
+                setPixel(image.getRaster(), 2, 0, Color.fromRGB(1, 0, 0));
+            }
+            String prefix = name.split("armor_layer_")[0];
             ItemBuilder builder = null;
             for (String suffix : new String[]{"helmet", "chestplate", "leggings", "boots"}) {
                 builder = OraxenItems.getItemById(prefix + "chestplate");
                 if (builder != null)
                     break;
             }
-            Graphics2D g2d = image.createGraphics();
-            WritableRaster raster = image.getRaster();
-            Color color = builder.getColor();
-            raster.setPixel(0, 0, new int[]{color.getRed(), color.getGreen(), color.getBlue(), 255});
-            if (file.getName().contains("armor_layer_1")) {
+            setPixel(image.getRaster(), 0, 0, builder.getColor());
+            if (name.contains("armor_layer_1")) {
                 layers1.add(image);
                 layer1Width += image.getWidth();
                 if (image.getHeight() > layer1Height)
@@ -85,20 +95,29 @@ public class CustomArmorsTextures {
         return getInputStream(layer2Width, layer2Height, layer2, layers2);
     }
 
-    private InputStream getInputStream(int layer1Width, int layer1Height,
+    private InputStream getInputStream(int layerWidth, int layerHeight,
                                        BufferedImage layer, List<BufferedImage> layers) throws IOException {
-        BufferedImage concatImage = new BufferedImage(layer1Width, layer1Height, BufferedImage.TYPE_INT_ARGB);
+        layers.add(0, layer);
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        ImageIO.write(mergeImages(layerWidth, layerHeight, layers.toArray(new BufferedImage[0])),
+                "png", outputStream);
+        return new ByteArrayInputStream(outputStream.toByteArray());
+    }
+
+    private void setPixel(WritableRaster raster, int x, int y, Color color) {
+        raster.setPixel(x, y, new int[]{color.getRed(), color.getGreen(), color.getBlue(), 255});
+    }
+
+    private BufferedImage mergeImages(int width, int height, BufferedImage... images) {
+        BufferedImage concatImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g2d = concatImage.createGraphics();
-        g2d.drawImage(layer, 0, 0, null);
-        int currentWidth = layer.getWidth();
-        for (BufferedImage bufferedImage : layers) {
+        int currentWidth = 0;
+        for (BufferedImage bufferedImage : images) {
             g2d.drawImage(bufferedImage, currentWidth, 0, null);
             currentWidth += bufferedImage.getWidth();
         }
         g2d.dispose();
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        ImageIO.write(concatImage, "png", os);
-        return new ByteArrayInputStream(os.toByteArray());
+        return concatImage;
     }
 
 
