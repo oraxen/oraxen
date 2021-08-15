@@ -7,10 +7,14 @@ import java.util.List;
 
 public class InvManager {
 
-    private final ChestGui itemsView;
-    private final RecipesView recipesView;
+    private ChestGui itemsView;
+    private RecipesView recipesView;
 
     public InvManager() {
+        regen();
+    }
+
+    public void regen() {
         itemsView = new ItemsView().create();
         recipesView = new RecipesView();
     }

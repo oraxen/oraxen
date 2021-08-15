@@ -33,7 +33,10 @@ public class ReloadCommand {
                         new String[]{"items", "pack", "recipes", "messages", "all"}))
                 .executes((sender, args) -> {
                     switch (((String) args[0]).toUpperCase()) {
-                        case "ITEMS" -> reloadItems(sender);
+                        case "ITEMS" -> {
+                            reloadItems(sender);
+                            OraxenPlugin.get().getInvManager().regen();
+                        }
                         case "PACK" -> reloadPack(OraxenPlugin.get(), sender);
                         case "RECIPES" -> RecipesManager.reload(OraxenPlugin.get());
                         case "CONFIGS" -> OraxenPlugin.get().reloadConfigs();
@@ -45,6 +48,7 @@ public class ReloadCommand {
                             reloadItems(sender);
                             reloadPack(oraxen, sender);
                             RecipesManager.reload(oraxen);
+                            OraxenPlugin.get().getInvManager().regen();
                         }
                     }
                 });
