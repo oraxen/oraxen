@@ -39,6 +39,7 @@ public enum Message {
     PLUGIN_LOADED("logs.loaded"),
     PLUGIN_UNLOADED("logs.unloaded"),
     NO_ARMOR_ITEM("logs.no_armor_item"),
+    DUPLICATE_ARMOR_COLOR("logs.duplicate_armor_color"),
 
     // command
     COMMAND_HELP("command.help"),

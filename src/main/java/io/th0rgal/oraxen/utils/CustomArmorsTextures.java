@@ -11,10 +11,13 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class CustomArmorsTextures {
 
+    private final Map<Integer, String> usedColors = new HashMap<>();
     private final List<BufferedImage> layers1 = new ArrayList<>();
     private final List<BufferedImage> layers2 = new ArrayList<>();
     private BufferedImage layer1;
@@ -71,7 +74,15 @@ public class CustomArmorsTextures {
                         image, emissiveImage);
                 setPixel(image.getRaster(), 2, 0, Color.fromRGB(1, 0, 0));
             }
-            setPixel(image.getRaster(), 0, 0, builder.getColor());
+            Color stuffColor = builder.getColor();
+            if (usedColors.containsKey(stuffColor.asRGB())) {
+                String detectedPrefix = usedColors.get(stuffColor.asRGB());
+                if (!detectedPrefix.equals(prefix))
+                    Message.DUPLICATE_ARMOR_COLOR.log(
+                            "first_armor_prefix", prefix, "second_armor_prefix", detectedPrefix);
+            } else usedColors.put(stuffColor.asRGB(), prefix);
+
+            setPixel(image.getRaster(), 0, 0, stuffColor);
             if (name.contains("armor_layer_1")) {
                 layers1.add(image);
                 layer1Width += image.getWidth();

@@ -27,6 +27,7 @@ logs:
   loaded: "<prefix><#55ffa4>Chargé avec succès sur <os>"
   unloaded: "<prefix><#55ffa4>Déchargé avec succès"
   no_armor_item: "<prefix><#fa4943>Pas d'item de type <name> trouvé. Impossible de charger <armor_layer_file>"
+  duplicate_armor_color: "<prefix><#fa4943>L'armure <first_armor_prefix> utilise la même couleur que <second_armor_prefix> avec une texture différente"
 
 command:
   help: "<prefix><#b8bbc2>Commandes disponibles
