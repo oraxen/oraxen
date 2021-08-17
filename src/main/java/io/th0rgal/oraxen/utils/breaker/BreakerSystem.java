@@ -52,8 +52,12 @@ public class BreakerSystem {
             final StructureModifier<BlockPosition> dataTemp = packet.getBlockPositionModifier();
             final StructureModifier<EnumWrappers.PlayerDigType> data = packet
                     .getEnumModifier(EnumWrappers.PlayerDigType.class, 2);
-
-            final EnumWrappers.PlayerDigType type = data.getValues().get(0);
+            EnumWrappers.PlayerDigType type;
+            try {
+                type = data.getValues().get(0);
+            } catch (IllegalArgumentException exception) {
+                type = EnumWrappers.PlayerDigType.SWAP_HELD_ITEMS;
+            }
 
             final BlockPosition pos = dataTemp.getValues().get(0);
             final World world = player.getWorld();

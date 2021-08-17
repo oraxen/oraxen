@@ -35,7 +35,12 @@ public class EfficiencyMechanicListener implements Listener {
             final EfficiencyMechanic mechanic = (EfficiencyMechanic) factory.getMechanic(itemID);
             final StructureModifier<EnumWrappers.PlayerDigType> data = packet
                     .getEnumModifier(EnumWrappers.PlayerDigType.class, 2);
-            final EnumWrappers.PlayerDigType type = data.getValues().get(0);
+            EnumWrappers.PlayerDigType type;
+            try {
+                type = data.getValues().get(0);
+            } catch (IllegalArgumentException exception) {
+                type = EnumWrappers.PlayerDigType.SWAP_HELD_ITEMS;
+            }
             if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK)
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
                         player.addPotionEffect(new PotionEffect(mechanic.getType(),
