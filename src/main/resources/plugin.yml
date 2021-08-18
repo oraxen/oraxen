@@ -4,5 +4,5 @@ version: ${projectVersion}
 author: Th0rgal
 api-version: "1.16"
 softdepend: [ ProtocolLib, PlaceholderAPI, MythicMobs, MMOItems, CrateReloaded,
-              BossShopPro, ItemBridge, WorldGuard, Towny, Factions, Lands ]
+              BossShopPro, ItemBridge, WorldGuard, Towny, Factions, Lands, LightAPI ]
 loadbefore: [ Realistic_World ]

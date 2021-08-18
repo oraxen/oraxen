@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.compatibilities;
 import io.th0rgal.oraxen.compatibilities.provided.bossshoppro.BossShopProCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.cratereloaded.CrateReloadedCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.itembridge.ItemBridgeCompatibility;
+import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.compatibilities.provided.mythicmobs.MythicMobsCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PlaceholderAPICompatibility;
 import io.th0rgal.oraxen.config.Message;
@@ -17,6 +18,7 @@ public class CompatibilitiesManager {
     private static final ConcurrentHashMap<String, CompatibilityProvider<?>> ACTIVE_COMPATIBILITY_PROVIDERS = new ConcurrentHashMap<>();
 
     public static void enableNativeCompatibilities() {
+        WrappedLightAPI.init();
         new CompatibilityListener();
         addCompatibility("PlaceholderAPI", PlaceholderAPICompatibility.class, true);
         addCompatibility("BossShopPro", BossShopProCompatibility.class, true);
@@ -33,7 +35,7 @@ public class CompatibilitiesManager {
         try {
             if (!ACTIVE_COMPATIBILITY_PROVIDERS.containsKey(pluginName)
                     && COMPATIBILITY_PROVIDERS.containsKey(pluginName)
-                    && Bukkit.getPluginManager().isPluginEnabled(pluginName)) {
+                    && hasPlugin(pluginName)) {
                 final CompatibilityProvider<?> compatibilityProvider = COMPATIBILITY_PROVIDERS.
                         get(pluginName).getConstructor().newInstance();
                 compatibilityProvider.enable(pluginName);
@@ -101,5 +103,9 @@ public class CompatibilitiesManager {
 
     public static ConcurrentHashMap<String, CompatibilityProvider<?>> getActiveCompatibilityProviders() {
         return ACTIVE_COMPATIBILITY_PROVIDERS;
+    }
+
+    public static boolean hasPlugin(String name) {
+        return Bukkit.getPluginManager().isPluginEnabled(name);
     }
 }

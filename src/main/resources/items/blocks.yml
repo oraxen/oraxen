@@ -132,6 +132,7 @@ table:
     furniture:
       facing: UP
       barrier: true
+      light: 5
       drop: # useless if you are not using a barrier
         silktouch: false
         loots:

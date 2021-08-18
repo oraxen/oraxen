@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.upload;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.dispatch.AdvancedPackSender;
@@ -66,7 +67,7 @@ public class UploadManager {
                     "url", hostingProvider.getPackURL(), "delay", String.valueOf(System.currentTimeMillis() - time));
 
             if ((Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) && sender == null) {
-                packSender = (OraxenPlugin.getProtocolLib() && Settings.SEND_PACK_ADVANCED.toBool())
+                packSender = (CompatibilitiesManager.hasPlugin("ProtocolLib") && Settings.SEND_PACK_ADVANCED.toBool())
                         ? new AdvancedPackSender(hostingProvider) : new BukkitPackSender(hostingProvider);
                 packSender.register();
                 if (!hostingProvider.getPackURL().equals(url)) for (Player player : Bukkit.getOnlinePlayers())

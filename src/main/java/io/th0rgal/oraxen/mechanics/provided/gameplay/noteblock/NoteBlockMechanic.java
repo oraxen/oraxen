@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.drops.Drop;
@@ -14,11 +14,11 @@ import java.util.List;
 
 public class NoteBlockMechanic extends Mechanic {
 
-    private String model;
+    protected final boolean hasHardness;
     private final int customVariation;
     private final Drop drop;
     private final Sound breakSound;
-    protected final boolean hasHardness;
+    private String model;
     private int period;
 
     @SuppressWarnings("unchecked")
@@ -29,14 +29,14 @@ public class NoteBlockMechanic extends Mechanic {
          */
         super(mechanicFactory, section);
         if (section.isString("model"))
-            this.model = section.getString("model");
+            model = section.getString("model");
 
-        this.customVariation = section.getInt("custom_variation");
+        customVariation = section.getInt("custom_variation");
 
         if (section.isString("break_sound"))
-            this.breakSound = Sound.valueOf(section.getString("break_sound").toUpperCase());
+            breakSound = Sound.valueOf(section.getString("break_sound").toUpperCase());
         else
-            this.breakSound = null;
+            breakSound = null;
 
         List<Loot> loots = new ArrayList<>();
         if (section.isConfigurationSection("drop")) {
@@ -58,16 +58,13 @@ public class NoteBlockMechanic extends Mechanic {
                 this.drop = new Drop(loots, drop.getBoolean("silktouch"), drop.getBoolean("fortune"),
                         getItemID());
         } else
-            this.drop = new Drop(loots, false, false, getItemID());
+            drop = new Drop(loots, false, false, getItemID());
 
         // hardness requires protocollib
-        if (OraxenPlugin.getProtocolLib() && section.isInt("hardness")) {
+        if (CompatibilitiesManager.hasPlugin("ProtocolLib") && section.isInt("hardness")) {
             hasHardness = true;
             period = section.getInt("hardness");
-        } else {
-            hasHardness = false;
-
-        }
+        } else hasHardness = false;
     }
 
     public String getModel(ConfigurationSection section) {
@@ -86,11 +83,11 @@ public class NoteBlockMechanic extends Mechanic {
     }
 
     public boolean hasBreakSound() {
-        return this.breakSound != null;
+        return breakSound != null;
     }
 
     public Sound getBreakSound() {
-        return this.breakSound;
+        return breakSound;
     }
 
     public int getPeriod() {

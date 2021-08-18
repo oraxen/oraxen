@@ -45,10 +45,6 @@ public class OraxenPlugin extends JavaPlugin {
         return oraxen;
     }
 
-    public static boolean getProtocolLib() {
-        return Bukkit.getPluginManager().getPlugin("ProtocolLib") != null;
-    }
-
     private void postLoading(final ResourcePack resourcePack, final ConfigsManager configsManager) {
         uploadManager = new UploadManager(this);
         uploadManager.uploadAsyncAndSendToPlayers(resourcePack);
