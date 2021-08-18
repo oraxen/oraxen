@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import de.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
+import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -35,6 +37,7 @@ public class FurnitureMechanic extends Mechanic {
     private final BlockFace facing;
     private final Drop drop;
     private final EvolvingFurniture evolvingFurniture;
+    private final int light;
     private String placedItemId;
     private ItemStack placedItem;
     private Rotation rotation;
@@ -50,9 +53,9 @@ public class FurnitureMechanic extends Mechanic {
             placedItemId = section.getString("item");
 
         barriers = new ArrayList<>();
-        if (OraxenPlugin.getProtocolLib() && section.getBoolean("barrier", false))
+        if (CompatibilitiesManager.hasPlugin("ProtocolLib") && section.getBoolean("barrier", false))
             barriers.add(new BlockLocation(0, 0, 0));
-        if (OraxenPlugin.getProtocolLib() && section.isList("barriers"))
+        if (CompatibilitiesManager.hasPlugin("ProtocolLib") && section.isList("barriers"))
             for (Object barrierObject : section.getList("barriers"))
                 barriers.add(new BlockLocation((Map<String, Object>) barrierObject));
 
@@ -74,6 +77,8 @@ public class FurnitureMechanic extends Mechanic {
             hasRotation = true;
         } else
             hasRotation = false;
+
+        light = section.getInt("light", -1);
 
         farmlandRequired = section.getBoolean("farmland_required", false);
 
@@ -202,7 +207,14 @@ public class FurnitureMechanic extends Mechanic {
                 data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location).toString());
                 data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
                 block.setType(Material.BARRIER, false);
+                if (light != -1)
+                    WrappedLightAPI.createBlockLight(sideLocation, light, false);
             }
+        else if (light != -1)
+            WrappedLightAPI.createBlockLight(location, light, false);
+
+        if (light != -1)
+            WrappedLightAPI.refreshBlockLights(light, location);
     }
 
     public boolean removeSolid(World world, BlockLocation rootBlockLocation, float orientation) {
@@ -210,9 +222,13 @@ public class FurnitureMechanic extends Mechanic {
 
         for (Location location : getLocations(orientation,
                 rootLocation,
-                getBarriers()))
+                getBarriers())) {
+            if (light != -1)
+                WrappedLightAPI.removeBlockLight(location, false);
             location.getBlock().setType(Material.AIR);
+        }
 
+        boolean removed = false;
         for (Entity entity : rootLocation.getWorld().getNearbyEntities(rootLocation, 1, 1, 1))
             if (entity instanceof ItemFrame frame
                     && entity.getLocation().getBlockX() == rootLocation.getX()
@@ -227,10 +243,16 @@ public class FurnitureMechanic extends Mechanic {
                     stand.remove();
                 }
                 frame.remove();
+                if (light != -1)
+                    WrappedLightAPI.removeBlockLight(rootLocation, false);
                 rootLocation.getBlock().setType(Material.AIR);
-                return true;
+                removed = true;
+                break;
             }
-        return false;
+
+        if (light != -1)
+            WrappedLightAPI.refreshBlockLights(light, rootLocation);
+        return removed;
     }
 
     public void removeAirFurniture(ItemFrame frame) {
@@ -240,6 +262,11 @@ public class FurnitureMechanic extends Mechanic {
             for (Entity passenger : stand.getPassengers())
                 stand.removePassenger(passenger);
             stand.remove();
+        }
+        Location location = frame.getLocation().getBlock().getLocation();
+        if (light != -1) {
+            WrappedLightAPI.removeBlockLight(location, false);
+            WrappedLightAPI.refreshBlockLights(light, location);
         }
         frame.remove();
     }

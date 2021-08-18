@@ -207,15 +207,15 @@ public class FurnitureListener implements Listener {
         if (block.getType() != Material.BARRIER || event.getPlayer().getGameMode() != GameMode.CREATIVE)
             return;
 
-        final ItemFrame frame = getItemFrame(block.getLocation());
-        if (frame != null) {
-            frame.remove();
-            if (frame.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
-                final Entity stand = Bukkit.getEntity(UUID.fromString(frame.getPersistentDataContainer()
-                        .get(SEAT_KEY, PersistentDataType.STRING)));
-                stand.remove();
-            }
-        }
+        final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
+        if (!customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING))
+            return;
+        final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
+        final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
+        final BlockLocation rootBlockLocation = new BlockLocation(customBlockData.get(ROOT_KEY,
+                PersistentDataType.STRING));
+        mechanic.removeSolid(block.getWorld(), rootBlockLocation, customBlockData
+                .get(ORIENTATION_KEY, PersistentDataType.FLOAT));
     }
 
     @EventHandler(ignoreCancelled = true)
