@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.items;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -46,6 +47,10 @@ public class ItemBuilder {
 
     public ItemBuilder(final Material material) {
         this(new ItemStack(material));
+    }
+
+    public ItemBuilder(WrappedMMOItem wrapped) {
+        this(wrapped.build());
     }
 
     public ItemBuilder(final ItemStack itemStack) {

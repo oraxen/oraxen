@@ -136,3 +136,48 @@ fire:
   Pack:
     generate_model: false
     model: block/fire_floor0 # so we use the already existing fire model
+
+example_mmoitem:
+  displayname: "<gradient:#59A7EA:#F1D2FF>Test"
+
+  mmoitem:
+    type: SWORD
+    id: KATANA
+    level: 10 # Optional
+    tier: RARE # Optional
+    match_level: true # Optional
+
+
+
+
+COMPOSITE_BOW:
+
+  # Item de base
+  base:
+    material: BOW
+    name: '&fComposite Bow'
+    critical-strike-chance: 30.0
+    attack-damage:
+      base: 7
+      scale: 0.3
+      spread: 0.1
+      max-spread: 0.3
+    required-level:
+      base: 0
+      scale: 1
+
+      #Modifiers
+  modifiers:
+
+    # Premier modifier
+    swiftness:
+      weight: 3
+
+      #deuxieme modifier
+    heavy:
+      chance: 0.05
+      weight: 3
+
+      # troisième modifier
+    impending-doom:
+      weight: 5

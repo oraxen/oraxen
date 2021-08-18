@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -18,7 +19,10 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
 public class ItemParser {
@@ -27,16 +31,22 @@ public class ItemParser {
 
     private final OraxenMeta oraxenMeta;
     private final ConfigurationSection section;
-    private final Material type;
+    private Material type;
+    private WrappedMMOItem mmoItem;
     private boolean configUpdated = false;
 
     public ItemParser(ConfigurationSection section) {
         this.section = section;
-        this.type = Material.getMaterial(section.getString("material"));
-        this.oraxenMeta = new OraxenMeta();
+
+        if (section.isConfigurationSection("mmoitem"))
+            mmoItem = new WrappedMMOItem(section.getConfigurationSection("mmoitem"));
+        else
+            type = Material.getMaterial(section.getString("material"));
+
+        oraxenMeta = new OraxenMeta();
         if (section.isConfigurationSection("Pack")) {
             ConfigurationSection packSection = section.getConfigurationSection("Pack");
-            this.oraxenMeta.setPackInfos(packSection);
+            oraxenMeta.setPackInfos(packSection);
             if (packSection.isInt("custom_model_data"))
                 MODEL_DATAS_BY_ID
                         .put(section.getName(),
@@ -78,7 +88,7 @@ public class ItemParser {
         if (section.contains("unbreakable"))
             item.setUnbreakable(section.getBoolean("unbreakable"));
 
-        if(section.contains("no_auto_update"))
+        if (section.contains("no_auto_update"))
             oraxenMeta.setNoUpdate(section.getBoolean("no_auto_update"));
 
         if (section.contains("color")) {
@@ -153,12 +163,12 @@ public class ItemParser {
 
         if (oraxenMeta.hasPackInfos()) {
             int customModelData;
-            if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
+            if (MODEL_DATAS_BY_ID.containsKey(section.getName()))
                 customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getDurability();
-            } else {
+            else {
                 customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
                 if (Settings.AUTOMATICALLY_SET_MODEL_ID.toBool()) {
-                    this.configUpdated = true;
+                    configUpdated = true;
                     section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
                 }
             }

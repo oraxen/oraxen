@@ -12,8 +12,6 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.concurrent.TimeUnit;
-
 public class ThorMechanicListener implements Listener {
 
     private final MechanicFactory factory;
