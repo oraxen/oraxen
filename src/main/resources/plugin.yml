@@ -3,6 +3,6 @@ name: Oraxen
 version: ${projectVersion}
 author: Th0rgal
 api-version: "1.16"
-softdepend: [ ProtocolLib, PlaceholderAPI, MythicMobs, CrateReloaded,
+softdepend: [ ProtocolLib, PlaceholderAPI, MythicMobs, MMOItems, CrateReloaded,
               BossShopPro, ItemBridge, WorldGuard, Towny, Factions, Lands ]
 loadbefore: [ Realistic_World ]

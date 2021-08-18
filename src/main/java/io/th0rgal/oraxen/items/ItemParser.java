@@ -38,8 +38,8 @@ public class ItemParser {
     public ItemParser(ConfigurationSection section) {
         this.section = section;
 
-        if (section.isConfigurationSection("mmoitem"))
-            mmoItem = new WrappedMMOItem(section.getConfigurationSection("mmoitem"));
+        if (section.isConfigurationSection("MMOItems"))
+            mmoItem = new WrappedMMOItem(section.getConfigurationSection("MMOItems"));
         else
             type = Material.getMaterial(section.getString("material"));
 
