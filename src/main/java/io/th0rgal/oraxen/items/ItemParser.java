@@ -55,21 +55,23 @@ public class ItemParser {
         }
     }
 
+    public boolean usesMMOItems() {
+        return type == null;
+    }
+
     private String parseComponentString(String miniString) {
         return Utils.LEGACY_COMPONENT_SERIALIZER.serialize(MiniMessage.get()
                 .parse(miniString, OraxenPlugin.get().getFontManager().getMiniMessagePlaceholders()));
     }
 
-    public ItemBuilder buildItem(String name) {
-        ItemBuilder item = new ItemBuilder(type);
-        item.setDisplayName(name);
-        return applyConfig(item);
+    public ItemBuilder buildItem() {
+        return buildItem(section.contains("displayname") ? parseComponentString(section.getString("displayname")) : null);
     }
 
-    public ItemBuilder buildItem() {
-        ItemBuilder item = new ItemBuilder(type);
-        if (section.contains("displayname"))
-            item.setDisplayName(parseComponentString(section.getString("displayname")));
+    public ItemBuilder buildItem(String name) {
+        ItemBuilder item = usesMMOItems() ? new ItemBuilder(mmoItem) : new ItemBuilder(type);
+        if (name != null)
+            item.setDisplayName(name);
         return applyConfig(item);
     }
 

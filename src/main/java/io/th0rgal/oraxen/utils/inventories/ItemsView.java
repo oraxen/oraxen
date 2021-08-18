@@ -14,7 +14,6 @@ import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
-import org.bukkit.craftbukkit.libs.org.apache.commons.io.FilenameUtils;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 
@@ -61,7 +60,7 @@ public class ItemsView {
         final int rows = Math.min((items.size() - 1) / 9 + 2, 6);
         final ChestGui gui = new ChestGui(6,
                 getMenuTexture(settings.getString(String.format("gui_inventory.%s.color",
-                        FilenameUtils.removeExtension(fileName)))));
+                        Utils.removeExtension(fileName)))));
         final PaginatedPane pane = new PaginatedPane(9, rows);
 
         for (int i = 0; i < (items.size() - 1) / 45 + 1; i++) {
@@ -131,7 +130,7 @@ public class ItemsView {
     private ItemStack getItemStack(final File file) {
         ItemStack itemStack;
         String material = settings
-                .getString(String.format("gui_inventory.%s.icon", FilenameUtils.removeExtension(file.getName())),
+                .getString(String.format("gui_inventory.%s.icon", Utils.removeExtension(file.getName())),
                         "PAPER");
         if (material == null)
             material = "PAPER";

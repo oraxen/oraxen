@@ -8,14 +8,11 @@ import net.Indyuce.mmoitems.api.item.template.MMOItemTemplate;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
-import javax.annotation.Nullable;
-
 public class WrappedMMOItem {
     private final Type type;
     private final String id;
 
     private final int level;
-    @Nullable
     private final ItemTier tier;
 
     public WrappedMMOItem(ConfigurationSection section) {
