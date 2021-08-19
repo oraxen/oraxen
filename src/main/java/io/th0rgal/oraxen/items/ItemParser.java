@@ -90,9 +90,6 @@ public class ItemParser {
         if (section.contains("unbreakable"))
             item.setUnbreakable(section.getBoolean("unbreakable"));
 
-        if (section.contains("no_auto_update"))
-            oraxenMeta.setNoUpdate(section.getBoolean("no_auto_update"));
-
         if (section.contains("color")) {
             String[] colors = section.getString("color").split(", ");
             item
@@ -102,6 +99,17 @@ public class ItemParser {
                                     Integer.parseInt(colors[2])));
         }
 
+        parseMiscOptions(item);
+        parseVanillaSections(item);
+        parseOraxenSections(item);
+        item.setOraxenMeta(oraxenMeta);
+        return item;
+    }
+
+    private void parseMiscOptions(ItemBuilder item) {
+        if (section.contains("no_auto_update"))
+            oraxenMeta.setNoUpdate(section.getBoolean("no_auto_update"));
+
         if (section.contains("excludeFromInventory") && section.getBoolean("excludeFromInventory"))
             oraxenMeta.setExcludedFromInventory();
 
@@ -109,6 +117,9 @@ public class ItemParser {
             item
                     .setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING,
                             section.getName());
+    }
+
+    private void parseVanillaSections(ItemBuilder item) {
 
         if (section.contains("ItemFlags")) {
             List<String> itemFlags = section.getStringList("ItemFlags");
@@ -149,6 +160,9 @@ public class ItemParser {
                         .addEnchant(EnchantmentWrapper.getByKey(NamespacedKey.minecraft(enchant)),
                                 enchantSection.getInt(enchant));
         }
+    }
+
+    private void parseOraxenSections(ItemBuilder item) {
 
         if (section.isConfigurationSection("Mechanics")) {
             ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
@@ -177,9 +191,6 @@ public class ItemParser {
             item.setCustomModelData(customModelData);
             oraxenMeta.setCustomModelData(customModelData);
         }
-        item.setOraxenMeta(oraxenMeta);
-
-        return item;
     }
 
     public boolean isConfigUpdated() {
