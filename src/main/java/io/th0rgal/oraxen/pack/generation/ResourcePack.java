@@ -35,14 +35,54 @@ public class ResourcePack {
         this.plugin = plugin;
         final File packFolder = new File(plugin.getDataFolder(), "pack");
         makeDirsIfNotExists(packFolder);
+        pack = new File(packFolder, packFolder.getName() + ".zip");
+        extractRequiredFiles(packFolder);
 
+        if (!Settings.GENERATE.toBool())
+            return;
+
+        if (pack.exists())
+            pack.delete();
+
+        extractInPackIfNotExists(plugin, new File(packFolder, "pack.mcmeta"));
+        extractInPackIfNotExists(plugin, new File(packFolder, "pack.png"));
+
+        // Sorting items to keep only one with models (and generate it if needed)
+        final Map<Material, List<ItemBuilder>> texturedItems = extractTexturedItems();
+        generatePredicates(texturedItems);
+        generateFont(fontManager);
+        for (final Consumer<File> packModifier : PACK_MODIFIERS) packModifier.accept(packFolder);
+
+        // zipping resourcepack
+        final List<File> rootFolder = new ArrayList<>();
+        ZipUtils.getFilesInFolder(packFolder, rootFolder, packFolder.getName() + ".zip");
+
+        final List<File> subfolders = new ArrayList<>();
+        final List<File> assetFoldersCustom = new ArrayList<>();
+        // needs to be ordered, forEach cannot be used
+        for (final File folder : packFolder.listFiles())
+            if (folder.isDirectory() && folder.getName().equalsIgnoreCase("assets"))
+                ZipUtils.getAllFiles(folder, assetFoldersCustom);
+            else if (folder.isDirectory())
+                ZipUtils.getAllFiles(folder, subfolders);
+
+        rootFolder.addAll(assetFoldersCustom);
+
+        final Map<String, List<File>> fileListByZipDirectory = new LinkedHashMap<>();
+        Collections.sort(subfolders);
+        fileListByZipDirectory.put("assets/minecraft", subfolders);
+        Collections.sort(rootFolder);
+        fileListByZipDirectory.put("", rootFolder);
+        ZipUtils.writeZipFile(pack, packFolder, fileListByZipDirectory);
+    }
+
+    private void extractRequiredFiles(File packFolder) {
         final File texturesFolder = new File(packFolder, "textures");
         final File shadersFolder = new File(packFolder, "shaders");
         assetsFolder = new File(packFolder, "assets");
         modelsFolder = new File(packFolder, "models");
         fontFolder = new File(packFolder, "font");
         final File langFolder = new File(packFolder, "lang");
-
         final boolean extractModels = !modelsFolder.exists();
         final boolean extractTextures = !texturesFolder.exists();
         final boolean extractShaders = !shadersFolder.exists();
@@ -72,19 +112,9 @@ public class ResourcePack {
                 ex.printStackTrace();
             }
         }
+    }
 
-        pack = new File(packFolder, packFolder.getName() + ".zip");
-
-        if (!Settings.GENERATE.toBool())
-            return;
-
-        if (pack.exists())
-            pack.delete();
-
-        extractInPackIfNotExists(plugin, new File(packFolder, "pack.mcmeta"));
-        extractInPackIfNotExists(plugin, new File(packFolder, "pack.png"));
-
-        // Sorting items to keep only one with models (and generate it if needed)
+    private Map<Material, List<ItemBuilder>> extractTexturedItems() {
         final Map<Material, List<ItemBuilder>> texturedItems = new HashMap<>();
         for (final Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
             final ItemBuilder item = entry.getValue();
@@ -113,31 +143,7 @@ public class ResourcePack {
                 texturedItems.put(item.build().getType(), items);
             }
         }
-        generatePredicates(texturedItems);
-        generateFont(fontManager);
-        for (final Consumer<File> packModifier : PACK_MODIFIERS) packModifier.accept(packFolder);
-
-        // zipping resourcepack
-        final List<File> rootFolder = new ArrayList<>();
-        ZipUtils.getFilesInFolder(packFolder, rootFolder, packFolder.getName() + ".zip");
-
-        final List<File> subfolders = new ArrayList<>();
-        final List<File> assetFoldersCustom = new ArrayList<>();
-        // needs to be ordered, forEach cannot be used
-        for (final File folder : packFolder.listFiles())
-            if (folder.isDirectory() && folder.getName().equalsIgnoreCase("assets"))
-                ZipUtils.getAllFiles(folder, assetFoldersCustom);
-            else if (folder.isDirectory())
-                ZipUtils.getAllFiles(folder, subfolders);
-
-        rootFolder.addAll(assetFoldersCustom);
-
-        final Map<String, List<File>> fileListByZipDirectory = new LinkedHashMap<>();
-        Collections.sort(subfolders);
-        fileListByZipDirectory.put("assets/minecraft", subfolders);
-        Collections.sort(rootFolder);
-        fileListByZipDirectory.put("", rootFolder);
-        ZipUtils.writeZipFile(pack, packFolder, fileListByZipDirectory);
+        return texturedItems;
     }
 
     public static File getAssetsFolder() {
