@@ -39,11 +39,11 @@ public class RecipesCommand {
                         List<CustomRecipe> recipes = RecipesEventsManager.get().getPermittedRecipes(player);
                         final String[] oraxenItems = OraxenItems.nameArray();
                         final String param = (String) args[0];
-                        if ("all".equals(param)) {
-                        } else recipes = recipes
-                                .stream()
-                                .filter(customRecipe -> customRecipe.getName().equals(param))
-                                .collect(Collectors.toList());
+                        if (!"all".equals(param))
+                            recipes = recipes
+                                    .stream()
+                                    .filter(customRecipe -> customRecipe.getName().equals(param))
+                                    .collect(Collectors.toList());
                         if (recipes.isEmpty()) {
                             Message.RECIPE_NO_RECIPE.send(sender);
                             return;
