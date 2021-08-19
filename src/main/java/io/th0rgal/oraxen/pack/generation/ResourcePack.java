@@ -36,6 +36,9 @@ public class ResourcePack {
         final File packFolder = new File(plugin.getDataFolder(), "pack");
         makeDirsIfNotExists(packFolder);
         pack = new File(packFolder, packFolder.getName() + ".zip");
+        assetsFolder = new File(packFolder, "assets");
+        modelsFolder = new File(packFolder, "models");
+        fontFolder = new File(packFolder, "font");
         extractRequiredFiles(packFolder);
 
         if (!Settings.GENERATE.toBool())
@@ -77,18 +80,12 @@ public class ResourcePack {
     }
 
     private void extractRequiredFiles(File packFolder) {
-        final File texturesFolder = new File(packFolder, "textures");
-        final File shadersFolder = new File(packFolder, "shaders");
-        assetsFolder = new File(packFolder, "assets");
-        modelsFolder = new File(packFolder, "models");
-        fontFolder = new File(packFolder, "font");
         final File langFolder = new File(packFolder, "lang");
         final boolean extractModels = !modelsFolder.exists();
-        final boolean extractTextures = !texturesFolder.exists();
-        final boolean extractShaders = !shadersFolder.exists();
+        final boolean extractTextures = !new File(packFolder, "textures").exists();
+        final boolean extractShaders = !new File(packFolder, "shaders").exists();
         final boolean extractLang = !langFolder.exists();
         final boolean extractassets = !assetsFolder.exists();
-
         if (extractModels || extractTextures || extractShaders || extractLang || extractassets) {
             final ZipInputStream zip = ResourcesManager.browse();
             try {
