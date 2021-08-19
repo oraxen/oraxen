@@ -78,66 +78,75 @@ public class UploadManager {
     }
 
     private HostingProvider createHostingProvider() {
-        switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ENGLISH)) {
-            case "polymath":
-                return new Polymath(Settings.POLYMATH_SERVER.toString());
-            case "sh":
-            case "cmd":
-                final ConfigurationSection opt = (ConfigurationSection) Settings.UPLOAD_OPTIONS.getValue();
-                final List<String> args = opt.getStringList("args");
-                if (args.isEmpty())
-                    throw new ProviderNotFoundException("No command line.");
-                final String placeholder = opt.getString("placeholder", "${file}");
-                return new Sh(Sh.path(placeholder, args));
-            case "external":
-                final Class<?> target;
-                final ConfigurationSection options = (ConfigurationSection) Settings.UPLOAD_OPTIONS.getValue();
-                final String klass = options.getString("class");
-                if (klass == null)
-                    throw new ProviderNotFoundException("No provider set.");
-                try {
-                    target = Class.forName(klass);
-                } catch (final Throwable any) {
-                    final ProviderNotFoundException error = new ProviderNotFoundException("Provider not found: " + klass);
-                    error.addSuppressed(any);
-                    throw error;
-                }
-                if (!HostingProvider.class.isAssignableFrom(target))
-                    throw new ProviderNotFoundException(target + " is not a valid HostingProvider.");
-                final Class<? extends HostingProvider> implement = target.asSubclass(HostingProvider.class);
-                Constructor<? extends HostingProvider> constructor;
-                try {
-                    try {
-                        constructor = implement.getConstructor(ConfigurationSection.class);
-                    } catch (final Exception notFound) {
-                        try {
-                            constructor = implement.getConstructor();
-                        } catch (final Exception ignore) {
-                            // For catching reasons
-                            throw (ProviderNotFoundException) new ProviderNotFoundException("Invalid provider: " + target).initCause(ignore); // Use (Lorg/bukkit/configuration/ConfigurationSection;)V to Exception
-                        }
-                    }
-                } catch (final Exception e) {
-                    throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot found constructor in " + target)
-                            .initCause(e);
-                }
-                try {
-                    return constructor.getParameterCount() == 0 ? constructor.newInstance()
-                            : constructor.newInstance(options);
-                } catch (final InstantiationException e) {
-                    throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot alloc instance for " + target)
-                            .initCause(e);
-                } catch (final IllegalAccessException e) {
-                    throw (ProviderNotFoundException) new ProviderNotFoundException("Failed to access " + target)
-                            .initCause(e);
-                } catch (final InvocationTargetException e) {
-                    throw (ProviderNotFoundException) new ProviderNotFoundException("Exception in allocating instance.")
-                            .initCause(e.getCause());
-                }
-            default:
-                throw new ProviderNotFoundException("Unknown provider type: " + Settings.UPLOAD_TYPE);
-        }
+        return switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ENGLISH)) {
+            case "polymath" -> new Polymath(Settings.POLYMATH_SERVER.toString());
+            case "sh", "cmd" -> createShProvider();
+            case "external" -> createExternalProvider();
+            default -> throw new ProviderNotFoundException("Unknown provider type: " + Settings.UPLOAD_TYPE);
+        };
+    }
 
+    private Sh createShProvider() {
+        final ConfigurationSection opt = (ConfigurationSection) Settings.UPLOAD_OPTIONS.getValue();
+        final List<String> args = opt.getStringList("args");
+        if (args.isEmpty())
+            throw new ProviderNotFoundException("No command line.");
+        final String placeholder = opt.getString("placeholder", "${file}");
+        return new Sh(Sh.path(placeholder, args));
+    }
+
+    private HostingProvider createExternalProvider() {
+        final Class<?> target;
+        final ConfigurationSection options = (ConfigurationSection) Settings.UPLOAD_OPTIONS.getValue();
+        final String klass = options.getString("class");
+        if (klass == null)
+            throw new ProviderNotFoundException("No provider set.");
+        try {
+            target = Class.forName(klass);
+        } catch (final Throwable any) {
+            final ProviderNotFoundException error = new ProviderNotFoundException("Provider not found: " + klass);
+            error.addSuppressed(any);
+            throw error;
+        }
+        if (!HostingProvider.class.isAssignableFrom(target))
+            throw new ProviderNotFoundException(target + " is not a valid HostingProvider.");
+        return constructExternalHostingProvider(target, options);
+    }
+
+    private HostingProvider constructExternalHostingProvider(final Class<?> target,
+                                                             final ConfigurationSection options) {
+        final Class<? extends HostingProvider> implement = target.asSubclass(HostingProvider.class);
+        Constructor<? extends HostingProvider> constructor;
+        try {
+            try {
+                constructor = implement.getConstructor(ConfigurationSection.class);
+            } catch (final Exception notFound) {
+                try {
+                    constructor = implement.getConstructor();
+                } catch (final Exception ignore) {
+                    // For catching reasons
+                    throw (ProviderNotFoundException)
+                            new ProviderNotFoundException("Invalid provider: " + target).initCause(ignore);
+                    // Use (Lorg/bukkit/configuration/ConfigurationSection;)V to Exception
+                }
+            }
+        } catch (final Exception e) {
+            throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot found constructor in " + target)
+                    .initCause(e);
+        }
+        try {
+            return constructor.getParameterCount() == 0 ? constructor.newInstance()
+                    : constructor.newInstance(options);
+        } catch (final InstantiationException e) {
+            throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot alloc instance for " + target)
+                    .initCause(e);
+        } catch (final IllegalAccessException e) {
+            throw (ProviderNotFoundException) new ProviderNotFoundException("Failed to access " + target)
+                    .initCause(e);
+        } catch (final InvocationTargetException e) {
+            throw (ProviderNotFoundException) new ProviderNotFoundException("Exception in allocating instance.")
+                    .initCause(e.getCause());
+        }
     }
 
 }
