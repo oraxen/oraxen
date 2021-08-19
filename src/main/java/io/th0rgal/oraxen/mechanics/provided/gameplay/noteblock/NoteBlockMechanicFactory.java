@@ -107,24 +107,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         return instance;
     }
 
-    /**
-     * Generate a NoteBlock blockdata from its id
-     *
-     * @param id The block id.
-     */
-    @SuppressWarnings("deprecation")
-    public static NoteBlock createNoteBlockData(int id) {
-        /* We have 16 instruments with 25 notes. All of those blocks can be powered.
-         * That's: 16*25*2 = 800 variations. The first 25 variations of PIANO (not powered)
-         * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
-         */
-        id += 26;
-        NoteBlock noteBlock = (NoteBlock) Bukkit.createBlockData(Material.NOTE_BLOCK);
-        noteBlock.setInstrument(Instrument.getByType((byte) (id / 25 % 400)));
-        noteBlock.setNote(new Note(id % 25));
-        noteBlock.setPowered(id >= 400);
-        return noteBlock;
-    }
 
     /**
      * Attempts to set the block directly to the model and texture of an Oraxen item.
@@ -158,6 +140,25 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
+    }
+
+    /**
+     * Generate a NoteBlock blockdata from its id
+     *
+     * @param id The block id.
+     */
+    @SuppressWarnings("deprecation")
+    public static NoteBlock createNoteBlockData(int id) {
+        /* We have 16 instruments with 25 notes. All of those blocks can be powered.
+         * That's: 16*25*2 = 800 variations. The first 25 variations of PIANO (not powered)
+         * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
+         */
+        id += 26;
+        NoteBlock noteBlock = (NoteBlock) Bukkit.createBlockData(Material.NOTE_BLOCK);
+        noteBlock.setInstrument(Instrument.getByType((byte) (id / 25 % 400)));
+        noteBlock.setNote(new Note(id % 25));
+        noteBlock.setPowered(id >= 400);
+        return noteBlock;
     }
 
     /**
