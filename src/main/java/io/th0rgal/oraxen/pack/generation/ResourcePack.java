@@ -39,7 +39,10 @@ public class ResourcePack {
         assetsFolder = new File(packFolder, "assets");
         modelsFolder = new File(packFolder, "models");
         fontFolder = new File(packFolder, "font");
-        extractRequiredFiles(packFolder);
+        final File langFolder = new File(packFolder, "lang");
+        extractFolders(!modelsFolder.exists(), !new File(packFolder, "textures").exists(),
+                !new File(packFolder, "shaders").exists(),
+                !langFolder.exists(), !assetsFolder.exists());
 
         if (!Settings.GENERATE.toBool())
             return;
@@ -79,19 +82,13 @@ public class ResourcePack {
         ZipUtils.writeZipFile(pack, packFolder, fileListByZipDirectory);
     }
 
-    private void extractRequiredFiles(File packFolder) {
-        final File langFolder = new File(packFolder, "lang");
-        final boolean extractModels = !modelsFolder.exists();
-        final boolean extractTextures = !new File(packFolder, "textures").exists();
-        final boolean extractShaders = !new File(packFolder, "shaders").exists();
-        final boolean extractLang = !langFolder.exists();
-        final boolean extractassets = !assetsFolder.exists();
+    private void extractFolders(boolean extractModels, boolean extractTextures, boolean extractShaders,
+                                boolean extractLang, boolean extractassets) {
         if (extractModels || extractTextures || extractShaders || extractLang || extractassets) {
             final ZipInputStream zip = ResourcesManager.browse();
             try {
                 ZipEntry entry = zip.getNextEntry();
                 final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
-
                 while (entry != null) {
                     final String name = entry.getName();
                     final boolean isSuitable = (extractModels && name.startsWith("pack/models"))
@@ -99,7 +96,6 @@ public class ResourcePack {
                             || (extractTextures && name.startsWith("pack/shaders"))
                             || (extractLang && name.startsWith("pack/lang"))
                             || (extractassets && name.startsWith("/pack/assets"));
-
                     resourcesManager.extractFileIfTrue(entry, name, isSuitable);
                     entry = zip.getNextEntry();
                 }
