@@ -323,20 +323,8 @@ public class ItemBuilder {
                 return leatherArmorMeta;
             }
 
-        if (itemMeta instanceof PotionMeta potionMeta) {
-
-            if (color != null && !color.equals(potionMeta.getColor()))
-                potionMeta.setColor(color);
-
-            if (!potionData.equals(potionMeta.getBasePotionData()))
-                potionMeta.setBasePotionData(potionData);
-
-            if (!potionEffects.equals(potionMeta.getCustomEffects()))
-                for (final PotionEffect potionEffect : potionEffects)
-                    potionMeta.addCustomEffect(potionEffect, true);
-
-            return potionMeta;
-        }
+        if (itemMeta instanceof PotionMeta potionMeta)
+            return handlePotionMeta(potionMeta);
 
         if (itemMeta instanceof SkullMeta skullMeta) {
             final OfflinePlayer defaultOwningPlayer = skullMeta.getOwningPlayer();
@@ -346,24 +334,41 @@ public class ItemBuilder {
             }
         }
 
-        if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta) {
-
-            final DyeColor defaultColor = tropicalFishBucketMeta.getBodyColor();
-            if (!bodyColor.equals(defaultColor))
-                tropicalFishBucketMeta.setBodyColor(bodyColor);
-
-            final TropicalFish.Pattern defaultPattern = tropicalFishBucketMeta.getPattern();
-            if (!pattern.equals(defaultPattern))
-                tropicalFishBucketMeta.setPattern(pattern);
-
-            final DyeColor defaultPatternColor = tropicalFishBucketMeta.getPatternColor();
-            if (!patternColor.equals(defaultPatternColor))
-                tropicalFishBucketMeta.setPatternColor(patternColor);
-
-            return tropicalFishBucketMeta;
-        }
+        if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta)
+            return handleTropicalFishBucketMeta(tropicalFishBucketMeta);
 
         return itemMeta;
+    }
+
+    private ItemMeta handlePotionMeta(PotionMeta potionMeta) {
+        if (color != null && !color.equals(potionMeta.getColor()))
+            potionMeta.setColor(color);
+
+        if (!potionData.equals(potionMeta.getBasePotionData()))
+            potionMeta.setBasePotionData(potionData);
+
+        if (!potionEffects.equals(potionMeta.getCustomEffects()))
+            for (final PotionEffect potionEffect : potionEffects)
+                potionMeta.addCustomEffect(potionEffect, true);
+
+        return potionMeta;
+    }
+
+    private ItemMeta handleTropicalFishBucketMeta(TropicalFishBucketMeta tropicalFishBucketMeta) {
+
+        final DyeColor defaultColor = tropicalFishBucketMeta.getBodyColor();
+        if (!bodyColor.equals(defaultColor))
+            tropicalFishBucketMeta.setBodyColor(bodyColor);
+
+        final TropicalFish.Pattern defaultPattern = tropicalFishBucketMeta.getPattern();
+        if (!pattern.equals(defaultPattern))
+            tropicalFishBucketMeta.setPattern(pattern);
+
+        final DyeColor defaultPatternColor = tropicalFishBucketMeta.getPatternColor();
+        if (!patternColor.equals(defaultPatternColor))
+            tropicalFishBucketMeta.setPatternColor(patternColor);
+
+        return tropicalFishBucketMeta;
     }
 
     public int getMaxStackSize() {
