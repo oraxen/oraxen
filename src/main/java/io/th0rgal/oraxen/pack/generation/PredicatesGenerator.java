@@ -80,6 +80,9 @@ public class PredicatesGenerator {
                 overrides.add(getOverride(pullingPredicate, "item/crossbow_pulling_2"));
                 json.add("display", parser.parse(Settings.CROSSBOW_DISPLAY.toString()).getAsJsonObject());
                 break;
+
+            default:
+                break;
         }
 
         // custom items
