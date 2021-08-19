@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.utils.commands.CommandsParser;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -85,6 +84,7 @@ public class PackReceiver implements Listener {
             case "ACTION_BAR" -> audience.sendActionBar(message);
             case "TITLE" -> audience.showTitle(Title.title(null, message,
                     Title.Times.of(Duration.ofMillis(250), Duration.ofMillis(3500), Duration.ofMillis(250))));
+            default -> throw new IllegalStateException("Unexpected value: " + action);
         }
     }
 

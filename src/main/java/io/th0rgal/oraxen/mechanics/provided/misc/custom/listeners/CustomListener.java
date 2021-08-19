@@ -44,6 +44,7 @@ public abstract class CustomListener implements Listener {
                     if (!player.hasPermission(condition.getParams().get(0)))
                         return;
                 }
+                default -> throw new IllegalStateException("Unexpected value: " + condition.type);
             }
 
         for (CustomAction action : actions)
@@ -66,6 +67,8 @@ public abstract class CustomListener implements Listener {
                     OraxenPlugin.get().getAudience().sender(player)
                             .sendActionBar(MiniMessage.get().parse(action.getParams().get(0)));
                 }
+
+                default -> throw new IllegalStateException("Unexpected value: " + action);
             }
 
         if (event.isOneUsage())

@@ -55,6 +55,9 @@ public class ClickListener extends CustomListener {
                     interactActions.add(Action.LEFT_CLICK_AIR);
                 }
                 break;
+
+            default:
+                throw new IllegalStateException("Unexpected value: " + event.getParams().get(0));
         }
     }
 
