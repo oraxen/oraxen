@@ -84,26 +84,26 @@ public class ResourcePack {
 
     private void extractFolders(boolean extractModels, boolean extractTextures, boolean extractShaders,
                                 boolean extractLang, boolean extractassets) {
-        if (extractModels || extractTextures || extractShaders || extractLang || extractassets) {
-            final ZipInputStream zip = ResourcesManager.browse();
-            try {
-                ZipEntry entry = zip.getNextEntry();
-                final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
-                while (entry != null) {
-                    final String name = entry.getName();
-                    final boolean isSuitable = (extractModels && name.startsWith("pack/models"))
-                            || (extractTextures && name.startsWith("pack/textures"))
-                            || (extractTextures && name.startsWith("pack/shaders"))
-                            || (extractLang && name.startsWith("pack/lang"))
-                            || (extractassets && name.startsWith("/pack/assets"));
-                    resourcesManager.extractFileIfTrue(entry, name, isSuitable);
-                    entry = zip.getNextEntry();
-                }
-                zip.closeEntry();
-                zip.close();
-            } catch (final IOException ex) {
-                ex.printStackTrace();
+        if (!extractModels && !extractTextures && !extractShaders && !extractLang && !extractassets)
+            return;
+        final ZipInputStream zip = ResourcesManager.browse();
+        try {
+            ZipEntry entry = zip.getNextEntry();
+            final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
+            while (entry != null) {
+                final String name = entry.getName();
+                final boolean isSuitable = (extractModels && name.startsWith("pack/models"))
+                        || (extractTextures && name.startsWith("pack/textures"))
+                        || (extractTextures && name.startsWith("pack/shaders"))
+                        || (extractLang && name.startsWith("pack/lang"))
+                        || (extractassets && name.startsWith("/pack/assets"));
+                resourcesManager.extractFileIfTrue(entry, name, isSuitable);
+                entry = zip.getNextEntry();
             }
+            zip.closeEntry();
+            zip.close();
+        } catch (final IOException ex) {
+            ex.printStackTrace();
         }
     }
 

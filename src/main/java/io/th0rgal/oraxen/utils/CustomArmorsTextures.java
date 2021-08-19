@@ -50,53 +50,58 @@ public class CustomArmorsTextures {
             return true;
         }
 
-        if (name.contains("armor_layer_")) {
-            if (name.endsWith("_e.png"))
-                return true;
+        return name.contains("armor_layer_") && handleArmorLayer(name, file);
+    }
 
-            String prefix = name.split("armor_layer_")[0];
-            ItemBuilder builder = null;
-            for (String suffix : new String[]{"helmet", "chestplate", "leggings", "boots"}) {
-                builder = OraxenItems.getItemById(prefix + suffix);
-                if (builder != null)
-                    break;
-            }
-            if (builder == null) {
-                Message.NO_ARMOR_ITEM.log("name", prefix + "<part>", "armor_layer_file", name);
-                return true;
-            }
-            BufferedImage image = ImageIO.read(file);
-            File emissiveFile = new File(file.getPath().replace(".png", "_e.png"));
-            if (emissiveFile.exists()) {
-                BufferedImage emissiveImage = ImageIO.read(emissiveFile);
-                image = mergeImages(image.getWidth() + emissiveImage.getWidth(),
-                        image.getHeight(),
-                        image, emissiveImage);
-                setPixel(image.getRaster(), 2, 0, Color.fromRGB(1, 0, 0));
-            }
-            Color stuffColor = builder.getColor();
-            if (usedColors.containsKey(stuffColor.asRGB())) {
-                String detectedPrefix = usedColors.get(stuffColor.asRGB());
-                if (!detectedPrefix.equals(prefix))
-                    Message.DUPLICATE_ARMOR_COLOR.log(
-                            "first_armor_prefix", prefix, "second_armor_prefix", detectedPrefix);
-            } else usedColors.put(stuffColor.asRGB(), prefix);
+    private boolean handleArmorLayer(String name, File file) throws IOException {
+        if (name.endsWith("_e.png"))
+            return true;
 
-            setPixel(image.getRaster(), 0, 0, stuffColor);
-            if (name.contains("armor_layer_1")) {
-                layers1.add(image);
-                layer1Width += image.getWidth();
-                if (image.getHeight() > layer1Height)
-                    layer1Height = image.getHeight();
-            } else {
-                layers2.add(image);
-                layer2Width += image.getWidth();
-                if (image.getHeight() > layer2Height)
-                    layer2Height = image.getHeight();
-            }
+        String prefix = name.split("armor_layer_")[0];
+        ItemBuilder builder = null;
+        for (String suffix : new String[]{"helmet", "chestplate", "leggings", "boots"}) {
+            builder = OraxenItems.getItemById(prefix + suffix);
+            if (builder != null)
+                break;
+        }
+        if (builder == null) {
+            Message.NO_ARMOR_ITEM.log("name", prefix + "<part>", "armor_layer_file", name);
             return true;
         }
-        return false;
+        BufferedImage image = ImageIO.read(file);
+        File emissiveFile = new File(file.getPath().replace(".png", "_e.png"));
+        if (emissiveFile.exists()) {
+            BufferedImage emissiveImage = ImageIO.read(emissiveFile);
+            image = mergeImages(image.getWidth() + emissiveImage.getWidth(),
+                    image.getHeight(),
+                    image, emissiveImage);
+            setPixel(image.getRaster(), 2, 0, Color.fromRGB(1, 0, 0));
+        }
+        addPixel(image, builder, name, prefix);
+        return true;
+    }
+
+    private void addPixel(BufferedImage image, ItemBuilder builder, String name, String prefix) {
+        Color stuffColor = builder.getColor();
+        if (usedColors.containsKey(stuffColor.asRGB())) {
+            String detectedPrefix = usedColors.get(stuffColor.asRGB());
+            if (!detectedPrefix.equals(prefix))
+                Message.DUPLICATE_ARMOR_COLOR.log(
+                        "first_armor_prefix", prefix, "second_armor_prefix", detectedPrefix);
+        } else usedColors.put(stuffColor.asRGB(), prefix);
+
+        setPixel(image.getRaster(), 0, 0, stuffColor);
+        if (name.contains("armor_layer_1")) {
+            layers1.add(image);
+            layer1Width += image.getWidth();
+            if (image.getHeight() > layer1Height)
+                layer1Height = image.getHeight();
+        } else {
+            layers2.add(image);
+            layer2Width += image.getWidth();
+            if (image.getHeight() > layer2Height)
+                layer2Height = image.getHeight();
+        }
     }
 
     public boolean hasCustomArmors() {
