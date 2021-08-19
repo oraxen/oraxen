@@ -10,7 +10,7 @@ import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockState;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
@@ -79,35 +79,12 @@ public class FurnitureListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
 
-        final ItemStack item = event.getItem();
-        final String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID))
-            return;
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
-        final Block target;
-        final Material type = placedAgainst.getType();
-        if (Utils.REPLACEABLE_BLOCKS.contains(type))
-            target = placedAgainst;
-        else {
-            target = placedAgainst.getRelative(event.getBlockFace());
-            if (target.getType() != Material.AIR && target.getType() != Material.WATER
-                    && target.getType() != Material.CAVE_AIR)
-                return;
-        }
-        if (isStandingInside(player, target)
-                || !ProtectionLib.canBuild(player, target.getLocation()))
-            return;
-
-        for (final Entity entity : target.getWorld().getNearbyEntities(target.getLocation(), 1, 1, 1))
-            if (entity instanceof ItemFrame
-                    && entity.getLocation().getBlockX() == target.getX()
-                    && entity.getLocation().getBlockY() == target.getY()
-                    && entity.getLocation().getBlockZ() == target.getZ())
-                return;
-
+        final Block target = getTarget(placedAgainst, event.getBlockFace());
+        ItemStack item = event.getItem();
         final BlockData curentBlockData = target.getBlockData();
-        final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
+        FurnitureMechanic mechanic = getMechanic(item, player, target);
 
         if (mechanic.farmlandRequired &&
                 target.getLocation().clone().subtract(0, 1, 0).getBlock().getType()
@@ -115,9 +92,8 @@ public class FurnitureListener implements Listener {
             return;
 
         target.setType(Material.AIR, false);
-        final BlockState currentBlockState = target.getState();
-
-        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player,
+        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst,
+                item, player,
                 true, event.getHand());
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
@@ -131,7 +107,44 @@ public class FurnitureListener implements Listener {
                         && mechanic.getBarriers().size() > 1);
 
         final float yaw = mechanic.getYaw(rotation) + mechanic.getSeatYaw();
-        final String entityId;
+        final String entityId = spawnSeat(mechanic, target, yaw);
+        mechanic.place(rotation, yaw, target.getLocation(), entityId, item);
+        if (!player.getGameMode().equals(GameMode.CREATIVE))
+            item.setAmount(item.getAmount() - 1);
+    }
+
+    private Block getTarget(Block placedAgainst, BlockFace blockFace) {
+        final Material type = placedAgainst.getType();
+        if (Utils.REPLACEABLE_BLOCKS.contains(type))
+            return placedAgainst;
+        else {
+            Block target = placedAgainst.getRelative(blockFace);
+            if (!target.getType().isAir() && target.getType() != Material.WATER)
+                return null;
+            return target;
+        }
+    }
+
+    private FurnitureMechanic getMechanic(ItemStack item, Player player, Block target) {
+        final String itemID = OraxenItems.getIdByItem(item);
+        if (factory.isNotImplementedIn(itemID))
+            return null;
+
+        if (isStandingInside(player, target)
+                || !ProtectionLib.canBuild(player, target.getLocation()))
+            return null;
+
+        for (final Entity entity : target.getWorld().getNearbyEntities(target.getLocation(), 1, 1, 1))
+            if (entity instanceof ItemFrame
+                    && entity.getLocation().getBlockX() == target.getX()
+                    && entity.getLocation().getBlockY() == target.getY()
+                    && entity.getLocation().getBlockZ() == target.getZ())
+                return null;
+
+        return (FurnitureMechanic) factory.getMechanic(itemID);
+    }
+
+    private String spawnSeat(FurnitureMechanic mechanic, Block target, float yaw) {
         if (mechanic.hasSeat()) {
             final ArmorStand seat = target.getWorld().spawn(target.getLocation()
                     .add(0.5, mechanic.getSeatHeight() - 1, 0.5), ArmorStand.class, (ArmorStand stand) -> {
@@ -144,14 +157,11 @@ public class FurnitureListener implements Listener {
                 stand.setGravity(false);
                 stand.setSilent(true);
                 stand.setCustomNameVisible(false);
-                stand.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, itemID);
+                stand.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, mechanic.getItemID());
             });
-            entityId = seat.getUniqueId().toString();
-        } else entityId = null;
-
-        mechanic.place(rotation, yaw, target.getLocation(), entityId, item);
-        if (!player.getGameMode().equals(GameMode.CREATIVE))
-            item.setAmount(item.getAmount() - 1);
+            return seat.getUniqueId().toString();
+        }
+        return null;
     }
 
     private Rotation getRotation(final double yaw, final boolean restricted) {
