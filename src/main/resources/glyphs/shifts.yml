@@ -1,0 +1,23 @@
+menu_banner_shift:
+  code: 3002
+  texture: required/null
+  ascent: -32768
+  height: -145
+
+menu_recipe_shift:
+  code: 3004
+  texture: required/null
+  ascent: -32768
+  height: -9
+
+menu_items_shift:
+  code: 3006
+  texture: required/null
+  ascent: -32768
+  height: -20
+
+menu_items_overlay_shift:
+  code: 3008
+  texture: required/null
+  ascent: -32768
+  height: -195

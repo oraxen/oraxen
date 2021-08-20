@@ -1,9 +1,10 @@
 package io.th0rgal.oraxen.font;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.ConfigsManager;
 import org.bukkit.Bukkit;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.HandlerList;
 
 import java.util.*;
@@ -19,15 +20,15 @@ public class FontManager {
     private final String[] zipPlaceholders;
     private final Set<Font> fonts;
 
-    public FontManager(final YamlConfiguration fontConfiguration) {
+    public FontManager(final ConfigsManager configsManager) {
+        final Configuration fontConfiguration = configsManager.getFont();
         autoGenerate = fontConfiguration.getBoolean("settings.automatically_generate");
         glyphMap = new HashMap<>();
         glyphByPlaceholder = new HashMap<>();
         reverse = new HashMap<>();
         fontEvents = new FontEvents(this);
         fonts = new HashSet<>();
-        if (fontConfiguration.isConfigurationSection("glyphs"))
-            loadGlyphs(fontConfiguration.getConfigurationSection("glyphs"));
+        loadGlyphs(configsManager.parseGlyphConfigs());
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
         miniMessagePlaceholders = createMiniPlaceholders();
@@ -42,27 +43,29 @@ public class FontManager {
         HandlerList.unregisterAll(fontEvents);
     }
 
-    private void loadGlyphs(final ConfigurationSection section) {
-        for (final String glyphName : section.getKeys(false)) {
-            final ConfigurationSection glyphSection = section.getConfigurationSection(glyphName);
-            String[] placeholders = new String[0];
-            String permission = null;
-            if (glyphSection.isConfigurationSection("chat")) {
-                final ConfigurationSection chatSection = glyphSection.getConfigurationSection("chat");
-                placeholders = chatSection.getStringList("placeholders").toArray(new String[0]);
-                if (chatSection.isString("permission"))
-                    permission = chatSection.getString("permission");
-            }
-            String texture = glyphSection.getString("texture");
-            if (!texture.endsWith(".png"))
-                texture += ".png";
-            final Glyph glyph = new Glyph(glyphName, (char) glyphSection.getInt("code"), texture,
-                    glyphSection.getInt("ascent"), glyphSection.getInt("height"), permission, placeholders);
-            glyphMap.put(glyphName, glyph);
-            reverse.put(glyph.character(), glyphName);
-            for (final String placeholder : placeholders)
-                glyphByPlaceholder.put(placeholder, glyph);
+    private void loadGlyphs(final Map<String, ConfigurationSection> glyphs) {
+        for (final Map.Entry<String, ConfigurationSection> glyph : glyphs.entrySet())
+            loadGlyph(glyph.getKey(), glyph.getValue());
+    }
+
+    private void loadGlyph(final String glyphName, final ConfigurationSection glyphSection) {
+        String[] placeholders = new String[0];
+        String permission = null;
+        if (glyphSection.isConfigurationSection("chat")) {
+            final ConfigurationSection chatSection = glyphSection.getConfigurationSection("chat");
+            placeholders = chatSection.getStringList("placeholders").toArray(new String[0]);
+            if (chatSection.isString("permission"))
+                permission = chatSection.getString("permission");
         }
+        String texture = glyphSection.getString("texture");
+        if (!texture.endsWith(".png"))
+            texture += ".png";
+        final Glyph glyph = new Glyph(glyphName, (char) glyphSection.getInt("code"), texture,
+                glyphSection.getInt("ascent"), glyphSection.getInt("height"), permission, placeholders);
+        glyphMap.put(glyphName, glyph);
+        reverse.put(glyph.character(), glyphName);
+        for (final String placeholder : placeholders)
+            glyphByPlaceholder.put(placeholder, glyph);
     }
 
     private void loadFonts(final ConfigurationSection section) {

@@ -67,7 +67,7 @@ public class OraxenPlugin extends JavaPlugin {
         final PluginManager pluginManager = Bukkit.getPluginManager();
         MechanicsManager.registerNativeMechanics();
         CompatibilitiesManager.enableNativeCompatibilities();
-        fontManager = new FontManager(configsManager.getFont());
+        fontManager = new FontManager(configsManager);
         OraxenItems.loadItems(configsManager);
         fontManager.registerEvents();
         pluginManager.registerEvents(new ItemUpdater(), this);

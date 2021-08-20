@@ -20,7 +20,7 @@ public class ReloadCommand {
 
     private static void reloadPack(OraxenPlugin plugin, CommandSender sender) {
         Message.PACK_REGENERATED.send(sender);
-        OraxenPlugin.get().setFontManager(new FontManager(OraxenPlugin.get().getConfigsManager().getFont()));
+        OraxenPlugin.get().setFontManager(new FontManager(OraxenPlugin.get().getConfigsManager()));
         ResourcePack resourcePack = new ResourcePack(plugin, OraxenPlugin.get().getFontManager());
         plugin.getUploadManager().uploadAsyncAndSendToPlayers(resourcePack, true);
     }

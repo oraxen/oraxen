@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -28,6 +29,7 @@ public class ConfigsManager {
     private YamlConfiguration font;
     private YamlConfiguration language;
     private File itemsFolder;
+    private File glyphsFolder;
 
     public ConfigsManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -77,6 +79,13 @@ public class ConfigsManager {
             new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
         }
 
+        // check glyphsFolder
+        glyphsFolder = new File(plugin.getDataFolder(), "glyphs");
+        if (!glyphsFolder.exists()) {
+            glyphsFolder.mkdirs();
+            new ResourcesManager(plugin).extractConfigsInFolder("glyphs", "yml");
+        }
+
         return true; // todo : return false when an error is detected + prints a detailed error
     }
 
@@ -99,20 +108,44 @@ public class ConfigsManager {
         return configuration;
     }
 
+    public Map<String, ConfigurationSection> parseGlyphConfigs() {
+        Map<String, ConfigurationSection> parseMap = new LinkedHashMap<>();
+        List<File> configs = Arrays
+                .stream(getGlyphsFiles())
+                .filter(file -> file.getName().endsWith(".yml"))
+                .collect(Collectors.toList());
+        for (File file : configs) {
+            Configuration configuration = YamlConfiguration.loadConfiguration(file);
+            for (String key : configuration.getKeys(false))
+                parseMap.put(key, configuration.getConfigurationSection(key));
+        }
+        return parseMap;
+    }
 
-    public Map<File, Map<String, ItemBuilder>> parsesConfigs() {
+    private File[] getGlyphsFiles() {
+        File[] glyphConfigs = glyphsFolder.listFiles();
+        Arrays.sort(glyphConfigs);
+        return glyphConfigs;
+    }
+
+    public Map<File, Map<String, ItemBuilder>> parseItemConfigs() {
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
         List<File> configs = Arrays
                 .stream(getItemsFiles())
                 .filter(file -> file.getName().endsWith(".yml"))
                 .collect(Collectors.toList());
-        for (File file : configs) {
-            parseMap.put(file, parsesConfig(YamlConfiguration.loadConfiguration(file), file));
-        }
+        for (File file : configs)
+            parseMap.put(file, parseItemConfigs(YamlConfiguration.loadConfiguration(file), file));
         return parseMap;
     }
 
-    public Map<String, ItemBuilder> parsesConfig(YamlConfiguration config, File itemFile) {
+    private File[] getItemsFiles() {
+        File[] itemConfigs = itemsFolder.listFiles();
+        Arrays.sort(itemConfigs);
+        return itemConfigs;
+    }
+
+    public Map<String, ItemBuilder> parseItemConfigs(YamlConfiguration config, File itemFile) {
         Map<String, ItemParser> parseMap = new LinkedHashMap<>();
         ItemParser errorItem = new ItemParser(Settings.ERROR_ITEM.toConfigSection());
         for (String itemSectionName : config.getKeys(false)) {
@@ -151,10 +184,5 @@ public class ConfigsManager {
         return map;
     }
 
-    private File[] getItemsFiles() {
-        File[] itemsConfig = itemsFolder.listFiles();
-        Arrays.sort(itemsConfig);
-        return itemsConfig;
-    }
 
 }
