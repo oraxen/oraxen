@@ -139,12 +139,6 @@ public class ConfigsManager {
         return parseMap;
     }
 
-    private File[] getItemsFiles() {
-        File[] itemConfigs = itemsFolder.listFiles();
-        Arrays.sort(itemConfigs);
-        return itemConfigs;
-    }
-
     public Map<String, ItemBuilder> parseItemConfigs(YamlConfiguration config, File itemFile) {
         Map<String, ItemParser> parseMap = new LinkedHashMap<>();
         ItemParser errorItem = new ItemParser(Settings.ERROR_ITEM.toConfigSection());
@@ -184,5 +178,10 @@ public class ConfigsManager {
         return map;
     }
 
+    private File[] getItemsFiles() {
+        File[] itemConfigs = itemsFolder.listFiles();
+        Arrays.sort(itemConfigs);
+        return itemConfigs;
+    }
 
 }
