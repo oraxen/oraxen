@@ -15,7 +15,8 @@ public enum Settings {
     HEX_PREFIX("ConfigsTools.hexColorCodes.prefix"),
     HEX_SUFFIX("ConfigsTools.hexColorCodes.suffix"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),
-    AUTOMATICALLY_SET_MODEL_ID("ConfigsTools.automatically_set_model_id"),
+    AUTOMATICALLY_SET_GLYPH_CODE("ConfigsTools.automatically_set_glyph_code"),
+    AUTOMATICALLY_SET_MODEL_DATA("ConfigsTools.automatically_set_model_data"),
     ERROR_ITEM("ConfigsTools.error_item"),
 
     RESET_RECIPES("Misc.reset_recipes"),

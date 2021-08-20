@@ -19,8 +19,8 @@ public class RecipesView {
 
     private final FontManager fontManager = OraxenPlugin.get().getFontManager();
     final String menuTexture = ChatColor.WHITE +
-            String.valueOf(fontManager.getGlyphFromName("menu_recipe_shift").character()) +
-            fontManager.getGlyphFromName("menu_recipe").character();
+            String.valueOf(fontManager.getGlyphFromName("menu_recipe_shift").getCharacter()) +
+            fontManager.getGlyphFromName("menu_recipe").getCharacter();
 
     public ChestGui create(final int page, final List<CustomRecipe> filteredRecipes) {
         final ChestGui gui = new ChestGui(6, menuTexture);

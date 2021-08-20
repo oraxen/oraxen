@@ -110,9 +110,11 @@ ConfigsTools:
     enabled_support: true # this can be disabled on server running 1.15 and lower
     prefix: "&#" # in order to use those hexColorCodes, you'll have to start by &#, then put your hex like FF0000
     suffix: "" # here is what you have to put at the end of your code (nothing by default)
-  # Nice for production servers, automatically set model ID in settings so
-  # that you can other items without destroying the others already created
-  automatically_set_model_id: false
+  # Nice for production servers, automatically set model data in settings so
+  # that you can add new items without breaking existing ones
+  automatically_set_model_data: false
+  # Same option for glyph codes
+  automatically_set_glyph_code: false
   enable_configs_updater: true
   error_item:
     material: PODZOL

@@ -1,11 +1,11 @@
 package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,10 +13,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ConfigsManager {
@@ -108,18 +105,29 @@ public class ConfigsManager {
         return configuration;
     }
 
-    public Map<String, ConfigurationSection> parseGlyphConfigs() {
-        Map<String, ConfigurationSection> parseMap = new LinkedHashMap<>();
+    public Collection<Glyph> parseGlyphConfigs() {
+        List<Glyph> output = new ArrayList<>();
         List<File> configs = Arrays
                 .stream(getGlyphsFiles())
                 .filter(file -> file.getName().endsWith(".yml"))
                 .collect(Collectors.toList());
         for (File file : configs) {
-            Configuration configuration = YamlConfiguration.loadConfiguration(file);
-            for (String key : configuration.getKeys(false))
-                parseMap.put(key, configuration.getConfigurationSection(key));
+            YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
+            boolean fileChanged = false;
+            for (String key : configuration.getKeys(false)) {
+                Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key));
+                if (glyph.isFileChanged())
+                    fileChanged = true;
+                output.add(glyph);
+            }
+            if (fileChanged && Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool())
+                try {
+                    configuration.save(file);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
         }
-        return parseMap;
+        return output;
     }
 
     private File[] getGlyphsFiles() {

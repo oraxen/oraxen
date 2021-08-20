@@ -1,5 +1,4 @@
 farmer_tag:
-  code: 3009
   texture: default/chat/farmer_tag
   ascent: 9
   height: 10
@@ -9,7 +8,6 @@ farmer_tag:
     permission: "oraxen.emoji.farmer"
 
 explorer_tag:
-  code: 3010
   texture: default/chat/explorer_tag
   ascent: 9
   height: 10
@@ -19,7 +17,6 @@ explorer_tag:
     permission: "oraxen.emoji.explorer"
 
 knight_tag:
-  code: 3011
   texture: default/chat/knight_tag
   ascent: 9
   height: 10
@@ -29,7 +26,6 @@ knight_tag:
     permission: "oraxen.emoji.knight"
 
 lord_tag:
-  code: 3012
   texture: default/chat/lord_tag
   ascent: 9
   height: 10
@@ -39,7 +35,6 @@ lord_tag:
     permission: "oraxen.emoji.lord"
 
 prince_tag:
-  code: 3013
   texture: default/chat/prince_tag
   ascent: 9
   height: 10
@@ -49,7 +44,6 @@ prince_tag:
     permission: "oraxen.emoji.prince"
 
 king_tag:
-  code: 3014
   texture: default/chat/king_tag
   ascent: 9
   height: 10
@@ -59,7 +53,6 @@ king_tag:
     permission: "oraxen.emoji.king"
 
 hero_tag:
-  code: 3015
   texture: default/chat/hero_tag
   ascent: 9
   height: 10
@@ -69,7 +62,6 @@ hero_tag:
     permission: "oraxen.emoji.hero"
 
 god_tag:
-  code: 3016
   texture: default/chat/god_tag
   ascent: 9
   height: 10

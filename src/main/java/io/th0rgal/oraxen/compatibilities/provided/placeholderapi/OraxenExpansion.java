@@ -41,7 +41,7 @@ public class OraxenExpansion extends PlaceholderExpansion {
     public String onRequest(final OfflinePlayer player, @NotNull final String params) {
         final Glyph glyph = plugin.getFontManager().getGlyphFromName(params);
         if (glyph != null)
-            return String.valueOf(glyph.character());
+            return String.valueOf(glyph.getCharacter());
         return null; // Placeholder is unknown by the Expansion
     }
 }

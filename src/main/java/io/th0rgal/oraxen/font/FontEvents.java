@@ -25,13 +25,13 @@ public class FontEvents implements Listener {
                 continue;
             Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
             if (!glyph.hasPermission(event.getPlayer())) {
-                Message.NO_PERMISSION.send(event.getPlayer(), "permission", glyph.permission());
+                Message.NO_PERMISSION.send(event.getPlayer(), "permission", glyph.getPermission());
                 event.setCancelled(true);
             }
         }
         for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet())
             if (entry.getValue().hasPermission(event.getPlayer()))
-                message = message.replace(entry.getKey(), String.valueOf(entry.getValue().character()));
+                message = message.replace(entry.getKey(), String.valueOf(entry.getValue().getCharacter()));
         Logs.logWarning(message);
         event.setMessage(message);
     }

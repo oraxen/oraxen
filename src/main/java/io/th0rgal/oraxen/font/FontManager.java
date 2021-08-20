@@ -19,6 +19,7 @@ public class FontManager {
     private final String[] miniMessagePlaceholders;
     private final String[] zipPlaceholders;
     private final Set<Font> fonts;
+    private final int lastCode = -1;
 
     public FontManager(final ConfigsManager configsManager) {
         final Configuration fontConfiguration = configsManager.getFont();
@@ -43,29 +44,13 @@ public class FontManager {
         HandlerList.unregisterAll(fontEvents);
     }
 
-    private void loadGlyphs(final Map<String, ConfigurationSection> glyphs) {
-        for (final Map.Entry<String, ConfigurationSection> glyph : glyphs.entrySet())
-            loadGlyph(glyph.getKey(), glyph.getValue());
-    }
-
-    private void loadGlyph(final String glyphName, final ConfigurationSection glyphSection) {
-        String[] placeholders = new String[0];
-        String permission = null;
-        if (glyphSection.isConfigurationSection("chat")) {
-            final ConfigurationSection chatSection = glyphSection.getConfigurationSection("chat");
-            placeholders = chatSection.getStringList("placeholders").toArray(new String[0]);
-            if (chatSection.isString("permission"))
-                permission = chatSection.getString("permission");
+    private void loadGlyphs(Collection<Glyph> glyphs) {
+        for (Glyph glyph : glyphs) {
+            glyphMap.put(glyph.getName(), glyph);
+            reverse.put(glyph.getCharacter(), glyph.getName());
+            for (final String placeholder : glyph.getPlaceholders())
+                glyphByPlaceholder.put(placeholder, glyph);
         }
-        String texture = glyphSection.getString("texture");
-        if (!texture.endsWith(".png"))
-            texture += ".png";
-        final Glyph glyph = new Glyph(glyphName, (char) glyphSection.getInt("code"), texture,
-                glyphSection.getInt("ascent"), glyphSection.getInt("height"), permission, placeholders);
-        glyphMap.put(glyphName, glyph);
-        reverse.put(glyph.character(), glyphName);
-        for (final String placeholder : placeholders)
-            glyphByPlaceholder.put(placeholder, glyph);
     }
 
     private void loadFonts(final ConfigurationSection section) {
@@ -109,7 +94,7 @@ public class FontManager {
         final List<String> placeholders = new ArrayList<>();
         for (final Map.Entry<String, Glyph> entry : glyphMap.entrySet()) {
             placeholders.add("glyph:" + entry.getKey());
-            placeholders.add(String.valueOf(entry.getValue().character()));
+            placeholders.add(String.valueOf(entry.getValue().getCharacter()));
         }
         return placeholders.toArray(new String[0]);
     }

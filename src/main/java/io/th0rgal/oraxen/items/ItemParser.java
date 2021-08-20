@@ -183,7 +183,7 @@ public class ItemParser {
                 customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getDurability();
             else {
                 customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
-                if (Settings.AUTOMATICALLY_SET_MODEL_ID.toBool()) {
+                if (Settings.AUTOMATICALLY_SET_MODEL_DATA.toBool()) {
                     configUpdated = true;
                     section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
                 }
