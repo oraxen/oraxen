@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.font;
 
 import io.th0rgal.oraxen.config.Message;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -19,7 +18,6 @@ public class FontEvents implements Listener {
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         String message = event.getMessage();
-        Logs.logWarning(message);
         for (Character character : manager.getReverseMap().keySet()) {
             if (!message.contains(String.valueOf(character)))
                 continue;
@@ -32,7 +30,6 @@ public class FontEvents implements Listener {
         for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet())
             if (entry.getValue().hasPermission(event.getPlayer()))
                 message = message.replace(entry.getKey(), String.valueOf(entry.getValue().getCharacter()));
-        Logs.logWarning(message);
         event.setMessage(message);
     }
 
