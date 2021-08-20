@@ -189,7 +189,7 @@ public class FurnitureMechanic extends Mechanic {
                 frame.setItem(placedItem);
             } else frame.setItem(item);
             frame.setRotation(rotation);
-            frame.setFacingDirection(getFacing());
+            frame.setFacingDirection(getFacing(), true);
             frame.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
             if (hasSeat())
                 frame.getPersistentDataContainer().set(SEAT_KEY, PersistentDataType.STRING, entityId);

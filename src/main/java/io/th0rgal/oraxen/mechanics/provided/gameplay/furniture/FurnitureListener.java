@@ -82,6 +82,8 @@ public class FurnitureListener implements Listener {
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
         final Block target = getTarget(placedAgainst, event.getBlockFace());
+        if (target == null)
+            return;
         ItemStack item = event.getItem();
         final BlockData curentBlockData = target.getBlockData();
         FurnitureMechanic mechanic = getMechanic(item, player, target);
