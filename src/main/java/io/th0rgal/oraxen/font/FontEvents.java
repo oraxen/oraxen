@@ -1,10 +1,12 @@
 package io.th0rgal.oraxen.font;
 
 import io.th0rgal.oraxen.config.Message;
-import org.bukkit.ChatColor;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+
+import java.util.Map;
 
 public class FontEvents implements Listener {
 
@@ -17,22 +19,20 @@ public class FontEvents implements Listener {
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         String message = event.getMessage();
-        for (String word : message.split(" ")) {
-            Glyph glyph = manager.getGlyphFromPlaceholder(word);
-            if (glyph != null && glyph.hasPermission(event.getPlayer()))
-                message = message.replace(word, ChatColor.WHITE + String.valueOf(glyph.character()));
-        }
+        Logs.logWarning(message);
         for (Character character : manager.getReverseMap().keySet()) {
             if (!message.contains(String.valueOf(character)))
                 continue;
-
             Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
             if (!glyph.hasPermission(event.getPlayer())) {
                 Message.NO_PERMISSION.send(event.getPlayer(), "permission", glyph.permission());
                 event.setCancelled(true);
             }
-
         }
+        for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet())
+            if (entry.getValue().hasPermission(event.getPlayer()))
+                message = message.replace(entry.getKey(), String.valueOf(entry.getValue().character()));
+        Logs.logWarning(message);
         event.setMessage(message);
     }
 

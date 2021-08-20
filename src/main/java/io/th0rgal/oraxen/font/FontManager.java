@@ -97,6 +97,10 @@ public class FontManager {
         return glyphByPlaceholder.get(word);
     }
 
+    public Map<String, Glyph> getGlyphByPlaceholderMap() {
+        return glyphByPlaceholder;
+    }
+
     public Map<Character, String> getReverseMap() {
         return reverse;
     }
