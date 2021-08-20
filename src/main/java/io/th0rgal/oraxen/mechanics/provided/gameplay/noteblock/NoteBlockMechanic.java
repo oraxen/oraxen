@@ -20,6 +20,7 @@ public class NoteBlockMechanic extends Mechanic {
     private final Sound breakSound;
     private String model;
     private int period;
+    private final int light;
 
     @SuppressWarnings("unchecked")
     public NoteBlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -65,6 +66,8 @@ public class NoteBlockMechanic extends Mechanic {
             hasHardness = true;
             period = section.getInt("hardness");
         } else hasHardness = false;
+
+        light = section.getInt("light", -1);
     }
 
     public String getModel(ConfigurationSection section) {
@@ -92,6 +95,10 @@ public class NoteBlockMechanic extends Mechanic {
 
     public int getPeriod() {
         return period;
+    }
+
+    public int getLight() {
+        return light;
     }
 
 }

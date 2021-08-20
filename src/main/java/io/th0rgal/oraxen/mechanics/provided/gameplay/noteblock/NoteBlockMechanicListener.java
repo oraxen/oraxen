@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
+import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
@@ -97,6 +98,10 @@ public class NoteBlockMechanicListener implements Listener {
             return;
         if (noteBlockMechanic.hasBreakSound())
             block.getWorld().playSound(block.getLocation(), noteBlockMechanic.getBreakSound(), 1.0f, 0.8f);
+        if (noteBlockMechanic.getLight() != -1) {
+            WrappedLightAPI.removeBlockLight(block.getLocation(), false);
+            WrappedLightAPI.refreshBlockLights(noteBlockMechanic.getLight(), block.getLocation());
+        }
         noteBlockMechanic.getDrop().spawns(block.getLocation(), event.getPlayer().getInventory().getItemInMainHand());
         event.setDropItems(false);
     }
@@ -127,13 +132,17 @@ public class NoteBlockMechanicListener implements Listener {
         final Block placedAgainst = event.getClickedBlock();
 
         // determines the new block data of the block
-        final int customVariation = ((NoteBlockMechanic) factory.getMechanic(itemID)).getCustomVariation();
+        NoteBlockMechanic mechanic = (NoteBlockMechanic) factory.getMechanic(itemID);
+        final int customVariation = mechanic.getCustomVariation();
 
-        makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
+        Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
                 placedAgainst, event.getBlockFace(), NoteBlockMechanicFactory.createNoteBlockData(customVariation));
+        if (placedBlock != null && mechanic.getLight() != -1) {
+            WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight(), false);
+            WrappedLightAPI.refreshBlockLights(mechanic.getLight(), placedBlock.getLocation());
+        }
 
         event.setCancelled(true);
-
     }
 
     private HardnessModifier getHardnessModifier() {
@@ -187,8 +196,8 @@ public class NoteBlockMechanicListener implements Listener {
                 && playerLocation.getBlockZ() == blockLocation.getBlockZ();
     }
 
-    private boolean makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
-                                         final Block placedAgainst, final BlockFace face, final BlockData newBlock) {
+    private Block makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
+                                       final Block placedAgainst, final BlockFace face, final BlockData newBlock) {
         final Block target;
         final Material type = placedAgainst.getType();
         if (Utils.REPLACEABLE_BLOCKS.contains(type))
@@ -196,10 +205,10 @@ public class NoteBlockMechanicListener implements Listener {
         else {
             target = placedAgainst.getRelative(face);
             if (!target.getType().isAir() && target.getType() != Material.WATER && target.getType() != Material.LAVA)
-                return false;
+                return null;
         }
         if (isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
-            return false;
+            return null;
 
         // determines the old informations of the block
         final BlockData curentBlockData = target.getBlockData();
@@ -211,13 +220,13 @@ public class NoteBlockMechanicListener implements Listener {
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
-            return false;
+            return null;
         }
 
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
 
-        return true;
+        return target;
     }
 
 }
