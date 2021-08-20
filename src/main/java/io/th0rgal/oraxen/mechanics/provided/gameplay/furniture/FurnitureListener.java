@@ -85,6 +85,8 @@ public class FurnitureListener implements Listener {
         ItemStack item = event.getItem();
         final BlockData curentBlockData = target.getBlockData();
         FurnitureMechanic mechanic = getMechanic(item, player, target);
+        if (mechanic == null)
+            return;
 
         if (mechanic.farmlandRequired &&
                 target.getLocation().clone().subtract(0, 1, 0).getBlock().getType()
