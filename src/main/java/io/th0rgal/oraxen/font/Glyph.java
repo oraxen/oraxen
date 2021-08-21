@@ -102,4 +102,8 @@ public class Glyph {
         return permission == null || permission.isEmpty() || player.hasPermission(permission);
     }
 
+    public static void resetLastCode() {
+        lastCode = -1;
+    }
+
 }

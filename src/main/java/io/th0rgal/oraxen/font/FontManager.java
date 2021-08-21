@@ -28,6 +28,7 @@ public class FontManager {
         reverse = new HashMap<>();
         fontEvents = new FontEvents(this);
         fonts = new HashSet<>();
+        Glyph.resetLastCode();
         loadGlyphs(configsManager.parseGlyphConfigs());
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
