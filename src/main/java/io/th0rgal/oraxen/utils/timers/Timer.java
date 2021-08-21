@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils.timers;
 
 import io.th0rgal.oraxen.config.Message;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
@@ -42,7 +43,7 @@ public class Timer {
     }
 
     public void sendToPlayer(Player player) {
-        Message.COOLDOWN.send(player, "time", getString());
+        Message.COOLDOWN.send(player, Template.of("time", getString()));
     }
 
 }

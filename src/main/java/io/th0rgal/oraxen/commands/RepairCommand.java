@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
+import net.kyori.adventure.text.minimessage.Template;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -24,37 +25,34 @@ public class RepairCommand {
                 .withArguments(new TextArgument("type").replaceSuggestions(info -> new String[]{"hand", "all"}))
                 .executes((sender, args) -> {
 
-                    if (sender instanceof Player player) {
-                        if ((args[0]).equals("hand")) {
-                            ItemStack item = player.getInventory().getItemInMainHand();
-                            if (item == null || item.getType() == Material.AIR) {
-                                Message.CANNOT_BE_REPAIRED_INVALID.send(sender);
-                                return;
-                            }
-                            if (repairPlayerItem(item))
-                                Message.CANNOT_BE_REPAIRED.send(sender);
-
-                        } else {
-                            if (player.hasPermission("oraxen.command.repair.all")) {
-                                ItemStack[] items = (ItemStack[]) ArrayUtils.addAll(player.getInventory().getStorageContents(),
-                                        player.getInventory().getArmorContents());
-                                int failed = 0;
-                                for (ItemStack item : items) {
-                                    if (item == null || item.getType() == Material.AIR)
-                                        continue;
-                                    if (repairPlayerItem(item)) {
-                                        Message.CANNOT_BE_REPAIRED.send(sender);
-                                        failed++;
-                                    }
-                                }
-                                Message.REPAIRED_ITEMS.send(sender, "amount", String.valueOf(items.length - failed));
-                            } else
-                                Message.NO_PERMISSION.send(sender, "permission", "oraxen.command.repair.all");
-
+                    if (sender instanceof Player player) if ((args[0]).equals("hand")) {
+                        ItemStack item = player.getInventory().getItemInMainHand();
+                        if (item == null || item.getType() == Material.AIR) {
+                            Message.CANNOT_BE_REPAIRED_INVALID.send(sender);
+                            return;
                         }
-                    } else {
+                        if (repairPlayerItem(item))
+                            Message.CANNOT_BE_REPAIRED.send(sender);
+
+                    } else if (player.hasPermission("oraxen.command.repair.all")) {
+                        ItemStack[] items = (ItemStack[]) ArrayUtils.addAll(player.getInventory().getStorageContents(),
+                                player.getInventory().getArmorContents());
+                        int failed = 0;
+                        for (ItemStack item : items) {
+                            if (item == null || item.getType() == Material.AIR)
+                                continue;
+                            if (repairPlayerItem(item)) {
+                                Message.CANNOT_BE_REPAIRED.send(sender);
+                                failed++;
+                            }
+                        }
+                        Message.REPAIRED_ITEMS.send(sender,
+                                Template.of("amount", String.valueOf(items.length - failed)));
+                    } else
+                        Message.NO_PERMISSION.send(sender,
+                                Template.of("permission", "oraxen.command.repair.all"));
+                    else
                         Message.NOT_PLAYER.send(sender);
-                    }
                 });
     }
 

@@ -9,12 +9,13 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.recipes.RecipesManager;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.command.CommandSender;
 
 public class ReloadCommand {
 
     private static void reloadItems(CommandSender sender) {
-        Message.RELOAD.send(sender, "reloaded", "items");
+        Message.RELOAD.send(sender, Template.of("reloaded", "items"));
         OraxenItems.loadItems();
     }
 

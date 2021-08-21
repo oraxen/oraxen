@@ -2,14 +2,15 @@ package io.th0rgal.oraxen.recipes;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.recipes.listeners.RecipesBuilderEvents;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.recipes.loaders.FurnaceLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapedLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
-import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -78,7 +79,7 @@ public class RecipesManager {
                     break;
             }
         } catch (NullPointerException exception) {
-            Message.BAD_RECIPE.log("recipe", recipeSection.getName());
+            Message.BAD_RECIPE.log(Template.of("recipe", recipeSection.getName()));
         }
     }
 }

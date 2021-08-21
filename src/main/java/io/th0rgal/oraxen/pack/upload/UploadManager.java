@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
 import io.th0rgal.oraxen.pack.upload.hosts.Sh;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -57,14 +58,15 @@ public class UploadManager {
         if (Settings.RECEIVE_ENABLED.toBool() && receiver == null)
             Bukkit.getPluginManager().registerEvents(receiver = new PackReceiver(), plugin);
         final long time = System.currentTimeMillis();
-        Message.PACK_UPLOADING.log("prefix", Message.PREFIX.toString());
+        Message.PACK_UPLOADING.log();
         Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
             if (!hostingProvider.uploadPack(resourcePack.getFile())) {
                 Message.PACK_NOT_UPLOADED.log();
                 return;
             }
             Message.PACK_UPLOADED.log(
-                    "url", hostingProvider.getPackURL(), "delay", String.valueOf(System.currentTimeMillis() - time));
+                    Template.of("url", hostingProvider.getPackURL()),
+                    Template.of("delay", String.valueOf(System.currentTimeMillis() - time)));
 
             if ((Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) && sender == null) {
                 packSender = (CompatibilitiesManager.hasPlugin("ProtocolLib") && Settings.SEND_PACK_ADVANCED.toBool())

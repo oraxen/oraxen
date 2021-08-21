@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.items.OraxenItems;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -47,8 +48,8 @@ public class CommandsManager {
                     final Collection<Player> targets = (Collection<Player>) args[1];
                     if (args[0].equals("msg"))
                         for (final Player target : targets)
-                            Message.COMMAND_JOIN_MESSAGE.send(target, "pack_url",
-                                    OraxenPlugin.get().getUploadManager().getHostingProvider().getPackURL());
+                            Message.COMMAND_JOIN_MESSAGE.send(target, Template.of("pack_url",
+                                    OraxenPlugin.get().getUploadManager().getHostingProvider().getPackURL()));
                     else for (final Player target : targets)
                         OraxenPlugin.get().getUploadManager().getSender().sendPack(target);
                 });
@@ -89,14 +90,14 @@ public class CommandsManager {
 
                     if (targets.size() == 1)
                         Message.GIVE_PLAYER
-                                .send(sender, "player", targets.iterator().next().getName(),
-                                        "amount", String.valueOf(amount),
-                                        "item", itemID);
+                                .send(sender, Template.of("player", targets.iterator().next().getName()),
+                                        Template.of("amount", String.valueOf(amount)),
+                                        Template.of("item", itemID));
                     else
                         Message.GIVE_PLAYERS
-                                .send(sender, "count", String.valueOf(targets.size()),
-                                        "amount", String.valueOf(amount),
-                                        "item", itemID);
+                                .send(sender, Template.of("count", String.valueOf(targets.size())),
+                                        Template.of("amount", String.valueOf(amount)),
+                                        Template.of("item", itemID));
 
 
                 });
@@ -119,14 +120,14 @@ public class CommandsManager {
 
                     if (targets.size() == 1)
                         Message.GIVE_PLAYER
-                                .send(sender, "player", targets.iterator().next().getName(),
-                                        "amount", String.valueOf(1),
-                                        "item", itemID);
+                                .send(sender, Template.of("player", targets.iterator().next().getName()),
+                                        Template.of("amount", String.valueOf(1)),
+                                        Template.of("item", itemID));
                     else
                         Message.GIVE_PLAYERS
-                                .send(sender, "count", String.valueOf(targets.size()),
-                                        "amount", String.valueOf(1),
-                                        "item", itemID);
+                                .send(sender, Template.of("count", String.valueOf(targets.size())),
+                                        Template.of("amount", String.valueOf(1)),
+                                        Template.of("item", itemID));
                 });
     }
 
@@ -144,8 +145,8 @@ public class CommandsManager {
                     if ("hand".equals(args[1])) for (final Player player : targets) {
                         player.getInventory().setItemInMainHand(
                                 ItemUpdater.updateItem(player.getInventory().getItemInMainHand()));
-                        Message.UPDATED_ITEMS.send(sender, "amount",
-                                String.valueOf(1), "player", player.getDisplayName());
+                        Message.UPDATED_ITEMS.send(sender, Template.of("amount",
+                                String.valueOf(1)), Template.of("player", player.getDisplayName()));
                     }
 
                     if (sender.hasPermission("oraxen.command.update.all")) for (final Player player : targets) {
@@ -158,11 +159,11 @@ public class CommandsManager {
                             player.getInventory().setItem(i, newItem);
                             updated++;
                         }
-                        Message.UPDATED_ITEMS.send(sender, "amount",
-                                String.valueOf(updated), "player", player.getDisplayName());
+                        Message.UPDATED_ITEMS.send(sender, Template.of("amount",
+                                String.valueOf(updated)), Template.of("player", player.getDisplayName()));
                     }
                     else
-                        Message.NO_PERMISSION.send(sender, "permission", "oraxen.command.update.all");
+                        Message.NO_PERMISSION.send(sender, Template.of("permission", "oraxen.command.update.all"));
                 });
     }
 

@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.font;
 
 import io.th0rgal.oraxen.config.Message;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
@@ -23,7 +24,7 @@ public class FontEvents implements Listener {
                 continue;
             Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
             if (!glyph.hasPermission(event.getPlayer())) {
-                Message.NO_PERMISSION.send(event.getPlayer(), "permission", glyph.getPermission());
+                Message.NO_PERMISSION.send(event.getPlayer(), Template.of("permission", glyph.getPermission()));
                 event.setCancelled(true);
             }
         }

@@ -21,6 +21,7 @@ import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
@@ -77,7 +78,7 @@ public class OraxenPlugin extends JavaPlugin {
         new ArmorListener(Settings.ARMOR_EQUIP_EVENT_BYPASS.toStringList()).registerEvents(this);
         new BreakerSystem().registerListener();
         postLoading(resourcePack, configsManager);
-        Message.PLUGIN_LOADED.log("os", OS.getOs().getPlatformName());
+        Message.PLUGIN_LOADED.log(Template.of("os", OS.getOs().getPlatformName()));
     }
 
     @Override

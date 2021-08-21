@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.items;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Message;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -41,7 +42,7 @@ public class OraxenItems {
 
     public static String getIdByItem(final ItemStack item) {
         return (item == null || !item.hasItemMeta() || item.getItemMeta().getPersistentDataContainer().isEmpty()) ? null
-            : item.getItemMeta().getPersistentDataContainer().get(ITEM_ID, PersistentDataType.STRING);
+                : item.getItemMeta().getPersistentDataContainer().get(ITEM_ID, PersistentDataType.STRING);
     }
 
     public static boolean exists(final String itemId) {
@@ -58,35 +59,35 @@ public class OraxenItems {
 
     public static List<ItemBuilder> getUnexcludedItems() {
         return itemStream()
-            .filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
-            .collect(Collectors.toList());
+                .filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
+                .collect(Collectors.toList());
     }
 
     public static List<ItemBuilder> getUnexcludedItems(final File file) {
         return map
-            .get(file)
-            .values()
-            .stream()
-            .filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
-            .collect(Collectors.toList());
+                .get(file)
+                .values()
+                .stream()
+                .filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
+                .collect(Collectors.toList());
     }
 
     public static List<ItemStack> getItemStacksByName(final List<List<String>> lists) {
         return lists.stream().flatMap(list -> {
-            final ItemStack[] itemStack = new ItemStack[] { new ItemStack(Material.AIR) };
+            final ItemStack[] itemStack = new ItemStack[]{new ItemStack(Material.AIR)};
             list.stream().map(line -> line.split(":")).forEach(param -> {
                 switch (param[0].toLowerCase(Locale.ENGLISH)) {
-                case "type":
-                    if (exists(param[1]))
-                        itemStack[0] = getItemById(param[1]).build().clone();
-                    else
-                        Message.ITEM_NOT_FOUND.log("item", param[1]);
-                    break;
-                case "amount":
-                    itemStack[0].setAmount(Integer.parseInt(param[1]));
-                    break;
-                default:
-                    break;
+                    case "type":
+                        if (exists(param[1]))
+                            itemStack[0] = getItemById(param[1]).build().clone();
+                        else
+                            Message.ITEM_NOT_FOUND.log(Template.of("item", param[1]));
+                        break;
+                    case "amount":
+                        itemStack[0].setAmount(Integer.parseInt(param[1]));
+                        break;
+                    default:
+                        break;
                 }
             });
             return Stream.of(itemStack[0]);
