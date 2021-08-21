@@ -53,7 +53,3 @@ shift_1024:
   ascent: -32768
   height: -1026
 
-menu_banner_shift:
-  texture: required/null
-  ascent: -32768
-  height: -145

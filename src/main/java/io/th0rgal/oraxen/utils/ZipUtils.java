@@ -1,7 +1,8 @@
 package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
+import net.kyori.adventure.text.minimessage.Template;
 
 import java.io.*;
 import java.math.BigInteger;
@@ -51,10 +52,9 @@ public class ZipUtils {
                         final InputStream fis;
                         if (file.getName().endsWith(".json")) {
                             String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
-                            final String[] placeholders = OraxenPlugin.get().getFontManager().getZipPlaceholders();
-                            for (int i = 0; i < placeholders.length; i += 2)
-                                content = content.replace(placeholders[i], placeholders[i + 1]);
                             content = content.replace("§", "\\u00a7");
+                            content = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.parse(content,
+                                    Template.of("prefix", Message.PREFIX.toComponent())));
                             fis = new ByteArrayInputStream(content.getBytes());
                         } else if (customArmorsTextures.registerImage(file)) continue;
                         else fis = new FileInputStream(file);
