@@ -1,19 +1,59 @@
+shift_1:
+  texture: required/null
+  ascent: -32768
+  height: -3
+
+shift_2:
+  texture: required/null
+  ascent: -32768
+  height: -4
+
+shift_4:
+  texture: required/null
+  ascent: -32768
+  height: -6
+
+shift_8:
+  texture: required/null
+  ascent: -32768
+  height: -10
+
+shift_16:
+  texture: required/null
+  ascent: -32768
+  height: -18
+
+shift_32:
+  texture: required/null
+  ascent: -32768
+  height: -34
+
+shift_64:
+  texture: required/null
+  ascent: -32768
+  height: -66
+
+shift_128:
+  texture: required/null
+  ascent: -32768
+  height: -130
+
+shift_256:
+  texture: required/null
+  ascent: -32768
+  height: -258
+
+shift_512:
+  texture: required/null
+  ascent: -32768
+  height: -514
+
+shift_1024:
+  texture: required/null
+  ascent: -32768
+  height: -1026
+
 menu_banner_shift:
   texture: required/null
   ascent: -32768
   height: -145
-
-menu_recipe_shift:
-  texture: required/null
-  ascent: -32768
-  height: -9
-
-menu_items_shift:
-  texture: required/null
-  ascent: -32768
-  height: -20
-
-menu_items_overlay_shift:
-  texture: required/null
-  ascent: -32768
-  height: -195

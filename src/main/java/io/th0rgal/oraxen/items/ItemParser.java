@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.Utils;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -60,8 +59,8 @@ public class ItemParser {
     }
 
     private String parseComponentString(String miniString) {
-        return Utils.LEGACY_COMPONENT_SERIALIZER.serialize(MiniMessage.get()
-                .parse(miniString, OraxenPlugin.get().getFontManager().getMiniMessagePlaceholders()));
+        return Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE
+                .parse(miniString));
     }
 
     public ItemBuilder buildItem() {

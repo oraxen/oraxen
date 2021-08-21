@@ -1,5 +1,10 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.font.GlyphTransformation;
+import io.th0rgal.oraxen.font.ShiftTransformation;
+import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.minimessage.transformation.TransformationRegistry;
+import net.kyori.adventure.text.minimessage.transformation.TransformationType;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
 
@@ -19,6 +24,17 @@ public class Utils {
     public static final LegacyComponentSerializer LEGACY_COMPONENT_SERIALIZER = LegacyComponentSerializer.builder()
             .hexColors()
             .useUnusualXRepeatedCharacterHexFormat()
+            .build();
+
+    public static final MiniMessage MINI_MESSAGE = MiniMessage.builder()
+            .transformations(TransformationRegistry.builder()
+                    .add(new TransformationType<>(
+                            GlyphTransformation::canParse, new GlyphTransformation.Parser()
+                    ))
+                    .add(new TransformationType<>(
+                            ShiftTransformation::canParse, new ShiftTransformation.Parser()
+                    )).build()
+            )
             .build();
     public static final List<Material> REPLACEABLE_BLOCKS = Arrays
             .asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,

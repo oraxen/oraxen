@@ -16,7 +16,6 @@ public class FontManager {
     private final Map<String, Glyph> glyphByPlaceholder;
     private final Map<Character, String> reverse;
     private final FontEvents fontEvents;
-    private final String[] miniMessagePlaceholders;
     private final String[] zipPlaceholders;
     private final Set<Font> fonts;
     private final int lastCode = -1;
@@ -32,7 +31,6 @@ public class FontManager {
         loadGlyphs(configsManager.parseGlyphConfigs());
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
-        miniMessagePlaceholders = createMiniPlaceholders();
         zipPlaceholders = createZipPlaceholders();
     }
 
@@ -90,19 +88,6 @@ public class FontManager {
         return reverse;
     }
 
-    private String[] createMiniPlaceholders() {
-        final List<String> placeholders = new ArrayList<>();
-        for (final Map.Entry<String, Glyph> entry : glyphMap.entrySet()) {
-            placeholders.add("glyph:" + entry.getKey());
-            placeholders.add(String.valueOf(entry.getValue().getCharacter()));
-        }
-        return placeholders.toArray(new String[0]);
-    }
-
-    public String[] getMiniMessagePlaceholders() {
-        return miniMessagePlaceholders;
-    }
-
     private String[] createZipPlaceholders() {
         final List<String> placeholders = new ArrayList<>();
         for (final Map.Entry<String, Glyph> entry : glyphMap.entrySet()) {
@@ -115,6 +100,16 @@ public class FontManager {
 
     public String[] getZipPlaceholders() {
         return zipPlaceholders;
+    }
+
+    public String getShift(int length) {
+        StringBuilder output = new StringBuilder();
+        while (length > 0) {
+            int biggestPower = Integer.highestOneBit(length);
+            output.append(getGlyphFromName("shift_" + biggestPower).getCharacter());
+            length -= biggestPower;
+        }
+        return output.toString();
     }
 
 }

@@ -57,7 +57,7 @@ dependencies {
     implementation group: "com.github.oraxen", name: "protectionlib", version: "master-SNAPSHOT"
     implementation group: "com.github.rockswang", name: "java-curl", version: "1.2.2.2"
     implementation group: "org.yaml", name: "snakeyaml", version: "1.28"
-    implementation group: "net.kyori", name: "adventure-text-minimessage", version: "4.1.0-SNAPSHOT"
+    implementation group: "net.kyori", name: "adventure-text-minimessage", version: "4.2.0-SNAPSHOT"
     implementation group: "net.kyori", name: "adventure-platform-bukkit", version: "4.0.0-SNAPSHOT"
     implementation group: "com.github.stefvanschie.inventoryframework", name: "IF", version: "0.10.0"
     implementation group: "dev.jorel.CommandAPI", name: "commandapi-shade", version: "6.3.0"

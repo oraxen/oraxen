@@ -8,7 +8,7 @@ import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import io.th0rgal.oraxen.utils.Utils;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -26,18 +26,20 @@ public class AdvancedPackSender extends PackSender implements Listener {
 
     public AdvancedPackSender(HostingProvider hostingProvider) {
         super(hostingProvider);
-        this.protocolManager = ProtocolLibrary.getProtocolManager();
+        protocolManager = ProtocolLibrary.getProtocolManager();
 
-        this.component = WrappedChatComponent.fromJson(GsonComponentSerializer.gson()
-                .serialize(MiniMessage.get()
+        component = WrappedChatComponent.fromJson(GsonComponentSerializer.gson()
+                .serialize(Utils.MINI_MESSAGE
                         .parse(Settings.SEND_PACK_ADVANCED_MESSAGE.toString())));
     }
 
+    @Override
     public void register() {
         if (Settings.SEND_PACK.toBool())
             Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
     }
 
+    @Override
     public void unregister() {
     }
 

@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.commands.CommandsParser;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -73,7 +72,7 @@ public class PackReceiver implements Listener {
     }
 
     private Component getComponent(Settings settings) {
-        return MiniMessage.get().parse(settings.toString());
+        return Utils.MINI_MESSAGE.parse(settings.toString());
     }
 
     private void sendMessage(Player receiver, String action, Component message) {

@@ -2,7 +2,8 @@ package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.Utils;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.Template;
 import org.apache.commons.lang.ArrayUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -74,18 +75,27 @@ public enum Message {
         return OraxenPlugin.get().getConfigsManager().getLanguage().getString(path);
     }
 
-    public void send(final CommandSender sender, final String... placeholders) {
+    public void send(final CommandSender sender, final Template... placeholders) {
         OraxenPlugin.get().getAudience().sender(sender).sendMessage(
-                MiniMessage.get().parse(OraxenPlugin.get().getConfigsManager().getLanguage().getString(path),
-                        ArrayUtils.addAll(new String[]{"prefix", Message.PREFIX.toString()}, placeholders)));
+                Utils.MINI_MESSAGE.parse(OraxenPlugin.get().getConfigsManager().getLanguage().getString(path),
+                        ArrayUtils.addAll(new Template[]{
+                                        Template.of("prefix", Message.PREFIX.toComponent())},
+                                placeholders))
+        );
     }
 
-    public @NotNull String toSerializedString() {
-        return Utils.LEGACY_COMPONENT_SERIALIZER.serialize(MiniMessage.get()
-                .parse(toString(), OraxenPlugin.get().getFontManager().getMiniMessagePlaceholders()));
+    public @NotNull
+    final Component toComponent() {
+        return Utils.MINI_MESSAGE
+                .parse(toString());
     }
 
-    public void log(final String... placeholders) {
+    public @NotNull
+    String toSerializedString() {
+        return Utils.LEGACY_COMPONENT_SERIALIZER.serialize(toComponent());
+    }
+
+    public void log(final Template... placeholders) {
         send(Bukkit.getConsoleSender(), placeholders);
     }
 

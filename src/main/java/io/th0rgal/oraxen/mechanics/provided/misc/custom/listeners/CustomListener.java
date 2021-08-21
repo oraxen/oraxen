@@ -4,7 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomAction;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomCondition;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomEvent;
-import net.kyori.adventure.text.minimessage.MiniMessage;
+import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -61,11 +61,11 @@ public abstract class CustomListener implements Listener {
                 }
 
                 case MESSAGE -> OraxenPlugin.get().getAudience().sender(player)
-                        .sendMessage(MiniMessage.get().parse(action.getParams().get(0)));
+                        .sendMessage(Utils.MINI_MESSAGE.parse(action.getParams().get(0)));
 
                 case ACTIONBAR -> {
                     OraxenPlugin.get().getAudience().sender(player)
-                            .sendActionBar(MiniMessage.get().parse(action.getParams().get(0)));
+                            .sendActionBar(Utils.MINI_MESSAGE.parse(action.getParams().get(0)));
                 }
 
                 default -> throw new IllegalStateException("Unexpected value: " + action);
