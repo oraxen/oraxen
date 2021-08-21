@@ -106,10 +106,6 @@ Pack:
           opped_player: [ ]
 
 ConfigsTools:
-  hexColorCodes:
-    enabled_support: true # this can be disabled on server running 1.15 and lower
-    prefix: "&#" # in order to use those hexColorCodes, you'll have to start by &#, then put your hex like FF0000
-    suffix: "" # here is what you have to put at the end of your code (nothing by default)
   # Nice for production servers, automatically set model data in settings so
   # that you can add new items without breaking existing ones
   automatically_set_model_data: false
