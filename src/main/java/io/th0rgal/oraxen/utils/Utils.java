@@ -1,10 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
-import com.google.gson.JsonObject;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.MultipleFacing;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -42,29 +39,6 @@ public class Utils {
 
     public static long getVersion(final String format) {
         return Long.parseLong(OffsetDateTime.now().format(DateTimeFormatter.ofPattern(format)));
-    }
-
-    public static int getCode(final MultipleFacing blockData) {
-        final List<BlockFace> properties = Arrays
-                .asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
-        int sum = 0;
-        for (final BlockFace blockFace : blockData.getFaces())
-            sum += (int) Math.pow(2, properties.indexOf(blockFace));
-        return sum;
-    }
-
-    public static JsonObject getBlockstateWhenFields(final int code) {
-        final JsonObject whenJson = new JsonObject();
-        final String[] properties = new String[]{"up", "down", "north", "south", "west", "east"};
-        for (int i = 0; i < properties.length; i++)
-            whenJson.addProperty(properties[properties.length - 1 - i], (code & 0x1 << i) != 0);
-        return whenJson;
-    }
-
-    public static void setBlockFacing(final MultipleFacing blockData, final int code) {
-        final BlockFace[] properties = new BlockFace[]{BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH,
-                BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP};
-        for (int i = 0; i < properties.length; i++) blockData.setFace(properties[i], (code & 0x1 << i) != 0);
     }
 
     public static String removeExtension(String s) {

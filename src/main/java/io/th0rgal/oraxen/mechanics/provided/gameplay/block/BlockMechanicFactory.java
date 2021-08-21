@@ -58,7 +58,7 @@ public class BlockMechanicFactory extends MechanicFactory {
         JsonObject model = new JsonObject();
         model.addProperty("model", modelName);
         content.add("apply", model);
-        content.add("when", Utils.getBlockstateWhenFields(when));
+        content.add("when", BlockMechanic.getBlockstateWhenFields(when));
         return content;
     }
 
@@ -87,7 +87,7 @@ public class BlockMechanicFactory extends MechanicFactory {
         final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("block");
         BlockMechanic blockMechanic = (BlockMechanic) mechanicFactory.getMechanic(itemId);
         MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(Material.MUSHROOM_STEM);
-        Utils.setBlockFacing(newBlockData, blockMechanic.getCustomVariation());
+        BlockMechanic.setBlockFacing(newBlockData, blockMechanic.getCustomVariation());
         block.setBlockData(newBlockData, false);
     }
 
@@ -110,7 +110,7 @@ public class BlockMechanicFactory extends MechanicFactory {
         else material = Material.getMaterial(blockDataMaterial.toUpperCase().replace(" ", "_").replace("-", "_"));
 
         final MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(material);
-        Utils.setBlockFacing(newBlockData, blockMechanic.getCustomVariation());
+        BlockMechanic.setBlockFacing(newBlockData, blockMechanic.getCustomVariation());
         block.setBlockData(newBlockData, false);
         return true;
     }

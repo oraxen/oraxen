@@ -47,7 +47,7 @@ public class BlockMechanicListener implements Listener {
             return;
 
         final MultipleFacing blockFacing = (MultipleFacing) block.getBlockData();
-        final BlockMechanic blockMechanic = BlockMechanicFactory.getBlockMechanic(Utils.getCode(blockFacing));
+        final BlockMechanic blockMechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(blockFacing));
         if (blockMechanic == null)
             return;
         if (blockMechanic.hasBreakSound())
@@ -65,7 +65,7 @@ public class BlockMechanicListener implements Listener {
 
         final Block block = event.getBlock();
         final BlockData blockData = block.getBlockData();
-        Utils.setBlockFacing((MultipleFacing) blockData, 15);
+        BlockMechanic.setBlockFacing((MultipleFacing) blockData, 15);
         block.setBlockData(blockData, false);
     }
 
@@ -104,7 +104,7 @@ public class BlockMechanicListener implements Listener {
         final MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(Material.MUSHROOM_STEM);
         final BlockMechanic mechanic = ((BlockMechanic) factory.getMechanic(itemID));
         final int customVariation = mechanic.getCustomVariation();
-        Utils.setBlockFacing(newBlockData, customVariation);
+        BlockMechanic.setBlockFacing(newBlockData, customVariation);
 
         // set the new block
         target.setBlockData(newBlockData); // false to cancel physic
