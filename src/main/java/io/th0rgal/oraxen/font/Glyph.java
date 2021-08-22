@@ -84,18 +84,13 @@ public class Glyph {
     public JsonObject toJson() {
         final JsonObject output = new JsonObject();
         final JsonArray chars = new JsonArray();
-        chars.add(getHexcode());
+        chars.add(getCharacter());
         output.add("chars", chars);
         output.addProperty("file", texture);
         output.addProperty("ascent", ascent);
         output.addProperty("height", height);
         output.addProperty("type", "bitmap");
         return output;
-    }
-
-    public String getHexcode() { // unfortunately we don't have the choice, this is a windows bug
-        final String hexCode = Integer.toHexString(character);
-        return "\\u" + ("0000" + hexCode).substring(hexCode.length());
     }
 
     public boolean hasPermission(final Player player) {

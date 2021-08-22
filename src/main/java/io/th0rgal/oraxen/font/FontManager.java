@@ -16,7 +16,6 @@ public class FontManager {
     private final Map<String, Glyph> glyphByPlaceholder;
     private final Map<Character, String> reverse;
     private final FontEvents fontEvents;
-    private final String[] zipPlaceholders;
     private final Set<Font> fonts;
     private final int lastCode = -1;
 
@@ -32,7 +31,6 @@ public class FontManager {
         loadGlyphs(configsManager.parseGlyphConfigs());
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
-        zipPlaceholders = createZipPlaceholders();
     }
 
     public void registerEvents() {
@@ -89,19 +87,6 @@ public class FontManager {
         return reverse;
     }
 
-    private String[] createZipPlaceholders() {
-        final List<String> placeholders = new ArrayList<>();
-        for (final Map.Entry<String, Glyph> entry : glyphMap.entrySet()) {
-            placeholders.add("<glyph:" + entry.getKey() + ">");
-            placeholders.add(entry.getValue().getHexcode());
-        }
-        return placeholders.toArray(new String[0]);
-    }
-
-
-    public String[] getZipPlaceholders() {
-        return zipPlaceholders;
-    }
 
     public String getShift(int length) {
         StringBuilder output = new StringBuilder();
