@@ -52,10 +52,9 @@ public class ZipUtils {
                         final InputStream fis;
                         if (file.getName().endsWith(".json")) {
                             String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
-                            content = content.replace("§", "\\u00a7");
                             content = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.parse(content,
                                     Template.of("prefix", Message.PREFIX.toComponent())));
-                            fis = new ByteArrayInputStream(content.getBytes());
+                            fis = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
                         } else if (customArmorsTextures.registerImage(file)) continue;
                         else fis = new FileInputStream(file);
                         addToZip(getZipFilePath(file, directoryToZip, inZipDirectoryFiles), fis, zos);
