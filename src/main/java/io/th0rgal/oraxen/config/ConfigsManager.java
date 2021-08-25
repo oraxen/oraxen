@@ -22,9 +22,11 @@ public class ConfigsManager {
     private final JavaPlugin plugin;
     private final YamlConfiguration defaultSettings;
     private final YamlConfiguration defaultFont;
+    private final YamlConfiguration defaultSound;
     private final YamlConfiguration defaultLanguage;
     private YamlConfiguration settings;
     private YamlConfiguration font;
+    private YamlConfiguration sound;
     private YamlConfiguration language;
     private File itemsFolder;
     private File glyphsFolder;
@@ -33,6 +35,7 @@ public class ConfigsManager {
         this.plugin = plugin;
         defaultSettings = extractDefault("settings.yml");
         defaultFont = extractDefault("font.yml");
+        defaultSound = extractDefault("sound.yml");
         defaultLanguage = extractDefault("languages/english.yml");
     }
 
@@ -46,6 +49,10 @@ public class ConfigsManager {
 
     public YamlConfiguration getFont() {
         return font != null ? font : defaultFont;
+    }
+
+    public YamlConfiguration getSound() {
+        return sound != null ? sound : defaultSound;
     }
 
     private YamlConfiguration extractDefault(String source) {
@@ -65,6 +72,7 @@ public class ConfigsManager {
         ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
         settings = validate(resourcesManager, "settings.yml", defaultSettings);
         font = validate(resourcesManager, "font.yml", defaultFont);
+        sound = validate(resourcesManager, "sound.yml", defaultSound);
         File languagesFolder = new File(plugin.getDataFolder(), "languages");
         languagesFolder.mkdir();
         String languageFile = "languages/" + settings.getString(Settings.PLUGIN_LANGUAGE.getPath()) + ".yml";

@@ -1,0 +1,9 @@
+settings:
+  # Should Oraxen automatically generate sounds.json according to your settings?
+  automatically_generate: true
+
+sounds:
+
+  welcome:
+    category: record
+    sound: welcome.ogg # extension is not mandatory

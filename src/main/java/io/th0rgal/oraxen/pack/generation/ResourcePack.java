@@ -10,8 +10,11 @@ import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.sound.CustomSound;
+import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.ZipUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -28,12 +31,13 @@ public class ResourcePack {
     private static File modelsFolder;
     private static File fontFolder;
     private static File assetsFolder;
+    private final File packFolder;
     private final File pack;
     JavaPlugin plugin;
 
-    public ResourcePack(final JavaPlugin plugin, final FontManager fontManager) {
+    public ResourcePack(final JavaPlugin plugin, final FontManager fontManager, final SoundManager soundManager) {
         this.plugin = plugin;
-        final File packFolder = new File(plugin.getDataFolder(), "pack");
+        packFolder = new File(plugin.getDataFolder(), "pack");
         makeDirsIfNotExists(packFolder);
         pack = new File(packFolder, packFolder.getName() + ".zip");
         assetsFolder = new File(packFolder, "assets");
@@ -42,7 +46,7 @@ public class ResourcePack {
         final File langFolder = new File(packFolder, "lang");
         extractFolders(!modelsFolder.exists(), !new File(packFolder, "textures").exists(),
                 !new File(packFolder, "shaders").exists(),
-                !langFolder.exists(), !assetsFolder.exists());
+                !langFolder.exists(), !new File(packFolder, "sounds").exists(), !assetsFolder.exists());
 
         if (!Settings.GENERATE.toBool())
             return;
@@ -57,6 +61,7 @@ public class ResourcePack {
         final Map<Material, List<ItemBuilder>> texturedItems = extractTexturedItems();
         generatePredicates(texturedItems);
         generateFont(fontManager);
+        generateSound(soundManager);
         for (final Consumer<File> packModifier : PACK_MODIFIERS) packModifier.accept(packFolder);
 
         // zipping resourcepack
@@ -83,8 +88,8 @@ public class ResourcePack {
     }
 
     private void extractFolders(boolean extractModels, boolean extractTextures, boolean extractShaders,
-                                boolean extractLang, boolean extractassets) {
-        if (!extractModels && !extractTextures && !extractShaders && !extractLang && !extractassets)
+                                boolean extractLang, boolean extractSounds, boolean extractAssets) {
+        if (!extractModels && !extractTextures && !extractShaders && !extractLang && !extractAssets)
             return;
         final ZipInputStream zip = ResourcesManager.browse();
         try {
@@ -96,7 +101,8 @@ public class ResourcePack {
                         || (extractTextures && name.startsWith("pack/textures"))
                         || (extractTextures && name.startsWith("pack/shaders"))
                         || (extractLang && name.startsWith("pack/lang"))
-                        || (extractassets && name.startsWith("/pack/assets"));
+                        || (extractSounds && name.startsWith("pack/sounds"))
+                        || (extractAssets && name.startsWith("/pack/assets"));
                 resourcesManager.extractFileIfTrue(entry, name, isSuitable);
                 entry = zip.getNextEntry();
             }
@@ -190,7 +196,24 @@ public class ResourcePack {
         for (final Font font : fontManager.getFonts())
             providers.add(font.toJson());
         output.add("providers", providers);
-        Utils.writeStringToFile(fontFile, output.toString().replace("\\\\u", "\\u"));
+        Utils.writeStringToFile(fontFile, output.toString());
+    }
+
+    private void generateSound(final SoundManager soundManager) {
+        if (!soundManager.isAutoGenerate())
+            return;
+        if (!assetsFolder.exists())
+            assetsFolder.mkdirs();
+        File minecraftAssetsFolder = new File(assetsFolder, "minecraft");
+        if (!minecraftAssetsFolder.exists())
+            minecraftAssetsFolder.mkdirs();
+        Logs.logWarning(minecraftAssetsFolder.getPath());
+        final File soundsFile = new File(minecraftAssetsFolder, "sounds.json");
+        Logs.logWarning(soundsFile.getPath());
+        final JsonObject output = new JsonObject();
+        for (CustomSound sound : soundManager.getCustomSounds())
+            output.add(sound.getName(), sound.toJson());
+        Utils.writeStringToFile(soundsFile, output.toString());
     }
 
 }

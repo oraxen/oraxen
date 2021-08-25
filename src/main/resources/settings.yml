@@ -64,12 +64,13 @@ Pack:
           # KICK / CHAT / ACTION_BAR / TITLE
           type: ACTION_BAR
           # Delay before the first message to appear, this is in seconds
-          delay: -1
+          delay: 1
           # Click and Hover elements are only available by using the CHAT type
           content: "<#55ffa4><bold>ResourcePack accepted"
         # If you need to send commands
         commands:
-          console: [ ]
+          console:
+            - "minecraft:execute at Uxon run playsound welcome record %p%"
           player: [ ]
           opped_player: [ ]
 

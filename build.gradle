@@ -65,7 +65,7 @@ dependencies {
 }
 
 processResources {
-    filesNotMatching(["**/*.png", "**/models/**", "**/textures/**"]) {
+    filesNotMatching(["**/*.png", "**/*.ogg", "**/models/**", "**/textures/**"]) {
         expand projectVersion: pluginVersion
     }
 }

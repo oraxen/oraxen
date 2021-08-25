@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
+import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -35,6 +36,7 @@ public class OraxenPlugin extends JavaPlugin {
     private BukkitAudiences audience;
     private UploadManager uploadManager;
     private FontManager fontManager;
+    private SoundManager soundManager;
     private InvManager invManager;
 
     public OraxenPlugin() throws Exception {
@@ -69,10 +71,11 @@ public class OraxenPlugin extends JavaPlugin {
         MechanicsManager.registerNativeMechanics();
         CompatibilitiesManager.enableNativeCompatibilities();
         fontManager = new FontManager(configsManager);
+        soundManager = new SoundManager(configsManager.getSound());
         OraxenItems.loadItems(configsManager);
         fontManager.registerEvents();
         pluginManager.registerEvents(new ItemUpdater(), this);
-        final ResourcePack resourcePack = new ResourcePack(this, fontManager);
+        final ResourcePack resourcePack = new ResourcePack(this, fontManager, soundManager);
         RecipesManager.load(this);
         invManager = new InvManager();
         new ArmorListener(Settings.ARMOR_EQUIP_EVENT_BYPASS.toStringList()).registerEvents(this);
@@ -123,6 +126,14 @@ public class OraxenPlugin extends JavaPlugin {
         this.fontManager.unregisterEvents();
         this.fontManager = fontManager;
         fontManager.registerEvents();
+    }
+
+    public SoundManager getSoundManager() {
+        return soundManager;
+    }
+
+    public void setSoundManager(final SoundManager soundManager) {
+        this.soundManager = soundManager;
     }
 
     public InvManager getInvManager() {

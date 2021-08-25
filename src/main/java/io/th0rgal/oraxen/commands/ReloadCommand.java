@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.recipes.RecipesManager;
+import io.th0rgal.oraxen.sound.SoundManager;
 import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.command.CommandSender;
 
@@ -22,7 +23,9 @@ public class ReloadCommand {
     private static void reloadPack(OraxenPlugin plugin, CommandSender sender) {
         Message.PACK_REGENERATED.send(sender);
         OraxenPlugin.get().setFontManager(new FontManager(OraxenPlugin.get().getConfigsManager()));
-        ResourcePack resourcePack = new ResourcePack(plugin, OraxenPlugin.get().getFontManager());
+        OraxenPlugin.get().setSoundManager(new SoundManager(OraxenPlugin.get().getConfigsManager().getSound()));
+        ResourcePack resourcePack = new ResourcePack(plugin, OraxenPlugin.get().getFontManager(),
+                OraxenPlugin.get().getSoundManager());
         plugin.getUploadManager().uploadAsyncAndSendToPlayers(resourcePack, true);
     }
 
