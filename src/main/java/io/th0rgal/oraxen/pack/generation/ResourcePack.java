@@ -14,7 +14,6 @@ import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.ZipUtils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -207,9 +206,7 @@ public class ResourcePack {
         File minecraftAssetsFolder = new File(assetsFolder, "minecraft");
         if (!minecraftAssetsFolder.exists())
             minecraftAssetsFolder.mkdirs();
-        Logs.logWarning(minecraftAssetsFolder.getPath());
         final File soundsFile = new File(minecraftAssetsFolder, "sounds.json");
-        Logs.logWarning(soundsFile.getPath());
         final JsonObject output = new JsonObject();
         for (CustomSound sound : soundManager.getCustomSounds())
             output.add(sound.getName(), sound.toJson());
