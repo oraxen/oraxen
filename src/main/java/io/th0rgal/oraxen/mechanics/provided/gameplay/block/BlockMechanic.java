@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
-import org.bukkit.Sound;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.configuration.ConfigurationSection;
@@ -20,8 +19,8 @@ public class BlockMechanic extends Mechanic {
     private String model;
     private final int customVariation;
     private final Drop drop;
-    private final Sound breakSound;
-    private final Sound placeSound;
+    private final String breakSound;
+    private final String placeSound;
 
     @SuppressWarnings("unchecked")
     public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -36,12 +35,12 @@ public class BlockMechanic extends Mechanic {
         customVariation = section.getInt("custom_variation");
 
         if (section.isString("break_sound"))
-            breakSound = Sound.valueOf(section.getString("break_sound").toUpperCase());
+            breakSound = section.getString("break_sound").toUpperCase();
         else
             breakSound = null;
 
         if (section.isString("place_sound"))
-            placeSound = Sound.valueOf(section.getString("place_sound").toUpperCase());
+            placeSound = section.getString("place_sound");
         else
             placeSound = null;
 
@@ -81,7 +80,7 @@ public class BlockMechanic extends Mechanic {
         return breakSound != null;
     }
 
-    public Sound getBreakSound() {
+    public String getBreakSound() {
         return breakSound;
     }
 
@@ -89,7 +88,7 @@ public class BlockMechanic extends Mechanic {
         return placeSound != null;
     }
 
-    public Sound getPlaceSound() {
+    public String getPlaceSound() {
         return placeSound;
     }
 
