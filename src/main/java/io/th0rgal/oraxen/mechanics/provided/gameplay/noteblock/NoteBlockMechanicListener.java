@@ -137,6 +137,9 @@ public class NoteBlockMechanicListener implements Listener {
 
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
                 placedAgainst, event.getBlockFace(), NoteBlockMechanicFactory.createNoteBlockData(customVariation));
+        if (mechanic.hasPlaceSound())
+            placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
+
         if (placedBlock != null && mechanic.getLight() != -1) {
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight(), false);
             WrappedLightAPI.refreshBlockLights(mechanic.getLight(), placedBlock.getLocation());

@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
-import org.bukkit.Sound;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
@@ -17,7 +16,8 @@ public class NoteBlockMechanic extends Mechanic {
     protected final boolean hasHardness;
     private final int customVariation;
     private final Drop drop;
-    private final Sound breakSound;
+    private final String breakSound;
+    private final String placeSound;
     private String model;
     private int period;
     private final int light;
@@ -35,9 +35,14 @@ public class NoteBlockMechanic extends Mechanic {
         customVariation = section.getInt("custom_variation");
 
         if (section.isString("break_sound"))
-            breakSound = Sound.valueOf(section.getString("break_sound").toUpperCase());
+            breakSound = section.getString("break_sound").toUpperCase();
         else
             breakSound = null;
+
+        if (section.isString("place_sound"))
+            placeSound = section.getString("place_sound");
+        else
+            placeSound = null;
 
         List<Loot> loots = new ArrayList<>();
         if (section.isConfigurationSection("drop")) {
@@ -89,8 +94,16 @@ public class NoteBlockMechanic extends Mechanic {
         return breakSound != null;
     }
 
-    public Sound getBreakSound() {
+    public String getBreakSound() {
         return breakSound;
+    }
+
+    public boolean hasPlaceSound() {
+        return placeSound != null;
+    }
+
+    public String getPlaceSound() {
+        return placeSound;
     }
 
     public int getPeriod() {
