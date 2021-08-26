@@ -6,14 +6,12 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -33,11 +31,9 @@ public class BlockMechanicFactory extends MechanicFactory {
         // before zipping the pack
         OraxenPlugin.get().getResourcePack().addModifiers(getMechanicID(),
                 packFolder -> {
-                    File blockstatesFolder = new File(packFolder, "blockstates");
-                    if (!blockstatesFolder.exists())
-                        blockstatesFolder.mkdirs();
-                    File file = new File(blockstatesFolder, "mushroom_stem.json");
-                    Utils.writeStringToFile(file, getBlockstateContent());
+                    OraxenPlugin.get().getResourcePack()
+                            .writeStringToVirtual("assets/minecraft/blockstates",
+                                    "mushroom_stem.json", getBlockstateContent());
                 });
         MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicListener(this));
     }

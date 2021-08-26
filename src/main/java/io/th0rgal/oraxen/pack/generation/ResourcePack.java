@@ -143,9 +143,10 @@ public class ResourcePack {
         for (final Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
             final ItemBuilder item = entry.getValue();
             if (item.getOraxenMeta().hasPackInfos()) {
-                if (item.getOraxenMeta().shouldGenerateModel()) Utils
-                        .writeStringToFile(new File(modelsFolder, item.getOraxenMeta().getModelName() + ".json"),
-                                new ModelGenerator(item.getOraxenMeta()).getJson().toString());
+                if (item.getOraxenMeta().shouldGenerateModel())
+                    writeStringToVirtual("assets/minecraft/models",
+                            item.getOraxenMeta().getModelName() + ".json",
+                            new ModelGenerator(item.getOraxenMeta()).getJson().toString());
                 final List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
                 // todo: could be improved by using
                 // items.get(i).getOraxenMeta().getCustomModelData() when
@@ -195,26 +196,20 @@ public class ResourcePack {
     }
 
     private void generatePredicates(final Map<Material, List<ItemBuilder>> texturedItems) {
-        final File itemsFolder = new File(modelsFolder, "item");
-        makeDirsIfNotExists(itemsFolder);
-        final File blocksFolder = new File(modelsFolder, "block");
-        makeDirsIfNotExists(blocksFolder);
-
         for (final Map.Entry<Material, List<ItemBuilder>> texturedItemsEntry : texturedItems.entrySet()) {
             final Material entryMaterial = texturedItemsEntry.getKey();
             final PredicatesGenerator predicatesGenerator = new PredicatesGenerator(entryMaterial,
                     texturedItemsEntry.getValue());
-            final String vanillaModelName = predicatesGenerator.getVanillaModelName(entryMaterial) + ".json";
-
-            Utils.writeStringToFile(new File(modelsFolder, vanillaModelName), predicatesGenerator.toJSON().toString());
+            final String[] vanillaModelPath =
+                    (predicatesGenerator.getVanillaModelName(entryMaterial) + ".json").split("/");
+            writeStringToVirtual("assets/minecraft/models/" + vanillaModelPath[0], vanillaModelPath[1],
+                    predicatesGenerator.toJSON().toString());
         }
     }
 
     private void generateFont(final FontManager fontManager) {
         if (!fontManager.autoGenerate)
             return;
-        makeDirsIfNotExists(fontFolder);
-        final File fontFile = new File(fontFolder, "default.json");
         final JsonObject output = new JsonObject();
         final JsonArray providers = new JsonArray();
         for (final Glyph glyph : fontManager.getGlyphs())
@@ -222,7 +217,7 @@ public class ResourcePack {
         for (final Font font : fontManager.getFonts())
             providers.add(font.toJson());
         output.add("providers", providers);
-        Utils.writeStringToFile(fontFile, output.toString());
+        writeStringToVirtual("assets/minecraft/font", "default.json", output.toString());
     }
 
     private void generateSound(final SoundManager soundManager) {
@@ -231,8 +226,12 @@ public class ResourcePack {
         final JsonObject output = new JsonObject();
         for (CustomSound sound : soundManager.getCustomSounds())
             output.add(sound.getName(), sound.toJson());
-        addOutputFiles(new VirtualFile("assets/minecraft", "sounds.json",
-                new ByteArrayInputStream(output.toString().getBytes())));
+        writeStringToVirtual("assets/minecraft", "sounds.json", output.toString());
+    }
+
+    public void writeStringToVirtual(String folder, String name, String content) {
+        addOutputFiles(new VirtualFile(folder, name,
+                new ByteArrayInputStream(content.getBytes())));
     }
 
     private void getAllFiles(final File directory, final Collection<VirtualFile> fileList,
