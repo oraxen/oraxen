@@ -42,15 +42,17 @@ Pack:
 
     loaded:
       actions:
+        sound:
+          type: oraxen:welcome
+          volume: 1.0
+          pitch: 1.0
+        delay: 5 # delay in ticks
         message:
-          enabled: true
+          enabled: false
           # KICK / CHAT / ACTION_BAR / TITLE
           type: ACTION_BAR
-          # Delay before the first message to appear, this is in seconds
-          delay: 0
           # Click and Hover elements are only available by using the CHAT type
-          content: "<#55ffa4><bold>ResourcePack successfully loaded!"
-
+          content: "<#55ffa4><bold>ResourcePack loaded"
         # If you need to send commands
         commands:
           console: [ ]
@@ -60,19 +62,15 @@ Pack:
     accepted:
       actions:
         message:
-          enabled: true
           # KICK / CHAT / ACTION_BAR / TITLE
           type: ACTION_BAR
-          # Delay before the first message to appear, this is in seconds
-          delay: 4
           # Click and Hover elements are only available by using the CHAT type
           content: "<#55ffa4><bold>ResourcePack accepted"
         # If you need to send commands
         commands:
           console: [ ]
           player: [ ]
-          opped_player:
-            - "minecraft:playsound oraxen:welcome record %p%"
+          opped_player: [ ]
 
     denied:
       actions:
@@ -80,8 +78,6 @@ Pack:
           enabled: false
           # KICK / CHAT / ACTION_BAR / TITLE
           type: CHAT
-          # Delay before the first message to appear, this is in seconds
-          delay: 0
           # Click and Hover elements are only available by using the CHAT type
           content: "<red>You refused the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:/oraxen pack get><hover:show_text:\"<green>Display more informations\"><green><bold>CLICK HERE</bold></hover></click> <red>or type <bold>/o pack"
         # If you need to send commands
@@ -96,8 +92,6 @@ Pack:
           enabled: false
           # KICK / CHAT / ACTION_BAR / TITLE
           type: CHAT
-          # Delay before the first message to appear, this is in seconds
-          delay: 0
           # Click and Hover elements are only available by using the CHAT type
           content: "<red>You failed to download the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:/oraxen pack get><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click> <red>to retry or type <bold>/o pack</bold> and download it from the internet"
         # If you need to send commands

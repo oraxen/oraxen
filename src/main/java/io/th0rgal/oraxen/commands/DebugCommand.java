@@ -15,8 +15,6 @@ public class DebugCommand {
                 .executes((sender, args) -> {
 
                     FontManager font = OraxenPlugin.get().getFontManager();
-                    for (int i = 1; i <= 32; i++)
-                        Bukkit.broadcastMessage("xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" + font.getShift(i) + "O");
 
                     JsonObject report = new JsonObject();
                     OS system = OS.getOs();

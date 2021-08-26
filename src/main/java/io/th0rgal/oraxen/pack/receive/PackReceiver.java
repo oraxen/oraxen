@@ -3,12 +3,10 @@ package io.th0rgal.oraxen.pack.receive;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.commands.CommandsParser;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -22,57 +20,25 @@ public class PackReceiver implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerUpdatesPackStatus(PlayerResourcePackStatusEvent event) {
-        boolean message;
-        int delay;
-        int period;
-        Component component;
-        CommandsParser commands;
-        String action;
-
         PlayerResourcePackStatusEvent.Status status = event.getStatus();
-
+        PackAction packAction;
         switch (status) {
-            case ACCEPTED -> {
-                action = Settings.RECEIVE_ALLOWED_MESSAGE_ACTION.toString();
-                message = Settings.RECEIVE_ALLOWED_SEND_MESSAGE.toBool();
-                delay = (int) Settings.RECEIVE_ALLOWED_MESSAGE_DELAY.getValue();
-                component = getComponent(Settings.RECEIVE_ALLOWED_MESSAGE);
-                commands = new CommandsParser((ConfigurationSection) Settings.RECEIVE_ALLOWED_COMMANDS.getValue());
-            }
-            case DECLINED -> {
-                action = Settings.RECEIVE_DENIED_MESSAGE_ACTION.toString();
-                message = Settings.RECEIVE_DENIED_SEND_MESSAGE.toBool();
-                delay = (int) Settings.RECEIVE_DENIED_MESSAGE_DELAY.getValue();
-                component = getComponent(Settings.RECEIVE_DENIED_MESSAGE);
-                commands = new CommandsParser((ConfigurationSection) Settings.RECEIVE_ALLOWED_COMMANDS.getValue());
-            }
-            case FAILED_DOWNLOAD -> {
-                action = Settings.RECEIVE_FAILED_MESSAGE_ACTION.toString();
-                message = Settings.RECEIVE_FAILED_SEND_MESSAGE.toBool();
-                delay = (int) Settings.RECEIVE_FAILED_MESSAGE_DELAY.getValue();
-                component = getComponent(Settings.RECEIVE_FAILED_MESSAGE);
-                commands = new CommandsParser((ConfigurationSection) Settings.RECEIVE_ALLOWED_COMMANDS.getValue());
-            }
-            case SUCCESSFULLY_LOADED -> {
-                action = Settings.RECEIVE_LOADED_MESSAGE_ACTION.toString();
-                message = Settings.RECEIVE_LOADED_SEND_MESSAGE.toBool();
-                delay = (int) Settings.RECEIVE_LOADED_MESSAGE_DELAY.getValue();
-                component = getComponent(Settings.RECEIVE_LOADED_MESSAGE);
-                commands = new CommandsParser((ConfigurationSection) Settings.RECEIVE_ALLOWED_COMMANDS.getValue());
-            }
+            case ACCEPTED -> packAction = new PackAction(Settings.RECEIVE_ALLOWED_ACTIONS.toConfigSection());
+            case DECLINED -> packAction = new PackAction(Settings.RECEIVE_DENIED_ACTIONS.toConfigSection());
+            case FAILED_DOWNLOAD -> packAction = new PackAction(Settings.RECEIVE_FAILED_ACTIONS.toConfigSection());
+            case SUCCESSFULLY_LOADED -> packAction = new PackAction(Settings.RECEIVE_LOADED_ACTIONS.toConfigSection());
             default -> throw new IllegalStateException("Unexpected value: " + status);
         }
-
-        if (message)
-            Bukkit
-                    .getScheduler()
-                    .runTaskLater(OraxenPlugin.get(),
-                            () -> sendMessage(event.getPlayer(), action, component), delay * 20L);
-        commands.perform(event.getPlayer());
-    }
-
-    private Component getComponent(Settings settings) {
-        return Utils.MINI_MESSAGE.parse(settings.toString());
+        Bukkit
+                .getScheduler()
+                .runTaskLater(OraxenPlugin.get(), () -> {
+                    if (packAction.hasMessage())
+                        sendMessage(event.getPlayer(), packAction.getMessageType(),
+                                packAction.getMessageContent());
+                    if (packAction.hasSound())
+                        packAction.playSound(event.getPlayer(), event.getPlayer().getLocation());
+                    packAction.getCommandsParser().perform(event.getPlayer());
+                }, packAction.getDelay());
     }
 
     private void sendMessage(Player receiver, String action, Component message) {
