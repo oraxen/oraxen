@@ -72,7 +72,7 @@ Pack:
           console: [ ]
           player: [ ]
           opped_player:
-            - "minecraft:playsound welcome record %p%"
+            - "minecraft:playsound oraxen:welcome record %p%"
 
     denied:
       actions:

@@ -226,7 +226,7 @@ public class ResourcePack {
         final JsonObject output = new JsonObject();
         for (CustomSound sound : soundManager.getCustomSounds())
             output.add(sound.getName(), sound.toJson());
-        writeStringToVirtual("assets/minecraft", "sounds.json", output.toString());
+        writeStringToVirtual("assets/oraxen", "sounds.json", output.toString());
     }
 
     public void writeStringToVirtual(String folder, String name, String content) {
