@@ -121,7 +121,6 @@ public class BlockMechanicListener implements Listener {
         event.setCancelled(true);
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
-
     }
 
     private boolean isStandingInside(final Player player, final Block block) {
