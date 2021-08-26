@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import net.kyori.adventure.text.minimessage.Template;
@@ -24,9 +23,9 @@ public class ReloadCommand {
         Message.PACK_REGENERATED.send(sender);
         OraxenPlugin.get().setFontManager(new FontManager(OraxenPlugin.get().getConfigsManager()));
         OraxenPlugin.get().setSoundManager(new SoundManager(OraxenPlugin.get().getConfigsManager().getSound()));
-        ResourcePack resourcePack = new ResourcePack(plugin, OraxenPlugin.get().getFontManager(),
+        OraxenPlugin.get().getResourcePack().generate(OraxenPlugin.get().getFontManager(),
                 OraxenPlugin.get().getSoundManager());
-        plugin.getUploadManager().uploadAsyncAndSendToPlayers(resourcePack, true);
+        plugin.getUploadManager().uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true);
     }
 
     public CommandAPICommand getReloadCommand() {

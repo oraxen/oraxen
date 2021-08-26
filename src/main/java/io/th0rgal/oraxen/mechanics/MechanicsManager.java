@@ -87,7 +87,6 @@ public class MechanicsManager {
         registerMechanicFactory("harvesting", HarvestingMechanicFactory::new);
         if (CompatibilitiesManager.hasPlugin("ProtocolLib"))
             registerMechanicFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
-
     }
 
     public static void registerMechanicFactory(final String mechanicId,

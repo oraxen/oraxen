@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.pack.generation;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.Font;
@@ -12,13 +13,18 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
+import io.th0rgal.oraxen.utils.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.ZipUtils;
+import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.zip.ZipEntry;
@@ -26,16 +32,29 @@ import java.util.zip.ZipInputStream;
 
 public class ResourcePack {
 
-    private static final List<Consumer<File>> PACK_MODIFIERS = new ArrayList<>();
-    private static File modelsFolder;
-    private static File fontFolder;
-    private static File assetsFolder;
-    private final File packFolder;
-    private final File pack;
+    private Map<String, Collection<Consumer<File>>> packModifiers;
+    private Map<String, VirtualFile> outputFiles;
+    private CustomArmorsTextures customArmorsTextures;
+    private File modelsFolder;
+    private File fontFolder;
+    private File assetsFolder;
+    private File packFolder;
+    private File pack;
     JavaPlugin plugin;
 
-    public ResourcePack(final JavaPlugin plugin, final FontManager fontManager, final SoundManager soundManager) {
+    public ResourcePack(final JavaPlugin plugin) {
         this.plugin = plugin;
+        clear();
+    }
+
+    public void clear() {
+        // we use maps to avoid duplicate
+        packModifiers = new HashMap<>();
+        outputFiles = new HashMap<>();
+    }
+
+    public void generate(final FontManager fontManager, final SoundManager soundManager) {
+        customArmorsTextures = new CustomArmorsTextures();
         packFolder = new File(plugin.getDataFolder(), "pack");
         makeDirsIfNotExists(packFolder);
         pack = new File(packFolder, packFolder.getName() + ".zip");
@@ -61,29 +80,36 @@ public class ResourcePack {
         generatePredicates(texturedItems);
         generateFont(fontManager);
         generateSound(soundManager);
-        for (final Consumer<File> packModifier : PACK_MODIFIERS) packModifier.accept(packFolder);
-
+        for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
+            for (Consumer<File> packModifier : packModifiers)
+                packModifier.accept(packFolder);
+        List<VirtualFile> output = new ArrayList<>(outputFiles.values());
         // zipping resourcepack
-        final List<File> rootFolder = new ArrayList<>();
-        ZipUtils.getFilesInFolder(packFolder, rootFolder, packFolder.getName() + ".zip");
+        try {
+            getFilesInFolder(packFolder, output,
+                    packFolder.getCanonicalPath(),
+                    packFolder.getName() + ".zip");
 
-        final List<File> subfolders = new ArrayList<>();
-        final List<File> assetFoldersCustom = new ArrayList<>();
-        // needs to be ordered, forEach cannot be used
-        for (final File folder : packFolder.listFiles())
-            if (folder.isDirectory() && folder.getName().equalsIgnoreCase("assets"))
-                ZipUtils.getAllFiles(folder, assetFoldersCustom);
-            else if (folder.isDirectory())
-                ZipUtils.getAllFiles(folder, subfolders);
+            // needs to be ordered, forEach cannot be used
+            for (final File folder : packFolder.listFiles())
+                if (folder.isDirectory() && folder.getName().equalsIgnoreCase("assets"))
+                    getAllFiles(folder, output, "");
+                else if (folder.isDirectory())
+                    getAllFiles(folder, output, "assets/minecraft");
 
-        rootFolder.addAll(assetFoldersCustom);
-
-        final Map<String, List<File>> fileListByZipDirectory = new LinkedHashMap<>();
-        Collections.sort(subfolders);
-        fileListByZipDirectory.put("assets/minecraft", subfolders);
-        Collections.sort(rootFolder);
-        fileListByZipDirectory.put("", rootFolder);
-        ZipUtils.writeZipFile(pack, packFolder, fileListByZipDirectory);
+            if (customArmorsTextures.hasCustomArmors()) {
+                output.add(new VirtualFile("assets/minecraft/textures/models/armor",
+                        "leather_layer_1.png",
+                        customArmorsTextures.getLayerOne()));
+                output.add(new VirtualFile("assets/minecraft/textures/models/armor",
+                        "leather_layer_2.png",
+                        customArmorsTextures.getLayerTwo()));
+            }
+            Collections.sort(output);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        ZipUtils.writeZipFile(pack, packFolder, output);
     }
 
     private void extractFolders(boolean extractModels, boolean extractTextures, boolean extractShaders,
@@ -144,13 +170,14 @@ public class ResourcePack {
         return texturedItems;
     }
 
-    public static File getAssetsFolder() {
-        return assetsFolder;
+    @SafeVarargs
+    public final void addModifiers(String groupName, final Consumer<File>... modifiers) {
+        packModifiers.put(groupName, Arrays.asList(modifiers));
     }
 
-    @SafeVarargs
-    public static void addModifiers(final Consumer<File>... modifiers) {
-        PACK_MODIFIERS.addAll(Arrays.asList(modifiers));
+    public void addOutputFiles(final VirtualFile... files) {
+        for (VirtualFile file : files)
+            outputFiles.put(file.getPath(), file);
     }
 
     public File getFile() {
@@ -201,16 +228,61 @@ public class ResourcePack {
     private void generateSound(final SoundManager soundManager) {
         if (!soundManager.isAutoGenerate())
             return;
-        if (!assetsFolder.exists())
-            assetsFolder.mkdirs();
-        File minecraftAssetsFolder = new File(assetsFolder, "minecraft");
-        if (!minecraftAssetsFolder.exists())
-            minecraftAssetsFolder.mkdirs();
-        final File soundsFile = new File(minecraftAssetsFolder, "sounds.json");
         final JsonObject output = new JsonObject();
         for (CustomSound sound : soundManager.getCustomSounds())
             output.add(sound.getName(), sound.toJson());
-        Utils.writeStringToFile(soundsFile, output.toString());
+        addOutputFiles(new VirtualFile("assets/minecraft", "sounds.json",
+                new ByteArrayInputStream(output.toString().getBytes())));
+    }
+
+    private void getAllFiles(final File directory, final Collection<VirtualFile> fileList,
+                             String newFolder,
+                             final String... blacklisted) {
+        final File[] files = directory.listFiles();
+        final List<String> blacklist = Arrays.asList(blacklisted);
+        for (final File file : files) {
+            if (!blacklist.contains(file.getName()) && !file.isDirectory())
+                readFileToVirtuals(fileList, file, newFolder);
+            if (file.isDirectory())
+                getAllFiles(file, fileList, newFolder, blacklisted);
+        }
+    }
+
+    private void getFilesInFolder(final File dir, final Collection<VirtualFile> fileList,
+                                  String newFolder,
+                                  final String... blacklisted) {
+        final File[] files = dir.listFiles();
+        for (final File file : files)
+            if (!file.isDirectory() && !Arrays.asList(blacklisted).contains(file.getName()))
+                readFileToVirtuals(fileList, file, newFolder);
+    }
+
+    private void readFileToVirtuals(final Collection<VirtualFile> fileList, File file, String newFolder) {
+        try {
+            final InputStream fis;
+            if (file.getName().endsWith(".json")) {
+                String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
+                content = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.parse(content,
+                        Template.of("prefix", Message.PREFIX.toComponent())));
+                fis = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+            } else if (customArmorsTextures.registerImage(file)) return;
+            else fis = new FileInputStream(file);
+
+            fileList.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder),
+                    file.getName(),
+                    fis));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private String getZipFilePath(String path, String newFolder) throws IOException {
+        // we want the zipEntry's path to be a relative path that is relative
+        // to the directory being zipped, so chop off the rest of the path
+        if (newFolder.equals(packFolder.getCanonicalPath()))
+            return "";
+        String prefix = newFolder.isEmpty() ? newFolder : newFolder + "/";
+        return prefix + path.substring(packFolder.getCanonicalPath().length() + 1);
     }
 
 }

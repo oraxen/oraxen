@@ -38,6 +38,7 @@ public class OraxenPlugin extends JavaPlugin {
     private FontManager fontManager;
     private SoundManager soundManager;
     private InvManager invManager;
+    private ResourcePack resourcePack;
 
     public OraxenPlugin() throws Exception {
         oraxen = this;
@@ -46,13 +47,6 @@ public class OraxenPlugin extends JavaPlugin {
 
     public static OraxenPlugin get() {
         return oraxen;
-    }
-
-    private void postLoading(final ResourcePack resourcePack, final ConfigsManager configsManager) {
-        uploadManager = new UploadManager(this);
-        uploadManager.uploadAsyncAndSendToPlayers(resourcePack);
-        new Metrics(this, 5371);
-        Bukkit.getScheduler().runTaskAsynchronously(this, () -> OraxenItems.loadItems(configsManager));
     }
 
     @Override
@@ -68,6 +62,7 @@ public class OraxenPlugin extends JavaPlugin {
         reloadConfigs();
         new CommandsManager().loadCommands();
         final PluginManager pluginManager = Bukkit.getPluginManager();
+        resourcePack = new ResourcePack(this);
         MechanicsManager.registerNativeMechanics();
         CompatibilitiesManager.enableNativeCompatibilities();
         fontManager = new FontManager(configsManager);
@@ -75,14 +70,22 @@ public class OraxenPlugin extends JavaPlugin {
         OraxenItems.loadItems(configsManager);
         fontManager.registerEvents();
         pluginManager.registerEvents(new ItemUpdater(), this);
-        final ResourcePack resourcePack = new ResourcePack(this, fontManager, soundManager);
+        resourcePack.generate(fontManager, soundManager);
         RecipesManager.load(this);
         invManager = new InvManager();
         new ArmorListener(Settings.ARMOR_EQUIP_EVENT_BYPASS.toStringList()).registerEvents(this);
         new BreakerSystem().registerListener();
-        postLoading(resourcePack, configsManager);
+        postLoading(configsManager);
         Message.PLUGIN_LOADED.log(Template.of("os", OS.getOs().getPlatformName()));
     }
+
+    private void postLoading(final ConfigsManager configsManager) {
+        uploadManager = new UploadManager(this);
+        uploadManager.uploadAsyncAndSendToPlayers(resourcePack);
+        new Metrics(this, 5371);
+        Bukkit.getScheduler().runTaskAsynchronously(this, () -> OraxenItems.loadItems(configsManager));
+    }
+
 
     @Override
     public void onDisable() {
@@ -138,5 +141,9 @@ public class OraxenPlugin extends JavaPlugin {
 
     public InvManager getInvManager() {
         return invManager;
+    }
+
+    public ResourcePack getResourcePack() {
+        return resourcePack;
     }
 }
