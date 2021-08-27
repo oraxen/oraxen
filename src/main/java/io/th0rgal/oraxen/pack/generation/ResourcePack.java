@@ -231,7 +231,7 @@ public class ResourcePack {
 
     public void writeStringToVirtual(String folder, String name, String content) {
         addOutputFiles(new VirtualFile(folder, name,
-                new ByteArrayInputStream(content.getBytes())));
+                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
     }
 
     private void getAllFiles(final File directory, final Collection<VirtualFile> fileList,
