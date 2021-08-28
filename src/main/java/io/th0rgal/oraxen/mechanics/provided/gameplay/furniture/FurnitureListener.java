@@ -112,7 +112,7 @@ public class FurnitureListener implements Listener {
 
         final float yaw = mechanic.getYaw(rotation) + mechanic.getSeatYaw();
         final String entityId = spawnSeat(mechanic, target, yaw);
-        mechanic.place(rotation, yaw, target.getLocation(), entityId, item);
+        mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), entityId, item);
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
     }

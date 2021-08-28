@@ -23,7 +23,7 @@ public class EvolutionTask extends BukkitRunnable {
     @Override
     public void run() {
         for (World world : Bukkit.getWorlds())
-            for (ItemFrame frame : world.getEntitiesByClass(ItemFrame.class)) {
+            for (ItemFrame frame : world.getEntitiesByClass(ItemFrame.class))
                 if (frame.getPersistentDataContainer().has(FurnitureMechanic.EVOLUTION_KEY,
                         PersistentDataType.INTEGER)) {
 
@@ -52,14 +52,12 @@ public class EvolutionTask extends BukkitRunnable {
                                 furnitureFactory.getMechanic(evolution.getNextStage());
                         nextMechanic.place(frame.getRotation(),
                                 rotation,
+                                frame.getFacing(),
                                 frame.getLocation(),
                                 null
                         );
-                    } else {
-                        frame.getPersistentDataContainer().set(FurnitureMechanic.EVOLUTION_KEY,
-                                PersistentDataType.INTEGER, evolutionStep);
-                    }
+                    } else frame.getPersistentDataContainer().set(FurnitureMechanic.EVOLUTION_KEY,
+                            PersistentDataType.INTEGER, evolutionStep);
                 }
-            }
     }
 }

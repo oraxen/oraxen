@@ -82,7 +82,10 @@ public class FurnitureMechanic extends Mechanic {
 
         farmlandRequired = section.getBoolean("farmland_required", false);
 
-        facing = BlockFace.valueOf(section.getString("facing", "UP").toUpperCase());
+
+        facing = section.isString("facing")
+                ? BlockFace.valueOf(section.getString("facing").toUpperCase())
+                : null;
 
         List<Loot> loots = new ArrayList<>();
         if (section.isConfigurationSection("drop")) {
@@ -147,6 +150,10 @@ public class FurnitureMechanic extends Mechanic {
         return seatYaw;
     }
 
+    public boolean hasFacing() {
+        return facing != null;
+    }
+
     public BlockFace getFacing() {
         return facing;
     }
@@ -172,12 +179,12 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    public void place(Rotation rotation, float yaw, Location location, String entityId) {
+    public void place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId) {
         setPlacedItem();
-        place(rotation, yaw, location, entityId, placedItem);
+        place(rotation, yaw, facing, location, entityId, placedItem);
     }
 
-    public void place(Rotation rotation, float yaw, Location location, String entityId, ItemStack item) {
+    public void place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId, ItemStack item) {
 
         ItemFrame itemFrame = location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) -> {
             frame.setVisible(false);
@@ -189,7 +196,7 @@ public class FurnitureMechanic extends Mechanic {
                 frame.setItem(placedItem);
             } else frame.setItem(item);
             frame.setRotation(rotation);
-            frame.setFacingDirection(getFacing(), true);
+            frame.setFacingDirection(hasFacing() ? getFacing() : facing, true);
             frame.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
             if (hasSeat())
                 frame.getPersistentDataContainer().set(SEAT_KEY, PersistentDataType.STRING, entityId);
