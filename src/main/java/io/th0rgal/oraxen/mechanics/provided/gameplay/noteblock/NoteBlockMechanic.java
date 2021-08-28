@@ -35,7 +35,7 @@ public class NoteBlockMechanic extends Mechanic {
         customVariation = section.getInt("custom_variation");
 
         if (section.isString("break_sound"))
-            breakSound = section.getString("break_sound").toUpperCase();
+            breakSound = section.getString("break_sound");
         else
             breakSound = null;
 
