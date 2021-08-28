@@ -210,7 +210,8 @@ public class FurnitureListener implements Listener {
                     final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
                     event.setCancelled(true);
                     mechanic.removeAirFurniture(frame);
-                    mechanic.getDrop().spawns(frame.getLocation(), player.getInventory().getItemInMainHand());
+                    if (player.getGameMode() != GameMode.CREATIVE)
+                        mechanic.getDrop().spawns(frame.getLocation(), player.getInventory().getItemInMainHand());
                 }
             }
     }
