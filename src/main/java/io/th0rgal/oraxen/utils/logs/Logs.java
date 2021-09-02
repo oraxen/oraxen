@@ -1,9 +1,7 @@
 package io.th0rgal.oraxen.utils.logs;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.config.Message;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
