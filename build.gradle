@@ -101,9 +101,5 @@ publishing {
             from components.java
             artifact shadowJar
         }
-        register("mavenJava", MavenPublication::class) {
-            from components.java
-            artifact shadowJar
-        }
     }
 }
