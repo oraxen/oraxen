@@ -37,9 +37,10 @@ public class RepairMechanicListener implements Listener {
             return;
         String toRepairId = OraxenItems.getIdByItem(toRepair);
         ItemMeta toRepairMeta = toRepair.getItemMeta();
-        Damageable damageable = (Damageable) toRepairMeta;
+
         if (!(toRepairMeta instanceof Damageable))
             return;
+        Damageable damageable = (Damageable) toRepairMeta;
 
         if (durabilityFactory.isNotImplementedIn(toRepairId)) {
             if (factory.isOraxenDurabilityOnly())
@@ -49,26 +50,28 @@ public class RepairMechanicListener implements Listener {
                 return;
 
             damageable
-                .setDamage(
-                    repairMechanic.getFinalDamage(toRepair.getType().getMaxDurability(), damageable.getDamage()));
+                    .setDamage(
+                            repairMechanic.getFinalDamage(toRepair.getType().getMaxDurability(), damageable.getDamage()));
 
         } else {
             DurabilityMechanic durabilityMechanic = (DurabilityMechanic) durabilityFactory.getMechanic(toRepairId);
             PersistentDataContainer persistentDataContainer = toRepairMeta.getPersistentDataContainer();
             int realMaxDurability = durabilityMechanic.getItemMaxDurability();
             int damage = realMaxDurability
-                - persistentDataContainer.get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER);
+                    - persistentDataContainer.get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER);
             if (damage == 0)
                 return;
             int finalDamage = repairMechanic.getFinalDamage(realMaxDurability, damage);
 
             persistentDataContainer
-                .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realMaxDurability - finalDamage);
+                    .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realMaxDurability - finalDamage);
 
-            damageable.setDamage(finalDamage / realMaxDurability * item.getType().getMaxDurability());
+            double a = (double) finalDamage / (double) realMaxDurability * (double) toRepair.getType().getMaxDurability();
+
+            damageable.setDamage((int) a);
         }
 
-        toRepair.setItemMeta((ItemMeta) damageable);
+        toRepair.setItemMeta(damageable);
         event.setCancelled(true);
         event.getCursor().setAmount(event.getCursor().getAmount() - 1);
 
