@@ -34,7 +34,8 @@ public class PackAction {
         if (configurationSection.isConfigurationSection("message")) {
             ConfigurationSection messageSection = configurationSection.getConfigurationSection("message");
             messageType = messageSection.getString("type");
-            messageContent = Utils.MINI_MESSAGE.parse(messageSection.getString("content"));
+            if (messageSection.getBoolean("enabled", true))
+                messageContent = Utils.MINI_MESSAGE.parse(messageSection.getString("content"));
         }
 
         commandsParser = new CommandsParser(configurationSection.getConfigurationSection("commands"));
