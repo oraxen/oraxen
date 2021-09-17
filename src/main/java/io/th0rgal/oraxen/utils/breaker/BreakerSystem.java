@@ -121,7 +121,7 @@ public class BreakerSystem {
                         breakerPerLocation.remove(location);
                         for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
                             if (entity instanceof Player viewer)
-                                sendBlockBreak(player, location, 10);
+                                sendBlockBreak(viewer, location, 10);
                         bukkitTask.cancel();
                     }
                 }, period, period);
@@ -131,7 +131,7 @@ public class BreakerSystem {
                     player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
                     for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
                         if (entity instanceof Player viewer)
-                            sendBlockBreak(player, location, 10);
+                            sendBlockBreak(viewer, location, 10);
                 });
                 breakerPerLocation.remove(location);
             }
