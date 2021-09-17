@@ -24,8 +24,7 @@ public class BottledExpMechanicListener implements Listener {
     @EventHandler
     public void onRightClick(PlayerInteractEvent event) {
         Action action = event.getAction();
-        if (action != Action.LEFT_CLICK_AIR && action != Action.RIGHT_CLICK_AIR && action != Action.LEFT_CLICK_BLOCK
-                && action != Action.RIGHT_CLICK_BLOCK)
+        if (action != Action.LEFT_CLICK_AIR && action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK)
             return;
 
         ItemStack item = event.getItem();
