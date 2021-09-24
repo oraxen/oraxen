@@ -95,14 +95,6 @@ shadowJar {
     archiveName = "$baseName-$version.$extension"
 }
 
-compileJava.dependsOn clean
-build.dependsOn shadowJar
-
-publishing {
-    publications {
-        shadow(MavenPublication) {
-            from components.java
-            artifact shadowJar
-        }
-    }
+artifacts {
+    archives shadowJar
 }
