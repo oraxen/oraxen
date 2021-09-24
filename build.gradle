@@ -98,9 +98,6 @@ build.dependsOn shadowJar
 
 publishing {
     publications {
-        mavenJava(MavenPublication) {
-            from components.java
-        }
         shadow(MavenPublication) {
             artifact shadowJar
         }
