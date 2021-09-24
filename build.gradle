@@ -97,13 +97,12 @@ shadowJar {
 compileJava.dependsOn clean
 build.dependsOn shadowJar
 
-artifacts {
-    archives shadowJar
-}
-
 publishing {
     publications {
-        shadow(MavenPublication) {
+        mavenJava(MavenPublication) {
+            groupId project.group
+            artifactId project.name
+            version project.version
             from components.java
             artifact shadowJar
         }
