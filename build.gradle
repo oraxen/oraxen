@@ -4,12 +4,12 @@ plugins {
     id "java"
     id "idea"
     id "eclipse"
-    id "maven"
+    id "maven-publish"
     id "com.github.johnrengelman.shadow" version '7.0.0'
 }
 
 apply plugin: 'java'
-apply plugin: 'maven'
+apply plugin: 'maven-publish'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 group "io.th0rgal"
@@ -92,9 +92,20 @@ shadowJar {
                         "${System.properties['os.version']}"
         )
     }
-    archiveName = "$baseName-$version.$extension"
 }
+
+compileJava.dependsOn clean
+build.dependsOn shadowJar
 
 artifacts {
     archives shadowJar
+}
+
+publishing {
+    publications {
+        shadow(MavenPublication) {
+            from components.java
+            artifact shadowJar
+        }
+    }
 }
