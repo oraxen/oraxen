@@ -4,12 +4,12 @@ plugins {
     id "java"
     id "idea"
     id "eclipse"
-    id "maven-publish"
+    id "maven"
     id "com.github.johnrengelman.shadow" version '7.0.0'
 }
 
 apply plugin: 'java'
-apply plugin: 'maven-publish'
+apply plugin: 'maven'
 apply plugin: 'com.github.johnrengelman.shadow'
 
 group "io.th0rgal"
