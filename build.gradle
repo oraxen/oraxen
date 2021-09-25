@@ -71,6 +71,7 @@ processResources {
 }
 
 shadowJar {
+    classifier = null
     relocate "org.yaml.snakeyaml", "io.th0rgal.oraxen.shaded.snakeyaml"
     relocate "org.bstats", "io.th0rgal.oraxen.shaded.bstats"
     relocate "net.kyori", "io.th0rgal.oraxen.shaded.kyori"
@@ -98,7 +99,6 @@ build.dependsOn shadowJar
 publishing {
     publications {
         shadow(MavenPublication) {
-            from components.java
             artifact shadowJar
         }
     }
