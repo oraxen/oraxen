@@ -56,6 +56,10 @@ public enum Message {
     GIVE_PLAYER("command.give.player"),
     GIVE_PLAYERS("command.give.players"),
 
+    DYE_SUCCESS("command.dye.success"),
+    DYE_WRONG_COLOR("command.dye.wrong_color"),
+    DYE_FAILED("command.dye.failed"),
+
     // mechanics
     MECHANICS_NOT_ENOUGH_EXP("mechanics.not_enough_exp");
 

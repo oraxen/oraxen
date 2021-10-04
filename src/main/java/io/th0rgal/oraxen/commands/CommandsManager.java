@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.EntitySelectorArgument;
+import dev.jorel.commandapi.arguments.GreedyStringArgument;
 import dev.jorel.commandapi.arguments.IntegerArgument;
 import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
@@ -10,8 +11,12 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.items.OraxenItems;
 import net.kyori.adventure.text.minimessage.Template;
+import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 
 import java.util.Collection;
 
@@ -21,6 +26,7 @@ public class CommandsManager {
         new CommandAPICommand("oraxen")
                 .withAliases("o", "oxn")
                 .withPermission("oraxen.command")
+                .withSubcommand(getDyeCommand())
                 .withSubcommand(getInvCommand())
                 .withSubcommand(getSimpleGiveCommand())
                 .withSubcommand(getGiveCommand())
@@ -34,6 +40,41 @@ public class CommandsManager {
                     Message.COMMAND_HELP.send(sender);
                 })
                 .register();
+    }
+
+    private Color hex2Rgb(String colorStr) {
+        return Color.fromRGB(
+                Integer.valueOf(colorStr.substring(1, 3), 16),
+                Integer.valueOf(colorStr.substring(3, 5), 16),
+                Integer.valueOf(colorStr.substring(5, 7), 16));
+    }
+
+    private CommandAPICommand getDyeCommand() {
+        return new CommandAPICommand("dye")
+                .withPermission("oraxen.command.dye")
+                .withArguments(new GreedyStringArgument("color"))
+                .executes((sender, args) -> {
+                    if (sender instanceof Player player) {
+                        Color hexColor;
+                        try {
+                            hexColor = hex2Rgb((String) args[0]);
+                        } catch (StringIndexOutOfBoundsException e) {
+                            Message.DYE_WRONG_COLOR.send(sender);
+                            return;
+                        }
+                        ItemStack item = player.getInventory().getItemInMainHand();
+                        ItemMeta itemMeta = item.getItemMeta();
+                        if (itemMeta instanceof LeatherArmorMeta meta) meta.setColor(hexColor);
+                        else if (itemMeta instanceof PotionMeta meta) meta.setColor(hexColor);
+                        else {
+                            Message.DYE_FAILED.send(sender);
+                            return;
+                        }
+                        item.setItemMeta(itemMeta);
+                        Message.DYE_SUCCESS.send(sender);
+                    } else
+                        Message.NOT_PLAYER.send(sender);
+                });
     }
 
     @SuppressWarnings("unchecked")
