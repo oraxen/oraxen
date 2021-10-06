@@ -69,5 +69,10 @@ command:
     player: "<prefix><#55ffa4>Vous avez donné à <#43c9fa><player><#55ffa4> <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
     players: "<prefix><#55ffa4>Vous avez donné à <#43c9fa><count><#55ffa4> joueurs <#43fa8c><amount><#6f737d> × <#fa4362><item><#55ffa4>!"
 
+  dye:
+    success: "<prefix><#55ffa4>Vous aviez bien changé la couleur de cet item !"
+    wrong_color: "<prefix><#fa4943>Couleur non reconnue, essayez une couleur hexadécimale comme #FFFFFF !"
+    failed: "<prefix><#fa4943>Cet item ne peut pas changer de couleur !"
+
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Vous avez besoin de plus d'expérience pour faire ceci"
