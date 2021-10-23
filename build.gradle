@@ -61,7 +61,7 @@ dependencies {
     implementation group: "net.kyori", name: "adventure-platform-bukkit", version: "4.0.0-SNAPSHOT"
     implementation group: "com.github.stefvanschie.inventoryframework", name: "IF", version: "0.10.0"
     implementation group: "dev.jorel.CommandAPI", name: "commandapi-shade", version: "6.3.0"
-    implementation group: "de.jeff_media", name: "CustomBlockData", version: "1.0-SNAPSHOT"
+    implementation group: "de.jeff_media", name: "CustomBlockData", version: "1.0"
 }
 
 processResources {
