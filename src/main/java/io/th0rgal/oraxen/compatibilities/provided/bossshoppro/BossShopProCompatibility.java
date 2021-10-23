@@ -27,7 +27,7 @@ public class BossShopProCompatibility extends CompatibilityProvider<BossShop> {
         if (OraxenItems.exists(itemID))
             itemStack = OraxenItems.getItemById(itemID).build().clone();
         else
-            Message.ITEM_NOT_FOUND.log(Template.of("item", itemID));
+            Message.ITEM_NOT_FOUND.log(Template.template("item", itemID));
         if (amount != 0)
             itemStack.setAmount(amount);
         event.getShopItem().setItem(itemStack, false);

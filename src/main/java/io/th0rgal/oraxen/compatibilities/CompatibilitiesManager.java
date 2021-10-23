@@ -41,7 +41,7 @@ public class CompatibilitiesManager {
                         get(pluginName).getConstructor().newInstance();
                 compatibilityProvider.enable(pluginName);
                 ACTIVE_COMPATIBILITY_PROVIDERS.put(pluginName, compatibilityProvider);
-                Message.PLUGIN_HOOKS.log(Template.of("plugin", pluginName));
+                Message.PLUGIN_HOOKS.log(Template.template("plugin", pluginName));
                 return true;
             }
         } catch (final InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
@@ -58,7 +58,7 @@ public class CompatibilitiesManager {
             if (ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).isEnabled())
                 ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).disable();
             ACTIVE_COMPATIBILITY_PROVIDERS.remove(pluginName);
-            Message.PLUGIN_UNHOOKS.log(Template.of("plugin", pluginName));
+            Message.PLUGIN_UNHOOKS.log(Template.template("plugin", pluginName));
             return true;
         } catch (final Exception e) {
             e.printStackTrace();

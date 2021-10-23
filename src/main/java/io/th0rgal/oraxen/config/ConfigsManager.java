@@ -102,7 +102,7 @@ public class ConfigsManager {
         for (String key : defaultConfiguration.getKeys(true))
             if (configuration.get(key) == null) {
                 updated = true;
-                Message.UPDATING_CONFIG.log(Template.of("option", key));
+                Message.UPDATING_CONFIG.log(Template.template("option", key));
                 configuration.set(key, defaultConfiguration.get(key));
             }
         if (updated)

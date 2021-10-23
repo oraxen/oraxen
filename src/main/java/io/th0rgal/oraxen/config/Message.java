@@ -83,7 +83,7 @@ public enum Message {
         OraxenPlugin.get().getAudience().sender(sender).sendMessage(
                 Utils.MINI_MESSAGE.parse(OraxenPlugin.get().getConfigsManager().getLanguage().getString(path),
                         ArrayUtils.addAll(new Template[]{
-                                        Template.of("prefix", Message.PREFIX.toComponent())},
+                                        Template.template("prefix", Message.PREFIX.toComponent())},
                                 placeholders))
         );
     }

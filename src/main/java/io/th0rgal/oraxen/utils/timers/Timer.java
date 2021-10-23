@@ -43,7 +43,7 @@ public class Timer {
     }
 
     public void sendToPlayer(Player player) {
-        Message.COOLDOWN.send(player, Template.of("time", getString()));
+        Message.COOLDOWN.send(player, Template.template("time", getString()));
     }
 
 }

@@ -65,8 +65,8 @@ public class UploadManager {
                 return;
             }
             Message.PACK_UPLOADED.log(
-                    Template.of("url", hostingProvider.getPackURL()),
-                    Template.of("delay", String.valueOf(System.currentTimeMillis() - time)));
+                    Template.template("url", hostingProvider.getPackURL()),
+                    Template.template("delay", String.valueOf(System.currentTimeMillis() - time)));
 
             if ((Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) && sender == null) {
                 packSender = (CompatibilitiesManager.hasPlugin("ProtocolLib") && Settings.SEND_PACK_ADVANCED.toBool())

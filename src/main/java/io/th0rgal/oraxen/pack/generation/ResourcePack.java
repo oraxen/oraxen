@@ -262,7 +262,7 @@ public class ResourcePack {
             if (file.getName().endsWith(".json")) {
                 String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
                 content = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.parse(content,
-                        Template.of("prefix", Message.PREFIX.toComponent())));
+                        Template.template("prefix", Message.PREFIX.toComponent())));
                 fis = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
             } else if (customArmorsTextures.registerImage(file)) return;
             else fis = new FileInputStream(file);

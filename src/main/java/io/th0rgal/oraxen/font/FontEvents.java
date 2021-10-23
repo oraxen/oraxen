@@ -24,7 +24,7 @@ public class FontEvents implements Listener {
                 continue;
             Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
             if (!glyph.hasPermission(event.getPlayer())) {
-                Message.NO_PERMISSION.send(event.getPlayer(), Template.of("permission", glyph.getPermission()));
+                Message.NO_PERMISSION.send(event.getPlayer(), Template.template("permission", glyph.getPermission()));
                 event.setCancelled(true);
             }
         }

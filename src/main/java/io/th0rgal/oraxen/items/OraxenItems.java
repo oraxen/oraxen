@@ -81,7 +81,7 @@ public class OraxenItems {
                         if (exists(param[1]))
                             itemStack[0] = getItemById(param[1]).build().clone();
                         else
-                            Message.ITEM_NOT_FOUND.log(Template.of("item", param[1]));
+                            Message.ITEM_NOT_FOUND.log(Template.template("item", param[1]));
                         break;
                     case "amount":
                         itemStack[0].setAmount(Integer.parseInt(param[1]));

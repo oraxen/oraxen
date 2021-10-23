@@ -39,7 +39,7 @@ public class CommandsMechanicListener implements Listener {
         Player player = event.getPlayer();
 
         if (!mechanic.hasPermission(player)) {
-            Message.NO_PERMISSION.send(player, Template.of("permission", mechanic.getPermission()));
+            Message.NO_PERMISSION.send(player, Template.template("permission", mechanic.getPermission()));
             return;
         }
 

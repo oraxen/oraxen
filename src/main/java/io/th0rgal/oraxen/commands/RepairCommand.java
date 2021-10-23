@@ -47,10 +47,10 @@ public class RepairCommand {
                             }
                         }
                         Message.REPAIRED_ITEMS.send(sender,
-                                Template.of("amount", String.valueOf(items.length - failed)));
+                                Template.template("amount", String.valueOf(items.length - failed)));
                     } else
                         Message.NO_PERMISSION.send(sender,
-                                Template.of("permission", "oraxen.command.repair.all"));
+                                Template.template("permission", "oraxen.command.repair.all"));
                     else
                         Message.NOT_PLAYER.send(sender);
                 });

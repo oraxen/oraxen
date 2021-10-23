@@ -129,7 +129,7 @@ public class RecipesCommand {
                         }
                         final String name = (String) args[0];
                         recipe.saveRecipe(name);
-                        Message.RECIPE_SAVE.send(sender, Template.of("name", name));
+                        Message.RECIPE_SAVE.send(sender, Template.template("name", name));
                     } else
                         Message.NOT_PLAYER.send(sender);
                 });

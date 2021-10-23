@@ -76,7 +76,7 @@ public class OraxenPlugin extends JavaPlugin {
         new ArmorListener(Settings.ARMOR_EQUIP_EVENT_BYPASS.toStringList()).registerEvents(this);
         new BreakerSystem().registerListener();
         postLoading(configsManager);
-        Message.PLUGIN_LOADED.log(Template.of("os", OS.getOs().getPlatformName()));
+        Message.PLUGIN_LOADED.log(Template.template("os", OS.getOs().getPlatformName()));
     }
 
     private void postLoading(final ConfigsManager configsManager) {

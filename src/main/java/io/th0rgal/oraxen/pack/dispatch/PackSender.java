@@ -27,12 +27,12 @@ public abstract class PackSender {
         long delay = (int) Settings.JOIN_MESSAGE_DELAY.getValue();
         if (delay == -1 || !delayed)
             Message.COMMAND_JOIN_MESSAGE.send(player,
-                    Template.of("pack_url", hostingProvider.getPackURL()));
+                    Template.template("pack_url", hostingProvider.getPackURL()));
         else
             Bukkit
                     .getScheduler()
                     .runTaskLaterAsynchronously(OraxenPlugin.get(),
-                            () -> Message.COMMAND_JOIN_MESSAGE.send(player, Template.of("pack_url"
+                            () -> Message.COMMAND_JOIN_MESSAGE.send(player, Template.template("pack_url"
                                     , hostingProvider.getPackURL())),
                             delay * 20L);
     }

@@ -79,7 +79,7 @@ public class RecipesManager {
                     break;
             }
         } catch (NullPointerException exception) {
-            Message.BAD_RECIPE.log(Template.of("recipe", recipeSection.getName()));
+            Message.BAD_RECIPE.log(Template.template("recipe", recipeSection.getName()));
         }
     }
 }

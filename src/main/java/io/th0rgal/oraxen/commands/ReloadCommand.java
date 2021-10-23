@@ -15,7 +15,7 @@ import org.bukkit.command.CommandSender;
 public class ReloadCommand {
 
     private static void reloadItems(CommandSender sender) {
-        Message.RELOAD.send(sender, Template.of("reloaded", "items"));
+        Message.RELOAD.send(sender, Template.template("reloaded", "items"));
         OraxenItems.loadItems();
     }
 
