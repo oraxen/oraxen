@@ -262,17 +262,11 @@ public class ResourcePack {
         try {
             final InputStream fis;
             if (file.getName().endsWith(".json")) {
-                String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
-                content = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.parse(content,
-                        Template.template("prefix", Message.PREFIX.toComponent())));
-                fis = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+                fis = processJsonFile(file);
+            } else if (file.getName().endsWith(".fsh")) {
+                fis = processShaderFile(file);
             } else if (customArmorsTextures.registerImage(file)) {
                 return;
-            } else if (file.getName().endsWith(".fsh")) {
-                String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
-                content = content.replace(
-                        SHADER_PARAMETER_PLACEHOLDER, String.valueOf((int)Settings.ARMOR_RESOLUTION.getValue()));
-                fis = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
             } else {
                 fis = new FileInputStream(file);
             }
@@ -283,6 +277,20 @@ public class ResourcePack {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private InputStream processJsonFile(File file) {
+        String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
+        content = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.parse(content,
+                Template.template("prefix", Message.PREFIX.toComponent())));
+        return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+    }
+
+    private InputStream processShaderFile(File file) {
+        String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
+        content = content.replace(
+                SHADER_PARAMETER_PLACEHOLDER, String.valueOf((int)Settings.ARMOR_RESOLUTION.getValue()));
+        return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
     }
 
     private String getZipFilePath(String path, String newFolder) throws IOException {
