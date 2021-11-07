@@ -32,6 +32,8 @@ import java.util.zip.ZipInputStream;
 
 public class ResourcePack {
 
+    private static final String SHADER_PARAMETER_PLACEHOLDER = "{#TEXTURE_RESOLUTION#}";
+
     private Map<String, Collection<Consumer<File>>> packModifiers;
     private Map<String, VirtualFile> outputFiles;
     private CustomArmorsTextures customArmorsTextures;
@@ -54,7 +56,7 @@ public class ResourcePack {
     }
 
     public void generate(final FontManager fontManager, final SoundManager soundManager) {
-        customArmorsTextures = new CustomArmorsTextures();
+        customArmorsTextures = new CustomArmorsTextures((int) Settings.ARMOR_RESOLUTION.getValue());
         packFolder = new File(plugin.getDataFolder(), "pack");
         makeDirsIfNotExists(packFolder);
         pack = new File(packFolder, packFolder.getName() + ".zip");
@@ -264,8 +266,16 @@ public class ResourcePack {
                 content = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.parse(content,
                         Template.template("prefix", Message.PREFIX.toComponent())));
                 fis = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-            } else if (customArmorsTextures.registerImage(file)) return;
-            else fis = new FileInputStream(file);
+            } else if (customArmorsTextures.registerImage(file)) {
+                return;
+            } else if (file.getName().endsWith(".fsh")) {
+                String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
+                content = content.replace(
+                        SHADER_PARAMETER_PLACEHOLDER, String.valueOf((int)Settings.ARMOR_RESOLUTION.getValue()));
+                fis = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+            } else {
+                fis = new FileInputStream(file);
+            }
 
             fileList.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder),
                     file.getName(),
