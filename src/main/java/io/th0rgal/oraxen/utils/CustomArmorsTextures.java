@@ -18,15 +18,26 @@ import java.util.Map;
 
 public class CustomArmorsTextures {
 
+    static final int DEFAULT_RESOLUTION = 16;
+    static final int HEIGHT_RATIO = 2;
+    static final int WIDTH_RATIO = 4;
+
     private final Map<Integer, String> usedColors = new HashMap<>();
     private final List<BufferedImage> layers1 = new ArrayList<>();
     private final List<BufferedImage> layers2 = new ArrayList<>();
+    private final int resolution;
     private BufferedImage layer1;
     private int layer1Width = 0;
-    private int layer1Height = 0;
     private BufferedImage layer2;
     private int layer2Width = 0;
-    private int layer2Height = 0;
+
+    public CustomArmorsTextures() {
+        this(DEFAULT_RESOLUTION);
+    }
+
+    public CustomArmorsTextures(int resolution) {
+        this.resolution = resolution;
+    }
 
     public boolean registerImage(File file) throws IOException {
 
@@ -36,22 +47,34 @@ public class CustomArmorsTextures {
             return false;
 
         if (name.equals("leather_layer_1.png")) {
-            layer1 = ImageIO.read(file);
+            layer1 = initLayer(ImageIO.read(file));
             layer1Width += layer1.getWidth();
-            if (layer1.getHeight() > layer1Height)
-                layer1Height = layer1.getHeight();
             return true;
         }
 
         if (name.equals("leather_layer_2.png")) {
-            layer2 = ImageIO.read(file);
+            layer2 = initLayer(ImageIO.read(file));
             layer2Width += layer2.getWidth();
-            if (layer2.getHeight() > layer2Height)
-                layer2Height = layer2.getHeight();
             return true;
         }
 
         return name.contains("armor_layer_") && handleArmorLayer(name, file);
+    }
+
+    private int getLayerHeight() {
+        return resolution * HEIGHT_RATIO;
+    }
+
+    private BufferedImage initLayer(BufferedImage original) {
+        if (original.getWidth() == resolution * WIDTH_RATIO && original.getHeight() == getLayerHeight()) {
+            return original;
+        }
+        Image scaled = original.getScaledInstance(
+                resolution * WIDTH_RATIO, getLayerHeight(), Image.SCALE_DEFAULT);
+        BufferedImage output = new BufferedImage(
+                resolution * WIDTH_RATIO, getLayerHeight(), BufferedImage.TYPE_INT_ARGB);
+        output.getGraphics().drawImage(scaled, 0, 0, null);
+        return output;
     }
 
     private boolean handleArmorLayer(String name, File file) throws IOException {
@@ -70,10 +93,10 @@ public class CustomArmorsTextures {
                     Template.template("armor_layer_file", name));
             return true;
         }
-        BufferedImage image = ImageIO.read(file);
+        BufferedImage image = initLayer(ImageIO.read(file));
         File emissiveFile = new File(file.getPath().replace(".png", "_e.png"));
         if (emissiveFile.exists()) {
-            BufferedImage emissiveImage = ImageIO.read(emissiveFile);
+            BufferedImage emissiveImage = initLayer(ImageIO.read(emissiveFile));
             image = mergeImages(image.getWidth() + emissiveImage.getWidth(),
                     image.getHeight(),
                     image, emissiveImage);
@@ -97,13 +120,9 @@ public class CustomArmorsTextures {
         if (name.contains("armor_layer_1")) {
             layers1.add(image);
             layer1Width += image.getWidth();
-            if (image.getHeight() > layer1Height)
-                layer1Height = image.getHeight();
         } else {
             layers2.add(image);
             layer2Width += image.getWidth();
-            if (image.getHeight() > layer2Height)
-                layer2Height = image.getHeight();
         }
     }
 
@@ -112,11 +131,11 @@ public class CustomArmorsTextures {
     }
 
     public InputStream getLayerOne() throws IOException {
-        return getInputStream(layer1Width, layer1Height, layer1, layers1);
+        return getInputStream(layer1Width, getLayerHeight(), layer1, layers1);
     }
 
     public InputStream getLayerTwo() throws IOException {
-        return getInputStream(layer2Width, layer2Height, layer2, layers2);
+        return getInputStream(layer2Width, getLayerHeight(), layer2, layers2);
     }
 
     private InputStream getInputStream(int layerWidth, int layerHeight,

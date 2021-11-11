@@ -24,6 +24,7 @@ public enum Settings {
     AUTO_UPDATE_ITEMS("Misc.auto_update_items"),
 
     GENERATE("Pack.generation.generate"),
+    ARMOR_RESOLUTION("Pack.generation.armor_resolution"),
     COMPRESSION("Pack.generation.compression"),
     PROTECTION("Pack.generation.protection"),
     COMMENT("Pack.generation.comment"),
