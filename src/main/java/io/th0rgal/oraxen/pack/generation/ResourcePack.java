@@ -18,6 +18,7 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.ZipUtils;
 import net.kyori.adventure.text.minimessage.Template;
+import net.kyori.adventure.text.minimessage.template.TemplateResolver;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -261,15 +262,10 @@ public class ResourcePack {
     private void readFileToVirtuals(final Collection<VirtualFile> fileList, File file, String newFolder) {
         try {
             final InputStream fis;
-            if (file.getName().endsWith(".json")) {
-                fis = processJsonFile(file);
-            } else if (file.getName().endsWith(".fsh")) {
-                fis = processShaderFile(file);
-            } else if (customArmorsTextures.registerImage(file)) {
-                return;
-            } else {
-                fis = new FileInputStream(file);
-            }
+            if (file.getName().endsWith(".json")) fis = processJsonFile(file);
+            else if (file.getName().endsWith(".fsh")) fis = processShaderFile(file);
+            else if (customArmorsTextures.registerImage(file)) return;
+            else fis = new FileInputStream(file);
 
             fileList.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder),
                     file.getName(),
@@ -279,17 +275,17 @@ public class ResourcePack {
         }
     }
 
-    private InputStream processJsonFile(File file) {
+    private InputStream processJsonFile(File file) throws IOException {
         String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
-        content = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.parse(content,
-                Template.template("prefix", Message.PREFIX.toComponent())));
+        content = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(content,
+                TemplateResolver.templates(Template.template("prefix", Message.PREFIX.toComponent()))));
         return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
     }
 
-    private InputStream processShaderFile(File file) {
+    private InputStream processShaderFile(File file) throws IOException {
         String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
         content = content.replace(
-                SHADER_PARAMETER_PLACEHOLDER, String.valueOf((int)Settings.ARMOR_RESOLUTION.getValue()));
+                SHADER_PARAMETER_PLACEHOLDER, String.valueOf((int) Settings.ARMOR_RESOLUTION.getValue()));
         return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
     }
 
