@@ -186,13 +186,22 @@ public class FurnitureMechanic extends Mechanic {
 
     public void place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId, ItemStack item) {
         setPlacedItem();
-        ItemFrame itemFrame = location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) -> {
+        location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) -> {
             frame.setVisible(false);
             frame.setFixed(false);
             frame.setPersistent(true);
             frame.setItemDropChance(0);
-            frame.setItem(evolvingFurniture == null ? item : placedItem);
+            if (evolvingFurniture == null) {
+                ItemStack clone = item.clone();
+                ItemMeta meta = clone.getItemMeta();
+                meta.setDisplayName("");
+                clone.setItemMeta(meta);
+                frame.setItem(clone);
+            } else
+                frame.setItem(placedItem);
+
             frame.setRotation(rotation);
+
             frame.setFacingDirection(hasFacing() ? getFacing() : facing, true);
             frame.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
             if (hasSeat())
