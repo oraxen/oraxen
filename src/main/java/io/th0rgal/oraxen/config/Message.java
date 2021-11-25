@@ -34,6 +34,7 @@ public enum Message {
     PLUGIN_HOOKS("general.plugin_hooks"),
     PLUGIN_UNHOOKS("general.plugin_unhooks"),
     NOT_ENOUGH_EXP("general.not_enough_exp"),
+    NOT_ENOUGH_SPACE("general.not_enough_space"),
     EXIT_MENU("general.exit_menu"),
 
     // logs

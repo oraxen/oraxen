@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import de.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
@@ -112,9 +113,12 @@ public class FurnitureListener implements Listener {
 
         final float yaw = mechanic.getYaw(rotation) + mechanic.getSeatYaw();
         final String entityId = spawnSeat(mechanic, target, yaw);
-        mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), entityId, item);
-        if (!player.getGameMode().equals(GameMode.CREATIVE))
-            item.setAmount(item.getAmount() - 1);
+        if (mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), entityId, item)) {
+            if (!player.getGameMode().equals(GameMode.CREATIVE))
+                item.setAmount(item.getAmount() - 1);
+        } else {
+            Message.NOT_ENOUGH_SPACE.send(player);
+        }
     }
 
     private Block getTarget(Block placedAgainst, BlockFace blockFace) {

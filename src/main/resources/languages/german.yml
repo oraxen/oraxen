@@ -21,6 +21,7 @@ general:
   plugin_hooks: "<prefix><#55ffa4>Plugin \"<plugin>\" erkannt, Hooks aktiviert"
   plugin_unhooks: "<prefix><#55ffa4>Unhooking plugin \"<plugin>\""
   not_enough_exp: "<prefix><#fa4943>Sie brauchen mehr Erfahrung, um dies zu tun"
+  not_enough_space: "<prefix><#fa4943>Sie brauchen mehr Platz, um diese Möbel zu platzieren"
   exit_menu: "<gradient:#FA7CBB:#F14658>Beenden"
 
 logs:

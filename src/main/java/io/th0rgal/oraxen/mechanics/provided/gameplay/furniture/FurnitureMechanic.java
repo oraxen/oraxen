@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
+import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -179,12 +180,19 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    public void place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId) {
+    public boolean place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId) {
         setPlacedItem();
-        place(rotation, yaw, facing, location, entityId, placedItem);
+        return place(rotation, yaw, facing, location, entityId, placedItem);
     }
 
-    public void place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId, ItemStack item) {
+    public boolean place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId,
+                         ItemStack item) {
+        if (hasBarriers())
+            for (Location sideLocation : getLocations(yaw, location, getBarriers())) {
+                if (!sideLocation.getBlock().getType().isAir())
+                    return false;
+            }
+
         setPlacedItem();
         location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) -> {
             frame.setVisible(false);
@@ -228,6 +236,8 @@ public class FurnitureMechanic extends Mechanic {
 
         if (light != -1)
             WrappedLightAPI.refreshBlockLights(light, location);
+
+        return true;
     }
 
     public boolean removeSolid(World world, BlockLocation rootBlockLocation, float orientation) {
