@@ -11,7 +11,6 @@ import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
-import io.th0rgal.oraxen.pack.upload.hosts.Sh;
 import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -21,7 +20,6 @@ import org.bukkit.plugin.Plugin;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.ProviderNotFoundException;
-import java.util.List;
 import java.util.Locale;
 
 public class UploadManager {
@@ -82,19 +80,9 @@ public class UploadManager {
     private HostingProvider createHostingProvider() {
         return switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ENGLISH)) {
             case "polymath" -> new Polymath(Settings.POLYMATH_SERVER.toString());
-            case "sh", "cmd" -> createShProvider();
             case "external" -> createExternalProvider();
             default -> throw new ProviderNotFoundException("Unknown provider type: " + Settings.UPLOAD_TYPE);
         };
-    }
-
-    private Sh createShProvider() {
-        final ConfigurationSection opt = (ConfigurationSection) Settings.UPLOAD_OPTIONS.getValue();
-        final List<String> args = opt.getStringList("args");
-        if (args.isEmpty())
-            throw new ProviderNotFoundException("No command line.");
-        final String placeholder = opt.getString("placeholder", "${file}");
-        return new Sh(Sh.path(placeholder, args));
     }
 
     private HostingProvider createExternalProvider() {
