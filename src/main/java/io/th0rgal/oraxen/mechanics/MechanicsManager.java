@@ -64,8 +64,7 @@ public class MechanicsManager {
         registerMechanicFactory("efficiency", EfficiencyMechanicFactory::new);
         registerMechanicFactory("block", BlockMechanicFactory::new);
         registerMechanicFactory("noteblock", NoteBlockMechanicFactory::new);
-        if (Bukkit.getVersion().contains("1.16") || Bukkit.getVersion().contains("1.17"))
-            registerMechanicFactory("furniture", FurnitureFactory::new);
+        registerMechanicFactory("furniture", FurnitureFactory::new);
 
         // cosmetic
         registerMechanicFactory("aura", AuraMechanicFactory::new);
