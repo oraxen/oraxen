@@ -50,7 +50,7 @@ dependencies {
     compileOnly group: 'com.github.Hazebyte', name: 'CrateReloadedAPI', version: '5318abfccc'
     compileOnly group: 'com.github.jojodmo', name: 'ItemBridge', version: '-SNAPSHOT'
     compileOnly group: 'me.clip', name: 'placeholderapi', version: '2.10.10'
-    compileOnly group: 'io.github.qveshn', name: 'LightAPI-fork', version: '3.5.2-SNAPSHOT'
+    compileOnly group: 'com.github.BeYkeRYkt', name: 'LightAPI', version: '5.1.0-Bukkit'
     compileOnly fileTree(dir: 'libs/compile', include: ['*.jar'])
     implementation fileTree(dir: 'libs/implement', include: ['*.jar'])
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'

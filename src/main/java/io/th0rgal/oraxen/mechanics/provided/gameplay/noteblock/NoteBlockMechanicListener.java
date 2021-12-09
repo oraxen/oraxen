@@ -98,10 +98,8 @@ public class NoteBlockMechanicListener implements Listener {
             return;
         if (noteBlockMechanic.hasBreakSound())
             block.getWorld().playSound(block.getLocation(), noteBlockMechanic.getBreakSound(), 1.0f, 0.8f);
-        if (noteBlockMechanic.getLight() != -1) {
-            WrappedLightAPI.removeBlockLight(block.getLocation(), false);
-            WrappedLightAPI.refreshBlockLights(noteBlockMechanic.getLight(), block.getLocation());
-        }
+        if (noteBlockMechanic.getLight() != -1)
+            WrappedLightAPI.removeBlockLight(block.getLocation());
         noteBlockMechanic.getDrop().spawns(block.getLocation(), event.getPlayer().getInventory().getItemInMainHand());
         event.setDropItems(false);
     }
@@ -140,11 +138,8 @@ public class NoteBlockMechanicListener implements Listener {
         if (mechanic.hasPlaceSound())
             placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
 
-        if (placedBlock != null && mechanic.getLight() != -1) {
-            WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight(), false);
-            WrappedLightAPI.refreshBlockLights(mechanic.getLight(), placedBlock.getLocation());
-        }
-
+        if (placedBlock != null && mechanic.getLight() != -1)
+            WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
         event.setCancelled(true);
     }
 
