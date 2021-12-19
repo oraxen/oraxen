@@ -12,6 +12,7 @@ import java.util.*;
 public class FontManager {
 
     public final boolean autoGenerate;
+    public final boolean useLuckPermsChatColor;
     private final Map<String, Glyph> glyphMap;
     private final Map<String, Glyph> glyphByPlaceholder;
     private final Map<Character, String> reverse;
@@ -22,6 +23,7 @@ public class FontManager {
     public FontManager(final ConfigsManager configsManager) {
         final Configuration fontConfiguration = configsManager.getFont();
         autoGenerate = fontConfiguration.getBoolean("settings.automatically_generate");
+        useLuckPermsChatColor = fontConfiguration.getBoolean("settings.use_luckperms_chatcolor");
         glyphMap = new HashMap<>();
         glyphByPlaceholder = new HashMap<>();
         reverse = new HashMap<>();

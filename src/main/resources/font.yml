@@ -1,6 +1,8 @@
 settings:
   # Should Oraxen automatically generate default.json according to your settings?
   automatically_generate: true
+  # Should Oraxen suffix glyphs in chat by luckperm chatcolor? Requires PlaceholderAPI
+  use_luckperms_chatcolor: false
 
 # You can also use ttf  fonts:
 #fonts:
