@@ -180,18 +180,15 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    public boolean place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId) {
+    public void place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId) {
         setPlacedItem();
-        return place(rotation, yaw, facing, location, entityId, placedItem);
+        place(rotation, yaw, facing, location, entityId, placedItem);
     }
 
-    public boolean place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId,
+    public void place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId,
                          ItemStack item) {
-        if (hasBarriers())
-            for (Location sideLocation : getLocations(yaw, location, getBarriers())) {
-                if (!sideLocation.getBlock().getType().isAir())
-                    return false;
-            }
+        if(!this.isEnoughSpace(yaw, location))
+            return;
 
         setPlacedItem();
         location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) -> {
@@ -233,8 +230,6 @@ public class FurnitureMechanic extends Mechanic {
             }
         else if (light != -1)
             WrappedLightAPI.createBlockLight(location, light);
-
-        return true;
     }
 
     public boolean removeSolid(World world, BlockLocation rootBlockLocation, float orientation) {
@@ -293,6 +288,13 @@ public class FurnitureMechanic extends Mechanic {
         for (BlockLocation modifier : relativeCoordinates)
             output.add(modifier.groundRotate(rotation).add(center));
         return output;
+    }
+
+    public boolean isEnoughSpace(float yaw, Location rootLocation) {
+        if(!hasBarriers())
+            return true;
+        return getLocations(yaw, rootLocation, getBarriers()).stream()
+                .allMatch(sideLocation -> sideLocation.getBlock().getType().isAir());
     }
 
     public float getYaw(Rotation rotation) {

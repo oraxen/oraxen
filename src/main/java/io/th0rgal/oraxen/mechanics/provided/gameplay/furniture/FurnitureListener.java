@@ -100,11 +100,7 @@ public class FurnitureListener implements Listener {
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst,
                 item, player,
                 true, event.getHand());
-        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
-        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
-            target.setBlockData(curentBlockData, false); // false to cancel physic
-            return;
-        }
+
         final Rotation rotation = mechanic.hasRotation()
                 ? mechanic.getRotation()
                 : getRotation(player.getEyeLocation().getYaw(),
@@ -113,12 +109,23 @@ public class FurnitureListener implements Listener {
 
         final float yaw = mechanic.getYaw(rotation) + mechanic.getSeatYaw();
         final String entityId = spawnSeat(mechanic, target, yaw);
-        if (mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), entityId, item)) {
-            if (!player.getGameMode().equals(GameMode.CREATIVE))
-                item.setAmount(item.getAmount() - 1);
-        } else {
+
+        if(!mechanic.isEnoughSpace(yaw, target.getLocation())) {
+            blockPlaceEvent.setCancelled(true);
             Message.NOT_ENOUGH_SPACE.send(player);
         }
+
+        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
+
+        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
+            target.setBlockData(curentBlockData, false); // false to cancel physic
+            return;
+        }
+
+        mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), entityId, item);
+
+        if (!player.getGameMode().equals(GameMode.CREATIVE))
+            item.setAmount(item.getAmount() - 1);
     }
 
     private Block getTarget(Block placedAgainst, BlockFace blockFace) {
