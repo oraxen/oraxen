@@ -22,14 +22,15 @@ import java.util.Map;
 public class NoteBlockMechanicFactory extends MechanicFactory {
 
     public static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
-    private static List<JsonObject> blockstateOverrides;
+    private static JsonObject variants;
     private static NoteBlockMechanicFactory instance;
     public final List<String> toolTypes;
 
     public NoteBlockMechanicFactory(ConfigurationSection section) {
         super(section);
         instance = this;
-        blockstateOverrides = new ArrayList<>();
+        variants = new JsonObject();
+        variants.add("instrument=harp,powered=false", getModelJson("required/note_block"));
         toolTypes = section.getStringList("tool_types");
 
         // this modifier should be executed when all the items have been parsed, just
@@ -64,35 +65,19 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         };
     }
 
-    public static JsonObject getBlockstateOverride(String modelName, int id) {
+    public static JsonObject getModelJson(String modelName) {
+        JsonObject content = new JsonObject();
+        content.addProperty("model", modelName);
+        return content;
+    }
+
+    public static String getBlockstateVariantName(int id) {
         id += 26;
-        return getBlockstateOverride(modelName, getInstrumentName(id), id % 25, id >= 400);
+        return getBlockstateVariantName(getInstrumentName(id), id % 25, id >= 400);
     }
 
-    public static JsonObject getBlockstateOverride(String modelName, String instrument) {
-        JsonObject content = new JsonObject();
-        JsonObject model = new JsonObject();
-        model.addProperty("model", modelName);
-        content.add("apply", model);
-
-        JsonObject when = new JsonObject();
-        when.addProperty("instrument", instrument);
-        content.add("when", when);
-        return content;
-    }
-
-    public static JsonObject getBlockstateOverride(String modelName, String instrument, int note, boolean powered) {
-        JsonObject content = new JsonObject();
-        JsonObject model = new JsonObject();
-        model.addProperty("model", modelName);
-        content.add("apply", model);
-
-        JsonObject when = new JsonObject();
-        when.addProperty("instrument", instrument);
-        when.addProperty("note", note);
-        when.addProperty("powered", powered);
-        content.add("when", when);
-        return content;
+    public static String getBlockstateVariantName(String instrument, int note, boolean powered) {
+        return "instrument=" + instrument + ",note=" + note + ",powered=" + powered;
     }
 
     public static NoteBlockMechanic getBlockMechanic(int customVariation) {
@@ -118,21 +103,16 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
     private String getBlockstateContent() {
         JsonObject noteblock = new JsonObject();
-        JsonArray multipart = new JsonArray();
-        // adds default override
-        multipart.add(getBlockstateOverride("required/note_block", "harp"));
-        for (JsonObject override : blockstateOverrides)
-            multipart.add(override);
-        noteblock.add("multipart", multipart);
+        noteblock.add("variants", variants);
         return noteblock.toString();
     }
 
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         NoteBlockMechanic mechanic = new NoteBlockMechanic(this, itemMechanicConfiguration);
-        blockstateOverrides
-                .add(getBlockstateOverride(mechanic.getModel(itemMechanicConfiguration.getParent().getParent()),
-                        mechanic.getCustomVariation()));
+        variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
+                getModelJson(mechanic.getModel(itemMechanicConfiguration.getParent()
+                        .getParent())));
         BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
