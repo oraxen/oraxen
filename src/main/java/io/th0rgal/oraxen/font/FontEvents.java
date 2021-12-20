@@ -32,12 +32,12 @@ public class FontEvents implements Listener {
         }
         for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet())
             if (entry.getValue().hasPermission(event.getPlayer()))
-                message = (!manager.useLuckPermsChatColor)
+                message = (manager.permsChatcolor == null)
                         ? message.replace(entry.getKey(),
                         String.valueOf(entry.getValue().getCharacter()))
                         : message.replace(entry.getKey(),
-                        ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter()))
-                        + PapiAliases.setPlaceholders(event.getPlayer(), "%luckperms_meta_chatcolor%");
+                        ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter())
+                                + PapiAliases.setPlaceholders(event.getPlayer(), manager.permsChatcolor));
 
         event.setMessage(message);
     }
