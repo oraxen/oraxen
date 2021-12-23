@@ -36,8 +36,6 @@ repositories {
     maven { url 'https://repo.codemc.org/repository/maven-public' }
     // CustomBlockData
     maven { url 'https://hub.jeff-media.com/nexus/repository/jeff-media-public' }
-    // Placeholder API
-    maven { url 'https://repo.extendedclip.com/content/repositories/placeholderapi/' }
 }
 
 compileJava {
