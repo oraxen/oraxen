@@ -45,6 +45,16 @@ noteblock:
     - NETHERITE
   enabled: true
 
+stringblock:
+    tool_types:
+      - WOODEN
+      - STONE
+      - IRON
+      - GOLDEN
+      - DIAMOND
+      - NETHERITE
+    enabled: true
+
 # Only 1.16+
 furniture:
   tool_types:

@@ -1,0 +1,23 @@
+# Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+# Potion effects list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionEffectType.html
+# Random UUID generator: https://www.uuidgenerator.net/
+# Color codes: https://docs.adventure.kyori.net/minimessage.html#format
+stringcart:
+  displayname: "<gray>Cart"
+  material: PAPER
+  Pack:
+    generate_model: false
+    model: default/cart
+  Mechanics:
+    stringblock:
+      break_sound: block.stone.break
+      place_sound: block.stone.place
+      custom_variation: 1
+      model: default/cart
+      hardness: 2
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: cart, probability: 1.0 }

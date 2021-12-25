@@ -1,36 +1,40 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Instrument;
 import org.bukkit.Material;
 import org.bukkit.Note;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.NoteBlock;
+import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class NoteBlockMechanicFactory extends MechanicFactory {
+public class StringBlockMechanicFactory extends MechanicFactory {
 
-    public static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
+    public static final Map<Integer, StringBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
     private static JsonObject variants;
-    private static NoteBlockMechanicFactory instance;
+    private static StringBlockMechanicFactory instance;
     public final List<String> toolTypes;
 
-    public NoteBlockMechanicFactory(ConfigurationSection section) {
+    public StringBlockMechanicFactory(ConfigurationSection section) {
         super(section);
+        Logs.logError("ok");
         instance = this;
         variants = new JsonObject();
         variants.add("instrument=harp,powered=false", getModelJson("required/note_block"));
         toolTypes = section.getStringList("tool_types");
-
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
         OraxenPlugin.get().getResourcePack().addModifiers(getMechanicID(),
@@ -39,7 +43,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                             .writeStringToVirtual("assets/minecraft/blockstates",
                                     "note_block.json", getBlockstateContent());
                 });
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new StringBlockMechanicListener(this));
     }
 
     public static String getInstrumentName(int id) {
@@ -78,11 +82,11 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         return "instrument=" + instrument + ",note=" + note + ",powered=" + powered;
     }
 
-    public static NoteBlockMechanic getBlockMechanic(int customVariation) {
+    public static StringBlockMechanic getBlockMechanic(int customVariation) {
         return BLOCK_PER_VARIATION.get(customVariation);
     }
 
-    public static NoteBlockMechanicFactory getInstance() {
+    public static StringBlockMechanicFactory getInstance() {
         return instance;
     }
 
@@ -95,8 +99,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
      */
     public static void setBlockModel(Block block, String itemId) {
         final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("noteblock");
-        NoteBlockMechanic noteBlockMechanic = (NoteBlockMechanic) mechanicFactory.getMechanic(itemId);
-        block.setBlockData(createNoteBlockData(noteBlockMechanic.getCustomVariation()), false);
+        StringBlockMechanic noteBlockMechanic = (StringBlockMechanic) mechanicFactory.getMechanic(itemId);
+        block.setBlockData(createTripwireData(noteBlockMechanic.getCustomVariation()), false);
     }
 
     private String getBlockstateContent() {
@@ -107,7 +111,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        NoteBlockMechanic mechanic = new NoteBlockMechanic(this, itemMechanicConfiguration);
+        StringBlockMechanic mechanic = new StringBlockMechanic(this, itemMechanicConfiguration);
         variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
                 getModelJson(mechanic.getModel(itemMechanicConfiguration.getParent()
                         .getParent())));
@@ -117,22 +121,20 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     /**
-     * Generate a NoteBlock blockdata from its id
+     * Generate a Tripwire blockdata from its id
      *
-     * @param id The block id.
+     * @param code The block id.
      */
-    @SuppressWarnings("deprecation")
-    public static NoteBlock createNoteBlockData(int id) {
-        /* We have 16 instruments with 25 notes. All of those blocks can be powered.
-         * That's: 16*25*2 = 800 variations. The first 25 variations of PIANO (not powered)
-         * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
-         */
-        id += 26;
-        NoteBlock noteBlock = (NoteBlock) Bukkit.createBlockData(Material.NOTE_BLOCK);
-        noteBlock.setInstrument(Instrument.getByType((byte) (id / 25 % 400)));
-        noteBlock.setNote(new Note(id % 25));
-        noteBlock.setPowered(id >= 400);
-        return noteBlock;
+    public static BlockData createTripwireData(final int code) {
+        Tripwire data = ((Tripwire) Bukkit.createBlockData(Material.TRIPWIRE));
+        int i = 0;
+        for (BlockFace face : new BlockFace[]{BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH,
+                BlockFace.NORTH})
+            data.setFace(face, (code & 0x1 << i++) != 0);
+        data.setAttached((code & 0x1 << i++) != 0);
+        data.setDisarmed((code & 0x1 << i++) != 0);
+        data.setPowered((code & 0x1 << i++) != 0);
+        return data;
     }
 
     /**
@@ -140,12 +142,12 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
      *
      * @param itemID The id of an item implementing NoteBlockMechanic
      */
-    public NoteBlock createNoteBlockData(String itemID) {
+    public BlockData createTripwireData(String itemID) {
         /* We have 16 instruments with 25 notes. All of those blocks can be powered.
          * That's: 16*25*2 = 800 variations. The first 25 variations of PIANO (not powered)
          * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
          */
-        return createNoteBlockData(((NoteBlockMechanic) getInstance().getMechanic(itemID)).getCustomVariation());
+        return createTripwireData(((StringBlockMechanic) getInstance().getMechanic(itemID)).getCustomVariation());
     }
 
 }

@@ -23,6 +23,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechan
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.repair.RepairMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.armorpotioneffects.ArmorPotionEffectsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.consumable.ConsumableMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.consumablepotioneffects.ConsumablePotionEffectsMechanicFactory;
@@ -64,6 +65,7 @@ public class MechanicsManager {
         registerMechanicFactory("efficiency", EfficiencyMechanicFactory::new);
         registerMechanicFactory("block", BlockMechanicFactory::new);
         registerMechanicFactory("noteblock", NoteBlockMechanicFactory::new);
+        registerMechanicFactory("stringblock", StringBlockMechanicFactory::new);
         registerMechanicFactory("furniture", FurnitureFactory::new);
 
         // cosmetic
