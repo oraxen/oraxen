@@ -18,6 +18,8 @@ public class ModelGenerator {
 
         if (oraxenMeta.getParentModel().equals("block/cube_all")) {
             textures.addProperty("all", layers.get(0));
+        } else if (oraxenMeta.getParentModel().contains("cross")) {
+            textures.addProperty("cross", layers.get(0));
         } else {
             for (int i = 0; i < layers.size(); i++)
                 textures.addProperty("layer" + i, layers.get(i));

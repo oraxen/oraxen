@@ -31,12 +31,10 @@ public class StringBlockMechanicListener implements Listener {
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onTripwirePhysics(final BlockPhysicsEvent event) {
-        if (event.getChangedType() == Material.TRIPWIRE) {
+    @EventHandler(priority = EventPriority.MONITOR)
+    private void tripwireEvent(BlockPhysicsEvent event) {
+        if (event.getChangedType() == Material.TRIPWIRE)
             event.setCancelled(true);
-            event.getBlock().getState().update(true, false);
-        }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -115,6 +113,8 @@ public class StringBlockMechanicListener implements Listener {
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
                 placedAgainst, event.getBlockFace(),
                 StringBlockMechanicFactory.createTripwireData(customVariation));
+        if (placedBlock == null)
+            return;
         if (mechanic.hasPlaceSound())
             placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
         if (placedBlock != null && mechanic.getLight() != -1)
