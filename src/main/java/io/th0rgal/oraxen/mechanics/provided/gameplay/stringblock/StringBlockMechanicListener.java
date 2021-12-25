@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
@@ -14,8 +13,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.MultipleFacing;
-import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -72,9 +69,10 @@ public class StringBlockMechanicListener implements Listener {
         final Block block = event.getBlock();
         if (block.getType() != Material.TRIPWIRE || event.isCancelled() || !event.isDropItems())
             return;
-        final Tripwire noteBlok = (Tripwire) block.getBlockData();
+        final Tripwire tripwire = (Tripwire) block.getBlockData();
+        Logs.logError("code: " + StringBlockMechanicFactory.getCode(tripwire));
         final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
-                .getBlockMechanic( 0); // todo : find real variation
+                .getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
         if (stringBlockMechanic == null)
             return;
         if (stringBlockMechanic.hasBreakSound())
@@ -97,7 +95,6 @@ public class StringBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrePlacingCustomBlock(final PlayerInteractEvent event) {
-        Logs.logError("u");
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
 
@@ -105,7 +102,6 @@ public class StringBlockMechanicListener implements Listener {
         final String itemID = OraxenItems.getIdByItem(item);
         if (factory.isNotImplementedIn(itemID))
             return;
-        Logs.logError("a");
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
 
@@ -114,10 +110,10 @@ public class StringBlockMechanicListener implements Listener {
         final int customVariation = mechanic.getCustomVariation();
 
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
-                placedAgainst, event.getBlockFace(), StringBlockMechanicFactory.getInstance().createTripwireData(customVariation));
+                placedAgainst, event.getBlockFace(),
+                StringBlockMechanicFactory.getInstance().createTripwireData(customVariation));
         if (mechanic.hasPlaceSound())
             placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
-        Logs.logError("b");
         if (placedBlock != null && mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
         event.setCancelled(true);
@@ -131,12 +127,11 @@ public class StringBlockMechanicListener implements Listener {
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
                 if (block.getType() != Material.NOTE_BLOCK)
                     return false;
-                final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
-                final int code = (int) (noteBlok.getInstrument().getType()) * 25
-                        + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26;
-                final StringBlockMechanic noteBlockMechanic = StringBlockMechanicFactory
+                final Tripwire tripwire = (Tripwire) block.getBlockData();
+                final int code = StringBlockMechanicFactory.getCode(tripwire);
+                final StringBlockMechanic tripwireMechanic = StringBlockMechanicFactory
                         .getBlockMechanic(code);
-                return noteBlockMechanic != null && noteBlockMechanic.hasHardness;
+                return tripwireMechanic != null && tripwireMechanic.hasHardness;
             }
 
             @Override
@@ -147,16 +142,15 @@ public class StringBlockMechanicListener implements Listener {
             @SuppressWarnings("deprecation")
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
-                final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
-                final StringBlockMechanic noteBlockMechanic = StringBlockMechanicFactory
-                        .getBlockMechanic((int) (noteBlok.getInstrument().getType()) * 25
-                                + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
+                final Tripwire tripwire = (Tripwire) block.getBlockData();
+                final StringBlockMechanic tripwireMechanic = StringBlockMechanicFactory
+                        .getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
 
-                final long period = noteBlockMechanic.getPeriod();
+                final long period = tripwireMechanic.getPeriod();
                 double modifier = 1;
-                if (noteBlockMechanic.getDrop().canDrop(tool)) {
+                if (tripwireMechanic.getDrop().canDrop(tool)) {
                     modifier *= 0.4;
-                    final int diff = noteBlockMechanic.getDrop().getDiff(tool);
+                    final int diff = tripwireMechanic.getDrop().getDiff(tool);
                     if (diff >= 1)
                         modifier *= Math.pow(0.9, diff);
                 }

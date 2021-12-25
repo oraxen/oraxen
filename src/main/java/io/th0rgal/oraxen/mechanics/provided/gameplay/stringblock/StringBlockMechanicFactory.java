@@ -13,10 +13,12 @@ import org.bukkit.Note;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.configuration.ConfigurationSection;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,10 +32,8 @@ public class StringBlockMechanicFactory extends MechanicFactory {
 
     public StringBlockMechanicFactory(ConfigurationSection section) {
         super(section);
-        Logs.logError("ok");
         instance = this;
         variants = new JsonObject();
-        variants.add("instrument=harp,powered=false", getModelJson("required/note_block"));
         toolTypes = section.getStringList("tool_types");
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
@@ -41,30 +41,9 @@ public class StringBlockMechanicFactory extends MechanicFactory {
                 packFolder -> {
                     OraxenPlugin.get().getResourcePack()
                             .writeStringToVirtual("assets/minecraft/blockstates",
-                                    "note_block.json", getBlockstateContent());
+                                    "tripwire.json", getBlockstateContent());
                 });
         MechanicsManager.registerListeners(OraxenPlugin.get(), new StringBlockMechanicListener(this));
-    }
-
-    public static String getInstrumentName(int id) {
-        return switch (id / 25 % 384) {
-            case 1 -> "basedrum";
-            case 2 -> "snare";
-            case 3 -> "hat";
-            case 4 -> "bass";
-            case 5 -> "flute";
-            case 6 -> "bell";
-            case 7 -> "guitar";
-            case 8 -> "chime";
-            case 9 -> "xylophone";
-            case 10 -> "iron_xylophone";
-            case 11 -> "cow_bell";
-            case 12 -> "didgeridoo";
-            case 13 -> "bit";
-            case 14 -> "banjo";
-            case 15 -> "pling";
-            default -> "harp";
-        };
     }
 
     public static JsonObject getModelJson(String modelName) {
@@ -74,12 +53,13 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     }
 
     public static String getBlockstateVariantName(int id) {
-        id += 26;
-        return getBlockstateVariantName(getInstrumentName(id), id % 25, id >= 400);
-    }
-
-    public static String getBlockstateVariantName(String instrument, int note, boolean powered) {
-        return "instrument=" + instrument + ",note=" + note + ",powered=" + powered;
+        return "east=" + ((id & 1) == 1 ? "true" : "false")
+                + ",west=" + (((id >> 1) & 1) == 1 ? "true" : "false")
+                + ",south=" + (((id >> 2) & 1) == 1 ? "true" : "false")
+                + ",north=" + (((id >> 3) & 1) == 1 ? "true" : "false")
+                + ",attached=" + (((id >> 4) & 1) == 1 ? "true" : "false")
+                + ",disarmed=" + (((id >> 5) & 1) == 1 ? "true" : "false")
+                + ",powered=" + (((id >> 6) & 1) == 1 ? "true" : "false");
     }
 
     public static StringBlockMechanic getBlockMechanic(int customVariation) {
@@ -120,6 +100,21 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         return mechanic;
     }
 
+    public static int getCode(final Tripwire blockData) {
+        final List<BlockFace> properties = Arrays
+                .asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH);
+        int sum = 0;
+        for (final BlockFace blockFace : blockData.getFaces())
+            sum += (int) Math.pow(2, properties.indexOf(blockFace));
+        if (blockData.isAttached())
+            sum += (int) Math.pow(2, 4);
+        if (blockData.isDisarmed())
+            sum += (int) Math.pow(2, 5);
+        if (blockData.isPowered())
+            sum += (int) Math.pow(2, 6);
+        return sum;
+    }
+
     /**
      * Generate a Tripwire blockdata from its id
      *
@@ -133,7 +128,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
             data.setFace(face, (code & 0x1 << i++) != 0);
         data.setAttached((code & 0x1 << i++) != 0);
         data.setDisarmed((code & 0x1 << i++) != 0);
-        data.setPowered((code & 0x1 << i++) != 0);
+        data.setPowered((code & 0x1 << i) != 0);
         return data;
     }
 

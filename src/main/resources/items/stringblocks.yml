@@ -5,7 +5,7 @@
 # Random UUID generator: https://www.uuidgenerator.net/
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 stringcart:
-  displayname: "<gray>Cart"
+  displayname: "<gray>String Cart"
   material: PAPER
   Pack:
     generate_model: false
@@ -20,4 +20,4 @@ stringcart:
       drop:
         silktouch: false
         loots:
-          - { oraxen_item: cart, probability: 1.0 }
+          - { oraxen_item: stringcart, probability: 1.0 }
