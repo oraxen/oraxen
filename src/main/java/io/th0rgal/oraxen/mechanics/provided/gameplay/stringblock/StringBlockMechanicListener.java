@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -32,13 +31,19 @@ public class StringBlockMechanicListener implements Listener {
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onTripwirePhysics(final BlockPhysicsEvent event) {
+        if (event.getChangedType() == Material.TRIPWIRE) {
+            event.setCancelled(true);
+            event.getBlock().getState().update(true, false);
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingString(final BlockPlaceEvent event) {
-
         if (event.getBlockPlaced().getType() != Material.STRING
                 || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
-
         event.setCancelled(true);
     }
 
@@ -70,7 +75,6 @@ public class StringBlockMechanicListener implements Listener {
         if (block.getType() != Material.TRIPWIRE || event.isCancelled() || !event.isDropItems())
             return;
         final Tripwire tripwire = (Tripwire) block.getBlockData();
-        Logs.logError("code: " + StringBlockMechanicFactory.getCode(tripwire));
         final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
                 .getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
         if (stringBlockMechanic == null)
@@ -82,7 +86,6 @@ public class StringBlockMechanicListener implements Listener {
         stringBlockMechanic.getDrop().spawns(block.getLocation(), event.getPlayer().getInventory().getItemInMainHand());
         event.setDropItems(false);
     }
-
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingBlock(final BlockPlaceEvent event) {
@@ -111,7 +114,7 @@ public class StringBlockMechanicListener implements Listener {
 
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
                 placedAgainst, event.getBlockFace(),
-                StringBlockMechanicFactory.getInstance().createTripwireData(customVariation));
+                StringBlockMechanicFactory.createTripwireData(customVariation));
         if (mechanic.hasPlaceSound())
             placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
         if (placedBlock != null && mechanic.getLight() != -1)
@@ -123,7 +126,6 @@ public class StringBlockMechanicListener implements Listener {
         return new HardnessModifier() {
 
             @Override
-            @SuppressWarnings("deprecation")
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
                 if (block.getType() != Material.NOTE_BLOCK)
                     return false;
@@ -139,7 +141,6 @@ public class StringBlockMechanicListener implements Listener {
                 block.setType(Material.AIR);
             }
 
-            @SuppressWarnings("deprecation")
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
                 final Tripwire tripwire = (Tripwire) block.getBlockData();
