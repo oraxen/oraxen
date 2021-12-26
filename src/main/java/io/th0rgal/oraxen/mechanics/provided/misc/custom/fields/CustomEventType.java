@@ -21,7 +21,7 @@ public enum CustomEventType {
 
     @FunctionalInterface
     interface CustomListenerConstructor {
-        CustomListener create(String itemID, CustomEvent event,
+        CustomListener create(String itemID, long cooldown, CustomEvent event,
                               List<CustomCondition> conditions, List<CustomAction> actions);
     }
 

@@ -13,9 +13,9 @@ import java.util.List;
 public class DropListener extends CustomListener {
 
 
-    public DropListener(String itemID, CustomEvent event,
+    public DropListener(String itemID, long cooldown, CustomEvent event,
                         List<CustomCondition> conditions, List<CustomAction> actions) {
-        super(itemID, event, conditions, actions);
+        super(itemID, cooldown, event, conditions, actions);
     }
 
     @EventHandler

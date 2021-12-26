@@ -35,7 +35,7 @@ public class CustomMechanic extends Mechanic {
 
             CustomListener listener = new CustomEvent(subsection.getString("event"),
                     subsection.getBoolean("one_usage", false))
-                    .getListener(getItemID(), conditions, actions);
+                    .getListener(getItemID(), subsection.getLong("cooldown"), conditions, actions);
 
             listener.register();
             LOADED_VARIANTS.put(key, listener);

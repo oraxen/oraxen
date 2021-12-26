@@ -17,9 +17,9 @@ public class ClickListener extends CustomListener {
 
     private final Set<Action> interactActions = new HashSet<>();
 
-    public ClickListener(String itemID, CustomEvent event,
+    public ClickListener(String itemID, long cooldown, CustomEvent event,
                          List<CustomCondition> conditions, List<CustomAction> actions) {
-        super(itemID, event, conditions, actions);
+        super(itemID, cooldown, event, conditions, actions);
         switch (event.getParams().get(0)) {
             case "right":
                 if (event.getParams().get(1).equals("all")) {

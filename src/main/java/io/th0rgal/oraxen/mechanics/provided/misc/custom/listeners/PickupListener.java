@@ -14,9 +14,9 @@ import java.util.List;
 public class PickupListener extends CustomListener {
 
 
-    public PickupListener(String itemID, CustomEvent event,
+    public PickupListener(String itemID, long cooldown, CustomEvent event,
                           List<CustomCondition> conditions, List<CustomAction> actions) {
-        super(itemID, event, conditions, actions);
+        super(itemID, cooldown, event, conditions, actions);
     }
 
     @EventHandler

@@ -45,7 +45,7 @@ public class CommandsMechanicListener implements Listener {
 
         Timer playerTimer = mechanic.getTimer(player);
         if (!playerTimer.isFinished()) {
-            mechanic.getTimer(player).sendToPlayer(player);
+            playerTimer.sendToPlayer(player);
             return;
         }
 

@@ -24,9 +24,10 @@ public class CustomEvent {
     }
 
     public CustomListener getListener(String itemID,
+                                      long cooldown,
                                       List<CustomCondition> conditions,
                                       List<CustomAction> actions) {
-        return type.constructor.create(itemID, this, conditions, actions);
+        return type.constructor.create(itemID, cooldown, this, conditions, actions);
     }
 
     public boolean isOneUsage() {

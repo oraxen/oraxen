@@ -43,6 +43,7 @@ example_custom_mechanic:
   Mechanics:
     custom:
       test:
+        cooldown: 200 # in ticks
         event: "CLICK:right:all"
         conditions:
           - "HAS_PERMISSION:example.permission"
