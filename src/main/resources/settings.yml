@@ -229,6 +229,9 @@ gui_inventory:
   blocks:
     icon: orax_ore
     color: <#EDCDEB>
+  flowers:
+    icon: dailily
+    color: <#bf332c>
   hats:
     icon: crown
     color: <#81B125>
