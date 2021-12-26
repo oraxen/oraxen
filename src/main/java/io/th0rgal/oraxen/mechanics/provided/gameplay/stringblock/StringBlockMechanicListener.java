@@ -32,7 +32,7 @@ public class StringBlockMechanicListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
-    private void tripwireEvent(BlockPhysicsEvent event) {
+    public void tripwireEvent(BlockPhysicsEvent event) {
         if (event.getChangedType() == Material.TRIPWIRE)
             event.setCancelled(true);
     }
