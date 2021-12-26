@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -77,6 +79,11 @@ public class OS {
         macOs.put("10.10", "Yosemite");
         macOs.put("10.11", "El Capitan");
         macOs.put("10.12", "Sierra");
+        macOs.put("10.13", "High Sierra");
+        macOs.put("10.14", "Mojave");
+        macOs.put("10.15", "Catalina");
+        macOs.put("11.1", "Big Sur");
+        macOs.put("12.1", "Monterey");
 
         darwin.put(5, "Puma");
         darwin.put(6, "Jaguar");

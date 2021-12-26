@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
+import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.ChatColor;
@@ -120,11 +121,27 @@ public class ConfigsManager {
                 .stream(getGlyphsFiles())
                 .filter(file -> file.getName().endsWith(".yml"))
                 .collect(Collectors.toList());
+        Map<String, Integer> codePerGlyph = new HashMap<>();
+        for (File file : configs) {
+            YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
+            for (String key : configuration.getKeys(false)) {
+                ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
+                int code = glyphSection.getInt("code", -1);
+                if (code != -1)
+                    codePerGlyph.put(key, code);
+            }
+        }
+
         for (File file : configs) {
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
             boolean fileChanged = false;
             for (String key : configuration.getKeys(false)) {
-                Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key));
+                int code = codePerGlyph.getOrDefault(key, -1);
+                if (code == -1) {
+                    code = Utils.firstEmpty(codePerGlyph, 32768);
+                    codePerGlyph.put(key, code);
+                }
+                Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key), code);
                 if (glyph.isFileChanged())
                     fileChanged = true;
                 output.add(glyph);

@@ -14,10 +14,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Locale;
+import java.util.*;
 
 public class Utils {
 
@@ -85,6 +82,12 @@ public class Utils {
         } catch (final IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static int firstEmpty(Map<String, Integer> map, int min) {
+        while (map.containsValue(min))
+            min++;
+        return min;
     }
 
 }

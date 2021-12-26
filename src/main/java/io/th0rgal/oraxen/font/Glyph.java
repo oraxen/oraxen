@@ -4,13 +4,15 @@ package io.th0rgal.oraxen.font;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+
+import java.util.Map;
 
 
 public class Glyph {
 
-    private static int lastCode = -1;
     private boolean fileChanged = false;
 
     private final String name;
@@ -20,8 +22,9 @@ public class Glyph {
     private final int height;
     private String permission = null;
     private String[] placeholders;
+    private int code;
 
-    public Glyph(final String glyphName, final ConfigurationSection glyphSection) {
+    public Glyph(final String glyphName, final ConfigurationSection glyphSection, int newCode) {
         name = glyphName;
         placeholders = new String[0];
         if (glyphSection.isConfigurationSection("chat")) {
@@ -33,17 +36,13 @@ public class Glyph {
         texture = glyphSection.getString("texture");
         if (!texture.endsWith(".png"))
             texture += ".png";
-        int code;
-        if (glyphSection.isInt("code"))
-            code = glyphSection.getInt("code");
-        else {
-            code = lastCode != -1 ? ++lastCode : 3000;
-            if (Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool()) {
-                glyphSection.set("code", code);
-                fileChanged = true;
-            }
+
+        this.code = newCode;
+        if (glyphSection.getInt("code", -1) != newCode && Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool()) {
+            glyphSection.set("code", code);
+            fileChanged = true;
         }
-        lastCode = code;
+
         character = (char) code;
         ascent = glyphSection.getInt("ascent");
         height = glyphSection.getInt("height");
@@ -97,8 +96,11 @@ public class Glyph {
         return permission == null || permission.isEmpty() || player.hasPermission(permission);
     }
 
-    public static void resetLastCode() {
-        lastCode = -1;
+    protected void setCode(int code) {
+        this.code = code;
     }
 
+    public int getCode() {
+        return code;
+    }
 }
