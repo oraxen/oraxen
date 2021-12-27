@@ -140,13 +140,14 @@ public class NoteBlockMechanicListener implements Listener {
         assert placedAgainst != null;
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
                 placedAgainst, event.getBlockFace(), NoteBlockMechanicFactory.createNoteBlockData(customVariation));
-        assert placedBlock != null;
-        if (mechanic.hasPlaceSound())
-            placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
+        if (placedBlock != null) {
+            if (mechanic.hasPlaceSound())
+                placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
 
-        if (mechanic.getLight() != -1)
-            WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
-        event.setCancelled(true);
+            if (mechanic.getLight() != -1)
+                WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
+            event.setCancelled(true);
+        }
     }
 
     private HardnessModifier getHardnessModifier() {
