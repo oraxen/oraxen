@@ -124,14 +124,8 @@ public class ResourcePack {
             ZipEntry entry = zip.getNextEntry();
             final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
             while (entry != null) {
-                final String name = entry.getName();
-                final boolean isSuitable = (extractModels && name.startsWith("pack/models"))
-                        || (extractTextures && name.startsWith("pack/textures"))
-                        || (extractTextures && name.startsWith("pack/shaders"))
-                        || (extractLang && name.startsWith("pack/lang"))
-                        || (extractSounds && name.startsWith("pack/sounds"))
-                        || (extractAssets && name.startsWith("/pack/assets"));
-                resourcesManager.extractFileIfTrue(entry, name, isSuitable);
+                extract(entry, extractModels, extractTextures,
+                        extractLang, extractSounds, extractAssets, resourcesManager);
                 entry = zip.getNextEntry();
             }
             zip.closeEntry();
@@ -139,6 +133,20 @@ public class ResourcePack {
         } catch (final IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    private void extract(ZipEntry entry, boolean extractModels,
+                         boolean extractTextures, boolean extractLang,
+                         boolean extractSounds, boolean extractAssets,
+                         ResourcesManager resourcesManager) {
+        final String name = entry.getName();
+        final boolean isSuitable = (extractModels && name.startsWith("pack/models"))
+                || (extractTextures && name.startsWith("pack/textures"))
+                || (extractTextures && name.startsWith("pack/shaders"))
+                || (extractLang && name.startsWith("pack/lang"))
+                || (extractSounds && name.startsWith("pack/sounds"))
+                || (extractAssets && name.startsWith("/pack/assets"));
+        resourcesManager.extractFileIfTrue(entry, name, isSuitable);
     }
 
     private Map<Material, List<ItemBuilder>> extractTexturedItems() {
