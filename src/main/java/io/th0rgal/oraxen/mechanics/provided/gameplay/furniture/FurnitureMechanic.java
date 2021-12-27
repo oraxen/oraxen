@@ -180,18 +180,18 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    public void place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId) {
+    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId) {
         setPlacedItem();
-        place(rotation, yaw, facing, location, entityId, placedItem);
+        return place(rotation, yaw, facing, location, entityId, placedItem);
     }
 
-    public void place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId,
-                         ItemStack item) {
-        if(!this.isEnoughSpace(yaw, location))
-            return;
+    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId,
+                           ItemStack item) {
+        if (!this.isEnoughSpace(yaw, location))
+            return null;
 
         setPlacedItem();
-        location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) -> {
+        ItemFrame output = location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) -> {
             frame.setVisible(false);
             frame.setFixed(false);
             frame.setPersistent(true);
@@ -230,6 +230,7 @@ public class FurnitureMechanic extends Mechanic {
             }
         else if (light != -1)
             WrappedLightAPI.createBlockLight(location, light);
+        return output;
     }
 
     public boolean removeSolid(World world, BlockLocation rootBlockLocation, float orientation) {
@@ -264,7 +265,7 @@ public class FurnitureMechanic extends Mechanic {
                 removed = true;
                 break;
             }
-        
+
         return removed;
     }
 
@@ -291,7 +292,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public boolean isEnoughSpace(float yaw, Location rootLocation) {
-        if(!hasBarriers())
+        if (!hasBarriers())
             return true;
         return getLocations(yaw, rootLocation, getBarriers()).stream()
                 .allMatch(sideLocation -> sideLocation.getBlock().getType().isAir());
