@@ -110,7 +110,7 @@ public class FurnitureListener implements Listener {
         final float yaw = mechanic.getYaw(rotation) + mechanic.getSeatYaw();
         final String entityId = spawnSeat(mechanic, target, yaw);
 
-        if(!mechanic.isEnoughSpace(yaw, target.getLocation())) {
+        if (!mechanic.isEnoughSpace(yaw, target.getLocation())) {
             blockPlaceEvent.setCancelled(true);
             Message.NOT_ENOUGH_SPACE.send(player);
         }
@@ -123,7 +123,7 @@ public class FurnitureListener implements Listener {
         }
 
         mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), entityId, item);
-
+        Utils.sendAnimation(player, event.getHand());
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
     }

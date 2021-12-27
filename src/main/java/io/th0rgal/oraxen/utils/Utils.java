@@ -1,5 +1,9 @@
 package io.th0rgal.oraxen.utils;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketContainer;
 import io.th0rgal.oraxen.font.GlyphTransformation;
 import io.th0rgal.oraxen.font.ShiftTransformation;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -7,11 +11,14 @@ import net.kyori.adventure.text.minimessage.transformation.TransformationRegistr
 import net.kyori.adventure.text.minimessage.transformation.TransformationType;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -88,6 +95,18 @@ public class Utils {
         while (map.containsValue(min))
             min++;
         return min;
+    }
+
+    public static void sendAnimation(Player player, EquipmentSlot hand) {
+        final ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+        final PacketContainer animation = protocolManager.createPacket(PacketType.Play.Server.ANIMATION);
+        animation.getIntegers().write(0, player.getEntityId());
+        animation.getIntegers().write(1, (hand == EquipmentSlot.HAND) ? 0 : 3);
+        try {
+            protocolManager.sendServerPacket(player, animation);
+        } catch (final InvocationTargetException e) {
+            e.printStackTrace();
+        }
     }
 
 }

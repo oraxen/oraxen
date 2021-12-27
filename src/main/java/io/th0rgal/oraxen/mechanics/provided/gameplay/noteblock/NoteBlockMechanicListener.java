@@ -1,5 +1,9 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketContainer;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -133,12 +137,14 @@ public class NoteBlockMechanicListener implements Listener {
         NoteBlockMechanic mechanic = (NoteBlockMechanic) factory.getMechanic(itemID);
         final int customVariation = mechanic.getCustomVariation();
 
+        assert placedAgainst != null;
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
                 placedAgainst, event.getBlockFace(), NoteBlockMechanicFactory.createNoteBlockData(customVariation));
+        assert placedBlock != null;
         if (mechanic.hasPlaceSound())
             placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
 
-        if (placedBlock != null && mechanic.getLight() != -1)
+        if (mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
         event.setCancelled(true);
     }
@@ -221,10 +227,13 @@ public class NoteBlockMechanicListener implements Listener {
             return null;
         }
 
+        Utils.sendAnimation(player, hand);
+
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
 
         return target;
     }
+
 
 }
