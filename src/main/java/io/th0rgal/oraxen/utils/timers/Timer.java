@@ -34,10 +34,6 @@ public class Timer {
         return lastUsage + delay - System.currentTimeMillis();
     }
 
-    public long getRemainingTime(TimeUnit timeUnit) {
-        return lastUsage + delay - System.currentTimeMillis();
-    }
-
     public String getString() {
         return "%.2f".formatted(getRemainingTime() / 1000f);
     }

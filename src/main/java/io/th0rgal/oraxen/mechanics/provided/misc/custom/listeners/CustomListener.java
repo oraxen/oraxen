@@ -28,7 +28,7 @@ public abstract class CustomListener implements Listener {
     public CustomListener(String itemID, long cooldown, CustomEvent event,
                           List<CustomCondition> conditions, List<CustomAction> actions) {
         this.itemID = itemID;
-        this.timers = new TimersFactory(cooldown);
+        this.timers = new TimersFactory(cooldown * 50);
         this.event = event;
         this.conditions = conditions;
         this.actions = actions;
