@@ -20,6 +20,9 @@ example_sword:
     - HIDE_PLACED_ON
     - HIDE_POTION_EFFECTS
 
+  PersistentData:
+    - { key: "test:hello", type: STRING, value: "Here is a value" }
+
   AttributeModifiers:
     # - name: You don't really care about the name but it can be useful for some developers
     # - attribute: Get the list here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html

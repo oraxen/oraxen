@@ -15,6 +15,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
@@ -187,6 +188,11 @@ public class ItemBuilder {
 
     public boolean hasCustomTag() {
         return !persistentDataContainer.isEmpty();
+    }
+
+
+    public <T, Z> void addCustomTag(NamespacedKey key, PersistentDataType<T, Z> type, Z value) {
+        persistentDataContainer.set(key, type, value);
     }
 
     public ItemBuilder setCustomModelData(final int customModelData) {

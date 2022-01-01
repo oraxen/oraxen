@@ -23,6 +23,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.zip.Deflater;
 
 public class ItemParser {
 
@@ -118,6 +119,7 @@ public class ItemParser {
                             section.getName());
     }
 
+    @SuppressWarnings({"unchecked", "deprecation"})
     private void parseVanillaSections(ItemBuilder item) {
 
         if (section.contains("ItemFlags")) {
@@ -138,6 +140,23 @@ public class ItemParser {
                 boolean particles = (boolean) serializedPotionEffect.get("particles");
                 boolean icon = (boolean) serializedPotionEffect.get("icon");
                 item.addPotionEffect(new PotionEffect(effect, duration, amplifier, ambient, particles, icon));
+            }
+        }
+
+        if (section.contains("PersistentData")) {
+            try {
+                List<LinkedHashMap<String, Object>> dataHolder = (List<LinkedHashMap<String, Object>>) section
+                        .getList("PersistentData");
+                for (LinkedHashMap<String, Object> attributeJson : dataHolder) {
+                    String[] keyContent = ((String) attributeJson.get("key")).split(":");
+                    final Object persistentDataType = PersistentDataType.class
+                            .getDeclaredField((String) attributeJson.get("type")).get(null);
+                    item.addCustomTag(new NamespacedKey(keyContent[0], keyContent[1]),
+                            (PersistentDataType) persistentDataType,
+                            attributeJson.get("value"));
+                }
+            } catch (IllegalAccessException | NoSuchFieldException e) {
+                e.printStackTrace();
             }
         }
 
