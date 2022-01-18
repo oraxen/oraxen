@@ -138,7 +138,7 @@ public class ConfigsManager {
             for (String key : configuration.getKeys(false)) {
                 int code = codePerGlyph.getOrDefault(key, -1);
                 if (code == -1) {
-                    code = Utils.firstEmpty(codePerGlyph, 32768);
+                    code = Utils.firstEmpty(codePerGlyph, 42000);
                     codePerGlyph.put(key, code);
                 }
                 Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key), code);
