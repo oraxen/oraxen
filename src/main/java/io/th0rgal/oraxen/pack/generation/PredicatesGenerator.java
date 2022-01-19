@@ -28,12 +28,20 @@ public class PredicatesGenerator {
 
         // textures
         final JsonObject textures = new JsonObject();
-        textures.addProperty("layer0", getVanillaTextureName(material, false));
 
         // to support colored leather armors + potions
         final ItemMeta exampleMeta = new ItemStack(material).getItemMeta();
-        if (exampleMeta instanceof LeatherArmorMeta || exampleMeta instanceof PotionMeta)
+        if (exampleMeta instanceof LeatherArmorMeta) {
+            // overlay textures must be on layer 1 in armor
+            textures.addProperty("layer0", getVanillaTextureName(material, false));
             textures.addProperty("layer1", getVanillaTextureName(material, false) + "_overlay");
+        } else if (exampleMeta instanceof PotionMeta) {
+            // overlay textures must be on layer 0 in potions
+            textures.addProperty("layer0", getVanillaTextureName(material, false) + "_overlay");
+            textures.addProperty("layer1", getVanillaTextureName(material, false));
+        } else {
+            textures.addProperty("layer0", getVanillaTextureName(material, false));
+        }
 
         json.add("textures", textures);
 
