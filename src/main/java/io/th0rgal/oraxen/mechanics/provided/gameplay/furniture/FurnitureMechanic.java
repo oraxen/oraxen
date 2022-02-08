@@ -254,9 +254,11 @@ public class FurnitureMechanic extends Mechanic {
                 if (entity.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
                     Entity stand = Bukkit.getEntity(UUID.fromString(entity.getPersistentDataContainer()
                             .get(SEAT_KEY, PersistentDataType.STRING)));
-                    for (Entity passenger : stand.getPassengers())
-                        stand.removePassenger(passenger);
-                    stand.remove();
+                    if(stand != null) {
+                        for (Entity passenger : stand.getPassengers())
+                            stand.removePassenger(passenger);
+                        stand.remove();
+                    }
                 }
                 frame.remove();
                 if (light != -1)
@@ -273,9 +275,11 @@ public class FurnitureMechanic extends Mechanic {
         if (frame.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
             Entity stand = Bukkit.getEntity(UUID.fromString(frame.getPersistentDataContainer()
                     .get(SEAT_KEY, PersistentDataType.STRING)));
-            for (Entity passenger : stand.getPassengers())
-                stand.removePassenger(passenger);
-            stand.remove();
+            if(stand != null) {
+                for (Entity passenger : stand.getPassengers())
+                    stand.removePassenger(passenger);
+                stand.remove();
+            }
         }
         Location location = frame.getLocation().getBlock().getLocation();
         if (light != -1) {
