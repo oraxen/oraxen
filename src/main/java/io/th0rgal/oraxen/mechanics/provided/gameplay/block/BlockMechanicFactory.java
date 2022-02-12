@@ -30,11 +30,9 @@ public class BlockMechanicFactory extends MechanicFactory {
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
         OraxenPlugin.get().getResourcePack().addModifiers(getMechanicID(),
-                packFolder -> {
-                    OraxenPlugin.get().getResourcePack()
-                            .writeStringToVirtual("assets/minecraft/blockstates",
-                                    "mushroom_stem.json", getBlockstateContent());
-                });
+                packFolder -> OraxenPlugin.get().getResourcePack()
+                        .writeStringToVirtual("assets/minecraft/blockstates",
+                                "mushroom_stem.json", getBlockstateContent()));
         MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicListener(this));
     }
 
