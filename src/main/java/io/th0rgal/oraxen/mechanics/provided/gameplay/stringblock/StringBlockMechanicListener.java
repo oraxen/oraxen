@@ -127,7 +127,7 @@ public class StringBlockMechanicListener implements Listener {
 
             @Override
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                if (block.getType() != Material.NOTE_BLOCK)
+                if (block.getType() != Material.TRIPWIRE)
                     return false;
                 final Tripwire tripwire = (Tripwire) block.getBlockData();
                 final int code = StringBlockMechanicFactory.getCode(tripwire);
