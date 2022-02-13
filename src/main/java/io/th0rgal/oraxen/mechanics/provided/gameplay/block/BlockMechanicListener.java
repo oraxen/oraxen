@@ -105,6 +105,7 @@ public class BlockMechanicListener implements Listener {
         final BlockMechanic mechanic = ((BlockMechanic) factory.getMechanic(itemID));
         final int customVariation = mechanic.getCustomVariation();
         BlockMechanic.setBlockFacing(newBlockData, customVariation);
+        Utils.sendAnimation(player, event.getHand());
 
         // set the new block
         target.setBlockData(newBlockData); // false to cancel physic
