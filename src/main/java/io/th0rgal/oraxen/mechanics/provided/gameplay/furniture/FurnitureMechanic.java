@@ -83,7 +83,6 @@ public class FurnitureMechanic extends Mechanic {
 
         farmlandRequired = section.getBoolean("farmland_required", false);
 
-
         facing = section.isString("facing")
                 ? BlockFace.valueOf(section.getString("facing").toUpperCase())
                 : null;
@@ -254,7 +253,7 @@ public class FurnitureMechanic extends Mechanic {
                 if (entity.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
                     Entity stand = Bukkit.getEntity(UUID.fromString(entity.getPersistentDataContainer()
                             .get(SEAT_KEY, PersistentDataType.STRING)));
-                    if(stand != null) {
+                    if (stand != null) {
                         for (Entity passenger : stand.getPassengers())
                             stand.removePassenger(passenger);
                         stand.remove();
@@ -275,7 +274,7 @@ public class FurnitureMechanic extends Mechanic {
         if (frame.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
             Entity stand = Bukkit.getEntity(UUID.fromString(frame.getPersistentDataContainer()
                     .get(SEAT_KEY, PersistentDataType.STRING)));
-            if(stand != null) {
+            if (stand != null) {
                 for (Entity passenger : stand.getPassengers())
                     stand.removePassenger(passenger);
                 stand.remove();
@@ -286,6 +285,14 @@ public class FurnitureMechanic extends Mechanic {
             WrappedLightAPI.removeBlockLight(location);
         }
         frame.remove();
+    }
+
+    public void remove(ItemFrame frame) {
+        if (this.hasBarriers())
+            this.removeSolid(frame.getWorld(), new BlockLocation(frame.getLocation()),
+                    this.getYaw(frame.getRotation()));
+        else
+            this.removeAirFurniture(frame);
     }
 
     public List<Location> getLocations(float rotation, Location center, List<BlockLocation> relativeCoordinates) {

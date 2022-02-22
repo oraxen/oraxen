@@ -22,6 +22,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
@@ -73,6 +74,25 @@ public class FurnitureListener implements Listener {
                 return 1;
             }
         };
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onPhysicsEvent(final BlockPhysicsEvent event) {
+        if (event.getChangedType() == Material.DIRT) {
+            Bukkit.broadcastMessage("called");
+            for (final Entity entity : event.getBlock().getWorld()
+                    .getNearbyEntities(event.getBlock().getLocation(), 1, 1, 1))
+                if (entity instanceof ItemFrame frame
+                        && entity.getLocation().getBlockX() == event.getBlock().getX()
+                        && entity.getLocation().getBlockY() == event.getBlock().getY()
+                        && entity.getLocation().getBlockZ() == event.getBlock().getZ()) {
+                    String itemID = frame.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING);
+                    FurnitureMechanic mechanic = ((FurnitureMechanic) factory.getMechanic(itemID));
+                    if (mechanic.farmlandRequired)
+                        mechanic.remove(frame);
+                    Bukkit.broadcastMessage("removed");
+                }
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)

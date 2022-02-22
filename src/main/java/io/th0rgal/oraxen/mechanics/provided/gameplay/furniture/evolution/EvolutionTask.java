@@ -3,9 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -30,28 +28,25 @@ public class EvolutionTask extends BukkitRunnable {
                     String itemID = frame.getPersistentDataContainer()
                             .get(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING);
                     FurnitureMechanic mechanic = (FurnitureMechanic) furnitureFactory.getMechanic(itemID);
+
                     if (mechanic.farmlandRequired &&
                             frame.getLocation().clone().subtract(0, 1, 0).getBlock().getType()
-                                    != Material.FARMLAND)
+                                    != Material.FARMLAND) {
+                        mechanic.remove(frame);
                         continue;
+                    }
                     EvolvingFurniture evolution = mechanic.getEvolution();
                     int evolutionStep = frame.getPersistentDataContainer()
                             .get(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER)
                             + delay * frame.getLocation().getBlock().getLightLevel();
-
-                    float rotation = mechanic.getYaw(frame.getRotation());
                     if (evolutionStep > evolution.getDelay()) {
                         if (!evolution.bernoulliTest())
                             continue;
-                        if (mechanic.hasBarriers())
-                            mechanic.removeSolid(world, new BlockLocation(frame.getLocation()),
-                                    rotation);
-                        else
-                            mechanic.removeAirFurniture(frame);
+                        mechanic.remove(frame);
                         FurnitureMechanic nextMechanic = (FurnitureMechanic)
                                 furnitureFactory.getMechanic(evolution.getNextStage());
                         nextMechanic.place(frame.getRotation(),
-                                rotation,
+                                mechanic.getYaw(frame.getRotation()),
                                 frame.getFacing(),
                                 frame.getLocation(),
                                 null
