@@ -76,25 +76,6 @@ public class FurnitureListener implements Listener {
         };
     }
 
-    @EventHandler(ignoreCancelled = true)
-    public void onPhysicsEvent(final BlockPhysicsEvent event) {
-        if (event.getChangedType() == Material.DIRT) {
-            Bukkit.broadcastMessage("called");
-            for (final Entity entity : event.getBlock().getWorld()
-                    .getNearbyEntities(event.getBlock().getLocation(), 1, 1, 1))
-                if (entity instanceof ItemFrame frame
-                        && entity.getLocation().getBlockX() == event.getBlock().getX()
-                        && entity.getLocation().getBlockY() == event.getBlock().getY()
-                        && entity.getLocation().getBlockZ() == event.getBlock().getZ()) {
-                    String itemID = frame.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING);
-                    FurnitureMechanic mechanic = ((FurnitureMechanic) factory.getMechanic(itemID));
-                    if (mechanic.farmlandRequired)
-                        mechanic.remove(frame);
-                    Bukkit.broadcastMessage("removed");
-                }
-        }
-    }
-
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onHangingPlaceEvent(final PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
