@@ -79,7 +79,6 @@ public class FurnitureListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onPhysicsEvent(final BlockPhysicsEvent event) {
         if (event.getChangedType() == Material.DIRT) {
-            Bukkit.broadcastMessage("called");
             for (final Entity entity : event.getBlock().getWorld()
                     .getNearbyEntities(event.getBlock().getLocation(), 1, 1, 1))
                 if (entity instanceof ItemFrame frame
@@ -90,7 +89,6 @@ public class FurnitureListener implements Listener {
                     FurnitureMechanic mechanic = ((FurnitureMechanic) factory.getMechanic(itemID));
                     if (mechanic.farmlandRequired)
                         mechanic.remove(frame);
-                    Bukkit.broadcastMessage("removed");
                 }
         }
     }
