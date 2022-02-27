@@ -64,12 +64,16 @@ public abstract class CustomListener implements Listener {
         for (CustomAction action : actions)
             switch (action.type) {
                 case COMMAND -> {
-                    CommandSender sender;
-                    switch (action.getParams().get(0)) {
-                        case "player" -> sender = player;
-                        case "console" -> sender = Bukkit.getConsoleSender();
-                        default -> sender = null;
+                    final CommandSender sender = switch (action.getParams().get(0)) {
+                        case "player" -> player;
+                        case "console" -> Bukkit.getConsoleSender();
+                        default -> null;
+                    };
+
+                    if (sender == null) {
+                        throw new IllegalStateException("Unexpected command executor type " + action.getParams().get(0));
                     }
+
                     Bukkit.dispatchCommand(sender, action.getParams().get(1)
                             .replace("<player>", player.getName()));
                 }
