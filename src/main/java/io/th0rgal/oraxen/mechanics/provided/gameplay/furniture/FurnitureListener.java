@@ -22,12 +22,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -255,11 +255,27 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerClickOnFurniture(final PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getClickedBlock() == null)
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() != EquipmentSlot.HAND) {
             return;
+        }
+
         final Block block = event.getClickedBlock();
-        if (block.getType() != Material.BARRIER || event.getPlayer().isSneaking())
+
+        if (block == null || block.getType() != Material.BARRIER || event.getPlayer().isSneaking()) {
             return;
+        }
+
+        final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
+        final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
+
+        if (mechanicID != null) {
+            final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
+
+            if (mechanic != null) {
+                mechanic.runClickActions(event.getPlayer());
+            }
+        }
+
         final ItemFrame frame = getItemFrame(block.getLocation());
         if (frame == null || !frame.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING))
             return;

@@ -209,3 +209,41 @@ shelf:
   Pack:
     generate_model: false
     model: default/shelf
+
+example_click_action:
+  displayname: "<gray>Recycle Bin"
+  material: PAPER
+  Mechanics:
+    furniture:
+      facing: UP
+      barrier: true
+      drop:
+        silktouch: false
+        loots:
+          - { oraxen_item: recycle_bin, probability: 1.0 }
+      clickActions:
+          #
+          # Conditions are powered by SpEL (https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html)
+          # Variables for conditions: #player, #server
+          #
+          # Examples:
+          # - Player has permission: #player.hasPermission('permission node')
+          # - Player is in creative gamemode: #player.gamemode.name() == 'ADVENTURE'
+          # - Player is at world 'spawn': #player.world.name == 'spawn'
+          #
+        - conditions:
+            - '#player.hasPermission("permission.to.use.the.disposal.command")'
+          #
+          # Actions:
+          # [console] <command> - execute a command as the console
+          # [player] <command> - make the player execute a command
+          # [message] <message> - send a message to the player
+          # [actionbar] <message> - send an action bar to the player
+          # [sound] <sound:name> - play a sound to the player (custom sounds are supported)
+          #
+          # Placeholders:
+          # - <player> - player's name
+          # - all PlaceholderAPI placeholders if the plugin is installed
+          #
+          actions:
+            - '[player] disposal'

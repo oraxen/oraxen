@@ -61,23 +61,41 @@ public class NoteBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInteract(final PlayerInteractEvent event) {
         final Block block = event.getClickedBlock();
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK
-                && block != null
-                && block.getType() == Material.NOTE_BLOCK) {
-            final NoteBlock blockData = (NoteBlock) block.getBlockData();
-            final ItemStack clicked = event.getItem();
-            event.setCancelled(true);
-            if (clicked == null)
-                return;
-            Material type = clicked.getType();
-            if (type == null || clicked.getType().isInteractable())
-                return;
-            if (type == Material.LAVA_BUCKET)
-                type = Material.LAVA;
-            if (type == Material.WATER_BUCKET)
-                type = Material.WATER;
-            if (type.isBlock()) makePlayerPlaceBlock(event.getPlayer(), event.getHand(), event.getItem(), block,
-                    event.getBlockFace(), Bukkit.createBlockData(type));
+
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK) {
+            return;
+        }
+
+        final NoteBlock noteBlock = (NoteBlock) block.getBlockData();
+        final NoteBlockMechanic noteBlockMechanic = NoteBlockMechanicFactory
+                .getBlockMechanic((int) (noteBlock.getInstrument().getType()) * 25
+                        + (int) noteBlock.getNote().getId() + (noteBlock.isPowered() ? 400 : 0) - 26);
+
+        if (noteBlockMechanic != null) {
+            noteBlockMechanic.runClickActions(event.getPlayer());
+        }
+
+        final ItemStack clicked = event.getItem();
+        event.setCancelled(true);
+
+        if (clicked == null) {
+            return;
+        }
+
+        Material type = clicked.getType();
+
+        if (type.isInteractable()) {
+            return;
+        }
+
+        if (type == Material.LAVA_BUCKET) {
+            type = Material.LAVA;
+        } else if (type == Material.WATER_BUCKET) {
+            type = Material.WATER;
+        }
+
+        if (type.isBlock()) {
+            makePlayerPlaceBlock(event.getPlayer(), event.getHand(), clicked, block, event.getBlockFace(), Bukkit.createBlockData(type));
         }
     }
 
