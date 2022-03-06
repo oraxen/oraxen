@@ -61,7 +61,7 @@ dependencies {
     compileOnly fileTree(dir: 'libs/compile', include: ['*.jar'])
     implementation fileTree(dir: 'libs/implement', include: ['*.jar'])
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'
-    implementation group: 'com.github.oraxen', name: 'protectionlib', version: 'master-SNAPSHOT'
+    //implementation group: 'com.github.oraxen', name: 'protectionlib', version: 'master-SNAPSHOT'
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.28'
     implementation group: 'net.kyori', name: 'adventure-text-minimessage', version: '4.2.0-SNAPSHOT'
