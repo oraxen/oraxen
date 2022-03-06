@@ -46,6 +46,18 @@ public class ClickAction {
         return new ClickAction(conditions, actions);
     }
 
+    public static ClickAction from(final ConfigurationSection config) {
+        final List<String> conditions = config.getStringList("conditions");
+        final List<Action<Player>> actions = OraxenPlugin.get().getClickActionManager().parse(Player.class, config.getStringList("actions"));
+
+        // If the action doesn't have any actions, return null
+        if (actions.isEmpty()) {
+            return null;
+        }
+
+        return new ClickAction(conditions, actions);
+    }
+
     @SuppressWarnings("unchecked")
     public static List<ClickAction> parseList(final ConfigurationSection section) {
         // The section doesn't contain clickActions, we can just return an empty list
@@ -74,14 +86,13 @@ public class ClickAction {
         return clickActions;
     }
 
-    public void run(final Player player) {
-        if (conditions.isEmpty() && actions.isEmpty()) {
-            return;
+    public boolean canRun(final Player player) {
+        if (conditions.isEmpty()) {
+            return true;
         }
 
-        if (conditions.isEmpty()) {
-            OraxenPlugin.get().getClickActionManager().run(player, actions, false);
-            return;
+        if (actions.isEmpty()) {
+            return false;
         }
 
         final StandardEvaluationContext context = new StandardEvaluationContext(player);
@@ -93,13 +104,17 @@ public class ClickAction {
                 final Boolean result = PARSER.parseExpression(condition).getValue(context, Boolean.class);
 
                 if (result == null || !result) {
-                    return;
+                    return false;
                 }
             } catch (ParseException | SpelEvaluationException e) {
                 e.printStackTrace();
             }
         }
 
+        return true;
+    }
+
+    public void performActions(final Player player) {
         OraxenPlugin.get().getClickActionManager().run(player, actions, false);
     }
 

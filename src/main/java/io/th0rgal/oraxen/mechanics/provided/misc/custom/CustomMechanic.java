@@ -2,15 +2,12 @@ package io.th0rgal.oraxen.mechanics.provided.misc.custom;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomAction;
-import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomCondition;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomEvent;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners.CustomListener;
+import io.th0rgal.oraxen.utils.actions.ClickAction;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class CustomMechanic extends Mechanic {
@@ -24,18 +21,22 @@ public class CustomMechanic extends Mechanic {
             ConfigurationSection subsection = section.getConfigurationSection(subMechanicName);
 
             String key = subsection.getCurrentPath();
-            if (LOADED_VARIANTS.containsKey(key)) LOADED_VARIANTS.get(key).unregister();
 
-            List<CustomAction> actions = new ArrayList<>();
-            for (String action : subsection.getStringList("actions")) actions.add(new CustomAction(action));
+            CustomListener loadedListener = LOADED_VARIANTS.get(key);
+            if (loadedListener != null) {
+                loadedListener.unregister();
+            }
 
-            List<CustomCondition> conditions = new ArrayList<>();
-            for (String condition : subsection.getStringList("conditions"))
-                conditions.add(new CustomCondition(condition));
+            ClickAction clickAction = ClickAction.from(subsection);
 
-            CustomListener listener = new CustomEvent(subsection.getString("event"),
-                    subsection.getBoolean("one_usage", false))
-                    .getListener(getItemID(), subsection.getLong("cooldown"), conditions, actions);
+            if (clickAction == null) {
+                continue;
+            }
+
+            CustomListener listener = new CustomEvent(
+                    subsection.getString("event"),
+                    subsection.getBoolean("one_usage", false)
+            ).getListener(getItemID(), subsection.getLong("cooldown"), clickAction);
 
             listener.register();
             LOADED_VARIANTS.put(key, listener);

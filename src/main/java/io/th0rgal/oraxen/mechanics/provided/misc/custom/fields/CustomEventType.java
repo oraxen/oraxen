@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners.ClickListener;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners.CustomListener;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners.DropListener;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners.PickupListener;
+import io.th0rgal.oraxen.utils.actions.ClickAction;
 
 import java.util.List;
 
@@ -21,8 +22,7 @@ public enum CustomEventType {
 
     @FunctionalInterface
     interface CustomListenerConstructor {
-        CustomListener create(String itemID, long cooldown, CustomEvent event,
-                              List<CustomCondition> conditions, List<CustomAction> actions);
+        CustomListener create(String itemID, long cooldown, CustomEvent event, ClickAction clickAction);
     }
 
 }

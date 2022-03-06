@@ -120,7 +120,9 @@ public class NoteBlockMechanic extends Mechanic {
 
     public void runClickActions(final Player player) {
         for (final ClickAction action : clickActions) {
-            action.run(player);
+            if (action.canRun(player)) {
+                action.performActions(player);
+            }
         }
     }
 

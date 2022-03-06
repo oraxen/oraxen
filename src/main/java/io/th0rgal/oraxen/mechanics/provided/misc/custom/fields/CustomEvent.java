@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.custom.fields;
 
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners.CustomListener;
+import io.th0rgal.oraxen.utils.actions.ClickAction;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,11 +24,8 @@ public class CustomEvent {
         return params;
     }
 
-    public CustomListener getListener(String itemID,
-                                      long cooldown,
-                                      List<CustomCondition> conditions,
-                                      List<CustomAction> actions) {
-        return type.constructor.create(itemID, cooldown, this, conditions, actions);
+    public CustomListener getListener(String itemID, long cooldown, ClickAction clickAction) {
+        return type.constructor.create(itemID, cooldown, this, clickAction);
     }
 
     public boolean isOneUsage() {
