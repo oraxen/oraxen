@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'maven-publish'
 
 group 'io.th0rgal'
-def pluginVersion = '1.128.2'
+def pluginVersion = '1.129.0'
 ext.jitpackGroup = group + '.oraxen'
 ext.jitpackVersion = 'main-' + pluginVersion
 version = pluginVersion
@@ -50,8 +50,8 @@ compileJava {
 
 dependencies {
     def actionsVersion = '1.0.0-SNAPSHOT'
-
-    compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.18-R0.1-SNAPSHOT'
+    
+    compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.18.2-R0.1-SNAPSHOT'
     compileOnly group: 'com.github.dmulloy2', name: 'ProtocolLib', version: '4.7.0'
     compileOnly group: 'com.github.Hazebyte', name: 'CrateReloadedAPI', version: '5318abfccc'
     compileOnly group: 'com.github.jojodmo', name: 'ItemBridge', version: '-SNAPSHOT'
@@ -67,7 +67,7 @@ dependencies {
     implementation group: 'net.kyori', name: 'adventure-text-minimessage', version: '4.2.0-SNAPSHOT'
     implementation group: 'net.kyori', name: 'adventure-platform-bukkit', version: '4.0.0'
     implementation group: 'com.github.stefvanschie.inventoryframework', name: 'IF', version: '0.10.0'
-    implementation group: 'dev.jorel.CommandAPI', name: 'commandapi-shade', version: '6.5.3'
+    implementation group: 'dev.jorel.CommandAPI', name: 'commandapi-shade', version: '6.5.4'
     implementation group: 'de.jeff_media', name: 'CustomBlockData', version: '1.0.1'
     implementation group: 'org.springframework', name: 'spring-expression', version: '5.3.16'
     implementation(group: 'me.gabytm.util', name: 'actions-spigot', version: actionsVersion) { exclude group: 'com.google.guava' }
