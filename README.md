@@ -34,9 +34,6 @@ its key features is to be able to generate the texture pack automatically from t
 simplifies the work of administrators. It also includes an extensive API which can be used by developers to be able to
 increase oraxen features.
 
-![Demo image for animation](https://oraxen.com/thread/animation_demo.png)
-![Demo image for some items](https://oraxen.com/thread/full_demo.png)
-
 ## Features
 
 - Automatically generate the resource-pack
@@ -48,11 +45,6 @@ increase oraxen features.
 - Automatically update configurations when you update the plugin
 - Handle configuration errors
 
-## Configuration
-
-### Creating a new item is super easy
-
-![Demo image for item configuration](https://oraxen.com/thread/example_config.svg)
 
 ## License
 
