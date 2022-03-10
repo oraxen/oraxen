@@ -50,9 +50,9 @@ example_custom_mechanic:
         cooldown: 200 # in ticks
         event: "CLICK:right:all"
         conditions:
-          - "HAS_PERMISSION:example.permission"
+          - "#player.hasPermission('example.permission')"
         actions:
-          - "COMMAND:console:give <player> cooked_beef 1"
+          - '[console] give <player> cooked_beef 1'
 
 example_efficient_pickaxe:
   displayname: "<gradient:#59A7EA:#F1D2FF><bold>Turbo Pickaxe"

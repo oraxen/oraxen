@@ -3,9 +3,11 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -21,6 +23,7 @@ public class NoteBlockMechanic extends Mechanic {
     private String model;
     private int period;
     private final int light;
+    private final List<ClickAction> clickActions;
 
     @SuppressWarnings("unchecked")
     public NoteBlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -73,6 +76,7 @@ public class NoteBlockMechanic extends Mechanic {
         } else hasHardness = false;
 
         light = section.getInt("light", -1);
+        clickActions = ClickAction.parseList(section);
     }
 
     public String getModel(ConfigurationSection section) {
@@ -112,6 +116,14 @@ public class NoteBlockMechanic extends Mechanic {
 
     public int getLight() {
         return light;
+    }
+
+    public void runClickActions(final Player player) {
+        for (final ClickAction action : clickActions) {
+            if (action.canRun(player)) {
+                action.performActions(player);
+            }
+        }
     }
 
 }

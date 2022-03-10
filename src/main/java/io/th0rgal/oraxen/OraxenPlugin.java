@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.OS;
+import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
@@ -40,6 +41,7 @@ public class OraxenPlugin extends JavaPlugin {
     private SoundManager soundManager;
     private InvManager invManager;
     private ResourcePack resourcePack;
+    private ClickActionManager clickActionManager;
 
     public OraxenPlugin() throws Exception {
         oraxen = this;
@@ -60,6 +62,7 @@ public class OraxenPlugin extends JavaPlugin {
         CommandAPI.onEnable(this);
         ProtectionLib.init(this);
         audience = BukkitAudiences.create(this);
+        clickActionManager = new ClickActionManager(this);
         reloadConfigs();
         new CommandsManager().loadCommands();
         final PluginManager pluginManager = Bukkit.getPluginManager();
@@ -147,4 +150,9 @@ public class OraxenPlugin extends JavaPlugin {
     public ResourcePack getResourcePack() {
         return resourcePack;
     }
+
+    public ClickActionManager getClickActionManager() {
+        return clickActionManager;
+    }
+
 }

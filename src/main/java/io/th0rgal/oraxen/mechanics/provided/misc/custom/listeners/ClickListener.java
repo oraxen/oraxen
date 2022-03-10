@@ -1,25 +1,22 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners;
 
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomAction;
-import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomCondition;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomEvent;
+import io.th0rgal.oraxen.utils.actions.ClickAction;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 public class ClickListener extends CustomListener {
 
     private final Set<Action> interactActions = new HashSet<>();
 
-    public ClickListener(String itemID, long cooldown, CustomEvent event,
-                         List<CustomCondition> conditions, List<CustomAction> actions) {
-        super(itemID, cooldown, event, conditions, actions);
+    public ClickListener(String itemID, long cooldown, CustomEvent event, ClickAction clickAction) {
+        super(itemID, cooldown, event, clickAction);
         switch (event.getParams().get(0)) {
             case "right":
                 if (event.getParams().get(1).equals("all")) {

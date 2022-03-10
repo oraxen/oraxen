@@ -16,6 +16,10 @@ ext.jitpackGroup = group + '.oraxen'
 ext.jitpackVersion = 'main-' + pluginVersion
 version = pluginVersion
 
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
+}
+
 repositories {
     mavenCentral()
     // Spigot
@@ -36,6 +40,8 @@ repositories {
     maven { url 'https://repo.codemc.org/repository/maven-public' }
     // CustomBlockData
     maven { url 'https://hub.jeff-media.com/nexus/repository/jeff-media-public' }
+    // actions-code, actions-spigot
+    maven { url 'https://repo.triumphteam.dev/snapshots' }
 }
 
 compileJava {
@@ -43,16 +49,19 @@ compileJava {
 }
 
 dependencies {
+    def actionsVersion = '1.0.0-SNAPSHOT'
+    
     compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.18.2-R0.1-SNAPSHOT'
     compileOnly group: 'com.github.dmulloy2', name: 'ProtocolLib', version: '4.7.0'
     compileOnly group: 'com.github.Hazebyte', name: 'CrateReloadedAPI', version: '5318abfccc'
     compileOnly group: 'com.github.jojodmo', name: 'ItemBridge', version: '-SNAPSHOT'
     compileOnly group: 'me.clip', name: 'placeholderapi', version: '2.10.10'
     compileOnly group: 'com.github.BeYkeRYkt', name: 'LightAPI', version: '5.1.0-Bukkit'
+    compileOnly group: 'me.gabytm.util', name: 'actions-core', version: actionsVersion
     compileOnly fileTree(dir: 'libs/compile', include: ['*.jar'])
     implementation fileTree(dir: 'libs/implement', include: ['*.jar'])
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'
-    implementation group: 'com.github.oraxen', name: 'protectionlib', version: 'master-SNAPSHOT'
+    //implementation group: 'com.github.oraxen', name: 'protectionlib', version: 'master-SNAPSHOT'
     implementation group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.28'
     implementation group: 'net.kyori', name: 'adventure-text-minimessage', version: '4.2.0-SNAPSHOT'
@@ -60,6 +69,8 @@ dependencies {
     implementation group: 'com.github.stefvanschie.inventoryframework', name: 'IF', version: '0.10.0'
     implementation group: 'dev.jorel.CommandAPI', name: 'commandapi-shade', version: '6.5.4'
     implementation group: 'de.jeff_media', name: 'CustomBlockData', version: '1.0.1'
+    implementation group: 'org.springframework', name: 'spring-expression', version: '5.3.16'
+    implementation(group: 'me.gabytm.util', name: 'actions-spigot', version: actionsVersion) { exclude group: 'com.google.guava' }
 }
 
 processResources {
@@ -77,6 +88,8 @@ shadowJar {
     relocate 'com.github.stefvanschie.inventoryframework', 'io.th0rgal.oraxen.shaded.if'
     relocate 'com.roxstudio.utils', 'io.th0rgal.oraxen.shaded.curl'
     relocate 'dev.jorel.commandapi', 'io.th0rgal.oraxen.shaded.commandapi'
+    relocate 'org.springframework', 'io.th0rgal.oraxen.shaded.spring'
+    relocate 'me.gabytm.util.actions', 'io.th0rgal.oraxen.shaded.actions'
     manifest {
         attributes(
                 'Built-By': System.properties['user.name'],
