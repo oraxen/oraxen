@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'maven-publish'
 
 group 'io.th0rgal'
-def pluginVersion = '1.130.0'
+def pluginVersion = '1.130.1'
 ext.jitpackGroup = group + '.oraxen'
 ext.jitpackVersion = 'main-' + pluginVersion
 version = pluginVersion
@@ -42,6 +42,8 @@ repositories {
     maven { url 'https://hub.jeff-media.com/nexus/repository/jeff-media-public' }
     // actions-code, actions-spigot
     maven { url 'https://repo.triumphteam.dev/snapshots' }
+    // MythicMobs
+    maven { url 'https://mvn.lumine.io/repository/maven-public/' }
 }
 
 compileJava {
@@ -60,6 +62,7 @@ dependencies {
     compileOnly group: 'me.gabytm.util', name: 'actions-core', version: actionsVersion
     compileOnly group: 'org.springframework', name: 'spring-expression', version: '5.3.16'
     compileOnly group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
+    compileOnly group: 'io.lumine', name: 'Mythic-Dist', version: '5.0.2-SNAPSHOT'
     compileOnly fileTree(dir: 'libs/compile', include: ['*.jar'])
     implementation fileTree(dir: 'libs/implement', include: ['*.jar'])
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'
