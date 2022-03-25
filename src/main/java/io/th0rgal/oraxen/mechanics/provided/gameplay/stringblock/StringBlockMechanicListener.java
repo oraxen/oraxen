@@ -18,6 +18,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
+import org.bukkit.event.entity.EntityEnterBlockEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -34,6 +35,12 @@ public class StringBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void tripwireEvent(BlockPhysicsEvent event) {
         if (event.getChangedType() == Material.TRIPWIRE)
+            event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onEnteringTripwire(EntityEnterBlockEvent event) {
+        if (event.getBlock().getType() == Material.TRIPWIRE)
             event.setCancelled(true);
     }
 
