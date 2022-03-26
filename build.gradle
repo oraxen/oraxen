@@ -22,6 +22,8 @@ java {
 
 repositories {
     mavenCentral()
+    // Paper
+    maven { url = uri("https://papermc.io/repo/repository/maven-public/") }
     // Spigot
     maven { url 'https://hub.spigotmc.org/nexus/content/repositories/snapshots/' }
     // Because Spigot depends on Bungeecord ChatComponent-API
@@ -54,6 +56,7 @@ dependencies {
     def actionsVersion = '1.0.0-SNAPSHOT'
 
     compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.18.2-R0.1-SNAPSHOT'
+    compileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT") { exclude group: 'net.kyori' }
     compileOnly group: 'com.github.dmulloy2', name: 'ProtocolLib', version: '4.7.0'
     compileOnly group: 'com.github.Hazebyte', name: 'CrateReloadedAPI', version: '5318abfccc'
     compileOnly group: 'com.github.jojodmo', name: 'ItemBridge', version: '-SNAPSHOT'

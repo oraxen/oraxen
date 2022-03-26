@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
+import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -38,8 +39,8 @@ public class StringBlockMechanicListener implements Listener {
             event.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onEnteringTripwire(EntityEnterBlockEvent event) {
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEnteringTripwire(EntityInsideBlockEvent event) {
         if (event.getBlock().getType() == Material.TRIPWIRE)
             event.setCancelled(true);
     }
