@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
+import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -18,6 +19,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
+import org.bukkit.event.entity.EntityEnterBlockEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -34,6 +36,12 @@ public class StringBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void tripwireEvent(BlockPhysicsEvent event) {
         if (event.getChangedType() == Material.TRIPWIRE)
+            event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onEnteringTripwire(EntityInsideBlockEvent event) {
+        if (event.getBlock().getType() == Material.TRIPWIRE)
             event.setCancelled(true);
     }
 
