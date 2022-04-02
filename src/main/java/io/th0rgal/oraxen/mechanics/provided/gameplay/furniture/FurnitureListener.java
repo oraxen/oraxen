@@ -92,6 +92,10 @@ public class FurnitureListener implements Listener {
         if (mechanic == null)
             return;
 
+        // Ignore if the clicked furniture has click actions
+        if (mechanic.hasClickActions())
+            return;
+
         if (mechanic.farmlandRequired &&
                 target.getLocation().clone().subtract(0, 1, 0).getBlock().getType()
                         != Material.FARMLAND)
