@@ -4,6 +4,7 @@ import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
@@ -23,6 +24,8 @@ import org.bukkit.event.entity.EntityEnterBlockEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.function.Consumer;
 
 public class StringBlockMechanicListener implements Listener {
 
@@ -51,6 +54,26 @@ public class StringBlockMechanicListener implements Listener {
                 || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
         event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPistonPush(BlockPistonExtendEvent event) {
+        var tripwireList = event.getBlocks().stream().filter(block -> block.getType().equals(Material.TRIPWIRE)).toList();
+
+        for (Block block : tripwireList) {
+            final Tripwire tripwire = (Tripwire) block.getBlockData();
+            final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
+                    .getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
+
+            block.setType(Material.AIR, false);
+
+            if (stringBlockMechanic == null) return;
+            if (stringBlockMechanic.hasBreakSound())
+                block.getWorld().playSound(block.getLocation(), stringBlockMechanic.getBreakSound(), 1.0f, 0.8f);
+            if (stringBlockMechanic.getLight() != -1)
+                WrappedLightAPI.removeBlockLight(block.getLocation());
+            stringBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
