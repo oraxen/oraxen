@@ -35,6 +35,18 @@ public class NoteBlockMechanicListener implements Listener {
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPistonPush(BlockPistonExtendEvent event) {
+        if (event.getBlocks().stream().anyMatch(block -> block.getType().equals(Material.NOTE_BLOCK)))
+            event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onPistonPull(BlockPistonRetractEvent event) {
+        if (event.getBlocks().stream().anyMatch(block -> block.getType().equals(Material.NOTE_BLOCK)))
+            event.setCancelled(true);
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPhysics(final BlockPhysicsEvent event) {
         final Block aboveBlock = event.getBlock().getLocation().add(0, 1, 0).getBlock();
