@@ -1,14 +1,33 @@
 package io.th0rgal.oraxen.font;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.ListenerPriority;
+import com.comphenix.protocol.events.PacketAdapter;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.events.PacketEvent;
+import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.comphenix.protocol.wrappers.PlayerInfoData;
+import com.comphenix.protocol.wrappers.WrappedChatComponent;
+import com.comphenix.protocol.wrappers.WrappedGameProfile;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.config.Message;
 import net.kyori.adventure.text.minimessage.Template;
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 public class FontEvents implements Listener {
 
@@ -42,4 +61,29 @@ public class FontEvents implements Listener {
         event.setMessage(message);
     }
 
+    @EventHandler
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
+            if (entry.getValue().hasTabCompletion()) {
+                ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+                PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
+                packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
+
+                PlayerInfoData data = new PlayerInfoData( new WrappedGameProfile(
+                        entry.getValue().getTabIcon(), String.valueOf(entry.getValue().getCharacter()))
+                        , 0, EnumWrappers.NativeGameMode.SPECTATOR,
+                        WrappedChatComponent.fromText(""));
+
+                List<PlayerInfoData> dataList = new ArrayList<>();
+                dataList.add(data);
+                packet.getPlayerInfoDataLists().write(0, dataList);
+
+                try {
+                    protocolManager.sendServerPacket(event.getPlayer(), packet);
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }

@@ -4,11 +4,10 @@ package io.th0rgal.oraxen.font;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
-import java.util.Map;
+import java.util.UUID;
 
 
 public class Glyph {
@@ -16,6 +15,8 @@ public class Glyph {
     private boolean fileChanged = false;
 
     private final String name;
+    private boolean tabcomplete;
+    private String tabIcon;
     private final char character;
     private String texture;
     private final int ascent;
@@ -32,6 +33,12 @@ public class Glyph {
             placeholders = chatSection.getStringList("placeholders").toArray(new String[0]);
             if (chatSection.isString("permission"))
                 permission = chatSection.getString("permission");
+            if (chatSection.isBoolean("tabcomplete"))
+                tabcomplete = chatSection.getBoolean("tabcomplete");
+            else tabcomplete = false;
+            if (chatSection.isString("tabIcon"))
+                tabIcon = chatSection.getString("tabIcon");
+            else tabIcon = String.valueOf(UUID.randomUUID());
         }
         texture = glyphSection.getString("texture");
         if (!texture.endsWith(".png"))
@@ -79,6 +86,10 @@ public class Glyph {
     public String[] getPlaceholders() {
         return placeholders;
     }
+
+    public boolean hasTabCompletion() { return tabcomplete; }
+
+    public UUID getTabIcon() { return UUID.fromString(tabIcon); }
 
     public JsonObject toJson() {
         final JsonObject output = new JsonObject();
