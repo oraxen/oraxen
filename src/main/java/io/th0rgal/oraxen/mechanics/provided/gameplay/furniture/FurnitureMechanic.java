@@ -335,11 +335,7 @@ public class FurnitureMechanic extends Mechanic {
             }
         }
     }
-
-    public boolean hasClickActions() {
-        return !clickActions.isEmpty();
-    }
-
+  
     private String spawnSeat(FurnitureMechanic mechanic, Block target, float yaw) {
         if (mechanic.hasSeat()) {
             final ArmorStand seat = target.getWorld().spawn(target.getLocation()
