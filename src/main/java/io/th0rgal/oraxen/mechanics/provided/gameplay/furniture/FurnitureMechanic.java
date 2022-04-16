@@ -11,13 +11,12 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.Evolvin
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
+import net.Indyuce.mmoitems.stat.Armor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -115,14 +114,16 @@ public class FurnitureMechanic extends Mechanic {
         clickActions = ClickAction.parseList(section);
     }
 
-    public static ItemFrame getItemFrame(Location location) {
-        for (Entity entity : location.getWorld().getNearbyEntities(location, 1, 1, 1))
-            if (entity instanceof ItemFrame frame
-                    && entity.getLocation().getBlockX() == location.getBlockX()
-                    && entity.getLocation().getBlockY() == location.getBlockY()
-                    && entity.getLocation().getBlockZ() == location.getBlockZ()
-                    && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING))
-                return frame;
+    public static ArmorStand getSeat(Location location) {
+        Location seatLoc = location.clone().add(0.5, 0.0, 0.5);
+        for (Entity entity : location.getWorld().getNearbyEntities(seatLoc, 0.1, 10, 0.1)) {
+            if (entity instanceof ArmorStand seat
+                    && entity.getLocation().getX() == seatLoc.getX()
+                    && entity.getLocation().getZ() == seatLoc.getZ()
+                    && entity.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
+                return seat;
+            }
+        }
         return null;
     }
 
@@ -183,12 +184,12 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId) {
+    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location) {
         setPlacedItem();
-        return place(rotation, yaw, facing, location, entityId, placedItem);
+        return place(rotation, yaw, facing, location, placedItem);
     }
 
-    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, String entityId,
+    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location,
                            ItemStack item) {
         if (!this.isEnoughSpace(yaw, location))
             return null;
@@ -212,8 +213,10 @@ public class FurnitureMechanic extends Mechanic {
 
             frame.setFacingDirection(hasFacing() ? getFacing() : facing, true);
             frame.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
-            if (hasSeat())
+            if (hasSeat() && !hasBarriers()) {
+                String entityId = spawnSeat(this, location.getBlock(), seatYaw);
                 frame.getPersistentDataContainer().set(SEAT_KEY, PersistentDataType.STRING, entityId);
+            }
             if (hasEvolution())
                 frame.getPersistentDataContainer().set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
         });
@@ -223,8 +226,10 @@ public class FurnitureMechanic extends Mechanic {
                 Block block = sideLocation.getBlock();
                 PersistentDataContainer data = new CustomBlockData(block, OraxenPlugin.get());
                 data.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
-                if (hasSeat())
+                if (hasSeat()) {
+                    String entityId = spawnSeat(this, block, seatYaw);
                     data.set(SEAT_KEY, PersistentDataType.STRING, entityId);
+                }
                 data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location).toString());
                 data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
                 block.setType(Material.BARRIER, false);
@@ -244,6 +249,13 @@ public class FurnitureMechanic extends Mechanic {
                 getBarriers())) {
             if (light != -1)
                 WrappedLightAPI.removeBlockLight(location);
+            if (hasSeat()) {
+                ArmorStand seat = getSeat(location);
+                 if(seat != null && seat.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
+                     seat.getPassengers().clear();
+                     seat.remove();
+                 }
+            }
             location.getBlock().setType(Material.AIR);
         }
 
@@ -258,8 +270,7 @@ public class FurnitureMechanic extends Mechanic {
                     Entity stand = Bukkit.getEntity(UUID.fromString(entity.getPersistentDataContainer()
                             .get(SEAT_KEY, PersistentDataType.STRING)));
                     if (stand != null) {
-                        for (Entity passenger : stand.getPassengers())
-                            stand.removePassenger(passenger);
+                        stand.getPassengers().clear();
                         stand.remove();
                     }
                 }
@@ -324,5 +335,25 @@ public class FurnitureMechanic extends Mechanic {
             }
         }
     }
-
+  
+    private String spawnSeat(FurnitureMechanic mechanic, Block target, float yaw) {
+        if (mechanic.hasSeat()) {
+            final ArmorStand seat = target.getWorld().spawn(target.getLocation()
+                    .add(0.5, mechanic.getSeatHeight() - 1, 0.5), ArmorStand.class, (ArmorStand stand) -> {
+                stand.setVisible(false);
+                stand.setRotation(yaw, 0);
+                stand.setInvulnerable(true);
+                stand.setPersistent(true);
+                stand.setAI(false);
+                stand.setCollidable(false);
+                stand.setGravity(false);
+                stand.setSilent(true);
+                stand.setCustomNameVisible(false);
+                stand.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, mechanic.getItemID());
+                stand.getPersistentDataContainer().set(SEAT_KEY, PersistentDataType.STRING, stand.getUniqueId().toString());
+            });
+            return seat.getUniqueId().toString();
+        }
+        return null;
+    }
 }

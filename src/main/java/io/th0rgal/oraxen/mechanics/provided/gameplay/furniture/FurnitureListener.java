@@ -76,7 +76,7 @@ public class FurnitureListener implements Listener {
         };
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onHangingPlaceEvent(final PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
             return;
@@ -109,7 +109,6 @@ public class FurnitureListener implements Listener {
                         && mechanic.getBarriers().size() > 1);
 
         final float yaw = mechanic.getYaw(rotation) + mechanic.getSeatYaw();
-        final String entityId = spawnSeat(mechanic, target, yaw);
 
         if (!mechanic.isEnoughSpace(yaw, target.getLocation())) {
             blockPlaceEvent.setCancelled(true);
@@ -123,7 +122,7 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), entityId, item);
+        mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), item);
         Utils.sendAnimation(player, event.getHand());
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
@@ -158,26 +157,6 @@ public class FurnitureListener implements Listener {
                 return null;
 
         return (FurnitureMechanic) factory.getMechanic(itemID);
-    }
-
-    private String spawnSeat(FurnitureMechanic mechanic, Block target, float yaw) {
-        if (mechanic.hasSeat()) {
-            final ArmorStand seat = target.getWorld().spawn(target.getLocation()
-                    .add(0.5, mechanic.getSeatHeight() - 1, 0.5), ArmorStand.class, (ArmorStand stand) -> {
-                stand.setVisible(false);
-                stand.setRotation(yaw, 0);
-                stand.setInvulnerable(true);
-                stand.setPersistent(true);
-                stand.setAI(false);
-                stand.setCollidable(false);
-                stand.setGravity(false);
-                stand.setSilent(true);
-                stand.setCustomNameVisible(false);
-                stand.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, mechanic.getItemID());
-            });
-            return seat.getUniqueId().toString();
-        }
-        return null;
     }
 
     private Rotation getRotation(final double yaw, final boolean restricted) {
@@ -276,12 +255,13 @@ public class FurnitureListener implements Listener {
             }
         }
 
-        final ItemFrame frame = getItemFrame(block.getLocation());
-        if (frame == null || !frame.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING))
-            return;
-        final String entityId = frame.getPersistentDataContainer().get(SEAT_KEY, PersistentDataType.STRING);
+        final ArmorStand seat = getSeat(block.getLocation());
+        if (seat == null || !seat.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) return;
+
+        final String entityId = seat.getPersistentDataContainer().get(SEAT_KEY, PersistentDataType.STRING);
         final Entity stand = Bukkit.getEntity(UUID.fromString(entityId));
-        if (stand != null && stand.getPassengers().size() == 0) {
+
+        if (stand != null && stand.getPassengers().isEmpty()) {
             stand.addPassenger(event.getPlayer());
             event.setCancelled(true);
         }
