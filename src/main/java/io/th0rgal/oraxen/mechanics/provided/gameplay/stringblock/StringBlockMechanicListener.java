@@ -108,6 +108,8 @@ public class StringBlockMechanicListener implements Listener {
                 .getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
         if (stringBlockMechanic == null)
             return;
+        event.setCancelled(true);
+        block.setType(Material.AIR, false);
         if (stringBlockMechanic.hasBreakSound())
             block.getWorld().playSound(block.getLocation(), stringBlockMechanic.getBreakSound(), 1.0f, 0.8f);
         if (stringBlockMechanic.getLight() != -1)
