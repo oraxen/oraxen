@@ -13,10 +13,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -24,6 +21,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -205,6 +203,15 @@ public class FurnitureListener implements Listener {
                         mechanic.getDrop().spawns(frame.getLocation(), player.getInventory().getItemInMainHand());
                 }
             }
+    }
+
+    @EventHandler
+    public void onProjectileHitFurniture(final ProjectileHitEvent event) {
+        if (event.getHitEntity() instanceof ItemFrame frame) {
+            if (frame.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING)) {
+                event.setCancelled(true);
+            }
+        }
     }
 
     @EventHandler(ignoreCancelled = true)
