@@ -325,8 +325,4 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    public boolean hasClickActions() {
-        return !clickActions.isEmpty();
-    }
-
 }
