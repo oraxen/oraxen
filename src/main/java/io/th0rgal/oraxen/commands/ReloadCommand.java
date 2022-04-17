@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.commands;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketContainer;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.TextArgument;
@@ -15,6 +17,9 @@ import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.UUID;
 
 public class ReloadCommand {
 
@@ -39,10 +44,6 @@ public class ReloadCommand {
                 .withArguments(new TextArgument("type").replaceSuggestions(
                         ArgumentSuggestions.strings("items", "pack", "recipes", "messages", "all")))
                 .executes((sender, args) -> {
-                    FontManager manager = new FontManager(OraxenPlugin.get().getConfigsManager());
-                    for (Player player : Bukkit.getOnlinePlayers()) {
-                        manager.sendGlyphTabCompletion(player);
-                    }
                     switch (((String) args[0]).toUpperCase()) {
                         case "ITEMS" -> {
                             reloadItems(sender);
@@ -61,6 +62,11 @@ public class ReloadCommand {
                             RecipesManager.reload(oraxen);
                             OraxenPlugin.get().getInvManager().regen();
                         }
+                    }
+                    //TODO Make this actually clear tablist
+                    FontManager manager = new FontManager(OraxenPlugin.get().getConfigsManager());
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        manager.sendGlyphTabCompletion(player, false);
                     }
                 });
     }

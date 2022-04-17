@@ -4,13 +4,11 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.EnumWrappers;
-import com.comphenix.protocol.wrappers.PlayerInfoData;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
-import com.comphenix.protocol.wrappers.WrappedGameProfile;
+import com.comphenix.protocol.wrappers.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -108,15 +106,28 @@ public class FontManager {
         return output.toString();
     }
 
-    public void sendGlyphTabCompletion(Player player) {
+    public void sendGlyphTabCompletion(Player player, Boolean addPlayers) {
         for (Map.Entry<String, Glyph> entry : getGlyphByPlaceholderMap().entrySet()) {
             if (entry.getValue().hasTabCompletion()) {
                 ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
                 PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
-                packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
 
-                PlayerInfoData data = new PlayerInfoData( new WrappedGameProfile(
-                        entry.getValue().getTabIcon(), " " + entry.getValue().getCharacter())
+                if (addPlayers) packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
+                else {
+                    packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
+                }
+
+                final WrappedGameProfile profile = new WrappedGameProfile(
+                        UUID.randomUUID(), " " + entry.getValue().getCharacter());
+
+                if (entry.getValue().getTabIconTexture() != null && entry.getValue().getTabIconSignature() != null)
+                    profile.getProperties().put("textures",
+                            new WrappedSignedProperty(
+                                    "textures",
+                                    entry.getValue().getTabIconTexture(),
+                                    entry.getValue().getTabIconSignature()));
+
+                PlayerInfoData data = new PlayerInfoData(profile
                         , 0, EnumWrappers.NativeGameMode.SPECTATOR,
                         WrappedChatComponent.fromText(""));
 

@@ -4,9 +4,13 @@ package io.th0rgal.oraxen.font;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.config.Settings;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.profile.PlayerProfile;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 
@@ -16,7 +20,8 @@ public class Glyph {
 
     private final String name;
     private boolean tabcomplete;
-    private String tabIcon;
+    private String tabIconTexture;
+    private String tabIconSignature;
     private final char character;
     private String texture;
     private final int ascent;
@@ -36,9 +41,12 @@ public class Glyph {
             if (chatSection.isBoolean("tabcomplete"))
                 tabcomplete = chatSection.getBoolean("tabcomplete");
             else tabcomplete = false;
-            if (chatSection.isString("tabIcon"))
-                tabIcon = chatSection.getString("tabIcon");
-            else tabIcon = String.valueOf(UUID.randomUUID());
+            if (chatSection.isString("tabIconTexture")) {
+                tabIconTexture = chatSection.getString("tabIconTexture");
+            } else tabIconTexture = null;
+            if (chatSection.isString("tabIconSignature")) {
+                tabIconSignature = chatSection.getString("tabIconSignature");
+            } else tabIconSignature = null;
         }
         texture = glyphSection.getString("texture");
         if (!texture.endsWith(".png"))
@@ -89,7 +97,13 @@ public class Glyph {
 
     public boolean hasTabCompletion() { return tabcomplete; }
 
-    public UUID getTabIcon() { return UUID.fromString(tabIcon); }
+    public String getTabIconTexture() {
+        return tabIconTexture;
+    }
+
+    public String getTabIconSignature() {
+        return tabIconSignature;
+    }
 
     public JsonObject toJson() {
         final JsonObject output = new JsonObject();

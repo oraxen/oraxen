@@ -63,6 +63,6 @@ public class FontEvents implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        manager.sendGlyphTabCompletion(event.getPlayer());
+        manager.sendGlyphTabCompletion(event.getPlayer(), true);
     }
 }
