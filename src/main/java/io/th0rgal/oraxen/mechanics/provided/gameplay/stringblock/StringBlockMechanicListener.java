@@ -4,6 +4,7 @@ import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -21,10 +22,12 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityEnterBlockEvent;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.List;
 import java.util.function.Consumer;
 
 public class StringBlockMechanicListener implements Listener {
@@ -116,6 +119,21 @@ public class StringBlockMechanicListener implements Listener {
             WrappedLightAPI.removeBlockLight(block.getLocation());
         stringBlockMechanic.getDrop().spawns(block.getLocation(), event.getPlayer().getInventory().getItemInMainHand());
         event.setDropItems(false);
+    }
+
+    @EventHandler
+    public void onExplosionDestroy(EntityExplodeEvent event) {
+        List<Block> blockList = event.blockList().stream().filter(block -> block.getType().equals(Material.TRIPWIRE)).toList();
+        blockList.forEach(block -> {
+            final Tripwire tripwire = (Tripwire) block.getBlockData();
+            final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
+                    .getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
+            if (stringBlockMechanic == null)
+                return;
+
+            stringBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
+            block.setType(Material.AIR, false);
+        });
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)

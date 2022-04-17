@@ -1,9 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -22,9 +18,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
+import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.List;
 
 public class NoteBlockMechanicListener implements Listener {
 
@@ -78,10 +77,7 @@ public class NoteBlockMechanicListener implements Listener {
             return;
         }
 
-        final NoteBlock noteBlock = (NoteBlock) block.getBlockData();
-        final NoteBlockMechanic noteBlockMechanic = NoteBlockMechanicFactory
-                .getBlockMechanic((int) (noteBlock.getInstrument().getType()) * 25
-                        + (int) noteBlock.getNote().getId() + (noteBlock.isPowered() ? 400 : 0) - 26);
+        final NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
 
         if (noteBlockMechanic != null) {
             noteBlockMechanic.runClickActions(event.getPlayer());
@@ -124,12 +120,10 @@ public class NoteBlockMechanicListener implements Listener {
         final Block block = event.getBlock();
         if (block.getType() != Material.NOTE_BLOCK || event.isCancelled() || !event.isDropItems())
             return;
-        final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
-        final NoteBlockMechanic noteBlockMechanic = NoteBlockMechanicFactory
-                .getBlockMechanic((int) (noteBlok.getInstrument().getType()) * 25
-                        + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
+        final NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
         if (noteBlockMechanic == null)
             return;
+
         if (noteBlockMechanic.hasBreakSound())
             block.getWorld().playSound(block.getLocation(), noteBlockMechanic.getBreakSound(), 1.0f, 0.8f);
         if (noteBlockMechanic.getLight() != -1)
@@ -138,6 +132,18 @@ public class NoteBlockMechanicListener implements Listener {
         event.setDropItems(false);
     }
 
+    @EventHandler
+    public void onExplosionDestroy(EntityExplodeEvent event) {
+        List<Block> blockList = event.blockList().stream().filter(block -> block.getType().equals(Material.NOTE_BLOCK)).toList();
+        blockList.forEach(block -> {
+            final NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
+            if (noteBlockMechanic == null)
+                return;
+
+            noteBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
+            block.setType(Material.AIR, false);
+        });
+    }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingBlock(final BlockPlaceEvent event) {
@@ -204,10 +210,7 @@ public class NoteBlockMechanicListener implements Listener {
             @SuppressWarnings("deprecation")
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
-                final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
-                final NoteBlockMechanic noteBlockMechanic = NoteBlockMechanicFactory
-                        .getBlockMechanic((int) (noteBlok.getInstrument().getType()) * 25
-                                + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
+                final NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
 
                 final long period = noteBlockMechanic.getPeriod();
                 double modifier = 1;
@@ -266,5 +269,11 @@ public class NoteBlockMechanicListener implements Listener {
         return target;
     }
 
+    public NoteBlockMechanic getNoteBlockMechanic(Block block) {
+        final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
+        return NoteBlockMechanicFactory
+                .getBlockMechanic((int) (noteBlok.getInstrument().getType()) * 25
+                        + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
+    }
 
 }
