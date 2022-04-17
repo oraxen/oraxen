@@ -1,12 +1,22 @@
 package io.th0rgal.oraxen.font;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.comphenix.protocol.wrappers.PlayerInfoData;
+import com.comphenix.protocol.wrappers.WrappedChatComponent;
+import com.comphenix.protocol.wrappers.WrappedGameProfile;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
+import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class FontManager {
@@ -98,4 +108,28 @@ public class FontManager {
         return output.toString();
     }
 
+    public void sendGlyphTabCompletion(Player player) {
+        for (Map.Entry<String, Glyph> entry : getGlyphByPlaceholderMap().entrySet()) {
+            if (entry.getValue().hasTabCompletion()) {
+                ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+                PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
+                packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
+
+                PlayerInfoData data = new PlayerInfoData( new WrappedGameProfile(
+                        entry.getValue().getTabIcon(), " " + entry.getValue().getCharacter())
+                        , 0, EnumWrappers.NativeGameMode.SPECTATOR,
+                        WrappedChatComponent.fromText(""));
+
+                List<PlayerInfoData> dataList = new ArrayList<>();
+                dataList.add(data);
+                packet.getPlayerInfoDataLists().write(0, dataList);
+
+                try {
+                    protocolManager.sendServerPacket(player, packet);
+                } catch (InvocationTargetException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
 }

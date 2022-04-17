@@ -63,27 +63,6 @@ public class FontEvents implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-            if (entry.getValue().hasTabCompletion()) {
-                ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
-                PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
-                packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
-
-                PlayerInfoData data = new PlayerInfoData( new WrappedGameProfile(
-                        entry.getValue().getTabIcon(), String.valueOf(entry.getValue().getCharacter()))
-                        , 0, EnumWrappers.NativeGameMode.SPECTATOR,
-                        WrappedChatComponent.fromText(""));
-
-                List<PlayerInfoData> dataList = new ArrayList<>();
-                dataList.add(data);
-                packet.getPlayerInfoDataLists().write(0, dataList);
-
-                try {
-                    protocolManager.sendServerPacket(event.getPlayer(), packet);
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
+        manager.sendGlyphTabCompletion(event.getPlayer());
     }
 }
