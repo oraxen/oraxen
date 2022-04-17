@@ -27,6 +27,7 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -55,15 +56,18 @@ public class FurnitureListener implements Listener {
             public void breakBlock(final Player player, final Block block, final ItemStack tool) {
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
                     final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
-                    if (!customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING))
-                        return;
+                    if (!customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING)) return;
+
                     final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
                     final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
-                    final BlockLocation rootBlockLocation = new BlockLocation(customBlockData.get(ROOT_KEY,
-                            PersistentDataType.STRING));
+                    final ItemFrame frame = mechanic.getItemFrame(block.getLocation());
+                    final BlockLocation rootBlockLocation =
+                            new BlockLocation(customBlockData.get(ROOT_KEY, PersistentDataType.STRING));
+
                     if (mechanic.removeSolid(block.getWorld(), rootBlockLocation, customBlockData
-                            .get(ORIENTATION_KEY, PersistentDataType.FLOAT)))
-                        mechanic.getDrop().spawns(block.getLocation(), tool);
+                            .get(ORIENTATION_KEY, PersistentDataType.FLOAT))) {
+                        mechanic.getDrop().furnitureSpawns(frame, tool);
+                    }
                 });
             }
 
