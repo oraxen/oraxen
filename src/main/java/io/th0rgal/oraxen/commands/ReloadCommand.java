@@ -4,6 +4,7 @@ import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.OraxenItems;
@@ -11,7 +12,9 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import net.kyori.adventure.text.minimessage.Template;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
 
 public class ReloadCommand {
 
@@ -36,6 +39,10 @@ public class ReloadCommand {
                 .withArguments(new TextArgument("type").replaceSuggestions(
                         ArgumentSuggestions.strings("items", "pack", "recipes", "messages", "all")))
                 .executes((sender, args) -> {
+                    FontManager manager = new FontManager(OraxenPlugin.get().getConfigsManager());
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        manager.sendGlyphTabCompletion(player);
+                    }
                     switch (((String) args[0]).toUpperCase()) {
                         case "ITEMS" -> {
                             reloadItems(sender);
