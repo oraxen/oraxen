@@ -117,12 +117,12 @@ public class Drop {
         if (!canDrop(itemInHand))
             return;
 
+        ItemStack drop = OraxenItems.getItemById(sourceID).build();
         if (frame.getItem().getItemMeta() instanceof LeatherArmorMeta) {
-            ItemStack drop = OraxenItems.getItemById(sourceID).build();
             ItemMeta meta = drop.getItemMeta().clone();
             ((LeatherArmorMeta)(meta)).setColor(((LeatherArmorMeta) frame.getItem().getItemMeta()).getColor());
             drop.setItemMeta(meta);
-            frame.getLocation().getWorld().dropItemNaturally(frame.getLocation(), drop);
         }
+        frame.getLocation().getWorld().dropItemNaturally(frame.getLocation(), drop);
     }
 }
