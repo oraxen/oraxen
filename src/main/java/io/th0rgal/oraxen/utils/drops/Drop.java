@@ -3,9 +3,15 @@ package io.th0rgal.oraxen.utils.drops;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.material.Colorable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -105,5 +111,18 @@ public class Drop {
         for (Loot loot : loots) {
             loot.dropNaturally(location, fortuneMultiplier);
         }
+    }
+
+    public void furnitureSpawns(ItemFrame frame, ItemStack itemInHand) {
+        if (!canDrop(itemInHand))
+            return;
+
+        ItemStack drop = OraxenItems.getItemById(sourceID).build();
+        if (frame.getItem().getItemMeta() instanceof LeatherArmorMeta) {
+            ItemMeta meta = drop.getItemMeta().clone();
+            ((LeatherArmorMeta)(meta)).setColor(((LeatherArmorMeta) frame.getItem().getItemMeta()).getColor());
+            drop.setItemMeta(meta);
+        }
+        frame.getLocation().getWorld().dropItemNaturally(frame.getLocation(), drop);
     }
 }
