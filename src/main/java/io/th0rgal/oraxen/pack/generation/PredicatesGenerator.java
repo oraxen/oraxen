@@ -110,6 +110,21 @@ public class PredicatesGenerator {
                         .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(),
                                 item.getOraxenMeta().getBlockingModelName()));
             }
+            if (item.getOraxenMeta().hasChargedModel()) {
+                final JsonObject predicate = new JsonObject();
+                predicate.addProperty("charged", 1);
+                overrides
+                        .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(),
+                                item.getOraxenMeta().getChargedModelName()));
+            }
+            if (item.getOraxenMeta().hasFireworkModel()) {
+                final JsonObject predicate = new JsonObject();
+                predicate.addProperty("charged", 1);
+                predicate.addProperty("firework", 1);
+                overrides
+                        .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(),
+                                item.getOraxenMeta().getFireworkModelName()));
+            }
             if (item.getOraxenMeta().hasPullingModels()) {
                 final List<String> pullingModels = item.getOraxenMeta().getPullingModels();
                 for (float i = 0; i < pullingModels.size(); i++) {

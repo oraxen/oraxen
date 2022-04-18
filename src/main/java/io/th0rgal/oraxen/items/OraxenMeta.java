@@ -10,6 +10,8 @@ public class OraxenMeta {
     private String modelName;
     private String blockingModel;
     private List<String> pullingModels;
+    private String chargedModel;
+    private String fireworkModel;
     private List<String> layers;
     private String parentModel;
     private boolean generate_model;
@@ -29,6 +31,8 @@ public class OraxenMeta {
         this.hasPackInfos = true;
         this.modelName = readModelName(configurationSection, "model");
         this.blockingModel = readModelName(configurationSection, "blocking_model");
+        this.chargedModel = readModelName(configurationSection, "charged_model");
+        this.fireworkModel = readModelName(configurationSection, "firework_model");
         this.pullingModels = configurationSection.isList("pulling_models")
                 ? configurationSection.getStringList("pulling_models")
                 : null;
@@ -85,6 +89,22 @@ public class OraxenMeta {
 
     public String getBlockingModelName() {
         return blockingModel;
+    }
+
+    public boolean hasChargedModel() {
+        return chargedModel != null;
+    }
+
+    public String getChargedModelName() {
+        return chargedModel;
+    }
+
+    public boolean hasFireworkModel() {
+        return fireworkModel != null;
+    }
+
+    public String getFireworkModelName() {
+        return fireworkModel;
     }
 
     public boolean hasPullingModels() {
