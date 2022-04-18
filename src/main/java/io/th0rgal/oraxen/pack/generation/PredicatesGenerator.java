@@ -34,7 +34,7 @@ public class PredicatesGenerator {
         if (exampleMeta instanceof PotionMeta) {
             textures.addProperty("layer0", getVanillaTextureName(material, false) + "_overlay");
         } else
-        textures.addProperty("layer0", getVanillaTextureName(material, false));
+            textures.addProperty("layer0", getVanillaTextureName(material, false));
 
         // to support colored leather armor
         if (exampleMeta instanceof LeatherArmorMeta)
@@ -62,32 +62,36 @@ public class PredicatesGenerator {
                 JsonObject pullingPredicate = new JsonObject();
                 pullingPredicate.addProperty("pulling", 1);
                 /*
-                    parser.parse(pullingPredicate.toString()).getAsJsonObject()
+                    JsonParser.parseString(pullingPredicate.toString()).getAsJsonObject()
                     This is the easiest (but incredibly slow and inefficient) way to clone a JsonObject
                  */
-                overrides.add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_0"));
+                overrides.add(getOverride(JsonParser.parseString(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_0"));
                 pullingPredicate.addProperty("pull", 0.65);
-                overrides.add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_1"));
+                overrides.add(getOverride(JsonParser.parseString(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_1"));
                 pullingPredicate.addProperty("pull", 0.9);
                 overrides.add(getOverride(pullingPredicate, "item/bow_pulling_2"));
-                json.add("display", parser.parse(Settings.BOW_DISPLAY.toString()).getAsJsonObject());
+                json.add("display", JsonParser.parseString(Settings.BOW_DISPLAY.toString()).getAsJsonObject());
                 break;
 
 
             case CROSSBOW:
                 parser = new JsonParser();
+
                 pullingPredicate = new JsonObject();
                 pullingPredicate.addProperty("pulling", 1);
-                /*
-                    parser.parse(pullingPredicate.toString()).getAsJsonObject()
-                    This is the easiest (but incredibly slow and inefficient) way to clone a JsonObject
-                 */
-                overrides.add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/crossbow_pulling_0"));
+                overrides.add(getOverride(JsonParser.parseString(pullingPredicate.toString()).getAsJsonObject(), "item/crossbow_pulling_0"));
                 pullingPredicate.addProperty("pull", 0.65);
-                overrides.add(getOverride(parser.parse(pullingPredicate.toString()).getAsJsonObject(), "item/crossbow_pulling_1"));
+                overrides.add(getOverride(JsonParser.parseString(pullingPredicate.toString()).getAsJsonObject(), "item/crossbow_pulling_1"));
                 pullingPredicate.addProperty("pull", 0.9);
                 overrides.add(getOverride(pullingPredicate, "item/crossbow_pulling_2"));
-                json.add("display", parser.parse(Settings.CROSSBOW_DISPLAY.toString()).getAsJsonObject());
+
+                JsonObject chargedPredicate = new JsonObject();
+                chargedPredicate.addProperty("charged", 1);
+                overrides.add(getOverride(JsonParser.parseString(chargedPredicate.toString()).getAsJsonObject(), "item/crossbow_arrow"));
+                chargedPredicate.addProperty("firework", 1);
+                overrides.add(getOverride(JsonParser.parseString(chargedPredicate.toString()).getAsJsonObject(), "item/crossbow_firework"));
+
+                json.add("display", JsonParser.parseString(Settings.CROSSBOW_DISPLAY.toString()).getAsJsonObject());
                 break;
 
             default:
