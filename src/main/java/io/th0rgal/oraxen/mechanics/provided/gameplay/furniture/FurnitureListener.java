@@ -97,11 +97,11 @@ public class FurnitureListener implements Listener {
             return;
 
         Block farm = target.getLocation().clone().subtract(0, 1, 0).getBlock();
-        NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(farm);
+
 
         if (mechanic.farmlandRequired && farm.getType() != Material.FARMLAND) return;
 
-        if (mechanic.farmblockRequired && !noteBlockMechanic.isFarmBlock()) return;
+        if (mechanic.farmblockRequired && (farm.getType() != Material.NOTE_BLOCK || !getNoteBlockMechanic(farm).isFarmBlock())) return;
 
         target.setType(Material.AIR, false);
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst,

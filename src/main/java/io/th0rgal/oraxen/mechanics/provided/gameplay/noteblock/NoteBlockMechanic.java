@@ -1,11 +1,13 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -15,6 +17,7 @@ import java.util.List;
 
 public class NoteBlockMechanic extends Mechanic {
 
+    public static final NamespacedKey FARMBLOCK_KEY = new NamespacedKey(OraxenPlugin.get(), "farmblock");
     protected final boolean hasHardness;
     private final int customVariation;
     private final Drop drop;
@@ -83,9 +86,9 @@ public class NoteBlockMechanic extends Mechanic {
 
         if (section.isConfigurationSection("farming")) {
             ConfigurationSection farming = section.getConfigurationSection("farming");
-            isFarmBlock = farming.getBoolean("isFarmBlock");
+            isFarmBlock = farming.getBoolean("isFarmBlock", false);
             moistFarmBlock = farming.getString("moistFarmBlock");
-            farmBlockDryoutTime = farming.getInt("farmBlockDryoutTime");
+            farmBlockDryoutTime = farming.getInt("farmBlockDryoutTime", 10000);
         }
     }
 

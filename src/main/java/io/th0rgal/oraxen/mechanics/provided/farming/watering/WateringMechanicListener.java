@@ -20,7 +20,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.FARMBLOCK_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 
 public class WateringMechanicListener implements Listener {
 
@@ -45,10 +45,10 @@ public class WateringMechanicListener implements Listener {
 
         if (!farmingBlockMechanic.isFarmBlock()) return;
         NoteBlockMechanicFactory.setBlockModel(block, farmingBlockMechanic.getMoistFarmBlock());
-        player.getWorld().spawnParticle(Particle.WATER_SPLASH, block.getLocation(), 10);
-
         PersistentDataContainer farmBlockData = new CustomBlockData(block, OraxenPlugin.get());
         farmBlockData.set(FARMBLOCK_KEY, PersistentDataType.INTEGER, 0);
+
+        player.getWorld().spawnParticle(Particle.WATER_SPLASH, block.getLocation(), 10);
     }
 
     private NoteBlockMechanic getNoteBlockMechanic(Block block) {

@@ -10,7 +10,7 @@ public class WateringMechanic extends Mechanic {
 
     public WateringMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
-        isWateringCan = section.getBoolean("isWaterCan");
+        isWateringCan = section.getBoolean("isWaterCan", false);
     }
 
     public boolean isWateringCan() { return this.isWateringCan; }
