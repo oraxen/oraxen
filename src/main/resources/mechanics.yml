@@ -134,3 +134,6 @@ bedrockbreak:
 
 harvesting:
   enabled: true
+
+watering:
+  enabled: true

@@ -275,5 +275,4 @@ public class NoteBlockMechanicListener implements Listener {
                 .getBlockMechanic((int) (noteBlok.getInstrument().getType()) * 25
                         + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
     }
-
 }

@@ -23,6 +23,8 @@ public class NoteBlockMechanic extends Mechanic {
     private String model;
     private int period;
     private final int light;
+    private boolean isFarmBlock;
+    private String moistFarmBlock;
     private final List<ClickAction> clickActions;
 
     @SuppressWarnings("unchecked")
@@ -77,6 +79,12 @@ public class NoteBlockMechanic extends Mechanic {
 
         light = section.getInt("light", -1);
         clickActions = ClickAction.parseList(section);
+
+        if (section.isConfigurationSection("farming")) {
+            ConfigurationSection farming = section.getConfigurationSection("farming");
+            isFarmBlock = farming.getBoolean("isFarmBlock");
+            moistFarmBlock = farming.getString("moistFarmBlock");
+        }
     }
 
     public String getModel(ConfigurationSection section) {
@@ -116,6 +124,14 @@ public class NoteBlockMechanic extends Mechanic {
 
     public int getLight() {
         return light;
+    }
+
+    public boolean isFarmBlock() {
+        return isFarmBlock;
+    }
+
+    public String getMoistFarmBlock() {
+        return moistFarmBlock;
     }
 
     public void runClickActions(final Player player) {

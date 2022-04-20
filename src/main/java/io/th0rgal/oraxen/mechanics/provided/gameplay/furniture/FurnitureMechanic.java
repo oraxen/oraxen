@@ -11,17 +11,18 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.Evolvin
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
-import net.Indyuce.mmoitems.stat.Armor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.*;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.*;
 
@@ -33,6 +34,7 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey ORIENTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "orientation");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
     public final boolean farmlandRequired;
+    public final boolean farmblockRequired;
     private final List<BlockLocation> barriers;
     private final boolean hasRotation;
     private final boolean hasSeat;
@@ -84,6 +86,7 @@ public class FurnitureMechanic extends Mechanic {
         light = section.getInt("light", -1);
 
         farmlandRequired = section.getBoolean("farmland_required", false);
+        farmblockRequired = section.getBoolean("farmblock_required", false);
 
         facing = section.isString("facing")
                 ? BlockFace.valueOf(section.getString("facing").toUpperCase())

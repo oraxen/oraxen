@@ -4,9 +4,9 @@ import de.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
@@ -15,6 +15,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -23,18 +24,15 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.List;
 import java.util.UUID;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.*;
@@ -98,10 +96,12 @@ public class FurnitureListener implements Listener {
         if (mechanic == null)
             return;
 
-        if (mechanic.farmlandRequired &&
-                target.getLocation().clone().subtract(0, 1, 0).getBlock().getType()
-                        != Material.FARMLAND)
-            return;
+        Block farm = target.getLocation().clone().subtract(0, 1, 0).getBlock();
+        NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(farm);
+
+        if (mechanic.farmlandRequired && farm.getType() != Material.FARMLAND) return;
+
+        if (mechanic.farmblockRequired && !noteBlockMechanic.isFarmBlock()) return;
 
         target.setType(Material.AIR, false);
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst,
@@ -313,6 +313,13 @@ public class FurnitureListener implements Listener {
                 && (playerLocation.getBlockY() == blockLocation.getBlockY()
                 || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
                 && playerLocation.getBlockZ() == blockLocation.getBlockZ();
+    }
+
+    public NoteBlockMechanic getNoteBlockMechanic(Block block) {
+        final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
+        return NoteBlockMechanicFactory
+                .getBlockMechanic((int) (noteBlok.getInstrument().getType()) * 25
+                        + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
     }
 
 }
