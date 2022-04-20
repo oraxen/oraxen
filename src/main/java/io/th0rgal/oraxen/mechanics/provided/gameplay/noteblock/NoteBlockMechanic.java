@@ -25,6 +25,7 @@ public class NoteBlockMechanic extends Mechanic {
     private final int light;
     private boolean isFarmBlock;
     private String moistFarmBlock;
+    private int farmBlockDryoutTime;
     private final List<ClickAction> clickActions;
 
     @SuppressWarnings("unchecked")
@@ -84,6 +85,7 @@ public class NoteBlockMechanic extends Mechanic {
             ConfigurationSection farming = section.getConfigurationSection("farming");
             isFarmBlock = farming.getBoolean("isFarmBlock");
             moistFarmBlock = farming.getString("moistFarmBlock");
+            farmBlockDryoutTime = farming.getInt("farmBlockDryoutTime");
         }
     }
 
@@ -133,6 +135,8 @@ public class NoteBlockMechanic extends Mechanic {
     public String getMoistFarmBlock() {
         return moistFarmBlock;
     }
+
+    public int getFarmBlockDryoutTime() { return farmBlockDryoutTime; }
 
     public void runClickActions(final Player player) {
         for (final ClickAction action : clickActions) {
