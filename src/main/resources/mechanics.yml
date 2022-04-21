@@ -43,6 +43,8 @@ noteblock:
     - GOLDEN
     - DIAMOND
     - NETHERITE
+    - # ticks between each check for dryout
+  farmblock_check_delay: 1000
   enabled: true
 
 stringblock:

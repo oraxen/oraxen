@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
@@ -26,9 +27,7 @@ public class NoteBlockMechanic extends Mechanic {
     private String model;
     private int period;
     private final int light;
-    private boolean isFarmBlock;
-    private String moistFarmBlock;
-    private int farmBlockDryoutTime;
+    private final FarmBlockDryout farmBlockDryout;
     private final List<ClickAction> clickActions;
 
     @SuppressWarnings("unchecked")
@@ -84,12 +83,18 @@ public class NoteBlockMechanic extends Mechanic {
         light = section.getInt("light", -1);
         clickActions = ClickAction.parseList(section);
 
-        if (section.isConfigurationSection("farming")) {
-            ConfigurationSection farming = section.getConfigurationSection("farming");
-            isFarmBlock = farming.getBoolean("isFarmBlock", false);
-            moistFarmBlock = farming.getString("moistFarmBlock");
-            farmBlockDryoutTime = farming.getInt("farmBlockDryoutTime", 10000);
-        }
+        if (section.isConfigurationSection("farmblock")) {
+            farmBlockDryout = new FarmBlockDryout(getItemID(), section.getConfigurationSection("farmblock"));
+            ((NoteBlockMechanicFactory) getFactory()).registerFarmBlock();
+        } else farmBlockDryout = null;
+    }
+
+    public boolean hasDryout() {
+        return farmBlockDryout != null;
+    }
+
+    public FarmBlockDryout getDryout() {
+        return farmBlockDryout;
     }
 
     public String getModel(ConfigurationSection section) {
@@ -130,16 +135,6 @@ public class NoteBlockMechanic extends Mechanic {
     public int getLight() {
         return light;
     }
-
-    public boolean isFarmBlock() {
-        return isFarmBlock;
-    }
-
-    public String getMoistFarmBlock() {
-        return moistFarmBlock;
-    }
-
-    public int getFarmBlockDryoutTime() { return farmBlockDryoutTime; }
 
     public void runClickActions(final Player player) {
         for (final ClickAction action : clickActions) {

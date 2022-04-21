@@ -8,9 +8,12 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class WateringMechanicFactory extends MechanicFactory {
 
+    private static WateringMechanicFactory instance;
+
     public WateringMechanicFactory(ConfigurationSection section) {
         super(section);
         MechanicsManager.registerListeners(OraxenPlugin.get(), new WateringMechanicListener(this));
+        instance = this;
     }
 
     @Override
@@ -19,4 +22,6 @@ public class WateringMechanicFactory extends MechanicFactory {
         addToImplemented(mechanic);
         return mechanic;
     }
+
+    public static WateringMechanicFactory get() { return instance; }
 }

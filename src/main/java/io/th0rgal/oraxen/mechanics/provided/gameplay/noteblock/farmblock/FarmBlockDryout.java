@@ -2,33 +2,41 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock;
 
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.Random;
-
 public class FarmBlockDryout {
 
-    private final boolean lightBoost;
-    private final int probability;
-    private final int delay;
-    private final Random random = new Random();
-    private boolean isMoist;
+    private String farmBlock;
+    private String moistFarmBlock;
+    private int farmBlockDryoutTime;
+    private final String id;
 
-    public FarmBlockDryout(String itemId, ConfigurationSection farmblockSection) {
-        delay = farmblockSection.getInt("delay");
-        probability = (int) (1D / (double) farmblockSection.get("probability", 1));
-        lightBoost = farmblockSection.isBoolean("light_boost") && farmblockSection.getBoolean("light_boost");
+    public FarmBlockDryout(String itemID, ConfigurationSection farmblockSection) {
+        id = itemID;
+        farmBlock = farmblockSection.getString("farmBlockPath");
+        moistFarmBlock = farmblockSection.getString("moistFarmBlockPath");
+        farmBlockDryoutTime = farmblockSection.getInt("farmBlockDryOutTime", 50000);
     }
 
     public int getDelay() {
-        return delay;
+        return farmBlockDryoutTime;
     }
 
-    public boolean isLightBoosted() {
-        return lightBoost;
+    public boolean isFarmBlock() {
+        return (farmBlock != null || moistFarmBlock != null);
     }
 
-    public boolean bernoulliTest() {
-        return random.nextInt(probability) == 0;
+    public boolean isMoistFarmBlock() {
+        return ((moistFarmBlock == null || moistFarmBlock.equals(id)) && farmBlock != null);
     }
+
+    public String getFarmBlock() {
+        return farmBlock;
+    }
+
+    public String getMoistFarmBlock() {
+        return moistFarmBlock;
+    }
+
+    public int getDryoutTime() { return farmBlockDryoutTime; }
 }
 
 

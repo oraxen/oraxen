@@ -42,7 +42,7 @@ public class EvolutionTask extends BukkitRunnable {
                         continue;
                     }
 
-                    if (mechanic.farmblockRequired && !noteBlockMechanic.isFarmBlock()) {
+                    if (mechanic.farmblockRequired && !noteBlockMechanic.getDryout().isFarmBlock()) {
                         mechanic.remove(frame);
                         continue;
                     }

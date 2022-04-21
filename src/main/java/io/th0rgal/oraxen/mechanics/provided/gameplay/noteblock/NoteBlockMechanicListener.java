@@ -190,7 +190,7 @@ public class NoteBlockMechanicListener implements Listener {
                 WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
             event.setCancelled(true);
 
-            if (mechanic.isFarmBlock()) {
+            if (mechanic.getDryout().isFarmBlock()) {
                 final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
                 customBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
             }

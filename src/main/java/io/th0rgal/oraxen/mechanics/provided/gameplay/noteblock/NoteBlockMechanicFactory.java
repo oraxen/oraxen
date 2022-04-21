@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Instrument;
 import org.bukkit.Material;
@@ -23,6 +24,9 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     private static JsonObject variants;
     private static NoteBlockMechanicFactory instance;
     public final List<String> toolTypes;
+    private boolean farmBlock;
+    private static FarmBlockTask farmBlockTask;
+    public final int farmBlockCheckDelay;
 
     public NoteBlockMechanicFactory(ConfigurationSection section) {
         super(section);
@@ -30,6 +34,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         variants = new JsonObject();
         variants.add("instrument=harp,powered=false", getModelJson("required/note_block"));
         toolTypes = section.getStringList("tool_types");
+        farmBlockCheckDelay = section.getInt("farmblock_check_delay");
+        farmBlock = false;
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
@@ -146,6 +152,15 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
          * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
          */
         return createNoteBlockData(((NoteBlockMechanic) getInstance().getMechanic(itemID)).getCustomVariation());
+    }
+
+    public void registerFarmBlock() {
+        if (farmBlock) return;
+        if (farmBlockTask != null) farmBlockTask.cancel();
+
+        farmBlockTask = new FarmBlockTask(this, farmBlockCheckDelay);
+        farmBlockTask.runTaskTimer(OraxenPlugin.get(), 0, farmBlockCheckDelay);
+        farmBlock = true;
     }
 
 }
