@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import de.jeff_media.customblockdata.CustomBlockData;
+import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.OraxenItems;

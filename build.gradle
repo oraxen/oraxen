@@ -41,7 +41,7 @@ repositories {
     // CodeMc (bstats)
     maven { url 'https://repo.codemc.org/repository/maven-public' }
     // CustomBlockData
-    maven { url 'https://hub.jeff-media.com/nexus/repository/jeff-media-public' }
+    maven { url 'https://hub.jeff-media.com/nexus/repository/jeff-media-public/' }
     // actions-code, actions-spigot
     maven { url 'https://repo.triumphteam.dev/snapshots' }
     // MythicMobs
@@ -75,7 +75,7 @@ dependencies {
     implementation group: 'net.kyori', name: 'adventure-platform-bukkit', version: '4.0.0'
     implementation group: 'com.github.stefvanschie.inventoryframework', name: 'IF', version: '0.10.0'
     implementation group: 'dev.jorel', name: 'commandapi-shade', version: '7.0.0'
-    implementation group: 'de.jeff_media', name: 'CustomBlockData', version: '1.0.1'
+    implementation "com.jeff_media:CustomBlockData:1.0.5"
 
     implementation(group: 'me.gabytm.util', name: 'actions-spigot', version: actionsVersion) { exclude group: 'com.google.guava' }
 }

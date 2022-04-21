@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.farming.watering;
 
-import de.jeff_media.customblockdata.CustomBlockData;
+import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -9,7 +9,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic
 import org.bukkit.Material;
 import org.bukkit.Particle;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -20,7 +19,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.Objects;
+
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 
 public class WateringMechanicListener implements Listener {
 
@@ -41,21 +43,15 @@ public class WateringMechanicListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         Block block = event.getClickedBlock();
-        NoteBlockMechanic farmingBlockMechanic = getNoteBlockMechanic(block);
-
-        if (!farmingBlockMechanic.isFarmBlock()) return;
-        NoteBlockMechanicFactory.setBlockModel(block, farmingBlockMechanic.getMoistFarmBlock());
+        NoteBlockMechanic farmMechanic = getNoteBlockMechanic(block);
         PersistentDataContainer farmBlockData = new CustomBlockData(block, OraxenPlugin.get());
-        farmBlockData.set(FARMBLOCK_KEY, PersistentDataType.INTEGER, 0);
 
-        player.getWorld().spawnParticle(Particle.WATER_SPLASH, block.getLocation(), 10);
-    }
 
-    private NoteBlockMechanic getNoteBlockMechanic(Block block) {
-        final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
-        return NoteBlockMechanicFactory
-                .getBlockMechanic((int) (noteBlok.getInstrument().getType()) * 25
-                        + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
+        if (!farmMechanic.isFarmBlock() || Objects.equals(farmBlockData.get(FARMBLOCK_KEY, PersistentDataType.STRING), farmMechanic.getMoistFarmBlock())) return;
+        NoteBlockMechanicFactory.setBlockModel(block, farmMechanic.getMoistFarmBlock());
+        farmBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, farmMechanic.getMoistFarmBlock());
+
+        player.getWorld().spawnParticle(Particle.WATER_SPLASH, block.getLocation().add(0.5, 1, 0.5), 40);
     }
 
 }

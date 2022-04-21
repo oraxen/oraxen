@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
+import com.jeff_media.customblockdata.CustomBlockData;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -22,8 +24,12 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
+
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 
 public class NoteBlockMechanicListener implements Listener {
 
@@ -183,6 +189,11 @@ public class NoteBlockMechanicListener implements Listener {
             if (mechanic.getLight() != -1)
                 WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
             event.setCancelled(true);
+
+            if (mechanic.isFarmBlock()) {
+                final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
+                customBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
+            }
         }
     }
 
@@ -269,7 +280,7 @@ public class NoteBlockMechanicListener implements Listener {
         return target;
     }
 
-    public NoteBlockMechanic getNoteBlockMechanic(Block block) {
+    public static NoteBlockMechanic getNoteBlockMechanic(Block block) {
         final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
         return NoteBlockMechanicFactory
                 .getBlockMechanic((int) (noteBlok.getInstrument().getType()) * 25
