@@ -31,15 +31,26 @@ public class FarmBlockTask extends BukkitRunnable {
             for (Chunk chunk : world.getLoadedChunks()) {
                 for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk)) {
                     PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
-                    if (customBlockData.has(FARMBLOCK_KEY, PersistentDataType.INTEGER) && block.getType() == Material.NOTE_BLOCK) {
+                    Block blockBelow = block.getLocation().subtract(0, 1, 0).getBlock();
+                    if (customBlockData.has(FARMBLOCK_KEY, PersistentDataType.STRING) && block.getType() == Material.NOTE_BLOCK) {
+                        if (!getNoteBlockMechanic(block).hasDryout()) return;
                         FarmBlockDryout farmMechanic = getNoteBlockMechanic(block).getDryout();
 
-                        int moistTimerRemain = customBlockData.get(FARMBLOCK_KEY, PersistentDataType.INTEGER) + delay;
+                        if (customBlockData.has(FARMBLOCK_KEY, PersistentDataType.INTEGER)) {
+                            int moistTimerRemain = customBlockData.get(FARMBLOCK_KEY, PersistentDataType.INTEGER) + delay;
 
-                        if (farmMechanic.getDryoutTime() - moistTimerRemain <= 0) {
-                            NoteBlockMechanicFactory.setBlockModel(block, farmMechanic.getFarmBlock());
-                            customBlockData.remove(FARMBLOCK_KEY);
-                        } else customBlockData.set(FARMBLOCK_KEY, PersistentDataType.INTEGER, moistTimerRemain);
+                            if (blockBelow.getType() == Material.WATER) {
+                                customBlockData.set(FARMBLOCK_KEY, PersistentDataType.INTEGER, 0);
+                                return;
+                            }
+
+                            if (farmMechanic.getDryoutTime() - moistTimerRemain <= 0) {
+                                NoteBlockMechanicFactory.setBlockModel(block, farmMechanic.getFarmBlock());
+                                customBlockData.remove(FARMBLOCK_KEY);
+                            } else customBlockData.set(FARMBLOCK_KEY, PersistentDataType.INTEGER, moistTimerRemain);
+                        } else if (farmMechanic.isConnectedToWaterSource(block, customBlockData)) {
+                            Bukkit.broadcastMessage("yep");
+                        }
                     }
                 }
             }
