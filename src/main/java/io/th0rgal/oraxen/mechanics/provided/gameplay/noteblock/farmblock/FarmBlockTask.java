@@ -47,9 +47,19 @@ public class FarmBlockTask extends BukkitRunnable {
                             if (farmMechanic.getDryoutTime() - moistTimerRemain <= 0) {
                                 NoteBlockMechanicFactory.setBlockModel(block, farmMechanic.getFarmBlock());
                                 customBlockData.remove(FARMBLOCK_KEY);
+                                customBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, farmMechanic.getFarmBlock());
                             } else customBlockData.set(FARMBLOCK_KEY, PersistentDataType.INTEGER, moistTimerRemain);
-                        } else if (farmMechanic.isConnectedToWaterSource(block, customBlockData)) {
-                            Bukkit.broadcastMessage("yep");
+                        }
+
+                        else {
+                            if (farmMechanic.isConnectedToWaterSource(block, customBlockData)) {
+                                NoteBlockMechanicFactory.setBlockModel(block, farmMechanic.getMoistFarmBlock());
+                                customBlockData.set(FARMBLOCK_KEY, PersistentDataType.INTEGER, 0);
+                            }
+                            else if (world.hasStorm() && world.getHighestBlockAt(block.getLocation()) == block) {
+                                NoteBlockMechanicFactory.setBlockModel(block, farmMechanic.getMoistFarmBlock());
+                                customBlockData.set(FARMBLOCK_KEY, PersistentDataType.INTEGER, 0);
+                            }
                         }
                     }
                 }

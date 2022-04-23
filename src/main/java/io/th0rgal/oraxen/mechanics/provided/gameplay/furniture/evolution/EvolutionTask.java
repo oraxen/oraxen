@@ -47,18 +47,23 @@ public class EvolutionTask extends BukkitRunnable {
                         continue;
                     }
 
+                    if (mechanic.farmblockRequired && !noteBlockMechanic.getDryout().isMoistFarmBlock()) {
+                        frame.getPersistentDataContainer().set(FurnitureMechanic.EVOLUTION_KEY,
+                                PersistentDataType.INTEGER, 0);
+                        continue;
+                    }
+
                     EvolvingFurniture evolution = mechanic.getEvolution();
                     int evolutionStep = frame.getPersistentDataContainer()
                             .get(EVOLUTION_KEY, PersistentDataType.INTEGER)
                             + delay * frame.getLocation().getBlock().getLightLevel();
 
                     if (evolutionStep > evolution.getDelay()) {
-                        if (!evolution.bernoulliTest())
-                            continue;
-                        mechanic.remove(frame);
                         FurnitureMechanic nextMechanic = (FurnitureMechanic) furnitureFactory.getMechanic(evolution.getNextStage());
-                        if (nextMechanic == null) return;
+                        if (nextMechanic == null) continue;
+                        if (!evolution.bernoulliTest()) continue;
 
+                        mechanic.remove(frame);
                         nextMechanic.place(
                                 frame.getRotation(),
                                 mechanic.getYaw(frame.getRotation()),
