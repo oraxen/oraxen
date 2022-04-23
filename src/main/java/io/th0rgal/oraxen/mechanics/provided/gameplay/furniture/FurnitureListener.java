@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 import de.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.events.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -290,6 +291,15 @@ public class FurnitureListener implements Listener {
             final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
 
             if (mechanic != null) {
+                // Call the oraxen furniture event
+                final OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic,block, event.getPlayer());
+                Bukkit.getPluginManager().callEvent(furnitureInteractEvent);
+
+                if (furnitureInteractEvent.isCancelled()) {
+                    event.setCancelled(true);
+                    return;
+                }
+
                 mechanic.runClickActions(event.getPlayer());
             }
         }
