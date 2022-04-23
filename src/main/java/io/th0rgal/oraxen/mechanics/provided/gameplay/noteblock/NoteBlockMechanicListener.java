@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.events.OraxenNoteBlockBreakEvent;
+import io.th0rgal.oraxen.events.OraxenNoteBlockInteractEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
@@ -82,6 +83,13 @@ public class NoteBlockMechanicListener implements Listener {
         final NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
 
         if (noteBlockMechanic != null) {
+            OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(noteBlockMechanic, event, event.getPlayer());
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockInteractEvent);
+            if (noteBlockInteractEvent.isCancelled()) {
+                event.setCancelled(true);
+                return;
+            }
+
             noteBlockMechanic.runClickActions(event.getPlayer());
         }
 
