@@ -1,9 +1,10 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -40,12 +41,13 @@ public class EvolutionTask extends BukkitRunnable {
                             .get(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER)
                             + delay * frame.getLocation().getBlock().getLightLevel();
                     if (evolutionStep > evolution.getDelay()) {
-                        if (!evolution.bernoulliTest())
-                            continue;
+                        FurnitureMechanic nextMechanic = (FurnitureMechanic) furnitureFactory.getMechanic(evolution.getNextStage());
+                        if (nextMechanic == null) continue;
+                        if (!evolution.bernoulliTest()) continue;
+
                         mechanic.remove(frame);
-                        FurnitureMechanic nextMechanic = (FurnitureMechanic)
-                                furnitureFactory.getMechanic(evolution.getNextStage());
-                        nextMechanic.place(frame.getRotation(),
+                        nextMechanic.place(
+                                frame.getRotation(),
                                 mechanic.getYaw(frame.getRotation()),
                                 frame.getFacing(),
                                 frame.getLocation(),
