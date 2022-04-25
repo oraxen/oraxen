@@ -1,34 +1,39 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Tripwire;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
-import org.bukkit.event.entity.EntityEnterBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
-import java.util.function.Consumer;
+
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory.getBlockMechanic;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory.getCode;
 
 public class StringBlockMechanicListener implements Listener {
 
@@ -65,8 +70,7 @@ public class StringBlockMechanicListener implements Listener {
 
         for (Block block : tripwireList) {
             final Tripwire tripwire = (Tripwire) block.getBlockData();
-            final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
-                    .getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
+            final StringBlockMechanic stringBlockMechanic = getBlockMechanic(getCode(tripwire));
 
             block.setType(Material.AIR, false);
 
@@ -119,6 +123,9 @@ public class StringBlockMechanicListener implements Listener {
             WrappedLightAPI.removeBlockLight(block.getLocation());
         stringBlockMechanic.getDrop().spawns(block.getLocation(), event.getPlayer().getInventory().getItemInMainHand());
         event.setDropItems(false);
+
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                fixClientsideUpdate(block.getLocation()), 1L);
     }
 
     @EventHandler
@@ -253,4 +260,32 @@ public class StringBlockMechanicListener implements Listener {
         return target;
     }
 
+    private void fixClientsideUpdate(Location blockLoc) {
+        Block blockBelow = blockLoc.clone().subtract(0, 1, 0).getBlock();
+        Block blockAbove = blockLoc.clone().add(0, 1, 0).getBlock();
+        Location loc = blockLoc.add(5, 0, 5);
+        List<Entity> players = blockLoc.getWorld().getNearbyEntities(blockLoc, 20, 20, 20).stream().toList();
+        players.removeIf(entity -> entity.getType() != EntityType.PLAYER);
+
+        if (blockBelow.getType() == Material.TRIPWIRE) {
+            for (Entity e : players)
+                ((Player) e).sendBlockChange(blockBelow.getLocation(), blockBelow.getBlockData());
+        }
+
+        if (blockAbove.getType() == Material.TRIPWIRE) {
+            for (Entity e : players)
+                ((Player) e).sendBlockChange(blockAbove.getLocation(), blockAbove.getBlockData());
+        }
+
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (loc.getBlock().getType() == Material.TRIPWIRE) {
+                    for (Entity e : players)
+                        ((Player) e).sendBlockChange(loc, loc.getBlock().getBlockData());
+                }
+                loc = loc.subtract(0, 0, 1);
+            }
+            loc = loc.add(-1, 0, 9);
+        }
+    }
 }
