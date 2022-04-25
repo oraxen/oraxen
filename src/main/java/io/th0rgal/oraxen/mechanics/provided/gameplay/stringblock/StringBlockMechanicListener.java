@@ -61,6 +61,9 @@ public class StringBlockMechanicListener implements Listener {
         if (event.getBlockPlaced().getType() != Material.STRING
                 || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
+        if (event.getBlockAgainst().getType() == Material.TRIPWIRE)
+            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                    fixClientsideUpdate(event.getBlockAgainst().getLocation()), 1L);
         event.setCancelled(true);
     }
 
@@ -108,24 +111,27 @@ public class StringBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
-        if (block.getType() != Material.TRIPWIRE || event.isCancelled() || !event.isDropItems())
-            return;
-        final Tripwire tripwire = (Tripwire) block.getBlockData();
-        final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
-                .getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
-        if (stringBlockMechanic == null)
-            return;
-        event.setCancelled(true);
-        block.setType(Material.AIR, false);
-        if (stringBlockMechanic.hasBreakSound())
-            block.getWorld().playSound(block.getLocation(), stringBlockMechanic.getBreakSound(), 1.0f, 0.8f);
-        if (stringBlockMechanic.getLight() != -1)
-            WrappedLightAPI.removeBlockLight(block.getLocation());
-        stringBlockMechanic.getDrop().spawns(block.getLocation(), event.getPlayer().getInventory().getItemInMainHand());
-        event.setDropItems(false);
+        Block blockAbove = event.getBlock().getRelative(BlockFace.UP);
 
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                fixClientsideUpdate(block.getLocation()), 1L);
+        if (block.getType() == Material.TRIPWIRE) {
+            final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
+                    .getBlockMechanic(StringBlockMechanicFactory.getCode((Tripwire) block.getBlockData()));
+            if (stringBlockMechanic == null) return;
+            event.setCancelled(true);
+            breakStringBlock(block, stringBlockMechanic, event.getPlayer().getInventory().getItemInMainHand());
+            event.setDropItems(false);
+        }
+
+        else if (blockAbove.getType() == Material.TRIPWIRE) {
+            ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
+            final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
+                    .getBlockMechanic(StringBlockMechanicFactory.getCode(((Tripwire) blockAbove.getBlockData())));
+            if (stringBlockMechanic == null) return;
+            event.setCancelled(true);
+            block.breakNaturally(item);
+            breakStringBlock(blockAbove, stringBlockMechanic, item);
+            event.setDropItems(false);
+        }
     }
 
     @EventHandler
@@ -260,12 +266,22 @@ public class StringBlockMechanicListener implements Listener {
         return target;
     }
 
+    private void breakStringBlock(Block block, StringBlockMechanic mechanic, ItemStack item) {
+        if (mechanic.hasBreakSound())
+            block.getWorld().playSound(block.getLocation(), mechanic.getBreakSound(), 1.0f, 0.8f);
+        if (mechanic.getLight() != -1)
+            WrappedLightAPI.removeBlockLight(block.getLocation());
+        mechanic.getDrop().spawns(block.getLocation(), item);
+        block.setType(Material.AIR, false);
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                fixClientsideUpdate(block.getLocation()), 1L);
+    }
+
     private void fixClientsideUpdate(Location blockLoc) {
         Block blockBelow = blockLoc.clone().subtract(0, 1, 0).getBlock();
         Block blockAbove = blockLoc.clone().add(0, 1, 0).getBlock();
         Location loc = blockLoc.add(5, 0, 5);
-        List<Entity> players = blockLoc.getWorld().getNearbyEntities(blockLoc, 20, 20, 20).stream().toList();
-        players.removeIf(entity -> entity.getType() != EntityType.PLAYER);
+        List<Entity> players = blockLoc.getWorld().getNearbyEntities(blockLoc, 20, 20, 20).stream().filter(entity -> entity.getType() == EntityType.PLAYER).toList();
 
         if (blockBelow.getType() == Material.TRIPWIRE) {
             for (Entity e : players)
