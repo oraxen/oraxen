@@ -210,9 +210,11 @@ public class FurnitureListener implements Listener {
 
     @EventHandler
     public void onProjectileHitFurniture(final ProjectileHitEvent event) {
-        Block block = event.getHitBlock();
-        if (block.getType() == Material.BARRIER) {
-            final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
+        Block hitBlock = event.getHitBlock();
+        Entity hitEntity = event.getHitEntity();
+
+        if (hitBlock != null && hitBlock.getType() == Material.BARRIER) {
+            final PersistentDataContainer customBlockData = new CustomBlockData(hitBlock, OraxenPlugin.get());
             if (!customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING)) return;
             final BlockLocation furnitureLocation = new BlockLocation(customBlockData.get(ROOT_KEY, PersistentDataType.STRING));
             Float orientation = customBlockData.get(ORIENTATION_KEY, PersistentDataType.FLOAT);
@@ -220,22 +222,21 @@ public class FurnitureListener implements Listener {
             final String itemID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
             if (!OraxenItems.exists(itemID)) return;
             final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
-            ItemFrame frame = mechanic.getItemFrame(block.getLocation());
+            ItemFrame frame = mechanic.getItemFrame(hitBlock.getLocation());
 
             if (event.getEntity() instanceof Explosive) {
                 mechanic.getDrop().furnitureSpawns(frame, new ItemStack(Material.AIR));
-                mechanic.removeSolid(block.getWorld(), furnitureLocation, orientation);
-            }
-            else event.setCancelled(true);
+                mechanic.removeSolid(hitBlock.getWorld(), furnitureLocation, orientation);
+            } else event.setCancelled(true);
         }
-        if (event.getHitEntity() instanceof ItemFrame frame) {
+        if (hitEntity instanceof ItemFrame frame) {
             final PersistentDataContainer container = frame.getPersistentDataContainer();
             if (container.has(FURNITURE_KEY, PersistentDataType.STRING)) {
                 final String itemID = container.get(FURNITURE_KEY, PersistentDataType.STRING);
-                if (!OraxenItems.exists(itemID))
-                    return;
+                if (!OraxenItems.exists(itemID)) return;
                 final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
-                if (event.getEntity() instanceof Explosive) mechanic.getDrop().furnitureSpawns(frame, new ItemStack(Material.AIR));
+                if (hitEntity instanceof Explosive)
+                    mechanic.getDrop().furnitureSpawns(frame, new ItemStack(Material.AIR));
                 else event.setCancelled(true);
             }
         }
