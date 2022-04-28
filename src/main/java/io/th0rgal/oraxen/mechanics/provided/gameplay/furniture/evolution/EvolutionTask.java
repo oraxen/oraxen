@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -60,8 +59,8 @@ public class EvolutionTask extends BukkitRunnable {
                             + delay * frame.getLocation().getBlock().getLightLevel();
 
                     if (evolutionStep > evolution.getDelay()) {
-                        if (!evolution.bernoulliTest())
-                            continue;
+                        if (evolution.getNextStage() == null) continue;
+                        if (!evolution.bernoulliTest()) continue;
                         mechanic.remove(frame);
                         FurnitureMechanic nextMechanic = (FurnitureMechanic)
                                 furnitureFactory.getMechanic(evolution.getNextStage());
