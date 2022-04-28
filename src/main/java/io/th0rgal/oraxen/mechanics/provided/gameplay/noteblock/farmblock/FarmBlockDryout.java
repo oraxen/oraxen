@@ -19,9 +19,9 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockM
 
 public class FarmBlockDryout {
 
-    private String farmBlock;
-    private String moistFarmBlock;
-    private int farmBlockDryoutTime;
+    private final String farmBlock;
+    private final String moistFarmBlock;
+    private final int farmBlockDryoutTime;
     private final String id;
 
     public FarmBlockDryout(String itemID, ConfigurationSection farmblockSection) {

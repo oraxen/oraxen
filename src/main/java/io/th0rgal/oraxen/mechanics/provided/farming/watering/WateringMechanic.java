@@ -6,20 +6,20 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class WateringMechanic extends Mechanic {
 
-    private final boolean isWateringCan;
-    private final int uses;
-    private final String remainingUsesGlyph;
+    private final String emptyCanItem;
+    private final String filledCanItem;
 
     public WateringMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
-        isWateringCan = section.getBoolean("isWaterCan", false);
-        uses = section.getInt("uses", 1);
-        remainingUsesGlyph = section.getString("remainingUsesGlyph");
+        emptyCanItem = section.getString("emptyCanItem");
+        filledCanItem = section.getString("filledCanItem");
     }
 
-    public boolean isWateringCan() { return this.isWateringCan; }
+    public boolean isEmpty() { return (emptyCanItem == null && filledCanItem != null); }
 
-    public int getUses() { return uses; }
+    public boolean isFilled() { return (filledCanItem == null && emptyCanItem != null); }
 
-    public String getRemainingUseGlyph() { return remainingUsesGlyph; }
+    public String getEmptyCanItem() { return this.emptyCanItem; }
+
+    public String getFilledCanItem() { return this.filledCanItem; }
 }
