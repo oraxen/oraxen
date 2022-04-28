@@ -129,6 +129,9 @@ public class BreakerSystem {
             } else {
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
                     player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+                    if (!ProtectionLib.canBreak(player, block.getLocation()))
+                        player.sendBlockChange(block.getLocation(), block.getBlockData());
+
                     for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
                         if (entity instanceof Player viewer)
                             sendBlockBreak(viewer, location, 10);
