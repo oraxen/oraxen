@@ -54,7 +54,7 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPhysics(final BlockPhysicsEvent event) {
-        final Block aboveBlock = event.getBlock().getLocation().add(0, 1, 0).getBlock();
+        final Block aboveBlock = event.getBlock().getRelative(BlockFace.UP);
         if (aboveBlock.getType() == Material.NOTE_BLOCK) {
             updateAndCheck(event.getBlock().getLocation());
             event.setCancelled(true);

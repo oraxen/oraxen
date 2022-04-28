@@ -8,6 +8,7 @@ import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -31,7 +32,7 @@ public class FarmBlockTask extends BukkitRunnable {
             for (Chunk chunk : world.getLoadedChunks()) {
                 for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk)) {
                     PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
-                    Block blockBelow = block.getLocation().subtract(0, 1, 0).getBlock();
+                    Block blockBelow = block.getRelative(BlockFace.DOWN);
                     if (customBlockData.has(FARMBLOCK_KEY, PersistentDataType.STRING) && block.getType() == Material.NOTE_BLOCK) {
                         if (!getNoteBlockMechanic(block).hasDryout()) return;
                         FarmBlockDryout farmMechanic = getNoteBlockMechanic(block).getDryout();

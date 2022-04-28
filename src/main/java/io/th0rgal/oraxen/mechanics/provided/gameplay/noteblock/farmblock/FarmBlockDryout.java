@@ -4,10 +4,15 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.type.Farmland;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
@@ -53,24 +58,27 @@ public class FarmBlockDryout {
     public boolean isConnectedToWaterSource(Block block, PersistentDataContainer customBlockData) {
         Location blockLoc = block.getLocation();
 
-        if (blockLoc.clone().subtract(0, 1, 0).getBlock().getType() == Material.WATER) {
+        if (block.getRelative(BlockFace.DOWN).getType() == Material.WATER) {
             NoteBlockMechanicFactory.setBlockModel(block, getMoistFarmBlock());
             customBlockData.set(FARMBLOCK_KEY, PersistentDataType.INTEGER, 0);
             return true;
         }
 
-        for (int i = 1; i <= 9; i++) {
-            Block nextBlock = blockLoc.getBlock();
-            if (nextBlock.getType() == Material.WATER) return true;
-            else if (nextBlock.getType() == Material.FARMLAND && ((Farmland) nextBlock.getBlockData()).getMoisture() > 0) return true;
-            else if (nextBlock.getType() == Material.NOTE_BLOCK &&
-                    getNoteBlockMechanic(nextBlock).hasDryout() &&
-                    getNoteBlockMechanic(nextBlock).getDryout().isMoistFarmBlock())
-                return true;
-
-            blockLoc = blockLoc.add(0, 0, -1);
-        }
-        return false;
+        final List<Block> blocks = new ArrayList<>();
+        for (int x = blockLoc.getBlockX() - 1; x <= blockLoc.getBlockX()
+                + 1; x++)
+            for (int z = blockLoc.getBlockZ() - 1; z <= blockLoc.getBlockZ()
+                    + 1; z++) {
+                Block b = Objects.requireNonNull(blockLoc.getWorld()).getBlockAt(x, blockLoc.getBlockY(), z);
+                if (b.getType() == Material.WATER) blocks.add(b);
+                else if (b.getType() == Material.FARMLAND && ((Farmland) b.getBlockData()).getMoisture() > 0)
+                    blocks.add(b);
+                else if (b.getType() == Material.NOTE_BLOCK &&
+                        getNoteBlockMechanic(b).hasDryout() &&
+                        getNoteBlockMechanic(b).getDryout().isMoistFarmBlock())
+                    blocks.add(b);
+            }
+        return !blocks.isEmpty();
     }
 }
 

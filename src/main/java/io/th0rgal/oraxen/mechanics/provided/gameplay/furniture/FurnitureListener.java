@@ -96,7 +96,7 @@ public class FurnitureListener implements Listener {
         if (mechanic == null)
             return;
 
-        Block farm = target.getLocation().clone().subtract(0, 1, 0).getBlock();
+        Block farm = target.getRelative(BlockFace.DOWN);
 
 
         if (mechanic.farmlandRequired && farm.getType() != Material.FARMLAND) return;
