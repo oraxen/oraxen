@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.mechanics.provided.farming.bigmining.BigMiningMechanicF
 import io.th0rgal.oraxen.mechanics.provided.farming.bottledexp.BottledExpMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.harvesting.HarvestingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.smelting.SmeltingMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.farming.watering.WateringMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
@@ -86,6 +87,7 @@ public class MechanicsManager {
         registerMechanicFactory("smelting", SmeltingMechanicFactory::new);
         registerMechanicFactory("bottledexp", BottledExpMechanicFactory::new);
         registerMechanicFactory("harvesting", HarvestingMechanicFactory::new);
+        registerMechanicFactory("watering", WateringMechanicFactory::new);
         if (CompatibilitiesManager.hasPlugin("ProtocolLib"))
             registerMechanicFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
     }

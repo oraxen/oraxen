@@ -1,11 +1,14 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -15,6 +18,7 @@ import java.util.List;
 
 public class NoteBlockMechanic extends Mechanic {
 
+    public static final NamespacedKey FARMBLOCK_KEY = new NamespacedKey(OraxenPlugin.get(), "farmblock");
     protected final boolean hasHardness;
     private final int customVariation;
     private final Drop drop;
@@ -23,6 +27,7 @@ public class NoteBlockMechanic extends Mechanic {
     private String model;
     private int period;
     private final int light;
+    private final FarmBlockDryout farmBlockDryout;
     private final List<ClickAction> clickActions;
 
     @SuppressWarnings("unchecked")
@@ -77,6 +82,19 @@ public class NoteBlockMechanic extends Mechanic {
 
         light = section.getInt("light", -1);
         clickActions = ClickAction.parseList(section);
+
+        if (section.isConfigurationSection("farmblock")) {
+            farmBlockDryout = new FarmBlockDryout(getItemID(), section.getConfigurationSection("farmblock"));
+            ((NoteBlockMechanicFactory) getFactory()).registerFarmBlock();
+        } else farmBlockDryout = null;
+    }
+
+    public boolean hasDryout() {
+        return farmBlockDryout != null;
+    }
+
+    public FarmBlockDryout getDryout() {
+        return farmBlockDryout;
     }
 
     public String getModel(ConfigurationSection section) {

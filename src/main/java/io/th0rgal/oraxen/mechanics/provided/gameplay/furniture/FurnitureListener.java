@@ -5,6 +5,8 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
@@ -13,6 +15,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -93,10 +96,16 @@ public class FurnitureListener implements Listener {
         if (mechanic == null)
             return;
 
-        if (mechanic.farmlandRequired &&
-                target.getLocation().clone().subtract(0, 1, 0).getBlock().getType()
-                        != Material.FARMLAND)
-            return;
+        Block farm = target.getRelative(BlockFace.DOWN);
+
+
+        if (mechanic.farmlandRequired && farm.getType() != Material.FARMLAND) return;
+
+        if (mechanic.farmblockRequired) {
+            if (farm.getType() != Material.NOTE_BLOCK) return;
+            if (!getNoteBlockMechanic(farm).hasDryout()) return;
+            if (!getNoteBlockMechanic(farm).getDryout().isFarmBlock()) return;
+        }
 
         target.setType(Material.AIR, false);
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst,
@@ -309,6 +318,13 @@ public class FurnitureListener implements Listener {
                 && (playerLocation.getBlockY() == blockLocation.getBlockY()
                 || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
                 && playerLocation.getBlockZ() == blockLocation.getBlockZ();
+    }
+
+    public NoteBlockMechanic getNoteBlockMechanic(Block block) {
+        final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
+        return NoteBlockMechanicFactory
+                .getBlockMechanic((int) (noteBlok.getInstrument().getType()) * 25
+                        + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
     }
 
 }

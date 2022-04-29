@@ -34,6 +34,7 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey ORIENTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "orientation");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
     public final boolean farmlandRequired;
+    public final boolean farmblockRequired;
     private final List<BlockLocation> barriers;
     private final boolean hasRotation;
     private final boolean hasSeat;
@@ -85,6 +86,7 @@ public class FurnitureMechanic extends Mechanic {
         light = section.getInt("light", -1);
 
         farmlandRequired = section.getBoolean("farmland_required", false);
+        farmblockRequired = section.getBoolean("farmblock_required", false);
 
         facing = section.isString("facing")
                 ? BlockFace.valueOf(section.getString("facing").toUpperCase())
@@ -176,7 +178,7 @@ public class FurnitureMechanic extends Mechanic {
         return evolvingFurniture;
     }
 
-    private void setPlacedItem() {
+    public void setPlacedItem() {
         if (placedItem == null) {
             placedItem = OraxenItems.getItemById(placedItemId != null ? placedItemId : getItemID()).build();
             ItemMeta meta = placedItem.getItemMeta();
@@ -252,10 +254,10 @@ public class FurnitureMechanic extends Mechanic {
                 WrappedLightAPI.removeBlockLight(location);
             if (hasSeat()) {
                 ArmorStand seat = getSeat(location);
-                 if(seat != null && seat.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
-                     seat.getPassengers().clear();
-                     seat.remove();
-                 }
+                if (seat != null && seat.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
+                    seat.getPassengers().clear();
+                    seat.remove();
+                }
             }
             location.getBlock().setType(Material.AIR);
         }
@@ -336,7 +338,7 @@ public class FurnitureMechanic extends Mechanic {
             }
         }
     }
-  
+
     private String spawnSeat(FurnitureMechanic mechanic, Block target, float yaw) {
         if (mechanic.hasSeat()) {
             final ArmorStand seat = target.getWorld().spawn(target.getLocation()

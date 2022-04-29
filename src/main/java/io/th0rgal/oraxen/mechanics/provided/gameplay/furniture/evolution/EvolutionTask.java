@@ -2,12 +2,17 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
+
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.EVOLUTION_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 
 public class EvolutionTask extends BukkitRunnable {
 
@@ -23,31 +28,43 @@ public class EvolutionTask extends BukkitRunnable {
     public void run() {
         for (World world : Bukkit.getWorlds())
             for (ItemFrame frame : world.getEntitiesByClass(ItemFrame.class))
-                if (frame.getPersistentDataContainer().has(FurnitureMechanic.EVOLUTION_KEY,
+                if (frame.getPersistentDataContainer().has(EVOLUTION_KEY,
                         PersistentDataType.INTEGER)) {
 
                     String itemID = frame.getPersistentDataContainer()
                             .get(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING);
+                    Block blockBelow = frame.getLocation().clone().subtract(0, 1, 0).getBlock();
                     FurnitureMechanic mechanic = (FurnitureMechanic) furnitureFactory.getMechanic(itemID);
+                    NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(blockBelow);
 
-                    if (mechanic.farmlandRequired &&
-                            frame.getLocation().clone().subtract(0, 1, 0).getBlock().getType()
-                                    != Material.FARMLAND) {
+                    if (mechanic.farmlandRequired && blockBelow.getType() != Material.FARMLAND) {
                         mechanic.remove(frame);
                         continue;
                     }
+
+                    if (mechanic.farmblockRequired && !noteBlockMechanic.getDryout().isFarmBlock()) {
+                        mechanic.remove(frame);
+                        continue;
+                    }
+
+                    if (mechanic.farmblockRequired && !noteBlockMechanic.getDryout().isMoistFarmBlock()) {
+                        frame.getPersistentDataContainer().set(FurnitureMechanic.EVOLUTION_KEY,
+                                PersistentDataType.INTEGER, 0);
+                        continue;
+                    }
+
                     EvolvingFurniture evolution = mechanic.getEvolution();
                     int evolutionStep = frame.getPersistentDataContainer()
-                            .get(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER)
+                            .get(EVOLUTION_KEY, PersistentDataType.INTEGER)
                             + delay * frame.getLocation().getBlock().getLightLevel();
-                    if (evolutionStep > evolution.getDelay()) {
-                        FurnitureMechanic nextMechanic = (FurnitureMechanic) furnitureFactory.getMechanic(evolution.getNextStage());
-                        if (nextMechanic == null) continue;
-                        if (!evolution.bernoulliTest()) continue;
 
+                    if (evolutionStep > evolution.getDelay()) {
+                        if (evolution.getNextStage() == null) continue;
+                        if (!evolution.bernoulliTest()) continue;
                         mechanic.remove(frame);
-                        nextMechanic.place(
-                                frame.getRotation(),
+                        FurnitureMechanic nextMechanic = (FurnitureMechanic)
+                                furnitureFactory.getMechanic(evolution.getNextStage());
+                        nextMechanic.place(frame.getRotation(),
                                 mechanic.getYaw(frame.getRotation()),
                                 frame.getFacing(),
                                 frame.getLocation(),
