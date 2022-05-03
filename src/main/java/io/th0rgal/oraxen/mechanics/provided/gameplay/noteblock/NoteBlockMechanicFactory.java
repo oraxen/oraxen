@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockTask;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripListener;
 import org.bukkit.Bukkit;
 import org.bukkit.Instrument;
 import org.bukkit.Material;
@@ -46,6 +47,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                                     "note_block.json", getBlockstateContent());
                 });
         MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new LogStripListener());
     }
 
     public static String getInstrumentName(int id) {
