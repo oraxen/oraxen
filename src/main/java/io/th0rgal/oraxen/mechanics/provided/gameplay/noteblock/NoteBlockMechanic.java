@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripping;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
@@ -28,6 +29,7 @@ public class NoteBlockMechanic extends Mechanic {
     private int period;
     private final int light;
     private final FarmBlockDryout farmBlockDryout;
+    private final LogStripping logStripping;
     private final List<ClickAction> clickActions;
 
     @SuppressWarnings("unchecked")
@@ -87,6 +89,11 @@ public class NoteBlockMechanic extends Mechanic {
             farmBlockDryout = new FarmBlockDryout(getItemID(), section.getConfigurationSection("farmblock"));
             ((NoteBlockMechanicFactory) getFactory()).registerFarmBlock();
         } else farmBlockDryout = null;
+
+        if (section.isConfigurationSection("logStrip")) {
+            logStripping = new LogStripping(section.getConfigurationSection("logStrip"));
+        } else logStripping = null;
+
     }
 
     public boolean hasDryout() {
@@ -96,6 +103,10 @@ public class NoteBlockMechanic extends Mechanic {
     public FarmBlockDryout getDryout() {
         return farmBlockDryout;
     }
+
+    public boolean isLog() { return logStripping != null; }
+
+    public LogStripping getLog() { return logStripping; }
 
     public String getModel(ConfigurationSection section) {
         if (model != null)
