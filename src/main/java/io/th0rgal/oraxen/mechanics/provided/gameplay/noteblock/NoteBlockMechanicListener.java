@@ -190,7 +190,7 @@ public class NoteBlockMechanicListener implements Listener {
                 WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
             event.setCancelled(true);
 
-            if (mechanic.getDryout().isFarmBlock()) {
+            if (mechanic.hasDryout() && mechanic.getDryout().isFarmBlock()) {
                 final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
                 customBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
             }
@@ -205,11 +205,8 @@ public class NoteBlockMechanicListener implements Listener {
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
                 if (block.getType() != Material.NOTE_BLOCK)
                     return false;
-                final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
-                final int code = (int) (noteBlok.getInstrument().getType()) * 25
-                        + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26;
-                final NoteBlockMechanic noteBlockMechanic = NoteBlockMechanicFactory
-                        .getBlockMechanic(code);
+
+                final NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
                 return noteBlockMechanic != null && noteBlockMechanic.hasHardness;
             }
 
