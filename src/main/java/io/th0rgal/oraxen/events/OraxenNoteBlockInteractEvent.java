@@ -7,7 +7,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
@@ -15,16 +17,23 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
     NoteBlockMechanic noteBlockMechanic;
     Player player;
     PlayerInteractEvent interactEvent;
+
+    Block block;
+    ItemStack itemInHand;
+
+
+
     boolean isCancelled;
     private static final HandlerList HANDLERS  = new HandlerList();
 
-    public OraxenNoteBlockInteractEvent(NoteBlockMechanic mechanic, PlayerInteractEvent interactEvent, Player player) {
+
+    public OraxenNoteBlockInteractEvent(NoteBlockMechanic mechanic,Block block, ItemStack itemInHand, Player player) {
         this.noteBlockMechanic = mechanic;
+        this.itemInHand = itemInHand;
+        this.block = block;
         this.player = player;
-        this.interactEvent = interactEvent;
         this.isCancelled = false;
     }
-
 
 
     @Override

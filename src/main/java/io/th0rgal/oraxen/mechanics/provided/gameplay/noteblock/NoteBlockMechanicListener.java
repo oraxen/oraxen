@@ -83,7 +83,7 @@ public class NoteBlockMechanicListener implements Listener {
         final NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
 
         if (noteBlockMechanic != null) {
-            OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(noteBlockMechanic, event, event.getPlayer());
+            OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(noteBlockMechanic, block, event.getItem(), event.getPlayer());
             OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockInteractEvent);
             if (noteBlockInteractEvent.isCancelled()) {
                 event.setCancelled(true);
