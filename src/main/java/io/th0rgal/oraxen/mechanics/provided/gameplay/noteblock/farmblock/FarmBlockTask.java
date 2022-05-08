@@ -53,7 +53,7 @@ public class FarmBlockTask extends BukkitRunnable {
                         }
 
                         else {
-                            if (farmMechanic.isConnectedToWaterSource(block, customBlockData)) {
+                            if (!farmMechanic.isMoistFarmBlock() && farmMechanic.isConnectedToWaterSource(block, customBlockData)) {
                                 NoteBlockMechanicFactory.setBlockModel(block, farmMechanic.getMoistFarmBlock());
                                 customBlockData.set(FARMBLOCK_KEY, PersistentDataType.INTEGER, 0);
                             }

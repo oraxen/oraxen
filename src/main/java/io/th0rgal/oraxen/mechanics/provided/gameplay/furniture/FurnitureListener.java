@@ -294,6 +294,8 @@ public class FurnitureListener implements Listener {
         if (mechanicID != null) {
             final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
 
+            Utils.sendAnimation(event.getPlayer(), event.getHand());
+
             if (mechanic != null) {
                 mechanic.runClickActions(event.getPlayer());
             }

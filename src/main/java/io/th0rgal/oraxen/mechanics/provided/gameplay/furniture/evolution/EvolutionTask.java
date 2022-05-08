@@ -35,22 +35,31 @@ public class EvolutionTask extends BukkitRunnable {
                             .get(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING);
                     Block blockBelow = frame.getLocation().clone().subtract(0, 1, 0).getBlock();
                     FurnitureMechanic mechanic = (FurnitureMechanic) furnitureFactory.getMechanic(itemID);
-                    NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(blockBelow);
 
                     if (mechanic.farmlandRequired && blockBelow.getType() != Material.FARMLAND) {
                         mechanic.remove(frame);
                         continue;
                     }
 
-                    if (mechanic.farmblockRequired && !noteBlockMechanic.getDryout().isFarmBlock()) {
-                        mechanic.remove(frame);
-                        continue;
-                    }
+                    if (mechanic.farmblockRequired) {
 
-                    if (mechanic.farmblockRequired && !noteBlockMechanic.getDryout().isMoistFarmBlock()) {
-                        frame.getPersistentDataContainer().set(FurnitureMechanic.EVOLUTION_KEY,
-                                PersistentDataType.INTEGER, 0);
-                        continue;
+                        if (blockBelow.getType() != Material.NOTE_BLOCK) {
+                            mechanic.remove(frame);
+                            continue;
+                        }
+
+                        NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(blockBelow);
+                        if (noteBlockMechanic.hasDryout()) {
+                            if (!noteBlockMechanic.getDryout().isFarmBlock()) {
+                                mechanic.remove(frame);
+                                continue;
+                            }
+                            else if (!noteBlockMechanic.getDryout().isMoistFarmBlock()) {
+                                frame.getPersistentDataContainer().set(FurnitureMechanic.EVOLUTION_KEY,
+                                        PersistentDataType.INTEGER, 0);
+                                continue;
+                            }
+                        }
                     }
 
                     EvolvingFurniture evolution = mechanic.getEvolution();
