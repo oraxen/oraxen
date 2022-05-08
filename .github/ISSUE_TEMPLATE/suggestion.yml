@@ -1,0 +1,29 @@
+name: Suggestion
+description: Suggest a new feature for Oraxen
+title: "[SUGGESTION] <title>"
+labels: [enhancement]
+
+body:
+  - type: "checkboxes"
+    id: "i-have-checked"
+    attributes:
+      label: "I have checked that..."
+      options:
+        - label: "...such a feature does not exist already"
+          required: true
+        - label: "...such a feature request has not been submitted already"
+          required: true
+  - type: "textarea"
+    id: "description"
+    attributes:
+      label: "Description"
+      description: "A full description of the feature"
+    validations:
+      required: true
+  - type: "textarea"
+    id: "reason"
+    attributes:
+      label: "Reason"
+      description: "Why do you want this feature to be added?"
+    validations:
+      required: true
