@@ -138,12 +138,11 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         DirectionalBlock directional = mechanic.getDirectional();
         String modelName = mechanic.getModel(itemMechanicConfiguration.getParent().getParent());
 
-        if (mechanic.isDirectional() && !directional.isParentBlock() && modelName == null) {
-            NoteBlockMechanic oldMechanic = mechanic;
-            mechanic = (NoteBlockMechanic) getMechanic(directional.getParentBlock());
-            modelName = (mechanic.getModel(itemMechanicConfiguration.getParent().getParent()));;
+        if (mechanic.isDirectional() && !directional.isParentBlock()) {
+            NoteBlockMechanic parentMechanic = (NoteBlockMechanic) getMechanic(directional.getParentBlock());;
+            modelName = (parentMechanic.getModel(itemMechanicConfiguration.getParent().getParent()));;
             variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
-                    getDirectionalModelJson(modelName, oldMechanic.getItemID(), mechanic.getDirectional()));
+                    getDirectionalModelJson(modelName, mechanic.getItemID(), parentMechanic.getDirectional()));
         } else {
             variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
                     getModelJson(modelName));

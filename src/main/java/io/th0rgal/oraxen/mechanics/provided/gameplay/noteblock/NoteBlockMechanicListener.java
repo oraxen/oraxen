@@ -4,7 +4,6 @@ import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.utils.Utils;
@@ -185,13 +184,12 @@ public class NoteBlockMechanicListener implements Listener {
 
         // determines the new block data of the block
         NoteBlockMechanic mechanic = (NoteBlockMechanic) factory.getMechanic(itemID);
-        Mechanic f = factory.getMechanic(mechanic.getDirectional().getXBlock());
         int customVariation = mechanic.getCustomVariation();
         BlockFace face = event.getBlockFace();
 
         if (mechanic.isDirectional() && mechanic.getDirectional().isParentBlock()) {
             DirectionalBlock directional = mechanic.getDirectional();
-
+            Bukkit.getLogger().warning(""+(((NoteBlockMechanic) factory.getMechanic(directional.getXBlock()))));
             if (face == BlockFace.WEST || face == BlockFace.EAST)
                 customVariation = ((NoteBlockMechanic) factory.getMechanic(directional.getXBlock())).getCustomVariation();
             else if (face == BlockFace.NORTH || face == BlockFace.SOUTH)
