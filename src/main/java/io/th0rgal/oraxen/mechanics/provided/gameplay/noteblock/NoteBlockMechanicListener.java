@@ -189,7 +189,7 @@ public class NoteBlockMechanicListener implements Listener {
 
         if (mechanic.isDirectional() && mechanic.getDirectional().isParentBlock()) {
             DirectionalBlock directional = mechanic.getDirectional();
-            Bukkit.getLogger().warning(""+(((NoteBlockMechanic) factory.getMechanic(directional.getXBlock()))));
+
             if (face == BlockFace.NORTH || face == BlockFace.SOUTH)
                 customVariation = ((NoteBlockMechanic) factory.getMechanic(directional.getXBlock())).getCustomVariation();
             else if (face == BlockFace.WEST || face == BlockFace.EAST)
@@ -226,9 +226,9 @@ public class NoteBlockMechanicListener implements Listener {
                     return false;
 
                 NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
-                if (noteBlockMechanic.isDirectional()) {
+                if (noteBlockMechanic.isDirectional())
                     noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
-                }
+
                 return noteBlockMechanic != null && noteBlockMechanic.hasHardness;
             }
 
@@ -241,9 +241,9 @@ public class NoteBlockMechanicListener implements Listener {
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
                 NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
-                if (noteBlockMechanic.isDirectional()) {
+                if (noteBlockMechanic.isDirectional())
                     noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
-                }
+
                 final long period = noteBlockMechanic.getPeriod();
                 double modifier = 1;
                 if (noteBlockMechanic.getDrop().canDrop(tool)) {
