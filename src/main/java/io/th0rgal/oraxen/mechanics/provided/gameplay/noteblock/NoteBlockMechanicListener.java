@@ -190,9 +190,9 @@ public class NoteBlockMechanicListener implements Listener {
         if (mechanic.isDirectional() && mechanic.getDirectional().isParentBlock()) {
             DirectionalBlock directional = mechanic.getDirectional();
             Bukkit.getLogger().warning(""+(((NoteBlockMechanic) factory.getMechanic(directional.getXBlock()))));
-            if (face == BlockFace.WEST || face == BlockFace.EAST)
+            if (face == BlockFace.NORTH || face == BlockFace.SOUTH)
                 customVariation = ((NoteBlockMechanic) factory.getMechanic(directional.getXBlock())).getCustomVariation();
-            else if (face == BlockFace.NORTH || face == BlockFace.SOUTH)
+            else if (face == BlockFace.WEST || face == BlockFace.EAST)
                 customVariation = ((NoteBlockMechanic) factory.getMechanic(directional.getZBlock())).getCustomVariation();
             else if (face == BlockFace.UP || face == BlockFace.DOWN)
                 customVariation = ((NoteBlockMechanic) factory.getMechanic(directional.getYBlock())).getCustomVariation();
