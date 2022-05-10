@@ -68,7 +68,6 @@ public class OraxenPlugin extends JavaPlugin {
         final PluginManager pluginManager = Bukkit.getPluginManager();
         resourcePack = new ResourcePack(this);
         MechanicsManager.registerNativeMechanics();
-        CompatibilitiesManager.enableNativeCompatibilities();
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
         OraxenItems.loadItems(configsManager);
@@ -81,6 +80,7 @@ public class OraxenPlugin extends JavaPlugin {
         new BreakerSystem().registerListener();
         postLoading(configsManager);
         Message.PLUGIN_LOADED.log(Template.template("os", OS.getOs().getPlatformName()));
+        CompatibilitiesManager.enableNativeCompatibilities();
     }
 
     private void postLoading(final ConfigsManager configsManager) {
