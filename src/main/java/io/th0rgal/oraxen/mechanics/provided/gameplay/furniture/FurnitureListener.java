@@ -34,6 +34,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import java.util.Objects;
 import java.util.UUID;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.*;
@@ -88,17 +89,17 @@ public class FurnitureListener implements Listener {
 
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
+        assert placedAgainst != null;
         final Block target = getTarget(placedAgainst, event.getBlockFace());
         if (target == null)
             return;
         ItemStack item = event.getItem();
-        final BlockData curentBlockData = target.getBlockData();
+        final BlockData currentBlockData = target.getBlockData();
         FurnitureMechanic mechanic = getMechanic(item, player, target);
         if (mechanic == null)
             return;
 
         Block farm = target.getRelative(BlockFace.DOWN);
-
 
         if (mechanic.farmlandRequired && farm.getType() != Material.FARMLAND) return;
 
@@ -109,9 +110,10 @@ public class FurnitureListener implements Listener {
         }
 
         target.setType(Material.AIR, false);
+        assert item != null;
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst,
                 item, player,
-                true, event.getHand());
+                true, Objects.requireNonNull(event.getHand()));
 
         final Rotation rotation = mechanic.hasRotation()
                 ? mechanic.getRotation()
@@ -129,7 +131,7 @@ public class FurnitureListener implements Listener {
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
-            target.setBlockData(curentBlockData, false); // false to cancel physic
+            target.setBlockData(currentBlockData, false); // false to cancel physic
             return;
         }
 
