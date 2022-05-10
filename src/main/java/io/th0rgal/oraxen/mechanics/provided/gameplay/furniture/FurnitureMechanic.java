@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import de.jeff_media.customblockdata.CustomBlockData;
+import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
@@ -11,17 +11,18 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.Evolvin
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
-import net.Indyuce.mmoitems.stat.Armor;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.*;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.*;
 
@@ -33,6 +34,7 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey ORIENTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "orientation");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
     public final boolean farmlandRequired;
+    public final boolean farmblockRequired;
     private final List<BlockLocation> barriers;
     private final boolean hasRotation;
     private final boolean hasSeat;
@@ -84,6 +86,7 @@ public class FurnitureMechanic extends Mechanic {
         light = section.getInt("light", -1);
 
         farmlandRequired = section.getBoolean("farmland_required", false);
+        farmblockRequired = section.getBoolean("farmblock_required", false);
 
         facing = section.isString("facing")
                 ? BlockFace.valueOf(section.getString("facing").toUpperCase())
@@ -175,7 +178,7 @@ public class FurnitureMechanic extends Mechanic {
         return evolvingFurniture;
     }
 
-    private void setPlacedItem() {
+    public void setPlacedItem() {
         if (placedItem == null) {
             placedItem = OraxenItems.getItemById(placedItemId != null ? placedItemId : getItemID()).build();
             ItemMeta meta = placedItem.getItemMeta();
@@ -251,10 +254,10 @@ public class FurnitureMechanic extends Mechanic {
                 WrappedLightAPI.removeBlockLight(location);
             if (hasSeat()) {
                 ArmorStand seat = getSeat(location);
-                 if(seat != null && seat.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
-                     seat.getPassengers().clear();
-                     seat.remove();
-                 }
+                if (seat != null && seat.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
+                    seat.getPassengers().clear();
+                    seat.remove();
+                }
             }
             location.getBlock().setType(Material.AIR);
         }
@@ -335,7 +338,7 @@ public class FurnitureMechanic extends Mechanic {
             }
         }
     }
-  
+
     private String spawnSeat(FurnitureMechanic mechanic, Block target, float yaw) {
         if (mechanic.hasSeat()) {
             final ArmorStand seat = target.getWorld().spawn(target.getLocation()

@@ -5,16 +5,11 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
-import org.bukkit.Instrument;
 import org.bukkit.Material;
-import org.bukkit.Note;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.MultipleFacing;
-import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.configuration.ConfigurationSection;
 
@@ -78,9 +73,9 @@ public class StringBlockMechanicFactory extends MechanicFactory {
      * @param itemId The Oraxen item ID.
      */
     public static void setBlockModel(Block block, String itemId) {
-        final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("noteblock");
-        StringBlockMechanic noteBlockMechanic = (StringBlockMechanic) mechanicFactory.getMechanic(itemId);
-        block.setBlockData(createTripwireData(noteBlockMechanic.getCustomVariation()), false);
+        final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("stringblock");
+        StringBlockMechanic stringBlockMechanic = (StringBlockMechanic) mechanicFactory.getMechanic(itemId);
+        block.setBlockData(createTripwireData(stringBlockMechanic.getCustomVariation()), false);
     }
 
     private String getBlockstateContent() {
@@ -144,5 +139,4 @@ public class StringBlockMechanicFactory extends MechanicFactory {
          */
         return createTripwireData(((StringBlockMechanic) getInstance().getMechanic(itemID)).getCustomVariation());
     }
-
 }
