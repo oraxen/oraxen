@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'maven-publish'
 
 group 'io.th0rgal'
-def pluginVersion = '1.134.2'
+def pluginVersion = '1.135.0'
 ext.jitpackGroup = group + '.oraxen'
 ext.jitpackVersion = 'main-' + pluginVersion
 version = pluginVersion
@@ -74,7 +74,7 @@ dependencies {
     implementation group: 'net.kyori', name: 'adventure-text-minimessage', version: '4.2.0-SNAPSHOT'
     implementation group: 'net.kyori', name: 'adventure-platform-bukkit', version: '4.0.0'
     implementation group: 'com.github.stefvanschie.inventoryframework', name: 'IF', version: '0.10.0'
-    implementation group: 'dev.jorel', name: 'commandapi-shade', version: '7.0.0'
+    implementation group: 'dev.jorel', name: 'commandapi-shade', version: '8.1.0'
     implementation "com.jeff_media:CustomBlockData:1.0.5"
 
     implementation(group: 'me.gabytm.util', name: 'actions-spigot', version: actionsVersion) { exclude group: 'com.google.guava' }

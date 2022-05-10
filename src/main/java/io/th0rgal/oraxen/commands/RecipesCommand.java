@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.IntegerArgument;
 import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
@@ -31,9 +32,9 @@ public class RecipesCommand {
     private CommandAPICommand getShowCommand() {
         return new CommandAPICommand("show")
                 .withPermission("oraxen.command.recipes.show")
-                .withArguments(new TextArgument("type").replaceSuggestions(info ->
+                .withArguments(new TextArgument("type").replaceSuggestions(ArgumentSuggestions.strings(info ->
                         (String[]) ArrayUtils.addAll(new String[]{"all"},
-                                RecipesEventsManager.get().getPermittedRecipesName(info.sender())))
+                                RecipesEventsManager.get().getPermittedRecipesName(info.sender()))))
                 )
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {

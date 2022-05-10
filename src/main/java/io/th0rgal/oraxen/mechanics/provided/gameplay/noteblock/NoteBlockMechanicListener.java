@@ -1,8 +1,11 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
+
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
+import io.th0rgal.oraxen.events.OraxenNoteBlockBreakEvent;
+import io.th0rgal.oraxen.events.OraxenNoteBlockInteractEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
@@ -90,6 +93,13 @@ public class NoteBlockMechanicListener implements Listener {
             if (noteBlockMechanic.isDirectional())
                 noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
 
+            OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(noteBlockMechanic, block, event.getItem(), event.getPlayer());
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockInteractEvent);
+            if (noteBlockInteractEvent.isCancelled()) {
+                event.setCancelled(true);
+                return;
+            }
+
             noteBlockMechanic.runClickActions(event.getPlayer());
         }
 
@@ -135,6 +145,14 @@ public class NoteBlockMechanicListener implements Listener {
             return;
         if (noteBlockMechanic.isDirectional())
             noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
+
+        OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(noteBlockMechanic, block, event.getPlayer());
+        OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockBreakEvent);
+        if (noteBlockBreakEvent.isCancelled()) {
+            event.setCancelled(true);
+            return;
+        }
+
         if (noteBlockMechanic.hasBreakSound())
             block.getWorld().playSound(block.getLocation(), noteBlockMechanic.getBreakSound(), 1.0f, 0.8f);
         if (noteBlockMechanic.getLight() != -1)
@@ -270,7 +288,6 @@ public class NoteBlockMechanicListener implements Listener {
                                        final Block placedAgainst, final BlockFace face, final BlockData newBlock) {
         final Block target;
         final Material type = placedAgainst.getType();
-        final NoteBlockMechanic mechanic = (NoteBlockMechanic) factory.getMechanic(OraxenItems.getIdByItem(item));
 
         if (Utils.REPLACEABLE_BLOCKS.contains(type))
             target = placedAgainst;

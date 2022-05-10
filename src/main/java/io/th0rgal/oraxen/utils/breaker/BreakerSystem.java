@@ -74,7 +74,6 @@ public class BreakerSystem {
             event.setCancelled(true);
 
             final Location location = block.getLocation();
-
             if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
                 final long period = triggeredModifier.getPeriod(player, block, item);
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->

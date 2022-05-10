@@ -1,10 +1,7 @@
 package io.th0rgal.oraxen.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
-import dev.jorel.commandapi.arguments.EntitySelectorArgument;
-import dev.jorel.commandapi.arguments.GreedyStringArgument;
-import dev.jorel.commandapi.arguments.IntegerArgument;
-import dev.jorel.commandapi.arguments.TextArgument;
+import dev.jorel.commandapi.arguments.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
@@ -83,7 +80,7 @@ public class CommandsManager {
         return new CommandAPICommand("pack")
                 .withPermission("oraxen.command.pack")
                 .withArguments(new TextArgument("action")
-                        .replaceSuggestions(info -> new String[]{"send", "msg"}))
+                        .replaceSuggestions(ArgumentSuggestions.strings("send", "msg")))
                 .withArguments(new EntitySelectorArgument("targets",
                         EntitySelectorArgument.EntitySelector.MANY_PLAYERS))
                 .executes((sender, args) -> {
@@ -116,7 +113,7 @@ public class CommandsManager {
                 .withArguments(new EntitySelectorArgument("targets",
                                 EntitySelectorArgument.EntitySelector.MANY_PLAYERS),
                         new TextArgument("item")
-                                .replaceSuggestions(info -> OraxenItems.getItemNames()),
+                                .replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())),
                         new IntegerArgument("amount"))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args[0];
@@ -153,7 +150,7 @@ public class CommandsManager {
                 .withArguments(new EntitySelectorArgument("targets",
                                 EntitySelectorArgument.EntitySelector.MANY_PLAYERS),
                         new TextArgument("item")
-                                .replaceSuggestions(info -> OraxenItems.getItemNames()))
+                                .replaceSuggestions(ArgumentSuggestions.strings(info -> OraxenItems.getItemNames())))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args[0];
                     final String itemID = (String) args[1];
@@ -181,7 +178,7 @@ public class CommandsManager {
                 .withArguments(new EntitySelectorArgument("targets",
                         EntitySelectorArgument.EntitySelector.MANY_PLAYERS))
                 .withArguments(new TextArgument("type")
-                        .replaceSuggestions(info -> new String[]{"hand", "all"}))
+                        .replaceSuggestions(ArgumentSuggestions.strings("hand", "all")))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args[0];
 
