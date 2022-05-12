@@ -259,7 +259,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (Utils.REPLACEABLE_BLOCKS.contains(type)) target = placedAgainst;
         else {
             target = placedAgainst.getRelative(face);
-            if (!target.getType().isAir() && !target.isLiquid()) return null;
+            if (!target.getType().isAir() && !target.isLiquid() && target.getType() != Material.LIGHT) return null;
         }
 
         if (isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation())) return null;
