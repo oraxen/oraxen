@@ -17,6 +17,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.NoteBlock;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
@@ -82,7 +83,8 @@ public class NoteBlockMechanicListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
 
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK)
+            return;
 
         final NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
 
@@ -115,8 +117,24 @@ public class NoteBlockMechanicListener implements Listener {
             return;
         }
 
-        if (type.toString().endsWith("_BUCKET"))
-            type = Material.getMaterial(type.toString().replace("_BUCKET", ""));
+        final boolean bucketCheck = type.toString().endsWith("_BUCKET");
+        final String bucketBlock = type.toString().replace("_BUCKET", "");
+        EntityType bucketEntity;
+        try {
+            bucketEntity = EntityType.valueOf(bucketBlock);
+        } catch (IllegalArgumentException e) {
+            bucketEntity = null;
+        }
+
+        if (bucketCheck && type != Material.MILK_BUCKET) {
+            if (bucketEntity == null)
+                type = Material.getMaterial(bucketBlock);
+            else{
+                type = Material.WATER;
+                player.getWorld().spawnEntity(above.getLocation().add(0.5, 0.0, 0.5), bucketEntity);
+            }
+        }
+
         if (type.isBlock())
             makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), Bukkit.createBlockData(type));
     }
