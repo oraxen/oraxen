@@ -96,10 +96,11 @@ public class NoteBlockMechanicListener implements Listener {
             noteBlockMechanic.runClickActions(player);
         }
 
+        event.setCancelled(true);
+        if (item == null) return;
+
         Block above = block.getRelative(event.getBlockFace());
         Material type = item.getType();
-        event.setCancelled(true);
-
         if (type == Material.AIR) return;
         if (type == Material.BUCKET && above.isLiquid()) {
             final Sound sound;
