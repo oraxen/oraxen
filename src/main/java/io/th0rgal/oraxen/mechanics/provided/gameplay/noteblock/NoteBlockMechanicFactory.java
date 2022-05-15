@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripListener;
 import org.bukkit.Bukkit;
@@ -18,6 +19,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class NoteBlockMechanicFactory extends MechanicFactory {
 
@@ -74,6 +76,23 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public static JsonObject getModelJson(String modelName) {
         JsonObject content = new JsonObject();
         content.addProperty("model", modelName);
+
+        return content;
+    }
+
+    public static JsonObject getDirectionalModelJson(String modelName, String itemId, DirectionalBlock parent) {
+        JsonObject content = new JsonObject();
+        content.addProperty("model", modelName);
+
+        if (Objects.equals(parent.getYBlock(), itemId)) {
+            return content;
+        } else if (Objects.equals(parent.getXBlock(), itemId)) {
+            content.addProperty("x", 90);
+        } else if (Objects.equals(parent.getZBlock(), itemId)) {
+            content.addProperty("y", 90);
+            content.addProperty("x", 90);
+        }
+
         return content;
     }
 
@@ -116,9 +135,19 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         NoteBlockMechanic mechanic = new NoteBlockMechanic(this, itemMechanicConfiguration);
-        variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
-                getModelJson(mechanic.getModel(itemMechanicConfiguration.getParent()
-                        .getParent())));
+        DirectionalBlock directional = mechanic.getDirectional();
+        String modelName = mechanic.getModel(itemMechanicConfiguration.getParent().getParent());
+
+        if (mechanic.isDirectional() && !directional.isParentBlock()) {
+            NoteBlockMechanic parentMechanic = (NoteBlockMechanic) getMechanic(directional.getParentBlock());;
+            modelName = (parentMechanic.getModel(itemMechanicConfiguration.getParent().getParent()));;
+            variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
+                    getDirectionalModelJson(modelName, mechanic.getItemID(), parentMechanic.getDirectional()));
+        } else {
+            variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
+                    getModelJson(modelName));
+        }
+
         BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;

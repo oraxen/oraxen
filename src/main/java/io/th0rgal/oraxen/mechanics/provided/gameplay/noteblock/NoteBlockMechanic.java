@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripping;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
@@ -30,6 +31,7 @@ public class NoteBlockMechanic extends Mechanic {
     private final int light;
     private final FarmBlockDryout farmBlockDryout;
     private final LogStripping logStripping;
+    private final DirectionalBlock directionalBlock;
     private final List<ClickAction> clickActions;
 
     @SuppressWarnings("unchecked")
@@ -94,6 +96,10 @@ public class NoteBlockMechanic extends Mechanic {
             logStripping = new LogStripping(section.getConfigurationSection("logStrip"));
         } else logStripping = null;
 
+        if (section.isConfigurationSection("directional")) {
+            directionalBlock = new DirectionalBlock(section.getConfigurationSection("directional"));
+        } else directionalBlock = null;
+
     }
 
     public boolean hasDryout() {
@@ -107,6 +113,10 @@ public class NoteBlockMechanic extends Mechanic {
     public boolean isLog() { return logStripping != null; }
 
     public LogStripping getLog() { return logStripping; }
+
+    public boolean isDirectional() { return directionalBlock != null; }
+
+    public DirectionalBlock getDirectional() { return directionalBlock; }
 
     public String getModel(ConfigurationSection section) {
         if (model != null)

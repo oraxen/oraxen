@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.events.OraxenNoteBlockBreakEvent;
 import io.th0rgal.oraxen.events.OraxenNoteBlockInteractEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
@@ -86,9 +87,12 @@ public class NoteBlockMechanicListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK)
             return;
 
-        final NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
+        NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
 
         if (noteBlockMechanic != null) {
+            if (noteBlockMechanic.isDirectional())
+                noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
+
             OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(noteBlockMechanic, block, event.getItem(), event.getPlayer());
             OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockInteractEvent);
             if (noteBlockInteractEvent.isCancelled()) {
@@ -148,8 +152,14 @@ public class NoteBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
+        if (block.getType() != Material.NOTE_BLOCK || event.isCancelled() || !event.isDropItems())
+            return;
+        NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
+        if (noteBlockMechanic == null)
+            return;
+        if (noteBlockMechanic.isDirectional())
+            noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
         final Player player = event.getPlayer();
-
         if (block.getType() != Material.NOTE_BLOCK || event.isCancelled() || !event.isDropItems()) return;
         NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
         if (noteBlockMechanic == null) return;
@@ -174,9 +184,11 @@ public class NoteBlockMechanicListener implements Listener {
     public void onExplosionDestroy(EntityExplodeEvent event) {
         List<Block> blockList = event.blockList().stream().filter(block -> block.getType().equals(Material.NOTE_BLOCK)).toList();
         blockList.forEach(block -> {
-            final NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
+            NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
             if (noteBlockMechanic == null)
                 return;
+            if (noteBlockMechanic.isDirectional())
+                noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
 
             noteBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
             block.setType(Material.AIR, false);
@@ -206,11 +218,23 @@ public class NoteBlockMechanicListener implements Listener {
 
         // determines the new block data of the block
         NoteBlockMechanic mechanic = (NoteBlockMechanic) factory.getMechanic(itemID);
-        final int customVariation = mechanic.getCustomVariation();
+        int customVariation = mechanic.getCustomVariation();
+        BlockFace face = event.getBlockFace();
+
+        if (mechanic.isDirectional() && mechanic.getDirectional().isParentBlock()) {
+            DirectionalBlock directional = mechanic.getDirectional();
+
+            if (face == BlockFace.NORTH || face == BlockFace.SOUTH)
+                customVariation = ((NoteBlockMechanic) factory.getMechanic(directional.getXBlock())).getCustomVariation();
+            else if (face == BlockFace.WEST || face == BlockFace.EAST)
+                customVariation = ((NoteBlockMechanic) factory.getMechanic(directional.getZBlock())).getCustomVariation();
+            else if (face == BlockFace.UP || face == BlockFace.DOWN)
+                customVariation = ((NoteBlockMechanic) factory.getMechanic(directional.getYBlock())).getCustomVariation();
+        }
 
         assert placedAgainst != null;
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
-                placedAgainst, event.getBlockFace(), NoteBlockMechanicFactory.createNoteBlockData(customVariation));
+                placedAgainst, face, NoteBlockMechanicFactory.createNoteBlockData(customVariation));
         if (placedBlock != null) {
             if (mechanic.hasPlaceSound())
                 placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
@@ -233,7 +257,10 @@ public class NoteBlockMechanicListener implements Listener {
                 if (block.getType() != Material.NOTE_BLOCK)
                     return false;
 
-                final NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
+                NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
+                if (noteBlockMechanic.isDirectional())
+                    noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
+
                 return noteBlockMechanic != null && noteBlockMechanic.hasHardness;
             }
 
@@ -244,7 +271,9 @@ public class NoteBlockMechanicListener implements Listener {
 
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
-                final NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
+                NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
+                if (noteBlockMechanic.isDirectional())
+                    noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
 
                 final long period = noteBlockMechanic.getPeriod();
                 double modifier = 1;
@@ -274,7 +303,9 @@ public class NoteBlockMechanicListener implements Listener {
         final Sound sound;
         final Material type = placedAgainst.getType();
 
-        if (Utils.REPLACEABLE_BLOCKS.contains(type)) target = placedAgainst;
+        if (Utils.REPLACEABLE_BLOCKS.contains(type))
+            target = placedAgainst;
+
         else {
             target = placedAgainst.getRelative(face);
             if (!target.getType().isAir() && !target.isLiquid() && target.getType() != Material.LIGHT) return null;
