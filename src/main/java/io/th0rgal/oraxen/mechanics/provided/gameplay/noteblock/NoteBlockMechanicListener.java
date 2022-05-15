@@ -133,7 +133,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (bucketCheck && type != Material.MILK_BUCKET) {
             if (bucketEntity == null)
                 type = Material.getMaterial(bucketBlock);
-            else{
+            else {
                 type = Material.WATER;
                 player.getWorld().spawnEntity(above.getLocation().add(0.5, 0.0, 0.5), bucketEntity);
             }
@@ -161,7 +161,6 @@ public class NoteBlockMechanicListener implements Listener {
             noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
         final Player player = event.getPlayer();
         if (block.getType() != Material.NOTE_BLOCK || event.isCancelled() || !event.isDropItems()) return;
-        NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
         if (noteBlockMechanic == null) return;
 
         OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(noteBlockMechanic, block, player);
