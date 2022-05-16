@@ -121,6 +121,10 @@ weed_plant_stage3:
       facing: UP
       barrier: false
       farmland_required: true
+      evolution:
+        delay: 10000
+        probability: 0.5
+        light_boost: true
       drop:
         silktouch: true
         loots:
@@ -147,7 +151,7 @@ grape_seeds:
       item: grape_stage0
       facing: UP
       barrier: false
-      farmland_required: true
+      farmblock_required: true
       evolution:
         delay: 10000
         probability: 0.5
@@ -177,7 +181,7 @@ grape_stage1:
     furniture:
       facing: UP
       barrier: false
-      farmland_required: true
+      farmblock_required: true
       evolution:
         delay: 10000
         probability: 0.5
@@ -198,7 +202,7 @@ grape_stage2:
     furniture:
       facing: UP
       barrier: false
-      farmland_required: true
+      farmblock_required: true
       evolution:
         delay: 10000
         probability: 0.5
@@ -219,7 +223,7 @@ grape_stage3:
     furniture:
       facing: UP
       barrier: false
-      farmland_required: true
+      farmblock_required: true
       evolution:
         delay: 10000
         probability: 0.5
@@ -240,7 +244,11 @@ grape_stage4:
     furniture:
       facing: UP
       barrier: false
-      farmland_required: true
+      farmblock_required: true
+      evolution:
+        delay: 10000
+        probability: 0.5
+        light_boost: true
       drop:
         silktouch: true
         loots:
