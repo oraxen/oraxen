@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
+import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
@@ -184,6 +185,17 @@ public class StringBlockMechanicListener implements Listener {
         if (placedBlock != null && mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
         event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onWaterCollide(final BlockBreakBlockEvent event) {
+        Block block = event.getBlock();
+        if (block.getType() == Material.TRIPWIRE) {
+            final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
+                    .getBlockMechanic(StringBlockMechanicFactory.getCode(((Tripwire) block.getBlockData())));
+            breakStringBlock(event.getBlock(), stringBlockMechanic, new ItemStack(Material.AIR));
+            event.getDrops().removeIf(item -> item.getType() == Material.STRING);
+        }
     }
 
     private HardnessModifier getHardnessModifier() {
