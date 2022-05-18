@@ -9,10 +9,7 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -112,18 +109,29 @@ public class StringBlockMechanicListener implements Listener {
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
         Block blockAbove = event.getBlock().getRelative(BlockFace.UP);
+        final Player player = event.getPlayer();
+
+        for (BlockFace face : BlockFace.values()) {
+            if (block.getRelative(face).getType() == Material.TRIPWIRE) {
+                final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
+                        .getBlockMechanic(StringBlockMechanicFactory.getCode((Tripwire) block.getRelative(face).getBlockData()));
+                if (stringBlockMechanic == null && player.getGameMode() == GameMode.CREATIVE)
+                    for (ItemStack item : block.getDrops())
+                        player.getWorld().dropItemNaturally(block.getLocation(), item);
+                block.setType(Material.AIR, false);
+                fixClientsideUpdate(block.getLocation());
+            }
+        }
 
         if (block.getType() == Material.TRIPWIRE) {
             final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
                     .getBlockMechanic(StringBlockMechanicFactory.getCode((Tripwire) block.getBlockData()));
             if (stringBlockMechanic == null) return;
             event.setCancelled(true);
-            breakStringBlock(block, stringBlockMechanic, event.getPlayer().getInventory().getItemInMainHand());
+            breakStringBlock(block, stringBlockMechanic, player.getInventory().getItemInMainHand());
             event.setDropItems(false);
-        }
-
-        else if (blockAbove.getType() == Material.TRIPWIRE) {
-            ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
+        } else if (blockAbove.getType() == Material.TRIPWIRE) {
+            ItemStack item = player.getInventory().getItemInMainHand();
             final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
                     .getBlockMechanic(StringBlockMechanicFactory.getCode(((Tripwire) blockAbove.getBlockData())));
             if (stringBlockMechanic == null) return;
@@ -160,13 +168,17 @@ public class StringBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrePlacingCustomBlock(final PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
-            return;
-
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         final ItemStack item = event.getItem();
         final String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID))
-            return;
+
+        if (item != null && item.getType().isBlock() && factory.isNotImplementedIn(itemID)) {
+            makePlayerPlaceBlock(event.getPlayer(), event.getHand(), item, event.getClickedBlock(),
+                    event.getBlockFace(), Bukkit.createBlockData(item.getType()));
+            fixClientsideUpdate(event.getClickedBlock().getLocation());
+        }
+
+        if (factory.isNotImplementedIn(itemID)) return;
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
 
@@ -278,30 +290,16 @@ public class StringBlockMechanicListener implements Listener {
     }
 
     private void fixClientsideUpdate(Location blockLoc) {
-        Block blockBelow = blockLoc.clone().subtract(0, 1, 0).getBlock();
-        Block blockAbove = blockLoc.clone().add(0, 1, 0).getBlock();
-        Location loc = blockLoc.add(5, 0, 5);
         List<Entity> players = blockLoc.getWorld().getNearbyEntities(blockLoc, 20, 20, 20).stream().filter(entity -> entity.getType() == EntityType.PLAYER).toList();
+        Chunk chunk = blockLoc.getChunk();
 
-        if (blockBelow.getType() == Material.TRIPWIRE) {
-            for (Entity e : players)
-                ((Player) e).sendBlockChange(blockBelow.getLocation(), blockBelow.getBlockData());
-        }
-
-        if (blockAbove.getType() == Material.TRIPWIRE) {
-            for (Entity e : players)
-                ((Player) e).sendBlockChange(blockAbove.getLocation(), blockAbove.getBlockData());
-        }
-
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                if (loc.getBlock().getType() == Material.TRIPWIRE) {
-                    for (Entity e : players)
-                        ((Player) e).sendBlockChange(loc, loc.getBlock().getBlockData());
+        for (int x = chunk.getX()<<4; x < chunk.getX()+16; x++)
+            for (int z = chunk.getZ()<<4; z < chunk.getZ()+16; z++)
+                for (int y = (int) (blockLoc.getY()-10); y < blockLoc.getY() + 10; y++) {
+                    final Block block = blockLoc.getWorld().getBlockAt(x, y, z);
+                    if (block.getType() == Material.TRIPWIRE)
+                        for (Entity p : players)
+                            ((Player) p).sendBlockChange(block.getLocation(), block.getBlockData());
                 }
-                loc = loc.subtract(0, 0, 1);
-            }
-            loc = loc.add(-1, 0, 9);
-        }
     }
 }
