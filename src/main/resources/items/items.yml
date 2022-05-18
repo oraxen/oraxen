@@ -6,12 +6,10 @@
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 example_sword:
-
   displayname: "<gradient:#FA7CBB:#F14658><bold>My Custom Sword"
   material: WOODEN_SWORD
   injectID: false # allow Oraxen to recognise the item if true or not set
   durability: 10
-
   ItemFlags:
     - HIDE_ENCHANTS
     - HIDE_ATTRIBUTES
@@ -19,10 +17,8 @@ example_sword:
     - HIDE_DESTROYS
     - HIDE_PLACED_ON
     - HIDE_POTION_EFFECTS
-
   PersistentData:
     - { key: "test:hello", type: STRING, value: "Here is a value" }
-
   AttributeModifiers:
     # - name: You don't really care about the name but it can be useful for some developers
     # - attribute: Get the list here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
@@ -30,12 +26,10 @@ example_sword:
     # - uuid: put a random uuid, generate one here: https://www.uuidgenerator.net/
     # - slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
     - { name: "oraxen_speed", attribute: GENERIC_MOVEMENT_SPEED, amount: 0.1, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HAND }
-
   Enchantments:
     protection: 4
     flame: 34
     sharpness: 18
-
   Mechanics:
     durability:
       value: 10
