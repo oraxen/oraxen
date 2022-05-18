@@ -26,6 +26,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -252,24 +253,26 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMiddleClick(final InventoryCreativeEvent event) {
-        if (!event.getClick().isCreativeAction()) return;
-        if (event.getCursor().getType() != Material.NOTE_BLOCK) return;
+        if (event.getClick() != ClickType.CREATIVE) return;
         final Player player = (Player) event.getInventory().getHolder();
-        final Block block = player.rayTraceBlocks(6.0).getHitBlock();
-        if (block == null) return;
-        NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
-        if (noteBlockMechanic == null) return;
+        if (player == null) return;
+        if (event.getCursor().getType() == Material.NOTE_BLOCK) {
+            final Block block = player.rayTraceBlocks(6.0).getHitBlock();
+            if (block == null) return;
+            NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
+            if (noteBlockMechanic == null) return;
 
-        ItemStack item = OraxenItems.getItemById(noteBlockMechanic.getItemID()).build();
-        for (int i = 0; i <= 8; i++) {
-            if (player.getInventory().getItem(i) == null) continue;
-            if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), noteBlockMechanic.getItemID())) {
-                player.getInventory().setHeldItemSlot(i);
-                event.setCancelled(true);
-                return;
+            ItemStack item = OraxenItems.getItemById(noteBlockMechanic.getItemID()).build();
+            for (int i = 0; i <= 8; i++) {
+                if (player.getInventory().getItem(i) == null) continue;
+                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), noteBlockMechanic.getItemID())) {
+                    player.getInventory().setHeldItemSlot(i);
+                    event.setCancelled(true);
+                    return;
+                }
             }
+            event.setCursor(item);
         }
-        event.setCursor(item);
     }
 
     private HardnessModifier getHardnessModifier() {

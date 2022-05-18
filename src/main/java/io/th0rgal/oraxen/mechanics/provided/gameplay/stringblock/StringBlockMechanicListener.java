@@ -26,6 +26,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -117,9 +118,7 @@ public class StringBlockMechanicListener implements Listener {
             event.setCancelled(true);
             breakStringBlock(block, stringBlockMechanic, event.getPlayer().getInventory().getItemInMainHand());
             event.setDropItems(false);
-        }
-
-        else if (blockAbove.getType() == Material.TRIPWIRE) {
+        } else if (blockAbove.getType() == Material.TRIPWIRE) {
             ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
             final StringBlockMechanic stringBlockMechanic = getStringMechanic(blockAbove);
             if (stringBlockMechanic == null) return;
@@ -181,23 +180,25 @@ public class StringBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMiddleClick(final InventoryCreativeEvent event) {
-        if (!event.getClick().isCreativeAction()) return;
-        if (event.getCursor().getType() != Material.STRING) return;
+        if (event.getClick() != ClickType.CREATIVE) return;
         final Player player = (Player) event.getInventory().getHolder();
-        final Block block = player.rayTraceBlocks(6.0).getHitBlock();
-        if (block == null) return;
-        StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
-        if (stringBlockMechanic == null) return;
-        ItemStack item = OraxenItems.getItemById(stringBlockMechanic.getItemID()).build();
-        for (int i = 0; i <= 8; i++) {
-            if (player.getInventory().getItem(i) == null) continue;
-            if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), stringBlockMechanic.getItemID())) {
-                player.getInventory().setHeldItemSlot(i);
-                event.setCancelled(true);
-                return;
+        if (player == null) return;
+        if (event.getCursor().getType() == Material.STRING) {
+            final Block block = player.rayTraceBlocks(6.0).getHitBlock();
+            if (block == null) return;
+            StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
+            if (stringBlockMechanic == null) return;
+            ItemStack item = OraxenItems.getItemById(stringBlockMechanic.getItemID()).build();
+            for (int i = 0; i <= 8; i++) {
+                if (player.getInventory().getItem(i) == null) continue;
+                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), stringBlockMechanic.getItemID())) {
+                    player.getInventory().setHeldItemSlot(i);
+                    event.setCancelled(true);
+                    return;
+                }
             }
+            event.setCursor(item);
         }
-        event.setCursor(item);
     }
 
     private StringBlockMechanic getStringMechanic(Block block) {

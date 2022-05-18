@@ -27,6 +27,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -323,8 +324,9 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMiddleClick(final InventoryCreativeEvent event) {
-        if (!event.getClick().isCreativeAction()) return;
+        if (event.getClick() != ClickType.CREATIVE) return;
         final Player player = (Player) event.getInventory().getHolder();
+        if (player == null) return;
         if (event.getCursor().getType() == Material.BARRIER) {
             final Block block = player.rayTraceBlocks(6.0).getHitBlock();
             if (block == null) return;
@@ -342,6 +344,7 @@ public class FurnitureListener implements Listener {
             event.setCursor(item);
         } else if (OraxenItems.getIdByItem(event.getCursor()) != null) {
             String id = OraxenItems.getIdByItem(event.getCursor());
+            if (!(factory.getMechanic(id) instanceof FurnitureMechanic)) return;
             for (int i = 0; i <= 8; i++) {
                 if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), id)) {
                     player.getInventory().setHeldItemSlot(i);
