@@ -69,7 +69,7 @@ public class BreakerSystem {
                     triggeredModifier = modifier;
                     break;
                 }
-            if (triggeredModifier == null)
+            if (triggeredModifier == null || triggeredModifier.getPeriod(player, block, item) == 0)
                 return;
             event.setCancelled(true);
 
