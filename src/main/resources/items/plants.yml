@@ -49,6 +49,7 @@ weed_seed:
       facing: UP
       barrier: false
       farmland_required: true
+      dryout: 10000
       evolution:
         delay: 10000
         probability: 0.5
@@ -79,6 +80,7 @@ weed_plant_stage1:
       facing: UP
       barrier: false
       farmland_required: true
+      dryout: 10000
       evolution:
         delay: 10000
         probability: 0.5
@@ -100,6 +102,7 @@ weed_plant_stage2:
       facing: UP
       barrier: false
       farmland_required: true
+      dryout: 10000
       evolution:
         delay: 10000
         probability: 0.5
@@ -121,6 +124,7 @@ weed_plant_stage3:
       facing: UP
       barrier: false
       farmland_required: true
+      dryout: 10000
       evolution:
         delay: 10000
         probability: 0.5
@@ -152,6 +156,7 @@ grape_seeds:
       facing: UP
       barrier: false
       farmblock_required: true
+      dryout: 10000
       evolution:
         delay: 10000
         probability: 0.5
@@ -182,6 +187,7 @@ grape_stage1:
       facing: UP
       barrier: false
       farmblock_required: true
+      dryout: 10000
       evolution:
         delay: 10000
         probability: 0.5
@@ -203,6 +209,7 @@ grape_stage2:
       facing: UP
       barrier: false
       farmblock_required: true
+      dryout: 10000
       evolution:
         delay: 10000
         probability: 0.5
@@ -224,6 +231,7 @@ grape_stage3:
       facing: UP
       barrier: false
       farmblock_required: true
+      dryout: 10000
       evolution:
         delay: 10000
         probability: 0.5
@@ -245,6 +253,7 @@ grape_stage4:
       facing: UP
       barrier: false
       farmblock_required: true
+      dryout: 10000
       evolution:
         delay: 10000
         probability: 0.5
