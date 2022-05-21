@@ -42,7 +42,7 @@ public class Utils {
             .build();
     public static final List<Material> REPLACEABLE_BLOCKS = Arrays
             .asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,
-                    Material.LARGE_FERN);
+                    Material.LARGE_FERN, Material.AIR);
 
     public static List<String> toLowercaseList(final String... values) {
         final ArrayList<String> list = new ArrayList<>();
