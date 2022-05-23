@@ -262,10 +262,14 @@ public class NoteBlockMechanicListener implements Listener {
             NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
             if (noteBlockMechanic == null) return;
 
-            ItemStack item = OraxenItems.getItemById(noteBlockMechanic.getItemID()).build();
+            ItemStack item;
+            if (noteBlockMechanic.isDirectional())
+                item = OraxenItems.getItemById(noteBlockMechanic.getDirectional().getParentBlock()).build();
+            else
+                item = OraxenItems.getItemById(noteBlockMechanic.getItemID()).build();
             for (int i = 0; i <= 8; i++) {
                 if (player.getInventory().getItem(i) == null) continue;
-                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), noteBlockMechanic.getItemID())) {
+                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), OraxenItems.getIdByItem(item))) {
                     player.getInventory().setHeldItemSlot(i);
                     event.setCancelled(true);
                     return;
