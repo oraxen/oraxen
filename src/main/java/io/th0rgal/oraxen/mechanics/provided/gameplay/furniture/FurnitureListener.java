@@ -27,6 +27,8 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -291,26 +293,21 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
-        final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
+        final FurnitureMechanic mechanic = getFurnitureMechanic(block);
 
-        if (mechanicID != null) {
-            final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
+        Utils.sendAnimation(event.getPlayer(), event.getHand());
 
-            Utils.sendAnimation(event.getPlayer(), event.getHand());
+        if (mechanic != null) {
+            // Call the oraxen furniture event
+            final OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, block, event.getPlayer());
+            Bukkit.getPluginManager().callEvent(furnitureInteractEvent);
 
-            if (mechanic != null) {
-                // Call the oraxen furniture event
-                final OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic,block, event.getPlayer());
-                Bukkit.getPluginManager().callEvent(furnitureInteractEvent);
-
-                if (furnitureInteractEvent.isCancelled()) {
-                    event.setCancelled(true);
-                    return;
-                }
-
-                mechanic.runClickActions(event.getPlayer());
+            if (furnitureInteractEvent.isCancelled()) {
+                event.setCancelled(true);
+                return;
             }
+
+            mechanic.runClickActions(event.getPlayer());
         }
 
         final ArmorStand seat = getSeat(block.getLocation());
@@ -325,6 +322,40 @@ public class FurnitureListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onMiddleClick(final InventoryCreativeEvent event) {
+        if (event.getClick() != ClickType.CREATIVE) return;
+        final Player player = (Player) event.getInventory().getHolder();
+        if (player == null) return;
+        if (event.getCursor().getType() == Material.BARRIER) {
+            final Block block = player.rayTraceBlocks(6.0).getHitBlock();
+            if (block == null) return;
+            FurnitureMechanic furnitureMechanic = getFurnitureMechanic(block);
+            if (furnitureMechanic == null) return;
+
+            ItemStack item = OraxenItems.getItemById(furnitureMechanic.getItemID()).build();
+            for (int i = 0; i <= 8; i++) {
+                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), furnitureMechanic.getItemID())) {
+                    player.getInventory().setHeldItemSlot(i);
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+            event.setCursor(item);
+        } else if (OraxenItems.getIdByItem(event.getCursor()) != null) {
+            String id = OraxenItems.getIdByItem(event.getCursor());
+            if (!(factory.getMechanic(id) instanceof FurnitureMechanic)) return;
+            for (int i = 0; i <= 8; i++) {
+                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), id)) {
+                    player.getInventory().setHeldItemSlot(i);
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+            event.setCursor(OraxenItems.getItemById(id).build());
+        }
+    }
+
     private boolean isStandingInside(final Player player, final Block block) {
         final Location playerLocation = player.getLocation();
         final Location blockLocation = block.getLocation();
@@ -334,11 +365,19 @@ public class FurnitureListener implements Listener {
                 && playerLocation.getBlockZ() == blockLocation.getBlockZ();
     }
 
+    public FurnitureMechanic getFurnitureMechanic(Block block) {
+        if (block.getType() != Material.BARRIER) return null;
+        final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
+        final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
+        return (FurnitureMechanic) factory.getMechanic(mechanicID);
+    }
+
     public NoteBlockMechanic getNoteBlockMechanic(Block block) {
-        final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
+        if (block.getType() != Material.NOTE_BLOCK) return null;
+        final NoteBlock noteBlock = (NoteBlock) block.getBlockData();
         return NoteBlockMechanicFactory
-                .getBlockMechanic((int) (noteBlok.getInstrument().getType()) * 25
-                        + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
+                .getBlockMechanic((int) (noteBlock.getInstrument().getType()) * 25
+                        + (int) noteBlock.getNote().getId() + (noteBlock.isPowered() ? 400 : 0) - 26);
     }
 
 }
