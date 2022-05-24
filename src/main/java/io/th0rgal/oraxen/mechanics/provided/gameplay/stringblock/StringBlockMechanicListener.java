@@ -45,7 +45,7 @@ public class StringBlockMechanicListener implements Listener {
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void tripwireEvent(BlockPhysicsEvent event) {
         if (event.getChangedType() == Material.TRIPWIRE)
             event.setCancelled(true);
@@ -111,21 +111,12 @@ public class StringBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
-        Block blockAbove = event.getBlock().getRelative(BlockFace.UP);
 
         if (block.getType() == Material.TRIPWIRE) {
             final StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
             if (stringBlockMechanic == null) return;
             event.setCancelled(true);
             breakStringBlock(block, stringBlockMechanic, event.getPlayer().getInventory().getItemInMainHand());
-            event.setDropItems(false);
-        } else if (blockAbove.getType() == Material.TRIPWIRE) {
-            ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
-            final StringBlockMechanic stringBlockMechanic = getStringMechanic(blockAbove);
-            if (stringBlockMechanic == null) return;
-            event.setCancelled(true);
-            block.breakNaturally(item);
-            breakStringBlock(blockAbove, stringBlockMechanic, item);
             event.setDropItems(false);
         }
     }
@@ -179,7 +170,6 @@ public class StringBlockMechanicListener implements Listener {
         event.setCancelled(true);
     }
 
-
     @EventHandler
     public void onWaterCollide(final BlockBreakBlockEvent event) {
         Block block = event.getBlock();
@@ -189,6 +179,23 @@ public class StringBlockMechanicListener implements Listener {
             breakStringBlock(event.getBlock(), stringBlockMechanic, new ItemStack(Material.AIR));
             event.getDrops().removeIf(item -> item.getType() == Material.STRING);
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onWaterUpdate(final BlockFromToEvent event) {
+        if (event.getFace() == BlockFace.DOWN) {
+            for (BlockFace f : BlockFace.values()) {
+                final Block changed = event.getToBlock().getRelative(f);
+                if (f == BlockFace.DOWN || f == BlockFace.UP || f == BlockFace.SELF) continue;
+                if (changed.getType() != Material.TRIPWIRE) continue;
+
+                final BlockData data = changed.getBlockData().clone();
+                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                        changed.setBlockData(data, false), 1L);
+            }
+        }
+    }
+
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMiddleClick(final InventoryCreativeEvent event) {
@@ -217,9 +224,7 @@ public class StringBlockMechanicListener implements Listener {
         if (block.getType() == Material.TRIPWIRE) {
             final Tripwire tripwire = (Tripwire) block.getBlockData();
             return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
-        }
-        return null;
-
+        } else return null;
     }
 
     private HardnessModifier getHardnessModifier() {
@@ -243,9 +248,7 @@ public class StringBlockMechanicListener implements Listener {
 
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
-                final Tripwire tripwire = (Tripwire) block.getBlockData();
-                final StringBlockMechanic tripwireMechanic = StringBlockMechanicFactory
-                        .getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
+                final StringBlockMechanic tripwireMechanic = getStringMechanic(block);
 
                 final long period = tripwireMechanic.getPeriod();
                 double modifier = 1;
@@ -311,6 +314,11 @@ public class StringBlockMechanicListener implements Listener {
         block.setType(Material.AIR, false);
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
                 fixClientsideUpdate(block.getLocation()), 1L);
+        final Block blockAbove = block.getRelative(BlockFace.UP);
+
+        if (blockAbove.getType() == Material.TRIPWIRE)
+            breakStringBlock(blockAbove, getStringMechanic(blockAbove), new ItemStack(Material.AIR));
+
     }
 
     private void fixClientsideUpdate(Location blockLoc) {
