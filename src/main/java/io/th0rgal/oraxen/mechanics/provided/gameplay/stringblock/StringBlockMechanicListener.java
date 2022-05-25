@@ -27,11 +27,14 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.List;
+import java.util.Objects;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory.getBlockMechanic;
@@ -74,8 +77,7 @@ public class StringBlockMechanicListener implements Listener {
         var tripwireList = event.getBlocks().stream().filter(block -> block.getType().equals(Material.TRIPWIRE)).toList();
 
         for (Block block : tripwireList) {
-            final Tripwire tripwire = (Tripwire) block.getBlockData();
-            final StringBlockMechanic stringBlockMechanic = getBlockMechanic(getCode(tripwire));
+            final StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
 
             block.setType(Material.AIR, false);
 
@@ -131,12 +133,14 @@ public class StringBlockMechanicListener implements Listener {
 
 
         if (block.getType() == Material.TRIPWIRE) {
-            final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
-                    .getBlockMechanic(StringBlockMechanicFactory.getCode((Tripwire) block.getBlockData()));
+            final StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
             if (stringBlockMechanic == null) return;
             event.setCancelled(true);
             breakStringBlock(block, stringBlockMechanic, player.getInventory().getItemInMainHand());
             event.setDropItems(false);
+        } else if (blockAbove.getType() == Material.TRIPWIRE) {
+            ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
+            final StringBlockMechanic stringBlockMechanic = getStringMechanic(blockAbove);
         } else if (blockAbove.getType() == Material.TRIPWIRE) {
             ItemStack item = player.getInventory().getItemInMainHand();
             final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
@@ -153,11 +157,8 @@ public class StringBlockMechanicListener implements Listener {
     public void onExplosionDestroy(EntityExplodeEvent event) {
         List<Block> blockList = event.blockList().stream().filter(block -> block.getType().equals(Material.TRIPWIRE)).toList();
         blockList.forEach(block -> {
-            final Tripwire tripwire = (Tripwire) block.getBlockData();
-            final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
-                    .getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
-            if (stringBlockMechanic == null)
-                return;
+            final StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
+            if (stringBlockMechanic == null) return;
 
             stringBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
             block.setType(Material.AIR, false);
@@ -215,7 +216,38 @@ public class StringBlockMechanicListener implements Listener {
             placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
         if (placedBlock != null && mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
-        //event.setCancelled(true);
+        event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onMiddleClick(final InventoryCreativeEvent event) {
+        if (event.getClick() != ClickType.CREATIVE) return;
+        final Player player = (Player) event.getInventory().getHolder();
+        if (player == null) return;
+        if (event.getCursor().getType() == Material.STRING) {
+            final Block block = player.rayTraceBlocks(6.0).getHitBlock();
+            if (block == null) return;
+            StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
+            if (stringBlockMechanic == null) return;
+            ItemStack item = OraxenItems.getItemById(stringBlockMechanic.getItemID()).build();
+            for (int i = 0; i <= 8; i++) {
+                if (player.getInventory().getItem(i) == null) continue;
+                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), stringBlockMechanic.getItemID())) {
+                    player.getInventory().setHeldItemSlot(i);
+                    event.setCancelled(true);
+                    return;
+                }
+            }
+            event.setCursor(item);
+        }
+    }
+
+    private StringBlockMechanic getStringMechanic(Block block) {
+        if (block.getType() == Material.TRIPWIRE) {
+            final Tripwire tripwire = (Tripwire) block.getBlockData();
+            return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
+        }
+        return null;
     }
 
     private HardnessModifier getHardnessModifier() {
