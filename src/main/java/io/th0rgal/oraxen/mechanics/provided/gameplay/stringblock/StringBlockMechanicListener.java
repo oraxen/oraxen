@@ -183,9 +183,12 @@ public class StringBlockMechanicListener implements Listener {
         final Block placedAgainst = event.getClickedBlock();
         final Player player = event.getPlayer();
 
-        if (placedAgainst.getType().isInteractable() && !player.isSneaking()) return;
+        if (placedAgainst.getType().isInteractable() && !player.isSneaking()) {
+            if (placedAgainst.getType() == Material.NOTE_BLOCK && getNoteBlockMechanic(placedAgainst) == null) return;
+            else if (placedAgainst.getType() != Material.NOTE_BLOCK) return;
+        }
 
-        if (item.getType().isBlock() && factory.isNotImplementedIn(itemID)) {
+        if (item != null && item.getType().isBlock() && factory.isNotImplementedIn(itemID)) {
             for (BlockFace face : BlockFace.values()) {
                 if (!face.isCartesian() || face.getModZ() != 0) continue;
                 final Block relative = placedAgainst.getRelative(face);

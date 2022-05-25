@@ -41,13 +41,13 @@ public class BlockHelpers {
                 return false;
             else return false;
         }
-        if ((data instanceof Bed || data instanceof Chest || data instanceof Bisected) &&
+        if ((data instanceof Door || data instanceof Bed || data instanceof Chest || data instanceof Bisected) &&
                 !(data instanceof Stairs) && !(data instanceof TrapDoor))
             if (!handleDoubleBlocks(block, player)) return false;
         if ((state instanceof Skull || state instanceof Sign || type.toString().contains("TORCH")) && face != BlockFace.DOWN && face != BlockFace.UP)
             handleWallAttachable(block, player, face);
 
-        if (data instanceof Directional || data instanceof FaceAttachable || data instanceof MultipleFacing || data instanceof Attachable) {
+        if (!(data instanceof Stairs) && (data instanceof Directional || data instanceof FaceAttachable || data instanceof MultipleFacing || data instanceof Attachable)) {
             if (data instanceof MultipleFacing && face == BlockFace.UP) return false;
             if (data instanceof CoralWallFan && face == BlockFace.DOWN) return false;
             handleDirectionalBlocks(block, face);
@@ -98,7 +98,19 @@ public class BlockHelpers {
     private static boolean handleDoubleBlocks(Block block, Player player) {
         final BlockData data = block.getBlockData();
         final Block up = block.getRelative(BlockFace.UP);
-        if (data instanceof Bed) {
+        if (data instanceof Door) {
+            if (up.getType().isSolid() || !Utils.REPLACEABLE_BLOCKS.contains(up.getType())) return false;
+            if (getLeftBlock(block, player).getBlockData() instanceof Door)
+                ((Door) data).setHinge(Door.Hinge.RIGHT);
+            else ((Door) data).setHinge(Door.Hinge.LEFT);
+
+            ((Door) data).setFacing(player.getFacing());
+            ((Door) data).setHalf(Bisected.Half.TOP);
+            block.getRelative(BlockFace.UP).setBlockData(data, false);
+            ((Door) data).setHalf(Bisected.Half.BOTTOM);
+            block.setBlockData(data, false);
+        }
+        else if (data instanceof Bed) {
             final Block nextBlock = block.getRelative(player.getFacing());
             if (nextBlock.getType().isSolid() || !Utils.REPLACEABLE_BLOCKS.contains(nextBlock.getType())) return false;
             nextBlock.setType(block.getType(), false);
@@ -128,19 +140,7 @@ public class BlockHelpers {
             ((Bisected) data).setHalf(Bisected.Half.TOP);
             block.getRelative(BlockFace.UP).setBlockData(data, false);
             ((Bisected) data).setHalf(Bisected.Half.BOTTOM);
-
-            if (data instanceof Door) {
-                if (up.getType().isSolid() || !Utils.REPLACEABLE_BLOCKS.contains(up.getType())) return false;
-                if (getLeftBlock(block, player).getBlockData() instanceof Door)
-                    ((Door) data).setHinge(Door.Hinge.RIGHT);
-                else ((Door) data).setHinge(Door.Hinge.LEFT);
-
-                ((Door) data).setFacing(player.getFacing());
-                ((Door) data).setHalf(Bisected.Half.TOP);
-                block.getRelative(BlockFace.UP).setBlockData(data, false);
-                ((Door) data).setHalf(Bisected.Half.BOTTOM);
-                block.setBlockData(data, false);
-            }
+            block.setBlockData(data, false);
         }
         else {
             block.setBlockData(Bukkit.createBlockData(Material.AIR), false);
