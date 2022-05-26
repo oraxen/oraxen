@@ -360,14 +360,14 @@ public class FurnitureMechanic extends Mechanic {
         return null;
     }
 
-    public ItemFrame getItemFrame(Location location) {
+    public ItemFrame getItemFrame(Location location, Float orientation) {
         if (hasBarriers()) {
-            for (Location sideLocation : getLocations(location.getYaw(), location, getBarriers())) {
-                for (Entity entity : sideLocation.getWorld().getNearbyEntities(location, 1, 1, 1))
+            for (Location sideLocation : getLocations(orientation, location, getBarriers())) {
+                for (Entity entity : sideLocation.getWorld().getNearbyEntities(sideLocation, 1, 1, 1))
                     if (entity instanceof ItemFrame frame
-                            && entity.getLocation().getBlockX() == location.getBlockX()
-                            && entity.getLocation().getBlockY() == location.getBlockY()
-                            && entity.getLocation().getBlockZ() == location.getBlockZ()
+                            && entity.getLocation().getBlockX() == sideLocation.getBlockX()
+                            && entity.getLocation().getBlockY() == sideLocation.getBlockY()
+                            && entity.getLocation().getBlockZ() == sideLocation.getBlockZ()
                             && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING))
                         return frame;
             }
