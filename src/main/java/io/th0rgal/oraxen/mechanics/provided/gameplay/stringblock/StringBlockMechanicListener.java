@@ -165,25 +165,24 @@ public class StringBlockMechanicListener implements Listener {
             return;
         if (mechanic.hasPlaceSound())
             placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
-        if (placedBlock != null && mechanic.getLight() != -1)
+        if (mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
         event.setCancelled(true);
     }
 
-    @EventHandler
+    // Paper only
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onWaterCollide(final BlockBreakBlockEvent event) {
         Block block = event.getBlock();
         if (block.getType() == Material.TRIPWIRE) {
-            final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
-                    .getBlockMechanic(StringBlockMechanicFactory.getCode(((Tripwire) block.getBlockData())));
-            breakStringBlock(event.getBlock(), stringBlockMechanic, new ItemStack(Material.AIR));
+            breakStringBlock(block, getStringMechanic(block), new ItemStack(Material.AIR));
             event.getDrops().removeIf(item -> item.getType() == Material.STRING);
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onWaterUpdate(final BlockFromToEvent event) {
-        if (event.getFace() == BlockFace.DOWN) {
+        if (event.getBlock().isLiquid()) {
             for (BlockFace f : BlockFace.values()) {
                 final Block changed = event.getToBlock().getRelative(f);
                 if (f == BlockFace.DOWN || f == BlockFace.UP || f == BlockFace.SELF) continue;
@@ -306,18 +305,20 @@ public class StringBlockMechanicListener implements Listener {
     }
 
     private void breakStringBlock(Block block, StringBlockMechanic mechanic, ItemStack item) {
+        if (mechanic == null) return;
         if (mechanic.hasBreakSound())
             block.getWorld().playSound(block.getLocation(), mechanic.getBreakSound(), 1.0f, 0.8f);
         if (mechanic.getLight() != -1)
             WrappedLightAPI.removeBlockLight(block.getLocation());
         mechanic.getDrop().spawns(block.getLocation(), item);
         block.setType(Material.AIR, false);
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                fixClientsideUpdate(block.getLocation()), 1L);
         final Block blockAbove = block.getRelative(BlockFace.UP);
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable -> {
+            fixClientsideUpdate(block.getLocation());
+            if (blockAbove.getType() == Material.TRIPWIRE)
+                breakStringBlock(blockAbove, getStringMechanic(blockAbove), new ItemStack(Material.AIR));
+        }, 1L);
 
-        if (blockAbove.getType() == Material.TRIPWIRE)
-            breakStringBlock(blockAbove, getStringMechanic(blockAbove), new ItemStack(Material.AIR));
 
     }
 
