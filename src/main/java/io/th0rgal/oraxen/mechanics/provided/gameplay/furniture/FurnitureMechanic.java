@@ -360,9 +360,9 @@ public class FurnitureMechanic extends Mechanic {
         return null;
     }
 
-    public ItemFrame getItemFrame(Location location, Float orientation) {
+    public ItemFrame getItemFrame(Block block, BlockLocation blockLocation, Float orientation) {
         if (hasBarriers()) {
-            for (Location sideLocation : getLocations(orientation, location, getBarriers())) {
+            for (Location sideLocation : getLocations(orientation, blockLocation.toLocation(block.getWorld()), getBarriers())) {
                 for (Entity entity : sideLocation.getWorld().getNearbyEntities(sideLocation, 1, 1, 1))
                     if (entity instanceof ItemFrame frame
                             && entity.getLocation().getBlockX() == sideLocation.getBlockX()

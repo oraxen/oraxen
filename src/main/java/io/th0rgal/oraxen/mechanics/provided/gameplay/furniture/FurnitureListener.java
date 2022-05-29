@@ -67,9 +67,8 @@ public class FurnitureListener implements Listener {
                     final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
                     final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
                     Float orientation = customBlockData.get(ORIENTATION_KEY, PersistentDataType.FLOAT);
-                    final ItemFrame frame = mechanic.getItemFrame(block.getLocation(), orientation);
-                    final BlockLocation rootBlockLocation =
-                            new BlockLocation(customBlockData.get(ROOT_KEY, PersistentDataType.STRING));
+                    final BlockLocation rootBlockLocation = new BlockLocation(customBlockData.get(ROOT_KEY, PersistentDataType.STRING));
+                    final ItemFrame frame = mechanic.getItemFrame(block, rootBlockLocation, orientation);
 
                     if (mechanic.removeSolid(block.getWorld(), rootBlockLocation, orientation)) {
                         mechanic.getDrop().furnitureSpawns(frame, tool);
@@ -236,7 +235,7 @@ public class FurnitureListener implements Listener {
             final String itemID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
             if (!OraxenItems.exists(itemID)) return;
             final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
-            ItemFrame frame = mechanic.getItemFrame(hitBlock.getLocation(), orientation);
+            ItemFrame frame = mechanic.getItemFrame(hitBlock, furnitureLocation, orientation);
 
             if (event.getEntity() instanceof Explosive) {
                 mechanic.getDrop().furnitureSpawns(frame, new ItemStack(Material.AIR));
