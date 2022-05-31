@@ -24,8 +24,8 @@ public class BlockHelpers {
         if (type == Material.HANGING_ROOTS && face != BlockFace.DOWN) return false;
         if (type.toString().endsWith("TORCH") && face == BlockFace.DOWN) return false;
         if (state instanceof Sign && face == BlockFace.DOWN) return false;
-        if (!(data instanceof Door) && (data instanceof Bisected || data instanceof Slab))
-            handleHalfBlocks(block, player);
+        if (data instanceof Ageable) return handleAgeableBlocks(block, face);
+        if (!(data instanceof Door) && (data instanceof Bisected || data instanceof Slab)) handleHalfBlocks(block, player);
         if (data instanceof Rotatable) handleRotatableBlocks(block, player);
         if (type.toString().contains("CORAL") && !type.toString().endsWith("CORAL_BLOCK") && face == BlockFace.DOWN)
             return false;
@@ -34,14 +34,7 @@ public class BlockHelpers {
         if (type.toString().endsWith("_CORAL_FAN") && face != BlockFace.UP)
             block.setType(Material.valueOf(type.toString().replace("_CORAL_FAN", "_CORAL_WALL_FAN")));
         if (data instanceof Waterlogged) handleWaterlogged(block, face);
-        if (data instanceof Ageable) {
-            if ((type == Material.WEEPING_VINES || type == Material.WEEPING_VINES_PLANT) && face != BlockFace.DOWN)
-                return false;
-            else if ((type == Material.TWISTING_VINES || type == Material.TWISTING_VINES_PLANT) && face != BlockFace.UP)
-                return false;
-            else return false;
-        }
-        if ((data instanceof Door || data instanceof Bed || data instanceof Chest || data instanceof Bisected) &&
+        if ((data instanceof Bed || data instanceof Chest || data instanceof Bisected) &&
                 !(data instanceof Stairs) && !(data instanceof TrapDoor))
             if (!handleDoubleBlocks(block, player)) return false;
         if ((state instanceof Skull || state instanceof Sign || type.toString().contains("TORCH")) && face != BlockFace.DOWN && face != BlockFace.UP)
@@ -109,8 +102,7 @@ public class BlockHelpers {
             block.getRelative(BlockFace.UP).setBlockData(data, false);
             ((Door) data).setHalf(Bisected.Half.BOTTOM);
             block.setBlockData(data, false);
-        }
-        else if (data instanceof Bed) {
+        } else if (data instanceof Bed) {
             final Block nextBlock = block.getRelative(player.getFacing());
             if (nextBlock.getType().isSolid() || !Utils.REPLACEABLE_BLOCKS.contains(nextBlock.getType())) return false;
             nextBlock.setType(block.getType(), false);
@@ -123,8 +115,7 @@ public class BlockHelpers {
             nextData.setFacing(player.getFacing());
             nextBlock.setBlockData(nextData, false);
             block.setBlockData(data, false);
-        }
-        else if (data instanceof Chest) {
+        } else if (data instanceof Chest) {
             if (getLeftBlock(block, player).getBlockData() instanceof Chest)
                 ((Chest) data).setType(Chest.Type.LEFT);
             else if (getRightBlock(block, player).getBlockData() instanceof Chest)
@@ -133,16 +124,14 @@ public class BlockHelpers {
 
             ((Chest) data).setFacing(player.getFacing().getOppositeFace());
             block.setBlockData(data, true);
-        }
-        else if (data instanceof Bisected) {
+        } else if (data instanceof Bisected) {
             if (up.getType().isSolid() || !Utils.REPLACEABLE_BLOCKS.contains(up.getType())) return false;
 
             ((Bisected) data).setHalf(Bisected.Half.TOP);
             block.getRelative(BlockFace.UP).setBlockData(data, false);
             ((Bisected) data).setHalf(Bisected.Half.BOTTOM);
             block.setBlockData(data, false);
-        }
-        else {
+        } else {
             block.setBlockData(Bukkit.createBlockData(Material.AIR), false);
             return false;
         }
@@ -156,7 +145,9 @@ public class BlockHelpers {
 
         if (data instanceof TrapDoor) {
             ((TrapDoor) data).setFacing(player.getFacing().getOppositeFace());
-            if (eye.getHitPosition().getY() <= eye.getHitBlock().getLocation().clone().add(0.5, 0.0, 0.5).getY())
+            if (eye.getHitBlockFace() == BlockFace.UP) ((TrapDoor) data).setHalf(Bisected.Half.BOTTOM);
+            else if (eye.getHitBlockFace() == BlockFace.DOWN) ((TrapDoor) data).setHalf(Bisected.Half.TOP);
+            else if (eye.getHitPosition().getY() <= eye.getHitBlock().getLocation().clone().add(0.5, 0.0, 0.5).getY())
                 ((TrapDoor) data).setHalf(Bisected.Half.BOTTOM);
             else ((TrapDoor) data).setHalf(Bisected.Half.TOP);
         } else if (data instanceof Stairs) {
@@ -182,6 +173,7 @@ public class BlockHelpers {
 
     private static void handleDirectionalBlocks(Block block, BlockFace face) {
         final BlockData data = block.getBlockData();
+        Bukkit.broadcastMessage(data.getMaterial().toString());
         if (data instanceof Directional) {
             if (data instanceof FaceAttachable) {
                 if (face == BlockFace.UP) ((FaceAttachable) data).setAttachedFace(FaceAttachable.AttachedFace.FLOOR);
@@ -190,14 +182,19 @@ public class BlockHelpers {
                 else ((Directional) data).setFacing(face);
             } else if (((Directional) data).getFaces().contains(face)) ((Directional) data).setFacing(face);
         } else if (data instanceof MultipleFacing) {
-            for (BlockFace blockFace : ((MultipleFacing) data).getAllowedFaces()) {
-                if (block.getRelative(blockFace).getType().isSolid()) ((MultipleFacing) data).setFace(blockFace, true);
-                else ((MultipleFacing) data).setFace(blockFace, false);
-            }
+            for (BlockFace blockFace : ((MultipleFacing) data).getAllowedFaces())
+                ((MultipleFacing) data).setFace(blockFace, block.getRelative(blockFace).getType().isSolid());
         } else if (data instanceof Attachable) {
             ((Attachable) data).setAttached(true);
         }
         block.setBlockData(data, false);
+    }
+
+    private static boolean handleAgeableBlocks(Block block, BlockFace face) {
+        final Material type = block.getType();
+        if (type.toString().contains("WEEPING_VINES")) return face == BlockFace.DOWN;
+        else if (type.toString().contains("TWISTING_VINES")) return face == BlockFace.UP;
+        else return false;
     }
 
     private static Block getLeftBlock(Block block, Player player) {
