@@ -51,6 +51,7 @@ public class StringBlockMechanicListener implements Listener {
             event.setCancelled(true);
     }
 
+    // Paper Only
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onEnteringTripwire(EntityInsideBlockEvent event) {
         if (event.getBlock().getType() == Material.TRIPWIRE)
@@ -180,12 +181,12 @@ public class StringBlockMechanicListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onWaterUpdate(final BlockFromToEvent event) {
-        if (event.getBlock().isLiquid()) {
+        if (event.getBlock().isLiquid() && event.getFace() == BlockFace.DOWN) {
             for (BlockFace f : BlockFace.values()) {
+                if (!f.isCartesian() || f.getModY() != 0 || f == BlockFace.SELF) continue; // Only take N/S/W/E
                 final Block changed = event.getToBlock().getRelative(f);
-                if (f == BlockFace.DOWN || f == BlockFace.UP || f == BlockFace.SELF) continue;
                 if (changed.getType() != Material.TRIPWIRE) continue;
 
                 final BlockData data = changed.getBlockData().clone();
@@ -194,7 +195,6 @@ public class StringBlockMechanicListener implements Listener {
             }
         }
     }
-
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMiddleClick(final InventoryCreativeEvent event) {
