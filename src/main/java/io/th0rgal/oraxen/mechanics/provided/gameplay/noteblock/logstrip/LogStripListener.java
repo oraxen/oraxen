@@ -30,7 +30,7 @@ public class LogStripListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block.getType() != Material.NOTE_BLOCK) return;
         if (player.getInventory().getItemInMainHand().getType().toString().contains("AXE")) {
             NoteBlockMechanic m = getNoteBlockMechanic(block);
-            if (m.isDirectional())
+            if (m.isDirectional() && !m.isLog())
                 m = (NoteBlockMechanic) factory.getMechanic(m.getDirectional().getParentBlock());
 
             if (m.isLog() && m.getLog().canBeStripped()) {
