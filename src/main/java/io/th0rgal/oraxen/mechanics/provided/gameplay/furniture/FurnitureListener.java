@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.events.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.events.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -69,6 +70,12 @@ public class FurnitureListener implements Listener {
                     Float orientation = customBlockData.get(ORIENTATION_KEY, PersistentDataType.FLOAT);
                     final BlockLocation rootBlockLocation = new BlockLocation(customBlockData.get(ROOT_KEY, PersistentDataType.STRING));
                     final ItemFrame frame = mechanic.getItemFrame(block, rootBlockLocation, orientation);
+
+                    OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, player, block);
+                    OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
+                    if (furnitureBreakEvent.isCancelled()) {
+                        return;
+                    }
 
                     if (mechanic.removeSolid(block.getWorld(), rootBlockLocation, orientation)) {
                         mechanic.getDrop().furnitureSpawns(frame, tool);
@@ -214,6 +221,13 @@ public class FurnitureListener implements Listener {
                         return;
                     final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
                     event.setCancelled(true);
+
+                    OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic,player);
+                    OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
+                    if (furnitureBreakEvent.isCancelled()) {
+                        return;
+                    }
+
                     mechanic.removeAirFurniture(frame);
                     if (player.getGameMode() != GameMode.CREATIVE)
                         mechanic.getDrop().spawns(frame.getLocation(), player.getInventory().getItemInMainHand());
@@ -268,6 +282,14 @@ public class FurnitureListener implements Listener {
         final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
         final BlockLocation rootBlockLocation = new BlockLocation(customBlockData.get(ROOT_KEY,
                 PersistentDataType.STRING));
+
+        OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic,event.getPlayer(), block);
+        OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
+        if (furnitureBreakEvent.isCancelled()) {
+            event.setCancelled(true);
+            return;
+        }
+
         mechanic.removeSolid(block.getWorld(), rootBlockLocation, customBlockData
                 .get(ORIENTATION_KEY, PersistentDataType.FLOAT));
     }
