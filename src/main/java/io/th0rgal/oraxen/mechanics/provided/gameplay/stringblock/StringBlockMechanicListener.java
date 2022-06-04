@@ -38,8 +38,6 @@ import java.util.List;
 import java.util.Objects;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory.getBlockMechanic;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory.getCode;
 
 public class StringBlockMechanicListener implements Listener {
 
@@ -196,11 +194,9 @@ public class StringBlockMechanicListener implements Listener {
                 final Block relative = placedAgainst.getRelative(face);
                 if (relative.getType() == Material.NOTE_BLOCK)
                     if (getNoteBlockMechanic(relative) == null) continue;
-                if (relative.getType() == Material.TRIPWIRE) {
-                    final Tripwire tripwire = (Tripwire) relative.getBlockData();
-                    if (getBlockMechanic(getCode(tripwire)) == null)
-                        continue;
-                }
+                if (relative.getType() == Material.TRIPWIRE)
+                    if (getStringMechanic(relative) == null) continue;
+
                 makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), Bukkit.createBlockData(item.getType()));
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
                         fixClientsideUpdate(placedAgainst.getLocation()), 1L);
@@ -236,7 +232,7 @@ public class StringBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onWaterUpdate(final BlockFromToEvent event) {
-        if (event.getBlock().isLiquid() && event.getFace() == BlockFace.DOWN) {
+        if (event.getBlock().isLiquid()) {
             for (BlockFace f : BlockFace.values()) {
                 if (!f.isCartesian() || f.getModY() != 0 || f == BlockFace.SELF) continue; // Only take N/S/W/E
                 final Block changed = event.getToBlock().getRelative(f);
@@ -286,10 +282,7 @@ public class StringBlockMechanicListener implements Listener {
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
                 if (block.getType() != Material.TRIPWIRE)
                     return false;
-                final Tripwire tripwire = (Tripwire) block.getBlockData();
-                final int code = StringBlockMechanicFactory.getCode(tripwire);
-                final StringBlockMechanic tripwireMechanic = StringBlockMechanicFactory
-                        .getBlockMechanic(code);
+                final StringBlockMechanic tripwireMechanic = getStringMechanic(block);
                 return tripwireMechanic != null && tripwireMechanic.hasHardness;
             }
 
@@ -343,8 +336,8 @@ public class StringBlockMechanicListener implements Listener {
         target.setBlockData(newBlock, false);
         final BlockState currentBlockState = target.getState();
 
-        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player,
-                true, hand);
+        final BlockPlaceEvent blockPlaceEvent =
+                new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
         if (!BlockHelpers.correctAllBlockStates(target, player, face)) blockPlaceEvent.setCancelled(true);
@@ -369,15 +362,12 @@ public class StringBlockMechanicListener implements Listener {
         mechanic.getDrop().spawns(block.getLocation(), item);
         block.setType(Material.AIR, false);
         final Block blockAbove = block.getRelative(BlockFace.UP);
+
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable -> {
             fixClientsideUpdate(block.getLocation());
             if (blockAbove.getType() == Material.TRIPWIRE)
                 breakStringBlock(blockAbove, getStringMechanic(blockAbove), new ItemStack(Material.AIR));
         }, 1L);
-
-
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                fixClientsideUpdate(block.getLocation()), 1);
     }
 
     private void fixClientsideUpdate(Location blockLoc) {
