@@ -36,6 +36,10 @@ public class EvolutionTask extends BukkitRunnable {
                     Block blockBelow = frame.getLocation().clone().subtract(0, 1, 0).getBlock();
                     FurnitureMechanic mechanic = (FurnitureMechanic) furnitureFactory.getMechanic(itemID);
 
+                    if(mechanic == null){
+                        continue;
+                    }
+
                     if (mechanic.farmlandRequired && blockBelow.getType() != Material.FARMLAND) {
                         mechanic.remove(frame);
                         continue;
