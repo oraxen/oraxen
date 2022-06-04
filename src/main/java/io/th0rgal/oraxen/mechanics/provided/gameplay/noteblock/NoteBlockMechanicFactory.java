@@ -49,7 +49,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                                     "note_block.json", getBlockstateContent());
                 });
         MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockMechanicListener(this));
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new LogStripListener());
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new LogStripListener(this));
     }
 
     public static String getInstrumentName(int id) {
