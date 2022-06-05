@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip;
 
 import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import org.bukkit.Material;
@@ -16,6 +17,11 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockM
 
 public class LogStripListener implements Listener {
 
+    private final MechanicFactory factory;
+    public LogStripListener(MechanicFactory factory) {
+        this.factory = factory;
+    }
+
     @EventHandler
     public void onStrippingLog(PlayerInteractEvent event) {
         Player player = event.getPlayer();
@@ -24,6 +30,9 @@ public class LogStripListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block.getType() != Material.NOTE_BLOCK) return;
         if (player.getInventory().getItemInMainHand().getType().toString().contains("AXE")) {
             NoteBlockMechanic m = getNoteBlockMechanic(block);
+            if (m.isDirectional() && !m.isLog())
+                m = (NoteBlockMechanic) factory.getMechanic(m.getDirectional().getParentBlock());
+
             if (m.isLog() && m.getLog().canBeStripped()) {
                 if (m.getLog().hasStrippedDrop()) {
                     player.getWorld().dropItemNaturally(
