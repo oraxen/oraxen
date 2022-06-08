@@ -85,20 +85,30 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onHangingPlaceEvent(final PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
-            return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
         assert placedAgainst != null;
         final Block target = getTarget(placedAgainst, event.getBlockFace());
-        if (target == null)
-            return;
         ItemStack item = event.getItem();
+
+        // Cancel placing when clicking a clickAction furniture
+        final PersistentDataContainer customBlockData = new CustomBlockData(placedAgainst, OraxenPlugin.get());
+        if (customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING)) {
+            String id = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
+            if (!OraxenItems.exists(id)) return;
+            final FurnitureMechanic fMechanic = (FurnitureMechanic) factory.getMechanic(id);
+            if (fMechanic.hasClickActions() && !player.isSneaking()) {
+                if (item != null && item.getType().isBlock()) event.setCancelled(true);
+                return;
+            }
+        }
+
+        if (target == null) return;
         final BlockData currentBlockData = target.getBlockData();
         FurnitureMechanic mechanic = getMechanic(item, player, target);
-        if (mechanic == null)
-            return;
+        if (mechanic == null) return;
 
         Block farm = target.getRelative(BlockFace.DOWN);
 
