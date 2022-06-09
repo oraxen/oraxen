@@ -95,6 +95,9 @@ shadowJar {
     relocate 'com.github.stefvanschie.inventoryframework', 'io.th0rgal.oraxen.shaded.if'
     relocate 'dev.jorel.commandapi', 'io.th0rgal.oraxen.shaded.commandapi'
     relocate 'me.gabytm.util.actions', 'io.th0rgal.oraxen.shaded.actions'
+    relocate 'org.intellij.lang.annotations', 'io.th0rgal.oraxen.shaded.intellij.annotations'
+    relocate 'org.jetbrains.annotations', 'io.th0rgal.oraxen.shaded.jetbrains.annotations'
+    relocate 'com.udojava.evalex', 'io.th0rgal.oraxen.shaded.evalex'
     manifest {
         attributes(
                 'Built-By': System.properties['user.name'],
