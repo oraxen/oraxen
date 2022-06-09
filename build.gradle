@@ -70,7 +70,6 @@ dependencies {
     implementation fileTree(dir: 'libs/implement', include: ['*.jar'])
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'
     implementation group: 'com.github.oraxen', name: 'protectionlib', version: '1.1.1'
-    implementation group: 'org.yaml', name: 'snakeyaml', version: '1.28'
     implementation group: 'net.kyori', name: 'adventure-text-minimessage', version: '4.2.0-SNAPSHOT'
     implementation group: 'net.kyori', name: 'adventure-platform-bukkit', version: '4.0.0'
     implementation group: 'com.github.stefvanschie.inventoryframework', name: 'IF', version: '0.10.0'
@@ -89,7 +88,6 @@ processResources {
 
 shadowJar {
     archiveClassifier = null
-    relocate 'org.yaml.snakeyaml', 'io.th0rgal.oraxen.shaded.snakeyaml'
     relocate 'org.bstats', 'io.th0rgal.oraxen.shaded.bstats'
     relocate 'net.kyori', 'io.th0rgal.oraxen.shaded.kyori'
     relocate 'com.jeff_media.customblockdata', 'io.th0rgal.oraxen.shaded.customblockdata'
