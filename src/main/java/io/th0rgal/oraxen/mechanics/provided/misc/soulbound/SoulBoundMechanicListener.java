@@ -1,9 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.soulbound;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
-import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -19,7 +17,6 @@ import java.util.Random;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SoulBoundMechanicListener implements Listener {
-    private static final NamespacedKey SOULBOUND_KEY = new NamespacedKey(OraxenPlugin.get(), "soulbound");
     private final SoulBoundMechanicFactory factory;
 
     public SoulBoundMechanicListener(SoulBoundMechanicFactory factory) {
@@ -45,7 +42,7 @@ public class SoulBoundMechanicListener implements Listener {
         if (!items.isEmpty()) {
             Player player = event.getEntity();
             PersistentDataContainer pdc = player.getPersistentDataContainer();
-            pdc.set(SOULBOUND_KEY, DataType.ITEM_STACK_ARRAY, items.toArray(ItemStack[]::new));
+            pdc.set(SoulBoundMechanic.NAMESPACED_KEY, DataType.ITEM_STACK_ARRAY, items.toArray(ItemStack[]::new));
             event.getDrops().removeAll(items);
         }
     }
@@ -54,15 +51,15 @@ public class SoulBoundMechanicListener implements Listener {
     public void onPlayerRespawn(PlayerRespawnEvent event) {
         Player player = event.getPlayer();
         PersistentDataContainer pdc = player.getPersistentDataContainer();
-        if(!pdc.has(SOULBOUND_KEY, DataType.ITEM_STACK_ARRAY))
+        if(!pdc.has(SoulBoundMechanic.NAMESPACED_KEY, DataType.ITEM_STACK_ARRAY))
             return;
 
-        ItemStack[] items = pdc.getOrDefault(SOULBOUND_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[0]);
+        ItemStack[] items = pdc.getOrDefault(SoulBoundMechanic.NAMESPACED_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[0]);
         Collection<ItemStack> remainingItems = player.getInventory().addItem(items).values();
         for(final ItemStack item : remainingItems) {
             player.getWorld().dropItem(player.getLocation(), item);
         }
 
-        pdc.remove(SOULBOUND_KEY);
+        pdc.remove(SoulBoundMechanic.NAMESPACED_KEY);
     }
 }
