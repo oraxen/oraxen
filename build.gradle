@@ -92,7 +92,7 @@ shadowJar {
     relocate 'org.yaml.snakeyaml', 'io.th0rgal.oraxen.shaded.snakeyaml'
     relocate 'org.bstats', 'io.th0rgal.oraxen.shaded.bstats'
     relocate 'net.kyori', 'io.th0rgal.oraxen.shaded.kyori'
-    relocate 'de.jeff_media.customblockdata', 'io.th0rgal.oraxen.shaded.customblockdata'
+    relocate 'com.jeff_media.customblockdata', 'io.th0rgal.oraxen.shaded.customblockdata'
     relocate 'com.jeff_media.morepersistentdatatypes', 'io.th0rgal.oraxen.shaded.morepersistentdatatypes'
     relocate 'com.github.stefvanschie.inventoryframework', 'io.th0rgal.oraxen.shaded.if'
     relocate 'dev.jorel.commandapi', 'io.th0rgal.oraxen.shaded.commandapi'
