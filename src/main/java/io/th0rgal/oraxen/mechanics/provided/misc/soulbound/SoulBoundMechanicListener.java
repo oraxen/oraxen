@@ -1,21 +1,26 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.soulbound;
 
+import com.jeff_media.morepersistentdatatypes.DataType;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
+import org.bukkit.NamespacedKey;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
 
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class SoulBoundMechanicListener implements Listener {
+    private static final NamespacedKey SOULBOUND_KEY = new NamespacedKey(OraxenPlugin.get(), "soulbound");
     private final SoulBoundMechanicFactory factory;
-    private final HashMap<Player, List<ItemStack>> soulBoundItems = new HashMap<>();
 
     public SoulBoundMechanicListener(SoulBoundMechanicFactory factory) {
         this.factory = factory;
@@ -25,34 +30,39 @@ public class SoulBoundMechanicListener implements Listener {
     public void onPlayerDeath(PlayerDeathEvent event) {
         if (event.getKeepInventory())
             return;
+
+        Random random = ThreadLocalRandom.current();
         List<ItemStack> items = new ArrayList<>();
         for (ItemStack drop : event.getDrops()) {
             String itemID = OraxenItems.getIdByItem(drop);
-            if (itemID == null)
+            if (itemID == null || factory.isNotImplementedIn(itemID))
                 continue;
-            if (!factory.isNotImplementedIn(itemID)) {
-                SoulBoundMechanic mechanic = (SoulBoundMechanic) factory.getMechanic(itemID);
-                if (new Random().nextInt(100) >= mechanic.getLoseChance() * 100)
-                    items.add(drop);
-            }
+
+            SoulBoundMechanic mechanic = (SoulBoundMechanic) factory.getMechanic(itemID);
+            if (random.nextInt(100) >= mechanic.getLoseChance() * 100)
+                items.add(drop);
         }
         if (!items.isEmpty()) {
-            soulBoundItems.put(event.getEntity(), items);
+            Player player = event.getEntity();
+            PersistentDataContainer pdc = player.getPersistentDataContainer();
+            pdc.set(SOULBOUND_KEY, DataType.ITEM_STACK_ARRAY, items.toArray(ItemStack[]::new));
             event.getDrops().removeAll(items);
         }
     }
 
     @EventHandler
     public void onPlayerRespawn(PlayerRespawnEvent event) {
-        if (!soulBoundItems.containsKey(event.getPlayer()))
-            return;
         Player player = event.getPlayer();
-        for (ItemStack item : soulBoundItems.get(player)) {
-            if (player.getInventory().firstEmpty() != -1)
-                player.getInventory().addItem(item);
-            else
-                player.getWorld().dropItem(player.getLocation(), item);
+        PersistentDataContainer pdc = player.getPersistentDataContainer();
+        if(!pdc.has(SOULBOUND_KEY, DataType.ITEM_STACK_ARRAY))
+            return;
+
+        ItemStack[] items = pdc.getOrDefault(SOULBOUND_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[0]);
+        Collection<ItemStack> remainingItems = player.getInventory().addItem(items).values();
+        for(final ItemStack item : remainingItems) {
+            player.getWorld().dropItem(player.getLocation(), item);
         }
-        soulBoundItems.remove(player);
+
+        pdc.remove(SOULBOUND_KEY);
     }
 }

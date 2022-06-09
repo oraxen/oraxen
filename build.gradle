@@ -76,6 +76,7 @@ dependencies {
     implementation group: 'com.github.stefvanschie.inventoryframework', name: 'IF', version: '0.10.0'
     implementation group: 'dev.jorel', name: 'commandapi-shade', version: '8.1.0'
     implementation "com.jeff_media:CustomBlockData:1.0.5"
+    implementation "com.jeff_media:MorePersistentDataTypes:2.3.1"
 
     implementation(group: 'me.gabytm.util', name: 'actions-spigot', version: actionsVersion) { exclude group: 'com.google.guava' }
 }
@@ -92,6 +93,7 @@ shadowJar {
     relocate 'org.bstats', 'io.th0rgal.oraxen.shaded.bstats'
     relocate 'net.kyori', 'io.th0rgal.oraxen.shaded.kyori'
     relocate 'de.jeff_media.customblockdata', 'io.th0rgal.oraxen.shaded.customblockdata'
+    relocate 'com.jeff_media.morepersistentdatatypes', 'io.th0rgal.oraxen.shaded.morepersistentdatatypes'
     relocate 'com.github.stefvanschie.inventoryframework', 'io.th0rgal.oraxen.shaded.if'
     relocate 'dev.jorel.commandapi', 'io.th0rgal.oraxen.shaded.commandapi'
     relocate 'me.gabytm.util.actions', 'io.th0rgal.oraxen.shaded.actions'
