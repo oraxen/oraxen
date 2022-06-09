@@ -5,6 +5,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.event.player.PlayerItemMendEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -21,7 +22,15 @@ public class DurabilityMechanicManager implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemDamaged(PlayerItemDamageEvent event) {
-        ItemStack item = event.getItem();
+        changeDurability(event.getItem(), -event.getDamage());
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onItemMend(PlayerItemMendEvent event) {
+        changeDurability(event.getItem(), event.getRepairAmount());
+    }
+
+    public void changeDurability(ItemStack item, int amount) {
         String itemID = OraxenItems.getIdByItem(item);
         if (factory.isNotImplementedIn(itemID))
             return;
@@ -33,11 +42,14 @@ public class DurabilityMechanicManager implements Listener {
         PersistentDataContainer persistentDataContainer = itemMeta.getPersistentDataContainer();
         if (persistentDataContainer.has(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER)) {
             int realDurabilityLeft = persistentDataContainer
-                    .get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER) - event.getDamage();
+                    .get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER) + amount;
             if (realDurabilityLeft > 0) {
-                double realMaxDurability = durabilityMechanic.getItemMaxDurability(); // because int rounded values suck
                 persistentDataContainer
                         .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realDurabilityLeft);
+
+                if(!(itemMeta instanceof Damageable)) return;
+                double realMaxDurability = durabilityMechanic.getItemMaxDurability(); // because int rounded values suck
+
                 ((Damageable) itemMeta)
                         .setDamage((int) (item.getType().getMaxDurability()
                                 - realDurabilityLeft / realMaxDurability * item.getType().getMaxDurability()));
