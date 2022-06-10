@@ -64,7 +64,6 @@ dependencies {
     compileOnly group: 'com.github.BeYkeRYkt', name: 'LightAPI', version: '5.1.0-Bukkit'
     compileOnly group: 'me.gabytm.util', name: 'actions-core', version: actionsVersion
     compileOnly group: 'org.springframework', name: 'spring-expression', version: '5.3.16'
-    compileOnly group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
     compileOnly group: 'io.lumine', name: 'Mythic-Dist', version: '5.0.2-SNAPSHOT'
     compileOnly fileTree(dir: 'libs/compile', include: ['*.jar'])
     implementation fileTree(dir: 'libs/implement', include: ['*.jar'])
