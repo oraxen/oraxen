@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.events.OraxenNoteBlockInteractEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
@@ -20,7 +21,6 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -203,7 +203,8 @@ public class NoteBlockMechanicListener implements Listener {
                 || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
 
-        event.getBlock().setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
+        if (event.getBlockPlaced().getType() == Material.NOTE_BLOCK)
+            event.getBlock().setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -235,15 +236,14 @@ public class NoteBlockMechanicListener implements Listener {
         }
 
         assert placedAgainst != null;
-        Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
-                placedAgainst, face, NoteBlockMechanicFactory.createNoteBlockData(customVariation));
+        Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(), placedAgainst, face, NoteBlockMechanicFactory.createNoteBlockData(customVariation));
         if (placedBlock != null) {
             if (mechanic.hasPlaceSound())
                 placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
 
             if (mechanic.getLight() != -1)
                 WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
-            event.setCancelled(true);
+            //event.setCancelled(true);
             if (mechanic.hasDryout() && mechanic.getDryout().isFarmBlock()) {
                 final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
                 customBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
@@ -349,7 +349,9 @@ public class NoteBlockMechanicListener implements Listener {
         final BlockState currentBlockState = target.getState();
 
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
-        Bukkit.getPluginManager().callEvent((Event) blockPlaceEvent);
+        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
+
+        if (!BlockHelpers.correctAllBlockStates(target, player, face)) blockPlaceEvent.setCancelled(true);
 
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic

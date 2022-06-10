@@ -5,13 +5,11 @@ import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.material.Colorable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -62,6 +60,8 @@ public class Drop {
     }
 
     public boolean canDrop(ItemStack itemInHand) {
+        Bukkit.broadcastMessage(String.valueOf(isToolEnough(itemInHand)));
+        Bukkit.broadcastMessage(String.valueOf(isTypeEnough(itemInHand)));
         return isToolEnough(itemInHand) && isTypeEnough(itemInHand);
     }
 
