@@ -10,7 +10,7 @@ public abstract class Aura {
     protected final AuraMechanic mechanic;
     private BukkitRunnable runnable;
 
-    public Aura(AuraMechanic mechanic) {
+    protected Aura(AuraMechanic mechanic) {
         this.mechanic = mechanic;
     }
 
@@ -18,8 +18,7 @@ public abstract class Aura {
         return new BukkitRunnable() {
             @Override
             public void run() {
-                mechanic.players.forEach((Player player)
-                        -> spawnParticles(player));
+                mechanic.players.forEach(Aura.this::spawnParticles);
             }
         };
     }

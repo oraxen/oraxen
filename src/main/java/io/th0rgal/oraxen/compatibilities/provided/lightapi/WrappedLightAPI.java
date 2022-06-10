@@ -5,6 +5,8 @@ import org.bukkit.Location;
 
 public class WrappedLightAPI {
 
+    private WrappedLightAPI() {}
+
     private static boolean loaded;
 
     public static void init() {

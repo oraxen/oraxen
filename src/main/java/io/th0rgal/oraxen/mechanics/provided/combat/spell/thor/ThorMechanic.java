@@ -9,6 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
 import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class ThorMechanic extends SpellMechanic {
 
@@ -28,12 +29,13 @@ public class ThorMechanic extends SpellMechanic {
     }
 
     public Location getRandomizedLocation(Location location) {
-        Random random = new Random();
+        Random random = ThreadLocalRandom.current();
         location.setX(location.getX() + (random.nextDouble() * randomLocationVariation) - randomLocationVariation / 2);
         location.setY(location.getY() + (random.nextDouble() * randomLocationVariation) - randomLocationVariation / 2);
         return location;
     }
 
+    @Override
     public Timer getTimer(Player player) {
         return timersFactory.getTimer(player);
     }

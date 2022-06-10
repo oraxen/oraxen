@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.commands;
 import com.google.gson.JsonObject;
 import dev.jorel.commandapi.CommandAPICommand;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.utils.OS;
 import org.bukkit.Bukkit;
 
@@ -13,8 +12,6 @@ public class DebugCommand {
         return new CommandAPICommand("debug")
                 .withPermission("oraxen.command.debug")
                 .executes((sender, args) -> {
-
-                    FontManager font = OraxenPlugin.get().getFontManager();
 
                     JsonObject report = new JsonObject();
                     OS system = OS.getOs();

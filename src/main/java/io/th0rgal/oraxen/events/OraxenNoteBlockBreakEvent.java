@@ -36,7 +36,7 @@ public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
     @NotNull
     @Override
     public HandlerList getHandlers() {
-        return HANDLERS;
+        return getHandlerList();
     }
 
     public static HandlerList getHandlerList() {

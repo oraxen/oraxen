@@ -25,7 +25,6 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -360,7 +359,7 @@ public class NoteBlockMechanicListener implements Listener {
         final BlockState currentBlockState = target.getState();
 
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
-        Bukkit.getPluginManager().callEvent((Event) blockPlaceEvent);
+        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
@@ -387,7 +386,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (block.getType() != Material.NOTE_BLOCK) return null;
         final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
         return NoteBlockMechanicFactory
-                .getBlockMechanic((int) (noteBlok.getInstrument().getType()) * 25
-                        + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
+                .getBlockMechanic((noteBlok.getInstrument().getType()) * 25
+                        + noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
     }
 }

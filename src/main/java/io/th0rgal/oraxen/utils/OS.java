@@ -35,7 +35,7 @@ public class OS {
         static String name = System.getProperty("os.name");
         static String version = System.getProperty("os.version");
         static String arch = System.getProperty("os.arch");
-        private final static OS INSTANCE = new OS(name, version, arch);
+        private static final OS INSTANCE = new OS(name, version, arch);
 
     }
 

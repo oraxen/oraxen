@@ -69,7 +69,7 @@ public class StringBlockMechanicListener implements Listener {
                 || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
         if (event.getBlockAgainst().getType() == Material.TRIPWIRE)
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
                     fixClientsideUpdate(event.getBlockAgainst().getLocation()), 1L);
         event.setCancelled(true);
     }
@@ -103,7 +103,7 @@ public class StringBlockMechanicListener implements Listener {
             if (clicked == null)
                 return;
             Material type = clicked.getType();
-            if (type == null || clicked.getType().isInteractable())
+            if (clicked.getType().isInteractable())
                 return;
             if (type == Material.LAVA_BUCKET)
                 type = Material.LAVA;
@@ -195,7 +195,7 @@ public class StringBlockMechanicListener implements Listener {
                 if (changed.getType() != Material.TRIPWIRE) continue;
 
                 final BlockData data = changed.getBlockData().clone();
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
                         changed.setBlockData(data, false), 1L);
             }
         }
@@ -318,7 +318,7 @@ public class StringBlockMechanicListener implements Listener {
         mechanic.getDrop().spawns(block.getLocation(), item);
         block.setType(Material.AIR, false);
         final Block blockAbove = block.getRelative(BlockFace.UP);
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable -> {
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             fixClientsideUpdate(block.getLocation());
             if (blockAbove.getType() == Material.TRIPWIRE)
                 breakStringBlock(blockAbove, getStringMechanic(blockAbove), new ItemStack(Material.AIR));

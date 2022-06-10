@@ -59,8 +59,7 @@ public class CustomRecipe {
             return false;
         if (object == this)
             return true;
-        if (object instanceof CustomRecipe) {
-            CustomRecipe customRecipe = (CustomRecipe) object;
+        if (object instanceof CustomRecipe customRecipe) {
             return result.equals(customRecipe.result) && areEqual(ingredients, customRecipe.ingredients);
         }
         return false;
@@ -106,8 +105,7 @@ public class CustomRecipe {
      */
 
     public static CustomRecipe fromRecipe(Recipe bukkitRecipe) {
-        if (bukkitRecipe instanceof ShapedRecipe) {
-            ShapedRecipe recipe = (ShapedRecipe) bukkitRecipe;
+        if (bukkitRecipe instanceof ShapedRecipe recipe) {
             List<ItemStack> ingredients = new ArrayList<>(9);
             Map<Character, ItemStack> map = recipe.getIngredientMap();
             for (String row : recipe.getShape()) {
@@ -121,8 +119,7 @@ public class CustomRecipe {
                 }
             }
             return new CustomRecipe(recipe.getKey().getKey(), recipe.getResult(), ingredients, true);
-        } else if (bukkitRecipe instanceof ShapelessRecipe) {
-            ShapelessRecipe recipe = (ShapelessRecipe) bukkitRecipe;
+        } else if (bukkitRecipe instanceof ShapelessRecipe recipe) {
             List<ItemStack> ingredients = new ArrayList<>(9);
             ingredients.addAll(recipe.getIngredientList());
             return new CustomRecipe(recipe.getKey().getKey(), recipe.getResult(), ingredients, false);

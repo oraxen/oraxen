@@ -22,7 +22,7 @@ public abstract class SpellMechanic extends Mechanic {
     private final TimersFactory timersFactory;
     public static final NamespacedKey NAMESPACED_KEY = new NamespacedKey(OraxenPlugin.get(), "charges");
 
-    public SpellMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
+    protected SpellMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section,
                 // Initialize charges from config -> -1 if not set for infinite charges
                 item -> {

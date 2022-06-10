@@ -78,11 +78,11 @@ public class ItemBuilder {
 
         final ItemMeta itemMeta = itemStack.getItemMeta();
 
-        if (itemMeta instanceof Damageable)
-            durability = ((Damageable) itemMeta).getDamage();
+        if (itemMeta instanceof Damageable damageable)
+            durability = damageable.getDamage();
 
-        if (itemMeta instanceof LeatherArmorMeta)
-            color = ((LeatherArmorMeta) itemMeta).getColor();
+        if (itemMeta instanceof LeatherArmorMeta leatherArmorMeta)
+            color = leatherArmorMeta.getColor();
 
         if (itemMeta instanceof PotionMeta potionMeta) {
             color = potionMeta.getColor();
@@ -90,8 +90,8 @@ public class ItemBuilder {
             potionEffects = new ArrayList<>(potionMeta.getCustomEffects());
         }
 
-        if (itemMeta instanceof SkullMeta)
-            owningPlayer = ((SkullMeta) itemMeta).getOwningPlayer();
+        if (itemMeta instanceof SkullMeta skullMeta)
+            owningPlayer = skullMeta.getOwningPlayer();
 
         if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta) {
             bodyColor = tropicalFishBucketMeta.getBodyColor();
@@ -194,8 +194,8 @@ public class ItemBuilder {
     @SuppressWarnings("unchecked")
     public <T, Z> Z getCustomTag(final NamespacedKey namespacedKey, final PersistentDataType<T, Z> dataType) {
         for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
-            if (dataSpace.getKey().getNamespacedKey().equals(namespacedKey)
-                    && dataSpace.getKey().getDataType().equals(dataType))
+            if (dataSpace.getKey().namespacedKey().equals(namespacedKey)
+                    && dataSpace.getKey().dataType().equals(dataType))
                 return (Z) dataSpace.getValue();
         return null;
     }
@@ -319,8 +319,8 @@ public class ItemBuilder {
             for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
                 itemMeta
                         .getPersistentDataContainer()
-                        .set(dataSpace.getKey().getNamespacedKey(),
-                                (PersistentDataType<?, Object>) dataSpace.getKey().getDataType(), dataSpace.getValue());
+                        .set(dataSpace.getKey().namespacedKey(),
+                                (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
 
         itemMeta.setLore(lore);
 
@@ -332,16 +332,15 @@ public class ItemBuilder {
 
     private ItemMeta handleVariousMeta(ItemMeta itemMeta) {
         // durability
-        if (itemMeta instanceof Damageable damageable) if (durability != damageable.getDamage()) {
+        if (itemMeta instanceof Damageable damageable && durability != damageable.getDamage()) {
             damageable.setDamage(durability);
             return damageable;
         }
 
-        if (itemMeta instanceof LeatherArmorMeta leatherArmorMeta)
-            if (color != null && !color.equals(leatherArmorMeta.getColor())) {
-                leatherArmorMeta.setColor(color);
-                return leatherArmorMeta;
-            }
+        if (itemMeta instanceof LeatherArmorMeta leatherArmorMeta && color != null && !color.equals(leatherArmorMeta.getColor())) {
+            leatherArmorMeta.setColor(color);
+            return leatherArmorMeta;
+        }
 
         if (itemMeta instanceof PotionMeta potionMeta)
             return handlePotionMeta(potionMeta);

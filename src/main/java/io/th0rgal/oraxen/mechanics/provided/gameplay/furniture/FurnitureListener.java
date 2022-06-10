@@ -387,8 +387,8 @@ public class FurnitureListener implements Listener {
         if (block.getType() != Material.NOTE_BLOCK) return null;
         final NoteBlock noteBlock = (NoteBlock) block.getBlockData();
         return NoteBlockMechanicFactory
-                .getBlockMechanic((int) (noteBlock.getInstrument().getType()) * 25
-                        + (int) noteBlock.getNote().getId() + (noteBlock.isPowered() ? 400 : 0) - 26);
+                .getBlockMechanic((noteBlock.getInstrument().getType()) * 25
+                        + noteBlock.getNote().getId() + (noteBlock.isPowered() ? 400 : 0) - 26);
     }
 
 }

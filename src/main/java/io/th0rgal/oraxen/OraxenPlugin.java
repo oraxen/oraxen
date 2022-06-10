@@ -42,7 +42,7 @@ public class OraxenPlugin extends JavaPlugin {
     private ResourcePack resourcePack;
     private ClickActionManager clickActionManager;
 
-    public OraxenPlugin() throws Exception {
+    public OraxenPlugin() throws NoSuchFieldException, IllegalAccessException {
         oraxen = this;
         Logs.enableFilter();
     }

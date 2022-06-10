@@ -21,14 +21,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 public class RecipesEventsManager implements Listener {
 
     private static RecipesEventsManager instance;
     private Map<CustomRecipe, String> permissionsPerRecipe = new HashMap<>();
     private Set<CustomRecipe> whitelistedCraftRecipes = new HashSet<>();
-    private ArrayList<CustomRecipe> whitelistedCraftRecipesOrdered = new ArrayList<CustomRecipe>();
+    private ArrayList<CustomRecipe> whitelistedCraftRecipesOrdered = new ArrayList<>();
 
     public static RecipesEventsManager get() {
         if (instance == null) {
@@ -50,12 +49,7 @@ public class RecipesEventsManager implements Listener {
         ItemStack result = event.getInventory().getResult();
         if (result == null)
             return;
-        boolean containsOraxenItem = false;
-        if (!containsOraxenItem)
-            if (Arrays.stream(event.getInventory().getMatrix()).anyMatch(ingredient ->
-                    OraxenItems.exists(OraxenItems.getIdByItem(ingredient)))) {
-                containsOraxenItem = true;
-            }
+        boolean containsOraxenItem = Arrays.stream(event.getInventory().getMatrix()).anyMatch(ingredient -> OraxenItems.exists(OraxenItems.getIdByItem(ingredient)));
         if (!containsOraxenItem || recipe == null) return;
         CustomRecipe current = new CustomRecipe(null, recipe.getResult(),
                 Arrays.asList(event.getInventory().getMatrix()));
@@ -85,7 +79,7 @@ public class RecipesEventsManager implements Listener {
         return whitelistedCraftRecipesOrdered
                 .stream()
                 .filter(customRecipe -> !permissionsPerRecipe.containsKey(customRecipe) || hasPermission(sender, customRecipe))
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public String[] getPermittedRecipesName(CommandSender sender) {

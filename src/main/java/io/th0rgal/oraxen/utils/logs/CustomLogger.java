@@ -16,7 +16,7 @@ public class CustomLogger extends PluginLogger {
 
     @Override
     public void log(@NotNull LogRecord logRecord) {
-        if (logRecord != null && logRecord.getLevel() != Level.INFO) {
+        if (logRecord.getLevel() != Level.INFO) {
             try {
                 logRecord.setMessage(Message.PREFIX.toString() + ' ' + logRecord.getMessage());
             } catch (NullPointerException exception) {

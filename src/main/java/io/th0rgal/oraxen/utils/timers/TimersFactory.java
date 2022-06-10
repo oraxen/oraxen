@@ -21,9 +21,7 @@ public class TimersFactory {
 
     public Timer getTimer(Player player) {
         UUID playerUniqueID = player.getUniqueId();
-        if (!timersPerUUID.containsKey(playerUniqueID))
-            timersPerUUID.put(playerUniqueID, new Timer(delay));
-        return timersPerUUID.get(playerUniqueID);
+        return timersPerUUID.computeIfAbsent(playerUniqueID, uuid -> new Timer(delay));
     }
 
 }

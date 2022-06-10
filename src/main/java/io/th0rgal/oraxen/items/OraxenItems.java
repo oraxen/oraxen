@@ -23,6 +23,8 @@ import java.util.stream.Stream;
 
 public class OraxenItems {
 
+    private OraxenItems() {}
+
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
     // configuration sections : their OraxenItem wrapper
     private static Map<File, Map<String, ItemBuilder>> map;
@@ -66,7 +68,7 @@ public class OraxenItems {
     public static List<ItemBuilder> getUnexcludedItems() {
         return itemStream()
                 .filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public static List<ItemBuilder> getUnexcludedItems(final File file) {
@@ -75,7 +77,7 @@ public class OraxenItems {
                 .values()
                 .stream()
                 .filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public static List<ItemStack> getItemStacksByName(final List<List<String>> lists) {
@@ -97,7 +99,7 @@ public class OraxenItems {
                 }
             });
             return Stream.of(itemStack[0]);
-        }).collect(Collectors.toList());
+        }).toList();
     }
 
     public static Map<File, Map<String, ItemBuilder>> getMap() {
@@ -113,7 +115,7 @@ public class OraxenItems {
     }
 
     public static Collection<ItemBuilder> getItems() {
-        return itemStream().collect(Collectors.toList());
+        return itemStream().toList();
     }
 
     @Deprecated

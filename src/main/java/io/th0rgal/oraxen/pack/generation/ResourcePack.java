@@ -82,8 +82,13 @@ public class ResourcePack {
         if (!Settings.GENERATE.toBool())
             return;
 
-        if (pack.exists())
-            pack.delete();
+        if (pack.exists()) {
+            try {
+                Files.delete(pack.toPath());
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         extractInPackIfNotExists(plugin, new File(packFolder, "pack.mcmeta"));
         extractInPackIfNotExists(plugin, new File(packFolder, "pack.png"));
@@ -278,19 +283,23 @@ public class ResourcePack {
     }
 
     private void readFileToVirtuals(final Collection<VirtualFile> fileList, File file, String newFolder) {
-        try {
-            final InputStream fis;
-            if (file.getName().endsWith(".json")) fis = processJsonFile(file);
-            else if (file.getName().endsWith(".fsh")) fis = processShaderFile(file);
-            else if (customArmorsTextures.registerImage(file)) return;
-            else fis = new FileInputStream(file);
+        try(final InputStream fis = getProcessedFileStream(file)) {
+            if(fis == null) return;
 
             fileList.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder),
                     file.getName(),
                     fis));
-        } catch (IOException e) {
+        } catch(IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private InputStream getProcessedFileStream(File file) throws IOException {
+        String fileName = file.getName();
+        if (fileName.endsWith(".json")) return processJsonFile(file);
+        else if (fileName.endsWith(".fsh")) return processShaderFile(file);
+        else if (customArmorsTextures.registerImage(file)) return null;
+        return new FileInputStream(file);
     }
 
     private InputStream processJsonFile(File file) throws IOException {

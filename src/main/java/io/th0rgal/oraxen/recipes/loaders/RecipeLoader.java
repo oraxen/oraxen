@@ -16,7 +16,7 @@ public abstract class RecipeLoader {
 
     private final ConfigurationSection section;
 
-    public RecipeLoader(ConfigurationSection section) {
+    protected RecipeLoader(ConfigurationSection section) {
         this.section = section;
     }
 

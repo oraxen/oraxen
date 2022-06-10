@@ -36,7 +36,7 @@ public class ItemsView {
         final Map<File, ChestGui> files = new HashMap<>();
         for (final File file : OraxenItems.getMap().keySet()) {
             final List<ItemBuilder> unexcludedItems = OraxenItems.getUnexcludedItems(file);
-            if (unexcludedItems.size() > 0)
+            if (!unexcludedItems.isEmpty())
                 files.put(file, createSubGUI(file.getName(), unexcludedItems));
         }
         final int rows = (files.size() - 1) / 9 + 1;

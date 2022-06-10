@@ -65,7 +65,7 @@ public class RepairMechanicListener implements Listener {
             persistentDataContainer
                     .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realMaxDurability - finalDamage);
 
-            double realDamageToSet = (double) finalDamage / (double) realMaxDurability * (double) toRepair.getType().getMaxDurability();
+            double realDamageToSet = (double) finalDamage / (double) realMaxDurability * toRepair.getType().getMaxDurability();
 
             damageable.setDamage((int) realDamageToSet);
         }

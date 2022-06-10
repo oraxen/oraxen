@@ -25,8 +25,8 @@ public class Polymath implements HostingProvider {
             CUrl curl = new CUrl(serverAddress + "upload")
                     .form("id", "%%__USER__%%")
                     .form("pack", new CUrl.FileIO(resourcePack.getPath()));
-            JsonObject jsonOutput = (JsonObject) new JsonParser()
-                    .parse(new String(curl.exec(), StandardCharsets.UTF_8));
+            JsonObject jsonOutput = (JsonObject) JsonParser
+                    .parseString(new String(curl.exec(), StandardCharsets.UTF_8));
             if (jsonOutput.has("url") || jsonOutput.has("sha1")) {
                 packUrl = jsonOutput.get("url").getAsString();
                 minecraftPackURL = packUrl.replace("https://", "http://");

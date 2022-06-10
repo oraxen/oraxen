@@ -22,7 +22,6 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class ConfigsManager {
 
@@ -126,7 +125,7 @@ public class ConfigsManager {
         List<File> configs = Arrays
                 .stream(getGlyphsFiles())
                 .filter(file -> file.getName().endsWith(".yml"))
-                .collect(Collectors.toList());
+                .toList();
         Map<String, Integer> codePerGlyph = new HashMap<>();
         for (File file : configs) {
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
@@ -173,7 +172,7 @@ public class ConfigsManager {
         List<File> configs = Arrays
                 .stream(getItemsFiles())
                 .filter(file -> file.getName().endsWith(".yml"))
-                .collect(Collectors.toList());
+                .toList();
         for (File file : configs)
             parseMap.put(file, parseItemConfigs(YamlConfiguration.loadConfiguration(file), file));
         return parseMap;

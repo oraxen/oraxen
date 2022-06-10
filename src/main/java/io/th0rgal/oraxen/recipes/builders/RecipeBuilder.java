@@ -27,7 +27,7 @@ public abstract class RecipeBuilder {
     private final Player player;
     private final String builderName;
 
-    public RecipeBuilder(Player player, String builderName) {
+    protected RecipeBuilder(Player player, String builderName) {
         this.player = player;
         this.builderName = builderName;
         this.inventoryTitle = player.getName() + " " + builderName + " builder";
