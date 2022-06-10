@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.misc.armorpotioneffects;
 
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
-
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;

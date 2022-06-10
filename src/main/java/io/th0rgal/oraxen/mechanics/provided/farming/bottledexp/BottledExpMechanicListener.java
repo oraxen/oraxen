@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.farming.bottledexp;
 
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.OraxenItems;
-
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;

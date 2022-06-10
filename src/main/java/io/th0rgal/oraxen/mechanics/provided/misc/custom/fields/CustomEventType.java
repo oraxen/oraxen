@@ -6,8 +6,6 @@ import io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners.DropListener;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners.PickupListener;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 
-import java.util.List;
-
 public enum CustomEventType {
 
     CLICK(ClickListener::new),

@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.ReflectionUtils;
-
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 

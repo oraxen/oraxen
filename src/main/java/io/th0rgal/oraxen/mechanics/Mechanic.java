@@ -1,8 +1,8 @@
 package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.items.ItemBuilder;
-
 import org.bukkit.configuration.ConfigurationSection;
+
 import java.util.function.Function;
 
 public abstract class Mechanic {

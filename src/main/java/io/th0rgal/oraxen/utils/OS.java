@@ -1,7 +1,5 @@
 package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.utils.logs.Logs;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
