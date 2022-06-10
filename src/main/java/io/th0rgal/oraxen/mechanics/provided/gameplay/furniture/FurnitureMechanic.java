@@ -331,6 +331,8 @@ public class FurnitureMechanic extends Mechanic {
         return (Arrays.asList(Rotation.values()).indexOf(rotation) * 360f) / 8f;
     }
 
+    public boolean hasClickActions() { return !clickActions.isEmpty(); }
+
     public void runClickActions(final Player player) {
         for (final ClickAction action : clickActions) {
             if (action.canRun(player)) {
