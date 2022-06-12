@@ -128,6 +128,9 @@ public class StringBlockMechanicListener implements Listener {
                     for (ItemStack item : block.getDrops())
                         player.getWorld().dropItemNaturally(block.getLocation(), item);
                 block.setType(Material.AIR, false);
+                for (ItemStack drop : block.getDrops(player.getInventory().getItemInMainHand(), player)) {
+                    block.getWorld().dropItemNaturally(block.getLocation(), drop);
+                }
                 if (Utils.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) blockAbove.breakNaturally();
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
                         fixClientsideUpdate(block.getLocation()), 1);
