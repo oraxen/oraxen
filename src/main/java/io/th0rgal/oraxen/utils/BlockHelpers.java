@@ -173,7 +173,6 @@ public class BlockHelpers {
 
     private static void handleDirectionalBlocks(Block block, BlockFace face) {
         final BlockData data = block.getBlockData();
-        Bukkit.broadcastMessage(data.getMaterial().toString());
         if (data instanceof Directional) {
             if (data instanceof FaceAttachable) {
                 if (face == BlockFace.UP) ((FaceAttachable) data).setAttachedFace(FaceAttachable.AttachedFace.FLOOR);
