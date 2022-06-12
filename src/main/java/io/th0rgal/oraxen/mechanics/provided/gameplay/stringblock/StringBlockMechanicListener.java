@@ -124,12 +124,11 @@ public class StringBlockMechanicListener implements Listener {
         final Block block = event.getBlock();
         final Block blockAbove = block.getRelative(BlockFace.UP);
         final Player player = event.getPlayer();
-
         for (BlockFace face : BlockFace.values()) {
+            if (face == BlockFace.SELF && !face.isCartesian()) continue;
+            if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
             if (block.getRelative(face).getType() == Material.TRIPWIRE) {
-                final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
-                        .getBlockMechanic(StringBlockMechanicFactory.getCode((Tripwire) block.getRelative(face).getBlockData()));
-                if (stringBlockMechanic == null && player.getGameMode() == GameMode.CREATIVE)
+                if (getStringMechanic(block.getRelative(face)) != null && player.getGameMode() != GameMode.CREATIVE)
                     for (ItemStack item : block.getDrops())
                         player.getWorld().dropItemNaturally(block.getLocation(), item);
                 block.setType(Material.AIR, false);
@@ -227,16 +226,14 @@ public class StringBlockMechanicListener implements Listener {
     }
 
     // Paper only
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onWaterCollide(final BlockBreakBlockEvent event) {
         Block block = event.getBlock();
-        if (block.getType() == Material.TRIPWIRE) {
-            breakStringBlock(block, getStringMechanic(block), new ItemStack(Material.AIR));
+        if (block.getType() == Material.TRIPWIRE)
             event.getDrops().removeIf(item -> item.getType() == Material.STRING);
-        }
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onWaterUpdate(final BlockFromToEvent event) {
         if (event.getBlock().isLiquid()) {
             for (BlockFace f : BlockFace.values()) {
@@ -245,6 +242,7 @@ public class StringBlockMechanicListener implements Listener {
                 if (changed.getType() != Material.TRIPWIRE) continue;
 
                 final BlockData data = changed.getBlockData().clone();
+                breakStringBlock(changed, getStringMechanic(changed), new ItemStack(Material.AIR));
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
                         changed.setBlockData(data, false), 1L);
             }
