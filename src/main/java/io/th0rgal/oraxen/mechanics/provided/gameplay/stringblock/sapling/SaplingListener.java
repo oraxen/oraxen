@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling;
 
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -32,6 +33,7 @@ public class SaplingListener implements Listener {
         if (sapling.requiresLight() && sapling.getMinLightLevel() > block.getLightLevel()) return;
         if (sapling.requiresWaterSource() && sapling.isInWater(block)) return;
         if (!sapling.canGrowFromBoneMeal()) return;
+        if (!Bukkit.getPluginManager().isPluginEnabled("WorldEdit")) return;
 
         double random = Math.random() * 100;
         if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);

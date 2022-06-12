@@ -29,6 +29,7 @@ public class SaplingTask extends BukkitRunnable {
 
     @Override
     public void run() {
+        if (!Bukkit.getPluginManager().isPluginEnabled("WorldEdit")) return;
         for (World world : Bukkit.getWorlds()) {
             for (Chunk chunk : world.getLoadedChunks()) {
                 for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk)) {
