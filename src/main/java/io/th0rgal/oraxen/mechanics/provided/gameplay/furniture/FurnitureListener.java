@@ -316,7 +316,8 @@ public class FurnitureListener implements Listener {
                 return;
             }
 
-            mechanic.runClickActions(event.getPlayer());
+            if (mechanic.hasClickActions())
+                mechanic.runClickActions(event.getPlayer());
         }
 
         final ArmorStand seat = getSeat(block.getLocation());

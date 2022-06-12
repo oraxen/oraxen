@@ -92,18 +92,20 @@ public class NoteBlockMechanicListener implements Listener {
 
         NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
 
-        if (noteBlockMechanic != null) {
-            if (noteBlockMechanic.isDirectional())
-                noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
+        if (noteBlockMechanic == null) return;
 
-            OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(noteBlockMechanic, block, event.getItem(), event.getPlayer());
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockInteractEvent);
-            if (noteBlockInteractEvent.isCancelled()) {
-                event.setCancelled(true);
-                return;
-            }
-            noteBlockMechanic.runClickActions(player);
+        if (noteBlockMechanic.isDirectional())
+            noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
+
+        OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(noteBlockMechanic, block, event.getItem(), event.getPlayer());
+        OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockInteractEvent);
+        if (noteBlockInteractEvent.isCancelled()) {
+            event.setCancelled(true);
+            return;
         }
+
+        if (noteBlockMechanic.hasClickActions())
+            noteBlockMechanic.runClickActions(player);
 
         event.setCancelled(true);
         if (item == null) return;
