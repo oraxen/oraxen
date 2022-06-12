@@ -5,6 +5,8 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingListener;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingTask;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -24,12 +26,17 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     private static JsonObject variants;
     private static StringBlockMechanicFactory instance;
     public final List<String> toolTypes;
+    private boolean sapling;
+    private static SaplingTask saplingTask;
+    public final int saplingGrowthCheckDelay;
 
     public StringBlockMechanicFactory(ConfigurationSection section) {
         super(section);
         instance = this;
         variants = new JsonObject();
         toolTypes = section.getStringList("tool_types");
+        saplingGrowthCheckDelay = section.getInt("sapling_growth_check_delay");
+        sapling = false;
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
         OraxenPlugin.get().getResourcePack().addModifiers(getMechanicID(),
@@ -39,6 +46,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
                                     "tripwire.json", getBlockstateContent());
                 });
         MechanicsManager.registerListeners(OraxenPlugin.get(), new StringBlockMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new SaplingListener());
     }
 
     public static JsonObject getModelJson(String modelName) {
@@ -138,5 +146,14 @@ public class StringBlockMechanicFactory extends MechanicFactory {
          * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
          */
         return createTripwireData(((StringBlockMechanic) getInstance().getMechanic(itemID)).getCustomVariation());
+    }
+
+    public void registerSaplingMechanic() {
+        if (sapling) return;
+        if (saplingTask != null) saplingTask.cancel();
+
+        saplingTask = new SaplingTask(this, saplingGrowthCheckDelay);
+        saplingTask.runTaskTimer(OraxenPlugin.get(), 0, saplingGrowthCheckDelay);
+        sapling = true;
     }
 }
