@@ -220,7 +220,7 @@ public class StringBlockMechanicListener implements Listener {
     public void onWaterUpdate(final BlockFromToEvent event) {
         if (!event.getBlock().isLiquid()) return;
         for (BlockFace f : BlockFace.values()) {
-            if (!f.isCartesian() || f.getModY() != 0 || f == BlockFace.SELF) continue; // Only take N/S/W/E
+            if (!f.isCartesian() || f == BlockFace.SELF) continue; // Only take N/S/W/E
             final Block changed = event.getToBlock().getRelative(f);
             if (changed.getType() == Material.TRIPWIRE) {
                 breakStringBlock(changed, getStringMechanic(changed), new ItemStack(Material.AIR));
