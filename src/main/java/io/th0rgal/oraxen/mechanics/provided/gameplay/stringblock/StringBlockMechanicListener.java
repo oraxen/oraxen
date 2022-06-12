@@ -119,18 +119,14 @@ public class StringBlockMechanicListener implements Listener {
         final Block block = event.getBlock();
         final Block blockAbove = block.getRelative(BlockFace.UP);
         final Player player = event.getPlayer();
-
         for (BlockFace face : BlockFace.values()) {
+            if (face == BlockFace.SELF && !face.isCartesian()) continue;
+            if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
             if (block.getRelative(face).getType() == Material.TRIPWIRE) {
-                final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
-                        .getBlockMechanic(StringBlockMechanicFactory.getCode((Tripwire) block.getRelative(face).getBlockData()));
-                if (stringBlockMechanic == null && player.getGameMode() == GameMode.CREATIVE)
+                if (getStringMechanic(block.getRelative(face)) != null && player.getGameMode() != GameMode.CREATIVE)
                     for (ItemStack item : block.getDrops())
                         player.getWorld().dropItemNaturally(block.getLocation(), item);
                 block.setType(Material.AIR, false);
-                for (ItemStack drop : block.getDrops(player.getInventory().getItemInMainHand(), player)) {
-                    block.getWorld().dropItemNaturally(block.getLocation(), drop);
-                }
                 if (Utils.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) blockAbove.breakNaturally();
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
                         fixClientsideUpdate(block.getLocation()), 1);
