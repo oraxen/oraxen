@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
-import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
@@ -19,8 +18,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Snowable;
-import org.bukkit.block.data.type.Snow;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -54,6 +51,16 @@ public class StringBlockMechanicListener implements Listener {
     public void tripwireEvent(BlockPhysicsEvent event) {
         if (event.getChangedType() == Material.TRIPWIRE)
             event.setCancelled(true);
+
+        for (BlockFace f : BlockFace.values()) {
+            if (!f.isCartesian() || f.getModY() != 0 || f == BlockFace.SELF) continue; // Only take N/S/W/E
+            final Block changed = event.getBlock().getRelative(f);
+            if (changed.getType() != Material.TRIPWIRE) continue;
+
+            final BlockData data = changed.getBlockData().clone();
+            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                    changed.setBlockData(data, false), 1L);
+        }
     }
 
     // Paper Only
@@ -141,12 +148,8 @@ public class StringBlockMechanicListener implements Listener {
             breakStringBlock(block, stringBlockMechanic, player.getInventory().getItemInMainHand());
             event.setDropItems(false);
         } else if (blockAbove.getType() == Material.TRIPWIRE) {
-            ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
-            final StringBlockMechanic stringBlockMechanic = getStringMechanic(blockAbove);
-        } else if (blockAbove.getType() == Material.TRIPWIRE) {
             ItemStack item = player.getInventory().getItemInMainHand();
-            final StringBlockMechanic stringBlockMechanic = StringBlockMechanicFactory
-                    .getBlockMechanic(StringBlockMechanicFactory.getCode(((Tripwire) blockAbove.getBlockData())));
+            final StringBlockMechanic stringBlockMechanic = getStringMechanic(blockAbove);
             if (stringBlockMechanic == null) return;
             event.setCancelled(true);
             block.breakNaturally(item);
@@ -175,6 +178,7 @@ public class StringBlockMechanicListener implements Listener {
         final Block placedAgainst = event.getClickedBlock();
         final Player player = event.getPlayer();
 
+        if (placedAgainst == null) return;
         if (placedAgainst.getType().isInteractable() && !player.isSneaking()) {
             if (placedAgainst.getType() == Material.NOTE_BLOCK && getNoteBlockMechanic(placedAgainst) == null) return;
             else if (placedAgainst.getType() != Material.NOTE_BLOCK) return;
@@ -212,26 +216,15 @@ public class StringBlockMechanicListener implements Listener {
         event.setCancelled(true);
     }
 
-    // Paper only
-    @EventHandler(priority = EventPriority.HIGH)
-    public void onWaterCollide(final BlockBreakBlockEvent event) {
-        Block block = event.getBlock();
-        if (block.getType() == Material.TRIPWIRE)
-            event.getDrops().removeIf(item -> item.getType() == Material.STRING);
-    }
-
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onWaterUpdate(final BlockFromToEvent event) {
-        if (event.getBlock().isLiquid()) {
-            for (BlockFace f : BlockFace.values()) {
-                if (!f.isCartesian() || f.getModY() != 0 || f == BlockFace.SELF) continue; // Only take N/S/W/E
-                final Block changed = event.getToBlock().getRelative(f);
-                if (changed.getType() != Material.TRIPWIRE) continue;
-
-                final BlockData data = changed.getBlockData().clone();
+        if (!event.getBlock().isLiquid()) return;
+        for (BlockFace f : BlockFace.values()) {
+            if (!f.isCartesian() || f.getModY() != 0 || f == BlockFace.SELF) continue; // Only take N/S/W/E
+            final Block changed = event.getToBlock().getRelative(f);
+            if (changed.getType() == Material.TRIPWIRE) {
                 breakStringBlock(changed, getStringMechanic(changed), new ItemStack(Material.AIR));
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                        changed.setBlockData(data, false), 1L);
+                changed.setType(Material.AIR, false);
             }
         }
     }
@@ -256,48 +249,6 @@ public class StringBlockMechanicListener implements Listener {
                 }
             }
             event.setCursor(item);
-        }
-    }
-
-    // Snow triggers physics update
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onPlacingSnow(final BlockPlaceEvent event) {
-        if (checkSurroundingBlocks(event.getBlock()))
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                    fixClientsideUpdate(event.getBlock().getLocation()), 1);
-
-
-        Block placed = event.getBlockPlaced();
-        Block against = placed.getRelative(BlockFace.DOWN);
-
-        if (event.getItemInHand().getType() != Material.SNOW || !(against.getBlockData() instanceof Snowable)) return;
-        if (checkSurroundingBlocks(placed) || checkSurroundingBlocks(against)) {
-            Snowable againstData = ((Snowable) against.getBlockData());
-            againstData.setSnowy(true);
-            against.setBlockData(againstData, false);
-
-            placed.setType(Material.SNOW, false);
-            Snow placedData = (Snow) placed.getBlockData();
-            placedData.setLayers(1);
-            placed.setBlockData(placedData, false);
-        }
-    }
-
-    // Snow triggers physics update
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onBreakingSnow(final BlockBreakEvent event) {
-        Block block = event.getBlock();
-        Block below = block.getRelative(BlockFace.DOWN);
-
-        if (block.getType() != Material.SNOW && !(below.getBlockData() instanceof Snowable)) return;
-        if (checkSurroundingBlocks(block) || checkSurroundingBlocks(below)) {
-            event.setCancelled(true);
-            Snowable belowData = ((Snowable) below.getBlockData());
-            belowData.setSnowy(false);
-            below.setBlockData(belowData, false);
-            block.setType(Material.AIR, false);
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                    fixClientsideUpdate(block.getLocation()), 1);
         }
     }
 

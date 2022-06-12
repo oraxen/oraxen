@@ -290,10 +290,12 @@ public class NoteBlockMechanicListener implements Listener {
                     return false;
 
                 NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
+                if (noteBlockMechanic == null) return false;
+
                 if (noteBlockMechanic.isDirectional())
                     noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
 
-                return noteBlockMechanic != null && noteBlockMechanic.hasHardness;
+                return noteBlockMechanic.hasHardness;
             }
 
             @Override
