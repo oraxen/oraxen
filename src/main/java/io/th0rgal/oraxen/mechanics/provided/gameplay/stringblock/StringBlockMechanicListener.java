@@ -301,7 +301,7 @@ public class StringBlockMechanicListener implements Listener {
         }
     }
 
-    private StringBlockMechanic getStringMechanic(Block block) {
+    public static StringBlockMechanic getStringMechanic(Block block) {
         if (block.getType() == Material.TRIPWIRE) {
             final Tripwire tripwire = (Tripwire) block.getBlockData();
             return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
