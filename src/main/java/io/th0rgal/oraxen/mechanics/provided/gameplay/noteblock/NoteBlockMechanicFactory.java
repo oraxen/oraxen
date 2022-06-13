@@ -50,6 +50,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                 });
         MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockMechanicListener(this));
         MechanicsManager.registerListeners(OraxenPlugin.get(), new LogStripListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new io.th0rgal.oraxen.mechanics.provided.gameplay.general.SwapListener(this));
     }
 
     public static String getInstrumentName(int id) {
