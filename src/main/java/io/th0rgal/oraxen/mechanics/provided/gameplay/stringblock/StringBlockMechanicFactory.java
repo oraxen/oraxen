@@ -39,6 +39,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
                                     "tripwire.json", getBlockstateContent());
                 });
         MechanicsManager.registerListeners(OraxenPlugin.get(), new StringBlockMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new io.th0rgal.oraxen.mechanics.provided.gameplay.general.SwapListener(this));
     }
 
     public static JsonObject getModelJson(String modelName) {
