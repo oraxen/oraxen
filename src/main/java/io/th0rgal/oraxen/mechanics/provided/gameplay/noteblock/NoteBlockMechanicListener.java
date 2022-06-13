@@ -17,6 +17,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
+import org.bukkit.block.ShulkerBox;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.entity.EntityType;
@@ -31,6 +32,7 @@ import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -201,6 +203,12 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingBlock(final BlockPlaceEvent event) {
+        if (event.getBlockPlaced().getState() instanceof ShulkerBox) {
+            ShulkerBox meta = (ShulkerBox) ((BlockStateMeta) event.getItemInHand().getItemMeta()).getBlockState();
+            for (ItemStack item : meta.getInventory())
+                ((ShulkerBox) event.getBlockPlaced().getState()).getInventory().addItem(item);
+        }
+
         if (event.getBlockPlaced().getType() != Material.NOTE_BLOCK
                 || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
