@@ -21,6 +21,8 @@ public class SaplingMechanic {
     private final int minLightLevel;
     private final boolean requiresWaterSource;
     private final String schematicName;
+    private final boolean shouldCopyBiomes;
+    private final boolean shouldCopyEntities;
 
     public SaplingMechanic(String itemId, ConfigurationSection section) {
         id = itemId;
@@ -32,6 +34,8 @@ public class SaplingMechanic {
         minLightLevel = section.getInt("minLightLevel", 0);
         requiresWaterSource = section.getBoolean("requiresWaterSource", false);
         schematicName = section.getString("schematicName", null);
+        shouldCopyBiomes = section.getBoolean("shouldCopyBiomes", false);
+        shouldCopyEntities = section.getBoolean("shouldCopyEntities", false);
     }
 
     public boolean requiresWaterSource() {
@@ -84,6 +88,9 @@ public class SaplingMechanic {
         if (!schem.exists()) return null;
         else return schem;
     }
+
+    public boolean copyBiomes() { return shouldCopyBiomes; }
+    public boolean copyEntities() { return shouldCopyEntities; }
 
     public boolean isInWater(Block block) {
         return block.getRelative(BlockFace.DOWN).getType() == Material.WATER;

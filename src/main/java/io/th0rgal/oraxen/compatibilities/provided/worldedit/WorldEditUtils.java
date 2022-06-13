@@ -21,7 +21,7 @@ import java.io.IOException;
 
 public class WorldEditUtils {
 
-    protected static void pasteSchematic(Location loc, File schematic) {
+    protected static void pasteSchematic(Location loc, File schematic, Boolean shouldCopyBiomes, Boolean shouldCopyEntities) {
         ClipboardFormat clipboardFormat = ClipboardFormats.findByFile(schematic);
         assert clipboardFormat != null;
         ClipboardReader reader;
@@ -43,7 +43,8 @@ public class WorldEditUtils {
             EditSession editSession = WorldEdit.getInstance().getEditSessionFactory().getEditSession(adaptedWorld, -1);
 
             Operation operation = new ClipboardHolder(clipboard).createPaste(editSession)
-                    .to(BlockVector3.at(loc.getX(), loc.getY(), loc.getZ())).ignoreAirBlocks(true).build();
+                    .to(BlockVector3.at(loc.getX(), loc.getY(), loc.getZ()))
+                    .copyBiomes(shouldCopyBiomes).copyEntities(shouldCopyEntities).ignoreAirBlocks(true).build();
 
             try {
                 Operations.complete(operation);

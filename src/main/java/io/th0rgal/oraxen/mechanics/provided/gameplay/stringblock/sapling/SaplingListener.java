@@ -42,7 +42,7 @@ public class SaplingListener implements Listener {
             block.setType(Material.AIR, false);
             if (sapling.hasGrowSound())
                 block.getWorld().playSound(block.getLocation(), sapling.getGrowSound(), 1.0f, 0.8f);
-            WrappedWorldEdit.pasteSchematic(block.getLocation(), sapling.getSchematic());
+            WrappedWorldEdit.pasteSchematic(block.getLocation(), sapling.getSchematic(), sapling.copyBiomes(), sapling.copyEntities());
         }
     }
 }

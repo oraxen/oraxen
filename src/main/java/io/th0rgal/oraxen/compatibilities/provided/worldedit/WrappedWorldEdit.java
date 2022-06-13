@@ -13,7 +13,7 @@ public class WrappedWorldEdit {
         loaded = Bukkit.getPluginManager().isPluginEnabled("WorldEdit");
     }
 
-    public static void pasteSchematic(Location loc, File schematic) {
-        if (loaded) WorldEditUtils.pasteSchematic(loc, schematic);
+    public static void pasteSchematic(Location loc, File schematic, Boolean shouldCopyBiomes, Boolean shouldCopyEntities) {
+        if (loaded) WorldEditUtils.pasteSchematic(loc, schematic, shouldCopyBiomes, shouldCopyEntities);
     }
 }
