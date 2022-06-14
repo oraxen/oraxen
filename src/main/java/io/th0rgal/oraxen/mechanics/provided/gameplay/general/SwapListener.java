@@ -40,8 +40,13 @@ import java.util.logging.Level;
 
 			if (block.getType() == Material.NOTE_BLOCK) {
 				NoteBlockMechanic m = getNoteBlockMechanic(block);
+				
+				if(m==null)return;
 				if (m.isDirectional())
 					m = (NoteBlockMechanic) factory.getMechanic(m.getDirectional().getParentBlock());
+				
+				if(!m.getSection().contains("swap")) return;
+				
 				for (String key : m.getSection().getConfigurationSection("swap").getKeys(false)) {
 					Swap swap = new Swap(m.getSection().getConfigurationSection("swap." + key));
 					Boolean swa = false;
@@ -62,8 +67,7 @@ import java.util.logging.Level;
 					try {
 						BlockMechanicFactory.setBlockModel(block, swap.toblock);
 					}catch(Exception e) {
-						io.th0rgal.oraxen.OraxenPlugin.get().getLogger().log(Level.WARNING, "Error in config: "+m.getSection().getCurrentPath());
-						io.th0rgal.oraxen.OraxenPlugin.get().getLogger().log(Level.WARNING, "Error in config: Block Name" + swap.toblock);
+						io.th0rgal.oraxen.OraxenPlugin.get().getLogger().log(Level.WARNING, "Model: "+swap.toblock+" Error in config: "+m.getSection().getCurrentPath());
 					}
 
 				}
@@ -72,6 +76,11 @@ import java.util.logging.Level;
 
 			if (block.getType() == Material.TRIPWIRE) {
 				StringBlockMechanic m = getStringMechanic(block);
+				
+				if(m==null)return;
+				
+				if(!m.getSection().contains("swap")) return;
+				
 				for (String key : m.getSection().getConfigurationSection("swap").getKeys(false)) {
 					Swap swap = new Swap(m.getSection().getConfigurationSection("swap." + key));
 					Boolean swa = false;
@@ -91,7 +100,7 @@ import java.util.logging.Level;
 					try {
 						BlockMechanicFactory.setBlockModel(block, swap.toblock);
 					}catch(Exception e) {
-						io.th0rgal.oraxen.OraxenPlugin.get().getLogger().log(Level.WARNING, "Error in config: "+m.getSection().getCurrentPath());
+						io.th0rgal.oraxen.OraxenPlugin.get().getLogger().log(Level.WARNING, "Model: "+swap.toblock+" Error in config: "+m.getSection().getCurrentPath());
 					}
 
 				}
