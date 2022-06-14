@@ -89,6 +89,7 @@ public class NoteBlockMechanicListener implements Listener {
 
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK)
             return;
+        if (block.getType().isInteractable()) return;
 
         NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
 
@@ -217,12 +218,11 @@ public class NoteBlockMechanicListener implements Listener {
 
         final ItemStack item = event.getItem();
         final String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID))
-            return;
+        if (factory.isNotImplementedIn(itemID)) return;
 
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
-
+        if (placedAgainst.getType().isInteractable()) return;
         // determines the new block data of the block
         NoteBlockMechanic mechanic = (NoteBlockMechanic) factory.getMechanic(itemID);
         int customVariation = mechanic.getCustomVariation();
