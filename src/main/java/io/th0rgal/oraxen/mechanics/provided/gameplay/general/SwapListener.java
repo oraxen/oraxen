@@ -37,6 +37,9 @@ public class SwapListener implements Listener {
 		Player player = event.getPlayer();
 		Block block = event.getClickedBlock();
 
+		if(block==null)return;
+		if(block.getType() ==null)return;
+		
 		if (block.getType() == Material.NOTE_BLOCK) {
 			NoteBlockMechanic m = getNoteBlockMechanic(block);
 
