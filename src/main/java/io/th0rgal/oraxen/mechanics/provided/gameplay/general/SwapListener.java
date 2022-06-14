@@ -68,7 +68,7 @@ public class SwapListener implements Listener {
 						.contains(event.getPlayer().getInventory().getItemInMainHand().getType().toString())) {
 					swa = true;
 				}
-				if(swap.action !=null{
+				if(swap.action !=null){
 					if(!swap.action.equalsIgnoreCase(event.getAction().toString()){
 						swa=false;
 					}
