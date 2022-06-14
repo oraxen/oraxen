@@ -11,11 +11,22 @@ import org.bukkit.block.data.type.Bed;
 import org.bukkit.block.data.type.Chest;
 import org.bukkit.block.data.type.*;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.BlockInventoryHolder;
+import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.util.RayTraceResult;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class BlockHelpers {
 
-    public static boolean correctAllBlockStates(Block block, Player player, BlockFace face) {
+    public static final List<Material> REPLACEABLE_BLOCKS = Arrays
+            .asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,
+                    Material.LARGE_FERN, Material.AIR);
+
+    public static boolean correctAllBlockStates(Block block, Player player, BlockFace face, ItemStack item) {
         final BlockData data = block.getBlockData();
         final BlockState state = block.getState();
         final Material type = block.getType();
@@ -25,7 +36,8 @@ public class BlockHelpers {
         if (type.toString().endsWith("TORCH") && face == BlockFace.DOWN) return false;
         if (state instanceof Sign && face == BlockFace.DOWN) return false;
         if (data instanceof Ageable) return handleAgeableBlocks(block, face);
-        if (!(data instanceof Door) && (data instanceof Bisected || data instanceof Slab)) handleHalfBlocks(block, player);
+        if (!(data instanceof Door) && (data instanceof Bisected || data instanceof Slab))
+            handleHalfBlocks(block, player);
         if (data instanceof Rotatable) handleRotatableBlocks(block, player);
         if (type.toString().contains("CORAL") && !type.toString().endsWith("CORAL_BLOCK") && face == BlockFace.DOWN)
             return false;
@@ -58,6 +70,12 @@ public class BlockHelpers {
             if (face != BlockFace.DOWN) return false;
             ((Lantern) data).setHanging(true);
             block.setBlockData(data, false);
+        }
+
+        if (state instanceof BlockInventoryHolder) {
+            Inventory inv = ((Container)((BlockStateMeta) item.getItemMeta()).getBlockState()).getInventory();
+            for (ItemStack i : inv)
+                if (i != null) ((BlockInventoryHolder) block.getState()).getInventory().addItem(i);
         }
         return true;
     }
@@ -92,7 +110,7 @@ public class BlockHelpers {
         final BlockData data = block.getBlockData();
         final Block up = block.getRelative(BlockFace.UP);
         if (data instanceof Door) {
-            if (up.getType().isSolid() || !Utils.REPLACEABLE_BLOCKS.contains(up.getType())) return false;
+            if (up.getType().isSolid() || !BlockHelpers.REPLACEABLE_BLOCKS.contains(up.getType())) return false;
             if (getLeftBlock(block, player).getBlockData() instanceof Door)
                 ((Door) data).setHinge(Door.Hinge.RIGHT);
             else ((Door) data).setHinge(Door.Hinge.LEFT);
@@ -104,7 +122,8 @@ public class BlockHelpers {
             block.setBlockData(data, false);
         } else if (data instanceof Bed) {
             final Block nextBlock = block.getRelative(player.getFacing());
-            if (nextBlock.getType().isSolid() || !Utils.REPLACEABLE_BLOCKS.contains(nextBlock.getType())) return false;
+            if (nextBlock.getType().isSolid() || !BlockHelpers.REPLACEABLE_BLOCKS.contains(nextBlock.getType()))
+                return false;
             nextBlock.setType(block.getType(), false);
             final Bed nextData = (Bed) nextBlock.getBlockData();
             block.getRelative(player.getFacing()).setBlockData(data, false);
@@ -125,7 +144,7 @@ public class BlockHelpers {
             ((Chest) data).setFacing(player.getFacing().getOppositeFace());
             block.setBlockData(data, true);
         } else if (data instanceof Bisected) {
-            if (up.getType().isSolid() || !Utils.REPLACEABLE_BLOCKS.contains(up.getType())) return false;
+            if (up.getType().isSolid() || !BlockHelpers.REPLACEABLE_BLOCKS.contains(up.getType())) return false;
 
             ((Bisected) data).setHalf(Bisected.Half.TOP);
             block.getRelative(BlockFace.UP).setBlockData(data, false);
