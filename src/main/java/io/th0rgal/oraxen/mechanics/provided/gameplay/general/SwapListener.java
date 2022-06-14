@@ -63,6 +63,7 @@ import java.util.logging.Level;
 						BlockMechanicFactory.setBlockModel(block, swap.toblock);
 					}catch(Exception e) {
 						io.th0rgal.oraxen.OraxenPlugin.get().getLogger().log(Level.WARNING, "Error in config: "+m.getSection().getCurrentPath());
+						io.th0rgal.oraxen.OraxenPlugin.get().getLogger().log(Level.WARNING, "Error in config: Block Name" + swap.toblock);
 					}
 
 				}
