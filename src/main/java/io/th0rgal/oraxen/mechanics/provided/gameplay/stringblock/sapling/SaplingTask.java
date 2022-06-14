@@ -38,8 +38,8 @@ public class SaplingTask extends BukkitRunnable {
                     if (pdc.has(SAPLING_KEY, PersistentDataType.INTEGER) && block.getType() == Material.TRIPWIRE) {
                         StringBlockMechanic string = getStringMechanic(block);
                         if (string == null || !string.isSapling()) return;
-                        SaplingMechanic sapling = string.getSaplingMechanic();
 
+                        SaplingMechanic sapling = string.getSaplingMechanic();
                         if (!sapling.canGrowNaturally()) continue;
                         if (!sapling.hasSchematic()) continue;
                         if (sapling.requiresWaterSource() && !sapling.isInWater(block)) continue;
@@ -47,12 +47,11 @@ public class SaplingTask extends BukkitRunnable {
                         if (!sapling.replaceBlocks() && !WorldEditUtils.getBlocksInSchematic(block.getLocation(), sapling.getSchematic()).isEmpty()) continue;
 
                         int growthTimeRemains = pdc.get(SAPLING_KEY, PersistentDataType.INTEGER) - delay;
-                        Bukkit.broadcastMessage(String.valueOf(growthTimeRemains));
                         if (growthTimeRemains <= 0) {
+                            block.setType(Material.AIR, false);
                             if (sapling.hasGrowSound())
                                 block.getWorld().playSound(block.getLocation(), sapling.getGrowSound(), 1.0f, 0.8f);
                             WrappedWorldEdit.pasteSchematic(block.getLocation(), sapling.getSchematic(), sapling.replaceBlocks(), sapling.copyBiomes(), sapling.copyEntities());
-                            (new CustomBlockData(block, OraxenPlugin.get())).clear();
                         } else pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, growthTimeRemains);
                     }
                 }

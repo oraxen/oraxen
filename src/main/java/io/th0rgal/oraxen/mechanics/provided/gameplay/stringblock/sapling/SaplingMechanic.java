@@ -16,7 +16,7 @@ public class SaplingMechanic {
     private final boolean canGrowNaturally;
     private final int naturalGrowthTime;
     private final boolean canGrowFromBoneMeal;
-    private final int boneMealGrowChance;
+    private final int boneMealGrowthSpeedup;
     private final String growSound;
     private final int minLightLevel;
     private final boolean requiresWaterSource;
@@ -30,7 +30,7 @@ public class SaplingMechanic {
         canGrowNaturally = section.getBoolean("canGrowNaturally", true);
         naturalGrowthTime = section.getInt("naturalGrowthTime", 6000); // Default of 5 mins
         canGrowFromBoneMeal = section.getBoolean("canGrowFromBoneMeal", true);
-        boneMealGrowChance = Math.min(section.getInt("boneMealGrowChance", 50), 100);
+        boneMealGrowthSpeedup = Math.min(section.getInt("boneMealGrowthSpeedup", naturalGrowthTime/5), naturalGrowthTime);
         growSound = section.getString("growSound", null);
         minLightLevel = section.getInt("minLightLevel", 0);
         requiresWaterSource = section.getBoolean("requiresWaterSource", false);
@@ -64,8 +64,8 @@ public class SaplingMechanic {
         return canGrowFromBoneMeal;
     }
 
-    public int getBoneMealGrowChance() {
-        return boneMealGrowChance;
+    public int getBoneMealGrowthSpeedup() {
+        return boneMealGrowthSpeedup;
     }
 
     public boolean hasGrowSound() {

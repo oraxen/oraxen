@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling;
 
+import com.jeff_media.customblockdata.CustomBlockData;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WorldEditUtils;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
@@ -15,8 +17,11 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener.getStringMechanic;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 
 public class SaplingListener implements Listener {
 
@@ -27,8 +32,10 @@ public class SaplingListener implements Listener {
         ItemStack item = event.getItem();
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() != EquipmentSlot.HAND) return;
         if (block == null || item == null || item.getType() != Material.BONE_MEAL) return;
+
         StringBlockMechanic mechanic = getStringMechanic(block);
         if (mechanic == null || !mechanic.isSapling()) return;
+
         SaplingMechanic sapling = mechanic.getSaplingMechanic();
         if (sapling == null || !sapling.hasSchematic()) return;
         if (sapling.requiresLight() && sapling.getMinLightLevel() > block.getLightLevel()) return;
@@ -40,11 +47,15 @@ public class SaplingListener implements Listener {
         double random = Math.random() * 100;
         if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         block.getWorld().spawnParticle(Particle.COMPOSTER, block.getLocation().add(0.5, 0.2, 0.5), 10);
-        if (random < sapling.getBoneMealGrowChance()) {
-            WrappedWorldEdit.pasteSchematic(block.getLocation(), sapling.getSchematic(), sapling.replaceBlocks(), sapling.copyBiomes(), sapling.copyEntities());
+
+        PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
+        int growthTimeRemains = pdc.get(SAPLING_KEY, PersistentDataType.INTEGER) - sapling.getBoneMealGrowthSpeedup();
+        if (growthTimeRemains <= 0) {
+            block.setType(Material.AIR, false);
             if (sapling.hasGrowSound())
-                block.getWorld().playSound(block.getLocation(), sapling.getGrowSound(), 1.0f, 0.8f);
-        }
+                player.playSound(block.getLocation(), sapling.getGrowSound(), 1.0f, 0.8f);
+            WrappedWorldEdit.pasteSchematic(block.getLocation(), sapling.getSchematic(), sapling.replaceBlocks(), sapling.copyBiomes(), sapling.copyEntities());
+        } else pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, growthTimeRemains);
     }
 }
 

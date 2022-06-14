@@ -54,7 +54,7 @@ public class WorldEditUtils {
                     .copyBiomes(shouldCopyBiomes).copyEntities(shouldCopyEntities).ignoreAirBlocks(true).build();
 
             try {
-                if (replaceBlocks || getBlocksInSchematic(loc, schematic).isEmpty())
+                if (replaceBlocks || getBlocksInSchematic(clipboard, world).isEmpty())
                     Operations.complete(operation);
                 editSession.close();
 
@@ -66,6 +66,21 @@ public class WorldEditUtils {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private static List<Block> getBlocksInSchematic(Clipboard clipboard, World world) {
+        List<Block> list = new ArrayList<>();
+        for (int x = clipboard.getMinimumPoint().getX(); x <= clipboard.getMaximumPoint().getX(); x++) {
+            for (int y = clipboard.getMinimumPoint().getY(); y <= clipboard.getMaximumPoint().getY(); y++) {
+                for (int z = clipboard.getMinimumPoint().getZ(); z <= clipboard.getMaximumPoint().getZ(); z++) {
+                    Block block = world.getBlockAt(x,y,z);
+                    // Skip replacable blocks // Exclude origin-block
+                    if (BlockVector3.at(x, y, z) != clipboard.getOrigin() && Utils.REPLACEABLE_BLOCKS.contains(block))
+                        list.add(block);
+                }
+            }
+        }
+        return list;
     }
 
     public static List<Block> getBlocksInSchematic(Location loc, File schematic) {
@@ -92,9 +107,9 @@ public class WorldEditUtils {
             for (int y = clipboard.getMinimumPoint().getY(); y <= clipboard.getMaximumPoint().getY(); y++) {
                 for (int z = clipboard.getMinimumPoint().getZ(); z <= clipboard.getMaximumPoint().getZ(); z++) {
                     Block block = world.getBlockAt(x,y,z);
-                    if (BlockVector3.at(x, y, z) == clipboard.getOrigin()) continue; // Exclude origin-block
-                    if (Utils.REPLACEABLE_BLOCKS.contains(block)) continue; // Skip replacable blocks
-                    list.add(block);
+                    // Skip replacable blocks // Exclude origin-block
+                    if (BlockVector3.at(x, y, z) != clipboard.getOrigin() && Utils.REPLACEABLE_BLOCKS.contains(block))
+                        list.add(block);
                 }
             }
         }
