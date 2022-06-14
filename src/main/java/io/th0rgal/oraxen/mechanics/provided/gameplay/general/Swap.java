@@ -6,8 +6,10 @@ import java.util.logging.Level;
 
 public class Swap {
 	public String toblock;
+	public String action;
 	public List<String> items;
 	public Swap(ConfigurationSection SwapSection) {
+		action = SwapSection.getString("action");
 		toblock = SwapSection.getString("switch");
 		items = SwapSection.getStringList("object");
 	}
