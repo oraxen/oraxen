@@ -46,6 +46,11 @@ public class BlockMechanicFactory extends MechanicFactory {
         mushroomStem.add("multipart", multipart);
         return mushroomStem.toString();
     }
+    
+    
+    public static BlockMechanicFactory getInstance() {
+        return instance;
+    }
 
     public static JsonObject getBlockstateOverride(String modelName, int when) {
         JsonObject content = new JsonObject();
