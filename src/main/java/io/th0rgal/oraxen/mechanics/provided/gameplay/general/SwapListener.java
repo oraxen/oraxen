@@ -51,9 +51,7 @@ public class SwapListener implements Listener {
 			for (String key : m.getSection().getConfigurationSection("swap").getKeys(false)) {
 				Swap swap = new Swap(m.getSection().getConfigurationSection("swap." + key));
 				Boolean swa = false;
-				if ((swap.items.contains("HAND") && event.getPlayer().getInventory().getItemInMainHand() == null)
-						|| (swap.items.contains("HAND") && event.getPlayer().getInventory().getItemInMainHand()
-								.getType().equals(Material.AIR))) {
+				if (swap.items.contains("HAND") && event.getPlayer().getInventory().getItemInMainHand() == null) {
 					swa = true;
 				}
 
