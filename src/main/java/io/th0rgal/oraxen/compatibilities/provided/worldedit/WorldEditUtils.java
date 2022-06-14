@@ -57,6 +57,7 @@ public class WorldEditUtils {
                 if (replaceBlocks || getBlocksInSchematic(clipboard, loc).isEmpty())
                     Operations.complete(operation);
                 editSession.close();
+                reader.close();
 
             } catch (WorldEditException e) {
                 OraxenPlugin.get().getLogger().warning("Could not paste schematic for sapling-mechanic");
@@ -119,6 +120,12 @@ public class WorldEditUtils {
                 }
             }
         }
+        try {
+            reader.close();
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+
         return list;
     }
 }
