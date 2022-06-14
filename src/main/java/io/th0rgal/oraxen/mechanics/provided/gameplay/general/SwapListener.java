@@ -73,6 +73,10 @@ public class SwapListener implements Listener {
 						swa=false;
 					}
 				}
+					   
+				if((swap.shift+"")!="null"){
+					swa = (player.isSneaking() == swap.shift);
+				}
 				
 				try {
 					NoteBlockMechanicFactory.setBlockModel(block, swap.toblock);
