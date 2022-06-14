@@ -77,44 +77,6 @@ public class SwapListener implements Listener {
 			}
 		}
 
-		if (block.getType() == Material.TRIPWIRE) {
-			StringBlockMechanic m = getStringMechanic(block);
-
-			if (m == null)
-				return;
-
-			if (!m.getSection().contains("swap"))
-				return;
-
-			for (String key : m.getSection().getConfigurationSection("swap").getKeys(false)) {
-				Swap swap = new Swap(m.getSection().getConfigurationSection("swap." + key));
-				Boolean swa = false;
-				if ((swap.items.contains("HAND") && event.getPlayer().getInventory().getItemInMainHand() == null)
-						|| (swap.items.contains("HAND") && event.getPlayer().getInventory().getItemInMainHand()
-								.getType().equals(Material.AIR))) {
-					swa = true;
-				}
-				if (io.th0rgal.oraxen.items.OraxenItems
-						.getIdByItem(event.getPlayer().getInventory().getItemInMainHand()) != null) {
-					if (swap.items.contains(io.th0rgal.oraxen.items.OraxenItems
-							.getIdByItem(event.getPlayer().getInventory().getItemInMainHand()))) {
-						swa = true;
-					}
-				} else if (swap.items
-						.contains(event.getPlayer().getInventory().getItemInMainHand().getType().toString())) {
-					swa = true;
-				}
-				try {
-					StringBlockMechanicFactory.setBlockModel(block, swap.toblock);
-				} catch (Exception e) {
-
-					io.th0rgal.oraxen.OraxenPlugin.get().getLogger().log(Level.WARNING,
-							"Model: " + swap.toblock + " Error in config: " + m.getSection().getCurrentPath());
-				}
-
-			}
-
-		}
 	}
 
 }
