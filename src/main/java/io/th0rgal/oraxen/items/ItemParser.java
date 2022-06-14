@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -38,8 +39,8 @@ public class ItemParser {
     public ItemParser(ConfigurationSection section) {
         this.section = section;
 
-        if (section.isConfigurationSection("MMOItems"))
-            mmoItem = new WrappedMMOItem(section.getConfigurationSection("MMOItems"));
+        if (section.isConfigurationSection("mmoitem"))
+            mmoItem = new WrappedMMOItem(section.getConfigurationSection("mmoitem"));
         else
             type = Material.getMaterial(section.getString("material"));
 
