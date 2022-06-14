@@ -49,6 +49,10 @@ public class OraxenItems {
         return entryStream().anyMatch(entry -> entry.getKey().equals(itemId));
     }
 
+    public static boolean exists(final ItemStack itemStack) {
+        return entryStream().anyMatch(entry -> entry.getKey().equals(OraxenItems.getIdByItem(itemStack)));
+    }
+
     public static Optional<ItemBuilder> getOptionalItemById(final String id) {
         return entryStream().filter(entry -> entry.getKey().equals(id)).findFirst().map(Entry::getValue);
     }
