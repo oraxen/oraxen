@@ -17,7 +17,6 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
-import org.bukkit.block.ShulkerBox;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.entity.EntityType;
@@ -32,7 +31,6 @@ import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -112,19 +110,19 @@ public class NoteBlockMechanicListener implements Listener {
         event.setCancelled(true);
         if (item == null) return;
 
-        Block above = block.getRelative(event.getBlockFace());
+        Block relative = block.getRelative(event.getBlockFace());
         Material type = item.getType();
         if (type == Material.AIR) return;
-        if (type == Material.BUCKET && above.isLiquid()) {
+        if (type == Material.BUCKET && relative.isLiquid()) {
             final Sound sound;
-            if (above.getType() == Material.WATER) sound = Sound.ITEM_BUCKET_FILL;
-            else sound = Sound.valueOf("ITEM_BUCKET_FILL_" + above.getType());
+            if (relative.getType() == Material.WATER) sound = Sound.ITEM_BUCKET_FILL;
+            else sound = Sound.valueOf("ITEM_BUCKET_FILL_" + relative.getType());
 
             if (player.getGameMode() != GameMode.CREATIVE)
-                item.setType(Material.getMaterial(above.getType() + "_BUCKET"));
+                item.setType(Material.getMaterial(relative.getType() + "_BUCKET"));
 
-            player.playSound(above.getLocation(), sound, 1.0f, 1.0f);
-            above.setType(Material.AIR, true);
+            player.playSound(relative.getLocation(), sound, 1.0f, 1.0f);
+            relative.setType(Material.AIR, true);
             return;
         }
 
@@ -142,8 +140,13 @@ public class NoteBlockMechanicListener implements Listener {
                 type = Material.getMaterial(bucketBlock);
             else {
                 type = Material.WATER;
-                player.getWorld().spawnEntity(above.getLocation().add(0.5, 0.0, 0.5), bucketEntity);
+                player.getWorld().spawnEntity(relative.getLocation().add(0.5, 0.0, 0.5), bucketEntity);
             }
+        }
+
+        if (type.hasGravity() && relative.getRelative(BlockFace.DOWN).getType() == Material.AIR) {
+            block.getWorld().spawnFallingBlock(relative.getLocation().add(0.5,0,0.5), Bukkit.createBlockData(type));
+            return;
         }
 
         if (type.isBlock())
@@ -203,18 +206,9 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingBlock(final BlockPlaceEvent event) {
-        if (event.getBlockPlaced().getState() instanceof ShulkerBox) {
-            ShulkerBox meta = (ShulkerBox) ((BlockStateMeta) event.getItemInHand().getItemMeta()).getBlockState();
-            for (ItemStack item : meta.getInventory())
-                ((ShulkerBox) event.getBlockPlaced().getState()).getInventory().addItem(item);
-        }
-
-        if (event.getBlockPlaced().getType() != Material.NOTE_BLOCK
-                || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
-            return;
-
-        if (event.getBlockPlaced().getType() == Material.NOTE_BLOCK)
-            event.getBlock().setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
+        Material type = event.getBlockPlaced().getType();
+        if (type != Material.NOTE_BLOCK || OraxenItems.exists(event.getItemInHand())) return;
+        event.getBlock().setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -345,7 +339,7 @@ public class NoteBlockMechanicListener implements Listener {
         final Sound sound;
         final Material type = placedAgainst.getType();
 
-        if (Utils.REPLACEABLE_BLOCKS.contains(type))
+        if (BlockHelpers.REPLACEABLE_BLOCKS.contains(type))
             target = placedAgainst;
 
         else {
@@ -363,7 +357,7 @@ public class NoteBlockMechanicListener implements Listener {
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
-        if (!BlockHelpers.correctAllBlockStates(target, player, face)) blockPlaceEvent.setCancelled(true);
+        if (!BlockHelpers.correctAllBlockStates(target, player, face, item)) blockPlaceEvent.setCancelled(true);
 
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
