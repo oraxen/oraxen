@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import com.jeff_media.customblockdata.CustomBlockData;
-import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
@@ -266,7 +265,7 @@ public class StringBlockMechanicListener implements Listener {
         }
     }
 
-    public StringBlockMechanic getStringMechanic(Block block) {
+    public static StringBlockMechanic getStringMechanic(Block block) {
         if (block.getType() == Material.TRIPWIRE) {
             final Tripwire tripwire = (Tripwire) block.getBlockData();
             return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));

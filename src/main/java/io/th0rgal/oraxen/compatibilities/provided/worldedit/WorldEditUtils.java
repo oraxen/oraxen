@@ -13,7 +13,7 @@ import com.sk89q.worldedit.function.operation.Operations;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
@@ -75,7 +75,7 @@ public class WorldEditUtils {
                 for (int z = clipboard.getMinimumPoint().getZ(); z <= clipboard.getMaximumPoint().getZ(); z++) {
                     Block block = world.getBlockAt(x,y,z);
                     // Skip replacable blocks // Exclude origin-block
-                    if (BlockVector3.at(x, y, z) != clipboard.getOrigin() && Utils.REPLACEABLE_BLOCKS.contains(block))
+                    if (BlockVector3.at(x, y, z) != clipboard.getOrigin() && !BlockHelpers.REPLACEABLE_BLOCKS.contains(block))
                         list.add(block);
                 }
             }
@@ -108,7 +108,7 @@ public class WorldEditUtils {
                 for (int z = clipboard.getMinimumPoint().getZ(); z <= clipboard.getMaximumPoint().getZ(); z++) {
                     Block block = world.getBlockAt(x,y,z);
                     // Skip replacable blocks // Exclude origin-block
-                    if (BlockVector3.at(x, y, z) != clipboard.getOrigin() && Utils.REPLACEABLE_BLOCKS.contains(block))
+                    if (BlockVector3.at(x, y, z) != clipboard.getOrigin() && !BlockHelpers.REPLACEABLE_BLOCKS.contains(block))
                         list.add(block);
                 }
             }

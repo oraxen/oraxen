@@ -87,14 +87,11 @@ public class NoteBlockMechanicListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
 
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK)
-            return;
-        if (block.getType().isInteractable()) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK) return;
+        if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
 
         NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
-
         if (noteBlockMechanic == null) return;
-
         if (noteBlockMechanic.isDirectional())
             noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
 
