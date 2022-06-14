@@ -75,7 +75,9 @@ public class SwapListener implements Listener {
 				}
 					   
 				if((swap.shift+"")!="null"){
-					swa = (player.isSneaking() == swap.shift);
+					if(swap.shift == true){
+					swa = player.isSneaking();
+					}
 				}
 				
 				try {
