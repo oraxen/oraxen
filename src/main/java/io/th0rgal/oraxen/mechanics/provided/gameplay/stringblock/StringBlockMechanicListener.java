@@ -217,10 +217,8 @@ public class StringBlockMechanicListener implements Listener {
         if (mechanic.isSapling()) {
             SaplingMechanic sapling = mechanic.getSaplingMechanic();
             final PersistentDataContainer pdc = new CustomBlockData(placedBlock, OraxenPlugin.get());
-            if (sapling.hasSchematic())
-                pdc.set(SAPLING_KEY, PersistentDataType.STRING, mechanic.getItemID());
             if (mechanic.getSaplingMechanic().canGrowNaturally())
-                pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, 0);
+                pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, sapling.getNaturalGrowthTime());
         }
         event.setCancelled(true);
     }

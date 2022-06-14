@@ -21,19 +21,21 @@ public class SaplingMechanic {
     private final int minLightLevel;
     private final boolean requiresWaterSource;
     private final String schematicName;
+    private final boolean shouldReplaceBlocks;
     private final boolean shouldCopyBiomes;
     private final boolean shouldCopyEntities;
 
     public SaplingMechanic(String itemId, ConfigurationSection section) {
         id = itemId;
         canGrowNaturally = section.getBoolean("canGrowNaturally", true);
-        naturalGrowthTime = section.getInt("", 6000); // Default of 5 mins
+        naturalGrowthTime = section.getInt("naturalGrowthTime", 6000); // Default of 5 mins
         canGrowFromBoneMeal = section.getBoolean("canGrowFromBoneMeal", true);
         boneMealGrowChance = Math.min(section.getInt("boneMealGrowChance", 50), 100);
         growSound = section.getString("growSound", null);
         minLightLevel = section.getInt("minLightLevel", 0);
         requiresWaterSource = section.getBoolean("requiresWaterSource", false);
         schematicName = section.getString("schematicName", null);
+        shouldReplaceBlocks = section.getBoolean("shouldReplaceBlocks", false);
         shouldCopyBiomes = section.getBoolean("shouldCopyBiomes", false);
         shouldCopyEntities = section.getBoolean("shouldCopyEntities", false);
     }
@@ -89,6 +91,7 @@ public class SaplingMechanic {
         else return schem;
     }
 
+    public boolean replaceBlocks() { return shouldReplaceBlocks; }
     public boolean copyBiomes() { return shouldCopyBiomes; }
     public boolean copyEntities() { return shouldCopyEntities; }
 

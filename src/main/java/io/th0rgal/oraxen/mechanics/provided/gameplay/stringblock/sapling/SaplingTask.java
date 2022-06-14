@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.compatibilities.provided.worldedit.WorldEditUtils;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
@@ -34,7 +35,7 @@ public class SaplingTask extends BukkitRunnable {
             for (Chunk chunk : world.getLoadedChunks()) {
                 for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk)) {
                     PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
-                    if (pdc.has(SAPLING_KEY, PersistentDataType.STRING) && block.getType() == Material.TRIPWIRE) {
+                    if (pdc.has(SAPLING_KEY, PersistentDataType.INTEGER) && block.getType() == Material.TRIPWIRE) {
                         StringBlockMechanic string = getStringMechanic(block);
                         if (string == null || !string.isSapling()) return;
                         SaplingMechanic sapling = string.getSaplingMechanic();
@@ -43,17 +44,16 @@ public class SaplingTask extends BukkitRunnable {
                         if (!sapling.hasSchematic()) continue;
                         if (sapling.requiresWaterSource() && !sapling.isInWater(block)) continue;
                         if (sapling.requiresLight() && block.getLightLevel() < sapling.getMinLightLevel()) continue;
+                        if (!sapling.replaceBlocks() && !WorldEditUtils.getBlocksInSchematic(block.getLocation(), sapling.getSchematic()).isEmpty()) continue;
 
-                        if (pdc.has(SAPLING_KEY, PersistentDataType.INTEGER)) {
-                            int growthTimeRemains = pdc.get(SAPLING_KEY, PersistentDataType.INTEGER) + delay;
-
-                            if (sapling.getNaturalGrowthTime() - growthTimeRemains <= 0) {
-                                block.setType(Material.AIR, false);
-                                if (sapling.hasGrowSound())
-                                    block.getWorld().playSound(block.getLocation(), sapling.getGrowSound(), 1.0f, 0.8f);
-                                WrappedWorldEdit.pasteSchematic(block.getLocation(), sapling.getSchematic(), sapling.copyBiomes(), sapling.copyEntities());
-                            } else pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, growthTimeRemains);
-                        } else pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, 0);
+                        int growthTimeRemains = pdc.get(SAPLING_KEY, PersistentDataType.INTEGER) - delay;
+                        Bukkit.broadcastMessage(String.valueOf(growthTimeRemains));
+                        if (growthTimeRemains <= 0) {
+                            if (sapling.hasGrowSound())
+                                block.getWorld().playSound(block.getLocation(), sapling.getGrowSound(), 1.0f, 0.8f);
+                            WrappedWorldEdit.pasteSchematic(block.getLocation(), sapling.getSchematic(), sapling.replaceBlocks(), sapling.copyBiomes(), sapling.copyEntities());
+                            (new CustomBlockData(block, OraxenPlugin.get())).clear();
+                        } else pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, growthTimeRemains);
                     }
                 }
             }

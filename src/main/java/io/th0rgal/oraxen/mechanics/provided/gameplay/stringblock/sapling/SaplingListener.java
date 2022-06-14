@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling;
 
+import io.th0rgal.oraxen.compatibilities.provided.worldedit.WorldEditUtils;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import org.bukkit.Bukkit;
@@ -34,15 +35,15 @@ public class SaplingListener implements Listener {
         if (sapling.requiresWaterSource() && sapling.isInWater(block)) return;
         if (!sapling.canGrowFromBoneMeal()) return;
         if (!Bukkit.getPluginManager().isPluginEnabled("WorldEdit")) return;
+        if (!sapling.replaceBlocks() && !WorldEditUtils.getBlocksInSchematic(block.getLocation(), sapling.getSchematic()).isEmpty()) return;
 
         double random = Math.random() * 100;
         if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         block.getWorld().spawnParticle(Particle.COMPOSTER, block.getLocation().add(0.5, 0.2, 0.5), 10);
         if (random < sapling.getBoneMealGrowChance()) {
-            block.setType(Material.AIR, false);
+            WrappedWorldEdit.pasteSchematic(block.getLocation(), sapling.getSchematic(), sapling.replaceBlocks(), sapling.copyBiomes(), sapling.copyEntities());
             if (sapling.hasGrowSound())
                 block.getWorld().playSound(block.getLocation(), sapling.getGrowSound(), 1.0f, 0.8f);
-            WrappedWorldEdit.pasteSchematic(block.getLocation(), sapling.getSchematic(), sapling.copyBiomes(), sapling.copyEntities());
         }
     }
 }
