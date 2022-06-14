@@ -54,7 +54,7 @@ public class WorldEditUtils {
                     .copyBiomes(shouldCopyBiomes).copyEntities(shouldCopyEntities).ignoreAirBlocks(true).build();
 
             try {
-                if (replaceBlocks || getBlocksInSchematic(clipboard, world).isEmpty())
+                if (replaceBlocks || getBlocksInSchematic(clipboard, loc).isEmpty())
                     Operations.complete(operation);
                 editSession.close();
 
@@ -68,15 +68,20 @@ public class WorldEditUtils {
         }
     }
 
-    private static List<Block> getBlocksInSchematic(Clipboard clipboard, World world) {
+    private static List<Block> getBlocksInSchematic(Clipboard clipboard, Location loc) {
         List<Block> list = new ArrayList<>();
+        World world = loc.getWorld();
+        assert world != null;
+
         for (int x = clipboard.getMinimumPoint().getX(); x <= clipboard.getMaximumPoint().getX(); x++) {
             for (int y = clipboard.getMinimumPoint().getY(); y <= clipboard.getMaximumPoint().getY(); y++) {
                 for (int z = clipboard.getMinimumPoint().getZ(); z <= clipboard.getMaximumPoint().getZ(); z++) {
-                    Block block = world.getBlockAt(x,y,z);
-                    // Skip replacable blocks // Exclude origin-block
-                    if (BlockVector3.at(x, y, z) != clipboard.getOrigin() && !BlockHelpers.REPLACEABLE_BLOCKS.contains(block))
-                        list.add(block);
+                    Location offset = new Location(world, x - clipboard.getOrigin().getBlockX(), y - clipboard.getOrigin().getBlockY(), z - clipboard.getOrigin().getBlockZ());
+
+                    Block block = world.getBlockAt(loc.clone().add(offset));
+                    if (BlockHelpers.REPLACEABLE_BLOCKS.contains(block.getType())) continue;
+                    if (BlockHelpers.toBlockLocation(loc).equals(BlockHelpers.toBlockLocation(loc))) continue;
+                    list.add(block);
                 }
             }
         }
@@ -86,7 +91,7 @@ public class WorldEditUtils {
     public static List<Block> getBlocksInSchematic(Location loc, File schematic) {
         List<Block> list = new ArrayList<>();
         World world = loc.getWorld();
-        if (world == null) return list;
+        assert world != null;
 
         ClipboardFormat clipboardFormat = ClipboardFormats.findByFile(schematic);
         assert clipboardFormat != null;
@@ -102,14 +107,15 @@ public class WorldEditUtils {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
         for (int x = clipboard.getMinimumPoint().getX(); x <= clipboard.getMaximumPoint().getX(); x++) {
             for (int y = clipboard.getMinimumPoint().getY(); y <= clipboard.getMaximumPoint().getY(); y++) {
                 for (int z = clipboard.getMinimumPoint().getZ(); z <= clipboard.getMaximumPoint().getZ(); z++) {
-                    Block block = world.getBlockAt(x,y,z);
-                    // Skip replacable blocks // Exclude origin-block
-                    if (BlockVector3.at(x, y, z) != clipboard.getOrigin() && !BlockHelpers.REPLACEABLE_BLOCKS.contains(block))
-                        list.add(block);
+                    Location offset = new Location(world, x - clipboard.getOrigin().getBlockX(), y - clipboard.getOrigin().getBlockY(), z - clipboard.getOrigin().getBlockZ());
+
+                    Block block = world.getBlockAt(loc.clone().add(offset));
+                    if (BlockHelpers.REPLACEABLE_BLOCKS.contains(block.getType())) continue;
+                    if (BlockHelpers.toBlockLocation(loc).equals(BlockHelpers.toBlockLocation(loc))) continue;
+                    list.add(block);
                 }
             }
         }

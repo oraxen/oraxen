@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.compatibilities.provided.worldedit.WorldEditUtils;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import org.bukkit.Bukkit;
@@ -44,7 +43,7 @@ public class SaplingListener implements Listener {
         if (sapling.requiresWaterSource() && sapling.isInWater(block)) return;
         if (!sapling.canGrowFromBoneMeal()) return;
         if (!Bukkit.getPluginManager().isPluginEnabled("WorldEdit")) return;
-        if (!sapling.replaceBlocks() && !WorldEditUtils.getBlocksInSchematic(block.getLocation(), sapling.getSchematic()).isEmpty()) return;
+        if (!sapling.replaceBlocks() && !WrappedWorldEdit.getBlocksInSchematic(block.getLocation(), sapling.getSchematic()).isEmpty()) return;
 
         if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         block.getWorld().spawnParticle(Particle.COMPOSTER, block.getLocation().add(0.5, 0.2, 0.5), 10);

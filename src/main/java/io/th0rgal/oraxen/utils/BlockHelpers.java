@@ -1,9 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
-import org.bukkit.Axis;
-import org.bukkit.Bukkit;
-import org.bukkit.FluidCollisionMode;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Sign;
 import org.bukkit.block.*;
 import org.bukkit.block.data.*;
@@ -21,6 +18,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BlockHelpers {
+
+    public static Location toBlockLocation(Location location) {
+        return new Location(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
+    }
 
     public static final List<Material> REPLACEABLE_BLOCKS = Arrays
             .asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,

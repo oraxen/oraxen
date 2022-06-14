@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.compatibilities.provided.worldedit.WorldEditUtils;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
@@ -40,11 +39,11 @@ public class SaplingTask extends BukkitRunnable {
                         if (string == null || !string.isSapling()) return;
 
                         SaplingMechanic sapling = string.getSaplingMechanic();
+                        if (sapling == null || !sapling.hasSchematic()) continue;
                         if (!sapling.canGrowNaturally()) continue;
-                        if (!sapling.hasSchematic()) continue;
                         if (sapling.requiresWaterSource() && !sapling.isInWater(block)) continue;
                         if (sapling.requiresLight() && block.getLightLevel() < sapling.getMinLightLevel()) continue;
-                        if (!sapling.replaceBlocks() && !WorldEditUtils.getBlocksInSchematic(block.getLocation(), sapling.getSchematic()).isEmpty()) continue;
+                        if (!sapling.replaceBlocks() && !WrappedWorldEdit.getBlocksInSchematic(block.getLocation(), sapling.getSchematic()).isEmpty()) continue;
 
                         int growthTimeRemains = pdc.get(SAPLING_KEY, PersistentDataType.INTEGER) - delay;
                         if (growthTimeRemains <= 0) {
