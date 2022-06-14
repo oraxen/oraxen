@@ -33,7 +33,7 @@ public abstract class Mechanic {
         return mechanicFactory;
     }
 
-    protected ConfigurationSection getSection() {
+    public ConfigurationSection getSection() {
         return section;
     }
 
