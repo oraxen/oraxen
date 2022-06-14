@@ -6,10 +6,10 @@ import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
-import org.bukkit.event.player.PlayerInteractEvent;
 
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -68,6 +68,12 @@ public class SwapListener implements Listener {
 						.contains(event.getPlayer().getInventory().getItemInMainHand().getType().toString())) {
 					swa = true;
 				}
+				if(swap.action !=null{
+					if(!swap.action.equalsIgnoreCase(event.getAction().toString()){
+						swa=false;
+					}
+				}
+				
 				try {
 					NoteBlockMechanicFactory.setBlockModel(block, swap.toblock);
 				} catch (Exception e) {
