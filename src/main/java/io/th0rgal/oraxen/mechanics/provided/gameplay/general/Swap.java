@@ -1,4 +1,4 @@
-packageio.th0rgal.oraxen.mechanics.provided.gameplay.general;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.general;
 
 import org.bukkit.configuration.ConfigurationSection;
 import java.util.logging.Level;
