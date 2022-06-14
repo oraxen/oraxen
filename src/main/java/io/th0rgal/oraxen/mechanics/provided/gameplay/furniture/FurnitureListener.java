@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
@@ -97,20 +98,30 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onHangingPlaceEvent(final PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
-            return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
 
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
         assert placedAgainst != null;
         final Block target = getTarget(placedAgainst, event.getBlockFace());
-        if (target == null)
-            return;
         ItemStack item = event.getItem();
+
+        // Cancel placing when clicking a clickAction furniture
+        final PersistentDataContainer customBlockData = new CustomBlockData(placedAgainst, OraxenPlugin.get());
+        if (customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING)) {
+            String id = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
+            if (!OraxenItems.exists(id)) return;
+            final FurnitureMechanic fMechanic = (FurnitureMechanic) factory.getMechanic(id);
+            if (fMechanic.hasClickActions() && !player.isSneaking()) {
+                if (item != null && item.getType().isBlock()) event.setCancelled(true);
+                return;
+            }
+        }
+
+        if (target == null) return;
         final BlockData currentBlockData = target.getBlockData();
         FurnitureMechanic mechanic = getMechanic(item, player, target);
-        if (mechanic == null)
-            return;
+        if (mechanic == null) return;
 
         Block farm = target.getRelative(BlockFace.DOWN);
 
@@ -156,7 +167,7 @@ public class FurnitureListener implements Listener {
 
     private Block getTarget(Block placedAgainst, BlockFace blockFace) {
         final Material type = placedAgainst.getType();
-        if (Utils.REPLACEABLE_BLOCKS.contains(type))
+        if (BlockHelpers.REPLACEABLE_BLOCKS.contains(type))
             return placedAgainst;
         else {
             Block target = placedAgainst.getRelative(blockFace);
@@ -318,7 +329,8 @@ public class FurnitureListener implements Listener {
                 return;
             }
 
-            mechanic.runClickActions(event.getPlayer());
+            if (mechanic.hasClickActions())
+                mechanic.runClickActions(event.getPlayer());
         }
 
         final ArmorStand seat = getSeat(block.getLocation());

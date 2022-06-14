@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
@@ -84,7 +85,7 @@ public class BlockMechanicListener implements Listener {
         final Block placedAgainst = event.getClickedBlock();
         final Block target;
         final Material type = placedAgainst.getType();
-        if (Utils.REPLACEABLE_BLOCKS.contains(type))
+        if (BlockHelpers.REPLACEABLE_BLOCKS.contains(type))
             target = placedAgainst;
         else {
             target = placedAgainst.getRelative(event.getBlockFace());

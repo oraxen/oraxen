@@ -157,6 +157,8 @@ public class NoteBlockMechanic extends Mechanic {
         return light;
     }
 
+    public boolean hasClickActions() { return !clickActions.isEmpty(); }
+
     public void runClickActions(final Player player) {
         for (final ClickAction action : clickActions) {
             if (action.canRun(player)) {
