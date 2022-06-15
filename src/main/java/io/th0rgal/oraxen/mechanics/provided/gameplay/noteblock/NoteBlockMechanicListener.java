@@ -87,9 +87,8 @@ public class NoteBlockMechanicListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
 
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK)
-            return;
-        if (block.getType().isInteractable()) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK) return;
+        if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
 
         NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
 
@@ -145,6 +144,7 @@ public class NoteBlockMechanicListener implements Listener {
             }
         }
 
+        if (type == null) return;
         if (type.hasGravity() && relative.getRelative(BlockFace.DOWN).getType() == Material.AIR) {
             block.getWorld().spawnFallingBlock(relative.getLocation().add(0.5,0,0.5), Bukkit.createBlockData(type));
             return;
