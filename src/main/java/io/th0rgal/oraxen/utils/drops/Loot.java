@@ -33,7 +33,7 @@ public class Loot {
         this.maxAmount = maxAmount;
     }
 
-    private ItemStack getItemStack() {
+    public ItemStack getItemStack() {
         if (itemStack != null) {
             return itemStack;
         }
@@ -57,10 +57,34 @@ public class Loot {
             dropItems(location, amountMultiplier);
     }
 
-    private void dropItems(Location location, int amountMultiplier) {
+    public void dropItems(Location location, int amountMultiplier) {
         ItemStack stack = getItemStack().clone();
         stack.setAmount(stack.getAmount() * amountMultiplier);
         for (int i = 0; i < maxAmount; i++)
             location.getWorld().dropItemNaturally(location, stack);
     }
+    
+
+    public ItemStack getItemStack(int amountMultiplier) {
+        if (itemStack != null) {
+            return itemStack;
+        }
+        if (config.containsKey("oraxen_item")) {
+            String itemId = (String) config.get("oraxen_item");
+            itemStack = OraxenItems.getItemById(itemId).build();
+            itemStack.setAmount(itemStack.getAmount() * amountMultiplier);
+            return itemStack;
+        }
+        if (config.containsKey("minecraft_type")) {
+            String itemType = (String) config.get("minecraft_type");
+            Material material = Material.getMaterial(itemType);
+            itemStack = new ItemStack(material);
+            itemStack.setAmount(itemStack.getAmount() * amountMultiplier);
+            return itemStack;
+        }
+        itemStack = (ItemStack) config.get("minecraft_item");
+        itemStack.setAmount(itemStack.getAmount() * amountMultiplier);
+        return itemStack;
+    }
+    
 }

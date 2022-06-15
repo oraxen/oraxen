@@ -21,6 +21,7 @@ public class BlockMechanicFactory extends MechanicFactory {
 
     private static final List<JsonObject> MUSHROOM_STEM_BLOCKSTATE_OVERRIDES = new ArrayList<>();
     private static final Map<Integer, BlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
+    private static BlockMechanicFactory instance;
     public final List<String> toolTypes;
 
     public BlockMechanicFactory(ConfigurationSection section) {
@@ -34,6 +35,7 @@ public class BlockMechanicFactory extends MechanicFactory {
                         .writeStringToVirtual("assets/minecraft/blockstates",
                                 "mushroom_stem.json", getBlockstateContent()));
         MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicListener(this));
+        instance = this;
     }
 
     private String getBlockstateContent() {
@@ -69,6 +71,10 @@ public class BlockMechanicFactory extends MechanicFactory {
 
     public static BlockMechanic getBlockMechanic(int customVariation) {
         return BLOCK_PER_VARIATION.get(customVariation);
+    }
+
+    public static BlockMechanicFactory getInstance() {
+        return instance;
     }
 
     /**

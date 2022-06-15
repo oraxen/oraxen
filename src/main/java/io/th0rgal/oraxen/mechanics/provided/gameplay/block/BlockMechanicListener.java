@@ -30,6 +30,14 @@ public class BlockMechanicListener implements Listener {
     public BlockMechanicListener(final BlockMechanicFactory factory) {
         this.factory = factory;
     }
+    
+
+    public static BlockMechanic getBlockMechanic(Block block) {
+        if (block.getType() == Material.TRIPWIRE) {
+            final MultipleFacing data = (MultipleFacing) block.getBlockData();
+            return BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(data));
+        } else return null;
+    }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onMushroomPhysics(final BlockPhysicsEvent event) {

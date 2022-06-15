@@ -3,15 +3,13 @@ package io.th0rgal.oraxen.utils.drops;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.material.Colorable;
+import org.sonatype.inject.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +25,35 @@ public class Drop {
     String minimalType;
     private final List<String> bestTools;
     final String sourceID;
+    
+    public List<Loot> getLoots(){
+		return loots;
+    }
+    
+    public List<Loot> getLoots(ItemStack itemInHand) {
+    	
+    	List<Loot> result = new ArrayList<Loot>();
+    	
+        if (!canDrop(itemInHand))
+            return null;
+
+        if (silktouch && itemInHand != null && itemInHand.hasItemMeta()
+                && itemInHand.getItemMeta().hasEnchant(Enchantment.SILK_TOUCH)) {
+            
+            result.add(new Loot(OraxenItems.getItemById(sourceID).build(), 100));
+            return result;
+        }
+
+        int fortuneMultiplier = 1;
+        if (fortune && itemInHand.getItemMeta().hasEnchant(Enchantment.LOOT_BONUS_BLOCKS))
+            fortuneMultiplier += new Random()
+                    .nextInt(itemInHand.getItemMeta().getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS));
+
+        for (Loot loot : loots) {
+            result.add(new Loot(loot.getItemStack(fortuneMultiplier),100));
+        }
+        return result;
+    }
 
     public Drop(List<String> hierarchy, List<Loot> loots, boolean silktouch, boolean fortune, String sourceID,
                 String minimalType, List<String> bestTools) {
