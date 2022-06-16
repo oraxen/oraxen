@@ -15,6 +15,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class CompatibilitiesManager {
 
+    private CompatibilitiesManager() {}
+
     private static final ConcurrentHashMap<String, Class<? extends CompatibilityProvider<?>>> COMPATIBILITY_PROVIDERS = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<String, CompatibilityProvider<?>> ACTIVE_COMPATIBILITY_PROVIDERS = new ConcurrentHashMap<>();
 

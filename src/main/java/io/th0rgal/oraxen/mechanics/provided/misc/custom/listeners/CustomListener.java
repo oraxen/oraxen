@@ -19,7 +19,7 @@ public abstract class CustomListener implements Listener {
     protected final CustomEvent event;
     protected final ClickAction clickAction;
 
-    public CustomListener(String itemID, long cooldown, CustomEvent event, ClickAction clickAction) {
+    protected CustomListener(String itemID, long cooldown, CustomEvent event, ClickAction clickAction) {
         this.itemID = itemID;
         this.timers = new TimersFactory(cooldown * 50);
         this.event = event;

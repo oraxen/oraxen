@@ -1,8 +1,8 @@
 package io.th0rgal.oraxen.recipes.builders;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.config.ResourcesManager;
+import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
@@ -27,7 +27,7 @@ public abstract class RecipeBuilder {
     private final Player player;
     private final String builderName;
 
-    public RecipeBuilder(Player player, String builderName) {
+    protected RecipeBuilder(Player player, String builderName) {
         this.player = player;
         this.builderName = builderName;
         this.inventoryTitle = player.getName() + " " + builderName + " builder";

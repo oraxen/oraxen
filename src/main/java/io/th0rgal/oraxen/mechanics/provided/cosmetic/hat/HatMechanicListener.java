@@ -55,7 +55,7 @@ public class HatMechanicListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void OnPlaceHatNotOnHelmetSlot(final ArmorEquipEvent event) {
+    public void onPlaceHatNotOnHelmetSlot(final ArmorEquipEvent event) {
         final ItemStack newArmorPiece = event.getNewArmorPiece();
         if (newArmorPiece != null) {
             final String itemID = OraxenItems.getIdByItem(newArmorPiece);
@@ -66,7 +66,7 @@ public class HatMechanicListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void OnPlaceHatOnHelmetSlot(final InventoryClickEvent e) {
+    public void onPlaceHatOnHelmetSlot(final InventoryClickEvent e) {
         final Inventory clickedInventory = e.getClickedInventory();
         final ItemStack cursor = e.getCursor();
 

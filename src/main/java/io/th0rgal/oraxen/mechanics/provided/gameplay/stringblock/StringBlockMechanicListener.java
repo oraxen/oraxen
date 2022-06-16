@@ -349,8 +349,7 @@ public class StringBlockMechanicListener implements Listener {
         mechanic.getDrop().spawns(block.getLocation(), item);
         block.setType(Material.AIR, false);
         final Block blockAbove = block.getRelative(BlockFace.UP);
-
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable -> {
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             fixClientsideUpdate(block.getLocation());
             if (blockAbove.getType() == Material.TRIPWIRE)
                 breakStringBlock(blockAbove, getStringMechanic(blockAbove), new ItemStack(Material.AIR));

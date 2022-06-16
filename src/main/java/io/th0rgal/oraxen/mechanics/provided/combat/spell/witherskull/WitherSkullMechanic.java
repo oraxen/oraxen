@@ -18,6 +18,7 @@ public class WitherSkullMechanic extends SpellMechanic {
         this.charged = section.getBoolean("charged");
     }
 
+    @Override
     public Timer getTimer(Player player) {
         return timersFactory.getTimer(player);
     }

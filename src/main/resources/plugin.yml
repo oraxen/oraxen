@@ -8,4 +8,4 @@ softdepend: [ ProtocolLib, LightAPI, PlaceholderAPI, MythicMobs, MMOItems, BossS
 loadbefore: [ Realistic_World ]
 libraries:
   - org.springframework:spring-expression:5.3.16
-  - com.github.rockswang:java-curl:1.2.2.2
+  - org.apache.httpcomponents:httpmime:4.5.13

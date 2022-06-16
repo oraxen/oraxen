@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.compatibilities.provided.itembridge;
 
-import com.jojodmo.itembridge.*;
+import com.jojodmo.itembridge.Main;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.CompatibilityProvider;
 

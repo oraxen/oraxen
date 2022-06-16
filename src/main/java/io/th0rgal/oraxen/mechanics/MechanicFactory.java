@@ -11,7 +11,7 @@ public abstract class MechanicFactory {
     private final Map<String, Mechanic> mechanicByItem = new HashMap<>();
     private final ConfigurationSection section;
 
-    public MechanicFactory(ConfigurationSection section) {
+    protected MechanicFactory(ConfigurationSection section) {
         this.section = section;
     }
 

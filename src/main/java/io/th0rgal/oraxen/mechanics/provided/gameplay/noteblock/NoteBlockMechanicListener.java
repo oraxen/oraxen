@@ -355,7 +355,6 @@ public class NoteBlockMechanicListener implements Listener {
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
         if (!BlockHelpers.correctAllBlockStates(target, player, face, item)) blockPlaceEvent.setCancelled(true);
-
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
             return null;
@@ -381,7 +380,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (block.getType() != Material.NOTE_BLOCK) return null;
         final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
         return NoteBlockMechanicFactory
-                .getBlockMechanic((int) (noteBlok.getInstrument().getType()) * 25
-                        + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
+                .getBlockMechanic((noteBlok.getInstrument().getType()) * 25
+                        + noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
     }
 }

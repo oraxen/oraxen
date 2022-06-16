@@ -4,6 +4,8 @@ import org.bukkit.util.Vector;
 
 public class VectorUtils {
 
+    private VectorUtils() {}
+
     public static Vector rotateAroundAxisX(Vector v, double angle) {
         double cos = Math.cos(angle);
         double sin = Math.sin(angle);
