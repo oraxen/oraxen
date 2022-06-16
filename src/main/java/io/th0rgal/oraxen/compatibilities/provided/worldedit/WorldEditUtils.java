@@ -28,15 +28,10 @@ public class WorldEditUtils {
 
     protected static void pasteSchematic(Location loc, File schematic, Boolean replaceBlocks, Boolean shouldCopyBiomes, Boolean shouldCopyEntities) {
         ClipboardFormat clipboardFormat = ClipboardFormats.findByFile(schematic);
-        assert clipboardFormat != null;
-        ClipboardReader reader;
-        try {
-            reader = clipboardFormat.getReader(new FileInputStream(schematic));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        if (clipboardFormat == null) return;
         Clipboard clipboard;
-        try {
+
+        try(final FileInputStream inputStream = new FileInputStream(schematic); ClipboardReader reader = clipboardFormat.getReader(inputStream)) {
             clipboard = reader.read();
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -57,8 +52,6 @@ public class WorldEditUtils {
                 if (replaceBlocks || getBlocksInSchematic(clipboard, loc).isEmpty())
                     Operations.complete(operation);
                 editSession.close();
-                reader.close();
-
             } catch (WorldEditException e) {
                 OraxenPlugin.get().getLogger().warning("Could not paste schematic for sapling-mechanic");
                 e.printStackTrace();
@@ -95,19 +88,15 @@ public class WorldEditUtils {
         assert world != null;
 
         ClipboardFormat clipboardFormat = ClipboardFormats.findByFile(schematic);
-        assert clipboardFormat != null;
-        ClipboardReader reader;
-        try {
-            reader = clipboardFormat.getReader(new FileInputStream(schematic));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        if (clipboardFormat == null) return list;
         Clipboard clipboard;
-        try {
+
+        try(final FileInputStream inputStream = new FileInputStream(schematic); ClipboardReader reader = clipboardFormat.getReader(inputStream)) {
             clipboard = reader.read();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
         for (int x = clipboard.getMinimumPoint().getX(); x <= clipboard.getMaximumPoint().getX(); x++) {
             for (int y = clipboard.getMinimumPoint().getY(); y <= clipboard.getMaximumPoint().getY(); y++) {
                 for (int z = clipboard.getMinimumPoint().getZ(); z <= clipboard.getMaximumPoint().getZ(); z++) {
@@ -119,11 +108,6 @@ public class WorldEditUtils {
                     list.add(block);
                 }
             }
-        }
-        try {
-            reader.close();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
         }
 
         return list;
