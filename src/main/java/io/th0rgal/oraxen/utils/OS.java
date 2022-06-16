@@ -1,16 +1,10 @@
 package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.utils.logs.Logs;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class OS {
 
@@ -37,7 +31,7 @@ public class OS {
         static String name = System.getProperty("os.name");
         static String version = System.getProperty("os.version");
         static String arch = System.getProperty("os.arch");
-        private final static OS INSTANCE = new OS(name, version, arch);
+        private static final OS INSTANCE = new OS(name, version, arch);
 
     }
 

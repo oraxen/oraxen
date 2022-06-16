@@ -119,7 +119,7 @@ public class NoteBlockMechanicListener implements Listener {
             else sound = Sound.valueOf("ITEM_BUCKET_FILL_" + relative.getType());
 
             if (player.getGameMode() != GameMode.CREATIVE)
-                item.setType(Material.getMaterial(relative.getType() + "_BUCKET"));
+                item.setType(Objects.requireNonNull(Material.getMaterial(relative.getType() + "_BUCKET")));
 
             player.playSound(relative.getLocation(), sound, 1.0f, 1.0f);
             relative.setType(Material.AIR, true);
@@ -163,16 +163,14 @@ public class NoteBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
-        if (block.getType() != Material.NOTE_BLOCK || event.isCancelled() || !event.isDropItems())
-            return;
+        final Player player = event.getPlayer();
+        if (block.getType() != Material.NOTE_BLOCK || !event.isDropItems()) return;
+
         NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
-        if (noteBlockMechanic == null)
-            return;
+        if (noteBlockMechanic == null) return;
+        if (block.getType() != Material.NOTE_BLOCK || !event.isDropItems()) return;
         if (noteBlockMechanic.isDirectional())
             noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
-        final Player player = event.getPlayer();
-        if (block.getType() != Material.NOTE_BLOCK || event.isCancelled() || !event.isDropItems()) return;
-        if (noteBlockMechanic == null) return;
 
         OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(noteBlockMechanic, block, player);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockBreakEvent);
@@ -195,8 +193,7 @@ public class NoteBlockMechanicListener implements Listener {
         List<Block> blockList = event.blockList().stream().filter(block -> block.getType().equals(Material.NOTE_BLOCK)).toList();
         blockList.forEach(block -> {
             NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
-            if (noteBlockMechanic == null)
-                return;
+            if (noteBlockMechanic == null) return;
             if (noteBlockMechanic.isDirectional())
                 noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
 
@@ -214,15 +211,15 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrePlacingCustomBlock(final PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-
         final ItemStack item = event.getItem();
         final String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID)) return;
-
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
-        if (placedAgainst.getType().isInteractable()) return;
+
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || placedAgainst == null) return;
+        if (factory.isNotImplementedIn(itemID)) return;
+        if (placedAgainst.getType().isInteractable() && placedAgainst.getType() != Material.NOTE_BLOCK) return;
+
         // determines the new block data of the block
         NoteBlockMechanic mechanic = (NoteBlockMechanic) factory.getMechanic(itemID);
         int customVariation = mechanic.getCustomVariation();
@@ -239,7 +236,6 @@ public class NoteBlockMechanicListener implements Listener {
                 customVariation = ((NoteBlockMechanic) factory.getMechanic(directional.getYBlock())).getCustomVariation();
         }
 
-        assert placedAgainst != null;
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(), placedAgainst, face, NoteBlockMechanicFactory.createNoteBlockData(customVariation));
         if (placedBlock != null) {
             if (mechanic.hasPlaceSound())
@@ -247,7 +243,7 @@ public class NoteBlockMechanicListener implements Listener {
 
             if (mechanic.getLight() != -1)
                 WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
-            //event.setCancelled(true);
+
             if (mechanic.hasDryout() && mechanic.getDryout().isFarmBlock()) {
                 final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
                 customBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
@@ -261,7 +257,7 @@ public class NoteBlockMechanicListener implements Listener {
         final Player player = (Player) event.getInventory().getHolder();
         if (player == null) return;
         if (event.getCursor().getType() == Material.NOTE_BLOCK) {
-            final Block block = player.rayTraceBlocks(6.0).getHitBlock();
+            final Block block = Objects.requireNonNull(player.rayTraceBlocks(6.0)).getHitBlock();
             if (block == null) return;
             NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
             if (noteBlockMechanic == null) return;
@@ -308,6 +304,7 @@ public class NoteBlockMechanicListener implements Listener {
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
                 NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
+                if (noteBlockMechanic == null) return 0;
                 if (noteBlockMechanic.isDirectional())
                     noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
 
@@ -358,7 +355,6 @@ public class NoteBlockMechanicListener implements Listener {
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
         if (!BlockHelpers.correctAllBlockStates(target, player, face, item)) blockPlaceEvent.setCancelled(true);
-
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
             return null;
@@ -384,7 +380,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (block.getType() != Material.NOTE_BLOCK) return null;
         final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
         return NoteBlockMechanicFactory
-                .getBlockMechanic((int) (noteBlok.getInstrument().getType()) * 25
-                        + (int) noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
+                .getBlockMechanic((noteBlok.getInstrument().getType()) * 25
+                        + noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
     }
 }

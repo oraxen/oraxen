@@ -7,7 +7,7 @@ import org.bukkit.inventory.Inventory;
 
 public abstract class WorkbenchBuilder extends RecipeBuilder {
 
-    public WorkbenchBuilder(Player player, String builderName) {
+    protected WorkbenchBuilder(Player player, String builderName) {
         super(player, builderName);
     }
 

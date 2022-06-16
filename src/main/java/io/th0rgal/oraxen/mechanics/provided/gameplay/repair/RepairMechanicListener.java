@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
-
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -66,7 +65,7 @@ public class RepairMechanicListener implements Listener {
             persistentDataContainer
                     .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realMaxDurability - finalDamage);
 
-            double realDamageToSet = (double) finalDamage / (double) realMaxDurability * (double) toRepair.getType().getMaxDurability();
+            double realDamageToSet = (double) finalDamage / (double) realMaxDurability * toRepair.getType().getMaxDurability();
 
             damageable.setDamage((int) realDamageToSet);
         }

@@ -15,12 +15,12 @@ import java.util.List;
 public class OraxenPrice extends BSPriceType {
 
     @Override
-    public Object createObject(Object o, boolean force_final_state) {
+    public Object createObject(Object o, boolean forceFinalState) {
         return OraxenItems.getItemStacksByName(InputReader.readStringListList(o));
     }
 
     @Override
-    public boolean validityCheck(String item_name, Object reward) {
+    public boolean validityCheck(String itemName, Object reward) {
         return true;
     }
 
@@ -57,10 +57,10 @@ public class OraxenPrice extends BSPriceType {
     @Override
     @SuppressWarnings("unchecked")
     public String getDisplayPrice(Player player, BSBuy bsBuy, Object reward, ClickType clickType) {
-        String items_formatted = ClassManager.manager
+        String itemsFormatted = ClassManager.manager
             .getItemStackTranslator()
             .getFriendlyText((List<ItemStack>) reward);
-        return ClassManager.manager.getMessageHandler().get("Display.Item").replace("%items%", items_formatted);
+        return ClassManager.manager.getMessageHandler().get("Display.Item").replace("%items%", itemsFormatted);
     }
 
     @Override

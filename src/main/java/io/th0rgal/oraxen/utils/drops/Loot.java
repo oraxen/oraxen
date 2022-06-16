@@ -6,7 +6,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.LinkedHashMap;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Loot {
 
@@ -53,7 +53,7 @@ public class Loot {
     }
 
     public void dropNaturally(Location location, int amountMultiplier) {
-        if (new Random().nextInt(probability) == 0)
+        if (ThreadLocalRandom.current().nextInt(probability) == 0)
             dropItems(location, amountMultiplier);
     }
 

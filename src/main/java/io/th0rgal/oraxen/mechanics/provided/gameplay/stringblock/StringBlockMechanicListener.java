@@ -110,7 +110,7 @@ public class StringBlockMechanicListener implements Listener {
             if (clicked == null)
                 return;
             Material type = clicked.getType();
-            if (type == null || clicked.getType().isInteractable())
+            if (clicked.getType().isInteractable())
                 return;
             if (type == Material.LAVA_BUCKET)
                 type = Material.LAVA;
@@ -194,6 +194,7 @@ public class StringBlockMechanicListener implements Listener {
                     if (getStringMechanic(relative) == null) continue;
                 if (item.getItemMeta() instanceof BlockStateMeta) continue;
                 if (item.getType().hasGravity()) continue;
+                if (item.getType().toString().endsWith("SLAB")) continue;
 
                 makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), Bukkit.createBlockData(item.getType()));
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
@@ -237,7 +238,7 @@ public class StringBlockMechanicListener implements Listener {
         final Player player = (Player) event.getInventory().getHolder();
         if (player == null) return;
         if (event.getCursor().getType() == Material.STRING) {
-            final Block block = player.rayTraceBlocks(6.0).getHitBlock();
+            final Block block = Objects.requireNonNull(player.rayTraceBlocks(6.0)).getHitBlock();
             if (block == null) return;
             StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
             if (stringBlockMechanic == null) return;
@@ -348,8 +349,7 @@ public class StringBlockMechanicListener implements Listener {
         mechanic.getDrop().spawns(block.getLocation(), item);
         block.setType(Material.AIR, false);
         final Block blockAbove = block.getRelative(BlockFace.UP);
-
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable -> {
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             fixClientsideUpdate(block.getLocation());
             if (blockAbove.getType() == Material.TRIPWIRE)
                 breakStringBlock(blockAbove, getStringMechanic(blockAbove), new ItemStack(Material.AIR));
@@ -360,8 +360,11 @@ public class StringBlockMechanicListener implements Listener {
         Block blockBelow = blockLoc.clone().subtract(0, 1, 0).getBlock();
         Block blockAbove = blockLoc.clone().add(0, 1, 0).getBlock();
         Location loc = blockLoc.add(5, 0, 5);
-        List<Entity> players = blockLoc.getWorld().getNearbyEntities(blockLoc, 20, 20, 20).stream().filter(entity -> entity.getType() == EntityType.PLAYER).toList();
+        List<Entity> players =
+                Objects.requireNonNull(blockLoc.getWorld()).getNearbyEntities(blockLoc, 20, 20, 20)
+                        .stream().filter(entity -> entity.getType() == EntityType.PLAYER).toList();
 
+        if (players.isEmpty()) return;
         if (blockBelow.getType() == Material.TRIPWIRE) {
             for (Entity e : players)
                 ((Player) e).sendBlockChange(blockBelow.getLocation(), blockBelow.getBlockData());

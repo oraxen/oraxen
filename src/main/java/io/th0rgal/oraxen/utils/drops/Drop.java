@@ -7,12 +7,11 @@ import org.bukkit.Location;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class Drop {
 
@@ -78,9 +77,10 @@ public class Drop {
             if ((itemID != null && bestTools.contains(itemID.toUpperCase())
                     || bestTools.contains(type)))
                 return true;
-            else for (String toolName : bestTools)
-                if (type.endsWith(toolName.toUpperCase()))
-                    return true;
+            else
+                for (String toolName : bestTools)
+                    if (type.endsWith(toolName.toUpperCase()))
+                        return true;
             return false;
         }
         return true;
@@ -102,7 +102,7 @@ public class Drop {
 
         int fortuneMultiplier = 1;
         if (fortune && itemInHand.getItemMeta().hasEnchant(Enchantment.LOOT_BONUS_BLOCKS))
-            fortuneMultiplier += new Random()
+            fortuneMultiplier += ThreadLocalRandom.current()
                     .nextInt(itemInHand.getItemMeta().getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS));
 
         for (Loot loot : loots) {
@@ -115,10 +115,10 @@ public class Drop {
             return;
 
         ItemStack drop = OraxenItems.getItemById(sourceID).build();
-        if (frame.getItem().getItemMeta() instanceof LeatherArmorMeta) {
-            ItemMeta meta = drop.getItemMeta().clone();
-            ((LeatherArmorMeta)(meta)).setColor(((LeatherArmorMeta) frame.getItem().getItemMeta()).getColor());
-            drop.setItemMeta(meta);
+        if (frame.getItem().getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta) {
+            LeatherArmorMeta clone = leatherArmorMeta.clone();
+            clone.setColor(leatherArmorMeta.getColor());
+            drop.setItemMeta(clone);
         }
         frame.getLocation().getWorld().dropItemNaturally(frame.getLocation(), drop);
     }

@@ -15,12 +15,12 @@ import java.util.List;
 public class OraxenReward extends BSRewardType {
 
     @Override
-    public Object createObject(Object o, boolean force_final_state) {
+    public Object createObject(Object o, boolean forceFinalState) {
         return OraxenItems.getItemStacksByName(InputReader.readStringListList(o));
     }
 
     @Override
-    public boolean validityCheck(String item_name, Object reward) {
+    public boolean validityCheck(String itemName, Object reward) {
         return true;
     }
 
@@ -31,12 +31,12 @@ public class OraxenReward extends BSRewardType {
 
     @Override
     @SuppressWarnings("unchecked")
-    public boolean canBuy(Player player, BSBuy bsBuy, boolean message_if_no_success, Object reward,
+    public boolean canBuy(Player player, BSBuy bsBuy, boolean messageIfNoSuccess, Object reward,
         ClickType clickType) {
         if (!ClassManager.manager.getSettings().getInventoryFullDropItems()) {
             List<ItemStack> items = (List<ItemStack>) reward;
             if (!ClassManager.manager.getItemStackChecker().hasFreeSpace(player, items)) {
-                if (message_if_no_success) {
+                if (messageIfNoSuccess) {
                     ClassManager.manager
                         .getMessageHandler()
                         .sendMessage("Main.InventoryFull", player, null, player, bsBuy.getShop(), null, bsBuy);
@@ -64,10 +64,10 @@ public class OraxenReward extends BSRewardType {
     @Override
     @SuppressWarnings("unchecked")
     public String getDisplayReward(Player player, BSBuy bsBuy, Object reward, ClickType clickType) {
-        String items_formatted = ClassManager.manager
+        String itemsFormatted = ClassManager.manager
             .getItemStackTranslator()
             .getFriendlyText((List<ItemStack>) reward);
-        return ClassManager.manager.getMessageHandler().get("Display.Item").replace("%items%", items_formatted);
+        return ClassManager.manager.getMessageHandler().get("Display.Item").replace("%items%", itemsFormatted);
     }
 
     @Override

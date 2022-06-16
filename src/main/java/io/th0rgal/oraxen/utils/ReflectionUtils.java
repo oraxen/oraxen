@@ -52,9 +52,7 @@ public abstract class ReflectionUtils {
     }
 
     public static Optional<JarInputStream> getJarStream(Class<?> sample) {
-        return ValueProvider.option(() -> {
-            return new JarInputStream(sample.getProtectionDomain().getCodeSource().getLocation().openStream());
-        });
+        return ValueProvider.option(() -> new JarInputStream(sample.getProtectionDomain().getCodeSource().getLocation().openStream()));
     }
 
 }

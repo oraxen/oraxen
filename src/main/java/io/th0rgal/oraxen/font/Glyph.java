@@ -4,11 +4,8 @@ package io.th0rgal.oraxen.font;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-
-import java.util.Map;
 
 
 public class Glyph {

@@ -39,7 +39,7 @@ public class AuraMechanic extends Mechanic {
 
     public void remove(Player player) {
         players.remove(player);
-        if (players.size() == 0)
+        if (players.isEmpty())
             aura.stop();
     }
 

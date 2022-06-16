@@ -16,23 +16,23 @@ import java.util.zip.ZipOutputStream;
 
 public class ZipUtils {
 
+    private ZipUtils() {}
+
     public static void writeZipFile(final File outputFile, final File directoryToZip,
                                     final List<VirtualFile> fileList) {
-        try {
-            final FileOutputStream fos = new FileOutputStream(outputFile);
-            final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8);
+
+        try(final FileOutputStream fos = new FileOutputStream(outputFile);
+            final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {
             final int compressionLevel = Deflater.class.getDeclaredField(Settings.COMPRESSION.toString()).getInt(null);
             zos.setLevel(compressionLevel);
             zos.setComment(Settings.COMMENT.toString());
-            CustomArmorsTextures customArmorsTextures = new CustomArmorsTextures();
             for (final VirtualFile file : fileList)
                 addToZip(file.getPath(),
                         file.getInputStream(),
                         zos);
-            zos.close();
-            fos.close();
-        } catch (final IOException | NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
+
+        } catch(final IOException | NoSuchFieldException | IllegalAccessException ex) {
+            ex.printStackTrace();
         }
     }
 

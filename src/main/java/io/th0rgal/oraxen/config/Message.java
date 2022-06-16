@@ -89,14 +89,14 @@ public enum Message {
         );
     }
 
-    public @NotNull
-    final Component toComponent() {
+    @NotNull
+    public final Component toComponent() {
         return Utils.MINI_MESSAGE
                 .parse(toString());
     }
 
-    public @NotNull
-    String toSerializedString() {
+    @NotNull
+    public String toSerializedString() {
         return Utils.LEGACY_COMPONENT_SERIALIZER.serialize(toComponent());
     }
 

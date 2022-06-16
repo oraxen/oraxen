@@ -19,6 +19,7 @@ import org.bukkit.plugin.Plugin;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Parameter;
 import java.nio.file.ProviderNotFoundException;
 import java.util.Locale;
 
@@ -53,8 +54,12 @@ public class UploadManager {
     public void uploadAsyncAndSendToPlayers(final ResourcePack resourcePack, final boolean updateSend) {
         if (!enabled)
             return;
-        if (Settings.RECEIVE_ENABLED.toBool() && receiver == null)
-            Bukkit.getPluginManager().registerEvents(receiver = new PackReceiver(), plugin);
+
+        if (Settings.RECEIVE_ENABLED.toBool() && receiver == null) {
+            receiver = new PackReceiver();
+            Bukkit.getPluginManager().registerEvents(receiver, plugin);
+        }
+
         final long time = System.currentTimeMillis();
         Message.PACK_UPLOADING.log();
         Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
@@ -70,8 +75,9 @@ public class UploadManager {
                 packSender = (CompatibilitiesManager.hasPlugin("ProtocolLib") && Settings.SEND_PACK_ADVANCED.toBool())
                         ? new AdvancedPackSender(hostingProvider) : new BukkitPackSender(hostingProvider);
                 packSender.register();
-                if (!hostingProvider.getPackURL().equals(url)) for (Player player : Bukkit.getOnlinePlayers())
-                    packSender.sendPack(player);
+                if (!hostingProvider.getPackURL().equals(url))
+                    for (Player player : Bukkit.getOnlinePlayers())
+                        packSender.sendPack(player);
                 url = hostingProvider.getPackURL();
             }
         });
@@ -93,7 +99,7 @@ public class UploadManager {
             throw new ProviderNotFoundException("No provider set.");
         try {
             target = Class.forName(klass);
-        } catch (final Throwable any) {
+        } catch (final Exception any) {
             final ProviderNotFoundException error = new ProviderNotFoundException("Provider not found: " + klass);
             error.addSuppressed(any);
             throw error;
@@ -106,24 +112,19 @@ public class UploadManager {
     private HostingProvider constructExternalHostingProvider(final Class<?> target,
                                                              final ConfigurationSection options) {
         final Class<? extends HostingProvider> implement = target.asSubclass(HostingProvider.class);
-        Constructor<? extends HostingProvider> constructor;
-        try {
-            try {
-                constructor = implement.getConstructor(ConfigurationSection.class);
-            } catch (final Exception notFound) {
-                try {
-                    constructor = implement.getConstructor();
-                } catch (final Exception ignore) {
-                    // For catching reasons
-                    throw (ProviderNotFoundException)
-                            new ProviderNotFoundException("Invalid provider: " + target).initCause(ignore);
-                    // Use (Lorg/bukkit/configuration/ConfigurationSection;)V to Exception
-                }
+        Constructor<? extends HostingProvider> constructor = null;
+        for(final Constructor<?> implementConstructor : implement.getConstructors()) {
+            Parameter[] parameters = implementConstructor.getParameters();
+            if(parameters.length == 0 || (parameters.length == 1 && parameters[0].getType().equals(ConfigurationSection.class))) {
+                constructor = (Constructor<? extends HostingProvider>) implementConstructor;
+                break;
             }
-        } catch (final Exception e) {
-            throw (ProviderNotFoundException) new ProviderNotFoundException("Cannot found constructor in " + target)
-                    .initCause(e);
         }
+
+        if(constructor == null) {
+            throw new ProviderNotFoundException("Invalid provider: " + target);
+        }
+
         try {
             return constructor.getParameterCount() == 0 ? constructor.newInstance()
                     : constructor.newInstance(options);

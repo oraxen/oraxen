@@ -3,12 +3,12 @@ package io.th0rgal.oraxen.mechanics.provided.misc.consumablepotioneffects;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import org.bukkit.configuration.ConfigurationSection;
-
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ConsumablePotionEffectsMechanic extends Mechanic {
 

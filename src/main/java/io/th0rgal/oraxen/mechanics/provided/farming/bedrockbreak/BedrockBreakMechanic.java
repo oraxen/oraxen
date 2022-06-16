@@ -4,7 +4,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class BedrockBreakMechanic extends Mechanic {
 
@@ -28,6 +28,6 @@ public class BedrockBreakMechanic extends Mechanic {
     }
 
     public boolean bernouilliTest() {
-        return new Random().nextInt(probability) == 0;
+        return ThreadLocalRandom.current().nextInt(probability) == 0;
     }
 }

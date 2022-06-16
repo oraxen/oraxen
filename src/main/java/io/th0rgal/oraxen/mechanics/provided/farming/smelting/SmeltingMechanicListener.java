@@ -13,7 +13,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.meta.ItemMeta;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.concurrent.ThreadLocalRandom;
 
 public class SmeltingMechanicListener implements Listener {
 
@@ -37,9 +38,9 @@ public class SmeltingMechanicListener implements Listener {
             return;
 
         Collection<ItemStack> itemStacks = event.getBlock().getDrops();
-        if (itemStacks.size() == 0)
+        if (itemStacks.isEmpty())
             return;
-        ItemStack loot = furnace(itemStacks.stream().findAny().get());
+        ItemStack loot = furnace(itemStacks.stream().findAny().orElse(null));
         if (loot == null)
             return; // not recipe
         ItemMeta itemMeta = item.getItemMeta();
@@ -47,7 +48,7 @@ public class SmeltingMechanicListener implements Listener {
 
         if (event.getBlock().getType().toString().contains("ORE")
                 && itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
-            loot.setAmount(1 + new Random().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
+            loot.setAmount(1 + ThreadLocalRandom.current().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
         }
         event.setDropItems(false);
         Location location = event.getBlock().getLocation().add(0, 0.5, 0);

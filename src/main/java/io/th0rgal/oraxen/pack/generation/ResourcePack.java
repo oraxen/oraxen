@@ -72,8 +72,13 @@ public class ResourcePack {
         if (!Settings.GENERATE.toBool())
             return;
 
-        if (pack.exists())
-            pack.delete();
+        if (pack.exists()) {
+            try {
+                Files.delete(pack.toPath());
+            } catch(IOException e) {
+                e.printStackTrace();
+            }
+        }
 
         extractInPackIfNotExists(plugin, new File(packFolder, "pack.mcmeta"));
         extractInPackIfNotExists(plugin, new File(packFolder, "pack.png"));

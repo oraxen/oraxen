@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.utils.Utils;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -37,7 +36,7 @@ public class ItemsView {
         final Map<File, ChestGui> files = new HashMap<>();
         for (final File file : OraxenItems.getMap().keySet()) {
             final List<ItemBuilder> unexcludedItems = OraxenItems.getUnexcludedItems(file);
-            if (unexcludedItems.size() > 0)
+            if (!unexcludedItems.isEmpty())
                 files.put(file, createSubGUI(file.getName(), unexcludedItems));
         }
         final int rows = (files.size() - 1) / 9 + 1;

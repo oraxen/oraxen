@@ -6,6 +6,8 @@ import ru.beykerykt.minecraft.lightapi.common.LightAPI;
 
 public class LightApiUtils {
 
+    private LightApiUtils() {}
+
     protected static void createBlockLight(Location location, int value) {
         LightAPI.get().setLightLevel(location.getWorld().getName(),
                 location.getBlockX(),

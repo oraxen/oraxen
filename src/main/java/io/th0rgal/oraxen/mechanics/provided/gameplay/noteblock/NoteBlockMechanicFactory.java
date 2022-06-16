@@ -43,11 +43,11 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
         OraxenPlugin.get().getResourcePack().addModifiers(getMechanicID(),
-                packFolder -> {
+                packFolder ->
                     OraxenPlugin.get().getResourcePack()
                             .writeStringToVirtual("assets/minecraft/blockstates",
-                                    "note_block.json", getBlockstateContent());
-                });
+                                    "note_block.json", getBlockstateContent())
+                );
         MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockMechanicListener(this));
         MechanicsManager.registerListeners(OraxenPlugin.get(), new LogStripListener(this));
     }
@@ -139,8 +139,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         String modelName = mechanic.getModel(itemMechanicConfiguration.getParent().getParent());
 
         if (mechanic.isDirectional() && !directional.isParentBlock()) {
-            NoteBlockMechanic parentMechanic = (NoteBlockMechanic) getMechanic(directional.getParentBlock());;
-            modelName = (parentMechanic.getModel(itemMechanicConfiguration.getParent().getParent()));;
+            NoteBlockMechanic parentMechanic = (NoteBlockMechanic) getMechanic(directional.getParentBlock());
+            modelName = (parentMechanic.getModel(itemMechanicConfiguration.getParent().getParent()));
             variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
                     getDirectionalModelJson(modelName, mechanic.getItemID(), parentMechanic.getDirectional()));
         } else {
