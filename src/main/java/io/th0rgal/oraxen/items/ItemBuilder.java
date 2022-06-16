@@ -332,7 +332,7 @@ public class ItemBuilder {
 
         if (itemMeta instanceof SkullMeta skullMeta) {
             final OfflinePlayer defaultOwningPlayer = skullMeta.getOwningPlayer();
-            if (!owningPlayer.equals(defaultOwningPlayer)) {
+            if (!Objects.equals(owningPlayer, defaultOwningPlayer)) {
                 skullMeta.setOwningPlayer(owningPlayer);
                 return skullMeta;
             }

@@ -273,23 +273,19 @@ public class ResourcePack {
     }
 
     private void readFileToVirtuals(final Collection<VirtualFile> fileList, File file, String newFolder) {
-        try(final InputStream fis = getProcessedFileStream(file)) {
-            if(fis == null) return;
+        try {
+            final InputStream fis;
+            if (file.getName().endsWith(".json")) fis = processJsonFile(file);
+            else if (file.getName().endsWith(".fsh")) fis = processShaderFile(file);
+            else if (customArmorsTextures.registerImage(file)) return;
+            else fis = new FileInputStream(file);
 
             fileList.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder),
                     file.getName(),
                     fis));
-        } catch(IOException e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    private InputStream getProcessedFileStream(File file) throws IOException {
-        String fileName = file.getName();
-        if (fileName.endsWith(".json")) return processJsonFile(file);
-        else if (fileName.endsWith(".fsh")) return processShaderFile(file);
-        else if (customArmorsTextures.registerImage(file)) return null;
-        return new FileInputStream(file);
     }
 
     private InputStream processJsonFile(File file) throws IOException {
