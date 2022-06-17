@@ -4,14 +4,8 @@ package io.th0rgal.oraxen.font;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.config.Settings;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.bukkit.profile.PlayerProfile;
-
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
 
 
 public class Glyph {
@@ -41,12 +35,8 @@ public class Glyph {
             if (chatSection.isBoolean("tabcomplete"))
                 tabcomplete = chatSection.getBoolean("tabcomplete");
             else tabcomplete = false;
-            if (chatSection.isString("tabIconTexture")) {
-                tabIconTexture = chatSection.getString("tabIconTexture");
-            } else tabIconTexture = null;
-            if (chatSection.isString("tabIconSignature")) {
-                tabIconSignature = chatSection.getString("tabIconSignature");
-            } else tabIconSignature = null;
+            tabIconTexture = chatSection.getString("tabIconTexture", "ewogICJ0aW1lc3RhbXAiIDogMTY0ODI4NzUzMTA4NywKICAicHJvZmlsZUlkIiA6ICJhYzM2YmVkZGQxNGQ0YjVmYmQyYzc5OThlMWMwOTg3ZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJtYWlzYWthIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzU3ZGRlMGExN2MwNDY4MzI0MGIyNzJlYjJkODk1NWY4NzRiM2ExMTIyNTkxNjMwMGZlM2U4ODhkZjI4YjI4ZDciCiAgICB9CiAgfQp9");
+            tabIconSignature = chatSection.getString("tabIconSignature", "ScFX2rWxyhSyIn3YIke0ecNezt0bx+K8fRLQVPAzNli+X/dmod9ohujwwmDyog0exnlDAdEtXJY2XEUELpNLBHYZFyMsUChL4MObACzxGXExRBbyE8NzemmcRePKmglJfIHBxATlvG3VXeNn1dNA9g+GgLAB4KdqlDaYO5qAtdET7rckzLhSVeFz3yct3LuqZwzutdkJIbnR2Bu9kM4IpyowDbBEoASUp2ogNq4bQ+9O7cU7PtayknPGJaustHQR32jVcLYNqGweZKjZZUgER+6XrGAwyuWENQ00UpEWanHa2ahBugxzg1atcgc3spx3FxWLN0bVsUj4oXulPhxD4/44jALhHl7898qXwoRhqGaAuombJRH/bMoyoTZUDgcxmTbWFZcos9Ugg6eBlQo7ip35mW7fyd/8rk6RCGyf/wmqyDUnFNUHeQgJHHED+yr2oN/Y4jzCmG5Ikk1RExpi2Mbi7ouZx3bKzkTsEafGdnx8sMxenRCYFtcoQCcV4woQsk7xqqJyBVFiU4wXzHzMnbOhiRPJHlcqzJljFw2LuI97f8vlQGpW5KriFUWLSgKs1Zw4QOIdl5cv/oSZOvEAoi0s5EOB4rzVVE1XXLatYWOaRXy6Nbl8c9SH8UbkhcK5t+J54UIsvvuqq8AoDOX6yyw/wDORVlTaqy7pVXKZSQk=");
         }
         texture = glyphSection.getString("texture");
         if (!texture.endsWith(".png"))
