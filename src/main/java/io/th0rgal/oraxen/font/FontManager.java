@@ -8,7 +8,6 @@ import com.comphenix.protocol.wrappers.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -73,6 +72,10 @@ public class FontManager {
 
     public final Collection<Glyph> getGlyphs() {
         return glyphMap.values();
+    }
+
+    public final Collection<Glyph> getEmojis() {
+        return glyphMap.values().stream().filter(Glyph::hasTabCompletion).toList();
     }
 
     public final Collection<Font> getFonts() {
