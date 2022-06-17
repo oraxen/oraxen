@@ -14,6 +14,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
@@ -35,12 +36,12 @@ public class AdvancedPackSender extends PackSender implements Listener {
 
     @Override
     public void register() {
-        if (Settings.SEND_PACK.toBool())
-            Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
+        Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
     }
 
     @Override
     public void unregister() {
+        HandlerList.unregisterAll(this);
     }
 
     @Override
