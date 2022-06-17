@@ -1,10 +1,12 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
+import com.jeff_media.customblockdata.CustomBlockData;
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
@@ -32,11 +34,14 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
 import java.util.Objects;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 
 public class StringBlockMechanicListener implements Listener {
 
@@ -216,6 +221,12 @@ public class StringBlockMechanicListener implements Listener {
             placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
         if (mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
+        if (mechanic.isSapling()) {
+            SaplingMechanic sapling = mechanic.getSaplingMechanic();
+            final PersistentDataContainer pdc = new CustomBlockData(placedBlock, OraxenPlugin.get());
+            if (mechanic.getSaplingMechanic().canGrowNaturally())
+                pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, sapling.getNaturalGrowthTime());
+        }
         event.setCancelled(true);
     }
 
@@ -255,7 +266,7 @@ public class StringBlockMechanicListener implements Listener {
         }
     }
 
-    public StringBlockMechanic getStringMechanic(Block block) {
+    public static StringBlockMechanic getStringMechanic(Block block) {
         if (block.getType() == Material.TRIPWIRE) {
             final Tripwire tripwire = (Tripwire) block.getBlockData();
             return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
@@ -356,7 +367,7 @@ public class StringBlockMechanicListener implements Listener {
         }, 1L);
     }
 
-    private void fixClientsideUpdate(Location blockLoc) {
+    private static void fixClientsideUpdate(Location blockLoc) {
         Block blockBelow = blockLoc.clone().subtract(0, 1, 0).getBlock();
         Block blockAbove = blockLoc.clone().add(0, 1, 0).getBlock();
         Location loc = blockLoc.add(5, 0, 5);

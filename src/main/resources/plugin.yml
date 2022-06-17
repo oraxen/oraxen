@@ -4,7 +4,7 @@ version: ${projectVersion}
 author: Th0rgal
 api-version: 1.18
 softdepend: [ ProtocolLib, LightAPI, PlaceholderAPI, MythicMobs, MMOItems, BossShopPro,
-              CrateReloaded, ItemBridge, WorldGuard, Towny, Factions, Lands, NBTAPI ]
+              CrateReloaded, ItemBridge, WorldEdit, WorldGuard, Towny, Factions, Lands, NBTAPI ]
 loadbefore: [ Realistic_World ]
 libraries:
   - org.springframework:spring-expression:5.3.16
