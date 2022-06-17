@@ -9,6 +9,8 @@ import java.util.logging.Level;
 
 public class Logs {
 
+    private Logs() {}
+
     private static final CustomLogger LOGGER = new CustomLogger(OraxenPlugin.get());
 
     public static void enableFilter() throws NoSuchFieldException, IllegalAccessException {

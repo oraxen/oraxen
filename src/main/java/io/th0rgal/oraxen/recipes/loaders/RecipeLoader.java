@@ -2,20 +2,21 @@ package io.th0rgal.oraxen.recipes.loaders;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
-
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.inventory.*;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.Recipe;
+import org.bukkit.inventory.RecipeChoice;
 
 public abstract class RecipeLoader {
 
     private final ConfigurationSection section;
 
-    public RecipeLoader(ConfigurationSection section) {
+    protected RecipeLoader(ConfigurationSection section) {
         this.section = section;
     }
 

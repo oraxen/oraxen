@@ -3,22 +3,16 @@ package io.th0rgal.oraxen.items;
 import org.bukkit.NamespacedKey;
 import org.bukkit.persistence.PersistentDataType;
 
-public class PersistentDataSpace {
+public record PersistentDataSpace<T, Z>(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType) {
 
-    private final NamespacedKey namespacedKey;
-    private final PersistentDataType<?, ?> dataType;
-
-    public <T, Z> PersistentDataSpace(NamespacedKey namespacedKey, PersistentDataType<T, Z> dataType) {
-        this.namespacedKey = namespacedKey;
-        this.dataType = dataType;
-    }
-
+    @Deprecated(forRemoval = true)
     public NamespacedKey getNamespacedKey() {
-        return namespacedKey;
+        return namespacedKey();
     }
 
-    public PersistentDataType<?, ?> getDataType() {
-        return dataType;
+    @Deprecated(forRemoval = true)
+    public PersistentDataType<T, Z> getDataType() {
+        return dataType();
     }
 
 }

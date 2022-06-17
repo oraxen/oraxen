@@ -1,11 +1,10 @@
 package io.th0rgal.oraxen.utils.logs;
 
-import java.util.function.BiConsumer;
-
 import io.th0rgal.oraxen.config.Message;
-import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.ConsoleCommandSender;
+
+import java.util.function.BiConsumer;
 
 public final class ConsoleAdapter implements BiConsumer<Boolean, String> {
 

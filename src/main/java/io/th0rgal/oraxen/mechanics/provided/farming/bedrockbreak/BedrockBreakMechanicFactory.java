@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.farming.bedrockbreak;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-
 import org.bukkit.configuration.ConfigurationSection;
 
 public class BedrockBreakMechanicFactory extends MechanicFactory {

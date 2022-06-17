@@ -13,7 +13,6 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -26,6 +25,8 @@ import java.util.Locale;
 import java.util.Map;
 
 public class Utils {
+
+    private Utils() {}
 
     public static final LegacyComponentSerializer LEGACY_COMPONENT_SERIALIZER = LegacyComponentSerializer.builder()
             .hexColors()
@@ -79,14 +80,11 @@ public class Utils {
     }
 
     public static void writeStringToFile(final File file, final String content) {
-        try {
-            file.getParentFile().mkdirs();
-            final BufferedWriter writer = new BufferedWriter(new FileWriter(file));
+        file.getParentFile().mkdirs();
+        try(final FileWriter writer = new FileWriter(file)) {
             writer.write(content);
-            writer.flush();
-            writer.close();
-        } catch (final IOException e) {
-            e.printStackTrace();
+        } catch(IOException ex) {
+            ex.printStackTrace();
         }
     }
 

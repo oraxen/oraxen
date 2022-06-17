@@ -54,11 +54,10 @@ public class PredicatesGenerator {
             case SHIELD:
                 overrides.add(getOverride("blocking", 1, "item/shield_blocking"));
                 json.addProperty("gui_light", "front");
-                json.add("display", new JsonParser().parse(Settings.SHIELD_DISPLAY.toString()).getAsJsonObject());
+                json.add("display", JsonParser.parseString(Settings.SHIELD_DISPLAY.toString()).getAsJsonObject());
                 break;
 
             case BOW:
-                JsonParser parser = new JsonParser();
                 JsonObject pullingPredicate = new JsonObject();
                 pullingPredicate.addProperty("pulling", 1);
                 /*
@@ -75,8 +74,6 @@ public class PredicatesGenerator {
 
 
             case CROSSBOW:
-                parser = new JsonParser();
-
                 pullingPredicate = new JsonObject();
                 pullingPredicate.addProperty("pulling", 1);
                 overrides.add(getOverride(JsonParser.parseString(pullingPredicate.toString()).getAsJsonObject(), "item/crossbow_pulling_0"));

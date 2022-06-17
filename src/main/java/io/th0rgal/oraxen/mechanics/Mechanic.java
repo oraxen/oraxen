@@ -1,8 +1,8 @@
 package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.items.ItemBuilder;
-
 import org.bukkit.configuration.ConfigurationSection;
+
 import java.util.function.Function;
 
 public abstract class Mechanic {
@@ -13,7 +13,7 @@ public abstract class Mechanic {
     private final String itemID;
 
     @SafeVarargs
-    public Mechanic(MechanicFactory mechanicFactory, ConfigurationSection section,
+    protected Mechanic(MechanicFactory mechanicFactory, ConfigurationSection section,
         Function<ItemBuilder, ItemBuilder>... modifiers) {
         this.mechanicFactory = mechanicFactory;
         this.section = section;

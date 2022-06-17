@@ -5,7 +5,6 @@ import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.entity.Player;
 
 import java.text.DecimalFormat;
-import java.util.concurrent.TimeUnit;
 
 public class Timer {
 

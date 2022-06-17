@@ -5,7 +5,7 @@ plugins {
     id 'idea'
     id 'eclipse'
     id 'maven-publish'
-    id 'com.github.johnrengelman.shadow' version '7.0.0'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
 apply plugin: 'maven-publish'
@@ -64,18 +64,17 @@ dependencies {
     compileOnly group: 'com.github.BeYkeRYkt', name: 'LightAPI', version: '5.1.0-Bukkit'
     compileOnly group: 'me.gabytm.util', name: 'actions-core', version: actionsVersion
     compileOnly group: 'org.springframework', name: 'spring-expression', version: '5.3.16'
-    compileOnly group: 'com.github.rockswang', name: 'java-curl', version: '1.2.2.2'
     compileOnly group: 'io.lumine', name: 'Mythic-Dist', version: '5.0.2-SNAPSHOT'
     compileOnly fileTree(dir: 'libs/compile', include: ['*.jar'])
     implementation fileTree(dir: 'libs/implement', include: ['*.jar'])
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'
     implementation group: 'com.github.oraxen', name: 'protectionlib', version: '1.1.1'
-    implementation group: 'org.yaml', name: 'snakeyaml', version: '1.28'
     implementation group: 'net.kyori', name: 'adventure-text-minimessage', version: '4.2.0-SNAPSHOT'
     implementation group: 'net.kyori', name: 'adventure-platform-bukkit', version: '4.0.0'
     implementation group: 'com.github.stefvanschie.inventoryframework', name: 'IF', version: '0.10.0'
     implementation group: 'dev.jorel', name: 'commandapi-shade', version: '8.1.0'
     implementation "com.jeff_media:CustomBlockData:1.0.5"
+    implementation "com.jeff_media:MorePersistentDataTypes:2.3.1"
 
     implementation(group: 'me.gabytm.util', name: 'actions-spigot', version: actionsVersion) { exclude group: 'com.google.guava' }
 }
@@ -88,13 +87,16 @@ processResources {
 
 shadowJar {
     archiveClassifier = null
-    relocate 'org.yaml.snakeyaml', 'io.th0rgal.oraxen.shaded.snakeyaml'
     relocate 'org.bstats', 'io.th0rgal.oraxen.shaded.bstats'
     relocate 'net.kyori', 'io.th0rgal.oraxen.shaded.kyori'
-    relocate 'de.jeff_media.customblockdata', 'io.th0rgal.oraxen.shaded.customblockdata'
+    relocate 'com.jeff_media.customblockdata', 'io.th0rgal.oraxen.shaded.customblockdata'
+    relocate 'com.jeff_media.morepersistentdatatypes', 'io.th0rgal.oraxen.shaded.morepersistentdatatypes'
     relocate 'com.github.stefvanschie.inventoryframework', 'io.th0rgal.oraxen.shaded.if'
     relocate 'dev.jorel.commandapi', 'io.th0rgal.oraxen.shaded.commandapi'
     relocate 'me.gabytm.util.actions', 'io.th0rgal.oraxen.shaded.actions'
+    relocate 'org.intellij.lang.annotations', 'io.th0rgal.oraxen.shaded.intellij.annotations'
+    relocate 'org.jetbrains.annotations', 'io.th0rgal.oraxen.shaded.jetbrains.annotations'
+    relocate 'com.udojava.evalex', 'io.th0rgal.oraxen.shaded.evalex'
     manifest {
         attributes(
                 'Built-By': System.properties['user.name'],

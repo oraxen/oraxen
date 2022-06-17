@@ -81,7 +81,7 @@ public class RepairCommand {
                     .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realMaxDurability);
         }
         damageable.setDamage(0);
-        itemStack.setItemMeta((ItemMeta) damageable);
+        itemStack.setItemMeta(damageable);
         return false;
     }
 

@@ -12,7 +12,6 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
@@ -32,7 +31,7 @@ public class FarmBlockDryout {
     }
 
     public int getDelay() {
-        return farmBlockDryoutTime;
+        return getDryoutTime();
     }
 
     public boolean isFarmBlock() {
@@ -69,14 +68,14 @@ public class FarmBlockDryout {
                 + 1; x++)
             for (int z = blockLoc.getBlockZ() - 1; z <= blockLoc.getBlockZ()
                     + 1; z++) {
-                Block b = Objects.requireNonNull(blockLoc.getWorld()).getBlockAt(x, blockLoc.getBlockY(), z);
-                if (b.getType() == Material.WATER) blocks.add(b);
-                else if (b.getType() == Material.FARMLAND && ((Farmland) b.getBlockData()).getMoisture() > 0)
-                    blocks.add(b);
-                else if (b.getType() == Material.NOTE_BLOCK &&
-                        getNoteBlockMechanic(b).hasDryout() &&
-                        getNoteBlockMechanic(b).getDryout().isMoistFarmBlock())
-                    blocks.add(b);
+                Block b = blockLoc.getWorld().getBlockAt(x, blockLoc.getBlockY(), z);
+                Material type = b.getType();
+
+                boolean isWater = type == Material.WATER;
+                boolean isFarmableLand = type == Material.FARMLAND && ((Farmland) b.getBlockData()).getMoisture() > 0;
+                boolean isMoistFarmBlock = type == Material.NOTE_BLOCK && getNoteBlockMechanic(b).hasDryout() && getNoteBlockMechanic(b).getDryout().isMoistFarmBlock();
+
+                if(isWater || isFarmableLand || isMoistFarmBlock) blocks.add(b);
             }
         return !blocks.isEmpty();
     }

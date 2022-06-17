@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.consumablepotioneffects;
 
 import io.th0rgal.oraxen.items.OraxenItems;
-
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
