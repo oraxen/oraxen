@@ -1,15 +1,14 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 
+import io.papermc.paper.event.entity.EntityMoveEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
@@ -23,6 +22,8 @@ import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.Objects;
 
 public class BlockMechanicListener implements Listener {
 
@@ -123,6 +124,23 @@ public class BlockMechanicListener implements Listener {
         event.setCancelled(true);
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
+    }
+
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onStep(final EntityMoveEvent event) {
+        Block below = event.getEntity().getLocation().getBlock().getRelative(BlockFace.DOWN);
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        SoundGroup soundGroup = below.getBlockData().getSoundGroup();
+
+        if (Objects.equals(from.getBlock().getLocation(), to.getBlock().getLocation())) return;
+        if (!(below.getBlockData() instanceof final MultipleFacing blockFacing)) return;
+        if (below.getType() != Material.MUSHROOM_STEM) return;
+
+        final BlockMechanic mechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(blockFacing));
+        if (mechanic == null) return;
+        below.getWorld().playSound(below.getLocation(), Sound.valueOf(mechanic.getStepSound()), soundGroup.getVolume(), soundGroup.getPitch());
     }
 
     private boolean isStandingInside(final Player player, final Block block) {

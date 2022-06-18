@@ -21,6 +21,7 @@ public class BlockMechanic extends Mechanic {
     private final Drop drop;
     private final String breakSound;
     private final String placeSound;
+    private final String stepSound;
 
     @SuppressWarnings("unchecked")
     public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -34,15 +35,9 @@ public class BlockMechanic extends Mechanic {
 
         customVariation = section.getInt("custom_variation");
 
-        if (section.isString("break_sound"))
-            breakSound = section.getString("break_sound").toUpperCase();
-        else
-            breakSound = null;
-
-        if (section.isString("place_sound"))
-            placeSound = section.getString("place_sound");
-        else
-            placeSound = null;
+        placeSound = section.getString("place_sound", null);
+        breakSound = section.getString("break_sound", null);
+        stepSound = section.getString("step_sound", null);
 
 
         List<Loot> loots = new ArrayList<>();
@@ -91,6 +86,9 @@ public class BlockMechanic extends Mechanic {
     public String getPlaceSound() {
         return placeSound;
     }
+
+    public boolean hasStepSound() { return stepSound != null; }
+    public String getStepSound() { return stepSound; }
 
     public static int getCode(final MultipleFacing blockData) {
         final List<BlockFace> properties = Arrays

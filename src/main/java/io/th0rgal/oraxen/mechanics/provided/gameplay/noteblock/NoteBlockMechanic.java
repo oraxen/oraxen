@@ -26,6 +26,7 @@ public class NoteBlockMechanic extends Mechanic {
     private final Drop drop;
     private final String breakSound;
     private final String placeSound;
+    private final String stepSound;
     private String model;
     private int period;
     private final int light;
@@ -46,15 +47,9 @@ public class NoteBlockMechanic extends Mechanic {
 
         customVariation = section.getInt("custom_variation");
 
-        if (section.isString("break_sound"))
-            breakSound = section.getString("break_sound");
-        else
-            breakSound = null;
-
-        if (section.isString("place_sound"))
-            placeSound = section.getString("place_sound");
-        else
-            placeSound = null;
+        placeSound = section.getString("place_sound", null);
+        breakSound = section.getString("break_sound", null);
+        stepSound = section.getString("step_sound", null);
 
         List<Loot> loots = new ArrayList<>();
         if (section.isConfigurationSection("drop")) {
@@ -148,6 +143,10 @@ public class NoteBlockMechanic extends Mechanic {
     public String getPlaceSound() {
         return placeSound;
     }
+
+
+    public boolean hasStepSound() { return stepSound != null; }
+    public String getStepSound() { return stepSound; }
 
     public int getPeriod() {
         return period;

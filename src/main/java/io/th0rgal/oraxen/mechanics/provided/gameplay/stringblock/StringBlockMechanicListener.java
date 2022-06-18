@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
+import io.papermc.paper.event.entity.EntityMoveEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
@@ -9,10 +10,7 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -232,6 +230,20 @@ public class StringBlockMechanicListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onStep(final EntityMoveEvent event) {
+        Entity entity = event.getEntity();
+        Block block = entity.getLocation().getBlock();
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        StringBlockMechanic mechanic;
+
+        if (!isStandingInside(entity, block)) return;
+        if (Objects.equals(from.getBlock().getLocation(), to.getBlock().getLocation())) return;
+        if (block.getType() == Material.TRIPWIRE) mechanic = getStringMechanic(block); else return;
+        block.getWorld().playSound(block.getLocation(), Sound.valueOf(mechanic.getStepSound()), 1.0f, 1.0f);
+    }
+
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMiddleClick(final InventoryCreativeEvent event) {
         if (event.getClick() != ClickType.CREATIVE) return;
@@ -295,13 +307,13 @@ public class StringBlockMechanicListener implements Listener {
         };
     }
 
-    private boolean isStandingInside(final Player player, final Block block) {
-        final Location playerLocation = player.getLocation();
+    private boolean isStandingInside(final Entity entity, final Block block) {
+        final Location entityLocation = entity.getLocation();
         final Location blockLocation = block.getLocation();
-        return playerLocation.getBlockX() == blockLocation.getBlockX()
-                && (playerLocation.getBlockY() == blockLocation.getBlockY()
-                || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
-                && playerLocation.getBlockZ() == blockLocation.getBlockZ();
+        return entityLocation.getBlockX() == blockLocation.getBlockX()
+                && (entityLocation.getBlockY() == blockLocation.getBlockY()
+                || entityLocation.getBlockY() + 1 == blockLocation.getBlockY())
+                && entityLocation.getBlockZ() == blockLocation.getBlockZ();
     }
 
     private Block makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,

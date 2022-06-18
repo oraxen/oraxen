@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import com.jeff_media.customblockdata.CustomBlockData;
+import io.papermc.paper.event.entity.EntityMoveEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.events.OraxenNoteBlockBreakEvent;
@@ -248,6 +249,23 @@ public class NoteBlockMechanicListener implements Listener {
                 final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
                 customBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
             }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onStep(final EntityMoveEvent event) {
+        Block below = event.getEntity().getLocation().getBlock().getRelative(BlockFace.DOWN);
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        SoundGroup soundGroup = below.getBlockData().getSoundGroup();
+        NoteBlockMechanic mechanic;
+        if (Objects.equals(from.getBlock().getLocation(), to.getBlock().getLocation())) return;
+        if (below.getType() == Material.NOTE_BLOCK) mechanic = getNoteBlockMechanic(below); else mechanic = null;
+
+        if (below.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasBreakSound()) {
+            below.getWorld().playSound(below.getLocation(), Sound.valueOf(mechanic.getStepSound()), soundGroup.getVolume(), soundGroup.getPitch());
+        } else if (soundGroup.getStepSound().equals(Sound.BLOCK_WOOD_STEP)) {
+            below.getWorld().playSound(below.getLocation(), Sound.valueOf("new_wood_step_sound"), soundGroup.getVolume(), soundGroup.getPitch());
         }
     }
 

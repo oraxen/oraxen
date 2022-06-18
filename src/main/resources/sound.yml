@@ -7,3 +7,6 @@ sounds:
   welcome:
     category: record
     sound: welcome.ogg # extension is not mandatory
+  new_wood_step_sound:
+    category: block
+    sound: wood_step.ogg
