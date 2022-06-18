@@ -31,7 +31,6 @@ public class UploadManager {
     private final HostingProvider hostingProvider;
     private PackSender packSender;
     private PackReceiver receiver;
-    private PackSender sender;
 
     public UploadManager(final Plugin plugin) {
         this.plugin = plugin;
@@ -51,7 +50,7 @@ public class UploadManager {
         uploadAsyncAndSendToPlayers(resourcePack, false);
     }
 
-    public void uploadAsyncAndSendToPlayers(final ResourcePack resourcePack, final boolean updateSend) {
+    public void uploadAsyncAndSendToPlayers(final ResourcePack resourcePack, final boolean updatePackSender) {
         if (!enabled)
             return;
 
@@ -71,14 +70,28 @@ public class UploadManager {
                     Template.template("url", hostingProvider.getPackURL()),
                     Template.template("delay", String.valueOf(System.currentTimeMillis() - time)));
 
-            if ((Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) && sender == null) {
-                packSender = (CompatibilitiesManager.hasPlugin("ProtocolLib") && Settings.SEND_PACK_ADVANCED.toBool())
-                        ? new AdvancedPackSender(hostingProvider) : new BukkitPackSender(hostingProvider);
-                packSender.register();
+            if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
+                if (packSender == null) {
+                    packSender = (CompatibilitiesManager.hasPlugin("ProtocolLib") && Settings.SEND_PACK_ADVANCED.toBool())
+                            ? new AdvancedPackSender(hostingProvider) : new BukkitPackSender(hostingProvider);
+                    packSender.register();
+                } else {
+                    if (updatePackSender) {
+                        packSender.unregister();
+                        packSender = (CompatibilitiesManager.hasPlugin("ProtocolLib") && Settings.SEND_PACK_ADVANCED.toBool())
+                                ? new AdvancedPackSender(hostingProvider) : new BukkitPackSender(hostingProvider);
+                        packSender.register();
+                    }
+                }
                 if (!hostingProvider.getPackURL().equals(url))
                     for (Player player : Bukkit.getOnlinePlayers())
                         packSender.sendPack(player);
                 url = hostingProvider.getPackURL();
+            } else {
+                if (packSender != null) {
+                    packSender.unregister();
+                    packSender = null;
+                }
             }
         });
     }

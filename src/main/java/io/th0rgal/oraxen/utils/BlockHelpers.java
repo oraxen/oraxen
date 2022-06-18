@@ -1,9 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
-import org.bukkit.Axis;
-import org.bukkit.Bukkit;
-import org.bukkit.FluidCollisionMode;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Sign;
 import org.bukkit.block.*;
 import org.bukkit.block.data.*;
@@ -21,6 +18,10 @@ import java.util.Arrays;
 import java.util.List;
 
 public class BlockHelpers {
+
+    public static Location toBlockLocation(Location location) {
+        return new Location(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
+    }
 
     public static final List<Material> REPLACEABLE_BLOCKS = Arrays
             .asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,
@@ -77,6 +78,10 @@ public class BlockHelpers {
             for (ItemStack i : inv)
                 if (i != null) ((BlockInventoryHolder) block.getState()).getInventory().addItem(i);
         }
+
+        if (block.getState() instanceof Sign)
+            player.openSign((Sign) block.getState());
+
         return true;
     }
 
@@ -103,7 +108,6 @@ public class BlockHelpers {
         final Directional data = (Directional) Bukkit.createBlockData(block.getType());
         data.setFacing(face);
         block.setBlockData(data, false);
-        if (block.getState() instanceof Sign) player.openSign((Sign) block.getState());
     }
 
     private static boolean handleDoubleBlocks(Block block, Player player) {
@@ -184,8 +188,11 @@ public class BlockHelpers {
 
     private static void handleRotatableBlocks(Block block, Player player) {
         final BlockData data = block.getBlockData();
+        final BlockState state = block.getState();
         if (data instanceof Rotatable) {
             ((Rotatable) data).setRotation(player.getFacing());
+            if (state instanceof Sign && !(state instanceof WallSign))
+                ((Rotatable) data).setRotation(player.getFacing().getOppositeFace());
         }
         block.setBlockData(data, false);
     }

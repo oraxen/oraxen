@@ -48,6 +48,8 @@ repositories {
     maven { url 'https://mvn.lumine.io/repository/maven-public/' }
     // commandAPI snapshots
     maven { url = 'https://s01.oss.sonatype.org/content/repositories/snapshots' }
+    // WorldEdit
+    maven { url 'https://maven.enginehub.org/repo/' }
 }
 
 compileJava {
@@ -67,6 +69,7 @@ dependencies {
     compileOnly group: 'me.gabytm.util', name: 'actions-core', version: actionsVersion
     compileOnly group: 'org.springframework', name: 'spring-expression', version: '5.3.16'
     compileOnly group: 'io.lumine', name: 'Mythic-Dist', version: '5.0.2-SNAPSHOT'
+    compileOnly group: 'com.sk89q.worldedit', name: 'worldedit-bukkit', version: '7.2.0'
     compileOnly fileTree(dir: 'libs/compile', include: ['*.jar'])
     implementation fileTree(dir: 'libs/implement', include: ['*.jar'])
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'

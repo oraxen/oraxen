@@ -91,9 +91,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
 
         NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
-
         if (noteBlockMechanic == null) return;
-
         if (noteBlockMechanic.isDirectional())
             noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
 
