@@ -19,6 +19,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import static org.bukkit.block.data.FaceAttachable.AttachedFace.CEILING;
+import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
+
 public class BlockHelpers {
 
     public static Location toBlockLocation(Location location) {
@@ -38,6 +41,7 @@ public class BlockHelpers {
         final BlockState state = block.getState();
         final Material type = block.getType();
         if (data instanceof Tripwire) return true;
+        if (data instanceof Sapling && face != BlockFace.UP) return false;
         if (data instanceof Ladder && (face == BlockFace.UP || face == BlockFace.DOWN)) return false;
         if (type == Material.HANGING_ROOTS && face != BlockFace.DOWN) return false;
         if (type.toString().endsWith("TORCH") && face == BlockFace.DOWN) return false;
@@ -65,24 +69,24 @@ public class BlockHelpers {
             handleDirectionalBlocks(block, face);
         }
 
-        if (data instanceof Orientable) {
-            if (face == BlockFace.UP || face == BlockFace.DOWN) ((Orientable) data).setAxis(Axis.Y);
-            else if (face == BlockFace.NORTH || face == BlockFace.SOUTH) ((Orientable) data).setAxis(Axis.Z);
-            else if (face == BlockFace.WEST || face == BlockFace.EAST) ((Orientable) data).setAxis(Axis.X);
-            else ((Orientable) data).setAxis(Axis.Y);
-            block.setBlockData(data, false);
+        if (data instanceof Orientable orientable) {
+            if (face == BlockFace.UP || face == BlockFace.DOWN) orientable.setAxis(Axis.Y);
+            else if (face == BlockFace.NORTH || face == BlockFace.SOUTH) orientable.setAxis(Axis.Z);
+            else if (face == BlockFace.WEST || face == BlockFace.EAST) orientable.setAxis(Axis.X);
+            else orientable.setAxis(Axis.Y);
+            block.setBlockData(orientable, false);
         }
 
-        if (data instanceof Lantern) {
+        if (data instanceof Lantern lantern) {
             if (face != BlockFace.DOWN) return false;
-            ((Lantern) data).setHanging(true);
-            block.setBlockData(data, false);
+            lantern.setHanging(true);
+            block.setBlockData(lantern, false);
         }
 
-        if (state instanceof BlockInventoryHolder) {
+        if (state instanceof BlockInventoryHolder invHolder) {
             Inventory inv = ((Container) ((BlockStateMeta) Objects.requireNonNull(item.getItemMeta())).getBlockState()).getInventory();
             for (ItemStack i : inv)
-                if (i != null) ((BlockInventoryHolder) block.getState()).getInventory().addItem(i);
+                if (i != null) invHolder.getInventory().addItem(i);
         }
 
         if (type.toString().endsWith("ANVIL")) {
@@ -90,18 +94,23 @@ public class BlockHelpers {
             block.setBlockData(data, false);
         }
 
-        if (block.getState() instanceof Sign)
-            player.openSign((Sign) block.getState());
+        if (data instanceof Repeater repeater) {
+            repeater.setFacing(player.getFacing().getOppositeFace());
+            block.setBlockData(repeater, false);
+        }
+
+        if (block.getState() instanceof Sign sign)
+            player.openSign(sign);
 
         return true;
     }
 
     private static void handleWaterlogged(Block block, BlockFace face) {
         final BlockData data = block.getBlockData();
-        if (data instanceof Waterlogged) {
-            if (data instanceof Directional && ((Directional) data).getFaces().contains(face) && !(data instanceof Stairs))
-                ((Directional) data).setFacing(face);
-            ((Waterlogged) data).setWaterlogged(false);
+        if (data instanceof Waterlogged waterlogged) {
+            if (data instanceof Directional directional && directional.getFaces().contains(face) && !(data instanceof Stairs))
+                directional.setFacing(face);
+            waterlogged.setWaterlogged(false);
         }
         block.setBlockData(data, false);
     }
@@ -126,47 +135,47 @@ public class BlockHelpers {
     private static boolean handleDoubleBlocks(Block block, Player player) {
         final BlockData data = block.getBlockData();
         final Block up = block.getRelative(BlockFace.UP);
-        if (data instanceof Door) {
+        if (data instanceof Door door) {
             if (up.getType().isSolid() || !BlockHelpers.REPLACEABLE_BLOCKS.contains(up.getType())) return false;
             if (getLeftBlock(block, player).getBlockData() instanceof Door)
-                ((Door) data).setHinge(Door.Hinge.RIGHT);
-            else ((Door) data).setHinge(Door.Hinge.LEFT);
+                door.setHinge(Door.Hinge.RIGHT);
+            else door.setHinge(Door.Hinge.LEFT);
 
-            ((Door) data).setFacing(player.getFacing());
-            ((Door) data).setHalf(Bisected.Half.TOP);
-            block.getRelative(BlockFace.UP).setBlockData(data, false);
-            ((Door) data).setHalf(Bisected.Half.BOTTOM);
-            block.setBlockData(data, false);
-        } else if (data instanceof Bed) {
+            door.setFacing(player.getFacing());
+            door.setHalf(Bisected.Half.TOP);
+            block.getRelative(BlockFace.UP).setBlockData(door, false);
+            door.setHalf(Bisected.Half.BOTTOM);
+            block.setBlockData(door, false);
+        } else if (data instanceof Bed bed) {
             final Block nextBlock = block.getRelative(player.getFacing());
             if (nextBlock.getType().isSolid() || !BlockHelpers.REPLACEABLE_BLOCKS.contains(nextBlock.getType()))
                 return false;
             nextBlock.setType(block.getType(), false);
             final Bed nextData = (Bed) nextBlock.getBlockData();
-            block.getRelative(player.getFacing()).setBlockData(data, false);
+            block.getRelative(player.getFacing()).setBlockData(bed, false);
 
-            ((Bed) data).setPart(Bed.Part.FOOT);
+            bed.setPart(Bed.Part.FOOT);
             nextData.setPart(Bed.Part.HEAD);
-            ((Bed) data).setFacing(player.getFacing());
+            bed.setFacing(player.getFacing());
             nextData.setFacing(player.getFacing());
             nextBlock.setBlockData(nextData, false);
-            block.setBlockData(data, false);
-        } else if (data instanceof Chest) {
+            block.setBlockData(bed, false);
+        } else if (data instanceof Chest chest) {
             if (getLeftBlock(block, player).getBlockData() instanceof Chest)
-                ((Chest) data).setType(Chest.Type.LEFT);
+                chest.setType(Chest.Type.LEFT);
             else if (getRightBlock(block, player).getBlockData() instanceof Chest)
-                ((Chest) data).setType(Chest.Type.RIGHT);
-            else ((Chest) data).setType(Chest.Type.SINGLE);
+                chest.setType(Chest.Type.RIGHT);
+            else chest.setType(Chest.Type.SINGLE);
 
-            ((Chest) data).setFacing(player.getFacing().getOppositeFace());
-            block.setBlockData(data, true);
-        } else if (data instanceof Bisected) {
+            chest.setFacing(player.getFacing().getOppositeFace());
+            block.setBlockData(chest, true);
+        } else if (data instanceof Bisected bisected) {
             if (up.getType().isSolid() || !BlockHelpers.REPLACEABLE_BLOCKS.contains(up.getType())) return false;
 
-            ((Bisected) data).setHalf(Bisected.Half.TOP);
-            block.getRelative(BlockFace.UP).setBlockData(data, false);
-            ((Bisected) data).setHalf(Bisected.Half.BOTTOM);
-            block.setBlockData(data, false);
+            bisected.setHalf(Bisected.Half.TOP);
+            block.getRelative(BlockFace.UP).setBlockData(bisected, false);
+            bisected.setHalf(Bisected.Half.BOTTOM);
+            block.setBlockData(bisected, false);
         } else {
             block.setBlockData(Bukkit.createBlockData(Material.AIR), false);
             return false;
@@ -183,22 +192,22 @@ public class BlockHelpers {
         final Location hitLoc = eye.getHitPosition().toLocation(block.getWorld());
         if (hitBlock == null || hitFace == null) return;
 
-        if (data instanceof TrapDoor) {
-            ((TrapDoor) data).setFacing(player.getFacing().getOppositeFace());
-            if (eye.getHitBlockFace() == BlockFace.UP) ((TrapDoor) data).setHalf(Bisected.Half.BOTTOM);
-            else if (hitFace == BlockFace.DOWN) ((TrapDoor) data).setHalf(Bisected.Half.TOP);
+        if (data instanceof TrapDoor trapDoor) {
+            trapDoor.setFacing(player.getFacing().getOppositeFace());
+            if (eye.getHitBlockFace() == BlockFace.UP) trapDoor.setHalf(Bisected.Half.BOTTOM);
+            else if (hitFace == BlockFace.DOWN) trapDoor.setHalf(Bisected.Half.TOP);
             else if (hitLoc.getY() <= toBlockLocation(hitBlock.getLocation()).getY())
-                ((TrapDoor) data).setHalf(Bisected.Half.BOTTOM);
-            else ((TrapDoor) data).setHalf(Bisected.Half.TOP);
-        } else if (data instanceof Stairs) {
-            ((Stairs) data).setFacing(player.getFacing());
+                trapDoor.setHalf(Bisected.Half.BOTTOM);
+            else trapDoor.setHalf(Bisected.Half.TOP);
+        } else if (data instanceof Stairs stairs) {
+            stairs.setFacing(player.getFacing());
             if (hitLoc.getY() <= toCenterLocation(hitBlock.getLocation()).getY())
-                ((Stairs) data).setHalf(Bisected.Half.BOTTOM);
-            else ((Stairs) data).setHalf(Bisected.Half.TOP);
-        } else if (data instanceof Slab) {
+                stairs.setHalf(Bisected.Half.BOTTOM);
+            else stairs.setHalf(Bisected.Half.TOP);
+        } else if (data instanceof Slab slab) {
             if (hitLoc.getY() <= toCenterLocation(hitBlock.getLocation()).getY())
-                ((Slab) data).setType(Slab.Type.BOTTOM);
-            else ((Slab) data).setType(Slab.Type.TOP);
+                slab.setType(Slab.Type.BOTTOM);
+            else slab.setType(Slab.Type.TOP);
         }
         block.setBlockData(data, false);
     }
@@ -214,19 +223,19 @@ public class BlockHelpers {
 
     private static void handleDirectionalBlocks(Block block, BlockFace face) {
         final BlockData data = block.getBlockData();
-        if (data instanceof Directional) {
-            if (data instanceof FaceAttachable) {
-                if (face == BlockFace.UP) ((FaceAttachable) data).setAttachedFace(FaceAttachable.AttachedFace.FLOOR);
-                else if (face == BlockFace.DOWN)
-                    ((FaceAttachable) data).setAttachedFace(FaceAttachable.AttachedFace.CEILING);
-                else ((Directional) data).setFacing(face);
-            } else if (((Directional) data).getFaces().contains(face)) ((Directional) data).setFacing(face);
-        } else if (data instanceof MultipleFacing) {
-            for (BlockFace blockFace : ((MultipleFacing) data).getAllowedFaces())
-                ((MultipleFacing) data).setFace(blockFace, block.getRelative(blockFace).getType().isSolid());
-        } else if (data instanceof Attachable) {
-            ((Attachable) data).setAttached(true);
+        if (data instanceof Directional directional) {
+            if (data instanceof FaceAttachable faceAttachable) {
+                if (face == BlockFace.UP) faceAttachable.setAttachedFace(FLOOR);
+                else if (face == BlockFace.DOWN) faceAttachable.setAttachedFace(CEILING);
+                else directional.setFacing(face);
+            } else if (directional.getFaces().contains(face)) directional.setFacing(face);
         }
+        else if (data instanceof MultipleFacing multipleFacing) {
+            for (BlockFace blockFace : multipleFacing.getAllowedFaces())
+                multipleFacing.setFace(blockFace, block.getRelative(blockFace).getType().isSolid());
+        }
+        else if (data instanceof Attachable attachable)
+            attachable.setAttached(true);
         block.setBlockData(data, false);
     }
 

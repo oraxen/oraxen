@@ -189,7 +189,7 @@ public class StringBlockMechanicListener implements Listener {
             else if (placedAgainst.getType() != Material.NOTE_BLOCK) return;
         }
 
-        if (item != null && item.getType().isBlock() && factory.isNotImplementedIn(itemID)) {
+        if (item != null && item.getType().isBlock() && !factory.isNotImplementedIn(itemID)) {
             for (BlockFace face : BlockFace.values()) {
                 if (!face.isCartesian() || face.getModZ() != 0) continue;
                 final Block relative = placedAgainst.getRelative(face);
