@@ -85,6 +85,11 @@ public class BlockHelpers {
                 if (i != null) ((BlockInventoryHolder) block.getState()).getInventory().addItem(i);
         }
 
+        if (type.toString().endsWith("ANVIL")) {
+            ((Directional) data).setFacing(getAnvilFacing(face));
+            block.setBlockData(data, false);
+        }
+
         if (block.getState() instanceof Sign)
             player.openSign((Sign) block.getState());
 
@@ -276,5 +281,16 @@ public class BlockHelpers {
         else if (new IntRange(292.5, 337.5).containsDouble(yaw) || new IntRange(-67.5, -22.5).containsDouble(yaw))
             face = BlockFace.SOUTH_EAST;
         return face;
+    }
+
+    public static BlockFace getAnvilFacing(BlockFace face) {
+        BlockFace f = BlockFace.SELF;
+        switch (face) {
+            case NORTH -> f = BlockFace.EAST;
+            case EAST -> f = BlockFace.NORTH;
+            case SOUTH -> f = BlockFace.WEST;
+            case WEST -> f = BlockFace.SOUTH;
+        }
+        return f;
     }
 }

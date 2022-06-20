@@ -18,6 +18,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -38,6 +39,7 @@ import java.util.List;
 import java.util.Objects;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
+import static io.th0rgal.oraxen.utils.BlockHelpers.getAnvilFacing;
 
 public class NoteBlockMechanicListener implements Listener {
     private final MechanicFactory factory;
@@ -144,7 +146,11 @@ public class NoteBlockMechanicListener implements Listener {
 
         if (type == null) return;
         if (type.hasGravity() && relative.getRelative(BlockFace.DOWN).getType() == Material.AIR) {
-            block.getWorld().spawnFallingBlock(relative.getLocation().add(0.5,0,0.5), Bukkit.createBlockData(type));
+            BlockData data = Bukkit.createBlockData(type);
+            if (type.toString().endsWith("ANVIL")) {
+                ((Directional) data).setFacing(getAnvilFacing(event.getBlockFace()));
+            }
+            block.getWorld().spawnFallingBlock(relative.getLocation().add(0.5,0,0.5), data);
             return;
         }
 
