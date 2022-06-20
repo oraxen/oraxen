@@ -40,32 +40,32 @@ public class BlockHelpers {
         final BlockData data = block.getBlockData();
         final BlockState state = block.getState();
         final Material type = block.getType();
-        if (data instanceof Tripwire) return true;
-        if (data instanceof Sapling && face != BlockFace.UP) return false;
-        if (data instanceof Ladder && (face == BlockFace.UP || face == BlockFace.DOWN)) return false;
-        if (type == Material.HANGING_ROOTS && face != BlockFace.DOWN) return false;
-        if (type.toString().endsWith("TORCH") && face == BlockFace.DOWN) return false;
-        if ((state instanceof Sign || state instanceof Banner) && face == BlockFace.DOWN) return false;
-        if (data instanceof Ageable) return handleAgeableBlocks(block, face);
+        if (data instanceof Tripwire) return false;
+        if (data instanceof Sapling && face != BlockFace.UP) return true;
+        if (data instanceof Ladder && (face == BlockFace.UP || face == BlockFace.DOWN)) return true;
+        if (type == Material.HANGING_ROOTS && face != BlockFace.DOWN) return true;
+        if (type.toString().endsWith("TORCH") && face == BlockFace.DOWN) return true;
+        if ((state instanceof Sign || state instanceof Banner) && face == BlockFace.DOWN) return true;
+        if (data instanceof Ageable) return !handleAgeableBlocks(block, face);
         if (!(data instanceof Door) && (data instanceof Bisected || data instanceof Slab))
             handleHalfBlocks(block, player);
         if (data instanceof Rotatable) handleRotatableBlocks(block, player);
         if (type.toString().contains("CORAL") && !type.toString().endsWith("CORAL_BLOCK") && face == BlockFace.DOWN)
-            return false;
+            return true;
         if (type.toString().endsWith("CORAL") && block.getRelative(BlockFace.DOWN).getType() == Material.AIR)
-            return false;
+            return true;
         if (type.toString().endsWith("_CORAL_FAN") && face != BlockFace.UP)
             block.setType(Material.valueOf(type.toString().replace("_CORAL_FAN", "_CORAL_WALL_FAN")));
         if (data instanceof Waterlogged) handleWaterlogged(block, face);
         if ((data instanceof Bed || data instanceof Chest || data instanceof Bisected) &&
                 !(data instanceof Stairs) && !(data instanceof TrapDoor))
-            if (!handleDoubleBlocks(block, player)) return false;
+            if (!handleDoubleBlocks(block, player)) return true;
         if ((state instanceof Skull || state instanceof Sign || state instanceof Banner || type.toString().contains("TORCH")) && face != BlockFace.DOWN && face != BlockFace.UP)
             handleWallAttachable(block, face);
 
         if (!(data instanceof Stairs) && (data instanceof Directional || data instanceof FaceAttachable || data instanceof MultipleFacing || data instanceof Attachable)) {
-            if (data instanceof MultipleFacing && face == BlockFace.UP) return false;
-            if (data instanceof CoralWallFan && face == BlockFace.DOWN) return false;
+            if (data instanceof MultipleFacing && face == BlockFace.UP) return true;
+            if (data instanceof CoralWallFan && face == BlockFace.DOWN) return true;
             handleDirectionalBlocks(block, face);
         }
 
@@ -78,7 +78,7 @@ public class BlockHelpers {
         }
 
         if (data instanceof Lantern lantern) {
-            if (face != BlockFace.DOWN) return false;
+            if (face != BlockFace.DOWN) return true;
             lantern.setHanging(true);
             block.setBlockData(lantern, false);
         }
@@ -102,7 +102,7 @@ public class BlockHelpers {
         if (block.getState() instanceof Sign sign)
             player.openSign(sign);
 
-        return true;
+        return false;
     }
 
     private static void handleWaterlogged(Block block, BlockFace face) {
