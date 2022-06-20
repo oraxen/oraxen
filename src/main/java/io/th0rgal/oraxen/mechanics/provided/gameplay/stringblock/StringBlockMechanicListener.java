@@ -77,7 +77,7 @@ public class StringBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingString(final BlockPlaceEvent event) {
-        if (event.getBlockPlaced().getType() != Material.STRING
+        if (event.getBlockPlaced().getType() != Material.TRIPWIRE
                 || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
 
@@ -292,7 +292,7 @@ public class StringBlockMechanicListener implements Listener {
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
                 final StringBlockMechanic tripwireMechanic = getStringMechanic(block);
-
+                if (tripwireMechanic == null) return 0;
                 final long period = tripwireMechanic.getPeriod();
                 double modifier = 1;
                 if (tripwireMechanic.getDrop().canDrop(tool)) {
@@ -309,10 +309,8 @@ public class StringBlockMechanicListener implements Listener {
     private boolean isStandingInside(final Player player, final Block block) {
         final Location playerLocation = player.getLocation();
         final Location blockLocation = block.getLocation();
-        return playerLocation.getBlockX() == blockLocation.getBlockX()
-                && (playerLocation.getBlockY() == blockLocation.getBlockY()
-                || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
-                && playerLocation.getBlockZ() == blockLocation.getBlockZ();
+        return BlockHelpers.toBlockLocation(playerLocation).equals(BlockHelpers.toBlockLocation(blockLocation)) ||
+                BlockHelpers.toBlockLocation(playerLocation).equals(BlockHelpers.toBlockLocation(blockLocation).add(0,1.0,0));
     }
 
     private Block makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
