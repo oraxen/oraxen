@@ -75,7 +75,7 @@ public class FontManager {
     }
 
     public final Collection<Glyph> getEmojis() {
-        return glyphMap.values().stream().filter(Glyph::hasTabCompletion).toList();
+        return glyphMap.values().stream().filter(Glyph::isEmoji).toList();
     }
 
     public final Collection<Font> getFonts() {
