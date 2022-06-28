@@ -30,6 +30,7 @@ public class ConfigsManager {
     private YamlConfiguration language;
     private File itemsFolder;
     private File glyphsFolder;
+    private File schematicsFolder;
 
     public ConfigsManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -54,6 +55,8 @@ public class ConfigsManager {
     public YamlConfiguration getSound() {
         return sound != null ? sound : defaultSound;
     }
+
+    public File getSchematicsFolder() { return schematicsFolder; }
 
     private YamlConfiguration extractDefault(String source) {
         InputStreamReader inputStreamReader = new InputStreamReader(plugin.getResource(source));
@@ -90,6 +93,13 @@ public class ConfigsManager {
         if (!glyphsFolder.exists()) {
             glyphsFolder.mkdirs();
             new ResourcesManager(plugin).extractConfigsInFolder("glyphs", "yml");
+        }
+
+        // check schematicsFolder
+        schematicsFolder = new File(plugin.getDataFolder(), "schematics");
+        if (!schematicsFolder.exists()) {
+            schematicsFolder.mkdirs();
+            new ResourcesManager(plugin).extractConfigsInFolder("schematics", "schem");
         }
 
         return true; // todo : return false when an error is detected + prints a detailed error

@@ -12,6 +12,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 public class BukkitPackSender extends PackSender implements Listener {
+
     public BukkitPackSender(HostingProvider hostingProvider) {
         super(hostingProvider);
     }

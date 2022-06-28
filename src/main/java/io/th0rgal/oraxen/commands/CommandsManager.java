@@ -83,7 +83,7 @@ public class CommandsManager {
                 .withArguments(new TextArgument("action")
                         .replaceSuggestions(ArgumentSuggestions.strings("send", "msg")))
                 .withArguments(new EntitySelectorArgument("targets",
-                        EntitySelectorArgument.EntitySelector.MANY_PLAYERS))
+                        EntitySelector.MANY_PLAYERS))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args[1];
                     if (args[0].equals("msg"))
@@ -112,7 +112,7 @@ public class CommandsManager {
         return new CommandAPICommand("give")
                 .withPermission("oraxen.command.give")
                 .withArguments(new EntitySelectorArgument("targets",
-                                EntitySelectorArgument.EntitySelector.MANY_PLAYERS),
+                                EntitySelector.MANY_PLAYERS),
                         new TextArgument("item")
                                 .replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())),
                         new IntegerArgument("amount"))
@@ -149,7 +149,7 @@ public class CommandsManager {
         return new CommandAPICommand("give")
                 .withPermission("oraxen.command.give")
                 .withArguments(new EntitySelectorArgument("targets",
-                                EntitySelectorArgument.EntitySelector.MANY_PLAYERS),
+                                EntitySelector.MANY_PLAYERS),
                         new TextArgument("item")
                                 .replaceSuggestions(ArgumentSuggestions.strings(info -> OraxenItems.getItemNames())))
                 .executes((sender, args) -> {
@@ -177,7 +177,7 @@ public class CommandsManager {
         return new CommandAPICommand("update")
                 .withPermission("oraxen.command.update")
                 .withArguments(new EntitySelectorArgument("targets",
-                        EntitySelectorArgument.EntitySelector.MANY_PLAYERS))
+                        EntitySelector.MANY_PLAYERS))
                 .withArguments(new TextArgument("type")
                         .replaceSuggestions(ArgumentSuggestions.strings("hand", "all")))
                 .executes((sender, args) -> {

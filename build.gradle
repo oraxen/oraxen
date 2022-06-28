@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'maven-publish'
 
 group 'io.th0rgal'
-def pluginVersion = '1.135.7'
+def pluginVersion = '1.136.1'
 ext.jitpackGroup = group + '.oraxen'
 ext.jitpackVersion = 'main-' + pluginVersion
 version = pluginVersion
@@ -46,6 +46,10 @@ repositories {
     maven { url 'https://repo.triumphteam.dev/snapshots' }
     // MythicMobs
     maven { url 'https://mvn.lumine.io/repository/maven-public/' }
+    // commandAPI snapshots
+    maven { url = 'https://s01.oss.sonatype.org/content/repositories/snapshots' }
+    // WorldEdit
+    maven { url 'https://maven.enginehub.org/repo/' }
 }
 
 compileJava {
@@ -55,16 +59,17 @@ compileJava {
 dependencies {
     def actionsVersion = '1.0.0-SNAPSHOT'
 
-    compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.18.2-R0.1-SNAPSHOT'
-    compileOnly("io.papermc.paper:paper-api:1.18.2-R0.1-SNAPSHOT") { exclude group: 'net.kyori' }
-    compileOnly group: 'com.github.dmulloy2', name: 'ProtocolLib', version: '4.7.0'
-    compileOnly group: 'com.github.Hazebyte', name: 'CrateReloadedAPI', version: '5318abfccc'
+    compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.18-R0.1-SNAPSHOT'
+    compileOnly("io.papermc.paper:paper-api:1.18-R0.1-SNAPSHOT") { exclude group: 'net.kyori' }
+    compileOnly group: 'com.github.dmulloy2', name: 'ProtocolLib', version: '4.8.0'
+    compileOnly group: 'com.github.Hazebyte', name: 'CrateReloadedAPI', version: 'd7ae2a14c6'
     compileOnly group: 'com.github.jojodmo', name: 'ItemBridge', version: '-SNAPSHOT'
-    compileOnly group: 'me.clip', name: 'placeholderapi', version: '2.10.10'
-    compileOnly group: 'com.github.BeYkeRYkt', name: 'LightAPI', version: '5.1.0-Bukkit'
+    compileOnly group: 'me.clip', name: 'placeholderapi', version: '2.11.1'
+    compileOnly group: 'com.github.BeYkeRYkt', name: 'LightAPI', version: '5.2.0-Bukkit'
     compileOnly group: 'me.gabytm.util', name: 'actions-core', version: actionsVersion
     compileOnly group: 'org.springframework', name: 'spring-expression', version: '5.3.16'
     compileOnly group: 'io.lumine', name: 'Mythic-Dist', version: '5.0.2-SNAPSHOT'
+    compileOnly group: 'com.sk89q.worldedit', name: 'worldedit-bukkit', version: '7.2.0'
     compileOnly fileTree(dir: 'libs/compile', include: ['*.jar'])
     implementation fileTree(dir: 'libs/implement', include: ['*.jar'])
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'
@@ -72,8 +77,8 @@ dependencies {
     implementation group: 'net.kyori', name: 'adventure-text-minimessage', version: '4.2.0-SNAPSHOT'
     implementation group: 'net.kyori', name: 'adventure-platform-bukkit', version: '4.0.0'
     implementation group: 'com.github.stefvanschie.inventoryframework', name: 'IF', version: '0.10.0'
-    implementation group: 'dev.jorel', name: 'commandapi-shade', version: '8.1.0'
-    implementation "com.jeff_media:CustomBlockData:1.0.5"
+    implementation group: 'dev.jorel', name: 'commandapi-shade', version: '8.4.0-SNAPSHOT'
+    implementation "com.jeff_media:CustomBlockData:2.0.0"
     implementation "com.jeff_media:MorePersistentDataTypes:2.3.1"
 
     implementation(group: 'me.gabytm.util', name: 'actions-spigot', version: actionsVersion) { exclude group: 'com.google.guava' }
