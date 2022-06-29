@@ -34,6 +34,7 @@ public class CommandsManager {
                 .withSubcommand((new RecipesCommand()).getRecipesCommand())
                 .withSubcommand((new ReloadCommand()).getReloadCommand())
                 .withSubcommand((new DebugCommand()).getDebugCommand())
+                .withSubcommand((new GlyphCommand()).getGlyphCommand())
                 .executes((sender, args) -> {
                     Message.COMMAND_HELP.send(sender);
                 })
