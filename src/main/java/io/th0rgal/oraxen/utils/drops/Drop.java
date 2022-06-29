@@ -116,9 +116,9 @@ public class Drop {
 
         ItemStack drop = OraxenItems.getItemById(sourceID).build();
         if (frame.getItem().getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta) {
-            LeatherArmorMeta clone = leatherArmorMeta.clone();
+            LeatherArmorMeta clone = (LeatherArmorMeta) drop.getItemMeta().clone();
             clone.setColor(leatherArmorMeta.getColor());
-            drop.setItemMeta(clone);
+            drop.setItemMeta(drop.getItemMeta());
         }
         frame.getLocation().getWorld().dropItemNaturally(frame.getLocation(), drop);
     }
