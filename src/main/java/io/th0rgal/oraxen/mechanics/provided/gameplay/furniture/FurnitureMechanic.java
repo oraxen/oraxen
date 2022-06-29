@@ -38,6 +38,7 @@ public class FurnitureMechanic extends Mechanic {
     private final List<BlockLocation> barriers;
     private final boolean hasRotation;
     private final boolean hasSeat;
+    private boolean hasSeatYaw;
     private final BlockFace facing;
     private final Drop drop;
     private final EvolvingFurniture evolvingFurniture;
@@ -68,7 +69,12 @@ public class FurnitureMechanic extends Mechanic {
             ConfigurationSection seatSection = section.getConfigurationSection("seat");
             hasSeat = true;
             seatHeight = (float) seatSection.getDouble("height");
-            seatYaw = (float) seatSection.getDouble("yaw");
+            if (seatSection.contains("yaw")) {
+                hasSeatYaw = true;
+                seatYaw = (float) seatSection.getDouble("yaw");
+            } else {
+                hasSeatYaw = false;
+            }
         } else
             hasSeat = false;
 
@@ -192,8 +198,7 @@ public class FurnitureMechanic extends Mechanic {
         return place(rotation, yaw, facing, location, placedItem);
     }
 
-    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location,
-                           ItemStack item) {
+    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item) {
         if (!this.isEnoughSpace(yaw, location))
             return null;
 
@@ -211,33 +216,27 @@ public class FurnitureMechanic extends Mechanic {
                 frame.setItem(clone);
             } else
                 frame.setItem(placedItem);
-
             frame.setRotation(rotation);
-
             frame.setFacingDirection(hasFacing() ? getFacing() : facing, true);
             frame.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
-            if (hasSeat() && !hasBarriers()) {
-                String entityId = spawnSeat(this, location.getBlock(), seatYaw);
-                frame.getPersistentDataContainer().set(SEAT_KEY, PersistentDataType.STRING, entityId);
-            }
             if (hasEvolution())
                 frame.getPersistentDataContainer().set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
         });
 
         if (hasBarriers())
-            for (Location sideLocation : getLocations(yaw, location, getBarriers())) {
-                Block block = sideLocation.getBlock();
+            for (Location barrierLocation : getLocations(yaw, location, getBarriers())) {
+                Block block = barrierLocation.getBlock();
                 PersistentDataContainer data = new CustomBlockData(block, OraxenPlugin.get());
                 data.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
                 if (hasSeat()) {
-                    String entityId = spawnSeat(this, block, seatYaw);
+                    String entityId = spawnSeat(this, block, hasSeatYaw ? seatYaw : yaw);
                     data.set(SEAT_KEY, PersistentDataType.STRING, entityId);
                 }
                 data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location).toString());
                 data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
                 block.setType(Material.BARRIER, false);
                 if (light != -1)
-                    WrappedLightAPI.createBlockLight(sideLocation, light);
+                    WrappedLightAPI.createBlockLight(barrierLocation, light);
             }
         else if (light != -1)
             WrappedLightAPI.createBlockLight(location, light);

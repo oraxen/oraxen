@@ -33,6 +33,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -140,7 +141,7 @@ public class FurnitureListener implements Listener {
                 mechanic.hasBarriers()
                         && mechanic.getBarriers().size() > 1);
 
-        final float yaw = mechanic.getYaw(rotation) + mechanic.getSeatYaw();
+        final float yaw = mechanic.getYaw(rotation);
 
         if (!mechanic.isEnoughSpace(yaw, target.getLocation())) {
             blockPlaceEvent.setCancelled(true);
@@ -386,6 +387,17 @@ public class FurnitureListener implements Listener {
                 }
             }
             event.setCursor(OraxenItems.getItemById(id).build());
+        }
+    }
+
+    @EventHandler
+    public void onPlayerQuitEvent(final PlayerQuitEvent event) {
+        final Player player = event.getPlayer();
+        final Entity vehicle = player.getVehicle();
+        if (vehicle instanceof final ArmorStand armorStand) {
+            if (armorStand.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
+                player.leaveVehicle();
+            }
         }
     }
 
