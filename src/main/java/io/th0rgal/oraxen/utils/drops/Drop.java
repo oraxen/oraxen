@@ -118,7 +118,7 @@ public class Drop {
         if (frame.getItem().getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta) {
             LeatherArmorMeta clone = (LeatherArmorMeta) drop.getItemMeta().clone();
             clone.setColor(leatherArmorMeta.getColor());
-            drop.setItemMeta(drop.getItemMeta());
+            drop.setItemMeta(clone);
         }
         frame.getLocation().getWorld().dropItemNaturally(frame.getLocation(), drop);
     }
