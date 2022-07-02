@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
 import org.bukkit.configuration.ConfigurationSection;
@@ -22,6 +23,7 @@ public class StringBlockMechanic extends Mechanic {
     private String model;
     private int period;
     private final int light;
+    private final SaplingMechanic saplingMechanic;
 
     @SuppressWarnings("unchecked")
     public StringBlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -67,6 +69,12 @@ public class StringBlockMechanic extends Mechanic {
         } else hasHardness = false;
 
         light = section.getInt("light", -1);
+
+        if (section.isConfigurationSection("sapling")) {
+            saplingMechanic = new SaplingMechanic(getItemID(), section.getConfigurationSection("sapling"));
+            ((StringBlockMechanicFactory) getFactory()).registerSaplingMechanic();
+        } else saplingMechanic = null;
+
     }
 
     public String getModel(ConfigurationSection section) {
@@ -75,6 +83,9 @@ public class StringBlockMechanic extends Mechanic {
         // use the itemstack model if block model isn't set
         return section.getString("Pack.model");
     }
+
+    public boolean isSapling() { return saplingMechanic != null; }
+    public SaplingMechanic getSaplingMechanic() { return saplingMechanic; }
 
     public int getCustomVariation() {
         return customVariation;

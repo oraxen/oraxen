@@ -1,11 +1,13 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
+import com.jeff_media.customblockdata.CustomBlockData;
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.papermc.paper.event.entity.EntityMoveEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
@@ -30,11 +32,14 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.List;
 import java.util.Objects;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 
 public class StringBlockMechanicListener implements Listener {
 
@@ -70,7 +75,7 @@ public class StringBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingString(final BlockPlaceEvent event) {
-        if (event.getBlockPlaced().getType() != Material.STRING
+        if (event.getBlockPlaced().getType() != Material.TRIPWIRE
                 || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
 
@@ -182,7 +187,7 @@ public class StringBlockMechanicListener implements Listener {
             else if (placedAgainst.getType() != Material.NOTE_BLOCK) return;
         }
 
-        if (item != null && item.getType().isBlock() && factory.isNotImplementedIn(itemID)) {
+        if (item != null && item.getType().isBlock() && !factory.isNotImplementedIn(itemID)) {
             for (BlockFace face : BlockFace.values()) {
                 if (!face.isCartesian() || face.getModZ() != 0) continue;
                 final Block relative = placedAgainst.getRelative(face);
@@ -214,6 +219,12 @@ public class StringBlockMechanicListener implements Listener {
             placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
         if (mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
+        if (mechanic.isSapling()) {
+            SaplingMechanic sapling = mechanic.getSaplingMechanic();
+            final PersistentDataContainer pdc = new CustomBlockData(placedBlock, OraxenPlugin.get());
+            if (mechanic.getSaplingMechanic().canGrowNaturally())
+                pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, sapling.getNaturalGrowthTime());
+        }
         event.setCancelled(true);
     }
 
@@ -267,7 +278,7 @@ public class StringBlockMechanicListener implements Listener {
         }
     }
 
-    public StringBlockMechanic getStringMechanic(Block block) {
+    public static StringBlockMechanic getStringMechanic(Block block) {
         if (block.getType() == Material.TRIPWIRE) {
             final Tripwire tripwire = (Tripwire) block.getBlockData();
             return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
@@ -293,7 +304,7 @@ public class StringBlockMechanicListener implements Listener {
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
                 final StringBlockMechanic tripwireMechanic = getStringMechanic(block);
-
+                if (tripwireMechanic == null) return 0;
                 final long period = tripwireMechanic.getPeriod();
                 double modifier = 1;
                 if (tripwireMechanic.getDrop().canDrop(tool)) {
@@ -310,10 +321,8 @@ public class StringBlockMechanicListener implements Listener {
     private boolean isStandingInside(final Entity entity, final Block block) {
         final Location entityLocation = entity.getLocation();
         final Location blockLocation = block.getLocation();
-        return entityLocation.getBlockX() == blockLocation.getBlockX()
-                && (entityLocation.getBlockY() == blockLocation.getBlockY()
-                || entityLocation.getBlockY() + 1 == blockLocation.getBlockY())
-                && entityLocation.getBlockZ() == blockLocation.getBlockZ();
+        return BlockHelpers.toBlockLocation(entityLocation).equals(BlockHelpers.toBlockLocation(blockLocation)) ||
+                BlockHelpers.toBlockLocation(entityLocation).equals(BlockHelpers.toBlockLocation(blockLocation).add(0,1.0,0));
     }
 
     private Block makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
@@ -339,7 +348,7 @@ public class StringBlockMechanicListener implements Listener {
                 new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
-        if (!BlockHelpers.correctAllBlockStates(target, player, face, item)) blockPlaceEvent.setCancelled(true);
+        if (BlockHelpers.correctAllBlockStates(target, player, face, item)) blockPlaceEvent.setCancelled(true);
 
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
@@ -368,7 +377,7 @@ public class StringBlockMechanicListener implements Listener {
         }, 1L);
     }
 
-    private void fixClientsideUpdate(Location blockLoc) {
+    private static void fixClientsideUpdate(Location blockLoc) {
         Block blockBelow = blockLoc.clone().subtract(0, 1, 0).getBlock();
         Block blockAbove = blockLoc.clone().add(0, 1, 0).getBlock();
         Location loc = blockLoc.add(5, 0, 5);

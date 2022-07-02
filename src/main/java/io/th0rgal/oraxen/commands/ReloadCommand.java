@@ -1,9 +1,12 @@
 package io.th0rgal.oraxen.commands;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.events.PacketContainer;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.OraxenItems;
@@ -11,7 +14,12 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import net.kyori.adventure.text.minimessage.Template;
+import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Player;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.UUID;
 
 public class ReloadCommand {
 
@@ -54,6 +62,11 @@ public class ReloadCommand {
                             RecipesManager.reload(oraxen);
                             OraxenPlugin.get().getInvManager().regen();
                         }
+                    }
+                    // This does not clear the tablist and I am not sure how to do it otherwise
+                    FontManager manager = new FontManager(OraxenPlugin.get().getConfigsManager());
+                    for (Player player : Bukkit.getOnlinePlayers()) {
+                        manager.sendGlyphTabCompletion(player, false);
                     }
                 });
     }
