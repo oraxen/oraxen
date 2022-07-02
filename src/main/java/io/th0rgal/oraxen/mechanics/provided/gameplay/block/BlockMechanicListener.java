@@ -21,9 +21,8 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.Objects;
 
 public class BlockMechanicListener implements Listener {
 
@@ -45,7 +44,7 @@ public class BlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
-        if (block.getType() != Material.MUSHROOM_STEM || event.isCancelled() || !event.isDropItems())
+        if (block.getType() != Material.MUSHROOM_STEM || !event.isDropItems())
             return;
 
         final MultipleFacing blockFacing = (MultipleFacing) block.getBlockData();
@@ -79,11 +78,10 @@ public class BlockMechanicListener implements Listener {
 
         final ItemStack item = event.getItem();
         final String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID))
-            return;
+        final Block placedAgainst = event.getClickedBlock();
+        if (factory.isNotImplementedIn(itemID) || placedAgainst == null) return;
 
         final Player player = event.getPlayer();
-        final Block placedAgainst = event.getClickedBlock();
         final Block target;
         final Material type = placedAgainst.getType();
         if (BlockHelpers.REPLACEABLE_BLOCKS.contains(type))
@@ -112,8 +110,9 @@ public class BlockMechanicListener implements Listener {
         // set the new block
         target.setBlockData(newBlockData); // false to cancel physic
 
-        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player,
-                true, event.getHand());
+        final BlockPlaceEvent blockPlaceEvent =
+                new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, event.getHand());
+
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
@@ -126,6 +125,21 @@ public class BlockMechanicListener implements Listener {
             item.setAmount(item.getAmount() - 1);
     }
 
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onStep(final PlayerMoveEvent event) {
+        Block below = event.getPlayer().getLocation().getBlock().getRelative(BlockFace.DOWN);
+        SoundGroup soundGroup = below.getBlockData().getSoundGroup();
+        Location from = event.getFrom();
+        Location to = event.getTo();
+
+        if (to == null || from.getBlockX() == to.getBlockX() && from.getBlockZ() == to.getBlockZ()) return;
+        if (!(below.getBlockData() instanceof final MultipleFacing blockFacing)) return;
+        if (below.getType() != Material.MUSHROOM_STEM) return;
+
+        final BlockMechanic mechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(blockFacing));
+        if (mechanic == null) return;
+        below.getWorld().playSound(below.getLocation(), mechanic.getStepSound(), SoundCategory.BLOCKS, soundGroup.getVolume(), soundGroup.getPitch());
+    }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onStep(final EntityMoveEvent event) {
@@ -134,13 +148,13 @@ public class BlockMechanicListener implements Listener {
         Location to = event.getTo();
         SoundGroup soundGroup = below.getBlockData().getSoundGroup();
 
-        if (Objects.equals(from.getBlock().getLocation(), to.getBlock().getLocation())) return;
+        if (!event.hasChangedBlock() || from.getY() != to.getY()) return;
         if (!(below.getBlockData() instanceof final MultipleFacing blockFacing)) return;
         if (below.getType() != Material.MUSHROOM_STEM) return;
 
         final BlockMechanic mechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(blockFacing));
         if (mechanic == null) return;
-        below.getWorld().playSound(below.getLocation(), Sound.valueOf(mechanic.getStepSound()), soundGroup.getVolume(), soundGroup.getPitch());
+        below.getWorld().playSound(below.getLocation(), mechanic.getStepSound(), SoundCategory.BLOCKS, soundGroup.getVolume(), soundGroup.getPitch());
     }
 
     private boolean isStandingInside(final Player player, final Block block) {

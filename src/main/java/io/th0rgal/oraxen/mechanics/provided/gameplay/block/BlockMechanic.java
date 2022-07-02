@@ -22,6 +22,8 @@ public class BlockMechanic extends Mechanic {
     private final String breakSound;
     private final String placeSound;
     private final String stepSound;
+    private final String hitSound;
+    private final String fallSound;
 
     @SuppressWarnings("unchecked")
     public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -38,6 +40,8 @@ public class BlockMechanic extends Mechanic {
         placeSound = section.getString("place_sound", null);
         breakSound = section.getString("break_sound", null);
         stepSound = section.getString("step_sound", null);
+        hitSound = section.getString("hit_sound", null);
+        fallSound = section.getString("fall_sound", null);
 
 
         List<Loot> loots = new ArrayList<>();
@@ -74,7 +78,6 @@ public class BlockMechanic extends Mechanic {
     public boolean hasBreakSound() {
         return breakSound != null;
     }
-
     public String getBreakSound() {
         return breakSound;
     }
@@ -82,13 +85,18 @@ public class BlockMechanic extends Mechanic {
     public boolean hasPlaceSound() {
         return placeSound != null;
     }
-
     public String getPlaceSound() {
         return placeSound;
     }
 
     public boolean hasStepSound() { return stepSound != null; }
     public String getStepSound() { return stepSound; }
+
+    public boolean hasHitSound() { return hitSound != null; }
+    public String getHitSound() { return hitSound; }
+
+    public boolean hasFallSound() { return fallSound != null; }
+    public String getFallSound() { return fallSound; }
 
     public static int getCode(final MultipleFacing blockData) {
         final List<BlockFace> properties = Arrays

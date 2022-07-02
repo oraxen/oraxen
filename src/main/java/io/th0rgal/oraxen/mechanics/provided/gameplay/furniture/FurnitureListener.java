@@ -234,7 +234,7 @@ public class FurnitureListener implements Listener {
                     final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
                     event.setCancelled(true);
 
-                    OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic,player);
+                    OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, player);
                     OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
                     if (furnitureBreakEvent.isCancelled()) {
                         return;
@@ -295,7 +295,7 @@ public class FurnitureListener implements Listener {
         final BlockLocation rootBlockLocation = new BlockLocation(customBlockData.get(ROOT_KEY,
                 PersistentDataType.STRING));
 
-        OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic,event.getPlayer(), block);
+        OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, event.getPlayer(), block);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
         if (furnitureBreakEvent.isCancelled()) {
             event.setCancelled(true);

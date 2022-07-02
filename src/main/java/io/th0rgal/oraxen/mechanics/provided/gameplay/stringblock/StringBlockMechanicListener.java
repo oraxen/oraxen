@@ -29,6 +29,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
@@ -95,7 +96,7 @@ public class StringBlockMechanicListener implements Listener {
 
             if (stringBlockMechanic == null) return;
             if (stringBlockMechanic.hasBreakSound())
-                block.getWorld().playSound(block.getLocation(), stringBlockMechanic.getBreakSound(), 1.0f, 0.8f);
+                block.getWorld().playSound(block.getLocation(), stringBlockMechanic.getBreakSound(), SoundCategory.BLOCKS, 1.0f, 0.8f);
             if (stringBlockMechanic.getLight() != -1)
                 WrappedLightAPI.removeBlockLight(block.getLocation());
             stringBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
@@ -216,7 +217,7 @@ public class StringBlockMechanicListener implements Listener {
         if (placedBlock == null)
             return;
         if (mechanic.hasPlaceSound())
-            placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
+            placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), SoundCategory.BLOCKS, 1.0f, 0.8f);
         if (mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
         if (mechanic.isSapling()) {
@@ -241,18 +242,28 @@ public class StringBlockMechanicListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onStep(final PlayerMoveEvent event) {
+        Block block = event.getPlayer().getLocation().getBlock();
+        Location from = event.getFrom();
+        Location to = event.getTo();
+        StringBlockMechanic mechanic = getStringMechanic(block);
+
+        if (!isStandingInside(event.getPlayer(), block)) return;
+        if (to == null || from.getBlockX() == to.getBlockX() && from.getBlockZ() == to.getBlockZ()) return;
+        if (mechanic != null && mechanic.hasStepSound())
+            block.getWorld().playSound(block.getLocation(), mechanic.getStepSound(), SoundCategory.BLOCKS, 1.0f, 1.0f);
+    }
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onStep(final EntityMoveEvent event) {
         Entity entity = event.getEntity();
         Block block = entity.getLocation().getBlock();
-        Location from = event.getFrom();
-        Location to = event.getTo();
-        StringBlockMechanic mechanic;
+        StringBlockMechanic mechanic = getStringMechanic(block);
 
-        if (!isStandingInside(entity, block)) return;
-        if (Objects.equals(from.getBlock().getLocation(), to.getBlock().getLocation())) return;
-        if (block.getType() == Material.TRIPWIRE) mechanic = getStringMechanic(block); else return;
-        block.getWorld().playSound(block.getLocation(), Sound.valueOf(mechanic.getStepSound()), 1.0f, 1.0f);
+        if (!isStandingInside(entity, block) || !event.hasChangedBlock()) return;
+        if (mechanic != null && mechanic.hasStepSound())
+            block.getWorld().playSound(block.getLocation(), mechanic.getStepSound(), SoundCategory.BLOCKS, 1.0f, 1.0f);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -322,7 +333,7 @@ public class StringBlockMechanicListener implements Listener {
         final Location entityLocation = entity.getLocation();
         final Location blockLocation = block.getLocation();
         return BlockHelpers.toBlockLocation(entityLocation).equals(BlockHelpers.toBlockLocation(blockLocation)) ||
-                BlockHelpers.toBlockLocation(entityLocation).equals(BlockHelpers.toBlockLocation(blockLocation).add(0,1.0,0));
+                BlockHelpers.toBlockLocation(entityLocation).equals(BlockHelpers.toBlockLocation(blockLocation).add(0, 1.0, 0));
     }
 
     private Block makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
