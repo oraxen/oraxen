@@ -52,9 +52,8 @@ public class BreakerSystem {
         public void onPacketReceiving(final PacketEvent event) {
             final PacketContainer packet = event.getPacket();
             final Player player = event.getPlayer();
-            if (player.getGameMode() == GameMode.CREATIVE)
-                return;
             final ItemStack item = player.getInventory().getItemInMainHand();
+            if (player.getGameMode() == GameMode.CREATIVE) return;
 
             final StructureModifier<BlockPosition> dataTemp = packet.getBlockPositionModifier();
             final StructureModifier<EnumWrappers.PlayerDigType> data = packet
