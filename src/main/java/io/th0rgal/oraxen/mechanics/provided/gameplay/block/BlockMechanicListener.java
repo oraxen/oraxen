@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 
-import io.papermc.paper.event.entity.EntityMoveEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -21,8 +20,10 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.Objects;
 
 public class BlockMechanicListener implements Listener {
 
@@ -125,30 +126,13 @@ public class BlockMechanicListener implements Listener {
             item.setAmount(item.getAmount() - 1);
     }
 
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onStep(final PlayerMoveEvent event) {
-        Block below = event.getPlayer().getLocation().getBlock().getRelative(BlockFace.DOWN);
-        SoundGroup soundGroup = below.getBlockData().getSoundGroup();
-        Location from = event.getFrom();
-        Location to = event.getTo();
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onStep(final GenericGameEvent event) {
+        if (event.getEvent() != GameEvent.STEP) return;
 
-        if (to == null || from.getBlockX() == to.getBlockX() && from.getBlockZ() == to.getBlockZ()) return;
-        if (!(below.getBlockData() instanceof final MultipleFacing blockFacing)) return;
-        if (below.getType() != Material.MUSHROOM_STEM) return;
-
-        final BlockMechanic mechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(blockFacing));
-        if (mechanic == null) return;
-        below.getWorld().playSound(below.getLocation(), mechanic.getStepSound(), SoundCategory.BLOCKS, soundGroup.getVolume(), soundGroup.getPitch());
-    }
-
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onStep(final EntityMoveEvent event) {
-        Block below = event.getEntity().getLocation().getBlock().getRelative(BlockFace.DOWN);
-        Location from = event.getFrom();
-        Location to = event.getTo();
+        Block below = Objects.requireNonNull(event.getEntity()).getLocation().getBlock().getRelative(BlockFace.DOWN);
         SoundGroup soundGroup = below.getBlockData().getSoundGroup();
 
-        if (!event.hasChangedBlock() || from.getY() != to.getY()) return;
         if (!(below.getBlockData() instanceof final MultipleFacing blockFacing)) return;
         if (below.getType() != Material.MUSHROOM_STEM) return;
 

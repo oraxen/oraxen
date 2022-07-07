@@ -33,10 +33,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
@@ -114,8 +111,6 @@ public class BreakerSystem {
                             if (entity instanceof Player viewer)
                                 sendBlockBreak(viewer, location, value);
 
-                        Bukkit.broadcastMessage(getSound(block));
-
                         if (value++ < 10)
                             return;
 
@@ -175,7 +170,7 @@ public class BreakerSystem {
 
     private String getSound(Block block) {
         return switch (block.getType()) {
-            case NOTE_BLOCK -> getNoteBlockMechanic(block).getHitSound();
+            case NOTE_BLOCK -> Objects.requireNonNull(getNoteBlockMechanic(block)).getHitSound();
             case MUSHROOM_STEM -> BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode((MultipleFacing) block.getBlockData())).getHitSound();
             case TRIPWIRE -> StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode((Tripwire) block.getBlockData())).getHitSound();
             default -> null;

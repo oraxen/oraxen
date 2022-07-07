@@ -282,20 +282,20 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler
     public void onStep(final GenericGameEvent event) {
-        if (event.getEvent() == GameEvent.STEP) {
-            Block below = event.getEntity().getLocation().getBlock().getRelative(BlockFace.DOWN);
-            SoundGroup soundGroup = below.getBlockData().getSoundGroup();
-            NoteBlockMechanic mechanic = getNoteBlockMechanic(below);
-            if (mechanic != null && mechanic.isDirectional()) {
-                mechanic = ((NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock()));
-            }
+        if (event.getEvent() != GameEvent.STEP) return;
 
-            // Handles wood and noteblock as noteblock normally inherits said sounds
-            if (below.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasBreakSound()) {
-                below.getWorld().playSound(below.getLocation(), mechanic.getStepSound(), soundGroup.getVolume(), soundGroup.getPitch());
-            } else if (soundGroup.getStepSound().equals(Sound.BLOCK_WOOD_STEP)) {
-                below.getWorld().playSound(below.getLocation(), "required_wood_step", soundGroup.getVolume(), soundGroup.getPitch());
-            }
+        Block below = event.getEntity().getLocation().getBlock().getRelative(BlockFace.DOWN);
+        SoundGroup soundGroup = below.getBlockData().getSoundGroup();
+        NoteBlockMechanic mechanic = getNoteBlockMechanic(below);
+        if (mechanic != null && mechanic.isDirectional()) {
+            mechanic = ((NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock()));
+        }
+
+        // Handles wood and noteblock as noteblock normally inherits said sounds
+        if (below.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasBreakSound()) {
+            below.getWorld().playSound(below.getLocation(), mechanic.getStepSound(), soundGroup.getVolume(), soundGroup.getPitch());
+        } else if (soundGroup.getStepSound().equals(Sound.BLOCK_WOOD_STEP)) {
+            below.getWorld().playSound(below.getLocation(), "required_wood_step", soundGroup.getVolume(), soundGroup.getPitch());
         }
     }
 
