@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
-import io.papermc.paper.event.entity.EntityMoveEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
@@ -29,7 +28,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
@@ -243,27 +242,25 @@ public class StringBlockMechanicListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onStep(final PlayerMoveEvent event) {
-        Block block = event.getPlayer().getLocation().getBlock();
-        Location from = event.getFrom();
-        Location to = event.getTo();
-        StringBlockMechanic mechanic = getStringMechanic(block);
-
-        if (!isStandingInside(event.getPlayer(), block)) return;
-        if (to == null || from.getBlockX() == to.getBlockX() && from.getBlockZ() == to.getBlockZ()) return;
-        if (mechanic != null && mechanic.hasStepSound())
-            block.getWorld().playSound(block.getLocation(), mechanic.getStepSound(), SoundCategory.BLOCKS, 1.0f, 1.0f);
-    }
-
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onStep(final EntityMoveEvent event) {
+    public void onStep(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         Block block = entity.getLocation().getBlock();
         StringBlockMechanic mechanic = getStringMechanic(block);
 
-        if (!isStandingInside(entity, block) || !event.hasChangedBlock()) return;
+        if (event.getEvent() != GameEvent.STEP) return;
         if (mechanic != null && mechanic.hasStepSound())
             block.getWorld().playSound(block.getLocation(), mechanic.getStepSound(), SoundCategory.BLOCKS, 1.0f, 1.0f);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onFall(final GenericGameEvent event) {
+        Entity entity = event.getEntity();
+        Block block = entity.getLocation().getBlock();
+        StringBlockMechanic mechanic = getStringMechanic(block);
+
+        if (event.getEvent() != GameEvent.HIT_GROUND) return;
+        if (mechanic != null && mechanic.hasFallSound())
+            block.getWorld().playSound(block.getLocation(), mechanic.getFallSound(), SoundCategory.BLOCKS, 1.0f, 1.0f);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
