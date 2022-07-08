@@ -168,10 +168,10 @@ public class NoteBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onHitBlock(final BlockDamageEvent event) {
         final Block block = event.getBlock();
-        if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
+        if (block.getBlockData().getSoundGroup().getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (getNoteBlockMechanic(block) != null) return;
 
-        block.getWorld().playSound(block.getLocation(), "required_wood_hit", 1.0f, 1.0f);
+        block.getWorld().playSound(block.getLocation(), "required_wood_hit", SoundCategory.BLOCKS, 1.0f, 1.0f);
 
     }
 
@@ -181,7 +181,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
         if (getNoteBlockMechanic(block) != null) return;
 
-        block.getWorld().playSound(block.getLocation(), "required_wood_break", 1.0f, 1.0f);
+        block.getWorld().playSound(block.getLocation(), "required_wood_break", SoundCategory.BLOCKS, 1.0f, 1.0f);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -233,7 +233,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (placed.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_WOOD_PLACE) return;
 
         // Play sound for wood
-        event.getBlockPlaced().getWorld().playSound(event.getBlockPlaced().getLocation(), "required_wood_place", 1.0f, 1.0f);
+        placed.getWorld().playSound(placed.getLocation(), "required_wood_place", SoundCategory.BLOCKS, 1.0f, 1.0f);
         if (type == Material.NOTE_BLOCK && !OraxenItems.exists(event.getItemInHand()))
             event.getBlockPlaced().setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
     }
@@ -310,9 +310,9 @@ public class NoteBlockMechanicListener implements Listener {
 
         if (event.getEvent() != GameEvent.HIT_GROUND) return;
         if (below.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasFallSound()) {
-            below.getWorld().playSound(below.getLocation(), mechanic.getStepSound(), soundGroup.getVolume(), soundGroup.getPitch());
-        } else if (soundGroup.getStepSound().equals(Sound.BLOCK_WOOD_STEP)) {
-            below.getWorld().playSound(below.getLocation(), "required_wood_step", SoundCategory.BLOCKS, soundGroup.getVolume(), soundGroup.getPitch());
+            below.getWorld().playSound(below.getLocation(), mechanic.getFallSound(), soundGroup.getVolume(), soundGroup.getPitch());
+        } else if (soundGroup.getStepSound().equals(Sound.BLOCK_WOOD_FALL)) {
+            below.getWorld().playSound(below.getLocation(), "required_wood_fall", SoundCategory.BLOCKS, soundGroup.getVolume(), soundGroup.getPitch());
         }
     }
 

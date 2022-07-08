@@ -7,6 +7,18 @@ sounds:
   welcome:
     category: record
     sound: welcome.ogg # extension is not mandatory
-  new_wood_step_sound:
+  required_wood_hit: # Required for custom sounds
     category: block
-    sound: wood_step.ogg
+    sound: required/wood_hit.ogg
+  required_wood_place:
+    category: block
+    sound: required/wood_place.ogg
+  required_wood_break:
+    category: block
+    sound: required/wood_break.ogg
+  required_wood_step:
+    category: block
+    sound: required/wood_step.ogg
+  required_wood_fall:
+    category: block
+    sound: required/wood_fall.ogg
