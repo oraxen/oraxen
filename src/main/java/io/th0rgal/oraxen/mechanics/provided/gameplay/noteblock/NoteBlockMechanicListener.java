@@ -20,6 +20,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.NoteBlock;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -282,7 +283,9 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler
     public void onStep(final GenericGameEvent event) {
-        Block below = event.getEntity().getLocation().getBlock().getRelative(BlockFace.DOWN);
+        Entity entity = event.getEntity();
+        if (entity == null) return;
+        Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
         SoundGroup soundGroup = below.getBlockData().getSoundGroup();
         NoteBlockMechanic mechanic = getNoteBlockMechanic(below);
 
@@ -301,7 +304,9 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onFall(final GenericGameEvent event) {
-        Block below = event.getEntity().getLocation().getBlock().getRelative(BlockFace.DOWN);
+        Entity entity = event.getEntity();
+        if (entity == null) return;
+        Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
         SoundGroup soundGroup = below.getBlockData().getSoundGroup();
         NoteBlockMechanic mechanic = getNoteBlockMechanic(below);
         if (mechanic != null && mechanic.isDirectional()) {

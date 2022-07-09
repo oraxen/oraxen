@@ -11,6 +11,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -22,8 +23,6 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.ItemStack;
-
-import java.util.Objects;
 
 public class BlockMechanicListener implements Listener {
 
@@ -128,7 +127,9 @@ public class BlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onStep(final GenericGameEvent event) {
-        Block below = Objects.requireNonNull(event.getEntity()).getLocation().getBlock().getRelative(BlockFace.DOWN);
+        Entity entity = event.getEntity();
+        if (entity == null) return;
+        Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
         SoundGroup soundGroup = below.getBlockData().getSoundGroup();
 
         if (event.getEvent() != GameEvent.STEP) return;
@@ -142,7 +143,9 @@ public class BlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onFall(final GenericGameEvent event) {
-        Block below = Objects.requireNonNull(event.getEntity()).getLocation().getBlock().getRelative(BlockFace.DOWN);
+        Entity entity = event.getEntity();
+        if (entity == null) return;
+        Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
         SoundGroup soundGroup = below.getBlockData().getSoundGroup();
 
         if (event.getEvent() != GameEvent.HIT_GROUND) return;

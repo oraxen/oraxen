@@ -244,6 +244,7 @@ public class StringBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onStep(final GenericGameEvent event) {
         Entity entity = event.getEntity();
+        if (entity == null) return;
         Block block = entity.getLocation().getBlock();
         StringBlockMechanic mechanic = getStringMechanic(block);
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
@@ -256,6 +257,7 @@ public class StringBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
+        if (entity == null) return;
         Block block = entity.getLocation().getBlock();
         StringBlockMechanic mechanic = getStringMechanic(block);
 
