@@ -30,6 +30,7 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -72,6 +73,20 @@ public class NoteBlockMechanicListener implements Listener {
             event.setCancelled(true);
             event.getBlock().getState().update(true, false);
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onNoteblockPowered(final GenericGameEvent event) {
+        Block block = event.getLocation().getBlock();
+        NamespacedKey eventKey = NamespacedKey.minecraft("note_block_play");
+
+        // This GameEvent only exists in 1.19
+        // If server is 1.18 check if its there and if not return
+        // If 1.19 we can check if this event is fired
+        if (!GameEvent.values().contains(GameEvent.getByKey(eventKey))) return;
+        if (block.getType() != Material.NOTE_BLOCK || event.getEvent() != GameEvent.getByKey(eventKey)) return;
+        NoteBlock data = (NoteBlock) block.getBlockData().clone();
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> block.setBlockData(data, false), 1L);
     }
 
     public void updateAndCheck(final Location loc) {
