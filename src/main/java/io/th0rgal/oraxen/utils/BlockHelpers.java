@@ -304,11 +304,11 @@ public class BlockHelpers {
 
     public static BlockFace getAnvilFacing(BlockFace face) {
         return switch (face) {
-            default -> BlockFace.NORTH;
             case NORTH -> BlockFace.EAST;
             case EAST -> BlockFace.NORTH;
             case SOUTH -> BlockFace.WEST;
             case WEST -> BlockFace.SOUTH;
+            default -> BlockFace.NORTH;
         };
     }
 }
