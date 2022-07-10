@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
@@ -18,11 +19,9 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockM
 
 public class FarmBlockTask extends BukkitRunnable {
 
-    private final NoteBlockMechanicFactory factory;
     private final int delay;
 
-    public FarmBlockTask(NoteBlockMechanicFactory factory, int delay) {
-        this.factory = factory;
+    public FarmBlockTask(int delay) {
         this.delay = delay;
     }
 
@@ -34,8 +33,9 @@ public class FarmBlockTask extends BukkitRunnable {
                     PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
                     Block blockBelow = block.getRelative(BlockFace.DOWN);
                     if (customBlockData.has(FARMBLOCK_KEY, PersistentDataType.STRING) && block.getType() == Material.NOTE_BLOCK) {
-                        if (!getNoteBlockMechanic(block).hasDryout()) return;
-                        FarmBlockDryout farmMechanic = getNoteBlockMechanic(block).getDryout();
+                        NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
+                        if (mechanic == null || !mechanic.hasDryout()) return;
+                        FarmBlockDryout farmMechanic = mechanic.getDryout();
 
                         if (customBlockData.has(FARMBLOCK_KEY, PersistentDataType.INTEGER)) {
                             int moistTimerRemain = customBlockData.get(FARMBLOCK_KEY, PersistentDataType.INTEGER) + delay;

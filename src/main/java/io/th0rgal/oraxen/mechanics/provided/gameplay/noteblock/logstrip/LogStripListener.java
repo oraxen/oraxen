@@ -18,6 +18,7 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockM
 public class LogStripListener implements Listener {
 
     private final MechanicFactory factory;
+
     public LogStripListener(MechanicFactory factory) {
         this.factory = factory;
     }
@@ -27,19 +28,20 @@ public class LogStripListener implements Listener {
         Player player = event.getPlayer();
         Block block = event.getClickedBlock();
 
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block.getType() != Material.NOTE_BLOCK) return;
-        if (player.getInventory().getItemInMainHand().getType().toString().contains("AXE")) {
-            NoteBlockMechanic m = getNoteBlockMechanic(block);
-            if (m.isDirectional() && !m.isLog())
-                m = (NoteBlockMechanic) factory.getMechanic(m.getDirectional().getParentBlock());
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK) return;
+        if (player.getInventory().getItemInMainHand().getType().toString().contains("_AXE")) {
+            NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
+            if (mechanic == null) return;
+            if (mechanic.isDirectional() && !mechanic.isLog())
+                mechanic = (NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock());
 
-            if (m.isLog() && m.getLog().canBeStripped()) {
-                if (m.getLog().hasStrippedDrop()) {
+            if (mechanic.isLog() && mechanic.getLog().canBeStripped()) {
+                if (mechanic.getLog().hasStrippedDrop()) {
                     player.getWorld().dropItemNaturally(
                             block.getRelative(player.getFacing().getOppositeFace()).getLocation(),
-                            OraxenItems.getItemById(m.getLog().getStrippedLogDrop()).build());
+                            OraxenItems.getItemById(mechanic.getLog().getStrippedLogDrop()).build());
                 }
-                NoteBlockMechanicFactory.setBlockModel(block, m.getLog().getStrippedLogBlock());
+                NoteBlockMechanicFactory.setBlockModel(block, mechanic.getLog().getStrippedLogBlock());
                 player.playSound(block.getLocation(), Sound.ITEM_AXE_STRIP, 1.0f, 0.8f);
             }
         }

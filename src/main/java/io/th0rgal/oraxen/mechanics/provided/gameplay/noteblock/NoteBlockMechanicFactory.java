@@ -189,7 +189,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         if (farmBlock) return;
         if (farmBlockTask != null) farmBlockTask.cancel();
 
-        farmBlockTask = new FarmBlockTask(this, farmBlockCheckDelay);
+        farmBlockTask = new FarmBlockTask(farmBlockCheckDelay);
         farmBlockTask.runTaskTimer(OraxenPlugin.get(), 0, farmBlockCheckDelay);
         farmBlock = true;
     }
