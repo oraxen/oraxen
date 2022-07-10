@@ -153,7 +153,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         if (sapling) return;
         if (saplingTask != null) saplingTask.cancel();
 
-        saplingTask = new SaplingTask(this, saplingGrowthCheckDelay);
+        saplingTask = new SaplingTask(saplingGrowthCheckDelay);
         saplingTask.runTaskTimer(OraxenPlugin.get(), 0, saplingGrowthCheckDelay);
         sapling = true;
     }
