@@ -92,7 +92,7 @@ public class BlockHelpers {
         if (type.toString().endsWith("ANVIL")) {
             if (face == BlockFace.UP || face == BlockFace.DOWN)
                 ((Directional) data).setFacing(getAnvilFacing(player.getFacing().getOppositeFace()));
-            ((Directional) data).setFacing(getAnvilFacing(face));
+            else ((Directional) data).setFacing(getAnvilFacing(face));
             block.setBlockData(data, false);
         }
 
