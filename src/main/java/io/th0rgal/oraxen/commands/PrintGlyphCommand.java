@@ -99,7 +99,7 @@ public class PrintGlyphCommand {
     }
 
     private void printHelpTitle(CommandSender sender) {
-        sender.sendMessage(ChatColor.RED + "The following text is " + ChatColor.BOLD + ChatColor.DARK_RED + "CLICKABLE and HOVERABLE" + ChatColor.RESET + ChatColor.RED + "!");
+        sender.sendMessage(ChatColor.GREEN + "Click one of the glyph below to copy the unicode!");
     }
 
     private BaseComponent[] printClickableMsg(String text, String unicodeChar, String hoverText) {
