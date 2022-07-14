@@ -57,7 +57,6 @@ public class PrintFontCommand {
             return;
         }
         Glyph g = OraxenPlugin.get().getFontManager().getGlyphs().stream().filter(glyph -> glyph.getName().equals(glyphName)).findAny().orElse(null);
-        if (g == null) sender.sendMessage("§cGlyph not found");
         sender.spigot().sendMessage(printClickableMsg(ChatColor.WHITE + g.getName(), String.valueOf(g.getCharacter()), "§r" + g.getCharacter()));
     }
 
