@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.FontManager;
+import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -38,6 +39,7 @@ public class OraxenPlugin extends JavaPlugin {
     private BukkitAudiences audience;
     private UploadManager uploadManager;
     private FontManager fontManager;
+    private HudManager hudManager;
     private SoundManager soundManager;
     private InvManager invManager;
     private ResourcePack resourcePack;
@@ -64,6 +66,10 @@ public class OraxenPlugin extends JavaPlugin {
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
         reloadConfigs();
+        hudManager = new HudManager(configsManager);
+        hudManager.registerEvents();
+        hudManager.registerTask();
+        new CommandsManager().loadCommands();
         final PluginManager pluginManager = Bukkit.getPluginManager();
         resourcePack = new ResourcePack(this);
         MechanicsManager.registerNativeMechanics();
@@ -101,6 +107,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     private void unregisterListeners() {
         fontManager.unregisterEvents();
+        hudManager.unregisterEvents();
         MechanicsManager.unloadListeners();
         HandlerList.unregisterAll(this);
     }
@@ -135,6 +142,10 @@ public class OraxenPlugin extends JavaPlugin {
         this.fontManager = fontManager;
         fontManager.registerEvents();
     }
+
+    public HudManager getHudManager() { return hudManager; }
+
+    public void setHudManager(final FontManager fontManager) { this.fontManager = fontManager; }
 
     public SoundManager getSoundManager() {
         return soundManager;

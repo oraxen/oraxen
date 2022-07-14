@@ -1,18 +1,19 @@
-sprites:
-
+update_time_in_ticks: 20
+huds:
   money:
-    x: 64
-    type: simple
-    settings:
-      permission: "oraxen.hud.money"
-      display: "%money% <glyph:coin>"
+    permission: "oraxen.hud.money"
+    display: "%oraxen_farmer_tag% <glyph:farmer_tag>"
+    disabled_whilst_in_water: true # Oxygen can be hidden if this is placed right above food
+    enabled_by_default: true
+    enabled_in_gamemodes: [ SURVIVAL, ADVENTURE ] # If not specified, it is shown in every gamemode except SPECTATOR
 
-  mana_bar:
-    x: 64
-    type: bar
-    settings:
-      permission: "oraxen.hud.mana_bar"
-      symbol_full: <glyph:mana_full>
-      symbol_half: <glyph:mana_half>
-      symbol_empty: <glyph:mana_empty>
-      symbols: 10
+
+#  mana_bar:
+#    x: 64
+#    type: bar
+#    settings:
+#      permission: "oraxen.hud.mana_bar"
+#      symbol_full: <glyph:mana_full>
+#      symbol_half: <glyph:mana_half>
+#      symbol_empty: <glyph:mana_empty>
+#      symbols: 10
