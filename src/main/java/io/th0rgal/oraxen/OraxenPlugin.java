@@ -67,8 +67,7 @@ public class OraxenPlugin extends JavaPlugin {
         clickActionManager = new ClickActionManager(this);
         reloadConfigs();
         hudManager = new HudManager(configsManager);
-        hudManager.registerEvents();
-        hudManager.registerTask();
+        fontManager = new FontManager(configsManager);
         new CommandsManager().loadCommands();
         final PluginManager pluginManager = Bukkit.getPluginManager();
         resourcePack = new ResourcePack(this);
@@ -78,6 +77,9 @@ public class OraxenPlugin extends JavaPlugin {
         soundManager = new SoundManager(configsManager.getSound());
         OraxenItems.loadItems(configsManager);
         fontManager.registerEvents();
+        hudManager.registerEvents();
+        hudManager.registerTask();
+        hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
         pluginManager.registerEvents(new ItemUpdater(), this);
         resourcePack.generate(fontManager, soundManager);
         RecipesManager.load(this);

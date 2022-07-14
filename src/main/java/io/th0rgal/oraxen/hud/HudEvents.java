@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.hud;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -10,15 +11,12 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.persistence.PersistentDataContainer;
 
+import java.util.Objects;
+
 public class HudEvents implements Listener {
 
-    private final HudManager manager;
+    private final HudManager manager = HudManager.getInstance();
 
-    public HudEvents(HudManager manager) {
-        this.manager = manager;
-    }
-
-    //TODO This probably isnt needed anymore but could be useful in some cases.
     @EventHandler
     public void onJoin(final PlayerJoinEvent event) {
         final Player player = event.getPlayer();
@@ -36,20 +34,23 @@ public class HudEvents implements Listener {
 
     @EventHandler
     public void onEnterWater(final PlayerMoveEvent event) {
+        HudManager hudManager = HudManager.getInstance();
         Player player = event.getPlayer();
-        if (event.getTo() == null) return;
+        Block fromBlock = event.getFrom().getBlock();
+        Block toBlock = Objects.requireNonNull(event.getTo()).getBlock();
         boolean fromBlockIsWater = event.getFrom().getBlock().getType() == Material.WATER;
         boolean toBlockIsWater = event.getTo().getBlock().getType() == Material.WATER;
-        Hud hud = manager.getActiveHudForPlayer(player);
+        if (fromBlock.equals(toBlock)) return;
+        Hud hud = hudManager.getActiveHudForPlayer(player);
 
         //TODO Improve this check.
-        if (hud == null || !hud.isDisabledWhilstInWater() || !manager.getHudStateForPlayer(player)) return;
+        if (hud == null || !hud.isDisabledWhilstInWater() || !hudManager.getHudStateForPlayer(player)) return;
         if (!player.isInWater() && (fromBlockIsWater && !toBlockIsWater)) {
-            manager.setHudStateForPlayer(player, true);
-            manager.updateHud(player);
+            hudManager.setHudStateForPlayer(player, true);
+            hudManager.updateHud(player);
         } else if ((!fromBlockIsWater && toBlockIsWater) && player.isInWater()) {
-            manager.setHudStateForPlayer(player, false);
-            manager.disableHud(player);
+            hudManager.setHudStateForPlayer(player, false);
+            hudManager.disableHud(player);
         }
     }
 
