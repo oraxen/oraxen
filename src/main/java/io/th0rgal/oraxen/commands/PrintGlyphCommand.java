@@ -21,9 +21,10 @@ import java.util.List;
 
 import static net.md_5.bungee.api.chat.HoverEvent.Action.SHOW_TEXT;
 
-public class PrintFontCommand {
-    public CommandAPICommand getPrintFontCommand() {
+public class PrintGlyphCommand {
+    public CommandAPICommand getPrintGlyphCommand() {
         List<String> glyphnames = new ArrayList<>();
+        glyphnames.add("all");
         OraxenPlugin.get().getFontManager().getGlyphs().forEach(glyph -> glyphnames.add(glyph.getName()));
         return new CommandAPICommand("printfont")
                 .withPermission("oraxen.command.printfont")
@@ -45,7 +46,7 @@ public class PrintFontCommand {
             int i = 0;
             ComponentBuilder cb = new ComponentBuilder();
             for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
-                cb.append(printClickableMsg("§r[" + ChatColor.GREEN + glyph.getName() + "§r] ", String.valueOf(glyph.getCharacter()), String.valueOf(glyph.getCharacter())));
+                cb.append(printClickableMsg(ChatColor.RESET+"[" + ChatColor.GREEN + glyph.getName() + ChatColor.RESET+"] ", String.valueOf(glyph.getCharacter()), String.valueOf(glyph.getCharacter())));
                 if (i % 3 == 0) {
                     sender.spigot().sendMessage(cb.create());
                     cb = new ComponentBuilder();
@@ -57,7 +58,7 @@ public class PrintFontCommand {
             return;
         }
         Glyph g = OraxenPlugin.get().getFontManager().getGlyphs().stream().filter(glyph -> glyph.getName().equals(glyphName)).findAny().orElse(null);
-        sender.spigot().sendMessage(printClickableMsg(ChatColor.WHITE + g.getName(), String.valueOf(g.getCharacter()), "§r" + g.getCharacter()));
+        sender.spigot().sendMessage(printClickableMsg(ChatColor.WHITE + g.getName(), String.valueOf(g.getCharacter()), ChatColor.RESET + String.valueOf(g.getCharacter())));
     }
 
     /**
@@ -82,7 +83,7 @@ public class PrintFontCommand {
             for (int i = 0; i < range; i++) {
                 componentBuilder.append(printClickableMsg(ChatColor.WHITE + "[" + ChatColor.AQUA + "U+" + Integer.toHexString(utf).toUpperCase() + "," + ((int) utf) + "(dec)" + ChatColor.WHITE + "] ",
                         String.valueOf(utf),
-                        "§r" + utf));
+                        ChatColor.RESET + String.valueOf(utf)));
                 if (i == 2) {
                     sender.spigot().sendMessage(componentBuilder.create());
                     componentBuilder = new ComponentBuilder();
