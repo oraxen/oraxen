@@ -11,7 +11,6 @@ import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 
@@ -76,7 +75,6 @@ public class PrintGlyphCommand {
                 utf = new String(Hex.decodeHex(splitted[0].toCharArray()), StandardCharsets.UTF_16BE).toCharArray()[0];
                 range = Integer.parseInt(splitted[1]);
             } else {
-                Bukkit.getLogger().info(code);
                 utf = new String(Hex.decodeHex(code.toCharArray()), StandardCharsets.UTF_16BE).toCharArray()[0];
             }
             ComponentBuilder componentBuilder = new ComponentBuilder();
@@ -103,10 +101,9 @@ public class PrintGlyphCommand {
     }
 
     private BaseComponent[] printClickableMsg(String text, String unicodeChar, String hoverText) {
-        BaseComponent[] components = new ComponentBuilder(text)
-                .event(new ClickEvent(ClickEvent.Action.SUGGEST_COMMAND, unicodeChar))
+        return new ComponentBuilder(text)
+                .event(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, unicodeChar))
                 .event(new HoverEvent(SHOW_TEXT, new ComponentBuilder(hoverText).create()))
                 .create();
-        return components;
     }
 }
