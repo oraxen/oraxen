@@ -11,12 +11,14 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.data.MultipleFacing;
+import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -28,11 +30,10 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
+
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 
 public class BreakerSystem {
 
@@ -45,9 +46,8 @@ public class BreakerSystem {
         public void onPacketReceiving(final PacketEvent event) {
             final PacketContainer packet = event.getPacket();
             final Player player = event.getPlayer();
-            if (player.getGameMode() == GameMode.CREATIVE)
-                return;
             final ItemStack item = player.getInventory().getItemInMainHand();
+            if (player.getGameMode() == GameMode.CREATIVE) return;
 
             final StructureModifier<BlockPosition> dataTemp = packet.getBlockPositionModifier();
             final StructureModifier<EnumWrappers.PlayerDigType> data = packet
@@ -87,6 +87,10 @@ public class BreakerSystem {
                 final BukkitScheduler scheduler = Bukkit.getScheduler();
                 breakerPerLocation.put(location, scheduler);
 
+                String sound = getSound(block);
+
+                if (sound != null) world.playSound(location, sound, 1, 1);
+
                 final HardnessModifier modifier = triggeredModifier;
                 scheduler.runTaskTimer(OraxenPlugin.get(), new Consumer<>() {
                     int value = 0;
@@ -97,6 +101,8 @@ public class BreakerSystem {
                             bukkitTask.cancel();
                             return;
                         }
+
+                        if (sound != null) world.playSound(location, sound, SoundCategory.BLOCKS, 1, 1);
 
                         for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
                             if (entity instanceof Player viewer)
@@ -157,6 +163,15 @@ public class BreakerSystem {
 
     public void registerListener() {
         protocolManager.addPacketListener(listener);
+    }
+
+    private String getSound(Block block) {
+        return switch (block.getType()) {
+            case NOTE_BLOCK -> Objects.requireNonNull(getNoteBlockMechanic(block)).getHitSound();
+            case MUSHROOM_STEM -> BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode((MultipleFacing) block.getBlockData())).getHitSound();
+            case TRIPWIRE -> StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode((Tripwire) block.getBlockData())).getHitSound();
+            default -> null;
+        };
     }
 
 }

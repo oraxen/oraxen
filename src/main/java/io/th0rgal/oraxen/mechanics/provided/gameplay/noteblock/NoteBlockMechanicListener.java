@@ -20,6 +20,7 @@ import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.type.NoteBlock;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -179,6 +180,25 @@ public class NoteBlockMechanicListener implements Listener {
             event.setCancelled(true);
     }
 
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onHitBlock(final BlockDamageEvent event) {
+        final Block block = event.getBlock();
+        if (block.getBlockData().getSoundGroup().getHitSound() != Sound.BLOCK_WOOD_HIT) return;
+        if (getNoteBlockMechanic(block) != null) return;
+
+        block.getWorld().playSound(block.getLocation(), "oraxen:required_wood_hit", SoundCategory.BLOCKS, 1.0f, 1.0f);
+
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBreakingBlock(final BlockBreakEvent event) {
+        final Block block = event.getBlock();
+        if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
+        if (getNoteBlockMechanic(block) != null) return;
+
+        block.getWorld().playSound(block.getLocation(), "oraxen:required_wood_break", SoundCategory.BLOCKS, 1.0f, 1.0f);
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
@@ -223,9 +243,14 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingBlock(final BlockPlaceEvent event) {
-        Material type = event.getBlockPlaced().getType();
-        if (type != Material.NOTE_BLOCK || OraxenItems.exists(event.getItemInHand())) return;
-        event.getBlock().setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
+        Block placed = event.getBlockPlaced();
+        Material type = placed.getType();
+        if (placed.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_WOOD_PLACE) return;
+
+        // Play sound for wood
+        placed.getWorld().playSound(placed.getLocation(), "oraxen:required_wood_place", SoundCategory.BLOCKS, 1.0f, 1.0f);
+        if (type == Material.NOTE_BLOCK && !OraxenItems.exists(event.getItemInHand()))
+            event.getBlockPlaced().setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -267,6 +292,46 @@ public class NoteBlockMechanicListener implements Listener {
                 final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
                 customBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
             }
+        }
+    }
+
+    @EventHandler
+    public void onStep(final GenericGameEvent event) {
+        Entity entity = event.getEntity();
+        if (entity == null) return;
+        Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
+        SoundGroup soundGroup = below.getBlockData().getSoundGroup();
+        NoteBlockMechanic mechanic = getNoteBlockMechanic(below);
+
+        if (event.getEvent() != GameEvent.STEP) return;
+        if (mechanic != null && mechanic.isDirectional()) {
+            mechanic = ((NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock()));
+        }
+
+        // Handles wood and noteblock as noteblock normally inherits said sounds
+        if (below.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasStepSound()) {
+            below.getWorld().playSound(below.getLocation(), mechanic.getStepSound(), SoundCategory.BLOCKS, soundGroup.getVolume(), soundGroup.getPitch());
+        } else if (soundGroup.getStepSound().equals(Sound.BLOCK_WOOD_STEP)) {
+            below.getWorld().playSound(below.getLocation(), "oraxen:required_wood_step", SoundCategory.BLOCKS, soundGroup.getVolume(), soundGroup.getPitch());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onFall(final GenericGameEvent event) {
+        Entity entity = event.getEntity();
+        if (entity == null) return;
+        Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
+        SoundGroup soundGroup = below.getBlockData().getSoundGroup();
+        NoteBlockMechanic mechanic = getNoteBlockMechanic(below);
+        if (mechanic != null && mechanic.isDirectional()) {
+            mechanic = ((NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock()));
+        }
+
+        if (event.getEvent() != GameEvent.HIT_GROUND) return;
+        if (below.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasFallSound()) {
+            below.getWorld().playSound(below.getLocation(), mechanic.getFallSound(), SoundCategory.BLOCKS, soundGroup.getVolume(), soundGroup.getPitch());
+        } else if (soundGroup.getStepSound().equals(Sound.BLOCK_WOOD_FALL)) {
+            below.getWorld().playSound(below.getLocation(), "oraxen:required_wood_fall", SoundCategory.BLOCKS, soundGroup.getVolume(), soundGroup.getPitch());
         }
     }
 

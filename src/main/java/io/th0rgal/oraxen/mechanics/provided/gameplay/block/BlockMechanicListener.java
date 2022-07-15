@@ -5,14 +5,13 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -22,6 +21,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPhysicsEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.ItemStack;
 
 public class BlockMechanicListener implements Listener {
@@ -44,7 +44,7 @@ public class BlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
-        if (block.getType() != Material.MUSHROOM_STEM || event.isCancelled() || !event.isDropItems())
+        if (block.getType() != Material.MUSHROOM_STEM || !event.isDropItems())
             return;
 
         final MultipleFacing blockFacing = (MultipleFacing) block.getBlockData();
@@ -78,11 +78,10 @@ public class BlockMechanicListener implements Listener {
 
         final ItemStack item = event.getItem();
         final String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID))
-            return;
+        final Block placedAgainst = event.getClickedBlock();
+        if (factory.isNotImplementedIn(itemID) || placedAgainst == null) return;
 
         final Player player = event.getPlayer();
-        final Block placedAgainst = event.getClickedBlock();
         final Block target;
         final Material type = placedAgainst.getType();
         if (BlockHelpers.REPLACEABLE_BLOCKS.contains(type))
@@ -111,8 +110,9 @@ public class BlockMechanicListener implements Listener {
         // set the new block
         target.setBlockData(newBlockData); // false to cancel physic
 
-        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player,
-                true, event.getHand());
+        final BlockPlaceEvent blockPlaceEvent =
+                new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, event.getHand());
+
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
@@ -123,6 +123,38 @@ public class BlockMechanicListener implements Listener {
         event.setCancelled(true);
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onStep(final GenericGameEvent event) {
+        Entity entity = event.getEntity();
+        if (entity == null) return;
+        Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
+        SoundGroup soundGroup = below.getBlockData().getSoundGroup();
+
+        if (event.getEvent() != GameEvent.STEP) return;
+        if (!(below.getBlockData() instanceof final MultipleFacing blockFacing)) return;
+        if (below.getType() != Material.MUSHROOM_STEM) return;
+
+        final BlockMechanic mechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(blockFacing));
+        if (mechanic == null) return;
+        below.getWorld().playSound(below.getLocation(), mechanic.getStepSound(), SoundCategory.BLOCKS, soundGroup.getVolume(), soundGroup.getPitch());
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onFall(final GenericGameEvent event) {
+        Entity entity = event.getEntity();
+        if (entity == null) return;
+        Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
+        SoundGroup soundGroup = below.getBlockData().getSoundGroup();
+
+        if (event.getEvent() != GameEvent.HIT_GROUND) return;
+        if (!(below.getBlockData() instanceof final MultipleFacing blockFacing)) return;
+        if (below.getType() != Material.MUSHROOM_STEM) return;
+
+        final BlockMechanic mechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(blockFacing));
+        if (mechanic == null) return;
+        below.getWorld().playSound(below.getLocation(), mechanic.getFallSound(), SoundCategory.BLOCKS, soundGroup.getVolume(), soundGroup.getPitch());
     }
 
     private boolean isStandingInside(final Player player, final Block block) {
