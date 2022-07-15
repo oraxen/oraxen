@@ -7,6 +7,7 @@ import org.bukkit.block.*;
 import org.bukkit.block.data.*;
 import org.bukkit.block.data.type.Bed;
 import org.bukkit.block.data.type.Chest;
+import org.bukkit.block.data.type.Lectern;
 import org.bukkit.block.data.type.*;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.BlockInventoryHolder;
@@ -83,15 +84,22 @@ public class BlockHelpers {
             block.setBlockData(lantern, false);
         }
 
-        if (state instanceof BlockInventoryHolder invHolder) {
-            Inventory inv = ((Container) ((BlockStateMeta) Objects.requireNonNull(item.getItemMeta())).getBlockState()).getInventory();
-            for (ItemStack i : inv)
-                if (i != null) invHolder.getInventory().addItem(i);
+        if (data instanceof Lectern lectern) {
+            ((Lectern) data).setFacing(player.getFacing().getOppositeFace());
+            block.setBlockData(lectern, false);
         }
 
         if (type.toString().endsWith("ANVIL")) {
-            ((Directional) data).setFacing(getAnvilFacing(face));
+            if (face == BlockFace.UP || face == BlockFace.DOWN)
+                ((Directional) data).setFacing(getAnvilFacing(player.getFacing().getOppositeFace()));
+            else ((Directional) data).setFacing(getAnvilFacing(face));
             block.setBlockData(data, false);
+        }
+
+        if (state instanceof BlockInventoryHolder invHolder) {
+            Inventory inv = ((BlockInventoryHolder) ((BlockStateMeta) Objects.requireNonNull(item.getItemMeta())).getBlockState()).getInventory();
+            for (ItemStack i : inv)
+                if (i != null) invHolder.getInventory().addItem(i);
         }
 
         if (data instanceof Repeater repeater) {
@@ -229,12 +237,10 @@ public class BlockHelpers {
                 else if (face == BlockFace.DOWN) faceAttachable.setAttachedFace(CEILING);
                 else directional.setFacing(face);
             } else if (directional.getFaces().contains(face)) directional.setFacing(face);
-        }
-        else if (data instanceof MultipleFacing multipleFacing) {
+        } else if (data instanceof MultipleFacing multipleFacing) {
             for (BlockFace blockFace : multipleFacing.getAllowedFaces())
                 multipleFacing.setFace(blockFace, block.getRelative(blockFace).getType().isSolid());
-        }
-        else if (data instanceof Attachable attachable)
+        } else if (data instanceof Attachable attachable)
             attachable.setAttached(true);
         block.setBlockData(data, false);
     }
@@ -247,29 +253,33 @@ public class BlockHelpers {
     }
 
     private static Block getLeftBlock(Block block, Player player) {
-        Block leftBlock;
-        if (player.getFacing() == BlockFace.NORTH) leftBlock = block.getRelative(BlockFace.WEST);
-        else if (player.getFacing() == BlockFace.SOUTH) leftBlock = block.getRelative(BlockFace.EAST);
-        else if (player.getFacing() == BlockFace.WEST) leftBlock = block.getRelative(BlockFace.SOUTH);
-        else if (player.getFacing() == BlockFace.EAST) leftBlock = block.getRelative(BlockFace.NORTH);
-        else leftBlock = block;
+        BlockFace playerFacing = player.getFacing();
+        Block leftBlock = switch (playerFacing) {
+            case NORTH -> block.getRelative(BlockFace.WEST);
+            case SOUTH -> block.getRelative(BlockFace.EAST);
+            case WEST -> block.getRelative(BlockFace.SOUTH);
+            case EAST -> block.getRelative(BlockFace.NORTH);
+            default -> block;
+        };
 
-        if (leftBlock.getBlockData() instanceof Chest &&
-                (((Chest) leftBlock.getBlockData()).getFacing() != player.getFacing().getOppositeFace())) return block;
-        else return leftBlock;
+        boolean isChest = leftBlock.getBlockData() instanceof Chest chest &&
+                (chest.getFacing() != player.getFacing().getOppositeFace());
+        return isChest ? block : leftBlock;
     }
 
     private static Block getRightBlock(Block block, Player player) {
-        Block rightBlock;
-        if (player.getFacing() == BlockFace.NORTH) rightBlock = block.getRelative(BlockFace.EAST);
-        else if (player.getFacing() == BlockFace.SOUTH) rightBlock = block.getRelative(BlockFace.WEST);
-        else if (player.getFacing() == BlockFace.WEST) rightBlock = block.getRelative(BlockFace.NORTH);
-        else if (player.getFacing() == BlockFace.EAST) rightBlock = block.getRelative(BlockFace.SOUTH);
-        else rightBlock = block;
-
-        if (rightBlock.getBlockData() instanceof Chest &&
-                (((Chest) rightBlock.getBlockData()).getFacing() != player.getFacing().getOppositeFace())) return block;
-        else return rightBlock;
+        BlockFace playerFacing = player.getFacing();
+        Block rightBlock = switch (playerFacing) {
+            case NORTH -> block.getRelative(BlockFace.EAST);
+            case SOUTH -> block.getRelative(BlockFace.WEST);
+            case WEST -> block.getRelative(BlockFace.NORTH);
+            case EAST -> block.getRelative(BlockFace.SOUTH);
+            default -> block;
+        };
+        boolean isChest =
+                rightBlock.getBlockData() instanceof Chest chest &&
+                (chest.getFacing() != playerFacing.getOppositeFace());
+        return isChest ? block : rightBlock;
     }
 
     private static BlockFace getRelativeFacing(Player player) {
@@ -293,13 +303,12 @@ public class BlockHelpers {
     }
 
     public static BlockFace getAnvilFacing(BlockFace face) {
-        BlockFace f = BlockFace.SELF;
-        switch (face) {
-            case NORTH -> f = BlockFace.EAST;
-            case EAST -> f = BlockFace.NORTH;
-            case SOUTH -> f = BlockFace.WEST;
-            case WEST -> f = BlockFace.SOUTH;
-        }
-        return f;
+        return switch (face) {
+            case NORTH -> BlockFace.EAST;
+            case EAST -> BlockFace.NORTH;
+            case SOUTH -> BlockFace.WEST;
+            case WEST -> BlockFace.SOUTH;
+            default -> BlockFace.NORTH;
+        };
     }
 }

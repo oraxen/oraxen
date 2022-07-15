@@ -35,6 +35,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         super(section);
         instance = this;
         variants = new JsonObject();
+        variants.add("east=false,west=false,south=false,north=false,attached=false,disarmed=false,powered=false", getModelJson("block/barrier"));
         toolTypes = section.getStringList("tool_types");
         saplingGrowthCheckDelay = section.getInt("sapling_growth_check_delay");
         sapling = false;
@@ -88,9 +89,9 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     }
 
     private String getBlockstateContent() {
-        JsonObject noteblock = new JsonObject();
-        noteblock.add("variants", variants);
-        return noteblock.toString();
+        JsonObject tripwire = new JsonObject();
+        tripwire.add("variants", variants);
+        return tripwire.toString();
     }
 
     @Override

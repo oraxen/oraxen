@@ -4,7 +4,6 @@ import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
@@ -19,11 +18,9 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.
 
 public class SaplingTask extends BukkitRunnable {
 
-    private final StringBlockMechanicFactory factory;
     private final int delay;
 
-    public SaplingTask(StringBlockMechanicFactory factory, int delay) {
-        this.factory = factory;
+    public SaplingTask(int delay) {
         this.delay = delay;
     }
 

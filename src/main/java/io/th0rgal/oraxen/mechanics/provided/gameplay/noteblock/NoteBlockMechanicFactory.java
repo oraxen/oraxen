@@ -196,6 +196,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                         .getMechanic(OraxenItems.getIdByItem(item.build()))).hasDryout()).toList().isEmpty()) return;
 
         farmBlockTask = new FarmBlockTask(this, farmBlockCheckDelay);
+
         farmBlockTask.runTaskTimer(OraxenPlugin.get(), 0, farmBlockCheckDelay);
         farmBlock = true;
     }

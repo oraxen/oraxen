@@ -12,7 +12,6 @@ import java.io.File;
 public class SaplingMechanic {
 
     public static final NamespacedKey SAPLING_KEY = new NamespacedKey(OraxenPlugin.get(), "sapling");
-    private final String id;
     private final boolean canGrowNaturally;
     private final int naturalGrowthTime;
     private final boolean canGrowFromBoneMeal;
@@ -26,7 +25,6 @@ public class SaplingMechanic {
     private final boolean shouldCopyEntities;
 
     public SaplingMechanic(String itemId, ConfigurationSection section) {
-        id = itemId;
         canGrowNaturally = section.getBoolean("canGrowNaturally", true);
         naturalGrowthTime = section.getInt("naturalGrowthTime", 6000); // Default of 5 mins
         canGrowFromBoneMeal = section.getBoolean("canGrowFromBoneMeal", true);

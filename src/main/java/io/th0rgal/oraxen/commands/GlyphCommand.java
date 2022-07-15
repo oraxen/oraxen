@@ -16,6 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static net.md_5.bungee.api.chat.ClickEvent.Action.SUGGEST_COMMAND;
@@ -50,9 +51,18 @@ public class GlyphCommand {
                             s = p * 256 + i + 1;
                             if (emojis.size() < s) break pageLoop;
                             Glyph emoji = (emojis.get(p * 256 + i));
-                             page = new ComponentBuilder(ChatColor.WHITE + String.valueOf(emoji.getCharacter()))
+                            String[] placeholders = emoji.getPlaceholders();
+                            String finalString = "";
+                            for (String placeholder : placeholders) {
+                                if (Arrays.toString(placeholders).replace("]", "").endsWith(placeholder)) {
+                                    finalString += placeholder;
+                                } else {
+                                    finalString += (placeholder + "\n");
+                                }
+                            }
+                            page = new ComponentBuilder(ChatColor.WHITE + String.valueOf(emoji.getCharacter()))
                                     .event(new ClickEvent(SUGGEST_COMMAND, String.valueOf(emoji.getCharacter())))
-                                    .event(new HoverEvent(SHOW_TEXT, new ComponentBuilder(":"+emoji.getName()+":").create()))
+                                    .event(new HoverEvent(SHOW_TEXT, new ComponentBuilder(finalString).create()))
                                     .create();
                              list.add(page);
                         }
