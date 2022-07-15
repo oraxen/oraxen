@@ -73,8 +73,8 @@ public class BlockMechanicListener implements Listener {
     // not static here because only instanciated once I think
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrePlacingCustomBlock(final PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK)
-            return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getItem() == null || event.getHand() == null) return;
 
         final ItemStack item = event.getItem();
         final String itemID = OraxenItems.getIdByItem(item);
@@ -109,7 +109,6 @@ public class BlockMechanicListener implements Listener {
 
         // set the new block
         target.setBlockData(newBlockData); // false to cancel physic
-
         final BlockPlaceEvent blockPlaceEvent =
                 new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, event.getHand());
 
@@ -138,7 +137,7 @@ public class BlockMechanicListener implements Listener {
 
         final BlockMechanic mechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(blockFacing));
         if (mechanic == null) return;
-        below.getWorld().playSound(below.getLocation(), mechanic.getStepSound(), SoundCategory.BLOCKS, soundGroup.getVolume(), soundGroup.getPitch());
+        below.getWorld().playSound(below.getLocation(), mechanic.getStepSound(), soundGroup.getVolume(), soundGroup.getPitch());
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -154,7 +153,7 @@ public class BlockMechanicListener implements Listener {
 
         final BlockMechanic mechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(blockFacing));
         if (mechanic == null) return;
-        below.getWorld().playSound(below.getLocation(), mechanic.getFallSound(), SoundCategory.BLOCKS, soundGroup.getVolume(), soundGroup.getPitch());
+        below.getWorld().playSound(below.getLocation(), mechanic.getFallSound(), soundGroup.getVolume(), soundGroup.getPitch());
     }
 
     private boolean isStandingInside(final Player player, final Block block) {

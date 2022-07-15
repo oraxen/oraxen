@@ -95,7 +95,7 @@ public class StringBlockMechanicListener implements Listener {
 
             if (stringBlockMechanic == null) return;
             if (stringBlockMechanic.hasBreakSound())
-                block.getWorld().playSound(block.getLocation(), stringBlockMechanic.getBreakSound(), SoundCategory.BLOCKS, 1.0f, 0.8f);
+                block.getWorld().playSound(block.getLocation(), stringBlockMechanic.getBreakSound(), 1.0f, 0.8f);
             if (stringBlockMechanic.getLight() != -1)
                 WrappedLightAPI.removeBlockLight(block.getLocation());
             stringBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
@@ -216,7 +216,7 @@ public class StringBlockMechanicListener implements Listener {
         if (placedBlock == null)
             return;
         if (mechanic.hasPlaceSound())
-            placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), SoundCategory.BLOCKS, 1.0f, 0.8f);
+            placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
         if (mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
         if (mechanic.isSapling()) {
@@ -251,7 +251,7 @@ public class StringBlockMechanicListener implements Listener {
 
         if (event.getEvent() != GameEvent.STEP) return;
         if (mechanic != null && mechanic.hasStepSound())
-            block.getWorld().playSound(block.getLocation(), mechanic.getStepSound(), SoundCategory.BLOCKS, soundGroup.getVolume(), soundGroup.getPitch());
+            block.getWorld().playSound(block.getLocation(), mechanic.getStepSound(), soundGroup.getVolume(), soundGroup.getPitch());
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -263,7 +263,7 @@ public class StringBlockMechanicListener implements Listener {
 
         if (event.getEvent() != GameEvent.HIT_GROUND) return;
         if (mechanic != null && mechanic.hasFallSound())
-            block.getWorld().playSound(block.getLocation(), mechanic.getFallSound(), SoundCategory.BLOCKS, 1.0f, 1.0f);
+            block.getWorld().playSound(block.getLocation(), mechanic.getFallSound(), 1.0f, 1.0f);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
