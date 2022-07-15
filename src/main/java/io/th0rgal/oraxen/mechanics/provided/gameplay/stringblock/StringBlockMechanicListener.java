@@ -242,28 +242,20 @@ public class StringBlockMechanicListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onStep(final GenericGameEvent event) {
+    public void onStepFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (entity == null) return;
+        GameEvent gameEvent = event.getEvent();
         Block block = entity.getLocation().getBlock();
         StringBlockMechanic mechanic = getStringMechanic(block);
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
+        if (mechanic == null) return;
 
-        if (event.getEvent() != GameEvent.STEP) return;
-        if (mechanic != null && mechanic.hasStepSound())
-            block.getWorld().playSound(block.getLocation(), mechanic.getStepSound(), soundGroup.getVolume(), soundGroup.getPitch());
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onFall(final GenericGameEvent event) {
-        Entity entity = event.getEntity();
-        if (entity == null) return;
-        Block block = entity.getLocation().getBlock();
-        StringBlockMechanic mechanic = getStringMechanic(block);
-
-        if (event.getEvent() != GameEvent.HIT_GROUND) return;
-        if (mechanic != null && mechanic.hasFallSound())
-            block.getWorld().playSound(block.getLocation(), mechanic.getFallSound(), 1.0f, 1.0f);
+        String sound;
+        if (gameEvent == GameEvent.STEP && mechanic.hasStepSound()) sound = mechanic.getStepSound();
+        else if (gameEvent == GameEvent.HIT_GROUND && mechanic.hasStepSound()) sound = mechanic.getFallSound();
+        else return;
+        block.getWorld().playSound(block.getLocation(), sound, soundGroup.getVolume(), soundGroup.getPitch());
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

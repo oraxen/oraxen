@@ -296,44 +296,32 @@ public class NoteBlockMechanicListener implements Listener {
     }
 
     @EventHandler
-    public void onStep(final GenericGameEvent event) {
+    public void onStepFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (entity == null) return;
-        Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
-        SoundGroup soundGroup = below.getBlockData().getSoundGroup();
-        NoteBlockMechanic mechanic = getNoteBlockMechanic(below);
+        GameEvent gameEvent = event.getEvent();
+        Block blockBelow = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
+        SoundGroup soundGroup = blockBelow.getBlockData().getSoundGroup();
+        NoteBlockMechanic mechanic = getNoteBlockMechanic(blockBelow);
 
-        if (event.getEvent() != GameEvent.STEP) return;
+        if (soundGroup.getStepSound() != Sound.BLOCK_WOOD_STEP) return;
         if (mechanic != null && mechanic.isDirectional()) {
             mechanic = ((NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock()));
         }
-
+        String sound;
         // Handles wood and noteblock as noteblock normally inherits said sounds
-        if (below.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasStepSound()) {
-            Bukkit.broadcastMessage(String.valueOf(soundGroup.getHitSound().getKey()));
-            below.getWorld().playSound(below.getLocation(), mechanic.getStepSound(), soundGroup.getVolume(), soundGroup.getPitch());
-        } else if (soundGroup.getStepSound().equals(Sound.BLOCK_WOOD_STEP)) {
-            below.getWorld().playSound(below.getLocation(), "minecraft:required_wood_step", soundGroup.getVolume(), soundGroup.getPitch());
+        if (gameEvent == GameEvent.STEP) {
+            if (blockBelow.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasStepSound())
+                sound = mechanic.getStepSound();
+            else sound = "minecraft:required.wood.step";
         }
-    }
+        else if (gameEvent == GameEvent.HIT_GROUND) {
+            if (blockBelow.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasFallSound())
+                sound = mechanic.getFallSound();
+            else sound = "minecraft:required.wood.fall";
+        } else return;
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onFall(final GenericGameEvent event) {
-        Entity entity = event.getEntity();
-        if (entity == null) return;
-        Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
-        SoundGroup soundGroup = below.getBlockData().getSoundGroup();
-        NoteBlockMechanic mechanic = getNoteBlockMechanic(below);
-        if (mechanic != null && mechanic.isDirectional()) {
-            mechanic = ((NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock()));
-        }
-
-        if (event.getEvent() != GameEvent.HIT_GROUND) return;
-        if (below.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasFallSound()) {
-            below.getWorld().playSound(below.getLocation(), mechanic.getFallSound(), soundGroup.getVolume(), soundGroup.getPitch());
-        } else if (soundGroup.getStepSound().equals(Sound.BLOCK_WOOD_FALL)) {
-            below.getWorld().playSound(below.getLocation(), "minecraft:required_wood_fall", soundGroup.getVolume(), soundGroup.getPitch());
-        }
+        blockBelow.getWorld().playSound(blockBelow.getLocation(), sound, soundGroup.getVolume(), soundGroup.getPitch());
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
