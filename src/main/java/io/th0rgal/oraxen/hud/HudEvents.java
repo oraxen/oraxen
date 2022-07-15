@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.hud;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
+import io.th0rgal.oraxen.OraxenPlugin;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -15,26 +17,26 @@ import java.util.Objects;
 
 public class HudEvents implements Listener {
 
-    private final HudManager manager = HudManager.getInstance();
-
     @EventHandler
     public void onJoin(final PlayerJoinEvent event) {
+        HudManager hudManager = OraxenPlugin.get().getHudManager();
         final Player player = event.getPlayer();
         final PersistentDataContainer pdc = player.getPersistentDataContainer();
-        Hud hud = manager.getActiveHudForPlayer(player) != null ? manager.getActiveHudForPlayer(player) : manager.getDefaultEnabledHuds().stream().findFirst().orElse(null);
-        String hudId = manager.getHudID(hud);
+        Hud hud = hudManager.getActiveHudForPlayer(player) != null
+                ? hudManager.getActiveHudForPlayer(player) : hudManager.getDefaultEnabledHuds().stream().findFirst().orElse(null);
+        String hudId = hudManager.getHudID(hud);
 
         if (hud == null || hudId == null) return;
-        if (!player.hasPermission(hud.getHudPerm())) return;
-        if (!manager.getHudStateForPlayer(player)) return;
-        pdc.set(manager.hudDisplayKey, DataType.STRING, manager.getHudID(hud));
-        pdc.set(manager.hudToggleKey, DataType.BOOLEAN, true);
-        manager.updateHud(player);
+        if (!player.hasPermission(hud.getPerm())) return;
+        if (!hudManager.getHudStateForPlayer(player)) return;
+        pdc.set(hudManager.hudDisplayKey, DataType.STRING, hudManager.getHudID(hud));
+        pdc.set(hudManager.hudToggleKey, DataType.BOOLEAN, true);
+        hudManager.updateHud(player);
     }
 
     @EventHandler
     public void onEnterWater(final PlayerMoveEvent event) {
-        HudManager hudManager = HudManager.getInstance();
+        HudManager hudManager = OraxenPlugin.get().getHudManager();
         Player player = event.getPlayer();
         Block fromBlock = event.getFrom().getBlock();
         Block toBlock = Objects.requireNonNull(event.getTo()).getBlock();
@@ -56,12 +58,18 @@ public class HudEvents implements Listener {
 
     @EventHandler
     public void onGameModeChange(final PlayerGameModeChangeEvent event) {
+        HudManager hudManager = OraxenPlugin.get().getHudManager();
         Player player = event.getPlayer();
-        Hud hud = manager.getActiveHudForPlayer(player);
+        Hud hud = hudManager.getActiveHudForPlayer(player);
 
         if (hud != null && hud.getGameModes().contains(event.getNewGameMode())) {
-            manager.setHudStateForPlayer(player, true);
-            manager.updateHud(player);
+            Bukkit.broadcastMessage("ss");
+            hudManager.setHudStateForPlayer(player, true);
+            hudManager.updateHud(player);
+        } else if (hud != null && !hud.getGameModes().contains(event.getNewGameMode())) {
+            Bukkit.broadcastMessage("sdasdasd");
+            hudManager.setHudStateForPlayer(player, false);
+            hudManager.disableHud(player);
         }
     }
 }

@@ -66,8 +66,8 @@ public class OraxenPlugin extends JavaPlugin {
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
         reloadConfigs();
-        hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
+        hudManager = new HudManager(configsManager);
         new CommandsManager().loadCommands();
         final PluginManager pluginManager = Bukkit.getPluginManager();
         resourcePack = new ResourcePack(this);

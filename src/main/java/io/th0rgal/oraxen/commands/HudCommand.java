@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.commands;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.TextArgument;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.hud.Hud;
 import io.th0rgal.oraxen.hud.HudManager;
@@ -11,7 +12,7 @@ import org.bukkit.entity.Player;
 
 public class HudCommand {
 
-    private final HudManager manager = HudManager.getInstance();
+    private final HudManager manager = OraxenPlugin.get().getHudManager();
 
     public CommandAPICommand getHudCommand() {
         return new CommandAPICommand("hud")
