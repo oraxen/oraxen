@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
+import it.unimi.dsi.fastutil.Pair;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -97,8 +98,7 @@ public class HudManager {
 
         String hudDisplay = parsedHudDisplays.get(hud);
         hudDisplay = translatePlaceholdersForHudDisplay(player, hudDisplay);
-        BaseComponent[] component = new ComponentBuilder(hudDisplay).font(hud.getFont()).create();
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, player.getUniqueId(), component);
+        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, player.getUniqueId(), changeFont(hudDisplay));
     }
 
     public void registerTask() {
@@ -145,6 +145,30 @@ public class HudManager {
 
     private String translatePlaceholdersForHudDisplay(Player player, String message) {
         return PlaceholderAPI.setPlaceholders(player, message);
+    }
+
+    private BaseComponent[] changeFont(String message) {
+        String regex = "<font:(.*?).+?(?=>)";
+        Matcher matcher = Pattern.compile(regex).matcher(message);
+        List<Pair<String, String>> fontStringMap = new ArrayList<>();
+        String currFont;
+
+        while (matcher.find()) {
+            currFont = "minecraft:" + matcher.group().replaceFirst("<font:", "");
+            String replaceMsg = message.replaceFirst(matcher.group(), "").replaceFirst(">", "");
+            String temp = replaceMsg.contains("<font:") ? replaceMsg.substring(0, (replaceMsg.indexOf("<font:"))) : replaceMsg;
+            message = replaceMsg.replaceFirst(temp, "");
+            fontStringMap.add(Pair.of(temp, currFont));
+        }
+
+        if (fontStringMap.isEmpty()) return new ComponentBuilder(message).create();
+
+        List<BaseComponent> componentList = new ArrayList<>();
+        for (Pair<String, String> s : fontStringMap) {
+            BaseComponent tempComp = new ComponentBuilder(s.first()).font(s.second()).getCurrentComponent();
+            componentList.add(tempComp);
+        }
+        return componentList.toArray(new BaseComponent[0]);
     }
 
     private String translateGlyphsForHudDisplay(String message) {
