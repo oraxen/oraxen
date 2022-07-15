@@ -1,8 +1,5 @@
 package io.th0rgal.oraxen.hud;
 
-import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.font.Font;
-
 public record Hud(String displayText,
                   String fontName,
                   String perm,
@@ -16,8 +13,7 @@ public record Hud(String displayText,
     }
 
     public String getFont() {
-        Font font = OraxenPlugin.get().getFontManager().getFontFromFile(fontName);
-        return font != null ? fontName : "minecraft:default";
+        return fontName;
     }
 
     public String getPerm() {

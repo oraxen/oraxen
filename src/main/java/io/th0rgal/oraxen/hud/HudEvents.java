@@ -62,7 +62,7 @@ public class HudEvents implements Listener {
         HudManager hudManager = OraxenPlugin.get().getHudManager();
         Player player = event.getPlayer();
         Hud hud = hudManager.getActiveHudForPlayer(player);
-        if (hud == null) return;
+        if (hud == null || hud.enableInSpectatorMode()) return;
         if (player.getGameMode() == GameMode.SPECTATOR) {
             hudManager.setHudStateForPlayer(player, false);
             hudManager.disableHud(player);
