@@ -10,11 +10,11 @@ import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.BaseComponent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+import org.bukkit.persistence.PersistentDataType;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -66,6 +66,10 @@ public class HudManager {
         return huds.get(player.getPersistentDataContainer().get(hudDisplayKey, DataType.STRING));
     }
 
+    public void setActiveHudForPlayer(Player player, Hud hud) {
+        player.getPersistentDataContainer().set(hudDisplayKey, PersistentDataType.STRING, getHudID(hud));
+    }
+
     public boolean getHudStateForPlayer(Player player) {
         return !Boolean.FALSE.equals(player.getPersistentDataContainer().get(hudToggleKey, DataType.BOOLEAN));
     }
@@ -74,9 +78,7 @@ public class HudManager {
         player.getPersistentDataContainer().set(hudToggleKey, DataType.BOOLEAN, state);
     }
 
-    public void toggleHudForPlayer(Player player, boolean toggle) {
-        player.getPersistentDataContainer().set(hudToggleKey, DataType.BOOLEAN, toggle);
-    }
+
 
     public Collection<Hud> getDefaultEnabledHuds() {
         return huds.values().stream().filter(Hud::isEnabledByDefault).toList();
@@ -112,13 +114,14 @@ public class HudManager {
         for (final String hudName : section.getKeys(false)) {
             final ConfigurationSection hudSection = section.getConfigurationSection(hudName);
             if (hudSection == null) continue;
-            huds.put(hudName, (new Hud(hudSection.getString("display"),
+            huds.put(hudName, (new Hud(
+                    hudSection.getString("display_text"),
                     hudSection.getString("text_font", "minecraft:default"),
                     hudSection.getString("permission", ""),
                     hudSection.getBoolean("disabled_whilst_in_water", false),
                     hudSection.getBoolean("enabled_by_default", false),
-                    hudSection.getObject("enabled_in_gamemodes", GameMode[].class, new GameMode[]{GameMode.SURVIVAL, GameMode.CREATIVE, GameMode.ADVENTURE}))
-            ));
+                    hudSection.getBoolean("enable_for_spectator_mode", false)
+            )));
         }
     }
 
@@ -134,6 +137,7 @@ public class HudManager {
 
     private String translateHudDisplay(Hud hud) {
         String message = hud.getDisplayText();
+        if (message == null) return null;
         message = translateGlyphsForHudDisplay(message);
         message = translateShiftForHudDisplay(message);
         return message;

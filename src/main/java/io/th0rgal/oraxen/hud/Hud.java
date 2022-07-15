@@ -2,12 +2,14 @@ package io.th0rgal.oraxen.hud;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Font;
-import org.bukkit.GameMode;
 
-import java.util.Arrays;
-import java.util.List;
-
-public record Hud(String displayText, String fontName, String perm, boolean disableWhilstInWater, boolean enabledByDefault, GameMode[] enabledInGameMode) {
+public record Hud(String displayText,
+                  String fontName,
+                  String perm,
+                  boolean disableWhilstInWater,
+                  boolean enabledByDefault,
+                  boolean enableInSpectatorMode)
+{
 
     public String getDisplayText() {
         return displayText;
@@ -30,7 +32,7 @@ public record Hud(String displayText, String fontName, String perm, boolean disa
         return disableWhilstInWater;
     }
 
-    public List<GameMode> getGameModes() {
-        return Arrays.stream(enabledInGameMode).toList();
+    public boolean enableInSpectatorMode() {
+        return true;
     }
 }

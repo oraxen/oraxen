@@ -2,7 +2,7 @@ package io.th0rgal.oraxen.hud;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
-import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -29,6 +29,7 @@ public class HudEvents implements Listener {
         if (hud == null || hudId == null) return;
         if (!player.hasPermission(hud.getPerm())) return;
         if (!hudManager.getHudStateForPlayer(player)) return;
+
         pdc.set(hudManager.hudDisplayKey, DataType.STRING, hudManager.getHudID(hud));
         pdc.set(hudManager.hudToggleKey, DataType.BOOLEAN, true);
         hudManager.updateHud(player);
@@ -61,15 +62,13 @@ public class HudEvents implements Listener {
         HudManager hudManager = OraxenPlugin.get().getHudManager();
         Player player = event.getPlayer();
         Hud hud = hudManager.getActiveHudForPlayer(player);
-
-        if (hud != null && hud.getGameModes().contains(event.getNewGameMode())) {
-            Bukkit.broadcastMessage("ss");
-            hudManager.setHudStateForPlayer(player, true);
-            hudManager.updateHud(player);
-        } else if (hud != null && !hud.getGameModes().contains(event.getNewGameMode())) {
-            Bukkit.broadcastMessage("sdasdasd");
+        if (hud == null) return;
+        if (player.getGameMode() == GameMode.SPECTATOR) {
             hudManager.setHudStateForPlayer(player, false);
             hudManager.disableHud(player);
+        } else {
+            hudManager.setHudStateForPlayer(player, true);
+            hudManager.updateHud(player);
         }
     }
 }

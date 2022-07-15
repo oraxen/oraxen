@@ -34,10 +34,10 @@ public class HudCommand {
                             Message.HUD_NO_HUD.send(player, Template.template("hud_id", hudId));
                             return;
                         }
-                        if (!hud.getGameModes().contains(player.getGameMode())) return;
 
                         boolean toggle = !manager.getHudStateForPlayer(player);
-                        manager.toggleHudForPlayer(player, toggle);
+                        manager.setHudStateForPlayer(player, toggle);
+                        manager.setActiveHudForPlayer(player, hud);
                         if (toggle) {
                             Message.HUD_TOGGLE_ON.send(player, Template.template("hud_id", hudId));
                             manager.enableHud(player, hud);

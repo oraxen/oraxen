@@ -3,12 +3,13 @@ huds:
   balance:
     permission: "oraxen.hud.balance"
     text_font: "balance_hud_font" #Make a custom font if you need to vertically shift text like placeholders
-    display: "<shift:0>%vault_eco_balance%%oraxen_coin%"
+    display_text: "<shift:0>%vault_eco_balance%%oraxen_coin%"
     disabled_whilst_in_water: true # Oxygen can be hidden if this is placed right above food
     enabled_by_default: true
-    enabled_in_gamemodes: [ SURVIVAL, ADVENTURE ] # If not specified, it is shown in every gamemode except SPECTATOR
+    #enable_for_spectator_mode: false # By default this is set to false
 
 
+# Planned for the future
 #  mana_bar:
 #    x: 64
 #    type: bar
