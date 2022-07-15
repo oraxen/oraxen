@@ -43,10 +43,10 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         // before zipping the pack
         OraxenPlugin.get().getResourcePack().addModifiers(getMechanicID(),
                 packFolder ->
-                    OraxenPlugin.get().getResourcePack()
-                            .writeStringToVirtual("assets/minecraft/blockstates",
-                                    "tripwire.json", getBlockstateContent())
-                );
+                        OraxenPlugin.get().getResourcePack()
+                                .writeStringToVirtual("assets/minecraft/blockstates",
+                                        "tripwire.json", getBlockstateContent())
+        );
         MechanicsManager.registerListeners(OraxenPlugin.get(), new StringBlockMechanicListener(this));
         MechanicsManager.registerListeners(OraxenPlugin.get(), new SaplingListener());
     }
@@ -159,7 +159,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
                 ((StringBlockMechanic) StringBlockMechanicFactory.getInstance()
                         .getMechanic(OraxenItems.getIdByItem(item.build()))).isSapling()).toList().isEmpty()) return;
 
-        saplingTask = new SaplingTask(this, saplingGrowthCheckDelay);
+        saplingTask = new SaplingTask(saplingGrowthCheckDelay);
         saplingTask.runTaskTimer(OraxenPlugin.get(), 0, saplingGrowthCheckDelay);
         sapling = true;
     }
