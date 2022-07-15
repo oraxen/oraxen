@@ -63,7 +63,6 @@ public class OraxenPlugin extends JavaPlugin {
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
         reloadConfigs();
-        new CommandsManager().loadCommands();
         final PluginManager pluginManager = Bukkit.getPluginManager();
         resourcePack = new ResourcePack(this);
         MechanicsManager.registerNativeMechanics();
@@ -77,6 +76,7 @@ public class OraxenPlugin extends JavaPlugin {
         invManager = new InvManager();
         new ArmorListener(Settings.ARMOR_EQUIP_EVENT_BYPASS.toStringList()).registerEvents(this);
         new BreakerSystem().registerListener();
+        new CommandsManager().loadCommands();
         postLoading(configsManager);
         Message.PLUGIN_LOADED.log(Template.template("os", OS.getOs().getPlatformName()));
         CompatibilitiesManager.enableNativeCompatibilities();

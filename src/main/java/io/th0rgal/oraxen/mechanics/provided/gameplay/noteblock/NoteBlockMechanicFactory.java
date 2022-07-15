@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -189,7 +190,13 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         if (farmBlock) return;
         if (farmBlockTask != null) farmBlockTask.cancel();
 
-        farmBlockTask = new FarmBlockTask(farmBlockCheckDelay);
+        // Dont register if there is no farmblocks in configs
+        if (OraxenItems.getItems().stream().filter(item ->
+                ((NoteBlockMechanic)NoteBlockMechanicFactory.getInstance()
+                        .getMechanic(OraxenItems.getIdByItem(item.build()))).hasDryout()).toList().isEmpty()) return;
+
+        farmBlockTask = new FarmBlockTask(this, farmBlockCheckDelay);
+
         farmBlockTask.runTaskTimer(OraxenPlugin.get(), 0, farmBlockCheckDelay);
         farmBlock = true;
     }

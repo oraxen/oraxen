@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -153,7 +154,12 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         if (sapling) return;
         if (saplingTask != null) saplingTask.cancel();
 
-        saplingTask = new SaplingTask(saplingGrowthCheckDelay);
+        // Dont register if there is no sapling in configs
+        if (OraxenItems.getItems().stream().filter(item ->
+                ((StringBlockMechanic) StringBlockMechanicFactory.getInstance()
+                        .getMechanic(OraxenItems.getIdByItem(item.build()))).isSapling()).toList().isEmpty()) return;
+
+        saplingTask = new SaplingTask(this, saplingGrowthCheckDelay);
         saplingTask.runTaskTimer(OraxenPlugin.get(), 0, saplingGrowthCheckDelay);
         sapling = true;
     }
