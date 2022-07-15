@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -17,10 +18,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class NoteBlockMechanicFactory extends MechanicFactory {
 
@@ -191,9 +189,14 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         if (farmBlockTask != null) farmBlockTask.cancel();
 
         // Dont register if there is no farmblocks in configs
-        if (OraxenItems.getItems().stream().filter(item ->
-                ((NoteBlockMechanic)NoteBlockMechanicFactory.getInstance()
-                        .getMechanic(OraxenItems.getIdByItem(item.build()))).hasDryout()).toList().isEmpty()) return;
+        List<String> farmblockList = new ArrayList<>();
+        for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
+            String id = OraxenItems.getIdByItem(itemBuilder.build());
+            NoteBlockMechanic mechanic = (NoteBlockMechanic) NoteBlockMechanicFactory.getInstance().getMechanic(id);
+            if (mechanic == null || !mechanic.hasDryout()) continue;
+            farmblockList.add(id);
+        }
+        if (farmblockList.isEmpty()) return;
 
         farmBlockTask = new FarmBlockTask(farmBlockCheckDelay);
 
