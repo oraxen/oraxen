@@ -1,12 +1,14 @@
+# This is essentially the highest it goes without dissapearing and reappearing.
 update_time_in_ticks: 40
 huds:
   balance:
     permission: "oraxen.hud.balance"
-    text_font: "balance_hud_font" #Make a custom font if you need to vertically shift text like placeholders
-    display_text: "<shift:0>%vault_eco_balance%%oraxen_coin%"
-    disabled_whilst_in_water: true # Oxygen can be hidden if this is placed right above food
+    display_text: "<shift:0><font:my_custom_font>%vault_eco_balance%<font:default>%oraxen_coin%"
+    # Oxygen can be hidden if this is placed right above food
+    disabled_whilst_in_water: true
     enabled_by_default: true
-    #enable_for_spectator_mode: false # By default this is set to false
+    # By default this is set to false
+    #enable_for_spectator_mode: false
 
 
 # Planned for the future

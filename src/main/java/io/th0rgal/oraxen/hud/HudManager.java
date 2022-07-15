@@ -21,6 +21,10 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+//TODO Multi hud support
+// Perhaps reading the previous huddisplaytext, scanning for any shift glyph
+// Then get length of string excluding sait shift and getShift(shift + string.length())
+// Would prob center it and then new shifts would adjust it from centerpoint
 public class HudManager {
 
     public final int hudUpdateTime;
