@@ -5,6 +5,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Objects;
 
 public class SoundManager {
 
@@ -15,7 +16,7 @@ public class SoundManager {
         autoGenerate = soundConfig.getBoolean("settings.automatically_generate")
                 && soundConfig.isConfigurationSection("sounds");
         customSounds = autoGenerate
-                ? parseCustomSounds(soundConfig.getConfigurationSection("sounds"))
+                ? parseCustomSounds(Objects.requireNonNull(soundConfig.getConfigurationSection("sounds")))
                 : new ArrayList<>();
     }
 
@@ -23,7 +24,12 @@ public class SoundManager {
         final Collection<CustomSound> output = new ArrayList<>();
         for (String soundName : section.getKeys(false)) {
             ConfigurationSection sound = section.getConfigurationSection(soundName);
-            output.add(new CustomSound(soundName, sound.getString("sound"), sound.getString("category")));
+            if (sound == null) continue;
+            soundName = soundName.replace("_", ".");
+            output.add(new CustomSound(
+                    soundName, sound.getStringList("sounds"), sound.getString("category"),
+                    sound.getBoolean("replace"), sound.getString("subtitle"))
+            );
         }
         return output;
     }

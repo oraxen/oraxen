@@ -7,18 +7,33 @@ sounds:
   welcome:
     category: record
     sound: welcome.ogg # extension is not mandatory
+  block_wood_step: # Required for custom sounds
+    replace: true
+  block_wood_place:
+    replace: true
+  block_wood_break:
+    replace: true
+  block_wood_fall:
+    replace: true
+  block_wood_hit:
+    replace: true
   required_wood_hit: # Required for custom sounds
-    category: block
-    sound: required/wood_hit.ogg
+    subtitle: "subtitles.block.generic.hit"
+    sounds:
+      - required/wood_hit.ogg
   required_wood_place:
-    category: block
-    sound: required/wood_place.ogg
+    subtitle: "subtitles.block.generic.place"
+    sounds:
+      - required/wood_place.ogg
   required_wood_break:
-    category: block
-    sound: required/wood_break.ogg
+    subtitle: "subtitles.block.generic.break"
+    sounds:
+      - required/wood_break.ogg
   required_wood_step:
-    category: block
-    sound: required/wood_step.ogg
+    subtitle: "subtitles.block.generic.step"
+    sounds:
+      - required/wood_step.ogg
   required_wood_fall:
-    category: block
-    sound: required/wood_fall.ogg
+    subtitle: "subtitles.block.generic.fall"
+    sounds:
+      - required/wood_fall.ogg
