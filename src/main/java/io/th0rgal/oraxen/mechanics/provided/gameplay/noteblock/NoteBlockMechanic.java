@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripping;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.swap.SwapMechanic;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
@@ -35,6 +36,7 @@ public class NoteBlockMechanic extends Mechanic {
     private final FarmBlockDryout farmBlockDryout;
     private final LogStripping logStripping;
     private final DirectionalBlock directionalBlock;
+    private final SwapMechanic swapMechanic;
     private final List<ClickAction> clickActions;
 
     @SuppressWarnings("unchecked")
@@ -99,6 +101,10 @@ public class NoteBlockMechanic extends Mechanic {
             directionalBlock = new DirectionalBlock(section.getConfigurationSection("directional"));
         } else directionalBlock = null;
 
+        if (section.isConfigurationSection("swap")) {
+            swapMechanic = new SwapMechanic(section.getConfigurationSection("swap"));
+        } else swapMechanic = null;
+
     }
 
     public boolean hasDryout() {
@@ -116,6 +122,8 @@ public class NoteBlockMechanic extends Mechanic {
     public boolean isDirectional() { return directionalBlock != null; }
 
     public DirectionalBlock getDirectional() { return directionalBlock; }
+
+    public SwapMechanic getSwapMechanic() { return swapMechanic; }
 
     public String getModel(ConfigurationSection section) {
         if (model != null)

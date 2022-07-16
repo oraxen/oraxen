@@ -11,12 +11,15 @@ import org.bukkit.entity.ItemFrame;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import java.util.Random;
+
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.EVOLUTION_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 
 public class EvolutionTask extends BukkitRunnable {
 
     private final FurnitureFactory furnitureFactory;
+
     private final int delay;
 
     public EvolutionTask(FurnitureFactory furnitureFactory, int delay) {
@@ -36,7 +39,7 @@ public class EvolutionTask extends BukkitRunnable {
                     Block blockBelow = frame.getLocation().clone().subtract(0, 1, 0).getBlock();
                     FurnitureMechanic mechanic = (FurnitureMechanic) furnitureFactory.getMechanic(itemID);
 
-                    if(mechanic == null){
+                    if (mechanic == null) {
                         continue;
                     }
 
@@ -57,8 +60,7 @@ public class EvolutionTask extends BukkitRunnable {
                             if (!noteBlockMechanic.getDryout().isFarmBlock()) {
                                 mechanic.remove(frame);
                                 continue;
-                            }
-                            else if (!noteBlockMechanic.getDryout().isMoistFarmBlock()) {
+                            } else if (!noteBlockMechanic.getDryout().isMoistFarmBlock()) {
                                 frame.getPersistentDataContainer().set(FurnitureMechanic.EVOLUTION_KEY,
                                         PersistentDataType.INTEGER, 0);
                                 continue;
@@ -67,13 +69,16 @@ public class EvolutionTask extends BukkitRunnable {
                     }
 
                     EvolvingFurniture evolution = mechanic.getEvolution();
-                    int evolutionStep = frame.getPersistentDataContainer()
-                            .get(EVOLUTION_KEY, PersistentDataType.INTEGER)
-                            + delay * frame.getLocation().getBlock().getLightLevel();
+                    double growChance = evolution.getGrowChance();
 
-                    if (evolutionStep > evolution.getDelay()) {
+                    if (evolution.isRainBoosted() && world.hasStorm() && world.getHighestBlockAt(frame.getLocation()).getY() > frame.getLocation().getY())
+                        growChance += 0.5;
+                    if (evolution.isLightBoosted())
+                        growChance += 0.5;
+
+                    double random = new Random().nextDouble();
+                    if (growChance >= random) {
                         if (evolution.getNextStage() == null) continue;
-                        if (!evolution.bernoulliTest()) continue;
                         mechanic.remove(frame);
                         FurnitureMechanic nextMechanic = (FurnitureMechanic)
                                 furnitureFactory.getMechanic(evolution.getNextStage());
@@ -83,8 +88,7 @@ public class EvolutionTask extends BukkitRunnable {
                                 frame.getLocation(),
                                 null
                         );
-                    } else frame.getPersistentDataContainer().set(FurnitureMechanic.EVOLUTION_KEY,
-                            PersistentDataType.INTEGER, evolutionStep);
+                    }
                 }
     }
 }
