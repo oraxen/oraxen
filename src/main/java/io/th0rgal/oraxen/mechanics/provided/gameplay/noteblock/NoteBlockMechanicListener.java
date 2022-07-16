@@ -303,12 +303,13 @@ public class NoteBlockMechanicListener implements Listener {
         Block blockBelow = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
         SoundGroup soundGroup = blockBelow.getBlockData().getSoundGroup();
         NoteBlockMechanic mechanic = getNoteBlockMechanic(blockBelow);
+        String sound;
 
         if (soundGroup.getStepSound() != Sound.BLOCK_WOOD_STEP) return;
         if (mechanic != null && mechanic.isDirectional()) {
             mechanic = ((NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock()));
         }
-        String sound;
+
         // Handles wood and noteblock as noteblock normally inherits said sounds
         if (gameEvent == GameEvent.STEP) {
             if (blockBelow.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasStepSound())
