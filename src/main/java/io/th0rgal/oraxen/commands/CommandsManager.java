@@ -34,6 +34,7 @@ public class CommandsManager {
                 .withSubcommand((new RecipesCommand()).getRecipesCommand())
                 .withSubcommand((new ReloadCommand()).getReloadCommand())
                 .withSubcommand((new DebugCommand()).getDebugCommand())
+                .withSubcommand((new ModelDataCommand()).getHighestModelDataCommand())
                 .withSubcommand((new GlyphCommand()).getGlyphCommand())
                 .withSubcommand((new PrintGlyphCommand()).getPrintGlyphCommand())
                 .executes((sender, args) -> {
