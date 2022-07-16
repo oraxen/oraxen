@@ -20,20 +20,41 @@ sounds:
   required_wood_hit: # Required for custom sounds
     subtitle: "subtitles.block.generic.hit"
     sounds:
-      - required/wood_hit.ogg
+      - step/wood1
+      - step/wood2
+      - step/wood3
+      - step/wood4
+      - step/wood5
+      - step/wood6
   required_wood_place:
     subtitle: "subtitles.block.generic.place"
     sounds:
-      - required/wood_place.ogg
+      - dig/wood1
+      - dig/wood2
+      - dig/wood3
+      - dig/wood4
   required_wood_break:
     subtitle: "subtitles.block.generic.break"
     sounds:
-      - required/wood_break.ogg
+      - dig/wood1
+      - dig/wood2
+      - dig/wood3
+      - dig/wood4
   required_wood_step:
     subtitle: "subtitles.block.generic.step"
     sounds:
-      - required/wood_step.ogg
+      - step/wood1
+      - step/wood2
+      - step/wood3
+      - step/wood4
+      - step/wood5
+      - step/wood6
   required_wood_fall:
     subtitle: "subtitles.block.generic.fall"
     sounds:
-      - required/wood_fall.ogg
+      - step/wood1
+      - step/wood2
+      - step/wood3
+      - step/wood4
+      - step/wood5
+      - step/wood6
