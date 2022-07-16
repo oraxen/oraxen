@@ -130,7 +130,8 @@ publishing {
 boolean copyJar = project.findProperty('copyJar')
 String pluginPath = project.findProperty('oraxen_plugin_path')
 if (copyJar && pluginPath != null) {
-    tasks.register('copyJarTask', Copy) {
+
+    task copyJarTask(type: Copy) {
         from 'build/libs/oraxen-' + pluginVersion + '.jar'
         into pluginPath
         doLast {
@@ -138,6 +139,6 @@ if (copyJar && pluginPath != null) {
         }
     }
 
-    tasks.named('copyJarTask', Copy).get().dependsOn('shadowJar')
+    copyJarTask.dependsOn('shadowJar')
     tasks.named('build', DefaultTask).get().dependsOn('copyJarTask')
 }
