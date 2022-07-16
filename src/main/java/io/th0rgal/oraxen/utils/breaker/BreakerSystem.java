@@ -14,9 +14,11 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
-import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.type.Tripwire;
@@ -90,12 +92,10 @@ public class BreakerSystem {
 
                 String sound = getSound(block);
 
-                if (sound != null) BlockHelpers.playCustomBlockSound(block, sound, SoundCategory.BLOCKS);
-
                 final HardnessModifier modifier = triggeredModifier;
                 scheduler.runTaskTimer(OraxenPlugin.get(), new Consumer<>() {
                     int value = 0;
-
+                    //int temp = getRemainingFatigueTime(player);
                     @Override
                     public void accept(final BukkitTask bukkitTask) {
                         if (!breakerPerLocation.containsKey(location)) {
@@ -103,17 +103,18 @@ public class BreakerSystem {
                             return;
                         }
 
-
                         for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
                             if (entity instanceof Player viewer)
                                 sendBlockBreak(viewer, location, value);
 
-                        if (value++ < 10) {
-                            if (sound != null) {
-                                BlockHelpers.playCustomBlockSound(block, sound);
-                            }
+                        /*Bukkit.broadcastMessage(getRemainingFatigueTime(player) + "");
+                        if (temp != getRemainingFatigueTime(player)) {
+                            temp = getRemainingFatigueTime(player);
+                            BlockHelpers.playCustomBlockSound(block, sound);
+                        }*/
+
+                        if (value++ < 10)
                             return;
-                        }
 
                         if (!ProtectionLib.canBreak(player, block.getLocation()))
                             return;
@@ -178,4 +179,9 @@ public class BreakerSystem {
         };
     }
 
+    /*private int getRemainingFatigueTime(Player player) {
+        if (player.hasPotionEffect(PotionEffectType.SLOW_DIGGING))
+            return player.getPotionEffect(PotionEffectType.SLOW_DIGGING).getDuration();
+        else return 0;
+    }*/
 }

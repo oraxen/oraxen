@@ -180,7 +180,7 @@ public class NoteBlockMechanicListener implements Listener {
             event.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.LOWEST)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onHitBlock(final BlockDamageEvent event) {
         final Block block = event.getBlock();
         if (block.getBlockData().getSoundGroup().getHitSound() != Sound.BLOCK_WOOD_HIT) return;
