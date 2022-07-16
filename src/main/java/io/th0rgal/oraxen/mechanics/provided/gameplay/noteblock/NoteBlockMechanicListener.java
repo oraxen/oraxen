@@ -186,7 +186,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (block.getBlockData().getSoundGroup().getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (getNoteBlockMechanic(block) != null) return;
 
-        block.getWorld().playSound(block.getLocation(), "minecraft:required_wood_hit", 1.0f, 1.0f);
+        block.getWorld().playSound(block.getLocation(), "minecraft:required.wood.hit", 1.0f, 1.0f);
 
     }
 
@@ -196,7 +196,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
         if (getNoteBlockMechanic(block) != null) return;
 
-        block.getWorld().playSound(block.getLocation(), "minecraft:required_wood_break", 1.0f, 1.0f);
+        block.getWorld().playSound(block.getLocation(), "minecraft:required.wood.break", 1.0f, 1.0f);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -248,7 +248,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (placed.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_WOOD_PLACE) return;
 
         // Play sound for wood
-        placed.getWorld().playSound(placed.getLocation(), "minecraft:required_wood_place", 1.0f, 1.0f);
+        placed.getWorld().playSound(placed.getLocation(), "minecraft:required.wood.place", 1.0f, 1.0f);
         if (type == Material.NOTE_BLOCK && !OraxenItems.exists(event.getItemInHand()))
             event.getBlockPlaced().setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
     }

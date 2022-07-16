@@ -41,7 +41,7 @@ sounds:
       - dig/wood3
       - dig/wood4
   required_wood_step:
-    subtitle: "subtitles.block.generic.step"
+    subtitle: "subtitles.block.generic.footsteps"
     sounds:
       - step/wood1
       - step/wood2
@@ -50,7 +50,6 @@ sounds:
       - step/wood5
       - step/wood6
   required_wood_fall:
-    subtitle: "subtitles.block.generic.fall"
     sounds:
       - step/wood1
       - step/wood2
