@@ -95,7 +95,7 @@ public class StringBlockMechanicListener implements Listener {
 
             if (stringBlockMechanic == null) return;
             if (stringBlockMechanic.hasBreakSound())
-                block.getWorld().playSound(block.getLocation(), stringBlockMechanic.getBreakSound(), 1.0f, 0.8f);
+                BlockHelpers.playCustomBlockSound(block, stringBlockMechanic.getBreakSound());
             if (stringBlockMechanic.getLight() != -1)
                 WrappedLightAPI.removeBlockLight(block.getLocation());
             stringBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
@@ -216,7 +216,7 @@ public class StringBlockMechanicListener implements Listener {
         if (placedBlock == null)
             return;
         if (mechanic.hasPlaceSound())
-            placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
+            BlockHelpers.playCustomBlockSound(placedBlock, mechanic.getPlaceSound());
         if (mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
         if (mechanic.isSapling()) {
@@ -248,14 +248,13 @@ public class StringBlockMechanicListener implements Listener {
         GameEvent gameEvent = event.getEvent();
         Block block = entity.getLocation().getBlock();
         StringBlockMechanic mechanic = getStringMechanic(block);
-        SoundGroup soundGroup = block.getBlockData().getSoundGroup();
         String sound;
 
         if (mechanic == null) return;
         if (gameEvent == GameEvent.STEP && mechanic.hasStepSound()) sound = mechanic.getStepSound();
         else if (gameEvent == GameEvent.HIT_GROUND && mechanic.hasStepSound()) sound = mechanic.getFallSound();
         else return;
-        block.getWorld().playSound(block.getLocation(), sound, soundGroup.getVolume(), soundGroup.getPitch());
+        BlockHelpers.playCustomBlockSound(block, sound, SoundCategory.PLAYERS);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -367,7 +366,7 @@ public class StringBlockMechanicListener implements Listener {
     private void breakStringBlock(Block block, StringBlockMechanic mechanic, ItemStack item) {
         if (mechanic == null) return;
         if (mechanic.hasBreakSound())
-            block.getWorld().playSound(block.getLocation(), mechanic.getBreakSound(), 1.0f, 0.8f);
+            BlockHelpers.playCustomBlockSound(block, mechanic.getBreakSound());
         if (mechanic.getLight() != -1)
             WrappedLightAPI.removeBlockLight(block.getLocation());
         mechanic.getDrop().spawns(block.getLocation(), item);

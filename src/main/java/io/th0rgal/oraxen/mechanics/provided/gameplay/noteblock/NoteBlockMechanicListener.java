@@ -185,9 +185,7 @@ public class NoteBlockMechanicListener implements Listener {
         final Block block = event.getBlock();
         if (block.getBlockData().getSoundGroup().getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (getNoteBlockMechanic(block) != null) return;
-
-        block.getWorld().playSound(block.getLocation(), "minecraft:required.wood.hit", 1.0f, 1.0f);
-
+        BlockHelpers.playCustomBlockSound(block, "minecraft:required.wood.hit");
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -196,7 +194,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
         if (getNoteBlockMechanic(block) != null) return;
 
-        block.getWorld().playSound(block.getLocation(), "minecraft:required.wood.break", 1.0f, 1.0f);
+        BlockHelpers.playCustomBlockSound(block, "minecraft:required.wood.break");
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -219,7 +217,7 @@ public class NoteBlockMechanicListener implements Listener {
         }
 
         if (noteBlockMechanic.hasBreakSound())
-            block.getWorld().playSound(block.getLocation(), noteBlockMechanic.getBreakSound(), 1.0f, 0.8f);
+            BlockHelpers.playCustomBlockSound(block, noteBlockMechanic.getBreakSound());
         if (noteBlockMechanic.getLight() != -1)
             WrappedLightAPI.removeBlockLight(block.getLocation());
         if (player.getGameMode() != GameMode.CREATIVE)
@@ -248,9 +246,9 @@ public class NoteBlockMechanicListener implements Listener {
         if (placed.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_WOOD_PLACE) return;
 
         // Play sound for wood
-        placed.getWorld().playSound(placed.getLocation(), "minecraft:required.wood.place", 1.0f, 1.0f);
+        BlockHelpers.playCustomBlockSound(placed, "minecraft:required.wood.place");
         if (type == Material.NOTE_BLOCK && !OraxenItems.exists(event.getItemInHand()))
-            event.getBlockPlaced().setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
+            placed.setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -283,7 +281,7 @@ public class NoteBlockMechanicListener implements Listener {
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(), placedAgainst, face, NoteBlockMechanicFactory.createNoteBlockData(customVariation));
         if (placedBlock != null) {
             if (mechanic.hasPlaceSound())
-                placedBlock.getWorld().playSound(placedBlock.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
+                BlockHelpers.playCustomBlockSound(placedBlock, mechanic.getPlaceSound());
 
             if (mechanic.getLight() != -1)
                 WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
@@ -322,7 +320,7 @@ public class NoteBlockMechanicListener implements Listener {
             else sound = "minecraft:required.wood.fall";
         } else return;
 
-        blockBelow.getWorld().playSound(blockBelow.getLocation(), sound, soundGroup.getVolume(), soundGroup.getPitch());
+        BlockHelpers.playCustomBlockSound(blockBelow, sound, SoundCategory.PLAYERS);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -407,7 +405,7 @@ public class NoteBlockMechanicListener implements Listener {
     private Block makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
                                        final Block placedAgainst, final BlockFace face, final BlockData newBlock) {
         final Block target;
-        final Sound sound;
+        final String sound;
         final Material type = placedAgainst.getType();
 
         if (BlockHelpers.REPLACEABLE_BLOCKS.contains(type))
@@ -435,16 +433,16 @@ public class NoteBlockMechanicListener implements Listener {
         }
 
         if (isFlowing) {
-            if (newBlock.getMaterial() == Material.WATER) sound = Sound.ITEM_BUCKET_EMPTY;
-            else sound = Sound.valueOf("ITEM_BUCKET_EMPTY_" + newBlock.getMaterial());
-        } else sound = newBlock.getSoundGroup().getPlaceSound();
+            if (newBlock.getMaterial() == Material.WATER) sound = "item.bucket.empty";
+            else sound = "item.bucket.empty_" + newBlock.getMaterial().toString().toLowerCase();
+        } else sound = newBlock.getSoundGroup().getPlaceSound().getKey().toString();
 
         if (!player.getGameMode().equals(GameMode.CREATIVE)) {
             if (item.getType().toString().toLowerCase().contains("bucket")) item.setType(Material.BUCKET);
             else item.setAmount(item.getAmount() - 1);
         }
 
-        player.playSound(target.getLocation(), sound, 1.0F, 1.0F);
+        BlockHelpers.playCustomBlockSound(target, sound, SoundCategory.BLOCKS);
         Utils.sendAnimation(player, hand);
 
         return target;

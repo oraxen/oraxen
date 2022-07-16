@@ -14,11 +14,9 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.type.Tripwire;
@@ -92,7 +90,7 @@ public class BreakerSystem {
 
                 String sound = getSound(block);
 
-                if (sound != null) world.playSound(location, sound, 1, 1);
+                if (sound != null) BlockHelpers.playCustomBlockSound(block, sound, SoundCategory.BLOCKS);
 
                 final HardnessModifier modifier = triggeredModifier;
                 scheduler.runTaskTimer(OraxenPlugin.get(), new Consumer<>() {
@@ -105,14 +103,17 @@ public class BreakerSystem {
                             return;
                         }
 
-                        if (sound != null) world.playSound(location, sound, 1, 1);
 
                         for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
                             if (entity instanceof Player viewer)
                                 sendBlockBreak(viewer, location, value);
 
-                        if (value++ < 10)
+                        if (value++ < 10) {
+                            if (sound != null) {
+                                BlockHelpers.playCustomBlockSound(block, sound);
+                            }
                             return;
+                        }
 
                         if (!ProtectionLib.canBreak(player, block.getLocation()))
                             return;

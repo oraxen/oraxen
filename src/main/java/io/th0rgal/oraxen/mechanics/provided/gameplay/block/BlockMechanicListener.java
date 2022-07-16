@@ -52,7 +52,7 @@ public class BlockMechanicListener implements Listener {
         if (blockMechanic == null)
             return;
         if (blockMechanic.hasBreakSound())
-            block.getWorld().playSound(block.getLocation(), blockMechanic.getBreakSound(), 1.0f, 0.8f);
+            BlockHelpers.playCustomBlockSound(block, blockMechanic.getBreakSound());
         blockMechanic.getDrop().spawns(block.getLocation(), event.getPlayer().getInventory().getItemInMainHand());
         event.setDropItems(false);
     }
@@ -118,7 +118,7 @@ public class BlockMechanicListener implements Listener {
             return;
         }
         if (mechanic.hasPlaceSound())
-            target.getWorld().playSound(target.getLocation(), mechanic.getPlaceSound(), 1.0f, 0.8f);
+            BlockHelpers.playCustomBlockSound(target, mechanic.getPlaceSound());
         event.setCancelled(true);
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
@@ -130,7 +130,6 @@ public class BlockMechanicListener implements Listener {
         if (entity == null) return;
         GameEvent gameEvent = event.getEvent();
         Block blockBelow = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
-        SoundGroup soundGroup = blockBelow.getBlockData().getSoundGroup();
         String sound;
 
         if (!(blockBelow.getBlockData() instanceof final MultipleFacing blockFacing)) return;
@@ -142,7 +141,7 @@ public class BlockMechanicListener implements Listener {
         else if (gameEvent == GameEvent.HIT_GROUND && mechanic.hasFallSound()) sound = mechanic.getFallSound();
         else return;
 
-        blockBelow.getWorld().playSound(blockBelow.getLocation(), sound, soundGroup.getVolume(), soundGroup.getPitch());
+        BlockHelpers.playCustomBlockSound(blockBelow, sound, SoundCategory.PLAYERS);
     }
 
     private boolean isStandingInside(final Player player, final Block block) {
