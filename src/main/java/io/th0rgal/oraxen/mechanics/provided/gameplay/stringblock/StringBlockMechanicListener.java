@@ -249,9 +249,9 @@ public class StringBlockMechanicListener implements Listener {
         Block block = entity.getLocation().getBlock();
         StringBlockMechanic mechanic = getStringMechanic(block);
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
-        if (mechanic == null) return;
-
         String sound;
+
+        if (mechanic == null) return;
         if (gameEvent == GameEvent.STEP && mechanic.hasStepSound()) sound = mechanic.getStepSound();
         else if (gameEvent == GameEvent.HIT_GROUND && mechanic.hasStepSound()) sound = mechanic.getFallSound();
         else return;
