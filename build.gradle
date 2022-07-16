@@ -90,24 +90,6 @@ processResources {
     }
 }
 
-boolean copyJar = project.findProperty("copyJar")
-String pluginPath = project.findProperty("oraxenPluginPath")
-if(copyJar && pluginPath != null) {
-    tasks {
-        register("copyJar", Copy) {
-            from(findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar"))
-            into(pluginPath)
-            doLast {
-                println("Copied to plugin directory $pluginPath")
-            }
-        }
-
-        named("build", DefaultTask) {
-            dependsOn("copyJar")
-        }
-    }
-}
-
 shadowJar {
     archiveClassifier = null
     relocate 'org.bstats', 'io.th0rgal.oraxen.shaded.bstats'
@@ -143,4 +125,19 @@ publishing {
             artifact shadowJar
         }
     }
+}
+
+boolean copyJar = project.findProperty('copyJar')
+String pluginPath = project.findProperty('oraxen_plugin_path')
+if (copyJar && pluginPath != null) {
+    tasks.register('copyJarTask', Copy) {
+        from 'build/libs/oraxen-' + pluginVersion + '.jar'
+        into pluginPath
+        doLast {
+            println('Copied to plugin directory ' + pluginPath)
+        }
+    }
+
+    tasks.named('copyJarTask', Copy).get().dependsOn('shadowJar')
+    tasks.named('build', DefaultTask).get().dependsOn('copyJarTask')
 }
