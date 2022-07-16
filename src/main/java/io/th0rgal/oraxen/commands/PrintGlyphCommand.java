@@ -25,8 +25,8 @@ public class PrintGlyphCommand {
         List<String> glyphnames = new ArrayList<>();
         glyphnames.add("all");
         OraxenPlugin.get().getFontManager().getGlyphs().forEach(glyph -> glyphnames.add(glyph.getName()));
-        return new CommandAPICommand("printfont")
-                .withPermission("oraxen.command.printfont")
+        return new CommandAPICommand("printglyph")
+                .withPermission("oraxen.command.printglyph")
                 .withArguments(new TextArgument("glyphname").replaceSuggestions(ArgumentSuggestions.strings(glyphnames.toArray(new String[glyphnames.size()]))))
                 .executes(((commandSender, args) -> {
                     printHelpTitle(commandSender);
@@ -97,7 +97,7 @@ public class PrintGlyphCommand {
     }
 
     private void printHelpTitle(CommandSender sender) {
-        sender.sendMessage(ChatColor.GREEN + "Click one of the glyph below to copy the unicode!");
+        sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Click one of the glyph-ids below to copy the unicode!");
     }
 
     private BaseComponent[] printClickableMsg(String text, String unicodeChar, String hoverText) {
