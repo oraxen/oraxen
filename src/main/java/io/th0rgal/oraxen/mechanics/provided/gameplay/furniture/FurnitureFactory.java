@@ -14,14 +14,14 @@ public class FurnitureFactory extends MechanicFactory {
 
     public static FurnitureFactory instance;
     public final List<String> toolTypes;
-    public final int evolutionCheckDelay;
+    private final int evolutionTickInterval;
     private boolean evolvingFurnitures;
     private static EvolutionTask evolutionTask;
 
     public FurnitureFactory(ConfigurationSection section) {
         super(section);
         toolTypes = section.getStringList("tool_types");
-        evolutionCheckDelay = section.getInt("evolution_check_delay");
+        evolutionTickInterval = section.getInt("evolution_tick_interval");
         MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureListener(this));
         MechanicsManager.registerListeners(OraxenPlugin.get(), new EvolutionListener(this));
         evolvingFurnitures = false;
@@ -44,8 +44,8 @@ public class FurnitureFactory extends MechanicFactory {
             return;
         if (evolutionTask != null)
             evolutionTask.cancel();
-        evolutionTask = new EvolutionTask(this, evolutionCheckDelay);
-        evolutionTask.runTaskTimer(OraxenPlugin.get(), 0, evolutionCheckDelay);
+        evolutionTask = new EvolutionTask(this);
+        evolutionTask.runTaskTimer(OraxenPlugin.get(), 20L * evolutionTickInterval, 20L * evolutionTickInterval);
         evolvingFurnitures = true;
     }
 

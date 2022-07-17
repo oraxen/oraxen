@@ -20,11 +20,8 @@ public class EvolutionTask extends BukkitRunnable {
 
     private final FurnitureFactory furnitureFactory;
 
-    private final int delay;
-
-    public EvolutionTask(FurnitureFactory furnitureFactory, int delay) {
+    public EvolutionTask(FurnitureFactory furnitureFactory) {
         this.furnitureFactory = furnitureFactory;
-        this.delay = delay;
     }
 
     @Override
@@ -73,7 +70,7 @@ public class EvolutionTask extends BukkitRunnable {
 
                     if (evolution.isRainBoosted() && world.hasStorm() && world.getHighestBlockAt(frame.getLocation()).getY() > frame.getLocation().getY())
                         growChance += 0.5;
-                    if (evolution.isLightBoosted())
+                    if (evolution.isLightBoosted() && frame.getLocation().getBlock().getLightLevel() > 9)
                         growChance += 0.5;
 
                     double random = new Random().nextDouble();

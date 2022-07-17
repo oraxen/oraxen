@@ -9,7 +9,6 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripListener;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.swap.SwapListener;
 import org.bukkit.Bukkit;
 import org.bukkit.Instrument;
 import org.bukkit.Material;
@@ -52,7 +51,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                 );
         MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockMechanicListener(this));
         MechanicsManager.registerListeners(OraxenPlugin.get(), new LogStripListener(this));
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new SwapListener(this));
     }
 
     public static String getInstrumentName(int id) {
