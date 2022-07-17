@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -42,6 +43,7 @@ public class BreakerSystem {
 
     public static final List<HardnessModifier> MODIFIERS = new ArrayList<>();
     private final Map<Location, BukkitScheduler> breakerPerLocation = new HashMap<>();
+    private final List<Block> breakerPlaySound = new ArrayList<>();
     private final ProtocolManager protocolManager;
     private final PacketAdapter listener = new PacketAdapter(OraxenPlugin.get(),
             ListenerPriority.LOW, PacketType.Play.Client.BLOCK_DIG) {
@@ -90,12 +92,10 @@ public class BreakerSystem {
                 final BukkitScheduler scheduler = Bukkit.getScheduler();
                 breakerPerLocation.put(location, scheduler);
 
-                String sound = getSound(block);
-
                 final HardnessModifier modifier = triggeredModifier;
                 scheduler.runTaskTimer(OraxenPlugin.get(), new Consumer<>() {
                     int value = 0;
-                    //int temp = getRemainingFatigueTime(player);
+
                     @Override
                     public void accept(final BukkitTask bukkitTask) {
                         if (!breakerPerLocation.containsKey(location)) {
@@ -106,12 +106,6 @@ public class BreakerSystem {
                         for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
                             if (entity instanceof Player viewer)
                                 sendBlockBreak(viewer, location, value);
-
-                        /*Bukkit.broadcastMessage(getRemainingFatigueTime(player) + "");
-                        if (temp != getRemainingFatigueTime(player)) {
-                            temp = getRemainingFatigueTime(player);
-                            BlockHelpers.playCustomBlockSound(block, sound);
-                        }*/
 
                         if (value++ < 10)
                             return;
@@ -135,7 +129,6 @@ public class BreakerSystem {
                         bukkitTask.cancel();
                     }
                 }, period, period);
-
             } else {
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
                     player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
@@ -145,8 +138,8 @@ public class BreakerSystem {
                     for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
                         if (entity instanceof Player viewer)
                             sendBlockBreak(viewer, location, 10);
+                    breakerPerLocation.remove(location);
                 });
-                breakerPerLocation.remove(location);
             }
         }
     };
@@ -156,10 +149,18 @@ public class BreakerSystem {
     }
 
     private void sendBlockBreak(final Player player, final Location location, final int stage) {
+        Block block = location.getBlock();
         final PacketContainer fakeAnimation = protocolManager.createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
         fakeAnimation.getIntegers().write(0, location.hashCode()).write(1, stage);
         fakeAnimation.getBlockPositionModifier().write(0, new BlockPosition(location.toVector()));
         try {
+            if (!breakerPlaySound.contains(block)) {
+                breakerPlaySound.add(block);
+                BlockHelpers.playCustomBlockSound(block, getSound(block));
+                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
+                        breakerPlaySound.remove(block), 3);
+            }
+
             protocolManager.sendServerPacket(player, fakeAnimation);
         } catch (final InvocationTargetException e) {
             e.printStackTrace();
@@ -178,10 +179,4 @@ public class BreakerSystem {
             default -> null;
         };
     }
-
-    /*private int getRemainingFatigueTime(Player player) {
-        if (player.hasPotionEffect(PotionEffectType.SLOW_DIGGING))
-            return player.getPotionEffect(PotionEffectType.SLOW_DIGGING).getDuration();
-        else return 0;
-    }*/
 }
