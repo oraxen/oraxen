@@ -2,22 +2,26 @@ settings:
   # Should Oraxen automatically generate sounds.json according to your settings?
   automatically_generate: true
 
+# Please note due to config limitations,
+# block.second.something will
+# add empty entries for 'block' and 'block.second'
+# The actual sounds will still be under 'block.second.something'
+# The above are just empty and side-effect of generating the json file.
 sounds:
-
   welcome:
     category: record
     sound: welcome.ogg # extension is not mandatory
-  block_wood_step: # Required for custom sounds
+  block.wood.step: # Required for custom sounds
     replace: true
-  block_wood_place:
+  block.wood.place:
     replace: true
-  block_wood_break:
+  block.wood.break:
     replace: true
-  block_wood_fall:
+  block.wood.fall:
     replace: true
-  block_wood_hit:
+  block.wood.hit:
     replace: true
-  required_wood_hit: # Required for custom sounds
+  required.wood.hit: # Required for custom sounds
     subtitle: "subtitles.block.generic.hit"
     sounds:
       - step/wood1
@@ -26,21 +30,21 @@ sounds:
       - step/wood4
       - step/wood5
       - step/wood6
-  required_wood_place:
+  required.wood.place:
     subtitle: "subtitles.block.generic.place"
     sounds:
       - dig/wood1
       - dig/wood2
       - dig/wood3
       - dig/wood4
-  required_wood_break:
+  required.wood.break:
     subtitle: "subtitles.block.generic.break"
     sounds:
       - dig/wood1
       - dig/wood2
       - dig/wood3
       - dig/wood4
-  required_wood_step:
+  required.wood.step:
     subtitle: "subtitles.block.generic.footsteps"
     sounds:
       - step/wood1
@@ -49,7 +53,7 @@ sounds:
       - step/wood4
       - step/wood5
       - step/wood6
-  required_wood_fall:
+  required.wood.fall:
     sounds:
       - step/wood1
       - step/wood2

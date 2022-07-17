@@ -22,10 +22,9 @@ public class SoundManager {
 
     public Collection<CustomSound> parseCustomSounds(ConfigurationSection section) {
         final Collection<CustomSound> output = new ArrayList<>();
-        for (String soundName : section.getKeys(false)) {
+        for (String soundName : section.getKeys(true)) {
             ConfigurationSection sound = section.getConfigurationSection(soundName);
             if (sound == null) continue;
-            soundName = soundName.replace("_", ".");
             output.add(new CustomSound(
                     soundName, sound.getStringList("sounds"), sound.getString("category"),
                     sound.getBoolean("replace"), sound.getString("subtitle"))
