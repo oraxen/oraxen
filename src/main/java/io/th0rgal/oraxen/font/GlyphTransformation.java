@@ -9,6 +9,7 @@ import net.kyori.adventure.text.minimessage.transformation.TransformationParser;
 import net.kyori.examination.ExaminableProperty;
 import org.jetbrains.annotations.NotNull;
 
+import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -43,7 +44,8 @@ public final class GlyphTransformation extends Transformation {
 
     @Override
     public Component apply() {
-        OraxenPlugin.get().saveResource("glyphs/interface.yml", false);
+        if (!Path.of(OraxenPlugin.get().getDataFolder() + "/glyphs/interface.yml").toFile().exists())
+            OraxenPlugin.get().saveResource("glyphs/interface.yml", false);
         return Component.text(glyph.getCharacter());
     }
 
