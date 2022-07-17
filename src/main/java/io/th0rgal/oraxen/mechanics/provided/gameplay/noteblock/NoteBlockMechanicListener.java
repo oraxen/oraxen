@@ -298,12 +298,14 @@ public class NoteBlockMechanicListener implements Listener {
         Entity entity = event.getEntity();
         if (entity == null) return;
         GameEvent gameEvent = event.getEvent();
-        Block blockBelow = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
+        Block currentBlock = entity.getLocation().getBlock();
+        Block blockBelow = currentBlock.getRelative(BlockFace.DOWN);
         SoundGroup soundGroup = blockBelow.getBlockData().getSoundGroup();
         NoteBlockMechanic mechanic = getNoteBlockMechanic(blockBelow);
         String sound;
 
         if (soundGroup.getStepSound() != Sound.BLOCK_WOOD_STEP) return;
+        if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(currentBlock.getType()) || currentBlock.getType() == Material.TRIPWIRE) return;
         if (mechanic != null && mechanic.isDirectional()) {
             mechanic = ((NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock()));
         }

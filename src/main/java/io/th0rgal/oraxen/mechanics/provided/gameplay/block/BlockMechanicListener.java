@@ -129,12 +129,12 @@ public class BlockMechanicListener implements Listener {
         Entity entity = event.getEntity();
         if (entity == null) return;
         GameEvent gameEvent = event.getEvent();
-        Block blockBelow = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
+        Block currentBlock = entity.getLocation().getBlock();
+        Block blockBelow = currentBlock.getRelative(BlockFace.DOWN);
         String sound;
-
-        if (!(blockBelow.getBlockData() instanceof final MultipleFacing blockFacing)) return;
+        if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(currentBlock.getType()) || currentBlock.getType() == Material.TRIPWIRE) return;
         if (blockBelow.getType() != Material.MUSHROOM_STEM) return;
-        final BlockMechanic mechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(blockFacing));
+        final BlockMechanic mechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode((MultipleFacing) blockBelow.getBlockData()));
         if (mechanic == null) return;
 
         if (gameEvent == GameEvent.STEP && mechanic.hasStepSound()) sound = mechanic.getStepSound();
