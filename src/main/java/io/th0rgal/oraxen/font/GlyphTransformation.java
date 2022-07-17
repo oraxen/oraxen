@@ -43,6 +43,7 @@ public final class GlyphTransformation extends Transformation {
 
     @Override
     public Component apply() {
+        OraxenPlugin.get().saveResource("glyphs/interface.yml", false);
         return Component.text(glyph.getCharacter());
     }
 

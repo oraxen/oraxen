@@ -1,3 +1,6 @@
+#Simply deleting this file will make the plugin fail to load
+#Make sure you delete all entries found in other files
+#For example, language file uses logo glyph
 logo:
   texture: required/logo
   ascent: 20
