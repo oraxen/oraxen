@@ -34,7 +34,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         super(section);
         instance = this;
         variants = new JsonObject();
-        variants.add("instrument=harp,powered=false", getModelJson("required/note_block"));
+        variants.add("instrument=harp,powered=false", getModelJson("block/note_block"));
         toolTypes = section.getStringList("tool_types");
         farmBlockCheckDelay = section.getInt("farmblock_check_delay");
         farmBlock = false;
