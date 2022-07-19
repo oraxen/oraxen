@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripping;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.swap.SwapMechanic;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
@@ -100,10 +99,6 @@ public class NoteBlockMechanic extends Mechanic {
         if (section.isConfigurationSection("directional")) {
             directionalBlock = new DirectionalBlock(section.getConfigurationSection("directional"));
         } else directionalBlock = null;
-
-        if (section.isConfigurationSection("swap")) {
-            swapMechanic = new SwapMechanic(section.getConfigurationSection("swap"));
-        } else swapMechanic = null;
 
     }
 

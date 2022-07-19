@@ -1,29 +1,21 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 
-import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import org.bukkit.Effect;
 import org.bukkit.Material;
-import org.bukkit.Particle;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.RayTraceResult;
 
-import java.util.List;
 import java.util.Random;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
@@ -77,8 +69,8 @@ public class EvolutionListener implements Listener {
             if (mechanic.getEvolution().getNextStage() == null)
                 return;
             itemInteracted.setAmount(itemInteracted.getAmount() - 1);
-            crop.getWorld().spawnParticle(Particle.VILLAGER_HAPPY, crop.getLocation(), 3);
-            if (mechanic.getEvolution().getBoneMealChance() == getRandWithinRange(1, 9) | mechanic.getEvolution().getBoneMealChance() >= 9) {
+            crop.getLocation().getWorld().playEffect(crop.getLocation(), Effect.BONE_MEAL_USE, 3);
+            if (isBoneMealChance(Integer.valueOf(mechanic.getEvolution().getBoneMealChance()))) {
                 mechanic.remove(crop);
                 FurnitureMechanic nextMechanic = (FurnitureMechanic) factory.getMechanic(mechanic.getEvolution().getNextStage());
                 nextMechanic.place(crop.getRotation(), mechanic.getYaw(crop.getRotation()), crop.getFacing(), crop.getLocation(), null);
@@ -88,5 +80,32 @@ public class EvolutionListener implements Listener {
     public int getRandWithinRange(int min, int max) {
         Random random = new Random();
         return random.nextInt(max - min) + min;
+    }
+
+    public static Boolean isBoneMealChance(int chance) {
+        switch (chance) {
+            case 0:
+                return false;
+            case 1:
+                return ((new Random()).nextFloat() + "").endsWith("1");
+            case 2:
+                return (((new Random()).nextFloat() + "").endsWith("1") || ((new Random()).nextFloat() + "").endsWith("2"));
+            case 3:
+                return (((new Random()).nextFloat() + "").endsWith("1") || ((new Random()).nextFloat() + "").endsWith("2") || ((new Random()).nextFloat() + "").endsWith("3"));
+            case 4:
+                return (((new Random()).nextFloat() + "").endsWith("1") || ((new Random()).nextFloat() + "").endsWith("2") || ((new Random()).nextFloat() + "").endsWith("3") || ((new Random()).nextFloat() + "").endsWith("4"));
+            case 5:
+                return (((new Random()).nextFloat() + "").endsWith("1") || ((new Random()).nextFloat() + "").endsWith("2") || ((new Random()).nextFloat() + "").endsWith("3") || ((new Random()).nextFloat() + "").endsWith("4") || ((new Random()).nextFloat() + "").endsWith("5"));
+            case 6:
+                return (((new Random()).nextFloat() + "").endsWith("1") || ((new Random()).nextFloat() + "").endsWith("2") || ((new Random()).nextFloat() + "").endsWith("3") || ((new Random()).nextFloat() + "").endsWith("4") || ((new Random()).nextFloat() + "").endsWith("5") || ((new Random()).nextFloat() + "").endsWith("6"));
+            case 7:
+                return (((new Random()).nextFloat() + "").endsWith("1") || ((new Random()).nextFloat() + "").endsWith("2") || ((new Random()).nextFloat() + "").endsWith("3") || ((new Random()).nextFloat() + "").endsWith("4") || ((new Random()).nextFloat() + "").endsWith("5") || ((new Random()).nextFloat() + "").endsWith("6") || ((new Random()).nextFloat() + "").endsWith("7"));
+            case 8:
+                return (((new Random()).nextFloat() + "").endsWith("1") || ((new Random()).nextFloat() + "").endsWith("2") || ((new Random()).nextFloat() + "").endsWith("3") || ((new Random()).nextFloat() + "").endsWith("4") || ((new Random()).nextFloat() + "").endsWith("5") || ((new Random()).nextFloat() + "").endsWith("6") || ((new Random()).nextFloat() + "").endsWith("7") || ((new Random()).nextFloat() + "").endsWith("8"));
+            case 9:
+                return (((new Random()).nextFloat() + "").endsWith("1") || ((new Random()).nextFloat() + "").endsWith("2") || ((new Random()).nextFloat() + "").endsWith("3") || ((new Random()).nextFloat() + "").endsWith("4") || ((new Random()).nextFloat() + "").endsWith("5") || ((new Random()).nextFloat() + "").endsWith("6") || ((new Random()).nextFloat() + "").endsWith("7") || ((new Random()).nextFloat() + "").endsWith("8") || ((new Random()).nextFloat() + "").endsWith("9"));
+            default:
+                return true;
+        }
     }
 }
