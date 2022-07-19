@@ -118,8 +118,6 @@ public class NoteBlockMechanic extends Mechanic {
 
     public DirectionalBlock getDirectional() { return directionalBlock; }
 
-    public SwapMechanic getSwapMechanic() { return swapMechanic; }
-
     public String getModel(ConfigurationSection section) {
         if (model != null)
             return model;
