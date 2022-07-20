@@ -24,6 +24,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.ItemStack;
 
+import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
+
 public class BlockMechanicListener implements Listener {
 
     private final MechanicFactory factory;
@@ -128,6 +130,17 @@ public class BlockMechanicListener implements Listener {
     public void onStepFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (entity == null) return;
+        Location eLoc = entity.getLocation();
+        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
+
+        Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
+        SoundGroup soundGroup = below.getBlockData().getSoundGroup();
+
+        if (event.getEvent() != GameEvent.STEP) return;
+        if (!(below.getBlockData() instanceof final MultipleFacing blockFacing)) return;
+        if (below.getType() != Material.MUSHROOM_STEM) return;
+
+        final BlockMechanic mechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(blockFacing));
         GameEvent gameEvent = event.getEvent();
         Block currentBlock = entity.getLocation().getBlock();
         Block blockBelow = currentBlock.getRelative(BlockFace.DOWN);
