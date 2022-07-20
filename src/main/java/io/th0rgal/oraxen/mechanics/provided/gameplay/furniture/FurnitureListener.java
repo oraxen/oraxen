@@ -38,6 +38,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.RayTraceResult;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -362,7 +363,9 @@ public class FurnitureListener implements Listener {
         final Player player = (Player) event.getInventory().getHolder();
         if (player == null) return;
         if (event.getCursor().getType() == Material.BARRIER) {
-            final Block block = player.rayTraceBlocks(6.0).getHitBlock();
+            final RayTraceResult rayTraceResult = player.rayTraceBlocks(6.0);
+            if (rayTraceResult == null) return;
+            final Block block = rayTraceResult.getHitBlock();
             if (block == null) return;
             FurnitureMechanic furnitureMechanic = getFurnitureMechanic(block);
             if (furnitureMechanic == null) return;
