@@ -40,6 +40,7 @@ import java.util.Objects;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
+import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
 public class StringBlockMechanicListener implements Listener {
 
@@ -245,6 +246,9 @@ public class StringBlockMechanicListener implements Listener {
     public void onStep(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (entity == null) return;
+        Location eLoc = entity.getLocation();
+        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
+
         Block block = entity.getLocation().getBlock();
         StringBlockMechanic mechanic = getStringMechanic(block);
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
@@ -258,6 +262,9 @@ public class StringBlockMechanicListener implements Listener {
     public void onFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (entity == null) return;
+        Location eLoc = entity.getLocation();
+        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
+
         Block block = entity.getLocation().getBlock();
         StringBlockMechanic mechanic = getStringMechanic(block);
 
