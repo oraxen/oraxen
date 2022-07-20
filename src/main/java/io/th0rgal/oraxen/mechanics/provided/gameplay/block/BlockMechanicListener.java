@@ -133,18 +133,11 @@ public class BlockMechanicListener implements Listener {
         Location eLoc = entity.getLocation();
         if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
 
-        Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
-        SoundGroup soundGroup = below.getBlockData().getSoundGroup();
-
-        if (event.getEvent() != GameEvent.STEP) return;
-        if (!(below.getBlockData() instanceof final MultipleFacing blockFacing)) return;
-        if (below.getType() != Material.MUSHROOM_STEM) return;
-
-        final BlockMechanic mechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(blockFacing));
         GameEvent gameEvent = event.getEvent();
         Block currentBlock = entity.getLocation().getBlock();
         Block blockBelow = currentBlock.getRelative(BlockFace.DOWN);
         String sound;
+
         if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(currentBlock.getType()) || currentBlock.getType() == Material.TRIPWIRE) return;
         if (blockBelow.getType() != Material.MUSHROOM_STEM) return;
         final BlockMechanic mechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode((MultipleFacing) blockBelow.getBlockData()));

@@ -304,8 +304,6 @@ public class NoteBlockMechanicListener implements Listener {
         GameEvent gameEvent = event.getEvent();
         Block currentBlock = entity.getLocation().getBlock();
         Block blockBelow = currentBlock.getRelative(BlockFace.DOWN);
-        SoundGroup soundGroup = blockBelow.getBlockData().getSoundGroup();
-        NoteBlockMechanic mechanic = getNoteBlockMechanic(blockBelow);
         String sound;
         Location eLoc = entity.getLocation();
         if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
