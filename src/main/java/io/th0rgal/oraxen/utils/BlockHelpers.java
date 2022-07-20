@@ -311,4 +311,17 @@ public class BlockHelpers {
             default -> BlockFace.NORTH;
         };
     }
+
+    /*
+    * Calling loc.getChunk() will crash a Paper 1.19 build 62-66 (possibly more) Server if the Chunk does not exist.
+    * Instead, get Chunk location and check with World.isChunkLoaded() if the Chunk is loaded.
+    */
+    public static boolean isLoaded(World world, Location loc) {
+        return world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
+    }
+
+    public static boolean isLoaded(Location loc) {
+        return loc.getWorld() != null && isLoaded(loc.getWorld(), loc);
+    }
+
 }
