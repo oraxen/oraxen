@@ -1,3 +1,6 @@
+#This file cannot be deleted or altered
+# It will regenerate if attempted as it is core to alot of functionality
+# Modifications will also be overwritten
 shift_1:
   texture: required/null
   ascent: -32768

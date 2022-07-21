@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -16,10 +17,7 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class StringBlockMechanicFactory extends MechanicFactory {
 
@@ -155,9 +153,14 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         if (saplingTask != null) saplingTask.cancel();
 
         // Dont register if there is no sapling in configs
-        if (OraxenItems.getItems().stream().filter(item ->
-                ((StringBlockMechanic) StringBlockMechanicFactory.getInstance()
-                        .getMechanic(OraxenItems.getIdByItem(item.build()))).isSapling()).toList().isEmpty()) return;
+        List<String> saplingList = new ArrayList<>();
+        for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
+            String id = OraxenItems.getIdByItem(itemBuilder.build());
+            StringBlockMechanic mechanic = (StringBlockMechanic) StringBlockMechanicFactory.getInstance().getMechanic(id);
+            if (mechanic == null || !mechanic.isSapling()) continue;
+            saplingList.add(id);
+        }
+        if (saplingList.isEmpty()) return;
 
         saplingTask = new SaplingTask(saplingGrowthCheckDelay);
         saplingTask.runTaskTimer(OraxenPlugin.get(), 0, saplingGrowthCheckDelay);

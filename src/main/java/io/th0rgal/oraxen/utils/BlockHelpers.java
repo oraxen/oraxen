@@ -25,6 +25,16 @@ import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
 
 public class BlockHelpers {
 
+    public static void playCustomBlockSound(Block block, String sound) {
+        playCustomBlockSound(block, sound, SoundCategory.BLOCKS);
+    }
+
+    public static void playCustomBlockSound(Block block, String sound, SoundCategory category) {
+        if (sound == null || block == null || category == null) return;
+        SoundGroup soundGroup = block.getBlockData().getSoundGroup();
+        block.getWorld().playSound(block.getLocation(), sound, category, soundGroup.getVolume(), soundGroup.getPitch());
+    }
+
     public static Location toBlockLocation(Location location) {
         return new Location(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }
