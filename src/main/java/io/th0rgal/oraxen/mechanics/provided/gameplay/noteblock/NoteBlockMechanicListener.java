@@ -36,12 +36,14 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.RayTraceResult;
 
 import java.util.List;
 import java.util.Objects;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 import static io.th0rgal.oraxen.utils.BlockHelpers.getAnvilFacing;
+import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
 public class NoteBlockMechanicListener implements Listener {
     private final MechanicFactory factory;
@@ -80,6 +82,8 @@ public class NoteBlockMechanicListener implements Listener {
     public void onNoteblockPowered(final GenericGameEvent event) {
         Block block = event.getLocation().getBlock();
         NamespacedKey eventKey = NamespacedKey.minecraft("note_block_play");
+        Location eLoc = block.getLocation();
+        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
 
         // This GameEvent only exists in 1.19
         // If server is 1.18 check if its there and if not return
@@ -299,6 +303,9 @@ public class NoteBlockMechanicListener implements Listener {
     public void onStep(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (entity == null) return;
+        Location eLoc = entity.getLocation();
+        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
+
         Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
         SoundGroup soundGroup = below.getBlockData().getSoundGroup();
         NoteBlockMechanic mechanic = getNoteBlockMechanic(below);
@@ -320,7 +327,10 @@ public class NoteBlockMechanicListener implements Listener {
     public void onFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (entity == null) return;
-        Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
+        Location eLoc = entity.getLocation();
+        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
+
+        Block below = eLoc.getBlock().getRelative(BlockFace.DOWN);
         SoundGroup soundGroup = below.getBlockData().getSoundGroup();
         NoteBlockMechanic mechanic = getNoteBlockMechanic(below);
         if (mechanic != null && mechanic.isDirectional()) {
@@ -341,7 +351,9 @@ public class NoteBlockMechanicListener implements Listener {
         final Player player = (Player) event.getInventory().getHolder();
         if (player == null) return;
         if (event.getCursor().getType() == Material.NOTE_BLOCK) {
-            final Block block = Objects.requireNonNull(player.rayTraceBlocks(6.0)).getHitBlock();
+            final RayTraceResult rayTraceResult = player.rayTraceBlocks(6.0);
+            if (rayTraceResult == null) return;
+            final Block block = rayTraceResult.getHitBlock();
             if (block == null) return;
             NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
             if (noteBlockMechanic == null) return;

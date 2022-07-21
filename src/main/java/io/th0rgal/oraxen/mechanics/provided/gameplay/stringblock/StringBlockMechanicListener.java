@@ -34,12 +34,14 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.RayTraceResult;
 
 import java.util.List;
 import java.util.Objects;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
+import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
 public class StringBlockMechanicListener implements Listener {
 
@@ -245,6 +247,9 @@ public class StringBlockMechanicListener implements Listener {
     public void onStep(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (entity == null) return;
+        Location eLoc = entity.getLocation();
+        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
+
         Block block = entity.getLocation().getBlock();
         StringBlockMechanic mechanic = getStringMechanic(block);
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
@@ -258,6 +263,9 @@ public class StringBlockMechanicListener implements Listener {
     public void onFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (entity == null) return;
+        Location eLoc = entity.getLocation();
+        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
+
         Block block = entity.getLocation().getBlock();
         StringBlockMechanic mechanic = getStringMechanic(block);
 
@@ -272,7 +280,9 @@ public class StringBlockMechanicListener implements Listener {
         final Player player = (Player) event.getInventory().getHolder();
         if (player == null) return;
         if (event.getCursor().getType() == Material.STRING) {
-            final Block block = Objects.requireNonNull(player.rayTraceBlocks(6.0)).getHitBlock();
+            final RayTraceResult rayTraceResult = player.rayTraceBlocks(6.0);
+            if (rayTraceResult == null) return;
+            final Block block = rayTraceResult.getHitBlock();
             if (block == null) return;
             StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
             if (stringBlockMechanic == null) return;

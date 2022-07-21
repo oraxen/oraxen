@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
-import org.apache.commons.lang.math.IntRange;
+import org.apache.commons.lang3.Range;
 import org.bukkit.*;
 import org.bukkit.block.Sign;
 import org.bukkit.block.*;
@@ -285,19 +285,19 @@ public class BlockHelpers {
     private static BlockFace getRelativeFacing(Player player) {
         double yaw = player.getLocation().getYaw();
         BlockFace face = BlockFace.SELF;
-        if (new IntRange(0.0, 22.5).containsDouble(yaw) || yaw >= 337.5 || yaw >= -22.5 && yaw <= 0.0 || yaw <= -337.5)
+        if (Range.between(0.0, 22.5).contains(yaw) || yaw >= 337.5 || yaw >= -22.5 && yaw <= 0.0 || yaw <= -337.5)
             face = BlockFace.SOUTH;
-        else if (new IntRange(22.5, 67.5).containsDouble(yaw) || new IntRange(-337.5, -292.5).containsDouble(yaw))
+        else if (Range.between(22.5, 67.5).contains(yaw) || Range.between(-337.5, -292.5).contains(yaw))
             face = BlockFace.WEST;
-        else if (new IntRange(112.5, 157.5).containsDouble(yaw) || new IntRange(-292.5, -247.5).containsDouble(yaw))
+        else if (Range.between(112.5, 157.5).contains(yaw) || Range.between(-292.5, -247.5).contains(yaw))
             face = BlockFace.NORTH_WEST;
-        else if (new IntRange(157.5, 202.5).containsDouble(yaw) || new IntRange(-202.5, -157.5).containsDouble(yaw))
+        else if (Range.between(157.5, 202.5).contains(yaw) || Range.between(-202.5, -157.5).contains(yaw))
             face = BlockFace.NORTH;
-        else if (new IntRange(202.5, 247.5).containsDouble(yaw) || new IntRange(-157.5, -112.5).containsDouble(yaw))
+        else if (Range.between(202.5, 247.5).contains(yaw) || Range.between(-157.5, -112.5).contains(yaw))
             face = BlockFace.NORTH_EAST;
-        else if (new IntRange(247.5, 292.5).containsDouble(yaw) || new IntRange(-112.5, -67.5).containsDouble(yaw))
+        else if (Range.between(247.5, 292.5).contains(yaw) || Range.between(-112.5, -67.5).contains(yaw))
             face = BlockFace.EAST;
-        else if (new IntRange(292.5, 337.5).containsDouble(yaw) || new IntRange(-67.5, -22.5).containsDouble(yaw))
+        else if (Range.between(292.5, 337.5).contains(yaw) || Range.between(-67.5, -22.5).contains(yaw))
             face = BlockFace.SOUTH_EAST;
         return face;
     }
@@ -311,4 +311,17 @@ public class BlockHelpers {
             default -> BlockFace.NORTH;
         };
     }
+
+    /*
+    * Calling loc.getChunk() will crash a Paper 1.19 build 62-66 (possibly more) Server if the Chunk does not exist.
+    * Instead, get Chunk location and check with World.isChunkLoaded() if the Chunk is loaded.
+    */
+    public static boolean isLoaded(World world, Location loc) {
+        return world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
+    }
+
+    public static boolean isLoaded(Location loc) {
+        return loc.getWorld() != null && isLoaded(loc.getWorld(), loc);
+    }
+
 }
