@@ -50,6 +50,9 @@ public class SaplingTask extends BukkitRunnable {
                             WrappedWorldEdit.pasteSchematic(block.getLocation(), sapling.getSchematic(), sapling.replaceBlocks(), sapling.copyBiomes(), sapling.copyEntities());
                         } else pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, growthTimeRemains);
                     }
+                    else if (pdc.has(SAPLING_KEY, PersistentDataType.INTEGER) && block.getType() != Material.TRIPWIRE) {
+                        pdc.remove(SAPLING_KEY);
+                    }
                 }
             }
         }

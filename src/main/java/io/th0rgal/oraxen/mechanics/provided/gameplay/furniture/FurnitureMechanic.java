@@ -259,6 +259,7 @@ public class FurnitureMechanic extends Mechanic {
                 }
             }
             location.getBlock().setType(Material.AIR);
+            new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
         }
 
         boolean removed = false;

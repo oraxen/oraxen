@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIConfig;
 import io.th0rgal.oraxen.commands.CommandsManager;
@@ -67,7 +66,7 @@ public class OraxenPlugin extends JavaPlugin {
         final PluginManager pluginManager = Bukkit.getPluginManager();
         resourcePack = new ResourcePack(this);
         MechanicsManager.registerNativeMechanics();
-        CustomBlockData.registerListener(this);
+        //CustomBlockData.registerListener(this); //Handle this manually
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
         OraxenItems.loadItems(configsManager);
