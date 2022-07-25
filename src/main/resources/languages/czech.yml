@@ -23,6 +23,7 @@ general:
   not_enough_exp: "<prefix><#fa4943>Na tohle potřebuješ více zkušeností"
   not_enough_space: "<prefix><#fa4943>Potřebuješ více místa pro položení tohoto nábytku"
   exit_menu: "<gradient:#FA7CBB:#F14658>Odejít"
+  no_emojis: "<prefix><#fa4943>No emojis found"
 
 logs:
   loaded: "<prefix><#55ffa4>Úspěšně načten na <os>"
