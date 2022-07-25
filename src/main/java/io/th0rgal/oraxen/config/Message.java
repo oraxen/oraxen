@@ -4,7 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.Utils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.Template;
-import org.apache.commons.lang3.ArrayUtils;
+import net.kyori.adventure.text.minimessage.template.TemplateResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -82,11 +82,10 @@ public enum Message {
     }
 
     public void send(final CommandSender sender, final Template... placeholders) {
+        String lang = OraxenPlugin.get().getConfigsManager().getLanguage().getString(path);
+        if (lang == null) return;
         OraxenPlugin.get().getAudience().sender(sender).sendMessage(
-                Utils.MINI_MESSAGE.parse(OraxenPlugin.get().getConfigsManager().getLanguage().getString(path),
-                        ArrayUtils.addAll(new Template[]{
-                                        Template.template("prefix", Message.PREFIX.toComponent())},
-                                placeholders))
+                Utils.MINI_MESSAGE.deserialize(lang, TemplateResolver.templates(placeholders))
         );
     }
 
