@@ -9,6 +9,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public enum Message {
 
     // general
@@ -83,9 +86,11 @@ public enum Message {
 
     public void send(final CommandSender sender, final Template... placeholders) {
         String lang = OraxenPlugin.get().getConfigsManager().getLanguage().getString(path);
+        ArrayList<Template> templates = new ArrayList<>(List.of(placeholders));
+        templates.add(Template.template("prefix", Message.PREFIX.toComponent()));
         if (lang == null) return;
         OraxenPlugin.get().getAudience().sender(sender).sendMessage(
-                Utils.MINI_MESSAGE.deserialize(lang, TemplateResolver.templates(placeholders))
+                Utils.MINI_MESSAGE.deserialize(lang, TemplateResolver.templates(templates))
         );
     }
 
