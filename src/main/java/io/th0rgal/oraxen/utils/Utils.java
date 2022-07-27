@@ -16,7 +16,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -99,11 +98,7 @@ public class Utils {
         final PacketContainer animation = protocolManager.createPacket(PacketType.Play.Server.ANIMATION);
         animation.getIntegers().write(0, player.getEntityId());
         animation.getIntegers().write(1, (hand == EquipmentSlot.HAND) ? 0 : 3);
-        try {
-            protocolManager.sendServerPacket(player, animation);
-        } catch (final InvocationTargetException e) {
-            e.printStackTrace();
-        }
+        protocolManager.sendServerPacket(player, animation);
     }
 
 }

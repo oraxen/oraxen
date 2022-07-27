@@ -33,7 +33,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -153,18 +152,14 @@ public class BreakerSystem {
         final PacketContainer fakeAnimation = protocolManager.createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
         fakeAnimation.getIntegers().write(0, location.hashCode()).write(1, stage);
         fakeAnimation.getBlockPositionModifier().write(0, new BlockPosition(location.toVector()));
-        try {
-            if (!breakerPlaySound.contains(block)) {
-                breakerPlaySound.add(block);
-                BlockHelpers.playCustomBlockSound(block, getSound(block));
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                        breakerPlaySound.remove(block), 3);
-            }
-
-            protocolManager.sendServerPacket(player, fakeAnimation);
-        } catch (final InvocationTargetException e) {
-            e.printStackTrace();
+        if (!breakerPlaySound.contains(block)) {
+            breakerPlaySound.add(block);
+            BlockHelpers.playCustomBlockSound(block, getSound(block));
+            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
+                    breakerPlaySound.remove(block), 3);
         }
+
+        protocolManager.sendServerPacket(player, fakeAnimation);
     }
 
     public void registerListener() {

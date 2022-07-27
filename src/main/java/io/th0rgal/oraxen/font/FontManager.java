@@ -13,7 +13,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 
 public class FontManager {
@@ -140,11 +139,7 @@ public class FontManager {
                 dataList.add(data);
                 packet.getPlayerInfoDataLists().write(0, dataList);
 
-                try {
-                    protocolManager.sendServerPacket(player, packet);
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                }
+                protocolManager.sendServerPacket(player, packet);
             }
         }
     }
