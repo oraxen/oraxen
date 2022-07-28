@@ -155,9 +155,7 @@ public class FurnitureMechanic extends Mechanic {
         return breakSound;
     }
 
-    public boolean hasPlaceSound() {
-        return placeSound != null;
-    }
+    public boolean hasPlaceSound() {return placeSound != null;}
     public String getPlaceSound() {
         return placeSound;
     }

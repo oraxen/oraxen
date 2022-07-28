@@ -61,3 +61,53 @@ sounds:
       - step/wood4
       - step/wood5
       - step/wood6
+  block.stone.step: # Required for custom furniture sounds
+    replace: true
+  block.stone.place:
+    replace: true
+  block.stone.break:
+    replace: true
+  block.stone.fall:
+    replace: true
+  block.stone.hit:
+    replace: true
+  required.stone.hit: # Required for custom furniture sounds
+    subtitle: "subtitles.block.generic.hit"
+    sounds:
+      - step/stone1
+      - step/stone2
+      - step/stone3
+      - step/stone4
+      - step/stone5
+      - step/stone6
+  required.stone.place:
+    subtitle: "subtitles.block.generic.place"
+    sounds:
+      - dig/stone1
+      - dig/stone2
+      - dig/stone3
+      - dig/stone4
+  required.stone.break:
+    subtitle: "subtitles.block.generic.break"
+    sounds:
+      - dig/stone1
+      - dig/stone2
+      - dig/stone3
+      - dig/stone4
+  required.stone.step:
+    subtitle: "subtitles.block.generic.footsteps"
+    sounds:
+      - step/stone1
+      - step/stone2
+      - step/stone3
+      - step/stone4
+      - step/stone5
+      - step/stone6
+  required.stone.fall:
+    sounds:
+      - step/stone1
+      - step/stone2
+      - step/stone3
+      - step/stone4
+      - step/stone5
+      - step/stone6
