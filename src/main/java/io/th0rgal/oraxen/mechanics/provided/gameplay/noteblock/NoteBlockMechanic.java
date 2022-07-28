@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStrip
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
+import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -24,6 +25,7 @@ public class NoteBlockMechanic extends Mechanic {
     protected final boolean hasHardness;
     private final int customVariation;
     private final Drop drop;
+    private final LimitedPlacing limitedPlacing;
     private final String breakSound;
     private final String placeSound;
     private final String stepSound;
@@ -101,22 +103,25 @@ public class NoteBlockMechanic extends Mechanic {
             directionalBlock = new DirectionalBlock(section.getConfigurationSection("directional"));
         } else directionalBlock = null;
 
+        if (section.isConfigurationSection("limited_placing")) {
+            limitedPlacing = new LimitedPlacing(section.getConfigurationSection("limited_placing"));
+        } else limitedPlacing = null;
     }
+
+    public boolean hasLimitedPlacing() { return limitedPlacing != null; }
+    public LimitedPlacing getLimitedPlacing() { return limitedPlacing; }
 
     public boolean hasDryout() {
         return farmBlockDryout != null;
     }
-
     public FarmBlockDryout getDryout() {
         return farmBlockDryout;
     }
 
     public boolean isLog() { return logStripping != null; }
-
     public LogStripping getLog() { return logStripping; }
 
     public boolean isDirectional() { return directionalBlock != null; }
-
     public DirectionalBlock getDirectional() { return directionalBlock; }
 
     public String getModel(ConfigurationSection section) {

@@ -4,6 +4,9 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.limitedplacing.AllowPlacingOn;
+import io.th0rgal.oraxen.utils.limitedplacing.DenyPlacingOn;
+import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -64,6 +67,31 @@ public class BlockMechanicListener implements Listener {
         final MultipleFacing blockData = (MultipleFacing) block.getBlockData();
         BlockMechanic.setBlockFacing(blockData, 15);
         block.setBlockData(blockData, false);
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onLimitedPlacing(final PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        ItemStack item = event.getItem();
+
+
+        if (item == null || block == null) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block.getType() != Material.NOTE_BLOCK) return;
+        if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
+
+        BlockMechanic mechanic = (BlockMechanic) factory.getMechanic(OraxenItems.getIdByItem(item));
+        if (mechanic == null || !mechanic.hasLimitedPlacing()) return;
+
+        LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
+        AllowPlacingOn allowPlacingOn = limitedPlacing.getAllowedPlacing();
+        DenyPlacingOn denyPlacingOn = limitedPlacing.getDeniedPlacing();
+        Block placedAgainst = block.getRelative(event.getBlockFace()).getRelative(BlockFace.DOWN);
+
+        if (allowPlacingOn != null && !allowPlacingOn.checkAllowedMechanic(placedAgainst)) {
+            event.setCancelled(true);
+        } else if (denyPlacingOn != null && denyPlacingOn.checkDeniedMechanic(placedAgainst)) {
+            event.setCancelled(true);
+        }
     }
 
     // not static here because only instanciated once I think
@@ -168,6 +196,13 @@ public class BlockMechanicListener implements Listener {
         else return;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS);
+    }
+
+    public static BlockMechanic getBlockMechanic(Block block) {
+        if (block.getType() == Material.MUSHROOM_STEM) {
+            final MultipleFacing mushroom = (MultipleFacing) block.getBlockData();
+            return BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(mushroom));
+        } else return null;
     }
 
     private boolean isStandingInside(final Player player, final Block block) {

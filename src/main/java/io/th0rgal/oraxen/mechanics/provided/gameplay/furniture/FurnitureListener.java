@@ -12,6 +12,9 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+import io.th0rgal.oraxen.utils.limitedplacing.AllowPlacingOn;
+import io.th0rgal.oraxen.utils.limitedplacing.DenyPlacingOn;
+import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -141,6 +144,30 @@ public class FurnitureListener implements Listener {
         if (breakerPlaySound.containsKey(block)) {
             breakerPlaySound.get(block).cancel();
             breakerPlaySound.remove(block);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onLimitedPlacing(final PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        ItemStack item = event.getItem();
+
+        if (item == null || block == null) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block.getType() != Material.NOTE_BLOCK) return;
+        if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
+
+        FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(OraxenItems.getIdByItem(item));
+        if (mechanic == null || !mechanic.hasLimitedPlacing()) return;
+
+        LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
+        AllowPlacingOn allowPlacingOn = limitedPlacing.getAllowedPlacing();
+        DenyPlacingOn denyPlacingOn = limitedPlacing.getDeniedPlacing();
+        Block placedAgainst = block.getRelative(event.getBlockFace()).getRelative(BlockFace.DOWN);
+
+        if (allowPlacingOn != null && !allowPlacingOn.checkAllowedMechanic(placedAgainst)) {
+            event.setCancelled(true);
+        } else if (denyPlacingOn != null && denyPlacingOn.checkDeniedMechanic(placedAgainst)) {
+            event.setCancelled(true);
         }
     }
 

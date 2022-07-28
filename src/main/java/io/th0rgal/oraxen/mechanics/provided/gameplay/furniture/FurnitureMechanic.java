@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
+import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -37,6 +38,7 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey ROOT_KEY = new NamespacedKey(OraxenPlugin.get(), "root");
     public static final NamespacedKey ORIENTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "orientation");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
+    private final LimitedPlacing limitedPlacing;
     public final boolean farmlandRequired;
     public final boolean farmblockRequired;
     private final String breakSound;
@@ -135,6 +137,10 @@ public class FurnitureMechanic extends Mechanic {
         } else
             drop = new Drop(loots, false, false, getItemID());
 
+        if (section.isConfigurationSection("limited_placing")) {
+            limitedPlacing = new LimitedPlacing(section.getConfigurationSection("limited_placing"));
+        } else limitedPlacing = null;
+
         clickActions = ClickAction.parseList(section);
     }
 
@@ -180,6 +186,9 @@ public class FurnitureMechanic extends Mechanic {
             return sound.replace("block.stone", "required.stone.");
         else return sound;
     }
+
+    public boolean hasLimitedPlacing() { return limitedPlacing != null; }
+    public LimitedPlacing getLimitedPlacing() { return limitedPlacing; }
 
     public boolean hasBarriers() {
         return !barriers.isEmpty();
