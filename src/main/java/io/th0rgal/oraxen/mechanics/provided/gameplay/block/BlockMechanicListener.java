@@ -67,9 +67,13 @@ public class BlockMechanicListener implements Listener {
             return;
 
         final Block block = event.getBlock();
-        final BlockData blockData = block.getBlockData();
-        BlockMechanic.setBlockFacing((MultipleFacing) blockData, 15);
+        final MultipleFacing blockData = (MultipleFacing) block.getBlockData();
+        BlockMechanic.setBlockFacing(blockData, 15);
         block.setBlockData(blockData, false);
+
+        final BlockMechanic mechanic = BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(blockData));
+        if (mechanic != null && mechanic.hasPlaceSound())
+            BlockHelpers.playCustomBlockSound(block, mechanic.getPlaceSound());
     }
 
     // not static here because only instanciated once I think

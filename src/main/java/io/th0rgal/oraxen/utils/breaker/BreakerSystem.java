@@ -10,16 +10,16 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.type.Tripwire;
@@ -28,6 +28,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
@@ -37,6 +39,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.util.*;
 import java.util.function.Consumer;
 
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.FURNITURE_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 
 public class BreakerSystem {
@@ -176,7 +179,15 @@ public class BreakerSystem {
             case NOTE_BLOCK -> Objects.requireNonNull(getNoteBlockMechanic(block)).getHitSound();
             case MUSHROOM_STEM -> BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode((MultipleFacing) block.getBlockData())).getHitSound();
             case TRIPWIRE -> StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode((Tripwire) block.getBlockData())).getHitSound();
+            case BARRIER -> getFurnitureMechanic(block).getHitSound();
             default -> null;
         };
+    }
+
+    private FurnitureMechanic getFurnitureMechanic(Block block) {
+        if (block.getType() != Material.BARRIER) return null;
+        final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
+        final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
+        return (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(mechanicID);
     }
 }
