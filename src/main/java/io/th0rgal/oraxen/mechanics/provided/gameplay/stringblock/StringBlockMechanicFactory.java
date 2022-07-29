@@ -2,8 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -17,7 +15,10 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class StringBlockMechanicFactory extends MechanicFactory {
 
@@ -152,15 +153,16 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         if (sapling) return;
         if (saplingTask != null) saplingTask.cancel();
 
+        // Disabled for abit as OraxenItems.getItems() here
         // Dont register if there is no sapling in configs
-        List<String> saplingList = new ArrayList<>();
-        for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
-            String id = OraxenItems.getIdByItem(itemBuilder.build());
-            StringBlockMechanic mechanic = (StringBlockMechanic) StringBlockMechanicFactory.getInstance().getMechanic(id);
-            if (mechanic == null || !mechanic.isSapling()) continue;
-            saplingList.add(id);
-        }
-        if (saplingList.isEmpty()) return;
+//        List<String> saplingList = new ArrayList<>();
+//        for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
+//            String id = OraxenItems.getIdByItem(itemBuilder.build());
+//            StringBlockMechanic mechanic = (StringBlockMechanic) StringBlockMechanicFactory.getInstance().getMechanic(id);
+//            if (mechanic == null || !mechanic.isSapling()) continue;
+//            saplingList.add(id);
+//        }
+//        if (saplingList.isEmpty()) return;
 
         saplingTask = new SaplingTask(saplingGrowthCheckDelay);
         saplingTask.runTaskTimer(OraxenPlugin.get(), 0, saplingGrowthCheckDelay);
