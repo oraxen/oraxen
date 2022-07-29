@@ -1,14 +1,12 @@
-# This is essentially the highest it goes without dissapearing and reappearing.
-update_time_in_ticks: 40
+# 40 is essentially the highest it goes without dissapearing and reappearing.
+update_time_in_ticks: 40 # If set to 0, hud feature is disabled
 huds:
-  balance:
-    permission: "oraxen.hud.balance"
-    display_text: "<shift:0><font:my_custom_font>%vault_eco_balance%<font:default>%oraxen_coin%"
-    # Oxygen can be hidden if this is placed right above food
-    disabled_whilst_in_water: true
-    enabled_by_default: true
-    # By default this is set to false
-    #enable_for_spectator_mode: false
+  #balance:
+  #  permission: "oraxen.hud.balance"
+  #  display_text: "<shift:0><font:my_custom_font>%vault_eco_balance%<font:default>%oraxen_coin%"
+  #  disabled_whilst_in_water: true
+  #  enabled_by_default: true
+  #  enable_for_spectator_mode: false
 
 
 # Planned for the future

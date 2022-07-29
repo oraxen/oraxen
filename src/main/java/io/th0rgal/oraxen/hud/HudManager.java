@@ -108,6 +108,7 @@ public class HudManager {
     public void registerTask() {
         if (hudTaskEnabled) return;
         if (hudTask != null) hudTask.cancel();
+        if (hudUpdateTime == 0) return;
 
         hudTask = new HudTask();
         hudTask.runTaskTimer(OraxenPlugin.get(), 0, hudUpdateTime);
