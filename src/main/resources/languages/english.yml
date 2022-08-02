@@ -23,6 +23,7 @@ general:
   not_enough_exp: "<prefix><#fa4943>You need more experience to do this"
   not_enough_space: "<prefix><#fa4943>You need more space to place this furniture"
   exit_menu: "<gradient:#FA7CBB:#F14658>Exit"
+  no_emojis: "<prefix><#fa4943>No emojis found"
 
 logs:
   loaded: "<prefix><#55ffa4>Successfully loaded on <os>"
@@ -48,15 +49,12 @@ command:
           <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> open recipes builder
         \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
           <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> save recipe"
-  join: "
-        <dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Resource Pack </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>
 
-        <gray><bold>To see the new items you need to use a special resourcepack (but don't worry, this doesn't prevent you from using yours at the same time).</bold>
-
-        <dark_gray>»<gray> To try to load it directly from the game, <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click>
-
-        <dark_gray>»<gray> To download it from the internet, <click:open_url:'<pack_url>'><hover:show_text:\"<green>/!\\ install it from Options/ResourcePacks in your game\"><green><bold>CLICK HERE</bold></hover></click>
-        "
+  join: |-
+    <dark_gray><st>                           </st><dark_gray>{<aqua><bold>Resource Pack</bold><dark_gray>}<dark_gray><st>                        </st>
+    <gray><bold>To see the new items you need to use a special resourcepack (but don't worry, this doesn't prevent you from using yours at the same time).</bold>
+    <dark_gray>»<gray> To try to load it directly from the game, <click:run_command:oraxen pack send @p><hover:show_text:"<red>! loading the resourcepack from the game can cause lags"><red><bold>CLICK HERE</bold></hover></click>
+    <dark_gray>»<gray> To download it from the internet, <hover:show_text:'<pack_url>' <green>! install it from Options/ResourcePacks in your game"><green><bold><click:OPEN_URL:'<pack_url>'>CLICK HERE</click></bold></hover>
 
   recipe:
     no_builder: "<prefix><#fa4943>Please create a recipe first!"
