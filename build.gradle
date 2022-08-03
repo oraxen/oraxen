@@ -31,7 +31,7 @@ repositories {
     // JitPack
     maven { url 'https://jitpack.io' }
     // ProtocolLib
-    maven { url 'https://repo.dmulloy2.net/nexus/repository/public/' }
+    maven { url 'https://repo.dmulloy2.net/repository/public/' }
     // Minecraft repo (commodore)
     maven { url 'https://libraries.minecraft.net/' }
     // PlaceHolderAPI
@@ -59,15 +59,15 @@ compileJava {
 dependencies {
     def actionsVersion = '1.0.0-SNAPSHOT'
 
-    compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.19-R0.1-SNAPSHOT'
-    compileOnly("io.papermc.paper:paper-api:1.19-R0.1-SNAPSHOT") { exclude group: 'net.kyori' }
-    compileOnly group: 'com.github.dmulloy2', name: 'ProtocolLib', version: '4.8.0'
+    compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.19.1-R0.1-SNAPSHOT'
+    compileOnly("io.papermc.paper:paper-api:1.19.1-R0.1-SNAPSHOT") { exclude group: 'net.kyori' }
+    compileOnly group: 'com.comphenix.protocol', name: 'ProtocolLib', version: '5.0.0-SNAPSHOT'
     compileOnly group: 'com.github.Hazebyte', name: 'CrateReloadedAPI', version: 'd7ae2a14c6'
     compileOnly group: 'com.github.jojodmo', name: 'ItemBridge', version: '-SNAPSHOT'
-    compileOnly group: 'me.clip', name: 'placeholderapi', version: '2.11.1'
-    compileOnly group: 'com.github.BeYkeRYkt', name: 'LightAPI', version: '5.2.0-Bukkit'
+    compileOnly group: 'me.clip', name: 'placeholderapi', version: '2.11.2'
+    compileOnly group: 'com.github.BeYkeRYkt', name: 'LightAPI', version: '5.3.0-Bukkit'
     compileOnly group: 'me.gabytm.util', name: 'actions-core', version: actionsVersion
-    compileOnly group: 'org.springframework', name: 'spring-expression', version: '5.3.16'
+    compileOnly group: 'org.springframework', name: 'spring-expression', version: '5.3.17'
     compileOnly group: 'io.lumine', name: 'Mythic-Dist', version: '5.0.2-SNAPSHOT'
     compileOnly group: 'com.sk89q.worldedit', name: 'worldedit-bukkit', version: '7.2.0'
     compileOnly fileTree(dir: 'libs/compile', include: ['*.jar'])
