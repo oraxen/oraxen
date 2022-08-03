@@ -3,9 +3,7 @@ package io.th0rgal.oraxen.sound;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Objects;
+import java.util.*;
 
 public class SoundManager {
 
@@ -25,8 +23,10 @@ public class SoundManager {
         for (String soundName : section.getKeys(true)) {
             ConfigurationSection sound = section.getConfigurationSection(soundName);
             if (sound == null) continue;
+            List<String> sounds = !sound.getStringList("sounds").isEmpty() ?
+                    sound.getStringList("sounds") : Collections.singletonList(sound.getString("sound"));
             output.add(new CustomSound(
-                    soundName, sound.getStringList("sounds"), sound.getString("category"),
+                    soundName, sounds, sound.getString("category"),
                     sound.getBoolean("replace"), sound.getString("subtitle"))
             );
         }

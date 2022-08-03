@@ -13,6 +13,9 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
+
+import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.util.*;
 
 public class FontManager {
@@ -100,7 +103,8 @@ public class FontManager {
 
     public String getShift(int length) {
         // Ensure shifts.yml exists as it is required
-        OraxenPlugin.get().saveResource("glyphs/shifts.yml", false);
+        if (!Path.of(OraxenPlugin.get().getDataFolder() + "/glyphs/shifts.yml").toFile().exists())
+            OraxenPlugin.get().saveResource("glyphs/shifts.yml", false);
         StringBuilder output = new StringBuilder();
         while (length > 0) {
             int biggestPower = Integer.highestOneBit(length);
