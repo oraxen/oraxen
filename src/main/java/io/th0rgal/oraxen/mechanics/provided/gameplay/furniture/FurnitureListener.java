@@ -8,7 +8,6 @@ import io.th0rgal.oraxen.events.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -18,7 +17,6 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -34,6 +32,7 @@ import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -44,6 +43,8 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.*;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
+import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
 public class FurnitureListener implements Listener {
 
@@ -126,8 +127,9 @@ public class FurnitureListener implements Listener {
 
         if (mechanic.farmblockRequired) {
             if (farm.getType() != Material.NOTE_BLOCK) return;
-            if (!getNoteBlockMechanic(farm).hasDryout()) return;
-            if (!getNoteBlockMechanic(farm).getDryout().isFarmBlock()) return;
+            NoteBlockMechanic farmMechanic = getNoteBlockMechanic(farm);
+            if (farmMechanic == null || !farmMechanic.hasDryout()) return;
+            if (!farmMechanic.getDryout().isFarmBlock()) return;
         }
 
         target.setType(Material.AIR, false);
@@ -220,7 +222,6 @@ public class FurnitureListener implements Listener {
             mechanic.removeAirFurniture(frame);
             mechanic.getDrop().spawns(frame.getLocation(), new ItemStack(Material.AIR));
         }
-
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -293,8 +294,8 @@ public class FurnitureListener implements Listener {
             return;
         final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
         final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
-        final BlockLocation rootBlockLocation = new BlockLocation(customBlockData.get(ROOT_KEY,
-                PersistentDataType.STRING));
+        final BlockLocation rootBlockLocation =
+                new BlockLocation(customBlockData.get(ROOT_KEY, PersistentDataType.STRING));
 
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, event.getPlayer(), block);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
@@ -303,8 +304,7 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        mechanic.removeSolid(block.getWorld(), rootBlockLocation, customBlockData
-                .get(ORIENTATION_KEY, PersistentDataType.FLOAT));
+        mechanic.removeSolid(block.getWorld(), rootBlockLocation, customBlockData.get(ORIENTATION_KEY, PersistentDataType.FLOAT));
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -404,6 +404,34 @@ public class FurnitureListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onStepFall(final GenericGameEvent event) {
+        Entity entity = event.getEntity();
+        if (entity == null) return;
+        Location eLoc = entity.getLocation();
+        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
+
+        GameEvent gameEvent = event.getEvent();
+        Block currentBlock = entity.getLocation().getBlock();
+        Block blockBelow = currentBlock.getRelative(BlockFace.DOWN);
+
+        if (blockBelow.getBlockData().getSoundGroup().getStepSound() != Sound.BLOCK_STONE_STEP) return;
+        if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(currentBlock.getType()) || currentBlock.getType() == Material.TRIPWIRE) return;
+        FurnitureMechanic mechanic = getFurnitureMechanic(blockBelow);
+        if (mechanic == null) return;
+
+        String sound;
+        if (gameEvent == GameEvent.STEP && mechanic.hasStepSound()) {
+            if (blockBelow.getType() == Material.BARRIER) sound = mechanic.getStepSound();
+            else sound = "required.stone.step";
+        } else if (gameEvent == GameEvent.HIT_GROUND && mechanic.hasFallSound()) {
+            if (blockBelow.getType() == Material.BARRIER) sound = mechanic.getFallSound();
+            else sound = "required.stone.fall";
+        } else return;
+
+        BlockHelpers.playCustomBlockSound(blockBelow, sound, SoundCategory.PLAYERS);
+    }
+
     private boolean isStandingInside(final Player player, final Block block) {
         final Location playerLocation = player.getLocation();
         final Location blockLocation = block.getLocation();
@@ -419,13 +447,4 @@ public class FurnitureListener implements Listener {
         final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
         return (FurnitureMechanic) factory.getMechanic(mechanicID);
     }
-
-    public NoteBlockMechanic getNoteBlockMechanic(Block block) {
-        if (block.getType() != Material.NOTE_BLOCK) return null;
-        final NoteBlock noteBlock = (NoteBlock) block.getBlockData();
-        return NoteBlockMechanicFactory
-                .getBlockMechanic((noteBlock.getInstrument().getType()) * 25
-                        + noteBlock.getNote().getId() + (noteBlock.isPowered() ? 400 : 0) - 26);
-    }
-
 }
