@@ -53,7 +53,7 @@ public class FarmBlockTask extends BukkitRunnable {
                             }
 
                             else {
-                                boolean isWet = !farmMechanic.isMoistFarmBlock() && farmMechanic.isConnectedToWaterSource(block, customBlockData);
+                                boolean isWet = farmMechanic.isMoistFarmBlock() && farmMechanic.isConnectedToWaterSource(block, customBlockData);
                                 boolean rainingAtBlock = world.hasStorm() && world.getHighestBlockAt(block.getLocation()) == block;
                                 if (isWet || rainingAtBlock) {
                                     NoteBlockMechanicFactory.setBlockModel(block, farmMechanic.getMoistFarmBlock());

@@ -67,9 +67,19 @@ public class EvolutionTask extends BukkitRunnable {
                     }
 
                     EvolvingFurniture evolution = mechanic.getEvolution();
+
+                    int lightBoostLightLevel = 1;
+                    int rainBoostLevel = 0;
+
+                    if (evolution.isLightBoosted() && frame.getLocation().getBlock().getLightLevel() >= evolution.getMinimumLightLevel())
+                        lightBoostLightLevel = frame.getLocation().getBlock().getLightLevel();
+
+                    if (evolution.isRainBoosted() && world.hasStorm() && world.getHighestBlockAt(frame.getLocation()).getY() > frame.getLocation().getY())
+                        rainBoostLevel = 10;
+
                     int evolutionStep = frame.getPersistentDataContainer()
                             .get(EVOLUTION_KEY, PersistentDataType.INTEGER)
-                            + delay * frame.getLocation().getBlock().getLightLevel();
+                            + delay * lightBoostLightLevel + rainBoostLevel;
 
                     if (evolutionStep > evolution.getDelay()) {
                         if (evolution.getNextStage() == null) continue;

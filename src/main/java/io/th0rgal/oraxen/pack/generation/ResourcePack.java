@@ -233,7 +233,7 @@ public class ResourcePack {
         for (final Font font : fontManager.getFonts())
             providers.add(font.toJson());
         output.add("providers", providers);
-        writeStringToVirtual("assets/minecraft/font", "default.json", output.toString());
+        writeStringToVirtual("assets/minecraft/font", "oraxen.json", output.toString());
     }
 
     private void generateSound(final SoundManager soundManager) {
