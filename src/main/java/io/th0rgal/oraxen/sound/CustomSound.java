@@ -18,6 +18,7 @@ public class CustomSound {
         this.name = name;
         List<String> temp = new ArrayList<>();
         for (String sound : sounds) {
+            if (sound == null) continue;
             temp.add(sound.replace(".ogg", ""));
         }
         this.sounds.addAll(temp);
