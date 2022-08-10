@@ -59,8 +59,8 @@ compileJava {
 dependencies {
     def actionsVersion = '1.0.0-SNAPSHOT'
 
-    compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.19.1-R0.1-SNAPSHOT'
-    compileOnly("io.papermc.paper:paper-api:1.19.1-R0.1-SNAPSHOT") { exclude group: 'net.kyori' }
+    compileOnly group: 'org.spigotmc', name: 'spigot-api', version: '1.19.2-R0.1-SNAPSHOT'
+    compileOnly("io.papermc.paper:paper-api:1.19.2-R0.1-SNAPSHOT") { exclude group: 'net.kyori' }
     compileOnly group: 'com.comphenix.protocol', name: 'ProtocolLib', version: '5.0.0-SNAPSHOT'
     compileOnly group: 'com.github.Hazebyte', name: 'CrateReloadedAPI', version: 'd7ae2a14c6'
     compileOnly group: 'com.github.jojodmo', name: 'ItemBridge', version: '-SNAPSHOT'
