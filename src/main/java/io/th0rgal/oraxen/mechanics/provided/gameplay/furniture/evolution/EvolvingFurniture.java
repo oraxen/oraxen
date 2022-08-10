@@ -10,7 +10,9 @@ public class EvolvingFurniture {
     private final int delay;
     private final boolean isLightBoost;
     private int minimumLightLevel;
+    private int lightBoostTick;
     private final boolean isRainBoost;
+    private int rainBoostTick;
     private final boolean isBoneMeal;
     private int boneMealChance;
     private final String nextStage;
@@ -24,11 +26,19 @@ public class EvolvingFurniture {
             ConfigurationSection section = plantSection.getConfigurationSection("light_boost");
             isLightBoost = true;
             minimumLightLevel = section.getInt("minimum_light_level");
+            lightBoostTick = section.getInt("boost_tick");
         }
         else {
             isLightBoost = false;
         }
-        isRainBoost = plantSection.getBoolean("rain_boost");
+        if (plantSection.isConfigurationSection("rain_boost")) {
+            ConfigurationSection section = plantSection.getConfigurationSection("rain_boost");
+            isRainBoost = true;
+            rainBoostTick = section.getInt("boost_tick");
+        }
+        else {
+            isRainBoost = false;
+        }
         if (plantSection.isConfigurationSection("bone_meal")) {
             ConfigurationSection section = plantSection.getConfigurationSection("bone_meal");
             isBoneMeal = true;
@@ -55,8 +65,16 @@ public class EvolvingFurniture {
     public int getMinimumLightLevel() {
         return minimumLightLevel;
     }
+
+    public int getLightBoostTick() {
+        return lightBoostTick;
+    }
     public boolean isRainBoosted() {
         return isRainBoost;
+    }
+
+    public int getRainBoostTick() {
+        return rainBoostTick;
     }
     public boolean isBoneMeal() {
         return isBoneMeal;

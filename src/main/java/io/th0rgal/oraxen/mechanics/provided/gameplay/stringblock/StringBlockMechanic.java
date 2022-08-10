@@ -25,6 +25,9 @@ public class StringBlockMechanic extends Mechanic {
     private String model;
     private int period;
     private final int light;
+
+    private final boolean hasRandomPlace;
+    private List<String> randomPlaceBlock;
     private final SaplingMechanic saplingMechanic;
 
     @SuppressWarnings("unchecked")
@@ -73,6 +76,15 @@ public class StringBlockMechanic extends Mechanic {
         } else hasHardness = false;
 
         light = section.getInt("light", -1);
+
+        if (section.isConfigurationSection("random_place")) {
+            ConfigurationSection randomPlace = section.getConfigurationSection("random_place");
+            hasRandomPlace = true;
+            randomPlaceBlock = randomPlace.getStringList("block");
+        }
+        else {
+            hasRandomPlace = false;
+        }
 
         if (section.isConfigurationSection("sapling")) {
             saplingMechanic = new SaplingMechanic(getItemID(), section.getConfigurationSection("sapling"));
@@ -135,6 +147,14 @@ public class StringBlockMechanic extends Mechanic {
 
     public int getLight() {
         return light;
+    }
+
+    public boolean hasRandomPlace() {
+        return hasRandomPlace;
+    }
+
+    public List<String> getRandomPlaceBlock() {
+        return randomPlaceBlock;
     }
 
 }

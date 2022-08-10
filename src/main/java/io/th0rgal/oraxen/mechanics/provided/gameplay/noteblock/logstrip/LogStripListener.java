@@ -49,10 +49,10 @@ public class LogStripListener implements Listener {
                     ItemMeta axeMeta = axe.getItemMeta();
                     if (axeMeta instanceof org.bukkit.inventory.meta.Damageable) {
                         org.bukkit.inventory.meta.Damageable axeDurabilityMeta = (org.bukkit.inventory.meta.Damageable) axeMeta;
-                        int damage = axeDurabilityMeta.getDamage();
-                        int maxdamage = axe.getType().getMaxDurability();
-                        if(damage + 1 <= maxdamage) {
-                            axeDurabilityMeta.setDamage(damage + 1);
+                        int durability = axeDurabilityMeta.getDamage();
+                        int maxDurability = axe.getType().getMaxDurability();
+                        if(durability + 1 <= maxDurability) {
+                            axeDurabilityMeta.setDamage(durability + 1);
                             axe.setItemMeta(axeDurabilityMeta);
                         }
                         else {
