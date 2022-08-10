@@ -77,7 +77,7 @@ dependencies {
     implementation group: 'net.kyori', name: 'adventure-text-minimessage', version: '4.2.0-SNAPSHOT'
     implementation group: 'net.kyori', name: 'adventure-platform-bukkit', version: '4.0.0'
     implementation group: 'com.github.stefvanschie.inventoryframework', name: 'IF', version: '0.10.0'
-    implementation group: 'dev.jorel', name: 'commandapi-shade', version: '8.5.0-SNAPSHOT'
+    implementation group: 'dev.jorel', name: 'commandapi-shade', version: '8.5.1-SNAPSHOT'
     implementation "com.jeff_media:CustomBlockData:2.0.0"
     implementation "com.jeff_media:MorePersistentDataTypes:2.3.1"
 
