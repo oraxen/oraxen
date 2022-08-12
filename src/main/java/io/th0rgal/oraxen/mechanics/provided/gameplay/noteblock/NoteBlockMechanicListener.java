@@ -301,12 +301,12 @@ public class NoteBlockMechanicListener implements Listener {
     public void onStepFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (entity == null) return;
+        Location eLoc = entity.getLocation();
+        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
+
         GameEvent gameEvent = event.getEvent();
         Block currentBlock = entity.getLocation().getBlock();
         Block blockBelow = currentBlock.getRelative(BlockFace.DOWN);
-        String sound;
-        Location eLoc = entity.getLocation();
-        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
 
         Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
         SoundGroup soundGroup = below.getBlockData().getSoundGroup();
@@ -314,11 +314,10 @@ public class NoteBlockMechanicListener implements Listener {
 
         if (soundGroup.getStepSound() != Sound.BLOCK_WOOD_STEP) return;
         if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(currentBlock.getType()) || currentBlock.getType() == Material.TRIPWIRE) return;
-        if (mechanic != null && mechanic.isDirectional()) {
+        if (mechanic != null && mechanic.isDirectional())
             mechanic = ((NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock()));
-        }
 
-        // Handles wood and noteblock as noteblock normally inherits said sounds
+        String sound;
         if (gameEvent == GameEvent.STEP) {
             if (blockBelow.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasStepSound())
                 sound = mechanic.getStepSound();
