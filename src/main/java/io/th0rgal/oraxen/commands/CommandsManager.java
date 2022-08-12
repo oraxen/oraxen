@@ -41,6 +41,7 @@ public class CommandsManager {
                 .withSubcommand((new ModelDataCommand()).getHighestModelDataCommand())
                 .withSubcommand((new GlyphCommand()).getGlyphCommand(commandsSection))
                 .withSubcommand((new PrintGlyphCommand()).getPrintGlyphCommand())
+                .withSubcommand((new ItemInfoCommand()).getItemInfoCommand())
                 .executes((sender, args) -> {
                     Message.COMMAND_HELP.send(sender);
                 })
