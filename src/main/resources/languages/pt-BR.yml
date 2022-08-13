@@ -7,8 +7,8 @@ general:
   reload: "<prefix><#55ffa4>Recarregado com sucesso!"
   pack_uploading: "<prefix><#D5D6D8>O upload automático do pacote de recursos está habilitado, enviando..."
   pack_not_uploaded: "<prefix><#fa4943>Pacote de recursos não enviado."
-  pack_uploaded: "<prefix><#55ffa4>Pacote de recursos enviado para a url <url> em <delay> ms"
-  pack_regenerated: "<prefix><#55ffa4>Resourcepack regenerado com sucesso."
+  pack_uploaded: "<prefix><#55ffa4>Pacote de Recursos enviado para a url <url> em <delay> ms"
+  pack_regenerated: "<prefix><#55ffa4>Pacote de Recursos regenerado com sucesso."
   updating_config: "<prefix><#facc43>Opção de configuração \"<option>\" não encontrada, adicionando-a!"
   configs_validation_failed: "<prefix><#fa4943>Falha na validação das configurações, o plugin foi desabilitado automaticamente!"
   repaired_items: "<prefix><#55ffa4><amount> item(ns) foram reparados com sucesso!"
@@ -23,6 +23,7 @@ general:
   not_enough_exp: "<prefix><#fa4943>Você precisa de mais experiência para fazer isso!"
   not_enough_space: "<prefix><#fa4943>Você precisa de mais espaço para colocar este móvel!"
   exit_menu: "<gradient:#FA7CBB:#F14658>Sair"
+  no_emojis: "<prefix><#fa4943>Nenhum emoji encontrado"
 
 logs:
   loaded: "<prefix><#55ffa4>Carregado com sucesso em <os>"
@@ -48,12 +49,12 @@ command:
           <#b8bbc2>recipes builder <#fa8943>type</click></hover>  <#6f737d>»<#b8bbc2> abre o construtor de receitas
         \n<hover:show_text:\"<gray>fill recipes save command\"><click:SUGGEST_COMMAND:/oraxen recipes save ><#6f737d>/o
           <#b8bbc2>recipes save <#faf443>name</click></hover>  <#6f737d>»<#b8bbc2> salva a receita criada"
-  join: "
-        <dark_gray><strikethrough>                           </strikethrough><dark_gray>{<aqua><bold> Pacote de Recursos </bold><dark_gray>}<dark_gray><strikethrough>                        </strikethrough>
-        <gray><bold>Para ver os novos itens, você precisa usar um pacote de recursos especial (mas não se preocupe, isso não impede que você use o seu ao mesmo tempo).</bold>
-        <dark_gray>»<gray> Para tentar carregá-lo diretamente do jogo, <click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ carregar o pacote de recursos pelo jogo pode causar lag\"><red><bold>CLIQUE AQUI</bold></hover></click>
-        <dark_gray>»<gray> Para baixá-lo da internet, <click:open_url:<pack_url>><hover:show_text:\"<green>/!\\ instale-o em Options/Resource Packs no seu jogo\"><green><bold>CLIQUE AQUI</bold></hover></click>
-        "
+
+  join: |-
+    <dark_gray><st>                           </st><dark_gray>{<aqua><bold>Pacote de Recursos</bold><dark_gray>}<dark_gray><st>                        </st>
+    <gray><bold>Para ver os novos itens, você precisa usar um pacote de recursos especial (mas não se preocupe, isso não impede que você use o seu ao mesmo tempo).</bold>
+    <dark_gray>»<gray> Para tentar carregá-lo diretamente do jogo, <click:run_command:oraxen pack send @p><hover:show_text:"<red>! carregar o pacote de recursos do jogo pode causar lag"><red><bold>CLIQUE AQUI</bold></hover></click>
+    <dark_gray>»<gray> Para baixá-lo da internet, <hover:show_text:'<pack_url>' <green>! instale-o em Opções/Pacote de Recursos em seu jogo"><green><bold><click:OPEN_URL:'<pack_url>'>CLIQUE AQUI</click></bold></hover>
 
   recipe:
     no_builder: "<prefix><#fa4943>Por favor, crie uma receita primeiro!"
