@@ -12,7 +12,6 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -21,7 +20,6 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -172,7 +170,7 @@ public class BreakerSystem {
     private String getSound(Block block) {
         return switch (block.getType()) {
             case NOTE_BLOCK -> Objects.requireNonNull(getNoteBlockMechanic(block)).getHitSound();
-            case MUSHROOM_STEM -> BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode((MultipleFacing) block.getBlockData())).getHitSound();
+            case MUSHROOM_STEM -> BlockMechanicFactory.getBlockMechanic(block).getHitSound();
             case TRIPWIRE -> StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode((Tripwire) block.getBlockData())).getHitSound();
             case BARRIER -> getFurnitureMechanic(block).getHitSound();
             default -> null;

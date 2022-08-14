@@ -414,18 +414,20 @@ public class FurnitureListener implements Listener {
         GameEvent gameEvent = event.getEvent();
         Block currentBlock = entity.getLocation().getBlock();
         Block blockBelow = currentBlock.getRelative(BlockFace.DOWN);
+        Material currentType = currentBlock.getType();
 
         if (blockBelow.getBlockData().getSoundGroup().getStepSound() != Sound.BLOCK_STONE_STEP) return;
-        if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(currentBlock.getType()) || currentBlock.getType() == Material.TRIPWIRE) return;
+        if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(currentType) || currentType == Material.TRIPWIRE) return;
         FurnitureMechanic mechanic = getFurnitureMechanic(blockBelow);
-        if (mechanic == null) return;
 
         String sound;
-        if (gameEvent == GameEvent.STEP && mechanic.hasStepSound()) {
-            if (blockBelow.getType() == Material.BARRIER) sound = mechanic.getStepSound();
+        if (gameEvent == GameEvent.STEP) {
+            if (mechanic != null && mechanic.hasStepSound() && blockBelow.getType() == Material.BARRIER)
+                sound = mechanic.getStepSound();
             else sound = "required.stone.step";
-        } else if (gameEvent == GameEvent.HIT_GROUND && mechanic.hasFallSound()) {
-            if (blockBelow.getType() == Material.BARRIER) sound = mechanic.getFallSound();
+        } else if (gameEvent == GameEvent.HIT_GROUND) {
+            if (mechanic != null && mechanic.hasFallSound() && blockBelow.getType() == Material.BARRIER)
+                sound = mechanic.getFallSound();
             else sound = "required.stone.fall";
         } else return;
 
