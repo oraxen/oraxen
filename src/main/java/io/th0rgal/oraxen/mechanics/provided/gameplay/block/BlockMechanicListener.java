@@ -19,13 +19,12 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.ItemStack;
 
+import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory.getBlockMechanic;
-import static io.th0rgal.oraxen.utils.BlockHelpers.*;
 
 public class BlockMechanicListener implements Listener {
 
@@ -200,8 +199,7 @@ public class BlockMechanicListener implements Listener {
 
     public static BlockMechanic getBlockMechanic(Block block) {
         if (block.getType() == Material.MUSHROOM_STEM) {
-            final MultipleFacing mushroom = (MultipleFacing) block.getBlockData();
-            return BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(mushroom));
+            return BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(block));
         } else return null;
     }
 
