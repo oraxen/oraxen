@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.configuration.ConfigurationSection;
@@ -24,6 +25,7 @@ public class BlockMechanic extends Mechanic {
     private final String stepSound;
     private final String hitSound;
     private final String fallSound;
+    private final boolean canIgnite;
 
     @SuppressWarnings("unchecked")
     public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -36,6 +38,7 @@ public class BlockMechanic extends Mechanic {
             model = section.getString("model");
 
         customVariation = section.getInt("custom_variation");
+        canIgnite = section.getBoolean("can_ignite", false);
 
         placeSound = section.getString("place_sound", null);
         breakSound = section.getString("break_sound", null);
@@ -75,6 +78,10 @@ public class BlockMechanic extends Mechanic {
         return drop;
     }
 
+    public boolean canIgnite() {
+        return canIgnite;
+    }
+
     public boolean hasBreakSound() {
         return breakSound != null;
     }
@@ -105,7 +112,8 @@ public class BlockMechanic extends Mechanic {
         else return sound;
     }
 
-    public static int getCode(final MultipleFacing blockData) {
+    public static int getCode(final Block block) {
+        final MultipleFacing blockData = (MultipleFacing) block.getBlockData();
         final List<BlockFace> properties = Arrays
                 .asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
         int sum = 0;
