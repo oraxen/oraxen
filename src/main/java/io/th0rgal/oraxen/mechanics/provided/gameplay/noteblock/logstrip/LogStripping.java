@@ -9,9 +9,9 @@ public class LogStripping {
     private final boolean decreaseAxeDurability;
 
     public LogStripping(ConfigurationSection logStripSection) {
-        strippedLog = logStripSection.getString("strippedLogBlock");
+        strippedLog = logStripSection.getString("stripped_log");
         dropFromStrippedLog = logStripSection.getString("drop");
-        decreaseAxeDurability = logStripSection.getBoolean("decreaseAxeDurability");
+        decreaseAxeDurability = logStripSection.getBoolean("decrease_axe_durability");
     }
 
     public boolean canBeStripped() { return strippedLog != null; }
@@ -22,7 +22,7 @@ public class LogStripping {
 
     public String getStrippedLogDrop() { return dropFromStrippedLog; }
 
-    public boolean isDecreaseAxeDurability() {
+    public boolean shouldDecreaseAxeDurability() {
         return decreaseAxeDurability;
     }
 }

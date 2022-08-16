@@ -27,31 +27,22 @@ public class EvolvingFurniture {
             isLightBoost = true;
             minimumLightLevel = section.getInt("minimum_light_level");
             lightBoostTick = section.getInt("boost_tick");
-        }
-        else {
-            isLightBoost = false;
-        }
+        } else isLightBoost = false;
+
         if (plantSection.isConfigurationSection("rain_boost")) {
             ConfigurationSection section = plantSection.getConfigurationSection("rain_boost");
             isRainBoost = true;
             rainBoostTick = section.getInt("boost_tick");
-        }
-        else {
-            isRainBoost = false;
-        }
+        } else isRainBoost = false;
+
         if (plantSection.isConfigurationSection("bone_meal")) {
             ConfigurationSection section = plantSection.getConfigurationSection("bone_meal");
             isBoneMeal = true;
             if (section.getInt("chance") > 100)
                 boneMealChance = 100;
-            else if (section.getInt("chance") < 0)
-                boneMealChance = 0;
-            else
-                boneMealChance = section.getInt("chance");
-        }
-        else {
-            isBoneMeal = false;
-        }
+            else boneMealChance = Math.max(section.getInt("chance"), 0);
+        } else isBoneMeal = false;
+
         nextStage = plantSection.getString("next_stage");
         probability = (int) (1D / (double) plantSection.get("probability", 1));
     }

@@ -81,10 +81,7 @@ public class StringBlockMechanic extends Mechanic {
             ConfigurationSection randomPlace = section.getConfigurationSection("random_place");
             hasRandomPlace = true;
             randomPlaceBlock = randomPlace.getStringList("block");
-        }
-        else {
-            hasRandomPlace = false;
-        }
+        } else hasRandomPlace = false;
 
         if (section.isConfigurationSection("sapling")) {
             saplingMechanic = new SaplingMechanic(getItemID(), section.getConfigurationSection("sapling"));

@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -214,9 +213,10 @@ public class StringBlockMechanicListener implements Listener {
         StringBlockMechanic mechanic = (StringBlockMechanic) factory.getMechanic(itemID);
         int customVariation = mechanic.getCustomVariation();
 
-        if (mechanic.hasRandomPlace() && mechanic.getRandomPlaceBlock() != null) {
-            int listIndex = new Random().nextInt(mechanic.getRandomPlaceBlock().size());
-            customVariation = ((StringBlockMechanic) factory.getMechanic(mechanic.getRandomPlaceBlock().get(listIndex))).getCustomVariation();
+        if (mechanic.hasRandomPlace()) {
+            List<String> randomList = mechanic.getRandomPlaceBlock();
+            String randomBlock = randomList.get(new Random().nextInt(randomList.size()));
+            customVariation = ((StringBlockMechanic) factory.getMechanic(randomBlock)).getCustomVariation();
         }
 
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
