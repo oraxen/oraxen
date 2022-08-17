@@ -8,7 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffect;
+import org.bukkit.inventory.PlayerInventory;
 
 import java.util.Objects;
 
@@ -22,29 +22,25 @@ public class FoodMechanicListener implements Listener {
     @EventHandler
     public void onEatingFood(PlayerItemConsumeEvent event) {
         Player player = event.getPlayer();
+        PlayerInventory inventory = player.getInventory();
         String itemID = OraxenItems.getIdByItem(event.getItem());
-        if (itemID == null || factory.isNotImplementedIn(itemID))
-            return;
-        if (player.getGameMode() == GameMode.CREATIVE)
-            return;
+        if (itemID == null || factory.isNotImplementedIn(itemID)) return;
         FoodMechanic mechanic = (FoodMechanic) factory.getMechanic(itemID);
         event.setCancelled(true);
-        if (!mechanic.hasReplacement())
-            player.getInventory().getItemInMainHand().setAmount(player.getInventory().getItemInMainHand().getAmount() - 1);
-        else if (mechanic.hasReplacement()) {
-            if (mechanic.isVanillaItem() && mechanic.getReplacementItem() != null)
-                player.getInventory().setItemInMainHand(new ItemStack(Objects.requireNonNull(Material.getMaterial(mechanic.getReplacementItem()))));
-            else if (!mechanic.isVanillaItem() && mechanic.getReplacementItem() != null)
-                player.getInventory().setItemInMainHand(OraxenItems.getItemById(mechanic.getReplacementItem()).build());
-        }
-        if (mechanic.isHasEffect() && !mechanic.getEffects().isEmpty()) {
-            for (PotionEffect effect : mechanic.getEffects()) {
-                player.addPotionEffect(effect);
+
+        if (player.getGameMode() != GameMode.CREATIVE) {
+            if (!mechanic.hasReplacement())
+                inventory.getItemInMainHand().setAmount(inventory.getItemInMainHand().getAmount() - 1);
+            else if (mechanic.hasReplacement()) {
+                inventory.setItemInMainHand(mechanic.isVanillaItem() ?
+                        OraxenItems.getItemById(mechanic.getReplacement()).build() :
+                        new ItemStack(Objects.requireNonNull(Material.getMaterial(mechanic.getReplacement()))));
             }
+
+            if (mechanic.hasEffects()) player.addPotionEffects(mechanic.getEffects());
         }
-        int foodLevel = mechanic.getHunger();
-        int saturation = mechanic.getSaturation();
-        player.setFoodLevel(player.getFoodLevel() + Math.min(foodLevel, 20));
-        player.setSaturation(player.getSaturation() + Math.min(saturation, 20));
+
+        player.setFoodLevel(player.getFoodLevel() + Math.min(mechanic.getHunger(), 20));
+        player.setSaturation(player.getSaturation() + Math.min(mechanic.getSaturation(), 20));
     }
 }
