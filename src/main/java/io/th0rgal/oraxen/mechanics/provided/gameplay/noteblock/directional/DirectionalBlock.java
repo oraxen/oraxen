@@ -2,7 +2,9 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 
 public class DirectionalBlock {
     private final String parentBlock;
@@ -21,17 +23,17 @@ public class DirectionalBlock {
     private final String downBlock;
 
     public DirectionalBlock(ConfigurationSection directionalSection) {
-        parentBlock = directionalSection.getString("parentBlock");
-        directionalType = DirectionalType.valueOf(directionalSection.getString("directionalType", "LOG"));
-        yBlock = directionalSection.getString("yBlock");
-        xBlock = directionalSection.getString("xBlock");
-        zBlock = directionalSection.getString("zBlock");
-        northBlock = directionalSection.getString("northBlock");
-        southBlock = directionalSection.getString("southBlock");
-        eastBlock = directionalSection.getString("eastBlock");
-        westBlock = directionalSection.getString("westBlock");
-        upBlock = directionalSection.getString("upBlock");
-        downBlock = directionalSection.getString("downBlock");
+        parentBlock = directionalSection.getString("parent_block");
+        directionalType = DirectionalType.valueOf(directionalSection.getString("directional_type", "LOG"));
+        yBlock = directionalSection.getString("y_block");
+        xBlock = directionalSection.getString("x_block");
+        zBlock = directionalSection.getString("z_block");
+        northBlock = directionalSection.getString("north_block");
+        southBlock = directionalSection.getString("south_block");
+        eastBlock = directionalSection.getString("east_block");
+        westBlock = directionalSection.getString("west_block");
+        upBlock = directionalSection.getString("up_block");
+        downBlock = directionalSection.getString("down_block");
 
     }
     public boolean isParentBlock() { return parentBlock == null; }
@@ -60,7 +62,31 @@ public class DirectionalBlock {
         LOG, FURNACE, DROPPER
     }
 
-    public int getDirectionVariation(String id) {
+    public int getDirectionVariation(BlockFace face, Player player) {
+        if (isLog()) {
+            switch (face) {
+                case NORTH: case SOUTH: return getDirectionVariation(xBlock);
+                case EAST: case WEST: return getDirectionVariation(zBlock);
+                case UP: case DOWN: return getDirectionVariation(yBlock);
+            }
+        } else {
+            BlockFace facing =
+                    (isFurnace() && (face == BlockFace.UP || face == BlockFace.DOWN))
+                    ? player.getFacing().getOppositeFace() : face;
+
+            switch (facing) {
+                case NORTH: return getDirectionVariation(northBlock);
+                case SOUTH: return getDirectionVariation(southBlock);
+                case EAST: return getDirectionVariation(eastBlock);
+                case WEST: return getDirectionVariation(westBlock);
+                case UP: return getDirectionVariation(upBlock);
+                case DOWN: return getDirectionVariation(downBlock);
+            }
+        }
+        return 0;
+    }
+
+    private int getDirectionVariation(String id) {
         return ((NoteBlockMechanic) NoteBlockMechanicFactory.getInstance().getMechanic(id)).getCustomVariation();
     }
 }
