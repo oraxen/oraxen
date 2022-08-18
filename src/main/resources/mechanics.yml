@@ -81,6 +81,9 @@ repair:
   enabled: true
   oraxen_durability_only: false
 
+food:
+  enabled: true
+
 
 # COSMETIC
 
