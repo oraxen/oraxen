@@ -21,9 +21,7 @@ import org.bukkit.entity.*;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
@@ -37,18 +35,22 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.RayTraceResult;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.*;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
-import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
+import static io.th0rgal.oraxen.utils.BlockHelpers.*;
 
 public class FurnitureListener implements Listener {
 
     private final MechanicFactory factory;
+    private final Map<Block, BukkitTask> breakerPlaySound = new HashMap<>();
 
     public FurnitureListener(final MechanicFactory factory) {
         this.factory = factory;
@@ -92,6 +94,54 @@ public class FurnitureListener implements Listener {
                 return 1;
             }
         };
+    }
+
+
+    // Play sound due to furniture/barrier custom sound replacing stone
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlacingStone(final BlockPlaceEvent event) {
+        Block block = event.getBlock();
+        SoundGroup soundGroup = block.getBlockData().getSoundGroup();
+
+        if (block.getType() == Material.BARRIER || soundGroup.getPlaceSound() != Sound.BLOCK_STONE_PLACE) return;
+        BlockHelpers.playCustomBlockSound(event.getBlock(), VANILLA_STONE_PLACE);
+    }
+
+    // Play sound due to furniture/barrier custom sound replacing stone
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBreakingStone(final BlockBreakEvent event) {
+        Block block = event.getBlock();
+        SoundGroup soundGroup = block.getBlockData().getSoundGroup();
+
+        if (block.getType() == Material.BARRIER || soundGroup.getBreakSound() != Sound.BLOCK_STONE_BREAK) return;
+        if (breakerPlaySound.containsKey(block)) {
+            breakerPlaySound.get(block).cancel();
+            breakerPlaySound.remove(block);
+        }
+        BlockHelpers.playCustomBlockSound(event.getBlock(), VANILLA_STONE_BREAK);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onHitStone(final BlockDamageEvent event) {
+        Block block = event.getBlock();
+        SoundGroup soundGroup = block.getBlockData().getSoundGroup();
+
+        if (event.getInstaBreak()) return;
+        if (block.getType() == Material.BARRIER || soundGroup.getHitSound() != Sound.BLOCK_STONE_HIT) return;
+        if (breakerPlaySound.containsKey(block)) return;
+
+        BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
+                BlockHelpers.playCustomBlockSound(block, VANILLA_STONE_HIT), 3L, 3L);
+        breakerPlaySound.put(block, task);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onStopHittingStone(final BlockDamageAbortEvent event) {
+        Block block = event.getBlock();
+        if (breakerPlaySound.containsKey(block)) {
+            breakerPlaySound.get(block).cancel();
+            breakerPlaySound.remove(block);
+        }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
@@ -404,7 +454,7 @@ public class FurnitureListener implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.LOWEST)
     public void onStepFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (entity == null) return;
@@ -412,23 +462,21 @@ public class FurnitureListener implements Listener {
         if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
 
         GameEvent gameEvent = event.getEvent();
-        Block currentBlock = entity.getLocation().getBlock();
-        Block blockBelow = currentBlock.getRelative(BlockFace.DOWN);
-        Material currentType = currentBlock.getType();
+        Block block = entity.getLocation().getBlock();
+        Block blockBelow = block.getRelative(BlockFace.DOWN);
+        SoundGroup soundGroup = blockBelow.getBlockData().getSoundGroup();
 
-        if (blockBelow.getBlockData().getSoundGroup().getStepSound() != Sound.BLOCK_STONE_STEP) return;
-        if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(currentType) || currentType == Material.TRIPWIRE) return;
+        if (soundGroup.getStepSound() != Sound.BLOCK_STONE_STEP) return;
+        if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(block.getType()) || block.getType() == Material.TRIPWIRE) return;
         FurnitureMechanic mechanic = getFurnitureMechanic(blockBelow);
 
         String sound;
         if (gameEvent == GameEvent.STEP) {
-            if (mechanic != null && mechanic.hasStepSound() && blockBelow.getType() == Material.BARRIER)
-                sound = mechanic.getStepSound();
-            else sound = "required.stone.step";
+            sound = (blockBelow.getType() == Material.BARRIER && mechanic != null && mechanic.hasStepSound())
+                    ? mechanic.getStepSound() : VANILLA_STONE_STEP;
         } else if (gameEvent == GameEvent.HIT_GROUND) {
-            if (mechanic != null && mechanic.hasFallSound() && blockBelow.getType() == Material.BARRIER)
-                sound = mechanic.getFallSound();
-            else sound = "required.stone.fall";
+            sound = (blockBelow.getType() == Material.BARRIER && mechanic != null && mechanic.hasFallSound())
+                    ? mechanic.getFallSound() : VANILLA_STONE_FALL;
         } else return;
 
         BlockHelpers.playCustomBlockSound(blockBelow, sound, SoundCategory.PLAYERS);

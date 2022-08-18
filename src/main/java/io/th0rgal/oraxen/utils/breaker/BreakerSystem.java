@@ -112,19 +112,18 @@ public class BreakerSystem {
                             if (entity instanceof Player viewer)
                                 sendBlockBreak(viewer, location, value);
 
-                        if (value++ < 10)
-                            return;
+                        if (value++ < 10) return;
+                        if (!ProtectionLib.canBreak(player, block.getLocation())) return;
 
-                        if (!ProtectionLib.canBreak(player, block.getLocation()))
-                            return;
                         final BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
                         Bukkit.getPluginManager().callEvent(blockBreakEvent);
+
                         if (!blockBreakEvent.isCancelled()) {
                             modifier.breakBlock(player, block, item);
-                            PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player,
-                                    item, 1);
+                            PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item, 1);
                             Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
                         }
+
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
                                 player.removePotionEffect(PotionEffectType.SLOW_DIGGING));
                         breakerPerLocation.remove(location);
