@@ -44,10 +44,10 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         // before zipping the pack
         OraxenPlugin.get().getResourcePack().addModifiers(getMechanicID(),
                 packFolder ->
-                    OraxenPlugin.get().getResourcePack()
-                            .writeStringToVirtual("assets/minecraft/blockstates",
-                                    "note_block.json", getBlockstateContent())
-                );
+                        OraxenPlugin.get().getResourcePack()
+                                .writeStringToVirtual("assets/minecraft/blockstates",
+                                        "note_block.json", getBlockstateContent())
+        );
         MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockMechanicListener(this));
         MechanicsManager.registerListeners(OraxenPlugin.get(), new LogStripListener(this));
     }
@@ -80,17 +80,29 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         return content;
     }
 
-    public static JsonObject getDirectionalModelJson(String modelName, String itemId, DirectionalBlock parent) {
+    public static JsonObject getDirectionalModelJson(String modelName, String itemId, NoteBlockMechanic mechanic, NoteBlockMechanic parentMechanic) {
         JsonObject content = new JsonObject();
-        content.addProperty("model", modelName);
+        DirectionalBlock parent = parentMechanic.getDirectional();
+        String subBlockModel = mechanic.getDirectional().getDirectionalModel(mechanic);
+        content.addProperty("model", subBlockModel == null ? modelName : subBlockModel);
 
-        if (Objects.equals(parent.getYBlock(), itemId)) {
-            return content;
-        } else if (Objects.equals(parent.getXBlock(), itemId)) {
-            content.addProperty("x", 90);
-        } else if (Objects.equals(parent.getZBlock(), itemId)) {
-            content.addProperty("y", 90);
-            content.addProperty("x", 90);
+        if (parent.isLog()) {
+            if (Objects.equals(parent.getXBlock(), itemId))
+                content.addProperty("x", 90);
+            else if (Objects.equals(parent.getZBlock(), itemId)) {
+                content.addProperty("y", 90);
+                content.addProperty("x", 90);
+            }
+        } else {
+            if (Objects.equals(parent.getEastBlock(), itemId))
+                content.addProperty("x", 90);
+            else if (Objects.equals(parent.getSouthBlock(), itemId))
+                content.addProperty("y", 180);
+            else if (Objects.equals(parent.getWestBlock(), itemId))
+                content.addProperty("y", 270);
+
+            if (parent.isDropper() && Objects.equals(parent.getDownBlock(), itemId))
+                content.addProperty("x", 180);
         }
 
         return content;
@@ -142,7 +154,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
             NoteBlockMechanic parentMechanic = (NoteBlockMechanic) getMechanic(directional.getParentBlock());
             modelName = (parentMechanic.getModel(itemMechanicConfiguration.getParent().getParent()));
             variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
-                    getDirectionalModelJson(modelName, mechanic.getItemID(), parentMechanic.getDirectional()));
+                    getDirectionalModelJson(modelName, mechanic.getItemID(), mechanic, parentMechanic));
         } else {
             variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
                     getModelJson(modelName));

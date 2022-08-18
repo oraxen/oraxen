@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import org.apache.commons.lang3.Range;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -39,9 +40,7 @@ public class DirectionalBlock {
     public boolean isParentBlock() { return parentBlock == null; }
     public String getParentBlock() { return parentBlock; }
 
-    public DirectionalType getDirectionalType() {
-        return directionalType;
-    }
+    public DirectionalType getDirectionalType() { return directionalType; }
     public boolean isLog() { return directionalType == DirectionalType.LOG; }
     public boolean isFurnace() { return directionalType == DirectionalType.FURNACE; }
     public boolean isDropper() { return directionalType == DirectionalType.DROPPER; }
@@ -70,11 +69,7 @@ public class DirectionalBlock {
                 case UP: case DOWN: return getDirectionVariation(yBlock);
             }
         } else {
-            BlockFace facing =
-                    (isFurnace() && (face == BlockFace.UP || face == BlockFace.DOWN))
-                    ? player.getFacing().getOppositeFace() : face;
-
-            switch (facing) {
+            switch (getRelativeFacing(player)) {
                 case NORTH: return getDirectionVariation(northBlock);
                 case SOUTH: return getDirectionVariation(southBlock);
                 case EAST: return getDirectionVariation(eastBlock);
@@ -86,7 +81,30 @@ public class DirectionalBlock {
         return 0;
     }
 
+    private BlockFace getRelativeFacing(Player player) {
+        double yaw = player.getLocation().getYaw();
+        double pitch = player.getLocation().getPitch();
+        BlockFace face = BlockFace.SELF;
+        if (!isLog()) {
+            if (Range.between(0.0, 45.0).contains(yaw) || yaw >= 315.0 || yaw >= -45.0 && yaw <= 0.0 || yaw <= -315.0)
+                face = BlockFace.NORTH;
+            else if (Range.between(45.0, 135.0).contains(yaw) || Range.between(-315.0, -225.0).contains(yaw))
+                face = BlockFace.EAST;
+            else if (Range.between(135.0, 225.0).contains(yaw) || Range.between(-225.0, -135.0).contains(yaw))
+                face = BlockFace.SOUTH;
+            else if (Range.between(225.0, 315.0).contains(yaw) || Range.between(-135.0, -45.0).contains(yaw))
+                face = BlockFace.WEST;
+
+            if (isDropper()) face = (pitch <= -45.0) ? BlockFace.DOWN : (pitch >= 45.0) ? BlockFace.UP : face;
+        }
+        return face;
+    }
+
     private int getDirectionVariation(String id) {
         return ((NoteBlockMechanic) NoteBlockMechanicFactory.getInstance().getMechanic(id)).getCustomVariation();
+    }
+
+    public String getDirectionalModel(NoteBlockMechanic mechanic) {
+        return mechanic.getSection().getString("model");
     }
 }
