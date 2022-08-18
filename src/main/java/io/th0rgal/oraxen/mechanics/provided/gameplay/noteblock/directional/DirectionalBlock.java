@@ -4,7 +4,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class DirectionalBlock {
     private final String parentBlock;
-    private final String directionalType;
+    private final DirectionalType directionalType;
     // LOG type
     private final String yBlock;
     private final String xBlock;
@@ -20,21 +20,21 @@ public class DirectionalBlock {
 
     public DirectionalBlock(ConfigurationSection directionalSection) {
         parentBlock = directionalSection.getString("parentBlock");
-        directionalType = directionalSection.getString("directionalType");
+        directionalType = DirectionalType.valueOf(directionalSection.getString("directionalType"));
         yBlock = directionalSection.getString("yBlock");
         xBlock = directionalSection.getString("xBlock");
         zBlock = directionalSection.getString("zBlock");
         northBlock = directionalSection.getString("northBlock");
         southBlock = directionalSection.getString("southBlock");
         eastBlock = directionalSection.getString("eastBlock");
-        westBlock = directionalSection.getString("northBlock");
+        westBlock = directionalSection.getString("westBlock");
         upBlock = directionalSection.getString("upBlock");
-        downBlock = directionalSection.getString("northBlock");
+        downBlock = directionalSection.getString("downBlock");
 
     }
     public boolean isParentBlock() { return parentBlock == null; }
     public String getParentBlock() { return parentBlock; }
-    public String getDirectionalType() {
+    public DirectionalType getDirectionalType() {
         return directionalType;
     }
     public String getYBlock() { return yBlock; }
@@ -46,4 +46,8 @@ public class DirectionalBlock {
     public String getWestBlock() { return westBlock; }
     public String getUpBlock() { return upBlock; }
     public String getDownBlock() { return downBlock; }
+
+    public enum DirectionalType {
+        LOG, FURNACE, DROPPER
+    }
 }
