@@ -86,24 +86,25 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         String subBlockModel = mechanic.getDirectional().getDirectionalModel(mechanic);
         content.addProperty("model", subBlockModel == null ? modelName : subBlockModel);
 
-        if (parent.isLog()) {
-            if (Objects.equals(parent.getXBlock(), itemId))
-                content.addProperty("x", 90);
-            else if (Objects.equals(parent.getZBlock(), itemId)) {
-                content.addProperty("y", 90);
-                content.addProperty("x", 90);
-            }
-        } else {
-            if (Objects.equals(parent.getEastBlock(), itemId))
-                content.addProperty("x", 90);
-            else if (Objects.equals(parent.getSouthBlock(), itemId))
-                content.addProperty("y", 180);
-            else if (Objects.equals(parent.getWestBlock(), itemId))
-                content.addProperty("y", 270);
-
-            if (parent.isDropper() && Objects.equals(parent.getDownBlock(), itemId))
-                content.addProperty("x", 180);
-        }
+        if (Objects.equals(parent.getYBlock(), itemId))
+            return content;
+        else if (Objects.equals(parent.getXBlock(), itemId))
+            content.addProperty("x", 90);
+        else if (Objects.equals(parent.getZBlock(), itemId)) {
+            content.addProperty("y", 90);
+            content.addProperty("x", 90);
+        } else if (Objects.equals(parent.getNorthBlock(), itemId))
+            return content;
+        else if (Objects.equals(parent.getEastBlock(), itemId))
+            content.addProperty("x", 90);
+        else if (Objects.equals(parent.getSouthBlock(), itemId))
+            content.addProperty("y", 180);
+        else if (Objects.equals(parent.getWestBlock(), itemId))
+            content.addProperty("y", 270);
+        else if (Objects.equals(parent.getUpBlock(), itemId))
+            return content;
+        else if (Objects.equals(parent.getDownBlock(), itemId))
+            content.addProperty("x", 180);
 
         return content;
     }
