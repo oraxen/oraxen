@@ -272,23 +272,36 @@ public class NoteBlockMechanicListener implements Listener {
         int customVariation = mechanic.getCustomVariation();
         BlockFace face = event.getBlockFace();
 
-        if (mechanic.isDirectional() && mechanic.getDirectional().isParentBlock()) {
+        if (mechanic.isDirectional()) {
             DirectionalBlock directional = mechanic.getDirectional();
 
-            if (directional.getDirectionalType() == DirectionalBlock.DirectionalType.LOG) {
-                if (face == BlockFace.NORTH || face == BlockFace.SOUTH) customVariation = getDirectionVariation(directional.getXBlock());
-                else if (face == BlockFace.WEST || face == BlockFace.EAST) customVariation = getDirectionVariation(directional.getZBlock());
-                else if (face == BlockFace.UP || face == BlockFace.DOWN) customVariation = getDirectionVariation(directional.getYBlock());
+            // If held item is not parent but still directional, treat it as parent
+            if (!directional.isParentBlock())
+                directional = ((NoteBlockMechanic) factory.getMechanic(directional.getParentBlock())).getDirectional();
+
+            if (directional.isLog()) {
+                if (face == BlockFace.NORTH || face == BlockFace.SOUTH)
+                    customVariation = directional.getDirectionVariation(directional.getXBlock());
+                else if (face == BlockFace.WEST || face == BlockFace.EAST)
+                    customVariation = directional.getDirectionVariation(directional.getZBlock());
+                else if (face == BlockFace.UP || face == BlockFace.DOWN)
+                    customVariation = directional.getDirectionVariation(directional.getYBlock());
             } else {
                 // Dropper type is nearly identical to FURNACE type, except with the additions of Up and Down blocks
-                if (face == BlockFace.NORTH) customVariation = getDirectionVariation(directional.getNorthBlock());
-                else if (face == BlockFace.SOUTH) customVariation = getDirectionVariation(directional.getSouthBlock());
-                else if (face == BlockFace.EAST) customVariation = getDirectionVariation(directional.getEastBlock());
-                else if (face == BlockFace.WEST) customVariation = getDirectionVariation(directional.getWestBlock());
+                if (face == BlockFace.NORTH)
+                    customVariation = directional.getDirectionVariation(directional.getNorthBlock());
+                else if (face == BlockFace.SOUTH)
+                    customVariation = directional.getDirectionVariation(directional.getSouthBlock());
+                else if (face == BlockFace.EAST)
+                    customVariation = directional.getDirectionVariation(directional.getEastBlock());
+                else if (face == BlockFace.WEST)
+                    customVariation = directional.getDirectionVariation(directional.getWestBlock());
 
-                if (directional.getDirectionalType() == DirectionalBlock.DirectionalType.DROPPER) {
-                    if (face == BlockFace.UP) customVariation = getDirectionVariation(directional.getUpBlock());
-                    else if (face == BlockFace.DOWN) customVariation = getDirectionVariation(directional.getDownBlock());
+                if (directional.isDropper()) {
+                    if (face == BlockFace.UP)
+                        customVariation = directional.getDirectionVariation(directional.getUpBlock());
+                    else if (face == BlockFace.DOWN)
+                        customVariation = directional.getDirectionVariation(directional.getDownBlock());
                 }
             }
         }
@@ -451,10 +464,6 @@ public class NoteBlockMechanicListener implements Listener {
                 && (playerLocation.getBlockY() == blockLocation.getBlockY()
                 || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
                 && playerLocation.getBlockZ() == blockLocation.getBlockZ();
-    }
-
-    private int getDirectionVariation(String id) {
-        return ((NoteBlockMechanic) factory.getMechanic(id)).getCustomVariation();
     }
 
     private Block makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
