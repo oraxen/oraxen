@@ -27,6 +27,8 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.*;
 
+import static io.th0rgal.oraxen.utils.BlockHelpers.VANILLA_STONE_BREAK;
+
 public class FurnitureMechanic extends Mechanic {
 
     public static final NamespacedKey FURNITURE_KEY = new NamespacedKey(OraxenPlugin.get(), "furniture");
@@ -328,8 +330,8 @@ public class FurnitureMechanic extends Mechanic {
                 removed = true;
                 break;
             }
-        if (hasBreakSound())
-            BlockHelpers.playCustomBlockSound(rootLocation.getBlock(), getBreakSound());
+
+        BlockHelpers.playCustomBlockSound(rootLocation.getBlock(), hasBreakSound() ? getBreakSound() : VANILLA_STONE_BREAK);
         return removed;
     }
 

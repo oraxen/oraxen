@@ -192,7 +192,7 @@ public class NoteBlockMechanicListener implements Listener {
     public void onHitBlock(final BlockDamageEvent event) {
         final Block block = event.getBlock();
         if (block.getBlockData().getSoundGroup().getHitSound() != Sound.BLOCK_WOOD_HIT) return;
-        if (getNoteBlockMechanic(block) != null) return;
+        if (getNoteBlockMechanic(block) != null || block.getType() == Material.MUSHROOM_STEM) return;
         BlockHelpers.playCustomBlockSound(block, VANILLA_WOOD_HIT);
     }
 
@@ -200,7 +200,7 @@ public class NoteBlockMechanicListener implements Listener {
     public void onBreakingBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
         if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
-        if (getNoteBlockMechanic(block) != null) return;
+        if (getNoteBlockMechanic(block) != null || block.getType() == Material.MUSHROOM_STEM) return;
 
         if (breakerPlaySound.containsKey(block)) {
             breakerPlaySound.get(block).cancel();
@@ -216,25 +216,24 @@ public class NoteBlockMechanicListener implements Listener {
         final Player player = event.getPlayer();
         if (block.getType() != Material.NOTE_BLOCK || !event.isDropItems()) return;
 
-        NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
-        if (noteBlockMechanic == null) return;
+        NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
+        if (mechanic == null) return;
         if (block.getType() != Material.NOTE_BLOCK || !event.isDropItems()) return;
-        if (noteBlockMechanic.isDirectional())
-            noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
+        if (mechanic.isDirectional())
+            mechanic = (NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock());
 
-        OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(noteBlockMechanic, block, player);
+        OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockBreakEvent);
         if (noteBlockBreakEvent.isCancelled()) {
             event.setCancelled(true);
             return;
         }
 
-        if (noteBlockMechanic.hasBreakSound())
-            BlockHelpers.playCustomBlockSound(block, noteBlockMechanic.getBreakSound());
-        if (noteBlockMechanic.getLight() != -1)
+        BlockHelpers.playCustomBlockSound(block, mechanic.hasBreakSound() ? mechanic.getBreakSound() : VANILLA_WOOD_BREAK);
+        if (mechanic.getLight() != -1)
             WrappedLightAPI.removeBlockLight(block.getLocation());
         if (player.getGameMode() != GameMode.CREATIVE)
-            noteBlockMechanic.getDrop().spawns(block.getLocation(), player.getInventory().getItemInMainHand());
+            mechanic.getDrop().spawns(block.getLocation(), player.getInventory().getItemInMainHand());
         event.setDropItems(false);
     }
 
@@ -255,12 +254,12 @@ public class NoteBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingBlock(final BlockPlaceEvent event) {
         Block placed = event.getBlockPlaced();
-        Material type = placed.getType();
         if (placed.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_WOOD_PLACE) return;
+        if (getNoteBlockMechanic(placed) != null || placed.getType() == Material.MUSHROOM_STEM) return;
 
         // Play sound for wood
         BlockHelpers.playCustomBlockSound(placed, VANILLA_WOOD_PLACE);
-        if (type == Material.NOTE_BLOCK && !OraxenItems.exists(event.getItemInHand()))
+        if (placed.getType() == Material.NOTE_BLOCK && !OraxenItems.exists(event.getItemInHand()))
             placed.setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
     }
 
@@ -293,9 +292,6 @@ public class NoteBlockMechanicListener implements Listener {
 
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(), placedAgainst, face, NoteBlockMechanicFactory.createNoteBlockData(customVariation));
         if (placedBlock != null) {
-            if (mechanic.hasPlaceSound())
-                BlockHelpers.playCustomBlockSound(placedBlock, mechanic.getPlaceSound());
-
             if (mechanic.getLight() != -1)
                 WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
 
@@ -303,6 +299,8 @@ public class NoteBlockMechanicListener implements Listener {
                 final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
                 customBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
             }
+
+            BlockHelpers.playCustomBlockSound(placedBlock, mechanic.hasPlaceSound() ? mechanic.getPlaceSound() : VANILLA_WOOD_PLACE);
         }
     }
 
