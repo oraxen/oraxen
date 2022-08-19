@@ -72,7 +72,8 @@ public class BlockMechanicFactory extends MechanicFactory {
     }
 
     public static BlockMechanic getBlockMechanic(Block block) {
-        return BLOCK_PER_VARIATION.get(BlockMechanic.getCode(block));
+        return (block.getType() == Material.MUSHROOM_STEM)
+                ? BLOCK_PER_VARIATION.get(BlockMechanic.getCode(block)) : null;
     }
 
     /**

@@ -124,7 +124,7 @@ public class BlockMechanicListener implements Listener {
     public void onSetFire(final PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
         ItemStack item = event.getItem();
-        if (block == null || block.getType() != Material.NOTE_BLOCK) return;
+        if (block == null || block.getType() != Material.MUSHROOM_STEM) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getBlockFace() != BlockFace.UP) return;
         if (item == null) return;
 
@@ -139,7 +139,7 @@ public class BlockMechanicListener implements Listener {
     public void onCatchFire(final BlockIgniteEvent event) {
         Block block = event.getBlock();
         BlockMechanic mechanic = getBlockMechanic(block);
-        if (block.getType() != Material.NOTE_BLOCK || mechanic == null) return;
+        if (block.getType() != Material.MUSHROOM_STEM || mechanic == null) return;
         if (!mechanic.canIgnite()) event.setCancelled(true);
 
         block.getWorld().playSound(block.getLocation(), Sound.ITEM_FLINTANDSTEEL_USE, 1, 1);
