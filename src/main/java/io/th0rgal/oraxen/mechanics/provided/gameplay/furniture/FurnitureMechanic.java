@@ -28,6 +28,7 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.*;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.VANILLA_STONE_BREAK;
+import static io.th0rgal.oraxen.utils.BlockHelpers.VANILLA_STONE_PLACE;
 
 public class FurnitureMechanic extends Mechanic {
 
@@ -284,8 +285,8 @@ public class FurnitureMechanic extends Mechanic {
             }
         else if (light != -1)
             WrappedLightAPI.createBlockLight(location, light);
-        if (hasPlaceSound())
-            BlockHelpers.playCustomBlockSound(location.getBlock(), getPlaceSound());
+
+        BlockHelpers.playCustomBlockSound(location.getBlock(), hasPlaceSound() ? getPlaceSound() : VANILLA_STONE_PLACE);
         return output;
     }
 

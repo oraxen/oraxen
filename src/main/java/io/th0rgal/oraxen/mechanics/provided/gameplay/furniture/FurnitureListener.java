@@ -101,9 +101,9 @@ public class FurnitureListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlacingStone(final BlockPlaceEvent event) {
         Block block = event.getBlock();
-        SoundGroup soundGroup = block.getBlockData().getSoundGroup();
 
-        if (block.getType() == Material.BARRIER || soundGroup.getPlaceSound() != Sound.BLOCK_STONE_PLACE) return;
+        if (block.getType() == Material.BARRIER || block.getType() == Material.TRIPWIRE) return;
+        if (block.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_STONE_PLACE) return;
         BlockHelpers.playCustomBlockSound(event.getBlock(), VANILLA_STONE_PLACE);
     }
 
@@ -111,9 +111,9 @@ public class FurnitureListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingStone(final BlockBreakEvent event) {
         Block block = event.getBlock();
-        SoundGroup soundGroup = block.getBlockData().getSoundGroup();
 
-        if (block.getType() == Material.BARRIER || soundGroup.getBreakSound() != Sound.BLOCK_STONE_BREAK) return;
+        if (block.getType() == Material.BARRIER || block.getType() == Material.TRIPWIRE) return;
+        if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_STONE_BREAK) return;
         if (breakerPlaySound.containsKey(block)) {
             breakerPlaySound.get(block).cancel();
             breakerPlaySound.remove(block);
@@ -191,9 +191,7 @@ public class FurnitureListener implements Listener {
         final Rotation rotation = mechanic.hasRotation()
                 ? mechanic.getRotation()
                 : getRotation(player.getEyeLocation().getYaw(),
-                mechanic.hasBarriers()
-                        && mechanic.getBarriers().size() > 1);
-
+                mechanic.hasBarriers() && mechanic.getBarriers().size() > 1);
         final float yaw = mechanic.getYaw(rotation);
 
         if (!mechanic.isEnoughSpace(yaw, target.getLocation())) {
@@ -228,12 +226,8 @@ public class FurnitureListener implements Listener {
 
     private FurnitureMechanic getMechanic(ItemStack item, Player player, Block target) {
         final String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID))
-            return null;
-
-        if (isStandingInside(player, target)
-                || !ProtectionLib.canBuild(player, target.getLocation()))
-            return null;
+        if (factory.isNotImplementedIn(itemID) || isStandingInside(player, target)) return null;
+        if (!ProtectionLib.canBuild(player, target.getLocation())) return null;
 
         for (final Entity entity : target.getWorld().getNearbyEntities(target.getLocation(), 1, 1, 1))
             if (entity instanceof ItemFrame
@@ -336,16 +330,14 @@ public class FurnitureListener implements Listener {
     @EventHandler(ignoreCancelled = true)
     public void onFurnitureBreak(final BlockBreakEvent event) {
         final Block block = event.getBlock();
-        if (block.getType() != Material.BARRIER || event.getPlayer().getGameMode() != GameMode.CREATIVE)
-            return;
+        if (block.getType() != Material.BARRIER || event.getPlayer().getGameMode() != GameMode.CREATIVE) return;
 
         final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
-        if (!customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING))
-            return;
+        if (!customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING)) return;
+
         final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
         final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
-        final BlockLocation rootBlockLocation =
-                new BlockLocation(customBlockData.get(ROOT_KEY, PersistentDataType.STRING));
+        final BlockLocation rootBlockLocation = new BlockLocation(customBlockData.get(ROOT_KEY, PersistentDataType.STRING));
 
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, event.getPlayer(), block);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
@@ -367,15 +359,9 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(ignoreCancelled = true)
     public void onPlayerClickOnFurniture(final PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() != EquipmentSlot.HAND) {
-            return;
-        }
-
         final Block block = event.getClickedBlock();
-
-        if (block == null || block.getType() != Material.BARRIER || event.getPlayer().isSneaking()) {
-            return;
-        }
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() != EquipmentSlot.HAND) return;
+        if (block == null || block.getType() != Material.BARRIER || event.getPlayer().isSneaking()) return;
 
         final FurnitureMechanic mechanic = getFurnitureMechanic(block);
 
