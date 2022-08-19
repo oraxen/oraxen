@@ -11,11 +11,13 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 public class FoodMechanic extends Mechanic {
 
-    private PotionEffect effect = null;
+    private final Set<PotionEffect> effects = new HashSet<>();
     private double effectProbability = 1.0;
     private final int hunger;
     private final int saturation;
@@ -25,25 +27,38 @@ public class FoodMechanic extends Mechanic {
         super(mechanicFactory, section);
         hunger = section.getInt("hunger");
         saturation = section.getInt("saturation");
+        effectProbability = Math.min(section.getDouble("effect_probability", 1.0), 1.0);
 
         if (section.isConfigurationSection("replacement")) {
-            registerReplacement(section.getConfigurationSection("replacement"));
+            ConfigurationSection replacementSection = section.getConfigurationSection("replacement");
+            assert replacementSection != null;
+            registerReplacement(replacementSection);
         } else replacementItem = null;
 
-        if (section.isConfigurationSection("effect")) {
-            ConfigurationSection effectSection = section.getConfigurationSection("effect");
-            assert effectSection != null;
-            registerEffect(effectSection);
-        } else effect = null;
+        if (section.isConfigurationSection("effects")) {
+            ConfigurationSection effectsSection = section.getConfigurationSection("effects");
+            assert effectsSection != null;
+            for (String effectSection : effectsSection.getKeys(false))
+                if (section.isConfigurationSection(effectSection)) {
+                    ConfigurationSection effect = section.getConfigurationSection("effectSection");
+                    assert effect != null;
+                    registerEffects(effect);
+                }
+        }
     }
 
-    private void registerEffect(ConfigurationSection section) {
-        PotionEffectType effectType = PotionEffectType.getByName(section.getString("type", null));
-        effectProbability = Math.min(section.getDouble("probability", 1.0), 1.0);
-        if (effectType == null) Logs.logError("Invalid effect type: " + section.getName());
-        else effect = new PotionEffect(effectType, section.getInt("duration", 1) * 20,
-                    section.getInt("amplifier", 0), section.getBoolean("is_ambient", true),
-                    section.getBoolean("has_particles", true), section.getBoolean("has_icon", true));
+    private void registerEffects(ConfigurationSection section) {
+        PotionEffectType effectType = PotionEffectType.getByName(section.getName());
+        if (effectType == null) {
+            Logs.logError("Invalid effect type: " + section.getName() + " in " + getItemID());
+            return;
+        }
+        effects.add(new PotionEffect(effectType,
+                section.getInt("duration", 1) * 20,
+                section.getInt("amplifier", 0),
+                section.getBoolean("is_ambient", true),
+                section.getBoolean("has_particles", true),
+                section.getBoolean("has_icon", true)));
     }
 
     private void registerReplacement(ConfigurationSection section) {
@@ -77,13 +92,8 @@ public class FoodMechanic extends Mechanic {
         return replacementItem;
     }
 
-    public boolean hasEffect() {
-        return effect != null;
-    }
-
-    public PotionEffect getEffect() {
-        return effect;
-    }
+    public boolean hasEffects() { return !effects.isEmpty(); }
+    public Set<PotionEffect> getEffects() { return effects; }
 
     public double getEffectProbability() {
         return effectProbability;

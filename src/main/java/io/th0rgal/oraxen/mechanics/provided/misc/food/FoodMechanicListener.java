@@ -29,8 +29,8 @@ public class FoodMechanicListener implements Listener {
                 inventory.setItemInMainHand(mechanic.getReplacement());
             else inventory.getItemInMainHand().setAmount(inventory.getItemInMainHand().getAmount() - 1);
 
-            if (mechanic.hasEffect() && Math.random() <= mechanic.getEffectProbability())
-                player.addPotionEffect(mechanic.getEffect());
+            if (mechanic.hasEffects() && Math.random() <= mechanic.getEffectProbability())
+                player.addPotionEffects(mechanic.getEffects());
         }
 
         player.setFoodLevel(player.getFoodLevel() + Math.min(mechanic.getHunger(), 20));
