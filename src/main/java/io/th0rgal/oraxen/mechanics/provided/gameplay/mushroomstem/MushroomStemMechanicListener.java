@@ -1,9 +1,17 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem;
 
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.events.OraxenMushroomStemBreakEvent;
+import io.th0rgal.oraxen.events.OraxenMushroomStemInteractEvent;
+import io.th0rgal.oraxen.events.OraxenNoteBlockBreakEvent;
+import io.th0rgal.oraxen.events.OraxenNoteBlockInteractEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
+import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -21,15 +29,16 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.ItemStack;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory.getBlockMechanic;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem.MushroomStemMechanicFactory.getMushroomStemMechanic;
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
-public class BlockMechanicListener implements Listener {
+public class MushroomStemMechanicListener implements Listener {
 
     private final MechanicFactory factory;
 
-    public BlockMechanicListener(final BlockMechanicFactory factory) {
+    public MushroomStemMechanicListener(final MushroomStemMechanicFactory factory) {
         this.factory = factory;
+        BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -40,18 +49,55 @@ public class BlockMechanicListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onInteract(PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        Player player = event.getPlayer();
+        ItemStack item = event.getItem();
+
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.MUSHROOM_STEM)
+            return;
+        if (block.getType() != Material.MUSHROOM_STEM) return;
+
+        MushroomStemMechanic mushroomStemMechanic = getMushroomStemMechanic(block);
+        if (mushroomStemMechanic == null) return;
+        if (mushroomStemMechanic.isDirectional())
+            mushroomStemMechanic = (MushroomStemMechanic) factory.getMechanic(mushroomStemMechanic.getDirectional().getParentBlock());
+
+        OraxenMushroomStemInteractEvent mushroomStemInteractEvent = new OraxenMushroomStemInteractEvent(mushroomStemMechanic, block, event.getItem(), event.getPlayer());
+        OraxenPlugin.get().getServer().getPluginManager().callEvent(mushroomStemInteractEvent);
+        if (mushroomStemInteractEvent.isCancelled()) {
+            event.setCancelled(true);
+            return;
+        }
+
+        if (mushroomStemMechanic.hasClickActions())
+            mushroomStemMechanic.runClickActions(player);
+
+
+    }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
+        final Player player = event.getPlayer();
+
         if (block.getType() != Material.MUSHROOM_STEM || !event.isDropItems())
             return;
 
-        final BlockMechanic blockMechanic = getBlockMechanic(block);
-        if (blockMechanic == null) return;
-        if (blockMechanic.hasBreakSound())
-            BlockHelpers.playCustomBlockSound(block, blockMechanic.getBreakSound());
-        blockMechanic.getDrop().spawns(block.getLocation(), event.getPlayer().getInventory().getItemInMainHand());
+        final MushroomStemMechanic mushroomStemMechanic = getMushroomStemMechanic(block);
+        if (mushroomStemMechanic == null) return;
+
+        OraxenMushroomStemBreakEvent mushroomStemBreakEvent = new OraxenMushroomStemBreakEvent(mushroomStemMechanic, block, player);
+        OraxenPlugin.get().getServer().getPluginManager().callEvent(mushroomStemBreakEvent);
+        if (mushroomStemBreakEvent.isCancelled()) {
+            event.setCancelled(true);
+            return;
+        }
+
+        if (mushroomStemMechanic.hasBreakSound())
+            BlockHelpers.playCustomBlockSound(block, mushroomStemMechanic.getBreakSound());
+        mushroomStemMechanic.getDrop().spawns(block.getLocation(), event.getPlayer().getInventory().getItemInMainHand());
         event.setDropItems(false);
     }
 
@@ -64,15 +110,15 @@ public class BlockMechanicListener implements Listener {
 
         final Block block = event.getBlock();
         final MultipleFacing blockData = (MultipleFacing) block.getBlockData();
-        BlockMechanic.setBlockFacing(blockData, 15);
+        MushroomStemMechanic.setBlockFacing(blockData, 15);
         block.setBlockData(blockData, false);
 
-        final BlockMechanic mechanic = getBlockMechanic(block);
+        final MushroomStemMechanic mechanic = getMushroomStemMechanic(block);
         if (mechanic != null && mechanic.hasPlaceSound())
             BlockHelpers.playCustomBlockSound(block, mechanic.getPlaceSound());
     }
 
-    // not static here because only instanciated once I think
+    // not static here because only instance'd once I think
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrePlacingCustomBlock(final PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
@@ -104,9 +150,9 @@ public class BlockMechanicListener implements Listener {
 
         // determines the new block data of the block
         final MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(Material.MUSHROOM_STEM);
-        final BlockMechanic mechanic = ((BlockMechanic) factory.getMechanic(itemID));
+        final MushroomStemMechanic mechanic = ((MushroomStemMechanic) factory.getMechanic(itemID));
         final int customVariation = mechanic.getCustomVariation();
-        BlockMechanic.setBlockFacing(newBlockData, customVariation);
+        MushroomStemMechanic.setBlockFacing(newBlockData, customVariation);
         Utils.sendAnimation(player, event.getHand());
 
         // set the new block
@@ -130,11 +176,11 @@ public class BlockMechanicListener implements Listener {
     public void onSetFire(final PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
         ItemStack item = event.getItem();
-        if (block == null || block.getType() != Material.NOTE_BLOCK) return;
+        if (block == null || block.getType() != Material.MUSHROOM_STEM) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getBlockFace() != BlockFace.UP) return;
         if (item == null) return;
 
-        BlockMechanic mechanic = getBlockMechanic(block);
+        MushroomStemMechanic mechanic = getMushroomStemMechanic(block);
         if (mechanic == null || !mechanic.canIgnite()) return;
         if (item.getType() != Material.FLINT_AND_STEEL && item.getType() != Material.FIRE_CHARGE) return;
         BlockIgniteEvent igniteEvent = new BlockIgniteEvent(block, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, event.getPlayer());
@@ -144,8 +190,8 @@ public class BlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCatchFire(final BlockIgniteEvent event) {
         Block block = event.getBlock();
-        BlockMechanic mechanic = getBlockMechanic(block);
-        if (block.getType() != Material.NOTE_BLOCK || mechanic == null) return;
+        MushroomStemMechanic mechanic = getMushroomStemMechanic(block);
+        if (block.getType() != Material.MUSHROOM_STEM || mechanic == null) return;
         if (!mechanic.canIgnite()) event.setCancelled(true);
 
         block.getWorld().playSound(block.getLocation(), Sound.ITEM_FLINTANDSTEEL_USE, 1, 1);
@@ -166,7 +212,7 @@ public class BlockMechanicListener implements Listener {
 
         if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(currentBlock.getType()) || currentBlock.getType() == Material.TRIPWIRE) return;
         if (blockBelow.getType() != Material.MUSHROOM_STEM) return;
-        final BlockMechanic mechanic = getBlockMechanic(blockBelow);
+        final MushroomStemMechanic mechanic = getMushroomStemMechanic(blockBelow);
         if (mechanic == null) return;
 
         if (gameEvent == GameEvent.STEP && mechanic.hasStepSound()) sound = mechanic.getStepSound();
@@ -183,6 +229,48 @@ public class BlockMechanicListener implements Listener {
                 && (playerLocation.getBlockY() == blockLocation.getBlockY()
                 || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
                 && playerLocation.getBlockZ() == blockLocation.getBlockZ();
+    }
+
+    private HardnessModifier getHardnessModifier() {
+        return new HardnessModifier() {
+
+            @Override
+            public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
+                if (block.getType() != Material.MUSHROOM_STEM)
+                    return false;
+
+                MushroomStemMechanic mushroomStemMechanic = getMushroomStemMechanic(block);
+                if (mushroomStemMechanic == null) return false;
+
+                if (mushroomStemMechanic.isDirectional())
+                    mushroomStemMechanic = (MushroomStemMechanic) factory.getMechanic(mushroomStemMechanic.getDirectional().getParentBlock());
+
+                return mushroomStemMechanic.hasHardness;
+            }
+
+            @Override
+            public void breakBlock(final Player player, final Block block, final ItemStack tool) {
+                block.setType(Material.AIR);
+            }
+
+            @Override
+            public long getPeriod(final Player player, final Block block, final ItemStack tool) {
+                MushroomStemMechanic mushroomStemMechanic = getMushroomStemMechanic(block);
+                if (mushroomStemMechanic == null) return 0;
+                if (mushroomStemMechanic.isDirectional())
+                    mushroomStemMechanic = (MushroomStemMechanic) factory.getMechanic(mushroomStemMechanic.getDirectional().getParentBlock());
+
+                final long period = mushroomStemMechanic.getPeriod();
+                double modifier = 1;
+                if (mushroomStemMechanic.getDrop().canDrop(tool)) {
+                    modifier *= 0.4;
+                    final int diff = mushroomStemMechanic.getDrop().getDiff(tool);
+                    if (diff >= 1)
+                        modifier *= Math.pow(0.9, diff);
+                }
+                return (long) (period * modifier);
+            }
+        };
     }
 
 }
