@@ -24,7 +24,8 @@ soulbound:
 
 # GAMEPLAY
 
-mushroomstem:
+# legacy blocks using mushroom stems, prefer to use noteblock
+block:
   tool_types:
     - WOODEN
     - STONE
@@ -32,7 +33,7 @@ mushroomstem:
     - GOLDEN
     - DIAMOND
     - NETHERITE
-  enabled: true
+  enabled: false
 
 noteblock:
   tool_types:

@@ -18,7 +18,7 @@ import io.th0rgal.oraxen.mechanics.provided.farming.bottledexp.BottledExpMechani
 import io.th0rgal.oraxen.mechanics.provided.farming.harvesting.HarvestingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.smelting.SmeltingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.watering.WateringMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem.MushroomStemMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
@@ -66,7 +66,7 @@ public class MechanicsManager {
         registerMechanicFactory("repair", RepairMechanicFactory::new);
         registerMechanicFactory("durability", DurabilityMechanicFactory::new);
         registerMechanicFactory("efficiency", EfficiencyMechanicFactory::new);
-        registerMechanicFactory("mushroomstem", MushroomStemMechanicFactory::new);
+        registerMechanicFactory("block", BlockMechanicFactory::new);
         registerMechanicFactory("noteblock", NoteBlockMechanicFactory::new);
         registerMechanicFactory("stringblock", StringBlockMechanicFactory::new);
         registerMechanicFactory("furniture", FurnitureFactory::new);

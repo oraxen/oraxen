@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem.logstrip.LogStripListener;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -18,19 +17,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MushroomStemMechanicFactory extends MechanicFactory {
+public class BlockMechanicFactory extends MechanicFactory {
 
     private static final List<JsonObject> MUSHROOM_STEM_BLOCKSTATE_OVERRIDES = new ArrayList<>();
-    private static final Map<Integer, MushroomStemMechanic> BLOCK_PER_VARIATION = new HashMap<>();
-
-    private static MushroomStemMechanicFactory instance;
+    private static final Map<Integer, BlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
     public final List<String> toolTypes;
 
-    public MushroomStemMechanicFactory(ConfigurationSection section) {
+    public BlockMechanicFactory(ConfigurationSection section) {
         super(section);
         toolTypes = section.getStringList("tool_types");
-
-        instance = this;
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
@@ -38,12 +33,7 @@ public class MushroomStemMechanicFactory extends MechanicFactory {
                 packFolder -> OraxenPlugin.get().getResourcePack()
                         .writeStringToVirtual("assets/minecraft/blockstates",
                                 "mushroom_stem.json", getBlockstateContent()));
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new MushroomStemMechanicListener(this));
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new LogStripListener(this));
-    }
-
-    public static MushroomStemMechanicFactory getInstance() {
-        return instance;
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicListener(this));
     }
 
     private String getBlockstateContent() {
@@ -62,13 +52,13 @@ public class MushroomStemMechanicFactory extends MechanicFactory {
         JsonObject model = new JsonObject();
         model.addProperty("model", modelName);
         content.add("apply", model);
-        content.add("when", MushroomStemMechanic.getBlockstateWhenFields(when));
+        content.add("when", BlockMechanic.getBlockstateWhenFields(when));
         return content;
     }
 
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        MushroomStemMechanic mechanic = new MushroomStemMechanic(this, itemMechanicConfiguration);
+        BlockMechanic mechanic = new BlockMechanic(this, itemMechanicConfiguration);
         MUSHROOM_STEM_BLOCKSTATE_OVERRIDES
                 .add(getBlockstateOverride(mechanic.getModel(itemMechanicConfiguration.getParent().getParent()),
                         mechanic.getCustomVariation()));
@@ -77,12 +67,12 @@ public class MushroomStemMechanicFactory extends MechanicFactory {
         return mechanic;
     }
 
-    public static MushroomStemMechanic getMushroomStemMechanic(int customVariation) {
+    public static BlockMechanic getBlockMechanic(int customVariation) {
         return BLOCK_PER_VARIATION.get(customVariation);
     }
 
-    public static MushroomStemMechanic getMushroomStemMechanic(Block block) {
-        return BLOCK_PER_VARIATION.get(MushroomStemMechanic.getCode(block));
+    public static BlockMechanic getBlockMechanic(Block block) {
+        return BLOCK_PER_VARIATION.get(BlockMechanic.getCode(block));
     }
 
     /**
@@ -93,9 +83,9 @@ public class MushroomStemMechanicFactory extends MechanicFactory {
      */
     public static void setBlockModel(Block block, String itemId) {
         final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("block");
-        MushroomStemMechanic mushroomStemMechanic = (MushroomStemMechanic) mechanicFactory.getMechanic(itemId);
+        BlockMechanic blockMechanic = (BlockMechanic) mechanicFactory.getMechanic(itemId);
         MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(Material.MUSHROOM_STEM);
-        MushroomStemMechanic.setBlockFacing(newBlockData, mushroomStemMechanic.getCustomVariation());
+        BlockMechanic.setBlockFacing(newBlockData, blockMechanic.getCustomVariation());
         block.setBlockData(newBlockData, false);
     }
 
@@ -111,14 +101,14 @@ public class MushroomStemMechanicFactory extends MechanicFactory {
         if (block == null || itemId == null || itemId.isEmpty()) return false;
 
         final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("block");
-        final MushroomStemMechanic mushroomStemMechanic = (MushroomStemMechanic) mechanicFactory.getMechanic(itemId);
+        final BlockMechanic blockMechanic = (BlockMechanic) mechanicFactory.getMechanic(itemId);
 
         Material material;
         if (blockDataMaterial == null || blockDataMaterial.isEmpty()) material = Material.MUSHROOM_STEM;
         else material = Material.getMaterial(blockDataMaterial.toUpperCase().replace(" ", "_").replace("-", "_"));
 
         final MultipleFacing newBlockData = (MultipleFacing) Bukkit.createBlockData(material);
-        MushroomStemMechanic.setBlockFacing(newBlockData, mushroomStemMechanic.getCustomVariation());
+        BlockMechanic.setBlockFacing(newBlockData, blockMechanic.getCustomVariation());
         block.setBlockData(newBlockData, false);
         return true;
     }

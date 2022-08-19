@@ -1,34 +1,22 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 
 import com.google.gson.JsonObject;
-import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem.directional.DirectionalBlock;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem.farmblock.FarmBlockDryout;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem.logstrip.LogStripping;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
-import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
-import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.List;
 
-public class MushroomStemMechanic extends Mechanic {
+public class BlockMechanic extends Mechanic {
 
-    public static final NamespacedKey FARMBLOCK_KEY = new NamespacedKey(OraxenPlugin.get(), "farmblock");
-
-    protected final boolean hasHardness;
     private String model;
     private final int customVariation;
     private final Drop drop;
@@ -39,20 +27,8 @@ public class MushroomStemMechanic extends Mechanic {
     private final String fallSound;
     private final boolean canIgnite;
 
-    private int period;
-
-    private final int light;
-
-    private final FarmBlockDryout farmBlockDryout;
-
-    private final LogStripping logStripping;
-
-    private final DirectionalBlock directionalBlock;
-
-    private final List<ClickAction> clickActions;
-
     @SuppressWarnings("unchecked")
-    public MushroomStemMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
+    public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         /*
          * We give: - an instance of the Factory which created the mechanic - the
          * section used to configure the mechanic
@@ -77,7 +53,7 @@ public class MushroomStemMechanic extends Mechanic {
             loots.add(new Loot(lootConfig));
 
         if (drop.isString("minimal_type")) {
-            MushroomStemMechanicFactory mechanic = (MushroomStemMechanicFactory) mechanicFactory;
+            BlockMechanicFactory mechanic = (BlockMechanicFactory) mechanicFactory;
             this.drop = new Drop(mechanic.toolTypes, loots, drop.getBoolean("silktouch"),
                     drop.getBoolean("fortune"),
                     getItemID(),
@@ -85,52 +61,6 @@ public class MushroomStemMechanic extends Mechanic {
                     new ArrayList<>());
         } else
             this.drop = new Drop(loots, drop.getBoolean("silktouch"), drop.getBoolean("fortune"), getItemID());
-
-        // hardness requires protocollib
-        if (CompatibilitiesManager.hasPlugin("ProtocolLib") && section.isInt("hardness")) {
-            hasHardness = true;
-            period = section.getInt("hardness");
-        } else hasHardness = false;
-
-        light = section.getInt("light", -1);
-        clickActions = ClickAction.parseList(section);
-
-        if (section.isConfigurationSection("farmblock")) {
-            farmBlockDryout = new io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem.farmblock.FarmBlockDryout(getItemID(), section.getConfigurationSection("farmblock"));
-            ((NoteBlockMechanicFactory) getFactory()).registerFarmBlock();
-        } else farmBlockDryout = null;
-
-        if (section.isConfigurationSection("logStrip")) {
-            logStripping = new io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem.logstrip.LogStripping(section.getConfigurationSection("logStrip"));
-        } else logStripping = null;
-
-        if (section.isConfigurationSection("directional")) {
-            directionalBlock = new io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem.directional.DirectionalBlock(section.getConfigurationSection("directional"));
-        } else directionalBlock = null;
-    }
-
-    public boolean hasDryout() {
-        return farmBlockDryout != null;
-    }
-
-    public io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem.farmblock.FarmBlockDryout getDryout() {
-        return farmBlockDryout;
-    }
-
-    public boolean isLog() {
-        return logStripping != null;
-    }
-
-    public io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem.logstrip.LogStripping getLog() {
-        return logStripping;
-    }
-
-    public boolean isDirectional() {
-        return directionalBlock != null;
-    }
-
-    public io.th0rgal.oraxen.mechanics.provided.gameplay.mushroomstem.directional.DirectionalBlock getDirectional() {
-        return directionalBlock;
     }
 
     public String getModel(ConfigurationSection section) {
@@ -206,21 +136,5 @@ public class MushroomStemMechanic extends Mechanic {
         for (int i = 0; i < properties.length; i++) blockData.setFace(properties[i], (code & 0x1 << i) != 0);
     }
 
-    public int getPeriod() {
-        return period;
-    }
 
-    public int getLight() {
-        return light;
-    }
-
-    public boolean hasClickActions() { return !clickActions.isEmpty(); }
-
-    public void runClickActions(final Player player) {
-        for (final ClickAction action : clickActions) {
-            if (action.canRun(player)) {
-                action.performActions(player);
-            }
-        }
-    }
 }
