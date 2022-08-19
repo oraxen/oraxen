@@ -32,6 +32,7 @@ public class NoteBlockMechanic extends Mechanic {
     private String model;
     private int period;
     private final int light;
+    private final boolean canIgnite;
     private final FarmBlockDryout farmBlockDryout;
     private final LogStripping logStripping;
     private final DirectionalBlock directionalBlock;
@@ -85,6 +86,7 @@ public class NoteBlockMechanic extends Mechanic {
 
         light = section.getInt("light", -1);
         clickActions = ClickAction.parseList(section);
+        canIgnite = section.getBoolean("can_ignite", false);
 
         if (section.isConfigurationSection("farmblock")) {
             farmBlockDryout = new FarmBlockDryout(getItemID(), section.getConfigurationSection("farmblock"));
@@ -168,6 +170,10 @@ public class NoteBlockMechanic extends Mechanic {
 
     public int getLight() {
         return light;
+    }
+
+    public boolean canIgnite() {
+        return canIgnite;
     }
 
     public boolean hasClickActions() { return !clickActions.isEmpty(); }

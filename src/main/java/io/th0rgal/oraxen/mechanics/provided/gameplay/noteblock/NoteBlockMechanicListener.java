@@ -297,28 +297,56 @@ public class NoteBlockMechanicListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onSetFire(final PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        ItemStack item = event.getItem();
+        if (block == null || block.getType() != Material.NOTE_BLOCK) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getBlockFace() != BlockFace.UP) return;
+        if (item == null) return;
+
+        NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
+        if (mechanic == null) return;
+        if (mechanic.isDirectional())
+            mechanic = (NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock());
+
+        if (!mechanic.canIgnite()) return;
+        if (item.getType() != Material.FLINT_AND_STEEL && item.getType() != Material.FIRE_CHARGE) return;
+        BlockIgniteEvent igniteEvent = new BlockIgniteEvent(block, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, event.getPlayer());
+        Bukkit.getPluginManager().callEvent(igniteEvent);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onCatchFire(final BlockIgniteEvent event) {
+        Block block = event.getBlock();
+        NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
+        if (block.getType() != Material.NOTE_BLOCK || mechanic == null) return;
+        if (!mechanic.canIgnite()) event.setCancelled(true);
+
+        block.getWorld().playSound(block.getLocation(), Sound.ITEM_FLINTANDSTEEL_USE, 1, 1);
+        block.getRelative(BlockFace.UP).setType(Material.FIRE);
+    }
+
     @EventHandler
     public void onStepFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (entity == null) return;
-        GameEvent gameEvent = event.getEvent();
-        Block currentBlock = entity.getLocation().getBlock();
-        Block blockBelow = currentBlock.getRelative(BlockFace.DOWN);
-        String sound;
         Location eLoc = entity.getLocation();
         if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
 
-        Block below = entity.getLocation().getBlock().getRelative(BlockFace.DOWN);
-        SoundGroup soundGroup = below.getBlockData().getSoundGroup();
-        NoteBlockMechanic mechanic = getNoteBlockMechanic(below);
+        GameEvent gameEvent = event.getEvent();
+        Block currentBlock = entity.getLocation().getBlock();
+        Block blockBelow = currentBlock.getRelative(BlockFace.DOWN);
+
+        SoundGroup soundGroup = blockBelow.getBlockData().getSoundGroup();
+        NoteBlockMechanic mechanic = getNoteBlockMechanic(blockBelow);
 
         if (soundGroup.getStepSound() != Sound.BLOCK_WOOD_STEP) return;
         if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(currentBlock.getType()) || currentBlock.getType() == Material.TRIPWIRE) return;
-        if (mechanic != null && mechanic.isDirectional()) {
+        if (mechanic != null && mechanic.isDirectional())
             mechanic = ((NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock()));
-        }
 
-        // Handles wood and noteblock as noteblock normally inherits said sounds
+        String sound;
         if (gameEvent == GameEvent.STEP) {
             if (blockBelow.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasStepSound())
                 sound = mechanic.getStepSound();
