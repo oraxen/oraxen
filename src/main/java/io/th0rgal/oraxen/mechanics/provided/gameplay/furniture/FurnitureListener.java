@@ -104,7 +104,7 @@ public class FurnitureListener implements Listener {
 
         if (block.getType() == Material.BARRIER || block.getType() == Material.TRIPWIRE) return;
         if (block.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_STONE_PLACE) return;
-        BlockHelpers.playCustomBlockSound(event.getBlock(), VANILLA_STONE_PLACE);
+        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), VANILLA_STONE_PLACE);
     }
 
     // Play sound due to furniture/barrier custom sound replacing stone
@@ -118,7 +118,7 @@ public class FurnitureListener implements Listener {
             breakerPlaySound.get(block).cancel();
             breakerPlaySound.remove(block);
         }
-        BlockHelpers.playCustomBlockSound(event.getBlock(), VANILLA_STONE_BREAK);
+        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), VANILLA_STONE_BREAK);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -131,7 +131,7 @@ public class FurnitureListener implements Listener {
         if (breakerPlaySound.containsKey(block)) return;
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                BlockHelpers.playCustomBlockSound(block, VANILLA_STONE_HIT), 3L, 3L);
+                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_STONE_HIT), 3L, 3L);
         breakerPlaySound.put(block, task);
     }
 
@@ -465,7 +465,7 @@ public class FurnitureListener implements Listener {
                     ? mechanic.getFallSound() : VANILLA_STONE_FALL;
         } else return;
 
-        BlockHelpers.playCustomBlockSound(blockBelow, sound, SoundCategory.PLAYERS);
+        BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS);
     }
 
     private boolean isStandingInside(final Player player, final Block block) {

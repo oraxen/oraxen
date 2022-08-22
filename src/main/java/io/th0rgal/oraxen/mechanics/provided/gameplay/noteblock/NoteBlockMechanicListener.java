@@ -193,7 +193,7 @@ public class NoteBlockMechanicListener implements Listener {
         final Block block = event.getBlock();
         if (block.getBlockData().getSoundGroup().getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (getNoteBlockMechanic(block) != null || block.getType() == Material.MUSHROOM_STEM) return;
-        BlockHelpers.playCustomBlockSound(block, VANILLA_WOOD_HIT);
+        BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_HIT);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -207,7 +207,7 @@ public class NoteBlockMechanicListener implements Listener {
             breakerPlaySound.remove(block);
         }
 
-        BlockHelpers.playCustomBlockSound(block, VANILLA_WOOD_BREAK);
+        BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_BREAK);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -229,7 +229,7 @@ public class NoteBlockMechanicListener implements Listener {
             return;
         }
 
-        BlockHelpers.playCustomBlockSound(block, mechanic.hasBreakSound() ? mechanic.getBreakSound() : VANILLA_WOOD_BREAK);
+        BlockHelpers.playCustomBlockSound(block.getLocation(), mechanic.hasBreakSound() ? mechanic.getBreakSound() : VANILLA_WOOD_BREAK);
         if (mechanic.getLight() != -1)
             WrappedLightAPI.removeBlockLight(block.getLocation());
         if (player.getGameMode() != GameMode.CREATIVE)
@@ -258,7 +258,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (getNoteBlockMechanic(placed) != null || placed.getType() == Material.MUSHROOM_STEM) return;
 
         // Play sound for wood
-        BlockHelpers.playCustomBlockSound(placed, VANILLA_WOOD_PLACE);
+        BlockHelpers.playCustomBlockSound(placed.getLocation(), VANILLA_WOOD_PLACE);
         if (placed.getType() == Material.NOTE_BLOCK && !OraxenItems.exists(event.getItemInHand()))
             placed.setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
     }
@@ -300,7 +300,7 @@ public class NoteBlockMechanicListener implements Listener {
                 customBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
             }
 
-            BlockHelpers.playCustomBlockSound(placedBlock, mechanic.hasPlaceSound() ? mechanic.getPlaceSound() : VANILLA_WOOD_PLACE);
+            BlockHelpers.playCustomBlockSound(placedBlock.getLocation(), mechanic.hasPlaceSound() ? mechanic.getPlaceSound() : VANILLA_WOOD_PLACE);
         }
     }
 
@@ -344,7 +344,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (breakerPlaySound.containsKey(block)) return;
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                BlockHelpers.playCustomBlockSound(block, VANILLA_WOOD_HIT), 3L, 3L);
+                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_HIT), 3L, 3L);
         breakerPlaySound.put(block, task);
     }
 
@@ -385,7 +385,7 @@ public class NoteBlockMechanicListener implements Listener {
                     ? mechanic.getFallSound() : VANILLA_WOOD_FALL;
         } else return;
 
-        BlockHelpers.playCustomBlockSound(blockBelow, sound, SoundCategory.PLAYERS);
+        BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -509,7 +509,7 @@ public class NoteBlockMechanicListener implements Listener {
             else item.setAmount(item.getAmount() - 1);
         }
 
-        BlockHelpers.playCustomBlockSound(target, sound, SoundCategory.BLOCKS);
+        BlockHelpers.playCustomBlockSound(target.getLocation(), sound, SoundCategory.BLOCKS);
         Utils.sendAnimation(player, hand);
 
         return target;

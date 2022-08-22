@@ -286,7 +286,7 @@ public class FurnitureMechanic extends Mechanic {
         else if (light != -1)
             WrappedLightAPI.createBlockLight(location, light);
 
-        BlockHelpers.playCustomBlockSound(location.getBlock(), hasPlaceSound() ? getPlaceSound() : VANILLA_STONE_PLACE);
+        BlockHelpers.playCustomBlockSound(location, hasPlaceSound() ? getPlaceSound() : VANILLA_STONE_PLACE);
         return output;
     }
 
@@ -332,7 +332,7 @@ public class FurnitureMechanic extends Mechanic {
                 break;
             }
 
-        BlockHelpers.playCustomBlockSound(rootLocation.getBlock(), hasBreakSound() ? getBreakSound() : VANILLA_STONE_BREAK);
+        BlockHelpers.playCustomBlockSound(rootLocation, hasBreakSound() ? getBreakSound() : VANILLA_STONE_BREAK);
         return removed;
     }
 
@@ -352,7 +352,7 @@ public class FurnitureMechanic extends Mechanic {
         }
         frame.remove();
         if (hasBreakSound())
-            BlockHelpers.playCustomBlockSound(location.getBlock(), getBreakSound());
+            BlockHelpers.playCustomBlockSound(location, getBreakSound());
     }
 
     public void remove(ItemFrame frame) {

@@ -49,7 +49,7 @@ public class BlockMechanicListener implements Listener {
         final BlockMechanic blockMechanic = getBlockMechanic(block);
         if (blockMechanic == null) return;
 
-        BlockHelpers.playCustomBlockSound(block, blockMechanic.hasBreakSound() ? blockMechanic.getBreakSound() : VANILLA_WOOD_BREAK);
+        BlockHelpers.playCustomBlockSound(block.getLocation(), blockMechanic.hasBreakSound() ? blockMechanic.getBreakSound() : VANILLA_WOOD_BREAK);
         blockMechanic.getDrop().spawns(block.getLocation(), event.getPlayer().getInventory().getItemInMainHand());
         event.setDropItems(false);
     }
@@ -114,7 +114,7 @@ public class BlockMechanicListener implements Listener {
             return;
         }
 
-        BlockHelpers.playCustomBlockSound(target, mechanic.hasPlaceSound() ? mechanic.getPlaceSound() : VANILLA_WOOD_PLACE);
+        BlockHelpers.playCustomBlockSound(target.getLocation(), mechanic.hasPlaceSound() ? mechanic.getPlaceSound() : VANILLA_WOOD_PLACE);
         event.setCancelled(true);
         if (player.getGameMode() != GameMode.CREATIVE)
             item.setAmount(item.getAmount() - 1);
@@ -167,7 +167,7 @@ public class BlockMechanicListener implements Listener {
         else if (gameEvent == GameEvent.HIT_GROUND) sound = mechanic.hasFallSound() ? mechanic.getFallSound() : VANILLA_WOOD_FALL;
         else return;
 
-        BlockHelpers.playCustomBlockSound(blockBelow, sound, SoundCategory.PLAYERS);
+        BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS);
     }
 
     private boolean isStandingInside(final Player player, final Block block) {

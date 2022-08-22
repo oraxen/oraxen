@@ -159,7 +159,7 @@ public class BreakerSystem {
         fakeAnimation.getBlockPositionModifier().write(0, new BlockPosition(location.toVector()));
         if (!breakerPlaySound.contains(block)) {
             breakerPlaySound.add(block);
-            BlockHelpers.playCustomBlockSound(block, getSound(block));
+            BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block));
             Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
                     breakerPlaySound.remove(block), 3);
         }
