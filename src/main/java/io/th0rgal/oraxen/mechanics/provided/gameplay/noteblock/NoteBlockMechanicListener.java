@@ -56,13 +56,13 @@ public class NoteBlockMechanicListener implements Listener {
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPistonPush(BlockPistonExtendEvent event) {
         if (event.getBlocks().stream().anyMatch(block -> block.getType().equals(Material.NOTE_BLOCK)))
             event.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPistonPull(BlockPistonRetractEvent event) {
         if (event.getBlocks().stream().anyMatch(block -> block.getType().equals(Material.NOTE_BLOCK)))
             event.setCancelled(true);
@@ -188,27 +188,13 @@ public class NoteBlockMechanicListener implements Listener {
             event.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    /*@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onHitBlock(final BlockDamageEvent event) {
         final Block block = event.getBlock();
         if (block.getBlockData().getSoundGroup().getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (getNoteBlockMechanic(block) != null || block.getType() == Material.MUSHROOM_STEM) return;
         BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_HIT);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onBreakingBlock(final BlockBreakEvent event) {
-        final Block block = event.getBlock();
-        if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
-        if (getNoteBlockMechanic(block) != null || block.getType() == Material.MUSHROOM_STEM) return;
-
-        if (breakerPlaySound.containsKey(block)) {
-            breakerPlaySound.get(block).cancel();
-            breakerPlaySound.remove(block);
-        }
-
-        BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_BREAK);
-    }
+    }*/
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
@@ -249,18 +235,6 @@ public class NoteBlockMechanicListener implements Listener {
             noteBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
             block.setType(Material.AIR, false);
         });
-    }
-
-    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
-    public void onPlacingBlock(final BlockPlaceEvent event) {
-        Block placed = event.getBlockPlaced();
-        if (placed.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_WOOD_PLACE) return;
-        if (getNoteBlockMechanic(placed) != null || placed.getType() == Material.MUSHROOM_STEM) return;
-
-        // Play sound for wood
-        BlockHelpers.playCustomBlockSound(placed.getLocation(), VANILLA_WOOD_PLACE);
-        if (placed.getType() == Material.NOTE_BLOCK && !OraxenItems.exists(event.getItemInHand()))
-            placed.setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -339,12 +313,12 @@ public class NoteBlockMechanicListener implements Listener {
         Block block = event.getBlock();
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
 
-        if (event.getInstaBreak()) return;
-        if (block.getType() == Material.NOTE_BLOCK || soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
+        if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM)return;
+        if (event.getInstaBreak() || soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (breakerPlaySound.containsKey(block)) return;
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_HIT), 3L, 3L);
+                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_HIT), 3L, 6L);
         breakerPlaySound.put(block, task);
     }
 
@@ -355,6 +329,32 @@ public class NoteBlockMechanicListener implements Listener {
             breakerPlaySound.get(block).cancel();
             breakerPlaySound.remove(block);
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onPlacingBlock(final BlockPlaceEvent event) {
+        Block placed = event.getBlockPlaced();
+        if (placed.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_WOOD_PLACE) return;
+        if (getNoteBlockMechanic(placed) != null || placed.getType() == Material.MUSHROOM_STEM) return;
+
+        // Play sound for wood
+        BlockHelpers.playCustomBlockSound(placed.getLocation(), VANILLA_WOOD_PLACE);
+        if (placed.getType() == Material.NOTE_BLOCK && !OraxenItems.exists(event.getItemInHand()))
+            placed.setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBreakingBlock(final BlockBreakEvent event) {
+        final Block block = event.getBlock();
+        if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
+        if (getNoteBlockMechanic(block) != null || block.getType() == Material.MUSHROOM_STEM) return;
+
+        if (breakerPlaySound.containsKey(block)) {
+            breakerPlaySound.get(block).cancel();
+            breakerPlaySound.remove(block);
+        }
+
+        BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_BREAK);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)

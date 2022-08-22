@@ -79,8 +79,7 @@ public class BreakerSystem {
                     triggeredModifier = modifier;
                     break;
                 }
-            if (triggeredModifier == null || triggeredModifier.getPeriod(player, block, item) == 0)
-                return;
+            if (triggeredModifier == null || triggeredModifier.getPeriod(player, block, item) == 0) return;
             event.setCancelled(true);
 
             final Location location = block.getLocation();
@@ -113,7 +112,10 @@ public class BreakerSystem {
                                 sendBlockBreak(viewer, location, value);
 
                         if (value++ < 10) return;
-                        if (!ProtectionLib.canBreak(player, block.getLocation())) return;
+                        if (!ProtectionLib.canBreak(player, block.getLocation())) {
+                            breakerPlaySound.remove(block);
+                            return;
+                        }
 
                         final BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
                         Bukkit.getPluginManager().callEvent(blockBreakEvent);
@@ -122,7 +124,7 @@ public class BreakerSystem {
                             modifier.breakBlock(player, block, item);
                             PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item, 1);
                             Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
-                        }
+                        } else breakerPlaySound.remove(block);
 
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
                                 player.removePotionEffect(PotionEffectType.SLOW_DIGGING));
