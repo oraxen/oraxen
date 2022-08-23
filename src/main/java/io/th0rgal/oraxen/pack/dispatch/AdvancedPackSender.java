@@ -18,8 +18,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
-import java.lang.reflect.InvocationTargetException;
-
 public class AdvancedPackSender extends PackSender implements Listener {
 
     private final ProtocolManager protocolManager;
@@ -51,11 +49,7 @@ public class AdvancedPackSender extends PackSender implements Listener {
         handle.getStrings().write(1, hostingProvider.getOriginalSHA1());
         handle.getBooleans().write(0, Settings.SEND_PACK_ADVANCED_MANDATORY.toBool());
         handle.getChatComponents().write(0, component);
-        try {
-            protocolManager.sendServerPacket(player, handle);
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
-        }
+        protocolManager.sendServerPacket(player, handle);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)
