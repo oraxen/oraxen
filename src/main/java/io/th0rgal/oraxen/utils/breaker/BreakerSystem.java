@@ -12,15 +12,15 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -33,11 +33,16 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory.getBlockMechanic;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.FURNITURE_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener.getStringMechanic;
 
 public class BreakerSystem {
 
@@ -74,8 +79,7 @@ public class BreakerSystem {
                     triggeredModifier = modifier;
                     break;
                 }
-            if (triggeredModifier == null || triggeredModifier.getPeriod(player, block, item) == 0)
-                return;
+            if (triggeredModifier == null || triggeredModifier.getPeriod(player, block, item) == 0) return;
             event.setCancelled(true);
 
             final Location location = block.getLocation();
@@ -107,19 +111,21 @@ public class BreakerSystem {
                             if (entity instanceof Player viewer)
                                 sendBlockBreak(viewer, location, value);
 
-                        if (value++ < 10)
+                        if (value++ < 10) return;
+                        if (!ProtectionLib.canBreak(player, block.getLocation())) {
+                            breakerPlaySound.remove(block);
                             return;
+                        }
 
-                        if (!ProtectionLib.canBreak(player, block.getLocation()))
-                            return;
                         final BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
                         Bukkit.getPluginManager().callEvent(blockBreakEvent);
+
                         if (!blockBreakEvent.isCancelled()) {
                             modifier.breakBlock(player, block, item);
-                            PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player,
-                                    item, 1);
+                            PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item, 1);
                             Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
-                        }
+                        } else breakerPlaySound.remove(block);
+
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
                                 player.removePotionEffect(PotionEffectType.SLOW_DIGGING));
                         breakerPerLocation.remove(location);
@@ -155,7 +161,7 @@ public class BreakerSystem {
         fakeAnimation.getBlockPositionModifier().write(0, new BlockPosition(location.toVector()));
         if (!breakerPlaySound.contains(block)) {
             breakerPlaySound.add(block);
-            BlockHelpers.playCustomBlockSound(block, getSound(block));
+            BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block));
             Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
                     breakerPlaySound.remove(block), 3);
         }
@@ -168,18 +174,31 @@ public class BreakerSystem {
     }
 
     private String getSound(Block block) {
-        return switch (block.getType()) {
-            case NOTE_BLOCK -> Objects.requireNonNull(getNoteBlockMechanic(block)).getHitSound();
-            case MUSHROOM_STEM -> BlockMechanicFactory.getBlockMechanic(block).getHitSound();
-            case TRIPWIRE -> StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode((Tripwire) block.getBlockData())).getHitSound();
-            case BARRIER -> getFurnitureMechanic(block).getHitSound();
-            default -> null;
-        };
+        switch (block.getType()) {
+            case NOTE_BLOCK -> {
+                NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
+                return (mechanic != null && mechanic.hasHitSound()) ? mechanic.getHitSound() : "required.wood.hit";
+            }
+            case MUSHROOM_STEM -> {
+                BlockMechanic mechanic = getBlockMechanic(block);
+                return (mechanic != null && mechanic.hasHitSound()) ? mechanic.getHitSound() : "required.wood.hit";
+            }
+            case TRIPWIRE -> {
+                StringBlockMechanic mechanic = getStringMechanic(block);
+                return (mechanic != null && mechanic.hasHitSound()) ? mechanic.getHitSound() : "block.tripwire.detach";
+            }
+            case BARRIER -> {
+                FurnitureMechanic mechanic = getFurnitureMechanic(block);
+                return (mechanic != null && mechanic.hasHitSound()) ? mechanic.getHitSound() : "required.stone.hit";
+            }
+            default -> { return block.getBlockData().getSoundGroup().getHitSound().toString(); }
+        }
     }
 
     private FurnitureMechanic getFurnitureMechanic(Block block) {
         if (block.getType() != Material.BARRIER) return null;
         final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
+        if (!customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING)) return null;
         final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
         return (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(mechanicID);
     }

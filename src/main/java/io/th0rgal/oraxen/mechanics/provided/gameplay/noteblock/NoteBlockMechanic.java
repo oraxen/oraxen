@@ -158,9 +158,9 @@ public class NoteBlockMechanic extends Mechanic {
     public String getFallSound() { return validateReplacedSounds(fallSound); }
     private String validateReplacedSounds(String sound) {
         if (sound.startsWith("block.wood"))
-            return sound.replace("block.wood", "required.wood.");
+            return sound.replaceFirst("block.wood", "required.wood");
         else if (sound.startsWith("block.stone"))
-            return sound.replace("block.stone", "required.stone.");
+            return sound.replaceFirst("block.stone", "required.stone");
         else return sound;
     }
 

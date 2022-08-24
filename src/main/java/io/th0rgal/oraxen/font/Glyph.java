@@ -3,9 +3,19 @@ package io.th0rgal.oraxen.font;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 
 public class Glyph {
@@ -71,6 +81,10 @@ public class Glyph {
         return texture;
     }
 
+    public void setTexture(String texture) {
+        this.texture = (texture.endsWith(".png")) ? texture : texture + ".png";
+    }
+
     public int getAscent() {
         return ascent;
     }
@@ -87,9 +101,13 @@ public class Glyph {
         return placeholders;
     }
 
-    public boolean isEmoji() { return isEmoji; }
+    public boolean isEmoji() {
+        return isEmoji;
+    }
 
-    public boolean hasTabCompletion() { return tabcomplete; }
+    public boolean hasTabCompletion() {
+        return tabcomplete;
+    }
 
     public String getTabIconTexture() {
         return tabIconTexture;
@@ -121,5 +139,44 @@ public class Glyph {
 
     public int getCode() {
         return code;
+    }
+
+    public void verifyGlyph(List<Glyph> glyphs) {
+        final File texture = new File(OraxenPlugin.get().getDataFolder().getAbsolutePath() + "/pack/textures", getTexture());
+        Map<Glyph, Boolean> sameCodeMap = glyphs.stream().filter(g -> g != this && g.getCode() == this.getCode()).collect(Collectors.toMap(g -> g, g -> true));
+        boolean hasUpperCase = false;
+        BufferedImage image = null;
+        for (char c : getTexture().toCharArray()) if (Character.isUpperCase(c)) hasUpperCase = true;
+        try { image = ImageIO.read(texture); } catch (IOException ignored) {}
+
+        if (height < ascent) {
+            this.setTexture("required/exit_icon");
+            Logs.logError("The ascent is bigger than the height for " + name + ". This will break all your glyphs.");
+            Logs.logWarning("It has been temporarily set to a placeholder image. You should edit this in the glyph config.");
+        } else if (!texture.exists() || image == null) {
+            this.setTexture("required/exit_icon");
+            Logs.logError("The texture specified for " + name + " does not exist. This will break all your glyphs.");
+            Logs.logWarning("It has been temporarily set to a placeholder image. You should edit this in the glyph config.");
+        } else if (hasUpperCase) {
+            this.setTexture("required/exit_icon");
+            Logs.logError("The filename specified for " + name + " contains capital letters.");
+            Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
+            Logs.logWarning("You should edit this in the glyph config and your textures filename.");
+        } else if (texture.getName().contains(" ")) {
+            this.setTexture("required/exit_icon");
+            Logs.logError("The filename specified for " + name + " contains spaces.");
+            Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
+            Logs.logWarning("You should replace spaces with _ in your filename and glyph config.");
+        } else if (image.getHeight() > 256 || image.getWidth() > 256) {
+            this.setTexture("required/exit_icon");
+            Logs.logError("The texture specified for " + name + " is larger than the supported size.");
+            Logs.logWarning("The maximum image size is 256x256. Anything bigger will break all your glyphs.");
+            Logs.logWarning("It has been temporarily set to a placeholder-image. You should edit this in the glyph config.");
+        } else if (!sameCodeMap.isEmpty()) {
+            this.setTexture("required/exit_icon");
+            Logs.logError(name + " code is the same as " + sameCodeMap.keySet().stream().map(Glyph::getName).collect(Collectors.joining(", ")) + ".");
+            Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
+            Logs.logWarning("You should edit the code of all these glyphs to be unique.");
+        }
     }
 }
