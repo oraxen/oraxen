@@ -155,6 +155,7 @@ public class ConfigsManager {
                 Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key), code);
                 if (glyph.isFileChanged())
                     fileChanged = true;
+                glyph.verifyGlyph(output);
                 output.add(glyph);
             }
             if (fileChanged && Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool())

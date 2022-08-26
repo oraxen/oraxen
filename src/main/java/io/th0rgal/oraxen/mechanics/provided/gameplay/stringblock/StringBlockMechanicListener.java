@@ -98,7 +98,7 @@ public class StringBlockMechanicListener implements Listener {
 
             if (stringBlockMechanic == null) return;
             if (stringBlockMechanic.hasBreakSound())
-                BlockHelpers.playCustomBlockSound(block, stringBlockMechanic.getBreakSound());
+                BlockHelpers.playCustomBlockSound(block.getLocation(), stringBlockMechanic.getBreakSound());
             if (stringBlockMechanic.getLight() != -1)
                 WrappedLightAPI.removeBlockLight(block.getLocation());
             stringBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
@@ -225,7 +225,7 @@ public class StringBlockMechanicListener implements Listener {
         if (placedBlock == null)
             return;
         if (mechanic.hasPlaceSound())
-            BlockHelpers.playCustomBlockSound(placedBlock, mechanic.getPlaceSound());
+            BlockHelpers.playCustomBlockSound(placedBlock.getLocation(), mechanic.getPlaceSound());
         if (mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
         if (mechanic.isSapling()) {
@@ -264,7 +264,7 @@ public class StringBlockMechanicListener implements Listener {
         if (gameEvent == GameEvent.STEP && mechanic.hasStepSound()) sound = mechanic.getStepSound();
         else if (gameEvent == GameEvent.HIT_GROUND && mechanic.hasStepSound()) sound = mechanic.getFallSound();
         else return;
-        BlockHelpers.playCustomBlockSound(block, sound, SoundCategory.PLAYERS);
+        BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -378,7 +378,7 @@ public class StringBlockMechanicListener implements Listener {
     private void breakStringBlock(Block block, StringBlockMechanic mechanic, ItemStack item) {
         if (mechanic == null) return;
         if (mechanic.hasBreakSound())
-            BlockHelpers.playCustomBlockSound(block, mechanic.getBreakSound());
+            BlockHelpers.playCustomBlockSound(block.getLocation(), mechanic.getBreakSound());
         if (mechanic.getLight() != -1)
             WrappedLightAPI.removeBlockLight(block.getLocation());
         mechanic.getDrop().spawns(block.getLocation(), item);
