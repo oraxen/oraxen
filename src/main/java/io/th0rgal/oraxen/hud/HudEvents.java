@@ -2,16 +2,20 @@ package io.th0rgal.oraxen.hud;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
+import org.apache.commons.lang3.Range;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityAirChangeEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.checkerframework.common.value.qual.IntRange;
 
 import java.util.Objects;
 
@@ -36,22 +40,18 @@ public class HudEvents implements Listener {
     }
 
     @EventHandler
-    public void onEnterWater(final PlayerMoveEvent event) {
+    public void onEnterWater(final EntityAirChangeEvent event) {
+        if (event.getEntityType() != EntityType.PLAYER) return;
+
         HudManager hudManager = OraxenPlugin.get().getHudManager();
-        Player player = event.getPlayer();
-        Block fromBlock = event.getFrom().getBlock();
-        Block toBlock = Objects.requireNonNull(event.getTo()).getBlock();
-        boolean fromBlockIsWater = event.getFrom().getBlock().getType() == Material.WATER;
-        boolean toBlockIsWater = event.getTo().getBlock().getType() == Material.WATER;
-        if (fromBlock.equals(toBlock)) return;
+        Player player = (Player) event.getEntity();
         Hud hud = hudManager.getActiveHudForPlayer(player);
 
-        //TODO Improve this check.
         if (hud == null || !hud.isDisabledWhilstInWater() || !hudManager.getHudStateForPlayer(player)) return;
-        if (!player.isInWater() && (fromBlockIsWater && !toBlockIsWater)) {
+        if (Range.between(0, player.getMaximumAir()).contains(event.getAmount())) {
             hudManager.setHudStateForPlayer(player, true);
             hudManager.updateHud(player);
-        } else if ((!fromBlockIsWater && toBlockIsWater) && player.isInWater()) {
+        } else {
             hudManager.setHudStateForPlayer(player, false);
             hudManager.disableHud(player);
         }
