@@ -48,7 +48,7 @@ public class HudEvents implements Listener {
         Hud hud = hudManager.getActiveHudForPlayer(player);
 
         if (hud == null || !hud.isDisabledWhilstInWater() || !hudManager.getHudStateForPlayer(player)) return;
-        if (Range.between(0, player.getMaximumAir()).contains(event.getAmount())) {
+        if (event.getAmount() < player.getMaximumAir()) {
             hudManager.setHudStateForPlayer(player, true);
             hudManager.updateHud(player);
         } else {
@@ -63,6 +63,7 @@ public class HudEvents implements Listener {
         Player player = event.getPlayer();
         Hud hud = hudManager.getActiveHudForPlayer(player);
         if (hud == null || hud.enableInSpectatorMode()) return;
+
         if (player.getGameMode() == GameMode.SPECTATOR) {
             hudManager.setHudStateForPlayer(player, false);
             hudManager.disableHud(player);
