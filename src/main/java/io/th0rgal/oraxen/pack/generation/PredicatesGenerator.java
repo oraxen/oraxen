@@ -131,6 +131,11 @@ public class PredicatesGenerator {
                     overrides.add(getOverride(predicate, "custom_model_data", customModelData, pullingModels.get((int) i)));
                 }
             }
+            if (oraxenMeta.hasCastModel()) {
+                final JsonObject predicate = new JsonObject();
+                predicate.addProperty("cast", 1);
+                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getCastModelName()));
+            }
 
         }
         json.add("overrides", overrides);
