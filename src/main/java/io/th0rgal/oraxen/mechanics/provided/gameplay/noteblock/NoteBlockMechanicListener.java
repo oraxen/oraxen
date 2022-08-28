@@ -494,7 +494,8 @@ public class NoteBlockMechanicListener implements Listener {
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
         if (BlockHelpers.correctAllBlockStates(target, player, face, item)) blockPlaceEvent.setCancelled(true);
-        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
+        if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
+        if (!ProtectionLib.canBuild(player, target.getLocation()) || !blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
             return null;
         }

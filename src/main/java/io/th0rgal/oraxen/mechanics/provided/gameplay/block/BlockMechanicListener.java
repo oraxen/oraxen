@@ -88,8 +88,7 @@ public class BlockMechanicListener implements Listener {
                     && target.getType() != Material.CAVE_AIR)
                 return;
         }
-        if (isStandingInside(player, target)
-                || !ProtectionLib.canBuild(player, target.getLocation()))
+        if (isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
             return;
 
         // determines the old information of the block
@@ -105,9 +104,8 @@ public class BlockMechanicListener implements Listener {
 
         // set the new block
         target.setBlockData(newBlockData); // false to cancel physic
-        final BlockPlaceEvent blockPlaceEvent =
-                new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, event.getHand());
-
+        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, event.getHand());
+        if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
