@@ -14,6 +14,7 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -147,6 +148,8 @@ public class Glyph {
     private final Set<String> materialNames = Arrays.stream(Material.values()).map(Material::name).collect(Collectors.toSet());
 
     public void verifyGlyph(List<Glyph> glyphs) {
+        // Return on first run as files aren't generated yet
+        if (!Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath() + "/pack").toFile().exists()) return;
         String namespace = getTexture().contains(":") ? "/pack/" + getTexture().split(":")[0] + "/textures" : "/pack/textures";
         final File texture = new File(OraxenPlugin.get().getDataFolder().getAbsolutePath() + namespace, getTexture());
         Map<Glyph, Boolean> sameCodeMap = glyphs.stream().filter(g -> g != this && g.getCode() == this.getCode()).collect(Collectors.toMap(g -> g, g -> true));
