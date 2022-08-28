@@ -6,6 +6,7 @@ import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -13,8 +14,11 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -141,19 +145,31 @@ public class Glyph {
         return code;
     }
 
+    private final Set<String> materialNames = Arrays.stream(Material.values()).map(Material::name).collect(Collectors.toSet());
+
     public void verifyGlyph(List<Glyph> glyphs) {
-        final File texture = new File(OraxenPlugin.get().getDataFolder().getAbsolutePath() + "/pack/textures", getTexture());
+        // Return on first run as files aren't generated yet
+        if (!Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath() + "/pack").toFile().exists()) return;
+        String namespace = getTexture().contains(":") ? "/pack/" + getTexture().split(":")[0] + "/textures" : "/pack/textures";
+        final File texture = new File(OraxenPlugin.get().getDataFolder().getAbsolutePath() + namespace, getTexture());
         Map<Glyph, Boolean> sameCodeMap = glyphs.stream().filter(g -> g != this && g.getCode() == this.getCode()).collect(Collectors.toMap(g -> g, g -> true));
+
+        // Check if the texture is a vanilla item texture and therefore not in oraxen, but the vanilla pack
+        boolean isMinecraftNamespace = !getTexture().contains(":") || getTexture().split(":")[0].equals("minecraft");
+        boolean isVanillaTexture = isMinecraftNamespace && materialNames.stream().anyMatch(name -> texture.getName().split("\\.")[0].toUpperCase().contains(name));
         boolean hasUpperCase = false;
         BufferedImage image = null;
         for (char c : getTexture().toCharArray()) if (Character.isUpperCase(c)) hasUpperCase = true;
-        try { image = ImageIO.read(texture); } catch (IOException ignored) {}
+        try {
+            image = ImageIO.read(texture);
+        } catch (IOException ignored) {
+        }
 
         if (height < ascent) {
             this.setTexture("required/exit_icon");
             Logs.logError("The ascent is bigger than the height for " + name + ". This will break all your glyphs.");
             Logs.logWarning("It has been temporarily set to a placeholder image. You should edit this in the glyph config.");
-        } else if (!texture.exists() || image == null) {
+        } else if (!isVanillaTexture && (!texture.exists() || image == null)) {
             this.setTexture("required/exit_icon");
             Logs.logError("The texture specified for " + name + " does not exist. This will break all your glyphs.");
             Logs.logWarning("It has been temporarily set to a placeholder image. You should edit this in the glyph config.");
@@ -167,7 +183,7 @@ public class Glyph {
             Logs.logError("The filename specified for " + name + " contains spaces.");
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
             Logs.logWarning("You should replace spaces with _ in your filename and glyph config.");
-        } else if (image.getHeight() > 256 || image.getWidth() > 256) {
+        } else if (!isVanillaTexture && (image.getHeight() > 256 || image.getWidth() > 256)) {
             this.setTexture("required/exit_icon");
             Logs.logError("The texture specified for " + name + " is larger than the supported size.");
             Logs.logWarning("The maximum image size is 256x256. Anything bigger will break all your glyphs.");
