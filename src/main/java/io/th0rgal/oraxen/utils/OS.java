@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -78,6 +80,7 @@ public class OS {
         macOs.put("10.15", "Catalina");
         macOs.put("11.1", "Big Sur");
         macOs.put("12.1", "Monterey");
+        macOs.put("12.5.1", "Monterey");
 
         darwin.put(5, "Puma");
         darwin.put(6, "Jaguar");
@@ -98,10 +101,11 @@ public class OS {
     private void initMacOsInfo(final String name, final String version, final String arch) {
         String[] versions = version.split("\\.");
         double numericVersion = Double.parseDouble(versions[0] + "." + versions[1]);
+        Logs.logWarning("version" + version);
         if (numericVersion < 10)
             this.osInfo = new OsInfo(name, version, arch, "Mac OS " + version);
         else
-            this.osInfo = new OsInfo(name, version, arch, "OS X " + macOs.get(version) + " (" + version + ")");
+            this.osInfo = new OsInfo(name, version, arch, "macOS " + macOs.get(version) + " (" + version + ")");
     }
 
     private void initDarwinOsInfo(final String name, final String version, final String arch) {
