@@ -95,15 +95,17 @@ public class Drop {
         if (!canDrop(itemInHand)) return;
         if (!location.isWorldLoaded()) return;
 
-        if (silktouch && itemInHand.hasItemMeta() && itemInHand.getItemMeta().hasEnchant(Enchantment.SILK_TOUCH)) {
-            location.getWorld().dropItemNaturally(location, OraxenItems.getItemById(sourceID).build());
-            return;
-        }
-
         int fortuneMultiplier = 1;
-        if (fortune && itemInHand.hasItemMeta() && itemInHand.getItemMeta().hasEnchant(Enchantment.LOOT_BONUS_BLOCKS))
-            fortuneMultiplier += ThreadLocalRandom.current()
-                    .nextInt(itemInHand.getItemMeta().getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS));
+        if (itemInHand != null && itemInHand.hasItemMeta()) {
+            if (silktouch && itemInHand.hasItemMeta() && itemInHand.getItemMeta().hasEnchant(Enchantment.SILK_TOUCH)) {
+                location.getWorld().dropItemNaturally(location, OraxenItems.getItemById(sourceID).build());
+                return;
+            }
+
+            if (fortune && itemInHand.hasItemMeta() && itemInHand.getItemMeta().hasEnchant(Enchantment.LOOT_BONUS_BLOCKS))
+                fortuneMultiplier += ThreadLocalRandom.current()
+                        .nextInt(itemInHand.getItemMeta().getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS));
+        }
 
         for (Loot loot : loots) {
             loot.dropNaturally(location, fortuneMultiplier);
