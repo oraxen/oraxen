@@ -278,7 +278,7 @@ public class FurnitureMechanic extends Mechanic {
                 clone.setItemMeta(meta);
                 frame.setItem(clone);
             } else
-                frame.setItem(placedItem);
+                frame.setItem(placedItem, false);
             frame.setRotation(rotation);
             frame.setFacingDirection(hasFacing() ? getFacing() : facing, true);
             frame.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
