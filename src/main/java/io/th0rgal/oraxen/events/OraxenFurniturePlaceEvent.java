@@ -47,8 +47,8 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
     }
 
     @NotNull
-    @Override
-    public HandlerList getHandlers() {
+    public HandlerList getHandlers() { return getHandlerList(); }
+    public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
