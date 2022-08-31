@@ -113,7 +113,7 @@ public class FurnitureListener implements Listener {
     }
 
     // Play sound due to furniture/barrier custom sound replacing stone
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onBreakingStone(final BlockBreakEvent event) {
         Block block = event.getBlock();
 
@@ -123,7 +123,9 @@ public class FurnitureListener implements Listener {
             breakerPlaySound.get(block).cancel();
             breakerPlaySound.remove(block);
         }
-        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), VANILLA_STONE_BREAK);
+
+        if (!event.isCancelled() && ProtectionLib.canBreak(event.getPlayer(), block.getLocation()))
+            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), VANILLA_STONE_BREAK);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -140,7 +142,7 @@ public class FurnitureListener implements Listener {
         breakerPlaySound.put(block, task);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onStopHittingStone(final BlockDamageAbortEvent event) {
         Block block = event.getBlock();
         if (breakerPlaySound.containsKey(block)) {
