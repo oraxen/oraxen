@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.events.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.events.OraxenFurnitureInteractEvent;
+import io.th0rgal.oraxen.events.OraxenFurniturePlaceEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -166,6 +167,7 @@ public class FurnitureListener implements Listener {
             }
         }
 
+
         if (target == null) return;
         final BlockData currentBlockData = target.getBlockData();
         FurnitureMechanic mechanic = getMechanic(item, player, target);
@@ -199,6 +201,14 @@ public class FurnitureListener implements Listener {
             Message.NOT_ENOUGH_SPACE.send(player);
         }
 
+        final OraxenFurniturePlaceEvent preCreationEvent = new OraxenFurniturePlaceEvent(mechanic, target, null, player, false);
+
+        Bukkit.getPluginManager().callEvent(preCreationEvent);
+
+        if(preCreationEvent.isCancelled()){
+            blockPlaceEvent.setCancelled(true);
+        }
+
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
@@ -206,10 +216,15 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), item);
+        ItemFrame itemframe = mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), item);
         Utils.sendAnimation(player, event.getHand());
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
+
+        final OraxenFurniturePlaceEvent postCreationEvent = new OraxenFurniturePlaceEvent(mechanic, target, itemframe, player, true);
+
+        Bukkit.getPluginManager().callEvent(postCreationEvent);
+
     }
 
     private Block getTarget(Block placedAgainst, BlockFace blockFace) {
