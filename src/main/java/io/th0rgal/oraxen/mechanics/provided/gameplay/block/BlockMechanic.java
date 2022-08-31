@@ -5,6 +5,8 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
+import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.configuration.ConfigurationSection;
@@ -24,6 +26,7 @@ public class BlockMechanic extends Mechanic {
     private final String stepSound;
     private final String hitSound;
     private final String fallSound;
+    private final boolean canIgnite;
 
     @SuppressWarnings("unchecked")
     public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -36,6 +39,7 @@ public class BlockMechanic extends Mechanic {
             model = section.getString("model");
 
         customVariation = section.getInt("custom_variation");
+        canIgnite = section.getBoolean("can_ignite", false);
 
         placeSound = section.getString("place_sound", null);
         breakSound = section.getString("break_sound", null);
@@ -75,35 +79,50 @@ public class BlockMechanic extends Mechanic {
         return drop;
     }
 
+    public boolean canIgnite() {
+        return canIgnite;
+    }
+
     public boolean hasBreakSound() {
         return breakSound != null;
     }
     public String getBreakSound() {
-        return breakSound;
+        return validateReplacedSounds(breakSound);
     }
 
     public boolean hasPlaceSound() {
         return placeSound != null;
     }
     public String getPlaceSound() {
-        return placeSound;
+        return validateReplacedSounds(placeSound);
     }
 
     public boolean hasStepSound() { return stepSound != null; }
-    public String getStepSound() { return stepSound; }
+    public String getStepSound() { return validateReplacedSounds(stepSound); }
 
     public boolean hasHitSound() { return hitSound != null; }
-    public String getHitSound() { return hitSound; }
+    public String getHitSound() { return validateReplacedSounds(hitSound); }
 
     public boolean hasFallSound() { return fallSound != null; }
-    public String getFallSound() { return fallSound; }
+    public String getFallSound() { return validateReplacedSounds(fallSound); }
+    private String validateReplacedSounds(String sound) {
+        if (sound.startsWith("block.wood"))
+            return sound.replace("block.wood", "required.wood.");
+        else if (sound.startsWith("block.stone"))
+            return sound.replace("block.stone", "required.stone.");
+        else return sound;
+    }
 
-    public static int getCode(final MultipleFacing blockData) {
-        final List<BlockFace> properties = Arrays
-                .asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
+    public static int getCode(final Block block) {
         int sum = 0;
-        for (final BlockFace blockFace : blockData.getFaces())
-            sum += (int) Math.pow(2, properties.indexOf(blockFace));
+        if (block.getType() == Material.MUSHROOM_STEM) {
+            final MultipleFacing blockData = (MultipleFacing) block.getBlockData();
+            final List<BlockFace> properties = Arrays
+                    .asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
+            for (final BlockFace blockFace : blockData.getFaces())
+                sum += (int) Math.pow(2, properties.indexOf(blockFace));
+        }
+
         return sum;
     }
 

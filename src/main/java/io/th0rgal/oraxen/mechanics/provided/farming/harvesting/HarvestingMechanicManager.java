@@ -8,17 +8,18 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
-import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 public class HarvestingMechanicManager implements Listener {
@@ -43,22 +44,14 @@ public class HarvestingMechanicManager implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPlayerInteract(final PlayerInteractEvent event) {
-
-        if (!event.getAction().equals(Action.RIGHT_CLICK_BLOCK) || event.getClickedBlock() == null)
-            return;
-
+        final Block clickedBlock = event.getClickedBlock();
         final ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
-        if (item == null)
-            return;
-
         final String itemID = OraxenItems.getIdByItem(item);
-
-        if (factory.isNotImplementedIn(itemID))
-            return;
-
         final Player player = event.getPlayer();
-
         final HarvestingMechanic mechanic = (HarvestingMechanic) factory.getMechanic(itemID);
+
+        if (event.getHand() != EquipmentSlot.HAND || !event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
+        if (clickedBlock == null || factory.isNotImplementedIn(itemID) || mechanic == null) return;
 
         final Timer playerTimer = mechanic.getTimer(player);
 
@@ -69,8 +62,7 @@ public class HarvestingMechanicManager implements Listener {
 
         playerTimer.reset();
 
-        for (final Block block : getNearbyBlocks(event.getClickedBlock().getLocation(), mechanic.getRadius(),
-                mechanic.getHeight()))
+        for (final Block block : getNearbyBlocks(clickedBlock.getLocation(), mechanic.getRadius(), mechanic.getHeight()))
             if (block.getBlockData() instanceof Ageable ageable
                     && ageable.getAge() == ageable.getMaximumAge()
                     && ProtectionLib.canBreak(player, block.getLocation())
@@ -90,15 +82,16 @@ public class HarvestingMechanicManager implements Listener {
                     default -> drops.addAll(block.getDrops());
                 }
                 for (final ItemStack itemStack : drops)
-                    giveItem(player, itemStack);
+                    giveItem(player, itemStack, clickedBlock.getLocation());
             }
 
     }
 
-    private void giveItem(final HumanEntity humanEntity, final ItemStack item) {
-        if (humanEntity.getInventory().firstEmpty() != -1)
-            humanEntity.getInventory().addItem(item);
-        else
-            humanEntity.getWorld().dropItem(humanEntity.getLocation(), item);
+    private void giveItem(final Player player, final ItemStack item, final Location location) {
+        if (player.getInventory().firstEmpty() != -1) {
+            for (Map.Entry<Integer, ItemStack> itemStack : player.getInventory().addItem(item).entrySet())
+                player.getWorld().dropItem(player.getLocation(), itemStack.getValue());
+        }
+        else player.getWorld().dropItemNaturally(location, item);
     }
 }

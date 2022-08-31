@@ -23,6 +23,7 @@ general:
   not_enough_exp: "<prefix><#fa4943>Sie brauchen mehr Erfahrung, um dies zu tun"
   not_enough_space: "<prefix><#fa4943>Sie brauchen mehr Platz, um diese Möbel zu platzieren"
   exit_menu: "<gradient:#FA7CBB:#F14658>Beenden"
+  no_emojis: "<prefix><#fa4943>Keine Emojis gefunden"
 
 logs:
   loaded: "<prefix><#55ffa4>Erfolgreich geladen auf <os>"

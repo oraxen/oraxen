@@ -71,6 +71,11 @@ public class BlockMechanicFactory extends MechanicFactory {
         return BLOCK_PER_VARIATION.get(customVariation);
     }
 
+    public static BlockMechanic getBlockMechanic(Block block) {
+        return (block.getType() == Material.MUSHROOM_STEM)
+                ? BLOCK_PER_VARIATION.get(BlockMechanic.getCode(block)) : null;
+    }
+
     /**
      * Attempts to set the block directly to the model and texture of an Oraxen item.
      *

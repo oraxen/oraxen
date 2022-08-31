@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.items;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
+import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -50,6 +51,10 @@ public class ItemBuilder {
     }
 
     public ItemBuilder(WrappedMMOItem wrapped) {
+        this(wrapped.build());
+    }
+
+    public ItemBuilder(WrappedCrucibleItem wrapped) {
         this(wrapped.build());
     }
 

@@ -103,24 +103,31 @@ public class StringBlockMechanic extends Mechanic {
         return breakSound != null;
     }
     public String getBreakSound() {
-        return breakSound;
+        return validateReplacedSounds(breakSound);
     }
 
     public boolean hasPlaceSound() {
         return placeSound != null;
     }
     public String getPlaceSound() {
-        return placeSound;
+        return validateReplacedSounds(placeSound);
     }
 
     public boolean hasStepSound() { return stepSound != null; }
-    public String getStepSound() { return stepSound; }
+    public String getStepSound() { return validateReplacedSounds(stepSound); }
 
     public boolean hasHitSound() { return hitSound != null; }
-    public String getHitSound() { return hitSound; }
+    public String getHitSound() { return validateReplacedSounds(hitSound); }
 
     public boolean hasFallSound() { return fallSound != null; }
-    public String getFallSound() { return fallSound; }
+    public String getFallSound() { return validateReplacedSounds(fallSound); }
+    private String validateReplacedSounds(String sound) {
+        if (sound.startsWith("block.wood"))
+            return sound.replace("block.wood", "required.wood.");
+        else if (sound.startsWith("block.stone"))
+            return sound.replace("block.stone", "required.stone.");
+        else return sound;
+    }
 
     public int getPeriod() {
         return period;

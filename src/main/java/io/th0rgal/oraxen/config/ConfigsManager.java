@@ -56,7 +56,9 @@ public class ConfigsManager {
         return sound != null ? sound : defaultSound;
     }
 
-    public File getSchematicsFolder() { return schematicsFolder; }
+    public File getSchematicsFolder() {
+        return schematicsFolder;
+    }
 
     private YamlConfiguration extractDefault(String source) {
         InputStreamReader inputStreamReader = new InputStreamReader(plugin.getResource(source));
@@ -153,6 +155,7 @@ public class ConfigsManager {
                 Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key), code);
                 if (glyph.isFileChanged())
                     fileChanged = true;
+                glyph.verifyGlyph(output);
                 output.add(glyph);
             }
             if (fileChanged && Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool())
@@ -200,11 +203,9 @@ public class ConfigsManager {
             try {
                 map.put(entry.getKey(), itemParser.buildItem());
             } catch (Exception e) {
-                map
-                        .put(entry.getKey(),
-                                errorItem
-                                        .buildItem(String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD
-                                                + e.getClass().getSimpleName() + ": " + ChatColor.RED + entry.getKey()));
+                map.put(entry.getKey(),
+                        errorItem.buildItem(String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD
+                                + e.getClass().getSimpleName() + ": " + ChatColor.RED + entry.getKey()));
                 Logs.logError("ERROR BUILDING ITEM \"" + entry.getKey() + "\"");
                 e.printStackTrace();
             }

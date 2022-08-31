@@ -32,6 +32,7 @@ public class NoteBlockMechanic extends Mechanic {
     private String model;
     private int period;
     private final int light;
+    private final boolean canIgnite;
     private final FarmBlockDryout farmBlockDryout;
     private final LogStripping logStripping;
     private final DirectionalBlock directionalBlock;
@@ -85,6 +86,7 @@ public class NoteBlockMechanic extends Mechanic {
 
         light = section.getInt("light", -1);
         clickActions = ClickAction.parseList(section);
+        canIgnite = section.getBoolean("can_ignite", false);
 
         if (section.isConfigurationSection("farmblock")) {
             farmBlockDryout = new FarmBlockDryout(getItemID(), section.getConfigurationSection("farmblock"));
@@ -136,24 +138,31 @@ public class NoteBlockMechanic extends Mechanic {
         return breakSound != null;
     }
     public String getBreakSound() {
-        return breakSound;
+        return validateReplacedSounds(breakSound);
     }
 
     public boolean hasPlaceSound() {
         return placeSound != null;
     }
     public String getPlaceSound() {
-        return placeSound;
+        return validateReplacedSounds(placeSound);
     }
 
     public boolean hasStepSound() { return stepSound != null; }
-    public String getStepSound() { return stepSound; }
+    public String getStepSound() { return validateReplacedSounds(stepSound); }
 
     public boolean hasHitSound() { return hitSound != null; }
-    public String getHitSound() { return hitSound; }
+    public String getHitSound() { return validateReplacedSounds(hitSound); }
 
     public boolean hasFallSound() { return fallSound != null; }
-    public String getFallSound() { return fallSound; }
+    public String getFallSound() { return validateReplacedSounds(fallSound); }
+    private String validateReplacedSounds(String sound) {
+        if (sound.startsWith("block.wood"))
+            return sound.replaceFirst("block.wood", "required.wood");
+        else if (sound.startsWith("block.stone"))
+            return sound.replaceFirst("block.stone", "required.stone");
+        else return sound;
+    }
 
     public int getPeriod() {
         return period;
@@ -161,6 +170,10 @@ public class NoteBlockMechanic extends Mechanic {
 
     public int getLight() {
         return light;
+    }
+
+    public boolean canIgnite() {
+        return canIgnite;
     }
 
     public boolean hasClickActions() { return !clickActions.isEmpty(); }

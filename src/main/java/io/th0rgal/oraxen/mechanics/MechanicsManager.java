@@ -26,6 +26,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.repair.RepairMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.armorpotioneffects.ArmorPotionEffectsMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.commands.CommandsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.consumable.ConsumableMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.consumablepotioneffects.ConsumablePotionEffectsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomMechanicFactory;
@@ -59,6 +60,7 @@ public class MechanicsManager {
         registerMechanicFactory("itemtype", ItemTypeMechanicFactory::new);
         registerMechanicFactory("consumable", ConsumableMechanicFactory::new);
         registerMechanicFactory("custom", CustomMechanicFactory::new);
+        registerMechanicFactory("commands", CommandsMechanicFactory::new);
 
         // gameplay
         registerMechanicFactory("repair", RepairMechanicFactory::new);
