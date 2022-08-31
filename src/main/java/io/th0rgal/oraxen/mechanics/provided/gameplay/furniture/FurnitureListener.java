@@ -201,7 +201,7 @@ public class FurnitureListener implements Listener {
             Message.NOT_ENOUGH_SPACE.send(player);
         }
 
-        final OraxenFurniturePlaceEvent preCreationEvent = new OraxenFurniturePlaceEvent(mechanic, target, player, false);
+        final OraxenFurniturePlaceEvent preCreationEvent = new OraxenFurniturePlaceEvent(mechanic, target, null, player, false);
 
         Bukkit.getPluginManager().callEvent(preCreationEvent);
 
@@ -216,12 +216,12 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), item);
+        ItemFrame itemframe = mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), item);
         Utils.sendAnimation(player, event.getHand());
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
 
-        final OraxenFurniturePlaceEvent postCreationEvent = new OraxenFurniturePlaceEvent(mechanic, target, player, true);
+        final OraxenFurniturePlaceEvent postCreationEvent = new OraxenFurniturePlaceEvent(mechanic, target, itemframe, player, true);
 
         Bukkit.getPluginManager().callEvent(postCreationEvent);
 
