@@ -22,7 +22,7 @@ import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.ItemStack;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory.getBlockMechanic;
-import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
+import static io.th0rgal.oraxen.utils.BlockHelpers.*;
 
 public class BlockMechanicListener implements Listener {
 
@@ -44,20 +44,18 @@ public class BlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
-        if (block.getType() != Material.MUSHROOM_STEM || !event.isDropItems())
-            return;
+        if (block.getType() != Material.MUSHROOM_STEM || !event.isDropItems()) return;
 
         final BlockMechanic blockMechanic = getBlockMechanic(block);
         if (blockMechanic == null) return;
-        if (blockMechanic.hasBreakSound())
-            BlockHelpers.playCustomBlockSound(block, blockMechanic.getBreakSound());
+
+        BlockHelpers.playCustomBlockSound(block.getLocation(), blockMechanic.hasBreakSound() ? blockMechanic.getBreakSound() : VANILLA_WOOD_BREAK);
         blockMechanic.getDrop().spawns(block.getLocation(), event.getPlayer().getInventory().getItemInMainHand());
         event.setDropItems(false);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingMushroomBlock(final BlockPlaceEvent event) {
-
         if (event.getBlockPlaced().getType() != Material.MUSHROOM_STEM
                 || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
             return;
@@ -66,10 +64,6 @@ public class BlockMechanicListener implements Listener {
         final MultipleFacing blockData = (MultipleFacing) block.getBlockData();
         BlockMechanic.setBlockFacing(blockData, 15);
         block.setBlockData(blockData, false);
-
-        final BlockMechanic mechanic = getBlockMechanic(block);
-        if (mechanic != null && mechanic.hasPlaceSound())
-            BlockHelpers.playCustomBlockSound(block, mechanic.getPlaceSound());
     }
 
     // not static here because only instanciated once I think
@@ -119,10 +113,10 @@ public class BlockMechanicListener implements Listener {
             target.setBlockData(curentBlockData, false); // false to cancel physic
             return;
         }
-        if (mechanic.hasPlaceSound())
-            BlockHelpers.playCustomBlockSound(target, mechanic.getPlaceSound());
+
+        BlockHelpers.playCustomBlockSound(target.getLocation(), mechanic.hasPlaceSound() ? mechanic.getPlaceSound() : VANILLA_WOOD_PLACE);
         event.setCancelled(true);
-        if (!player.getGameMode().equals(GameMode.CREATIVE))
+        if (player.getGameMode() != GameMode.CREATIVE)
             item.setAmount(item.getAmount() - 1);
     }
 
@@ -130,7 +124,7 @@ public class BlockMechanicListener implements Listener {
     public void onSetFire(final PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
         ItemStack item = event.getItem();
-        if (block == null || block.getType() != Material.NOTE_BLOCK) return;
+        if (block == null || block.getType() != Material.MUSHROOM_STEM) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getBlockFace() != BlockFace.UP) return;
         if (item == null) return;
 
@@ -145,7 +139,7 @@ public class BlockMechanicListener implements Listener {
     public void onCatchFire(final BlockIgniteEvent event) {
         Block block = event.getBlock();
         BlockMechanic mechanic = getBlockMechanic(block);
-        if (block.getType() != Material.NOTE_BLOCK || mechanic == null) return;
+        if (block.getType() != Material.MUSHROOM_STEM || mechanic == null) return;
         if (!mechanic.canIgnite()) event.setCancelled(true);
 
         block.getWorld().playSound(block.getLocation(), Sound.ITEM_FLINTANDSTEEL_USE, 1, 1);
@@ -169,11 +163,11 @@ public class BlockMechanicListener implements Listener {
         final BlockMechanic mechanic = getBlockMechanic(blockBelow);
         if (mechanic == null) return;
 
-        if (gameEvent == GameEvent.STEP && mechanic.hasStepSound()) sound = mechanic.getStepSound();
-        else if (gameEvent == GameEvent.HIT_GROUND && mechanic.hasFallSound()) sound = mechanic.getFallSound();
+        if (gameEvent == GameEvent.STEP) sound = mechanic.hasStepSound() ? mechanic.getStepSound() : VANILLA_WOOD_STEP;
+        else if (gameEvent == GameEvent.HIT_GROUND) sound = mechanic.hasFallSound() ? mechanic.getFallSound() : VANILLA_WOOD_FALL;
         else return;
 
-        BlockHelpers.playCustomBlockSound(blockBelow, sound, SoundCategory.PLAYERS);
+        BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS);
     }
 
     private boolean isStandingInside(final Player player, final Block block) {

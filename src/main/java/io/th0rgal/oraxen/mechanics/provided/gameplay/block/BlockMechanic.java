@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.MultipleFacing;
@@ -113,12 +114,15 @@ public class BlockMechanic extends Mechanic {
     }
 
     public static int getCode(final Block block) {
-        final MultipleFacing blockData = (MultipleFacing) block.getBlockData();
-        final List<BlockFace> properties = Arrays
-                .asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
         int sum = 0;
-        for (final BlockFace blockFace : blockData.getFaces())
-            sum += (int) Math.pow(2, properties.indexOf(blockFace));
+        if (block.getType() == Material.MUSHROOM_STEM) {
+            final MultipleFacing blockData = (MultipleFacing) block.getBlockData();
+            final List<BlockFace> properties = Arrays
+                    .asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
+            for (final BlockFace blockFace : blockData.getFaces())
+                sum += (int) Math.pow(2, properties.indexOf(blockFace));
+        }
+
         return sum;
     }
 

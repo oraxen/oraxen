@@ -25,14 +25,25 @@ import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
 
 public class BlockHelpers {
 
-    public static void playCustomBlockSound(Block block, String sound) {
-        playCustomBlockSound(block, sound, SoundCategory.BLOCKS);
+    public static String VANILLA_STONE_PLACE = "minecraft:required.stone.place";
+    public static String VANILLA_STONE_BREAK = "minecraft:required.stone.break";
+    public static String VANILLA_STONE_HIT = "minecraft:required.stone.hit";
+    public static String VANILLA_STONE_STEP = "minecraft:required.stone.step";
+    public static String VANILLA_STONE_FALL = "minecraft:required.stone.fall";
+
+    public static String VANILLA_WOOD_PLACE = "minecraft:required.wood.place";
+    public static String VANILLA_WOOD_BREAK = "minecraft:required.wood.break";
+    public static String VANILLA_WOOD_HIT = "minecraft:required.wood.hit";
+    public static String VANILLA_WOOD_STEP = "minecraft:required.wood.step";
+    public static String VANILLA_WOOD_FALL = "minecraft:required.wood.fall";
+
+    public static void playCustomBlockSound(Location location, String sound) {
+        playCustomBlockSound(toCenterLocation(location), sound, SoundCategory.BLOCKS);
     }
 
-    public static void playCustomBlockSound(Block block, String sound, SoundCategory category) {
-        if (sound == null || block == null || category == null) return;
-        SoundGroup soundGroup = block.getBlockData().getSoundGroup();
-        block.getWorld().playSound(block.getLocation(), sound, category, soundGroup.getVolume(), soundGroup.getPitch());
+    public static void playCustomBlockSound(Location location, String sound, SoundCategory category) {
+        if (sound == null || location == null || location.getWorld() == null || category == null) return;
+        location.getWorld().playSound(location, sound, category, 1f, 0.8f);
     }
 
     public static Location toBlockLocation(Location location) {
