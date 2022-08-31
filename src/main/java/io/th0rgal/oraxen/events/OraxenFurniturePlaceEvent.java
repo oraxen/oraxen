@@ -21,17 +21,13 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
 
     boolean isCancelled;
 
-    // this event should fire twice, once before the block and itemframe are created, and once after. boolean postCreation is false before the BlockPlaceEvent and true after.
-    boolean postCreation;
-
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurniturePlaceEvent(FurnitureMechanic mechanic, Block block, ItemFrame itemFrame,  Player player, boolean postCreation){
+    public OraxenFurniturePlaceEvent(FurnitureMechanic mechanic, Block block, ItemFrame itemFrame,  Player player){
         this.furnitureMechanic = mechanic;
         this.player = player;
         this.block = block;
         this.isCancelled = false;
-        this.postCreation = postCreation;
         this.itemFrame = itemFrame;
     }
 
@@ -66,9 +62,5 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
 
     public ItemFrame getItemFrame() {
         return itemFrame;
-    }
-
-    public boolean isPostCreation() {
-        return postCreation;
     }
 }
