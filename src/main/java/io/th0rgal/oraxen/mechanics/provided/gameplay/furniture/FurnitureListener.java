@@ -184,6 +184,7 @@ public class FurnitureListener implements Listener {
             if (!farmMechanic.getDryout().isFarmBlock()) return;
         }
 
+        Material oldtype = target.getType();
         target.setType(Material.AIR, false);
         assert item != null;
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst,
@@ -201,14 +202,6 @@ public class FurnitureListener implements Listener {
             Message.NOT_ENOUGH_SPACE.send(player);
         }
 
-        final OraxenFurniturePlaceEvent preCreationEvent = new OraxenFurniturePlaceEvent(mechanic, target, null, player, false);
-
-        Bukkit.getPluginManager().callEvent(preCreationEvent);
-
-        if(preCreationEvent.isCancelled()){
-            blockPlaceEvent.setCancelled(true);
-        }
-
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
@@ -218,13 +211,19 @@ public class FurnitureListener implements Listener {
 
         ItemFrame itemframe = mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), item);
         Utils.sendAnimation(player, event.getHand());
+
+        final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, target, itemframe, player);
+
+        Bukkit.getPluginManager().callEvent(furniturePlaceEvent);
+
+        if(furniturePlaceEvent.isCancelled()){
+            itemframe.remove();
+            target.setType(oldtype,false);
+            return;
+        }
+
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
-
-        final OraxenFurniturePlaceEvent postCreationEvent = new OraxenFurniturePlaceEvent(mechanic, target, itemframe, player, true);
-
-        Bukkit.getPluginManager().callEvent(postCreationEvent);
-
     }
 
     private Block getTarget(Block placedAgainst, BlockFace blockFace) {
