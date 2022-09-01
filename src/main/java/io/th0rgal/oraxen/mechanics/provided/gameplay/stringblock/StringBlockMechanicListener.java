@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.Sapling
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -102,6 +103,30 @@ public class StringBlockMechanicListener implements Listener {
             if (stringBlockMechanic.getLight() != -1)
                 WrappedLightAPI.removeBlockLight(block.getLocation());
             stringBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onLimitedPlacing(final PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        ItemStack item = event.getItem();
+
+        if (item == null || block == null) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block.getType() != Material.NOTE_BLOCK) return;
+        if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
+
+        StringBlockMechanic mechanic = (StringBlockMechanic) factory.getMechanic(OraxenItems.getIdByItem(item));
+        if (mechanic == null || !mechanic.hasLimitedPlacing()) return;
+
+        LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
+        Block placedAgainst = block.getRelative(event.getBlockFace()).getRelative(BlockFace.DOWN);
+
+        if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
+            if (!limitedPlacing.checkLimitedMechanic(placedAgainst))
+                event.setCancelled(true);
+        } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.DENY) {
+            if (limitedPlacing.checkLimitedMechanic(placedAgainst))
+                event.setCancelled(true);
         }
     }
 

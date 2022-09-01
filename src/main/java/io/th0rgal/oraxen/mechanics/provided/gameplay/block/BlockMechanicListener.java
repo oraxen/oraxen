@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -21,7 +22,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.ItemStack;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory.getBlockMechanic;
 import static io.th0rgal.oraxen.utils.BlockHelpers.*;
 
 public class BlockMechanicListener implements Listener {
@@ -64,6 +64,31 @@ public class BlockMechanicListener implements Listener {
         final MultipleFacing blockData = (MultipleFacing) block.getBlockData();
         BlockMechanic.setBlockFacing(blockData, 15);
         block.setBlockData(blockData, false);
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onLimitedPlacing(final PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        ItemStack item = event.getItem();
+
+
+        if (item == null || block == null) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block.getType() != Material.NOTE_BLOCK) return;
+        if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
+
+        BlockMechanic mechanic = (BlockMechanic) factory.getMechanic(OraxenItems.getIdByItem(item));
+        if (mechanic == null || !mechanic.hasLimitedPlacing()) return;
+
+        LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
+        Block placedAgainst = block.getRelative(event.getBlockFace()).getRelative(BlockFace.DOWN);
+
+        if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
+            if (!limitedPlacing.checkLimitedMechanic(placedAgainst))
+                event.setCancelled(true);
+        } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.DENY) {
+            if (limitedPlacing.checkLimitedMechanic(placedAgainst))
+                event.setCancelled(true);
+        }
     }
 
     // not static here because only instanciated once I think
@@ -166,6 +191,12 @@ public class BlockMechanicListener implements Listener {
         else return;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS);
+    }
+
+    public static BlockMechanic getBlockMechanic(Block block) {
+        if (block.getType() == Material.MUSHROOM_STEM) {
+            return BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(block));
+        } else return null;
     }
 
     private boolean isStandingInside(final Player player, final Block block) {
