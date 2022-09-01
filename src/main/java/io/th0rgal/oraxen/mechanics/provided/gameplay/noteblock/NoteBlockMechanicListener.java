@@ -253,15 +253,12 @@ public class NoteBlockMechanicListener implements Listener {
         int customVariation = mechanic.getCustomVariation();
         BlockFace face = event.getBlockFace();
 
-        if (mechanic.isDirectional() && mechanic.getDirectional().isParentBlock()) {
+        if (mechanic.isDirectional()) {
             DirectionalBlock directional = mechanic.getDirectional();
+            if (!directional.isParentBlock())
+                directional = ((NoteBlockMechanic) factory.getMechanic(directional.getParentBlock())).getDirectional();
 
-            if (face == BlockFace.NORTH || face == BlockFace.SOUTH)
-                customVariation = ((NoteBlockMechanic) factory.getMechanic(directional.getXBlock())).getCustomVariation();
-            else if (face == BlockFace.WEST || face == BlockFace.EAST)
-                customVariation = ((NoteBlockMechanic) factory.getMechanic(directional.getZBlock())).getCustomVariation();
-            else if (face == BlockFace.UP || face == BlockFace.DOWN)
-                customVariation = ((NoteBlockMechanic) factory.getMechanic(directional.getYBlock())).getCustomVariation();
+            customVariation = directional.getDirectionVariation(face, player);
         }
 
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(), placedAgainst, face, NoteBlockMechanicFactory.createNoteBlockData(customVariation));

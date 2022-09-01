@@ -38,6 +38,7 @@ import org.bukkit.util.RayTraceResult;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
@@ -210,7 +211,13 @@ public class StringBlockMechanicListener implements Listener {
         if (factory.isNotImplementedIn(itemID)) return;
         // determines the new block data of the block
         StringBlockMechanic mechanic = (StringBlockMechanic) factory.getMechanic(itemID);
-        final int customVariation = mechanic.getCustomVariation();
+        int customVariation = mechanic.getCustomVariation();
+
+        if (mechanic.hasRandomPlace()) {
+            List<String> randomList = mechanic.getRandomPlaceBlock();
+            String randomBlock = randomList.get(new Random().nextInt(randomList.size()));
+            customVariation = ((StringBlockMechanic) factory.getMechanic(randomBlock)).getCustomVariation();
+        }
 
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
                 placedAgainst, event.getBlockFace(),
