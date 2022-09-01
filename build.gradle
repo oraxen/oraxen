@@ -48,6 +48,8 @@ repositories {
     maven { url 'https://mvn.lumine.io/repository/maven-public/' }
     // commandAPI snapshots
     maven { url = 'https://s01.oss.sonatype.org/content/repositories/snapshots' }
+    // Thriumph Gui
+    maven { url = 'https://repo.mattstudios.me/artifactory/public/' }
     // WorldEdit
     maven { url 'https://maven.enginehub.org/repo/' }
 }
@@ -73,6 +75,7 @@ dependencies {
     compileOnly group: 'com.sk89q.worldedit', name: 'worldedit-bukkit', version: '7.2.0'
     compileOnly fileTree(dir: 'libs/compile', include: ['*.jar'])
     implementation fileTree(dir: 'libs/implement', include: ['*.jar'])
+    implementation group: 'dev.triumphteam', name: 'triumph-gui', version: '3.1.2'
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'
     implementation group: 'com.github.oraxen', name: 'protectionlib', version: '1.1.1'
     implementation group: 'net.kyori', name: 'adventure-text-minimessage', version: '4.2.0-SNAPSHOT'
@@ -95,6 +98,7 @@ shadowJar {
     archiveClassifier = null
     relocate 'org.bstats', 'io.th0rgal.oraxen.shaded.bstats'
     relocate 'net.kyori', 'io.th0rgal.oraxen.shaded.kyori'
+    relocate 'dev.thriumphteam.gui', 'io.th0rgal.oraxen.shaded.thriumphteam.gui'
     relocate 'com.jeff_media.customblockdata', 'io.th0rgal.oraxen.shaded.customblockdata'
     relocate 'com.jeff_media.morepersistentdatatypes', 'io.th0rgal.oraxen.shaded.morepersistentdatatypes'
     relocate 'com.github.stefvanschie.inventoryframework', 'io.th0rgal.oraxen.shaded.if'
