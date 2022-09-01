@@ -52,7 +52,7 @@ public class SmeltingMechanicListener implements Listener {
         }
         event.setDropItems(false);
         Location location = event.getBlock().getLocation().add(0, 0.5, 0);
-        if (location.getWorld() == null) return;
+        if (!location.isWorldLoaded()) return;
         location.getWorld().dropItemNaturally(location, loot);
         SmeltingMechanic mechanic = (SmeltingMechanic) factory.getMechanic(itemID);
         if (mechanic.playSound()) {

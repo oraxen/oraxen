@@ -160,6 +160,7 @@ public class FurnitureMechanic extends Mechanic {
     public boolean hasBreakSound() {
         return breakSound != null;
     }
+
     public String getBreakSound() {
         return validateReplacedSounds(breakSound);
     }
@@ -167,18 +168,35 @@ public class FurnitureMechanic extends Mechanic {
     public boolean hasPlaceSound() {
         return placeSound != null;
     }
+
     public String getPlaceSound() {
         return validateReplacedSounds(placeSound);
     }
 
-    public boolean hasStepSound() { return stepSound != null; }
-    public String getStepSound() { return validateReplacedSounds(stepSound); }
+    public boolean hasStepSound() {
+        return stepSound != null;
+    }
 
-    public boolean hasHitSound() { return hitSound != null; }
-    public String getHitSound() { return validateReplacedSounds(hitSound); }
+    public String getStepSound() {
+        return validateReplacedSounds(stepSound);
+    }
 
-    public boolean hasFallSound() { return fallSound != null; }
-    public String getFallSound() { return validateReplacedSounds(fallSound); }
+    public boolean hasHitSound() {
+        return hitSound != null;
+    }
+
+    public String getHitSound() {
+        return validateReplacedSounds(hitSound);
+    }
+
+    public boolean hasFallSound() {
+        return fallSound != null;
+    }
+
+    public String getFallSound() {
+        return validateReplacedSounds(fallSound);
+    }
+
     private String validateReplacedSounds(String sound) {
         if (sound.startsWith("block.wood"))
             return sound.replace("block.wood", "required.wood.");
@@ -253,8 +271,8 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item) {
-        if (!this.isEnoughSpace(yaw, location))
-            return null;
+        if (!this.isEnoughSpace(yaw, location)) return null;
+        if (!location.isWorldLoaded()) return null;
 
         setPlacedItem();
         ItemFrame output = location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) -> {
@@ -269,7 +287,7 @@ public class FurnitureMechanic extends Mechanic {
                 clone.setItemMeta(meta);
                 frame.setItem(clone);
             } else
-                frame.setItem(placedItem);
+                frame.setItem(placedItem, false);
             frame.setRotation(rotation);
             frame.setFacingDirection(hasFacing() ? getFacing() : facing, true);
             frame.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
@@ -302,15 +320,13 @@ public class FurnitureMechanic extends Mechanic {
     public boolean removeSolid(World world, BlockLocation rootBlockLocation, float orientation) {
         Location rootLocation = rootBlockLocation.toLocation(world);
 
-        for (Location location : getLocations(orientation,
-                rootLocation,
-                getBarriers())) {
+        for (Location location : getLocations(orientation, rootLocation, getBarriers())) {
             if (light != -1)
                 WrappedLightAPI.removeBlockLight(location);
             if (hasSeat()) {
                 ArmorStand seat = getSeat(location);
                 if (seat != null && seat.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
-                    seat.getPassengers().clear();
+                    seat.getPassengers().forEach(seat::removePassenger);
                     seat.remove();
                 }
             }
@@ -319,18 +335,18 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         boolean removed = false;
-        for (Entity entity : rootLocation.getWorld().getNearbyEntities(rootLocation, 1, 1, 1))
+        for (Entity entity : rootLocation.getWorld().getNearbyEntities(rootLocation, 1, 1, 1)) {
+            PersistentDataContainer pdc = entity.getPersistentDataContainer();
             if (entity instanceof ItemFrame frame
                     && entity.getLocation().getBlockX() == rootLocation.getX()
                     && entity.getLocation().getBlockY() == rootLocation.getY()
                     && entity.getLocation().getBlockZ() == rootLocation.getZ()
-                    && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING)) {
-                if (entity.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
-                    Entity stand = Bukkit.getEntity(UUID.fromString(entity.getPersistentDataContainer()
-                            .get(SEAT_KEY, PersistentDataType.STRING)));
-                    if (stand != null) {
-                        stand.getPassengers().clear();
-                        stand.remove();
+                    && pdc.has(FURNITURE_KEY, PersistentDataType.STRING)) {
+                if (pdc.has(SEAT_KEY, PersistentDataType.STRING)) {
+                    Entity seat = Bukkit.getEntity(UUID.fromString(pdc.get(SEAT_KEY, PersistentDataType.STRING)));
+                    if (seat != null) {
+                        seat.getPassengers().clear();
+                        seat.remove();
                     }
                 }
                 frame.remove();
@@ -340,18 +356,18 @@ public class FurnitureMechanic extends Mechanic {
                 removed = true;
                 break;
             }
+        }
 
         BlockHelpers.playCustomBlockSound(rootLocation, hasBreakSound() ? getBreakSound() : VANILLA_STONE_BREAK);
         return removed;
     }
 
     public void removeAirFurniture(ItemFrame frame) {
-        if (frame.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
-            Entity stand = Bukkit.getEntity(UUID.fromString(frame.getPersistentDataContainer()
-                    .get(SEAT_KEY, PersistentDataType.STRING)));
+        PersistentDataContainer framePDC = frame.getPersistentDataContainer();
+        if (framePDC.has(SEAT_KEY, PersistentDataType.STRING)) {
+            Entity stand = Bukkit.getEntity(UUID.fromString(framePDC.get(SEAT_KEY, PersistentDataType.STRING)));
             if (stand != null) {
-                for (Entity passenger : stand.getPassengers())
-                    stand.removePassenger(passenger);
+                stand.getPassengers().forEach(stand::removePassenger);
                 stand.remove();
             }
         }
@@ -390,7 +406,9 @@ public class FurnitureMechanic extends Mechanic {
         return (Arrays.asList(Rotation.values()).indexOf(rotation) * 360f) / 8f;
     }
 
-    public boolean hasClickActions() { return !clickActions.isEmpty(); }
+    public boolean hasClickActions() {
+        return !clickActions.isEmpty();
+    }
 
     public void runClickActions(final Player player) {
         for (final ClickAction action : clickActions) {
