@@ -193,7 +193,7 @@ public class FurnitureListener implements Listener {
                 : getRotation(player.getEyeLocation().getYaw(),
                 mechanic.hasBarriers() && mechanic.getBarriers().size() > 1);
         final float yaw = mechanic.getYaw(rotation);
-
+        if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
         if (!mechanic.isEnoughSpace(yaw, target.getLocation())) {
             blockPlaceEvent.setCancelled(true);
             Message.NOT_ENOUGH_SPACE.send(player);
