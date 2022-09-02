@@ -70,7 +70,7 @@ public class CustomSound {
     }
 
     public List<String> getSounds() {
-        return new ArrayList<>();
+        return new ArrayList<>(sounds);
     }
 
     public JsonObject toJson() {
