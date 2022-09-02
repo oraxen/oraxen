@@ -339,7 +339,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (breakerPlaySound.containsKey(block)) return;
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_HIT), 3L, 6L);
+                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_HIT), 2L, 4L);
         breakerPlaySound.put(block, task);
     }
 
