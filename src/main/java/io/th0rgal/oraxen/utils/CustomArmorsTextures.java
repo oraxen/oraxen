@@ -114,16 +114,17 @@ public class CustomArmorsTextures {
         return true;
     }
 
-    public VirtualFile generateShaderArmor(File file, String name) throws IOException {
+    private void generateShaderArmor(File file, String name) throws IOException {
         List<String> splitName = List.of(name.split("_"));
         Path optifinePath = Path.of("plugins/Oraxen/pack/optifine/cit/armors/", splitName.get(0));
         File optifineFile = new File(optifinePath + "/" + name);
         if (!optifinePath.toFile().exists()) optifinePath.toFile().mkdirs();
         Files.copy(file.toPath(), optifineFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
 
-        String cmdProperty = OraxenItems.getEntries().stream().filter(e ->
-                e.getKey().contains(splitName.get(0)) && e.getValue().getOraxenMeta().getLayers().size() == 2
-        ).findFirst().map(entry -> "nbt.CustomModelData=" + entry.getValue().getOraxenMeta().getCustomModelData()).orElse("");
+        String cmdProperty =
+                OraxenItems.getEntries().stream().filter(e ->
+                        e.getKey().contains(splitName.get(0)) && e.getValue().getOraxenMeta().getLayers().size() == 2
+                ).findFirst().map(entry -> "nbt.CustomModelData=" + entry.getValue().getOraxenMeta().getCustomModelData()).orElse("");
 
         String armorName = optifineFile.getName().replace("armor_layer", "layer");
         File optifineProperties = new File(optifinePath + "/" + splitName.get(0) + "_" + splitName.get(1) + ".properties");
@@ -138,8 +139,6 @@ public class CustomArmorsTextures {
         );
         if (optifineProperties.exists()) optifineProperties.delete();
         Files.write(optifineProperties.toPath(), propertiesContent, StandardCharsets.UTF_8);
-
-        return new VirtualFile(optifinePath + "/", splitName.get(0), new FileInputStream(optifineProperties));
     }
 
     private void addPixel(BufferedImage image, ItemBuilder builder, String name, String prefix) {
@@ -172,14 +171,6 @@ public class CustomArmorsTextures {
 
     public InputStream getLayerTwo() throws IOException {
         return getInputStream(layer2Width, getLayerHeight(), layer2, layers2);
-    }
-
-    public List<BufferedImage> getAllLayerOnes() {
-        return layers1;
-    }
-
-    public List<BufferedImage> getAllLayerTwos() {
-        return layers2;
     }
 
     private InputStream getInputStream(int layerWidth, int layerHeight,
