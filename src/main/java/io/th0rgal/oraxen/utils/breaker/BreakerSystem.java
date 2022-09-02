@@ -90,7 +90,7 @@ public class BreakerSystem {
                                 (int) (period * 11),
                                 Integer.MAX_VALUE,
                                 false, false, false)));
-
+                BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block));
                 if (breakerPerLocation.containsKey(location))
                     breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
                 final BukkitScheduler scheduler = Bukkit.getScheduler();
@@ -112,15 +112,11 @@ public class BreakerSystem {
                                 sendBlockBreak(viewer, location, value);
 
                         if (value++ < 10) return;
-                        if (!ProtectionLib.canBreak(player, block.getLocation())) {
-                            breakerPlaySound.remove(block);
-                            return;
-                        }
 
                         final BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
                         Bukkit.getPluginManager().callEvent(blockBreakEvent);
 
-                        if (!blockBreakEvent.isCancelled()) {
+                        if (!blockBreakEvent.isCancelled() && ProtectionLib.canBreak(player, block.getLocation())) {
                             modifier.breakBlock(player, block, item);
                             PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item, 1);
                             Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
@@ -162,8 +158,14 @@ public class BreakerSystem {
         if (!breakerPlaySound.contains(block)) {
             breakerPlaySound.add(block);
             BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block));
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                    breakerPlaySound.remove(block), 3);
+            // Furniture is triggered more often so delay is longer
+            if (block.getType() == Material.BARRIER) {
+                Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
+                        breakerPlaySound.remove(block), 6L, 12L);
+            } else {
+                Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
+                        breakerPlaySound.remove(block), 2L, 4L);
+            }
         }
 
         protocolManager.sendServerPacket(player, fakeAnimation);
@@ -191,7 +193,9 @@ public class BreakerSystem {
                 FurnitureMechanic mechanic = getFurnitureMechanic(block);
                 return (mechanic != null && mechanic.hasHitSound()) ? mechanic.getHitSound() : "required.stone.hit";
             }
-            default -> { return block.getBlockData().getSoundGroup().getHitSound().toString(); }
+            default -> {
+                return block.getBlockData().getSoundGroup().getHitSound().toString();
+            }
         }
     }
 

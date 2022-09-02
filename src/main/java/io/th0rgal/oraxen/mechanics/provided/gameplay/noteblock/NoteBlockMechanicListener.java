@@ -339,11 +339,11 @@ public class NoteBlockMechanicListener implements Listener {
         if (breakerPlaySound.containsKey(block)) return;
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_HIT), 3L, 6L);
+                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_HIT), 2L, 4L);
         breakerPlaySound.put(block, task);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onStopHittingWood(final BlockDamageAbortEvent event) {
         Block block = event.getBlock();
         if (breakerPlaySound.containsKey(block)) {
@@ -364,7 +364,7 @@ public class NoteBlockMechanicListener implements Listener {
             placed.setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR)
     public void onBreakingBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
         if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
@@ -375,7 +375,8 @@ public class NoteBlockMechanicListener implements Listener {
             breakerPlaySound.remove(block);
         }
 
-        BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_BREAK);
+        if (!event.isCancelled() && ProtectionLib.canBreak(event.getPlayer(), block.getLocation()))
+            BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_BREAK);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
