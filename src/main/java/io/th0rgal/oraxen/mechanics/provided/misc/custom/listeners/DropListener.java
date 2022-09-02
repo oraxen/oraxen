@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomEvent;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -15,10 +16,9 @@ public class DropListener extends CustomListener {
     }
 
     @EventHandler
-    public void onDropped(PlayerInteractEvent event) {
-        ItemStack item = event.getItem();
-        if (!itemID.equals(OraxenItems.getIdByItem(item)))
-            return;
+    public void onDropped(PlayerDropItemEvent event) {
+        ItemStack item = event.getItemDrop().getItemStack();
+        if (!itemID.equals(OraxenItems.getIdByItem(item))) return;
         perform(event.getPlayer(), item);
     }
 

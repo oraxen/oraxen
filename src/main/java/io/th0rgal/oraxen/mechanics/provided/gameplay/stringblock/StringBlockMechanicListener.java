@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.Sapling
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -38,6 +39,7 @@ import org.bukkit.util.RayTraceResult;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
@@ -101,6 +103,30 @@ public class StringBlockMechanicListener implements Listener {
             if (stringBlockMechanic.getLight() != -1)
                 WrappedLightAPI.removeBlockLight(block.getLocation());
             stringBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onLimitedPlacing(final PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        ItemStack item = event.getItem();
+
+        if (item == null || block == null) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block.getType() != Material.NOTE_BLOCK) return;
+        if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
+
+        StringBlockMechanic mechanic = (StringBlockMechanic) factory.getMechanic(OraxenItems.getIdByItem(item));
+        if (mechanic == null || !mechanic.hasLimitedPlacing()) return;
+
+        LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
+        Block placedAgainst = block.getRelative(event.getBlockFace()).getRelative(BlockFace.DOWN);
+
+        if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
+            if (!limitedPlacing.checkLimitedMechanic(placedAgainst))
+                event.setCancelled(true);
+        } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.DENY) {
+            if (limitedPlacing.checkLimitedMechanic(placedAgainst))
+                event.setCancelled(true);
         }
     }
 
@@ -210,7 +236,13 @@ public class StringBlockMechanicListener implements Listener {
         if (factory.isNotImplementedIn(itemID)) return;
         // determines the new block data of the block
         StringBlockMechanic mechanic = (StringBlockMechanic) factory.getMechanic(itemID);
-        final int customVariation = mechanic.getCustomVariation();
+        int customVariation = mechanic.getCustomVariation();
+
+        if (mechanic.hasRandomPlace()) {
+            List<String> randomList = mechanic.getRandomPlaceBlock();
+            String randomBlock = randomList.get(new Random().nextInt(randomList.size()));
+            customVariation = ((StringBlockMechanic) factory.getMechanic(randomBlock)).getCustomVariation();
+        }
 
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
                 placedAgainst, event.getBlockFace(),
@@ -355,6 +387,7 @@ public class StringBlockMechanicListener implements Listener {
                 new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
+        if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
         if (BlockHelpers.correctAllBlockStates(target, player, face, item)) blockPlaceEvent.setCancelled(true);
 
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
