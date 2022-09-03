@@ -13,6 +13,7 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.utils.storage.StorageMechanic;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -240,7 +241,7 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), item);
+        mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), item, player);
         Utils.sendAnimation(player, event.getHand());
         if (!player.getGameMode().equals(GameMode.CREATIVE))
             item.setAmount(item.getAmount() - 1);
@@ -427,7 +428,12 @@ public class FurnitureListener implements Listener {
                 Float orientation = pdc.get(ORIENTATION_KEY, PersistentDataType.FLOAT);
                 final BlockLocation rootBlockLocation = new BlockLocation(pdc.get(ROOT_KEY, PersistentDataType.STRING));
                 final ItemFrame frame = mechanic.getItemFrame(block, rootBlockLocation, orientation);
-                mechanic.getStorage().openStorage(frame, player);
+                StorageMechanic storage = mechanic.getStorage();
+                switch (storage.getStorageType()) {
+                    case STORAGE -> storage.openStorage(frame, player);
+                    case PERSONAL -> storage.openPersonalStorage(player);
+                    case ENDERCHEST -> player.openInventory(player.getEnderChest());
+                }
             }
         }
 
@@ -516,33 +522,6 @@ public class FurnitureListener implements Listener {
         } else return;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS);
-    }
-
-    // Add the STORAGE_KEY to store itemstack array to frame if furniture is placed
-//    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-//    public void onStorageFurniturePlace(final HangingPlaceEvent event) {
-//        Entity entity = event.getEntity();
-//        if (!(entity instanceof ItemFrame frame)) return;
-//        PersistentDataContainer pdc = frame.getPersistentDataContainer();
-//        FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(OraxenItems.getIdByItem(frame.getItem()));
-//        if (mechanic == null || !mechanic.isStorage()) return;
-//        pdc.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[0]);
-//    }
-
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onOpenStorage(final PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        Block block = event.getClickedBlock();
-        if (block == null) return;
-
-        final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
-        FurnitureMechanic mechanic = getFurnitureMechanic(block);
-        if (mechanic == null || !mechanic.isStorage()) return;
-
-        Float orientation = customBlockData.get(ORIENTATION_KEY, PersistentDataType.FLOAT);
-        final BlockLocation rootBlockLocation = new BlockLocation(Objects.requireNonNull(customBlockData.get(ROOT_KEY, PersistentDataType.STRING)));
-        final ItemFrame frame = mechanic.getItemFrame(block, rootBlockLocation, orientation);
-        mechanic.getStorage().openStorage(frame, event.getPlayer());
     }
 
     private boolean isStandingInside(final Player player, final Block block) {

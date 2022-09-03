@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.utils.storage.StorageMechanic;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -157,8 +158,14 @@ public class NoteBlockMechanicListener implements Listener {
         if (noteBlockMechanic.hasClickActions() && !player.isSneaking())
             noteBlockMechanic.runClickActions(player);
 
-        if (noteBlockMechanic.isStorage() && !player.isSneaking()) //TODO Fix shift clicking not placing
-            noteBlockMechanic.getStorage().openStorage(block, event.getPlayer());
+        if (noteBlockMechanic.isStorage() && !player.isSneaking()) {
+            StorageMechanic storageMechanic = noteBlockMechanic.getStorage();
+            switch (storageMechanic.getStorageType()) {
+                case STORAGE -> storageMechanic.openStorage(block, player);
+                case PERSONAL -> storageMechanic.openPersonalStorage(player);
+                case ENDERCHEST -> player.openInventory(player.getEnderChest());
+            }
+        }
 
         event.setCancelled(true);
         if (item == null) return;
@@ -249,7 +256,7 @@ public class NoteBlockMechanicListener implements Listener {
             WrappedLightAPI.removeBlockLight(block.getLocation());
         if (player.getGameMode() != GameMode.CREATIVE)
             mechanic.getDrop().spawns(block.getLocation(), player.getInventory().getItemInMainHand());
-        if (mechanic.isStorage()) {
+        if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             mechanic.getStorage().dropStorageContent(block);
         }
         event.setDropItems(false);
@@ -305,7 +312,7 @@ public class NoteBlockMechanicListener implements Listener {
                 customBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
             }
 
-            if (mechanic.isStorage()) {
+            if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
                 final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
                 customBlockData.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
             }

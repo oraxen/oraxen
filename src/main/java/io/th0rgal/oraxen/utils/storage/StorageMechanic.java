@@ -18,17 +18,18 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class StorageMechanic {
 
+    public static Set<Player> playerStorages = new HashSet<>();
     public static Map<Block, StorageGui> blockStorages = new HashMap<>();
     public static Map<ItemFrame, StorageGui> frameStorages = new HashMap<>();
     public static final NamespacedKey STORAGE_KEY = new NamespacedKey(OraxenPlugin.get(), "storage");
+    public static final NamespacedKey PERSONAL_STORAGE_KEY =  new NamespacedKey(OraxenPlugin.get(), "personal_storage");
     private final int rows;
     private final String title;
+    private final StorageType type;
     private final String openSound;
     private final String closeSound;
     private final float volume;
@@ -37,10 +38,21 @@ public class StorageMechanic {
     public StorageMechanic(ConfigurationSection section) {
         rows = section.getInt("rows", 6);
         title = section.getString("title", "Storage");
+        type = StorageType.valueOf(section.getString("type", "STORAGE"));
         openSound = section.getString("open_sound", "minecraft:block.chest.open");
         closeSound = section.getString("close_sound", "minecraft:block.chest.close");
         volume = (float) section.getDouble("volume", 1.0);
         pitch = (float) section.getDouble("pitch", 0.8f);
+    }
+
+    public enum StorageType {
+        STORAGE, PERSONAL, ENDERCHEST
+    }
+
+    public void openPersonalStorage(Player player) {
+        if (type != StorageType.PERSONAL) return;
+        StorageGui storageGui = createPersonalGui(player);
+        storageGui.open(player);
     }
 
     public void openStorage(Block block, Player player) {
@@ -100,6 +112,10 @@ public class StorageMechanic {
         return title;
     }
 
+    public StorageType getStorageType() {
+        return type;
+    }
+
     public boolean hasOpenSound() {
         return openSound != null;
     }
@@ -122,6 +138,35 @@ public class StorageMechanic {
 
     public float getVolume() {
         return volume;
+    }
+
+    private StorageGui createPersonalGui(Player player) {
+        PersistentDataContainer storagePDC = player.getPersistentDataContainer();
+        StorageGui gui = Gui.storage().title(Utils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
+
+        // Slight delay to catch stacks sometimes moving too fast
+        gui.setDefaultClickAction(event -> {
+            if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
+                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+                    storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
+                }, 3L);
+            }
+        });
+
+        gui.setOpenGuiAction(event -> {
+            playerStorages.add(player);
+            if (storagePDC.has(PERSONAL_STORAGE_KEY, DataType.ITEM_STACK_ARRAY))
+                gui.getInventory().setContents(Objects.requireNonNull(storagePDC.get(PERSONAL_STORAGE_KEY, DataType.ITEM_STACK_ARRAY)));
+        });
+
+        gui.setCloseGuiAction(event -> {
+            playerStorages.remove(player);
+            storagePDC.set(PERSONAL_STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
+            if (hasCloseSound())
+                Objects.requireNonNull(player.getLocation().getWorld()).playSound(player.getLocation(), closeSound, volume, pitch);
+        });
+
+        return gui;
     }
 
     private StorageGui createGui(Block block) {
@@ -190,5 +235,7 @@ public class StorageMechanic {
             HumanEntity[] players = gui.getInventory().getViewers().toArray(HumanEntity[]::new);
             for (HumanEntity player : players) player.closeInventory();
         });
+
+        playerStorages.forEach(Player::closeInventory);
     }
 }

@@ -28,6 +28,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.VANILLA_STONE_BREAK;
@@ -212,11 +213,21 @@ public class FurnitureMechanic extends Mechanic {
         else return sound;
     }
 
-    public boolean hasLimitedPlacing() { return limitedPlacing != null; }
-    public LimitedPlacing getLimitedPlacing() { return limitedPlacing; }
+    public boolean hasLimitedPlacing() {
+        return limitedPlacing != null;
+    }
 
-    public boolean isStorage() { return storage != null; }
-    public StorageMechanic getStorage() { return storage; }
+    public LimitedPlacing getLimitedPlacing() {
+        return limitedPlacing;
+    }
+
+    public boolean isStorage() {
+        return storage != null;
+    }
+
+    public StorageMechanic getStorage() {
+        return storage;
+    }
 
     public boolean hasBarriers() {
         return !barriers.isEmpty();
@@ -275,12 +286,12 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location) {
+    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, @Nullable Player player) {
         setPlacedItem();
-        return place(rotation, yaw, facing, location, placedItem);
+        return place(rotation, yaw, facing, location, placedItem, player);
     }
 
-    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item) {
+    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item, @Nullable Player player) {
         if (!this.isEnoughSpace(yaw, location)) return null;
         if (!location.isWorldLoaded()) return null;
 
@@ -303,7 +314,9 @@ public class FurnitureMechanic extends Mechanic {
             PersistentDataContainer pdc = frame.getPersistentDataContainer();
             pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
             if (hasEvolution()) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
-            if (isStorage()) pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
+            if (isStorage()) if (getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
+                pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
+            }
         });
 
         if (hasBarriers())
@@ -341,8 +354,9 @@ public class FurnitureMechanic extends Mechanic {
                     seat.remove();
                 }
             }
-            if (isStorage())
+            if (isStorage() && getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
                 getStorage().dropStorageContent(getItemFrame(rootLocation.getBlock(), rootBlockLocation, orientation));
+            }
             location.getBlock().setType(Material.AIR);
             new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
         }
