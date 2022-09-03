@@ -155,10 +155,10 @@ public class NoteBlockMechanicListener implements Listener {
             return;
         }
 
-        if (noteBlockMechanic.hasClickActions())
+        if (noteBlockMechanic.hasClickActions() && !player.isSneaking())
             noteBlockMechanic.runClickActions(player);
 
-        if (noteBlockMechanic.isStorage())
+        if (noteBlockMechanic.isStorage() && !player.isSneaking()) //TODO Fix shift clicking not placing
             noteBlockMechanic.getStorage().openStorage(block, event.getPlayer());
 
         event.setCancelled(true);
@@ -260,12 +260,14 @@ public class NoteBlockMechanicListener implements Listener {
     public void onExplosionDestroy(EntityExplodeEvent event) {
         List<Block> blockList = event.blockList().stream().filter(block -> block.getType().equals(Material.NOTE_BLOCK)).toList();
         blockList.forEach(block -> {
-            NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
-            if (noteBlockMechanic == null) return;
-            if (noteBlockMechanic.isDirectional())
-                noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
+            NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
+            if (mechanic == null) return;
+            if (mechanic.isDirectional())
+                mechanic = (NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock());
+            if (mechanic.isStorage()) //TODO Should this drop items on explosions?
+                mechanic.getStorage().dropStorageContent(block);
 
-            noteBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
+            mechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
             block.setType(Material.AIR, false);
         });
     }
