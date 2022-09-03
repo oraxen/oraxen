@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import com.jeff_media.customblockdata.CustomBlockData;
-import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.events.OraxenFurnitureBreakEvent;
@@ -27,7 +26,6 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
-import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -52,7 +50,6 @@ import java.util.UUID;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.*;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 import static io.th0rgal.oraxen.utils.BlockHelpers.*;
-import static io.th0rgal.oraxen.utils.storage.StorageMechanic.STORAGE_KEY;
 
 public class FurnitureListener implements Listener {
 
@@ -72,7 +69,7 @@ public class FurnitureListener implements Listener {
                 return block.getType() == Material.BARRIER;
             }
 
-            @Override
+            @Override //TODO Move this into getting itemframe just from block
             public void breakBlock(final Player player, final Block block, final ItemStack tool) {
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
                     final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
@@ -506,14 +503,30 @@ public class FurnitureListener implements Listener {
     }
 
     // Add the STORAGE_KEY to store itemstack array to frame if furniture is placed
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
-    public void onStorageFurniturePlace(final HangingPlaceEvent event) {
-        Entity entity = event.getEntity();
-        if (!(entity instanceof ItemFrame frame)) return;
-        PersistentDataContainer pdc = frame.getPersistentDataContainer();
-        FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(OraxenItems.getIdByItem(frame.getItem()));
+//    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+//    public void onStorageFurniturePlace(final HangingPlaceEvent event) {
+//        Entity entity = event.getEntity();
+//        if (!(entity instanceof ItemFrame frame)) return;
+//        PersistentDataContainer pdc = frame.getPersistentDataContainer();
+//        FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(OraxenItems.getIdByItem(frame.getItem()));
+//        if (mechanic == null || !mechanic.isStorage()) return;
+//        pdc.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[0]);
+//    }
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onOpenStorage(final PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        Block block = event.getClickedBlock();
+        if (block == null) return;
+
+        final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
+        FurnitureMechanic mechanic = getFurnitureMechanic(block);
         if (mechanic == null || !mechanic.isStorage()) return;
-        pdc.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[0]);
+
+        Float orientation = customBlockData.get(ORIENTATION_KEY, PersistentDataType.FLOAT);
+        final BlockLocation rootBlockLocation = new BlockLocation(Objects.requireNonNull(customBlockData.get(ROOT_KEY, PersistentDataType.STRING)));
+        final ItemFrame frame = mechanic.getItemFrame(block, rootBlockLocation, orientation);
+        mechanic.getStorage().openStorage(frame, event.getPlayer());
     }
 
     private boolean isStandingInside(final Player player, final Block block) {

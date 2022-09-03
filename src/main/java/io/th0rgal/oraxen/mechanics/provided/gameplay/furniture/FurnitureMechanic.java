@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import com.jeff_media.customblockdata.CustomBlockData;
+import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
@@ -298,9 +299,11 @@ public class FurnitureMechanic extends Mechanic {
             } else frame.setItem(placedItem, false);
             frame.setRotation(rotation);
             frame.setFacingDirection(hasFacing() ? getFacing() : facing, true);
-            frame.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
-            if (hasEvolution())
-                frame.getPersistentDataContainer().set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
+
+            PersistentDataContainer pdc = frame.getPersistentDataContainer();
+            pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
+            if (hasEvolution()) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
+            if (isStorage()) pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
         });
 
         if (hasBarriers())

@@ -157,6 +157,9 @@ public class NoteBlockMechanicListener implements Listener {
         if (noteBlockMechanic.hasClickActions())
             noteBlockMechanic.runClickActions(player);
 
+        if (noteBlockMechanic.isStorage())
+            noteBlockMechanic.getStorage().openStorage(block, event.getPlayer());
+
         event.setCancelled(true);
         if (item == null) return;
 
@@ -295,6 +298,11 @@ public class NoteBlockMechanicListener implements Listener {
             if (mechanic.hasDryout() && mechanic.getDryout().isFarmBlock()) {
                 final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
                 customBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
+            }
+
+            if (mechanic.isStorage()) {
+                final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
+                customBlockData.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
             }
 
             BlockHelpers.playCustomBlockSound(placedBlock.getLocation(), mechanic.hasPlaceSound() ? mechanic.getPlaceSound() : VANILLA_WOOD_PLACE);
@@ -442,15 +450,15 @@ public class NoteBlockMechanicListener implements Listener {
         }
     }
 
-    // Add the STORAGE_KEY to store itemstack array to the CustomBlockData
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onBlockPlace(final BlockPlaceEvent event) {
-        Block blockPlaced = event.getBlockPlaced();
-        NoteBlockMechanic mechanic = getNoteBlockMechanic(blockPlaced);
-        if (mechanic == null || !mechanic.isStorage()) return;
-        PersistentDataContainer storagePDC = new CustomBlockData(blockPlaced, OraxenPlugin.get());
-        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[0]);
-    }
+//    // Add the STORAGE_KEY to store itemstack array to the CustomBlockData
+//    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+//    public void onPlaceStorage(final BlockPlaceEvent event) {
+//        Block blockPlaced = event.getBlockPlaced();
+//        NoteBlockMechanic mechanic = getNoteBlockMechanic(blockPlaced);
+//        if (mechanic == null || !mechanic.isStorage()) return;
+//        PersistentDataContainer storagePDC = new CustomBlockData(blockPlaced, OraxenPlugin.get());
+//        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[0]);
+//    }
 
     private HardnessModifier getHardnessModifier() {
         return new HardnessModifier() {
@@ -523,12 +531,14 @@ public class NoteBlockMechanicListener implements Listener {
         final boolean isFlowing = (newBlock.getMaterial() == Material.WATER || newBlock.getMaterial() == Material.LAVA);
         target.setBlockData(newBlock, isFlowing);
         final BlockState currentBlockState = target.getState();
+        final NoteBlockMechanic againstMechanic = getNoteBlockMechanic(placedAgainst);
 
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
         if (BlockHelpers.correctAllBlockStates(target, player, face, item)) blockPlaceEvent.setCancelled(true);
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
+        if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions())) blockPlaceEvent.setCancelled(true);
         if (!ProtectionLib.canBuild(player, target.getLocation()) || !blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
             return null;
