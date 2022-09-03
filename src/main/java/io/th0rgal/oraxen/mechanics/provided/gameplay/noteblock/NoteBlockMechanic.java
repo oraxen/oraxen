@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.utils.storage.StorageMechanic;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -18,6 +19,7 @@ import org.bukkit.entity.Player;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class NoteBlockMechanic extends Mechanic {
 
@@ -26,6 +28,7 @@ public class NoteBlockMechanic extends Mechanic {
     private final int customVariation;
     private final Drop drop;
     private final LimitedPlacing limitedPlacing;
+    private final StorageMechanic storage;
     private final String breakSound;
     private final String placeSound;
     private final String stepSound;
@@ -91,25 +94,32 @@ public class NoteBlockMechanic extends Mechanic {
         canIgnite = section.getBoolean("can_ignite", false);
 
         if (section.isConfigurationSection("farmblock")) {
-            farmBlockDryout = new FarmBlockDryout(getItemID(), section.getConfigurationSection("farmblock"));
+            farmBlockDryout = new FarmBlockDryout(getItemID(), Objects.requireNonNull(section.getConfigurationSection("farmblock")));
             ((NoteBlockMechanicFactory) getFactory()).registerFarmBlock();
         } else farmBlockDryout = null;
 
         if (section.isConfigurationSection("logStrip")) {
-            logStripping = new LogStripping(section.getConfigurationSection("logStrip"));
+            logStripping = new LogStripping(Objects.requireNonNull(section.getConfigurationSection("logStrip")));
         } else logStripping = null;
 
         if (section.isConfigurationSection("directional")) {
-            directionalBlock = new DirectionalBlock(section.getConfigurationSection("directional"));
+            directionalBlock = new DirectionalBlock(Objects.requireNonNull(section.getConfigurationSection("directional")));
         } else directionalBlock = null;
 
         if (section.isConfigurationSection("limited_placing")) {
-            limitedPlacing = new LimitedPlacing(section.getConfigurationSection("limited_placing"));
+            limitedPlacing = new LimitedPlacing(Objects.requireNonNull(section.getConfigurationSection("limited_placing")));
         } else limitedPlacing = null;
+
+        if (section.isConfigurationSection("storage")) {
+            storage = new StorageMechanic(Objects.requireNonNull(section.getConfigurationSection("storage")));
+        } else storage = null;
     }
 
     public boolean hasLimitedPlacing() { return limitedPlacing != null; }
     public LimitedPlacing getLimitedPlacing() { return limitedPlacing; }
+
+    public boolean isStorage() { return storage != null; }
+    public StorageMechanic getStorage() { return storage; }
 
     public boolean hasDryout() {
         return farmBlockDryout != null;

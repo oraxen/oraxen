@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import com.jeff_media.customblockdata.CustomBlockData;
+import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.events.OraxenFurnitureBreakEvent;
@@ -26,6 +27,7 @@ import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
+import org.bukkit.event.hanging.HangingPlaceEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
@@ -50,6 +52,7 @@ import java.util.UUID;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.*;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 import static io.th0rgal.oraxen.utils.BlockHelpers.*;
+import static io.th0rgal.oraxen.utils.storage.StorageMechanic.STORAGE_KEY;
 
 public class FurnitureListener implements Listener {
 
@@ -500,6 +503,17 @@ public class FurnitureListener implements Listener {
         } else return;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS);
+    }
+
+    // Add the STORAGE_KEY to store itemstack array to frame if furniture is placed
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    public void onStorageFurniturePlace(final HangingPlaceEvent event) {
+        Entity entity = event.getEntity();
+        if (!(entity instanceof ItemFrame frame)) return;
+        PersistentDataContainer pdc = frame.getPersistentDataContainer();
+        FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(OraxenItems.getIdByItem(frame.getItem()));
+        if (mechanic == null || !mechanic.isStorage()) return;
+        pdc.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[0]);
     }
 
     private boolean isStandingInside(final Player player, final Block block) {
