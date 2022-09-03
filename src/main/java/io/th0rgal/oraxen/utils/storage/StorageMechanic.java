@@ -6,6 +6,7 @@ import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.StorageGui;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.Utils;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -44,44 +45,31 @@ public class StorageMechanic {
 
     public void openStorage(Block block, Player player) {
         if (block.getType() != Material.NOTE_BLOCK) return;
-        PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
-        StorageGui storageGui = (blockStorages.containsKey(block) ? blockStorages.get(block) : createGui(pdc, block.getLocation()));
+        StorageGui storageGui = (blockStorages.containsKey(block) ? blockStorages.get(block) : createGui(block));
         storageGui.open(player);
         blockStorages.put(block, storageGui);
     }
 
     public void openStorage(ItemFrame frame, Player player) {
-        PersistentDataContainer pdc = frame.getPersistentDataContainer();
-        StorageGui storageGui = (frameStorages.containsKey(frame) ? frameStorages.get(frame) : createGui(pdc, frame.getLocation()));
+        StorageGui storageGui = (frameStorages.containsKey(frame) ? frameStorages.get(frame) : createGui(frame));
         storageGui.open(player);
         frameStorages.put(frame, storageGui);
-    }
-
-    private StorageGui createGui(PersistentDataContainer storagePDC, Location soundLocation) {
-        StorageGui gui = Gui.storage().title(Utils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
-
-        gui.setCloseGuiAction(event -> {
-            if (!soundLocation.isWorldLoaded()) return;
-            if (gui.getInventory().getViewers().size() <= 1)
-                storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
-            if (hasCloseSound())
-                Objects.requireNonNull(soundLocation.getWorld()).playSound(soundLocation, closeSound, volume, pitch);
-        });
-
-        return gui;
     }
 
     public void dropStorageContent(Block block) {
         StorageGui gui = blockStorages.get(block);
         PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
+        // If shutdown the gui isn't saved and map is empty, so use pdc storage
         ItemStack[] items = blockStorages.containsKey(block)
                 ? gui.getInventory().getContents() : pdc.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
         if (items != null) for (ItemStack item : items) {
             if (item == null) continue;
             block.getWorld().dropItemNaturally(block.getLocation(), item);
         }
-        //TODO Figure out "Concurrent Modification" Error
-        gui.getInventory().getViewers().forEach(HumanEntity::closeInventory);
+        if (gui != null) {
+            HumanEntity[] players = gui.getInventory().getViewers().toArray(new HumanEntity[0]);
+            for (HumanEntity player : players) gui.close(player);
+        }
         pdc.remove(STORAGE_KEY);
         blockStorages.remove(block);
     }
@@ -89,15 +77,17 @@ public class StorageMechanic {
     public void dropStorageContent(ItemFrame frame) {
         StorageGui gui = frameStorages.get(frame);
         PersistentDataContainer pdc = frame.getPersistentDataContainer();
+        // If shutdown the gui isn't saved and map is empty, so use pdc storage
         ItemStack[] items = frameStorages.containsKey(frame)
                 ? gui.getInventory().getContents() : pdc.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
         if (items != null) for (ItemStack item : items) {
             if (item == null) continue;
             frame.getWorld().dropItemNaturally(frame.getLocation(), item);
         }
-        //TODO Figure out "Concurrent Modification" Error
-        gui.getInventory().getViewers().forEach(HumanEntity::closeInventory);
-        for (HumanEntity player : gui.getInventory().getViewers()) player.closeInventory();
+        if (gui != null) {
+            HumanEntity[] players = gui.getInventory().getViewers().toArray(new HumanEntity[0]);
+            for (HumanEntity player : players) gui.close(player);
+        }
         pdc.remove(STORAGE_KEY);
         frameStorages.remove(frame);
     }
@@ -110,7 +100,7 @@ public class StorageMechanic {
         return title;
     }
 
-    public boolean hasOpenSound(){
+    public boolean hasOpenSound() {
         return openSound != null;
     }
 
@@ -118,7 +108,7 @@ public class StorageMechanic {
         return openSound;
     }
 
-    public boolean hasCloseSound(){
+    public boolean hasCloseSound() {
         return closeSound != null;
     }
 
@@ -132,5 +122,73 @@ public class StorageMechanic {
 
     public float getVolume() {
         return volume;
+    }
+
+    private StorageGui createGui(Block block) {
+        Location location = block.getLocation();
+        PersistentDataContainer storagePDC = new CustomBlockData(block, OraxenPlugin.get());
+        StorageGui gui = Gui.storage().title(Utils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
+
+        // Slight delay to catch stacks sometimes moving too fast
+        gui.setDefaultClickAction(event -> {
+            if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
+                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+                    storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
+                }, 3L);
+            }
+        });
+        gui.setOpenGuiAction(event -> {
+            if (storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY))
+                gui.getInventory().setContents(Objects.requireNonNull(storagePDC.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)));
+        });
+
+        gui.setCloseGuiAction(event -> {
+            storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
+            if (hasCloseSound() && location.isWorldLoaded() && block.getWorld().isChunkLoaded(block.getChunk()))
+                Objects.requireNonNull(location.getWorld()).playSound(location, closeSound, volume, pitch);
+        });
+
+        return gui;
+    }
+
+    private StorageGui createGui(ItemFrame frame) {
+        Location location = frame.getLocation();
+        PersistentDataContainer storagePDC = frame.getPersistentDataContainer();
+        StorageGui gui = Gui.storage().title(Utils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
+
+        // Slight delay to catch stacks sometimes moving too fast
+        gui.setDefaultClickAction(event -> {
+            if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
+                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+                    storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
+                }, 3L);
+            }
+        });
+        gui.setOpenGuiAction(event -> {
+            if (storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY))
+                gui.getInventory().setContents(Objects.requireNonNull(storagePDC.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)));
+        });
+
+        gui.setCloseGuiAction(event -> {
+            if (gui.getInventory().getViewers().size() <= 1)
+                storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
+            if (hasCloseSound() && location.isWorldLoaded() && frame.getWorld().isChunkLoaded(frame.getLocation().getChunk()))
+                Objects.requireNonNull(location.getWorld()).playSound(location, closeSound, volume, pitch);
+        });
+
+        return gui;
+    }
+
+    // Closes any open storage gui on plugin/server shutdown to force save content to pdc
+    public static void forceCloseStorages() {
+        blockStorages.values().forEach(gui -> {
+            HumanEntity[] players = gui.getInventory().getViewers().toArray(HumanEntity[]::new);
+            for (HumanEntity player : players) player.closeInventory();
+        });
+
+        frameStorages.values().forEach(gui -> {
+            HumanEntity[] players = gui.getInventory().getViewers().toArray(HumanEntity[]::new);
+            for (HumanEntity player : players) player.closeInventory();
+        });
     }
 }

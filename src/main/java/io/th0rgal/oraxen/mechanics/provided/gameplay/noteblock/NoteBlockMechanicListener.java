@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import com.jeff_media.customblockdata.CustomBlockData;
-import com.jeff_media.customblockdata.events.CustomBlockDataRemoveEvent;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
@@ -455,21 +454,6 @@ public class NoteBlockMechanicListener implements Listener {
             event.setCursor(item);
         }
     }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onStorageRemove(final CustomBlockDataRemoveEvent event) {
-        Bukkit.broadcastMessage("removed");
-    }
-
-//    // Add the STORAGE_KEY to store itemstack array to the CustomBlockData
-//    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-//    public void onPlaceStorage(final BlockPlaceEvent event) {
-//        Block blockPlaced = event.getBlockPlaced();
-//        NoteBlockMechanic mechanic = getNoteBlockMechanic(blockPlaced);
-//        if (mechanic == null || !mechanic.isStorage()) return;
-//        PersistentDataContainer storagePDC = new CustomBlockData(blockPlaced, OraxenPlugin.get());
-//        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[0]);
-//    }
 
     private HardnessModifier getHardnessModifier() {
         return new HardnessModifier() {
