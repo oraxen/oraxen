@@ -317,6 +317,10 @@ public class FurnitureListener implements Listener {
                     if (player.getGameMode() != GameMode.CREATIVE) {
                         ItemStack itemInHand = player.getInventory().getItemInMainHand();
                         ItemMeta meta = frame.getItem().getItemMeta();
+
+                        if (mechanic.isStorage())
+                            mechanic.getStorage().dropStorageContent(frame);
+
                         if (mechanic.hasEvolution())
                             mechanic.getDrop().spawns(frame.getLocation(), itemInHand);
                         else if (meta instanceof LeatherArmorMeta || meta instanceof PotionMeta) {

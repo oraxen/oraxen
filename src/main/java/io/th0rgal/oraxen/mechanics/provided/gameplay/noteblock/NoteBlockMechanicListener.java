@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import com.jeff_media.customblockdata.CustomBlockData;
+import com.jeff_media.customblockdata.events.CustomBlockDataRemoveEvent;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
@@ -249,6 +250,9 @@ public class NoteBlockMechanicListener implements Listener {
             WrappedLightAPI.removeBlockLight(block.getLocation());
         if (player.getGameMode() != GameMode.CREATIVE)
             mechanic.getDrop().spawns(block.getLocation(), player.getInventory().getItemInMainHand());
+        if (mechanic.isStorage()) {
+            mechanic.getStorage().dropStorageContent(block);
+        }
         event.setDropItems(false);
     }
 
@@ -448,6 +452,11 @@ public class NoteBlockMechanicListener implements Listener {
             }
             event.setCursor(item);
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onStorageRemove(final CustomBlockDataRemoveEvent event) {
+        Bukkit.broadcastMessage("removed");
     }
 
 //    // Add the STORAGE_KEY to store itemstack array to the CustomBlockData

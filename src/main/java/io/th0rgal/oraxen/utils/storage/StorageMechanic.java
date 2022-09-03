@@ -2,10 +2,11 @@ package io.th0rgal.oraxen.utils.storage;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
-import dev.triumphteam.gui.components.GuiType;
 import dev.triumphteam.gui.guis.Gui;
+import dev.triumphteam.gui.guis.StorageGui;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.Utils;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
@@ -15,10 +16,14 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class StorageMechanic {
 
+    public static Map<Block, StorageGui> blockStorages = new HashMap<>();
+    public static Map<ItemFrame, StorageGui> frameStorages = new HashMap<>();
     public static final NamespacedKey STORAGE_KEY = new NamespacedKey(OraxenPlugin.get(), "storage");
     private final int rows;
     private final String title;
@@ -45,19 +50,24 @@ public class StorageMechanic {
 
     public void openStorage(Block block, Player player) {
         PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
-        createGui(pdc, block.getLocation()).open(player);
+        StorageGui storageGui =
+                (blockStorages.containsKey(block) ? blockStorages.get(block) : createGui(pdc, block.getLocation()));
+        Bukkit.broadcastMessage("isStorageGui: " + blockStorages.containsKey(block));
+        storageGui.open(player);
+        blockStorages.put(block, storageGui);
     }
 
     public void openStorage(ItemFrame frame, Player player) {
         PersistentDataContainer pdc = frame.getPersistentDataContainer();
-        createGui(pdc, frame.getLocation()).open(player);
+        StorageGui storageGui =
+                (frameStorages.containsKey(frame) ? frameStorages.get(frame) : createGui(pdc, frame.getLocation()));
+        Bukkit.broadcastMessage("isStorageGui: " + frameStorages.containsKey(frame));
+        storageGui.open(player);
+        frameStorages.put(frame, storageGui);
     }
 
-    private Gui createGui(PersistentDataContainer storagePDC, Location soundLocation) {
-        Gui gui = Gui.gui().title(Utils.MINI_MESSAGE.deserialize(title)).rows(rows).type(GuiType.CHEST).create();
-
-        gui.disableItemSwap();
-        gui.disableItemDrop();
+    private StorageGui createGui(PersistentDataContainer storagePDC, Location soundLocation) {
+        StorageGui gui = Gui.storage().title(Utils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
 
         gui.setOutsideClickAction(event -> event.setCancelled(true));
         gui.setOpenGuiAction(event -> {
@@ -76,6 +86,31 @@ public class StorageMechanic {
         });
 
         return gui;
+    }
+
+    public void dropStorageContent(Block block) {
+        PersistentDataContainer container = new CustomBlockData(block, OraxenPlugin.get());
+        ItemStack[] items = blockStorages.containsKey(block)
+                ? blockStorages.get(block).getInventory().getContents()
+                : container.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
+        if (items != null) for (ItemStack item : items) {
+            if (item == null) continue;
+            block.getWorld().dropItemNaturally(block.getLocation(), item);
+        }
+
+        container.remove(STORAGE_KEY);
+        blockStorages.remove(block);
+    }
+
+    public void dropStorageContent(ItemFrame frame) {
+        PersistentDataContainer container = frame.getPersistentDataContainer();
+        ItemStack[] items = frameStorages.containsKey(frame)
+                ? frameStorages.get(frame).getInventory().getContents()
+                : container.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
+        if (items != null) for (ItemStack item : items)
+            frame.getWorld().dropItemNaturally(frame.getLocation(), item);
+        container.remove(STORAGE_KEY);
+        frameStorages.remove(frame);
     }
 
     public int getRows() {
