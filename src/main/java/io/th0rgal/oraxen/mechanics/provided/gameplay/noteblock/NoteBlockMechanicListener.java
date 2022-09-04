@@ -163,6 +163,7 @@ public class NoteBlockMechanicListener implements Listener {
             switch (storageMechanic.getStorageType()) {
                 case STORAGE -> storageMechanic.openStorage(block, player);
                 case PERSONAL -> storageMechanic.openPersonalStorage(player);
+                case DISPOSAL -> storageMechanic.openDisposal(player, block.getLocation());
                 case ENDERCHEST -> player.openInventory(player.getEnderChest());
             }
         }
@@ -564,9 +565,9 @@ public class NoteBlockMechanicListener implements Listener {
 
     public static NoteBlockMechanic getNoteBlockMechanic(Block block) {
         if (block.getType() != Material.NOTE_BLOCK) return null;
-        final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
+        final NoteBlock noteblock = (NoteBlock) block.getBlockData();
         return NoteBlockMechanicFactory
-                .getBlockMechanic((noteBlok.getInstrument().getType()) * 25
-                        + noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
+                .getBlockMechanic((noteblock.getInstrument().getType()) * 25
+                        + noteblock.getNote().getId() + (noteblock.isPowered() ? 400 : 0) - 26);
     }
 }
