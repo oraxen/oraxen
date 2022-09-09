@@ -9,7 +9,8 @@ public enum CustomEventType {
     CLICK(ClickListener::new),
     DROP(DropListener::new),
     PICKUP(PickupListener::new),
-    EQUIP(EquipListener::new);
+    EQUIP(EquipListener::new),
+    UNEQUIP(UnequipListener::new);
 
     public final CustomListenerConstructor constructor;
 
