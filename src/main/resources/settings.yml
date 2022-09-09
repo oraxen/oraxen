@@ -48,7 +48,7 @@ Pack:
     loaded:
       actions:
         sound:
-          type: oraxen:welcome
+          type: minecraft:welcome
           volume: 1.0
           pitch: 1.0
         delay: 5 # delay in ticks
