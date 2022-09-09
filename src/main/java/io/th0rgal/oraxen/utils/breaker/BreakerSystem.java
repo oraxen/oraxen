@@ -55,7 +55,6 @@ public class BreakerSystem {
         @Override
         public void onPacketReceiving(final PacketEvent event) {
             final PacketContainer packet = event.getPacket();
-
             final Player player = event.getPlayer();
             final ItemStack item = player.getInventory().getItemInMainHand();
             if (player.getGameMode() == GameMode.CREATIVE) return;
