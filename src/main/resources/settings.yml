@@ -48,7 +48,10 @@ Pack:
     loaded:
       actions:
         sound:
-          type: minecraft:welcome
+          #Remove this and use below if you want the welcome sound to play
+          # Can ofcourse also be changed to any vanilla or custom sound from sound.yml
+          type: minecraft:null
+          #type: minecraft:welcome
           volume: 1.0
           pitch: 1.0
         delay: 5 # delay in ticks
