@@ -194,7 +194,7 @@ public class BreakerSystem {
                 return (mechanic != null && mechanic.hasHitSound()) ? mechanic.getHitSound() : "required.stone.hit";
             }
             default -> {
-                return block.getBlockData().getSoundGroup().getHitSound().toString();
+                return block.getBlockData().getSoundGroup().getHitSound().getKey().toString();
             }
         }
     }
