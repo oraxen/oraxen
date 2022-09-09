@@ -78,7 +78,7 @@ public class StorageMechanic {
         StorageGui gui = blockStorages.get(block);
         PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
         // If shutdown the gui isn't saved and map is empty, so use pdc storage
-        ItemStack[] items = blockStorages.containsKey(block)
+        ItemStack[] items = (blockStorages.containsKey(block) && gui != null)
                 ? gui.getInventory().getContents() : pdc.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
         if (items != null) for (ItemStack item : items) {
             if (item == null) continue;
@@ -96,7 +96,7 @@ public class StorageMechanic {
         StorageGui gui = frameStorages.get(frame);
         PersistentDataContainer pdc = frame.getPersistentDataContainer();
         // If shutdown the gui isn't saved and map is empty, so use pdc storage
-        ItemStack[] items = frameStorages.containsKey(frame)
+        ItemStack[] items = (frameStorages.containsKey(frame) && gui != null)
                 ? gui.getInventory().getContents() : pdc.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
         if (items != null) for (ItemStack item : items) {
             if (item == null) continue;
