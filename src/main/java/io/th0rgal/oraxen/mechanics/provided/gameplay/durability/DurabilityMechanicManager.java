@@ -22,23 +22,27 @@ public class DurabilityMechanicManager implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemDamaged(PlayerItemDamageEvent event) {
-        changeDurability(event.getItem(), -event.getDamage());
+        if (changeDurability(event.getItem(), -event.getDamage())) {
+            event.setDamage(0);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemMend(PlayerItemMendEvent event) {
-        changeDurability(event.getItem(), event.getRepairAmount());
+        if (changeDurability(event.getItem(), event.getRepairAmount())) {
+            event.setRepairAmount(0);
+        }
     }
 
-    public void changeDurability(ItemStack item, int amount) {
+    public boolean changeDurability(ItemStack item, int amount) {
         String itemID = OraxenItems.getIdByItem(item);
         if (factory.isNotImplementedIn(itemID))
-            return;
+            return false;
 
         DurabilityMechanic durabilityMechanic = (DurabilityMechanic) factory.getMechanic(itemID);
 
         ItemMeta itemMeta = item.getItemMeta();
-        if (itemMeta == null) return;
+        if (itemMeta == null) return false;
         PersistentDataContainer persistentDataContainer = itemMeta.getPersistentDataContainer();
         if (persistentDataContainer.has(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER)) {
             int realDurabilityLeft = persistentDataContainer
@@ -47,7 +51,7 @@ public class DurabilityMechanicManager implements Listener {
                 persistentDataContainer
                         .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realDurabilityLeft);
 
-                if(!(itemMeta instanceof Damageable)) return;
+                if(!(itemMeta instanceof Damageable)) return true;
                 double realMaxDurability = durabilityMechanic.getItemMaxDurability(); // because int rounded values suck
 
                 ((Damageable) itemMeta)
@@ -57,9 +61,9 @@ public class DurabilityMechanicManager implements Listener {
             } else {
                 item.setAmount(0);
             }
-
+            return true;
         }
-        
+        return false;
     }
 
 }
