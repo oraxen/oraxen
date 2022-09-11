@@ -17,7 +17,6 @@ import io.th0rgal.oraxen.utils.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.ZipUtils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.minimessage.Template;
 import net.kyori.adventure.text.minimessage.template.TemplateResolver;
 import org.bukkit.Material;
@@ -90,7 +89,6 @@ public class ResourcePack {
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)
                 packModifier.accept(packFolder);
-        Logs.logWarning("Generating pack-zip...");
         List<VirtualFile> output = new ArrayList<>(outputFiles.values());
         // zipping resourcepack
         try {
