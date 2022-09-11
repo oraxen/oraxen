@@ -17,12 +17,11 @@ public class PickupListener extends CustomListener {
 
     @EventHandler
     public void onPickedUp(EntityPickupItemEvent event) {
-        if (event.getEntity() instanceof Player player) {
-            ItemStack item = event.getItem().getItemStack();
-            if (!itemID.equals(OraxenItems.getIdByItem(item)))
-                return;
-            perform(player, item);
-        }
+        if (!(event.getEntity() instanceof Player player)) return;
+        ItemStack item = event.getItem().getItemStack();
+        if (!itemID.equals(OraxenItems.getIdByItem(item)))
+            return;
+        perform(player, item);
     }
 
 }
