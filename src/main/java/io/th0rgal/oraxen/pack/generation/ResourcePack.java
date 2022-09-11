@@ -109,9 +109,8 @@ public class ResourcePack {
                 String armorPath = "assets/minecraft/textures/models/armor";
                 output.add(new VirtualFile(armorPath, "leather_layer_1.png", customArmorsTextures.getLayerOne()));
                 output.add(new VirtualFile(armorPath, "leather_layer_2.png", customArmorsTextures.getLayerTwo()));
-
-                // Debug for checking vf outputs for optifine shader armor
-                output.stream().filter(vf -> vf.getPath().contains("optifine")).forEach(i -> Logs.logError(i.getPath()));
+                if (customArmorsTextures.shouldGenerateOptifineFiles())
+                    output.addAll(customArmorsTextures.getOptifineFiles());
             }
             Collections.sort(output);
         } catch (IOException e) {
