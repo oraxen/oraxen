@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.utils.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.ZipUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.minimessage.Template;
 import net.kyori.adventure.text.minimessage.template.TemplateResolver;
 import org.bukkit.Material;
@@ -89,6 +90,7 @@ public class ResourcePack {
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)
                 packModifier.accept(packFolder);
+        Logs.logWarning("Generating pack-zip...");
         List<VirtualFile> output = new ArrayList<>(outputFiles.values());
         // zipping resourcepack
         try {
@@ -104,12 +106,12 @@ public class ResourcePack {
                     getAllFiles(folder, output, "assets/minecraft");
 
             if (customArmorsTextures.hasCustomArmors()) {
-                output.add(new VirtualFile("assets/minecraft/textures/models/armor",
-                        "leather_layer_1.png",
-                        customArmorsTextures.getLayerOne()));
-                output.add(new VirtualFile("assets/minecraft/textures/models/armor",
-                        "leather_layer_2.png",
-                        customArmorsTextures.getLayerTwo()));
+                String armorPath = "assets/minecraft/textures/models/armor";
+                output.add(new VirtualFile(armorPath, "leather_layer_1.png", customArmorsTextures.getLayerOne()));
+                output.add(new VirtualFile(armorPath, "leather_layer_2.png", customArmorsTextures.getLayerTwo()));
+
+                // Debug for checking vf outputs for optifine shader armor
+                output.stream().filter(vf -> vf.getPath().contains("optifine")).forEach(i -> Logs.logError(i.getPath()));
             }
             Collections.sort(output);
         } catch (IOException e) {
