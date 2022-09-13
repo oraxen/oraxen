@@ -21,6 +21,7 @@ import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.utils.storage.StorageMechanic;
 import io.th0rgal.protectionlib.ProtectionLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import net.kyori.adventure.text.minimessage.Template;
@@ -92,6 +93,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        StorageMechanic.forceCloseStorages();
         unregisterListeners();
         CompatibilitiesManager.disableCompatibilities();
         Message.PLUGIN_UNLOADED.log();

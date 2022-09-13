@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import com.jeff_media.customblockdata.CustomBlockData;
+import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
@@ -13,6 +14,7 @@ import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.utils.storage.StorageMechanic;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -26,6 +28,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import javax.annotation.Nullable;
 import java.util.*;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.VANILLA_STONE_BREAK;
@@ -39,6 +42,7 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey ORIENTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "orientation");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
     private final LimitedPlacing limitedPlacing;
+    private final StorageMechanic storage;
     public final boolean farmlandRequired;
     public final boolean farmblockRequired;
     private final String breakSound;
@@ -141,6 +145,10 @@ public class FurnitureMechanic extends Mechanic {
             limitedPlacing = new LimitedPlacing(section.getConfigurationSection("limited_placing"));
         } else limitedPlacing = null;
 
+        if (section.isConfigurationSection("storage")) {
+            storage = new StorageMechanic(Objects.requireNonNull(section.getConfigurationSection("storage")));
+        } else storage = null;
+
         clickActions = ClickAction.parseList(section);
     }
 
@@ -205,8 +213,21 @@ public class FurnitureMechanic extends Mechanic {
         else return sound;
     }
 
-    public boolean hasLimitedPlacing() { return limitedPlacing != null; }
-    public LimitedPlacing getLimitedPlacing() { return limitedPlacing; }
+    public boolean hasLimitedPlacing() {
+        return limitedPlacing != null;
+    }
+
+    public LimitedPlacing getLimitedPlacing() {
+        return limitedPlacing;
+    }
+
+    public boolean isStorage() {
+        return storage != null;
+    }
+
+    public StorageMechanic getStorage() {
+        return storage;
+    }
 
     public boolean hasBarriers() {
         return !barriers.isEmpty();
@@ -265,12 +286,12 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location) {
+    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, @Nullable Player player) {
         setPlacedItem();
-        return place(rotation, yaw, facing, location, placedItem);
+        return place(rotation, yaw, facing, location, placedItem, player);
     }
 
-    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item) {
+    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item, @Nullable Player player) {
         if (!this.isEnoughSpace(yaw, location)) return null;
         if (!location.isWorldLoaded()) return null;
 
@@ -289,9 +310,13 @@ public class FurnitureMechanic extends Mechanic {
             } else frame.setItem(placedItem, false);
             frame.setRotation(rotation);
             frame.setFacingDirection(hasFacing() ? getFacing() : facing, true);
-            frame.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
-            if (hasEvolution())
-                frame.getPersistentDataContainer().set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
+
+            PersistentDataContainer pdc = frame.getPersistentDataContainer();
+            pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
+            if (hasEvolution()) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
+            if (isStorage()) if (getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
+                pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
+            }
         });
 
         if (hasBarriers())
@@ -328,6 +353,9 @@ public class FurnitureMechanic extends Mechanic {
                     seat.getPassengers().forEach(seat::removePassenger);
                     seat.remove();
                 }
+            }
+            if (isStorage() && getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
+                getStorage().dropStorageContent(getItemFrame(rootLocation.getBlock(), rootBlockLocation, orientation));
             }
             location.getBlock().setType(Material.AIR);
             new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();

@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import com.jeff_media.customblockdata.CustomBlockData;
+import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.events.OraxenNoteBlockBreakEvent;
@@ -13,6 +14,7 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.utils.storage.StorageMechanic;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -47,6 +49,7 @@ import java.util.Objects;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 import static io.th0rgal.oraxen.utils.BlockHelpers.*;
+import static io.th0rgal.oraxen.utils.storage.StorageMechanic.STORAGE_KEY;
 
 public class NoteBlockMechanicListener implements Listener {
     private final MechanicFactory factory;
@@ -152,8 +155,18 @@ public class NoteBlockMechanicListener implements Listener {
             return;
         }
 
-        if (noteBlockMechanic.hasClickActions())
+        if (noteBlockMechanic.hasClickActions() && !player.isSneaking())
             noteBlockMechanic.runClickActions(player);
+
+        if (noteBlockMechanic.isStorage() && !player.isSneaking()) {
+            StorageMechanic storageMechanic = noteBlockMechanic.getStorage();
+            switch (storageMechanic.getStorageType()) {
+                case STORAGE -> storageMechanic.openStorage(block, player);
+                case PERSONAL -> storageMechanic.openPersonalStorage(player);
+                case DISPOSAL -> storageMechanic.openDisposal(player, block.getLocation());
+                case ENDERCHEST -> player.openInventory(player.getEnderChest());
+            }
+        }
 
         event.setCancelled(true);
         if (item == null) return;
@@ -244,6 +257,9 @@ public class NoteBlockMechanicListener implements Listener {
             WrappedLightAPI.removeBlockLight(block.getLocation());
         if (player.getGameMode() != GameMode.CREATIVE)
             mechanic.getDrop().spawns(block.getLocation(), player.getInventory().getItemInMainHand());
+        if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
+            mechanic.getStorage().dropStorageContent(block);
+        }
         event.setDropItems(false);
     }
 
@@ -251,12 +267,14 @@ public class NoteBlockMechanicListener implements Listener {
     public void onExplosionDestroy(EntityExplodeEvent event) {
         List<Block> blockList = event.blockList().stream().filter(block -> block.getType().equals(Material.NOTE_BLOCK)).toList();
         blockList.forEach(block -> {
-            NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
-            if (noteBlockMechanic == null) return;
-            if (noteBlockMechanic.isDirectional())
-                noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
+            NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
+            if (mechanic == null) return;
+            if (mechanic.isDirectional())
+                mechanic = (NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock());
+            if (mechanic.isStorage()) //TODO Should this drop items on explosions?
+                mechanic.getStorage().dropStorageContent(block);
 
-            noteBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
+            mechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
             block.setType(Material.AIR, false);
         });
     }
@@ -293,6 +311,11 @@ public class NoteBlockMechanicListener implements Listener {
             if (mechanic.hasDryout() && mechanic.getDryout().isFarmBlock()) {
                 final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
                 customBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
+            }
+
+            if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
+                final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
+                customBlockData.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
             }
 
             BlockHelpers.playCustomBlockSound(placedBlock.getLocation(), mechanic.hasPlaceSound() ? mechanic.getPlaceSound() : VANILLA_WOOD_PLACE);
@@ -511,12 +534,14 @@ public class NoteBlockMechanicListener implements Listener {
         final boolean isFlowing = (newBlock.getMaterial() == Material.WATER || newBlock.getMaterial() == Material.LAVA);
         target.setBlockData(newBlock, isFlowing);
         final BlockState currentBlockState = target.getState();
+        final NoteBlockMechanic againstMechanic = getNoteBlockMechanic(placedAgainst);
 
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
         if (BlockHelpers.correctAllBlockStates(target, player, face, item)) blockPlaceEvent.setCancelled(true);
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
+        if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions())) blockPlaceEvent.setCancelled(true);
         if (!ProtectionLib.canBuild(player, target.getLocation()) || !blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
             return null;
@@ -540,9 +565,9 @@ public class NoteBlockMechanicListener implements Listener {
 
     public static NoteBlockMechanic getNoteBlockMechanic(Block block) {
         if (block.getType() != Material.NOTE_BLOCK) return null;
-        final NoteBlock noteBlok = (NoteBlock) block.getBlockData();
+        final NoteBlock noteblock = (NoteBlock) block.getBlockData();
         return NoteBlockMechanicFactory
-                .getBlockMechanic((noteBlok.getInstrument().getType()) * 25
-                        + noteBlok.getNote().getId() + (noteBlok.isPowered() ? 400 : 0) - 26);
+                .getBlockMechanic((noteblock.getInstrument().getType()) * 25
+                        + noteblock.getNote().getId() + (noteblock.isPowered() ? 400 : 0) - 26);
     }
 }
