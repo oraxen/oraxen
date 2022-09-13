@@ -27,16 +27,13 @@ public class SoundManager {
             SoundCategory category = null;
             if (sound.isString("category")) {
                 try {
-                    category = SoundCategory.valueOf(sound.getString("category").toUpperCase(Locale.ROOT));
+                    category = (Objects.requireNonNullElse(SoundCategory.valueOf(sound.getString("category").toUpperCase(Locale.ROOT)), SoundCategory.MASTER));
                 } catch (IllegalArgumentException ignored) {
                 }
             }
-            List<String> sounds = !sound.getStringList("sounds").isEmpty() ?
-                    sound.getStringList("sounds") : Collections.singletonList(sound.getString("sound"));
-            output.add(new CustomSound(
-                    soundName, sounds, category,
-                    sound.getBoolean("replace"), sound.getString("subtitle"))
-            );
+            List<String> sounds = sound.getStringList("sounds").isEmpty()
+                    ? Collections.singletonList(sound.getString("sound")) : sound.getStringList("sounds");
+            output.add(new CustomSound(soundName, sounds, category, sound.getBoolean("replace"), sound.getString("subtitle")));
         }
         return output;
     }

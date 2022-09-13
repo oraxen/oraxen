@@ -46,6 +46,7 @@ public class Loot {
         } else if (config.containsKey("minecraft_type")) {
             String itemType = config.get("minecraft_type").toString();
             Material material = Material.getMaterial(itemType);
+            if (material == null) return null;
             itemStack = new ItemStack(material);
         } else itemStack = (ItemStack) config.get("minecraft_item");
         return itemStack;

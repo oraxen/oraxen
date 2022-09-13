@@ -29,12 +29,9 @@ public abstract class PackSender {
             Message.COMMAND_JOIN_MESSAGE.send(player,
                     Template.template("pack_url", hostingProvider.getPackURL()));
         else
-            Bukkit
-                    .getScheduler()
-                    .runTaskLaterAsynchronously(OraxenPlugin.get(),
-                            () -> Message.COMMAND_JOIN_MESSAGE.send(player, Template.template("pack_url"
-                                    , hostingProvider.getPackURL())),
-                            delay * 20L);
+            Bukkit.getScheduler().runTaskLaterAsynchronously(OraxenPlugin.get(),
+                    () -> Message.COMMAND_JOIN_MESSAGE.send(player, Template.template("pack_url"
+                            , hostingProvider.getPackURL())), delay * 20L);
     }
 
 }

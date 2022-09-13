@@ -26,10 +26,8 @@ public class AdvancedPackSender extends PackSender implements Listener {
     public AdvancedPackSender(HostingProvider hostingProvider) {
         super(hostingProvider);
         protocolManager = ProtocolLibrary.getProtocolManager();
-
         component = WrappedChatComponent.fromJson(GsonComponentSerializer.gson()
-                .serialize(Utils.MINI_MESSAGE
-                        .parse(Settings.SEND_PACK_ADVANCED_MESSAGE.toString())));
+                .serialize(Utils.MINI_MESSAGE.parse(Settings.SEND_PACK_ADVANCED_MESSAGE.toString())));
     }
 
     @Override
@@ -54,18 +52,14 @@ public class AdvancedPackSender extends PackSender implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerConnect(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
         if (Settings.SEND_JOIN_MESSAGE.toBool())
-            sendWelcomeMessage(event.getPlayer(), true);
+            sendWelcomeMessage(player, true);
         if (Settings.SEND_PACK.toBool()) {
             int delay = (int) Settings.SEND_PACK_DELAY.getValue();
-            if(delay < 1)
-                sendPack(event.getPlayer());
-            else
-                Bukkit
-                        .getScheduler()
-                        .runTaskLaterAsynchronously(OraxenPlugin.get(),
-                                () -> sendPack(event.getPlayer()),
-                                delay * 20L);
+            if (delay < 1) sendPack(player);
+            else Bukkit.getScheduler().runTaskLaterAsynchronously(OraxenPlugin.get(),
+                    () -> sendPack(player), delay * 20L);
         }
     }
 
