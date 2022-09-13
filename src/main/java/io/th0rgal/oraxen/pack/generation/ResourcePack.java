@@ -38,9 +38,6 @@ public class ResourcePack {
     private Map<String, Collection<Consumer<File>>> packModifiers;
     private Map<String, VirtualFile> outputFiles;
     private CustomArmorsTextures customArmorsTextures;
-    private File modelsFolder;
-    private File fontFolder;
-    private File assetsFolder;
     private File packFolder;
     private File pack;
     JavaPlugin plugin;
@@ -61,13 +58,14 @@ public class ResourcePack {
         packFolder = new File(plugin.getDataFolder(), "pack");
         makeDirsIfNotExists(packFolder);
         pack = new File(packFolder, packFolder.getName() + ".zip");
-        assetsFolder = new File(packFolder, "assets");
-        modelsFolder = new File(packFolder, "models");
-        fontFolder = new File(packFolder, "font");
+        File assetsFolder = new File(packFolder, "assets");
+        File modelsFolder = new File(packFolder, "models");
+        File fontFolder = new File(packFolder, "font");
+        File optifineFolder = new File(packFolder, "optifine");
         final File langFolder = new File(packFolder, "lang");
         extractFolders(!modelsFolder.exists(), !new File(packFolder, "textures").exists(),
-                !new File(packFolder, "shaders").exists(),
-                !langFolder.exists(), !new File(packFolder, "sounds").exists(), !assetsFolder.exists());
+                !new File(packFolder, "shaders").exists(), !langFolder.exists(),
+                !new File(packFolder, "sounds").exists(), !assetsFolder.exists(), !optifineFolder.exists());
 
         if (!Settings.GENERATE.toBool())
             return;
@@ -75,7 +73,7 @@ public class ResourcePack {
         if (pack.exists()) {
             try {
                 Files.delete(pack.toPath());
-            } catch(IOException e) {
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -106,12 +104,11 @@ public class ResourcePack {
                     getAllFiles(folder, output, "assets/minecraft");
 
             if (customArmorsTextures.hasCustomArmors()) {
-                output.add(new VirtualFile("assets/minecraft/textures/models/armor",
-                        "leather_layer_1.png",
-                        customArmorsTextures.getLayerOne()));
-                output.add(new VirtualFile("assets/minecraft/textures/models/armor",
-                        "leather_layer_2.png",
-                        customArmorsTextures.getLayerTwo()));
+                String armorPath = "assets/minecraft/textures/models/armor";
+                output.add(new VirtualFile(armorPath, "leather_layer_1.png", customArmorsTextures.getLayerOne()));
+                output.add(new VirtualFile(armorPath, "leather_layer_2.png", customArmorsTextures.getLayerTwo()));
+                if (customArmorsTextures.shouldGenerateOptifineFiles())
+                    output.addAll(customArmorsTextures.getOptifineFiles());
             }
             Collections.sort(output);
         } catch (IOException e) {
@@ -121,8 +118,8 @@ public class ResourcePack {
     }
 
     private void extractFolders(boolean extractModels, boolean extractTextures, boolean extractShaders,
-                                boolean extractLang, boolean extractSounds, boolean extractAssets) {
-        if (!extractModels && !extractTextures && !extractShaders && !extractLang && !extractAssets)
+                                boolean extractLang, boolean extractSounds, boolean extractAssets, boolean extractOptifine) {
+        if (!extractModels && !extractTextures && !extractShaders && !extractLang && !extractAssets && !extractOptifine)
             return;
         final ZipInputStream zip = ResourcesManager.browse();
         try {
@@ -130,7 +127,7 @@ public class ResourcePack {
             final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
             while (entry != null) {
                 extract(entry, extractModels, extractTextures,
-                        extractLang, extractSounds, extractAssets, resourcesManager);
+                        extractLang, extractSounds, extractAssets, extractOptifine, resourcesManager);
                 entry = zip.getNextEntry();
             }
             zip.closeEntry();
@@ -143,14 +140,15 @@ public class ResourcePack {
     private void extract(ZipEntry entry, boolean extractModels,
                          boolean extractTextures, boolean extractLang,
                          boolean extractSounds, boolean extractAssets,
-                         ResourcesManager resourcesManager) {
+                         boolean extractOptifine, ResourcesManager resourcesManager) {
         final String name = entry.getName();
         final boolean isSuitable = (extractModels && name.startsWith("pack/models"))
                 || (extractTextures && name.startsWith("pack/textures"))
                 || (extractTextures && name.startsWith("pack/shaders"))
                 || (extractLang && name.startsWith("pack/lang"))
                 || (extractSounds && name.startsWith("pack/sounds"))
-                || (extractAssets && name.startsWith("/pack/assets"));
+                || (extractAssets && name.startsWith("/pack/assets"))
+                || (extractOptifine && name.startsWith("pack/optifine"));
         resourcesManager.extractFileIfTrue(entry, name, isSuitable);
     }
 

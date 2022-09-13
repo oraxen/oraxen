@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import net.kyori.adventure.text.minimessage.Template;
@@ -11,10 +13,9 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.*;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class CustomArmorsTextures {
 
@@ -40,11 +41,10 @@ public class CustomArmorsTextures {
     }
 
     public boolean registerImage(File file) throws IOException {
-
         String name = file.getName();
 
-        if (!name.endsWith(".png"))
-            return false;
+        if (!name.endsWith(".png")) return false;
+        if (!name.contains("armor_layer") && !name.contains("leather_layer")) return false;
 
         if (name.equals("leather_layer_1.png")) {
             layer1 = initLayer(ImageIO.read(file));
@@ -103,6 +103,7 @@ public class CustomArmorsTextures {
             setPixel(image.getRaster(), 2, 0, Color.fromRGB(1, 0, 0));
         }
         addPixel(image, builder, name, prefix);
+
         return true;
     }
 
@@ -138,6 +139,97 @@ public class CustomArmorsTextures {
         return getInputStream(layer2Width, getLayerHeight(), layer2, layers2);
     }
 
+    private final String OPTIFINE_ARMOR_PATH = "assets/minecraft/optifine/cit/armors/";
+
+    public boolean shouldGenerateOptifineFiles() {
+        return Settings.AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool();
+    }
+
+    public Set<VirtualFile> getOptifineFiles() throws FileNotFoundException {
+        Set<VirtualFile> optifineFiles = new HashSet<>(generateLeatherArmors());
+
+        for (Map.Entry<String, InputStream> armorFile : getAllArmors().entrySet()) {
+            String fileName = armorFile.getKey().split("/")[armorFile.getKey().split("/").length - 1];
+            String parentFolder = fileName.split("_")[0];
+            String path = OPTIFINE_ARMOR_PATH + parentFolder;
+            optifineFiles.add(new VirtualFile(path, fileName, armorFile.getValue()));
+
+            // Avoid duplicate properties files as this is called for both layers, but only needs 1 property file
+            if (optifineFiles.stream().map(VirtualFile::getPath).anyMatch(p -> Objects.equals(p, path + "/" + parentFolder + ".properties")))
+                continue;
+
+            // Queries all items and finds custom armors custommodeldata
+            String cmdProperty = "nbt.CustomModelData=" + OraxenItems.getEntries().stream().filter(e ->
+                    e.getValue().build().getType().toString().startsWith("LEATHER_") && e.getValue().getOraxenMeta().getLayers().get(0).contains(parentFolder)
+            ).map(s -> s.getValue().getOraxenMeta().getCustomModelData()).findFirst().orElse(0);
+
+            String propContent = getArmorPropertyFile(fileName, cmdProperty);
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(propContent.getBytes(StandardCharsets.UTF_8));
+            optifineFiles.add(new VirtualFile(path, parentFolder + ".properties", inputStream));
+        }
+
+        return optifineFiles;
+    }
+
+    private List<VirtualFile> generateLeatherArmors() throws FileNotFoundException {
+        List<VirtualFile> leatherArmors = new ArrayList<>();
+        File leatherFile1 = new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/textures/required/leather_layer_1.png");
+        File leatherFile2 = new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/textures/required/leather_layer_2.png");
+        String leatherPath = OPTIFINE_ARMOR_PATH + "leather";
+
+        // If someone deletes required or compiles, don't fail simply break leather shader armor
+        if (!leatherFile1.exists() || !leatherFile2.exists()) return leatherArmors;
+
+        try(final FileInputStream layerOne = new FileInputStream(leatherFile1); final FileInputStream layerTwo = new FileInputStream(leatherFile2)) {
+            leatherArmors.add(new VirtualFile(leatherPath, "leather_layer_1.png", layerOne));
+            leatherArmors.add(new VirtualFile(leatherPath, "leather_layer_2.png", layerTwo));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(getArmorPropertyFile("leather_layer_1.png", "").getBytes(StandardCharsets.UTF_8));
+        leatherArmors.add(new VirtualFile(leatherPath, "leather.properties", inputStream));
+        return leatherArmors;
+    }
+
+    private String getArmorPropertyFile(String fileName, String cmdProperty) {
+        return """
+                type=armor
+                items=minecraft:leather_helmet minecraft:leather_chestplate minecraft:leather_leggings minecraft:leather_boots
+                texture.leather_layer_1=""" + fileName.replace("_2.png", "_1.png") + "\n" + """
+                texture.leather_layer_1_overlay=""" + fileName.replace("_2.png", "_1.png") + "\n" + """
+                texture.leather_layer_2=""" + fileName.replace("_1.png", "_2.png") + "\n" + """
+                texture.leather_layer_2_overlay=""" + fileName.replace("_1.png", "_2.png") + "\n" +
+                cmdProperty;
+    }
+
+    private Map<String, InputStream> getAllArmors() {
+        Map<String, InputStream> layers = new HashMap<>();
+        for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
+            ItemBuilder builder = entry.getValue();
+            String armorType = entry.getKey().split("_")[0];
+            List<String> layerList = builder.getOraxenMeta().getLayers();
+
+            boolean isArmor = builder.build().getType().toString().contains("LEATHER_");
+            boolean inLayerList = layers.keySet().stream().anyMatch(s -> s.contains(armorType));
+
+            if (isArmor && !inLayerList && builder.hasOraxenMeta() && layerList.size() == 2) {
+                for (String file : layerList) {
+                    int id = layers.keySet().stream().anyMatch(s -> s.contains(armorType)) ? 2 : 1;
+                    String fileName = file.split("_")[0] + "_armor_layer_" + id + ".png";
+                    String fileFolder = OraxenPlugin.get().getDataFolder().getAbsolutePath() + "/pack/textures/" + fileName;
+
+                    try(final FileInputStream f = new FileInputStream(fileFolder)) {
+                        layers.put(fileName, f);
+                    } catch (IOException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            }
+        }
+        return layers;
+    }
+
     private InputStream getInputStream(int layerWidth, int layerHeight,
                                        BufferedImage layer, List<BufferedImage> layers) throws IOException {
         layers.add(0, layer);
@@ -162,6 +254,5 @@ public class CustomArmorsTextures {
         g2d.dispose();
         return concatImage;
     }
-
 
 }

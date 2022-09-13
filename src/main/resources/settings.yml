@@ -12,6 +12,7 @@ Pack:
     # 64x32 layer is default size and corresponds to 16. If you need higher
     # resolution, e.g. 128x64, you should set this parameter to 32 and so on.
     armor_resolution: 16
+    automatically_generate_shader_compatible_armor: true
     compression: BEST_COMPRESSION # see Deflater.class
     # protection will use several methods to make your pack impossible to extract
     # with usual tools (native windows unzip, 7zip, winrar, etc) without altering
