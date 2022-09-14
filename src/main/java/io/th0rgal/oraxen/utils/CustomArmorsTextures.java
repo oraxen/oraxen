@@ -150,8 +150,8 @@ public class CustomArmorsTextures {
         Set<VirtualFile> optifineFiles = new HashSet<>(generateLeatherArmors());
 
         for (Map.Entry<String, InputStream> armorFile : getAllArmors().entrySet()) {
-            String fileName = armorFile.getKey().split("/")[armorFile.getKey().split("/").length - 1];
-            String parentFolder = fileName.split("_")[0];
+            String fileName = armorFile.getKey();
+            String parentFolder = StringUtils.substringBefore(fileName, "_");
             String path = OPTIFINE_ARMOR_PATH + parentFolder;
             optifineFiles.add(new VirtualFile(path, fileName, armorFile.getValue()));
 
@@ -224,7 +224,7 @@ public class CustomArmorsTextures {
 
                     String fileName = armorType + "_armor_layer_" + id + ".png";
                     String absolutePath = OraxenPlugin.get().getDataFolder().getAbsolutePath() + "/pack/textures/";
-                    String fileFolder =  absolutePath + StringUtils.substringBeforeLast(file, itemId) + fileName;
+                    String fileFolder = absolutePath + StringUtils.substringBeforeLast(file, itemId) + fileName;
 
                     try(final FileInputStream f = new FileInputStream(fileFolder)) {
                         layers.put(fileName, f);
