@@ -107,6 +107,7 @@ public class ResourcePack {
                 String armorPath = "assets/minecraft/textures/models/armor";
                 output.add(new VirtualFile(armorPath, "leather_layer_1.png", customArmorsTextures.getLayerOne()));
                 output.add(new VirtualFile(armorPath, "leather_layer_2.png", customArmorsTextures.getLayerTwo()));
+
                 if (customArmorsTextures.shouldGenerateOptifineFiles())
                     output.addAll(customArmorsTextures.getOptifineFiles());
             }
