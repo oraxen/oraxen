@@ -77,7 +77,7 @@ dependencies {
     implementation fileTree(dir: 'libs/implement', include: ['*.jar'])
     implementation group: 'dev.triumphteam', name: 'triumph-gui', version: '3.1.2'
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'
-    implementation group: 'com.github.oraxen', name: 'protectionlib', version: '1.1.1'
+    implementation group: 'com.github.oraxen', name: 'protectionlib', version: '1.1.2'
     implementation group: 'net.kyori', name: 'adventure-text-minimessage', version: '4.2.0-SNAPSHOT'
     implementation group: 'net.kyori', name: 'adventure-platform-bukkit', version: '4.0.0'
     implementation group: 'com.github.stefvanschie.inventoryframework', name: 'IF', version: '0.10.0'
