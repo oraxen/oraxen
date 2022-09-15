@@ -162,11 +162,11 @@ public class CustomArmorsTextures {
             // Queries all items and finds custom armors custommodeldata
             String cmdProperty = "nbt.CustomModelData=" + OraxenItems.getEntries().stream().filter(e ->
                     e.getValue().build().getType().toString().startsWith("LEATHER_") &&
-                    e.getValue().hasOraxenMeta() && !e.getValue().getOraxenMeta().getLayers().isEmpty() &&
+                            e.getValue().hasOraxenMeta() && !e.getValue().getOraxenMeta().getLayers().isEmpty() &&
                             e.getValue().getOraxenMeta().getLayers().get(0).contains(parentFolder)
             ).map(s -> s.getValue().getOraxenMeta().getCustomModelData()).findFirst().orElse(0);
 
-            String propContent = getArmorPropertyFile(fileName, cmdProperty);
+            String propContent = getArmorPropertyFile(fileName, cmdProperty, 1);
             ByteArrayInputStream inputStream = new ByteArrayInputStream(propContent.getBytes(StandardCharsets.UTF_8));
             optifineFiles.add(new VirtualFile(path, parentFolder + ".properties", inputStream));
         }
@@ -176,26 +176,65 @@ public class CustomArmorsTextures {
 
     private List<VirtualFile> generateLeatherArmors() {
         List<VirtualFile> leatherArmors = new ArrayList<>();
-        File leatherFile1 = new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/textures/required/optifine_leather_layer_1.png");
-        File leatherFile2 = new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/textures/required/optifine_leather_layer_2.png");
+        String absolute = OraxenPlugin.get().getDataFolder().getAbsolutePath() + "/pack/textures/models/armor";
+        File leatherFile1 = new File(absolute, "/leather_layer_1.png");
+        File leatherFile2 = new File(absolute, "/leather_layer_2.png");
+        File leatherFileOverlay = new File(absolute, "/leather_layer_1_overlay.png");
         String leatherPath = OPTIFINE_ARMOR_PATH + "leather";
 
         // If someone deletes required or compiles, don't fail simply break leather shader armor
-        if (!leatherFile1.exists() || !leatherFile2.exists()) return leatherArmors;
+        if (!leatherFile1.exists() || !leatherFile2.exists() || !leatherFileOverlay.exists()) return leatherArmors;
 
-        try(final FileInputStream layerOne = new FileInputStream(leatherFile1); final FileInputStream layerTwo = new FileInputStream(leatherFile2)) {
-            leatherArmors.add(new VirtualFile(leatherPath, "optifine_leather_layer_1.png", layerOne));
-            leatherArmors.add(new VirtualFile(leatherPath, "optifine_leather_layer_2.png", layerTwo));
+        BufferedImage leatherLayer1;
+        BufferedImage leatherLayer2;
+        BufferedImage leatherOverlay;
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+        ByteArrayOutputStream os2 = new ByteArrayOutputStream();
+        ByteArrayOutputStream osOverlay = new ByteArrayOutputStream();
+
+        try {
+            leatherLayer1 = ImageIO.read(leatherFile1);
+            leatherLayer2 = ImageIO.read(leatherFile2);
+            leatherOverlay = ImageIO.read(leatherFileOverlay);
+
+            ImageIO.write(leatherLayer1, "png", os);
+            ImageIO.write(leatherLayer2, "png", os2);
+            ImageIO.write(leatherOverlay, "png", osOverlay);
+
+            InputStream is = new ByteArrayInputStream(os.toByteArray());
+            InputStream is2 = new ByteArrayInputStream(os2.toByteArray());
+            InputStream isOverlay = new ByteArrayInputStream(osOverlay.toByteArray());
+
+            leatherArmors.add(new VirtualFile(leatherPath, "leather_armor_layer_1.png", is));
+            leatherArmors.add(new VirtualFile(leatherPath, "leather_armor_layer_2.png", is2));
+            leatherArmors.add(new VirtualFile(leatherPath, "leather_armor_overlay.png", isOverlay));
+
+            is.close();
+            is2.close();
+            isOverlay.close();
+
+            os.close();
+            os2.close();
+            osOverlay.close();
         } catch (IOException e) {
             return leatherArmors;
         }
 
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(getArmorPropertyFile("optifine_leather_layer_1.png", "").getBytes(StandardCharsets.UTF_8));
+        String content = correctLeatherPropertyFile(getArmorPropertyFile("leather_armor_layer_1.png", "", 0));
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         leatherArmors.add(new VirtualFile(leatherPath, "leather.properties", inputStream));
         return leatherArmors;
     }
 
-    private String getArmorPropertyFile(String fileName, String cmdProperty) {
+    private String correctLeatherPropertyFile(String content) {
+        return content
+                .replace("texture.leather_layer_1_overlay=leather_armor_layer_1.png",
+                        "texture.leather_layer_1_overlay=leather_armor_overlay.png")
+                .replace("texture.leather_layer_2_overlay=leather_armor_layer_2.png",
+                        "texture.leather_layer_2_overlay=leather_armor_overlay.png");
+    }
+
+    private String getArmorPropertyFile(String fileName, String cmdProperty, int weight) {
         return """
                 type=armor
                 items=minecraft:leather_helmet minecraft:leather_chestplate minecraft:leather_leggings minecraft:leather_boots
@@ -203,7 +242,8 @@ public class CustomArmorsTextures {
                 texture.leather_layer_1_overlay=""" + fileName.replace("_2.png", "_1.png") + "\n" + """
                 texture.leather_layer_2=""" + fileName.replace("_1.png", "_2.png") + "\n" + """
                 texture.leather_layer_2_overlay=""" + fileName.replace("_1.png", "_2.png") + "\n" +
-                cmdProperty;
+                cmdProperty + "\n" + """
+                weight=""" + weight;
     }
 
     private Map<String, InputStream> getAllArmors() {
@@ -225,9 +265,17 @@ public class CustomArmorsTextures {
                     String fileName = armorType + "_armor_layer_" + id + ".png";
                     String absolutePath = OraxenPlugin.get().getDataFolder().getAbsolutePath() + "/pack/textures/";
                     String fileFolder = absolutePath + StringUtils.substringBeforeLast(file, itemId) + fileName;
+                    File armorFile = new File(fileFolder);
+                    if (!armorFile.exists()) continue;
 
-                    try(final FileInputStream f = new FileInputStream(fileFolder)) {
-                        layers.put(fileName, f);
+                    try {
+                        BufferedImage armorLayer = ImageIO.read(armorFile);
+                        ByteArrayOutputStream os = new ByteArrayOutputStream();
+                        ImageIO.write(armorLayer, "png", os);
+                        InputStream is = new ByteArrayInputStream(os.toByteArray());
+                        layers.put(fileName, is);
+                        os.close();
+                        is.close();
                     } catch (IOException ignored) {
                     }
                 }
