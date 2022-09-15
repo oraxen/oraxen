@@ -22,7 +22,7 @@ public class Polymath implements HostingProvider {
     private String sha1;
 
     public Polymath(String serverAddress) {
-        this.serverAddress = serverAddress + "/";
+        this.serverAddress = (serverAddress.startsWith("http://") || serverAddress.startsWith("https://") ? "" : "https://") + serverAddress + (serverAddress.endsWith("/") ? "" : "/");
     }
 
     @Override
