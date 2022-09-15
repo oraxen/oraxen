@@ -176,21 +176,21 @@ public class CustomArmorsTextures {
 
     private List<VirtualFile> generateLeatherArmors() {
         List<VirtualFile> leatherArmors = new ArrayList<>();
-        File leatherFile1 = new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/textures/required/leather_layer_1.png");
-        File leatherFile2 = new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/textures/required/leather_layer_2.png");
+        File leatherFile1 = new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/textures/required/optifine_leather_layer_1.png");
+        File leatherFile2 = new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/textures/required/optifine_leather_layer_2.png");
         String leatherPath = OPTIFINE_ARMOR_PATH + "leather";
 
         // If someone deletes required or compiles, don't fail simply break leather shader armor
         if (!leatherFile1.exists() || !leatherFile2.exists()) return leatherArmors;
 
         try(final FileInputStream layerOne = new FileInputStream(leatherFile1); final FileInputStream layerTwo = new FileInputStream(leatherFile2)) {
-            leatherArmors.add(new VirtualFile(leatherPath, "leather_layer_1.png", layerOne));
-            leatherArmors.add(new VirtualFile(leatherPath, "leather_layer_2.png", layerTwo));
+            leatherArmors.add(new VirtualFile(leatherPath, "optifine_leather_layer_1.png", layerOne));
+            leatherArmors.add(new VirtualFile(leatherPath, "optifine_leather_layer_2.png", layerTwo));
         } catch (IOException e) {
             return leatherArmors;
         }
 
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(getArmorPropertyFile("leather_layer_1.png", "").getBytes(StandardCharsets.UTF_8));
+        ByteArrayInputStream inputStream = new ByteArrayInputStream(getArmorPropertyFile("optifine_leather_layer_1.png", "").getBytes(StandardCharsets.UTF_8));
         leatherArmors.add(new VirtualFile(leatherPath, "leather.properties", inputStream));
         return leatherArmors;
     }
