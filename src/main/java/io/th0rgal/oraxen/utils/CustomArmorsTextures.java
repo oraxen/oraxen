@@ -150,14 +150,14 @@ public class CustomArmorsTextures {
         Set<VirtualFile> optifineFiles = new HashSet<>(generateLeatherArmors());
 
         for (Map.Entry<String, InputStream> armorFile : getAllArmors().entrySet()) {
-            String fileName = armorFile.getKey().split("/")[armorFile.getKey().split("/").length - 1];
-            String parentFolder = fileName.split("_")[0];
+            String fileName = armorFile.getKey();
+            String parentFolder = StringUtils.substringBefore(fileName, "_");
             String path = OPTIFINE_ARMOR_PATH + parentFolder;
             optifineFiles.add(new VirtualFile(path, fileName, armorFile.getValue()));
 
             // Avoid duplicate properties files as this is called for both layers, but only needs 1 property file
-            if (optifineFiles.stream().map(VirtualFile::getPath).anyMatch(p -> Objects.equals(p, path + "/" + parentFolder + ".properties")))
-                continue;
+            if (optifineFiles.stream().map(VirtualFile::getPath).anyMatch(
+                    p -> Objects.equals(p, path + "/" + parentFolder + ".properties"))) continue;
 
             // Queries all items and finds custom armors custommodeldata
             String cmdProperty = "nbt.CustomModelData=" + OraxenItems.getEntries().stream().filter(e ->
@@ -208,6 +208,7 @@ public class CustomArmorsTextures {
 
     private Map<String, InputStream> getAllArmors() {
         Map<String, InputStream> layers = new HashMap<>();
+
         for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
             String itemId = entry.getKey();
             ItemBuilder builder = entry.getValue();
@@ -222,7 +223,8 @@ public class CustomArmorsTextures {
                     int id = layers.keySet().stream().anyMatch(s -> s.contains(armorType)) ? 2 : 1;
 
                     String fileName = armorType + "_armor_layer_" + id + ".png";
-                    String fileFolder = OraxenPlugin.get().getDataFolder().getAbsolutePath() + "/pack/textures/" + armorType + "/" + fileName;
+                    String absolutePath = OraxenPlugin.get().getDataFolder().getAbsolutePath() + "/pack/textures/";
+                    String fileFolder = absolutePath + StringUtils.substringBeforeLast(file, itemId) + fileName;
 
                     try(final FileInputStream f = new FileInputStream(fileFolder)) {
                         layers.put(fileName, f);
