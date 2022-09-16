@@ -174,8 +174,10 @@ public class HudManager {
 
     private String translateGlyphsForHudDisplay(String message) {
         for (Map.Entry<String, Glyph> entry : OraxenPlugin.get().getFontManager().getGlyphByPlaceholderMap().entrySet()) {
-            message = message.replace("%oraxen_" + entry.getValue().getName() + "%", String.valueOf(entry.getValue().getCharacter()))
-                    .replace("<glyph:" + entry.getValue().getName() + ">", String.valueOf(entry.getValue().getCharacter()));
+            String glyphName = entry.getValue().getName();
+            if (glyphName.startsWith("oraxen_shift_")) continue;
+            message = message.replace("%oraxen_" + entry.getValue().getName() + "%", "<font:default>" + entry.getValue().getCharacter() + "</font>")
+                    .replace("<glyph:" + entry.getValue().getName() + ">", "<font:default>" + entry.getValue().getCharacter() + "</font>");
         }
         return message;
     }
@@ -183,10 +185,11 @@ public class HudManager {
     private String translateShiftForHudDisplay(String message) {
         FontManager fontManager = OraxenPlugin.get().getFontManager();
         String regex = "<shift:(.*?).+?(?=>)";
-        Matcher matcher = Pattern.compile(regex).matcher(message);
         String regex2 = "%oraxen_shift_(.*?).+?(?=%)";
+        Matcher matcher = Pattern.compile(regex).matcher(message);
         Matcher matcher2 = Pattern.compile(regex2).matcher(message);
         List<String> shifts = new ArrayList<>();
+
         while (matcher.find()) {
             shifts.add(matcher.group().replace("<shift:", ""));
         }
