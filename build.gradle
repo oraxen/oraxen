@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'maven-publish'
 
 group 'io.th0rgal'
-def pluginVersion = '1.142.1'
+def pluginVersion = '1.142.2'
 ext.jitpackGroup = group + '.oraxen'
 ext.jitpackVersion = 'main-' + pluginVersion
 version = pluginVersion
@@ -98,7 +98,7 @@ shadowJar {
     archiveClassifier = null
     relocate 'org.bstats', 'io.th0rgal.oraxen.shaded.bstats'
     relocate 'net.kyori', 'io.th0rgal.oraxen.shaded.kyori'
-    relocate 'dev.thriumphteam.gui', 'io.th0rgal.oraxen.shaded.thriumphteam.gui'
+    relocate 'dev.triumphteam.gui', 'io.th0rgal.oraxen.shaded.triumphteam.gui'
     relocate 'com.jeff_media.customblockdata', 'io.th0rgal.oraxen.shaded.customblockdata'
     relocate 'com.jeff_media.morepersistentdatatypes', 'io.th0rgal.oraxen.shaded.morepersistentdatatypes'
     relocate 'com.github.stefvanschie.inventoryframework', 'io.th0rgal.oraxen.shaded.if'
