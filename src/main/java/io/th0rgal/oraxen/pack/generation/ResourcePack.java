@@ -62,7 +62,7 @@ public class ResourcePack {
         File optifineFolder = new File(packFolder, "optifine");
         final File langFolder = new File(packFolder, "lang");
         extractFolders(!modelsFolder.exists(), !new File(packFolder, "textures").exists(),
-                !new File(packFolder, "shaders").exists(), !langFolder.exists(),
+                !new File(packFolder, "shaders").exists(), !langFolder.exists(), !fontFolder.exists(),
                 !new File(packFolder, "sounds").exists(), !assetsFolder.exists(), !optifineFolder.exists());
 
         if (!Settings.GENERATE.toBool())
@@ -116,7 +116,7 @@ public class ResourcePack {
     }
 
     private void extractFolders(boolean extractModels, boolean extractTextures, boolean extractShaders,
-                                boolean extractLang, boolean extractSounds, boolean extractAssets, boolean extractOptifine) {
+                                boolean extractLang, boolean extractFonts, boolean extractSounds, boolean extractAssets, boolean extractOptifine) {
         if (!extractModels && !extractTextures && !extractShaders && !extractLang && !extractAssets && !extractOptifine)
             return;
         final ZipInputStream zip = ResourcesManager.browse();
@@ -125,7 +125,7 @@ public class ResourcePack {
             final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
             while (entry != null) {
                 extract(entry, extractModels, extractTextures,
-                        extractLang, extractSounds, extractAssets, extractOptifine, resourcesManager);
+                        extractLang, extractFonts, extractSounds, extractAssets, extractOptifine, resourcesManager);
                 entry = zip.getNextEntry();
             }
             zip.closeEntry();
@@ -136,7 +136,7 @@ public class ResourcePack {
     }
 
     private void extract(ZipEntry entry, boolean extractModels,
-                         boolean extractTextures, boolean extractLang,
+                         boolean extractTextures, boolean extractLang, boolean extractFonts,
                          boolean extractSounds, boolean extractAssets,
                          boolean extractOptifine, ResourcesManager resourcesManager) {
         final String name = entry.getName();
@@ -144,6 +144,7 @@ public class ResourcePack {
                 || (extractTextures && name.startsWith("pack/textures"))
                 || (extractTextures && name.startsWith("pack/shaders"))
                 || (extractLang && name.startsWith("pack/lang"))
+                || (extractFonts && name.startsWith("pack/font"))
                 || (extractSounds && name.startsWith("pack/sounds"))
                 || (extractAssets && name.startsWith("/pack/assets"))
                 || (extractOptifine && name.startsWith("pack/optifine"));
@@ -286,6 +287,7 @@ public class ResourcePack {
 
     private InputStream processJsonFile(File file) throws IOException {
         String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
+        content = Utils.MINI_MESSAGE.serialize(Utils.LEGACY_COMPONENT_SERIALIZER.deserialize(content));
         content = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(content,
                 Utils.tagResolver("prefix", Message.PREFIX.toString())));
         return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
