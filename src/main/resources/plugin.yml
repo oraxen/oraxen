@@ -3,7 +3,8 @@ name: Oraxen
 version: ${projectVersion}
 author: Th0rgal
 api-version: 1.18
-softdepend: [ ProtocolLib, LightAPI, PlaceholderAPI, MythicMobs, MMOItems, MythicCrucible, BossShopPro,
+depend: [ProtocolLib]
+softdepend: [ LightAPI, PlaceholderAPI, MythicMobs, MMOItems, MythicCrucible, BossShopPro,
               CrateReloaded, ItemBridge, WorldEdit, WorldGuard, Towny, Factions, Lands, NBTAPI ]
 loadbefore: [ Realistic_World ]
 libraries:

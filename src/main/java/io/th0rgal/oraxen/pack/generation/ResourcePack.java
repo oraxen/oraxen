@@ -60,7 +60,7 @@ public class ResourcePack {
         File modelsFolder = new File(packFolder, "models");
         File fontFolder = new File(packFolder, "font");
         File optifineFolder = new File(packFolder, "optifine");
-        final File langFolder = new File(packFolder, "lang");
+        File langFolder = new File(packFolder, "lang");
         extractFolders(!modelsFolder.exists(), !new File(packFolder, "textures").exists(),
                 !new File(packFolder, "shaders").exists(), !langFolder.exists(), !fontFolder.exists(),
                 !new File(packFolder, "sounds").exists(), !assetsFolder.exists(), !optifineFolder.exists());
