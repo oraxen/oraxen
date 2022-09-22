@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -122,7 +121,7 @@ public class ConfigsManager {
         for (String key : defaultConfiguration.getKeys(true))
             if (configuration.get(key) == null) {
                 updated = true;
-                Message.UPDATING_CONFIG.log(Template.template("option", key));
+                Message.UPDATING_CONFIG.log(Utils.tagResolver("option", key));
                 configuration.set(key, defaultConfiguration.get(key));
             }
         if (updated)

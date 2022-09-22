@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
-import net.kyori.adventure.text.minimessage.Template;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
 
@@ -90,8 +89,8 @@ public class CustomArmorsTextures {
                 break;
         }
         if (builder == null) {
-            Message.NO_ARMOR_ITEM.log(Template.template("name", prefix + "<part>"),
-                    Template.template("armor_layer_file", name));
+            Message.NO_ARMOR_ITEM.log(Utils.tagResolver("name", prefix + "<part>"),
+                    Utils.tagResolver("armor_layer_file", name));
             return true;
         }
         BufferedImage image = initLayer(ImageIO.read(file));
@@ -114,8 +113,8 @@ public class CustomArmorsTextures {
             String detectedPrefix = usedColors.get(stuffColor.asRGB());
             if (!detectedPrefix.equals(prefix))
                 Message.DUPLICATE_ARMOR_COLOR.log(
-                        Template.template("first_armor_prefix", prefix),
-                        Template.template("second_armor_prefix", detectedPrefix));
+                        Utils.tagResolver("first_armor_prefix", prefix),
+                        Utils.tagResolver("second_armor_prefix", detectedPrefix));
         } else usedColors.put(stuffColor.asRGB(), prefix);
 
         setPixel(image.getRaster(), 0, 0, stuffColor);

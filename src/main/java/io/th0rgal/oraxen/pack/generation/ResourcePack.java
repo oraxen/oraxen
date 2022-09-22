@@ -17,8 +17,6 @@ import io.th0rgal.oraxen.utils.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.ZipUtils;
-import net.kyori.adventure.text.minimessage.Template;
-import net.kyori.adventure.text.minimessage.template.TemplateResolver;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -289,7 +287,7 @@ public class ResourcePack {
     private InputStream processJsonFile(File file) throws IOException {
         String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
         content = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(content,
-                TemplateResolver.templates(Template.template("prefix", Message.PREFIX.toComponent()))));
+                Utils.tagResolver("prefix", Message.PREFIX.toString())));
         return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
     }
 

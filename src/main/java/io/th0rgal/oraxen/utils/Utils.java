@@ -4,11 +4,9 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
-import io.th0rgal.oraxen.font.GlyphTransformation;
-import io.th0rgal.oraxen.font.ShiftTransformation;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.transformation.TransformationRegistry;
-import net.kyori.adventure.text.minimessage.transformation.TransformationType;
+import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -32,16 +30,11 @@ public class Utils {
             .useUnusualXRepeatedCharacterHexFormat()
             .build();
 
-    public static final MiniMessage MINI_MESSAGE = MiniMessage.builder()
-            .transformations(TransformationRegistry.builder()
-                    .add(new TransformationType<>(
-                            GlyphTransformation::canParse, new GlyphTransformation.Parser()
-                    ))
-                    .add(new TransformationType<>(
-                            ShiftTransformation::canParse, new ShiftTransformation.Parser()
-                    )).build()
-            )
-            .build();
+    public static final MiniMessage MINI_MESSAGE = MiniMessage.builder().build();
+
+    public static TagResolver tagResolver(String string, String tag) {
+        return TagResolver.resolver(string, Tag.inserting(Utils.MINI_MESSAGE.deserialize(tag)));
+    }
 
     public static List<String> toLowercaseList(final String... values) {
         final ArrayList<String> list = new ArrayList<>();

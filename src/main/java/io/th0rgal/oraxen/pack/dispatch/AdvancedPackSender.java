@@ -27,7 +27,7 @@ public class AdvancedPackSender extends PackSender implements Listener {
         super(hostingProvider);
         protocolManager = ProtocolLibrary.getProtocolManager();
         component = WrappedChatComponent.fromJson(GsonComponentSerializer.gson()
-                .serialize(Utils.MINI_MESSAGE.parse(Settings.SEND_PACK_ADVANCED_MESSAGE.toString())));
+                .serialize(Utils.MINI_MESSAGE.deserialize(Settings.SEND_PACK_ADVANCED_MESSAGE.toString())));
     }
 
     @Override
