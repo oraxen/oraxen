@@ -1,18 +1,21 @@
-sprites:
+# 40 is essentially the highest it goes without dissapearing and reappearing.
+update_time_in_ticks: 40 # If set to 0, hud feature is disabled
+huds:
+  #balance:
+  #  permission: "oraxen.hud.balance"
+  #  display_text: "<shift:0><font:my_custom_font>%vault_eco_balance%<font:default>%oraxen_coin%"
+  #  disabled_whilst_in_water: true
+  #  enabled_by_default: true
+  #  enable_for_spectator_mode: false
 
-  money:
-    x: 64
-    type: simple
-    settings:
-      permission: "oraxen.hud.money"
-      display: "%money% <glyph:coin>"
 
-  mana_bar:
-    x: 64
-    type: bar
-    settings:
-      permission: "oraxen.hud.mana_bar"
-      symbol_full: <glyph:mana_full>
-      symbol_half: <glyph:mana_half>
-      symbol_empty: <glyph:mana_empty>
-      symbols: 10
+# Planned for the future
+#  mana_bar:
+#    x: 64
+#    type: bar
+#    settings:
+#      permission: "oraxen.hud.mana_bar"
+#      symbol_full: <glyph:mana_full>
+#      symbol_half: <glyph:mana_half>
+#      symbol_empty: <glyph:mana_empty>
+#      symbols: 10

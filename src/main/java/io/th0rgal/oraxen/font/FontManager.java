@@ -84,6 +84,10 @@ public class FontManager {
         return fonts;
     }
 
+    public Font getFontFromFile(String file) {
+        return getFonts().stream().filter(font -> font.file().equals(file)).findFirst().orElse(null);
+    }
+
     public Glyph getGlyphFromName(final String name) {
         return glyphMap.get(name);
     }
@@ -99,7 +103,6 @@ public class FontManager {
     public Map<Character, String> getReverseMap() {
         return reverse;
     }
-
 
     public String getShift(int length) {
         // Ensure shifts.yml exists as it is required

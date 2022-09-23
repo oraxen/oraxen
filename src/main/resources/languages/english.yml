@@ -73,6 +73,11 @@ command:
     wrong_color: "<prefix><#fa4943>Color not recognized, try a hexadecimal color like #FFFFFF!"
     failed: "<prefix><#fa4943>You cannot change this item's color!"
 
+  hud:
+    no_hud: "<prefix><#fa4943>There is no HUD by the name '<hud_id>'!"
+    toggle_on: "<prefix><#55ffa4>Toggled '<hud_id>' on!"
+    toggle_off: "<prefix><#fa4943>Toggled '<hud_id>' off!"
+
 mechanics:
   not_enough_exp: "<prefix><#fa4943>You need more experience to do this"
   backpack_stacked: "<prefix><#fa4943>Cannot open stacked backpack"
