@@ -1,12 +1,10 @@
 package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.font.GlyphTag;
+import io.th0rgal.oraxen.font.ShiftTag;
 import io.th0rgal.oraxen.utils.Utils;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.Template;
-import net.kyori.adventure.text.minimessage.template.TemplateResolver;
-import org.apache.commons.lang3.ArrayUtils;
-import net.kyori.adventure.text.minimessage.template.TemplateResolver;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
@@ -96,6 +94,7 @@ public enum Message {
         String lang = OraxenPlugin.get().getConfigsManager().getLanguage().getString(path);
         ArrayList<TagResolver> tagResolvers = new ArrayList<>(List.of(placeholders));
         tagResolvers.add(Utils.tagResolver("prefix", Message.PREFIX.toString()));
+        tagResolvers.add(TagResolver.resolver(GlyphTag.RESOLVER, ShiftTag.RESOLVER));
         if (lang == null) return;
         OraxenPlugin.get().getAudience().sender(sender).sendMessage(
                 Utils.MINI_MESSAGE.deserialize(lang, TagResolver.resolver(tagResolvers))
