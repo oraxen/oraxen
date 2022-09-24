@@ -5,10 +5,10 @@ import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
+import net.kyori.adventure.audience.Audience;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
 import org.bukkit.ChatColor;
@@ -18,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
-import static net.md_5.bungee.api.chat.HoverEvent.Action.SHOW_TEXT;
 
 public class PrintGlyphCommand {
     public CommandAPICommand getPrintGlyphCommand() {
@@ -41,23 +40,24 @@ public class PrintGlyphCommand {
     }
 
     private void printGlyph(CommandSender sender, String glyphName) {
+        Component component = Component.empty();
+        Audience audience = OraxenPlugin.get().getAudience().sender(sender);
         if (glyphName.equals("all")) {
             int i = 0;
-            ComponentBuilder cb = new ComponentBuilder();
             for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
-                cb.append(printClickableMsg(ChatColor.RESET+"[" + ChatColor.GREEN + glyph.getName() + ChatColor.RESET+"] ", String.valueOf(glyph.getCharacter()), String.valueOf(glyph.getCharacter())));
+                component = component.append(printClickableMsg("<reset>[<green>" + glyph.getName() + "<reset>] ", String.valueOf(glyph.getCharacter()), String.valueOf(glyph.getCharacter())));
                 if (i % 3 == 0) {
-                    sender.spigot().sendMessage(cb.create());
-                    cb = new ComponentBuilder();
+                    audience.sendMessage(component);
+                    component = Component.empty();
                 }
                 i++;
             }
-            if (cb.getParts().size() != 0)
-                sender.spigot().sendMessage(cb.create());
-            return;
+        } else {
+            Glyph g = OraxenPlugin.get().getFontManager().getGlyphs().stream().filter(glyph -> glyph.getName().equals(glyphName)).findAny().orElse(null);
+            if (g == null) return;
+            component = printClickableMsg("<white>" + g.getName(), String.valueOf(g.getCharacter()), "<reset>" + g.getCharacter());
         }
-        Glyph g = OraxenPlugin.get().getFontManager().getGlyphs().stream().filter(glyph -> glyph.getName().equals(glyphName)).findAny().orElse(null);
-        sender.spigot().sendMessage(printClickableMsg(ChatColor.WHITE + g.getName(), String.valueOf(g.getCharacter()), ChatColor.RESET + String.valueOf(g.getCharacter())));
+        audience.sendMessage(component);
     }
 
     /**
@@ -77,19 +77,17 @@ public class PrintGlyphCommand {
             } else {
                 utf = new String(Hex.decodeHex(code.toCharArray()), StandardCharsets.UTF_16BE).toCharArray()[0];
             }
-            ComponentBuilder componentBuilder = new ComponentBuilder();
+            Component component = Component.empty();
             for (int i = 0; i < range; i++) {
-                componentBuilder.append(printClickableMsg(ChatColor.WHITE + "[" + ChatColor.AQUA + "U+" + Integer.toHexString(utf).toUpperCase() + "," + ((int) utf) + "(dec)" + ChatColor.WHITE + "] ",
-                        String.valueOf(utf),
-                        ChatColor.RESET + String.valueOf(utf)));
+                component = component.append(printClickableMsg("<white>[<aqua>U+" + Integer.toHexString(utf).toUpperCase() + "," + ((int) utf) + "(dec)<white>] ",
+                        String.valueOf(utf), "<white>" + utf));
                 if (i == 2) {
-                    sender.spigot().sendMessage(componentBuilder.create());
-                    componentBuilder = new ComponentBuilder();
+                    OraxenPlugin.get().getAudience().sender(sender).sendMessage(component);
+                    component = Component.empty();
                 }
                 utf++;
             }
-            if (componentBuilder.getParts().size() != 0)
-                sender.spigot().sendMessage(componentBuilder.create());
+            OraxenPlugin.get().getAudience().sender(sender).sendMessage(component);
 
         } catch (DecoderException e) {
             e.printStackTrace();
@@ -100,10 +98,9 @@ public class PrintGlyphCommand {
         sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Click one of the glyph-ids below to copy the unicode!");
     }
 
-    private BaseComponent[] printClickableMsg(String text, String unicodeChar, String hoverText) {
-        return new ComponentBuilder(text)
-                .event(new ClickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, unicodeChar))
-                .event(new HoverEvent(SHOW_TEXT, new ComponentBuilder(hoverText).create()))
-                .create();
+    private Component printClickableMsg(String text, String unicodeChar, String hoverText) {
+        return Component.text(text)
+                .append(Component.empty().clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, unicodeChar)))
+                .append(Component.empty().hoverEvent(HoverEvent.showText(Component.text(hoverText))));
     }
 }
