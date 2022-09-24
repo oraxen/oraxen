@@ -4,15 +4,15 @@ import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.utils.Utils;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.bukkit.ChatColor;
-import org.bukkit.command.CommandSender;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -20,32 +20,33 @@ import java.util.List;
 
 
 public class PrintGlyphCommand {
+    private final FontManager fontManager = OraxenPlugin.get().getFontManager();
     public CommandAPICommand getPrintGlyphCommand() {
         List<String> glyphnames = new ArrayList<>();
         glyphnames.add("all");
         OraxenPlugin.get().getFontManager().getGlyphs().forEach(glyph -> glyphnames.add(glyph.getName()));
         return new CommandAPICommand("printglyph")
                 .withPermission("oraxen.command.printglyph")
-                .withArguments(new TextArgument("glyphname").replaceSuggestions(ArgumentSuggestions.strings(glyphnames.toArray(new String[glyphnames.size()]))))
+                .withArguments(new TextArgument("glyphname").replaceSuggestions(ArgumentSuggestions.strings(glyphnames.toArray(new String[0]))))
                 .executes(((commandSender, args) -> {
-                    printHelpTitle(commandSender);
-                    if (OraxenPlugin.get().getFontManager().getGlyphFromName(String.valueOf(args[0])) != null
+                    Audience audience = OraxenPlugin.get().getAudience().sender(commandSender);
+                    audience.sendMessage(Utils.MINI_MESSAGE.deserialize("<red><b>Click one of the glyph-ids below to copy the unicode!"));
+                    if (fontManager.getGlyphFromName(String.valueOf(args[0])) != null
                             ||
                             String.valueOf(args[0]).equals("all")) {
 
-                        printGlyph(commandSender, (String) args[0]);
+                        printGlyph(audience, (String) args[0]);
 
-                    } else printUnicode(commandSender, (String) args[0]);
+                    } else printUnicode(audience, (String) args[0]);
                 }));
     }
 
-    private void printGlyph(CommandSender sender, String glyphName) {
-        Component component = Component.empty();
-        Audience audience = OraxenPlugin.get().getAudience().sender(sender);
+    private void printGlyph(Audience audience, String glyphName) {
+        Component component = Component.text("");
         if (glyphName.equals("all")) {
             int i = 0;
-            for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
-                component = component.append(printClickableMsg("<reset>[<green>" + glyph.getName() + "<reset>] ", String.valueOf(glyph.getCharacter()), String.valueOf(glyph.getCharacter())));
+            for (Glyph glyph : fontManager.getGlyphs()) {
+                component = component.append(printClickableMsg("<reset>[<green>" + glyph.getName() + "<reset>] ", glyph.getCharacter(), String.valueOf(glyph.getCharacter())));
                 if (i % 3 == 0) {
                     audience.sendMessage(component);
                     component = Component.empty();
@@ -53,9 +54,9 @@ public class PrintGlyphCommand {
                 i++;
             }
         } else {
-            Glyph g = OraxenPlugin.get().getFontManager().getGlyphs().stream().filter(glyph -> glyph.getName().equals(glyphName)).findAny().orElse(null);
+            Glyph g = fontManager.getGlyphs().stream().filter(glyph -> glyph.getName().equals(glyphName)).findFirst().orElse(null);
             if (g == null) return;
-            component = printClickableMsg("<white>" + g.getName(), String.valueOf(g.getCharacter()), "<reset>" + g.getCharacter());
+            component = printClickableMsg("<white>" + g.getName(), g.getCharacter(), "<reset>" + g.getCharacter());
         }
         audience.sendMessage(component);
     }
@@ -63,10 +64,10 @@ public class PrintGlyphCommand {
     /**
      * Parses code input to print a unicode list with decimal version of UTF-16
      * the format is {hex unicode id}+{range to display} like this: "E000+10"
-     * @param sender command sender
+     * @param audience audience to send the message to
      * @param code unicode symbol with formatted range
      */
-    private void printUnicode(CommandSender sender, String code) {
+    private void printUnicode(Audience audience, String code) {
         try {
             char utf;
             int range = 1;
@@ -77,30 +78,26 @@ public class PrintGlyphCommand {
             } else {
                 utf = new String(Hex.decodeHex(code.toCharArray()), StandardCharsets.UTF_16BE).toCharArray()[0];
             }
-            Component component = Component.empty();
+            Component component = Component.text("");
             for (int i = 0; i < range; i++) {
                 component = component.append(printClickableMsg("<white>[<aqua>U+" + Integer.toHexString(utf).toUpperCase() + "," + ((int) utf) + "(dec)<white>] ",
-                        String.valueOf(utf), "<white>" + utf));
+                        utf, "<white>" + utf));
                 if (i == 2) {
-                    OraxenPlugin.get().getAudience().sender(sender).sendMessage(component);
+                    audience.sendMessage(component);
                     component = Component.empty();
                 }
                 utf++;
             }
-            OraxenPlugin.get().getAudience().sender(sender).sendMessage(component);
+            audience.sendMessage(component);
 
         } catch (DecoderException e) {
             e.printStackTrace();
         }
     }
 
-    private void printHelpTitle(CommandSender sender) {
-        sender.sendMessage(ChatColor.RED + "" + ChatColor.BOLD + "Click one of the glyph-ids below to copy the unicode!");
-    }
-
-    private Component printClickableMsg(String text, String unicodeChar, String hoverText) {
-        return Component.text(text)
-                .append(Component.empty().clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, unicodeChar)))
-                .append(Component.empty().hoverEvent(HoverEvent.showText(Component.text(hoverText))));
+    private Component printClickableMsg(String text, char unicode, String hoverText) {
+        return Utils.MINI_MESSAGE.deserialize(text)
+                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, String.valueOf(unicode)))
+                .hoverEvent(HoverEvent.showText(Utils.MINI_MESSAGE.deserialize(hoverText)));
     }
 }

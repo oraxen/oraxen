@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.utils.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.ZipUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -286,7 +287,13 @@ public class ResourcePack {
     }
 
     private InputStream processJsonFile(File file) throws IOException {
-        String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
+        String content = "";
+        try {
+            content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            Logs.logError("Error while reading file " + file.getPath());
+            Logs.logError("It seems to be malformed!");
+        }
         // Serialize legacy to component then deserialize to adventure style tags
         content = Utils.MINI_MESSAGE.serialize(Utils.LEGACY_COMPONENT_SERIALIZER.deserialize(content)).replace("\\", "");
         // Deserialize said component to a string to handle other tags like glyphs
