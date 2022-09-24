@@ -13,6 +13,7 @@ import net.kyori.adventure.text.event.ClickEvent;
 import net.kyori.adventure.text.event.HoverEvent;
 import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
+import org.bukkit.Bukkit;
 
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -58,6 +59,8 @@ public class PrintGlyphCommand {
             if (g == null) return;
             component = printClickableMsg("<white>" + g.getName(), g.getCharacter(), "<reset>" + g.getCharacter());
         }
+        Bukkit.broadcastMessage("click: " + component.clickEvent().value());
+        Bukkit.broadcastMessage("hover:" + component.hoverEvent().value());
         audience.sendMessage(component);
     }
 
@@ -97,7 +100,8 @@ public class PrintGlyphCommand {
 
     private Component printClickableMsg(String text, char unicode, String hoverText) {
         return Utils.MINI_MESSAGE.deserialize(text)
-                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, String.valueOf(unicode)))
-                .hoverEvent(HoverEvent.showText(Utils.MINI_MESSAGE.deserialize(hoverText)));
+                .hoverEvent(HoverEvent.showText(Utils.MINI_MESSAGE.deserialize(hoverText)))
+                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, String.valueOf(unicode)));
+
     }
 }
