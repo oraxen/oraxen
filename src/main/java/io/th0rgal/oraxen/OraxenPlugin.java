@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.OS;
+import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -25,7 +26,6 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.storage.StorageMechanic;
 import io.th0rgal.protectionlib.ProtectionLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import net.kyori.adventure.text.minimessage.Template;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
@@ -88,7 +88,7 @@ public class OraxenPlugin extends JavaPlugin {
         new BreakerSystem().registerListener();
         new CommandsManager().loadCommands();
         postLoading(configsManager);
-        Message.PLUGIN_LOADED.log(Template.template("os", OS.getOs().getPlatformName()));
+        Message.PLUGIN_LOADED.log(Utils.tagResolver("os", OS.getOs().getPlatformName()));
         CompatibilitiesManager.enableNativeCompatibilities();
     }
 
@@ -118,13 +118,12 @@ public class OraxenPlugin extends JavaPlugin {
         return audience;
     }
 
-    public ConfigsManager reloadConfigs() {
+    public void reloadConfigs() {
         configsManager = new ConfigsManager(this);
         if (!configsManager.validatesConfig()) {
             Logs.logError("unable to validate config");
             getServer().getPluginManager().disablePlugin(this);
         }
-        return configsManager;
     }
 
     public ConfigsManager getConfigsManager() {

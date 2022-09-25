@@ -3,13 +3,9 @@ package io.th0rgal.oraxen.hud;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
-import io.th0rgal.oraxen.font.FontManager;
-import io.th0rgal.oraxen.font.Glyph;
-import it.unimi.dsi.fastutil.Pair;
+import io.th0rgal.oraxen.utils.Utils;
 import me.clip.placeholderapi.PlaceholderAPI;
-import net.md_5.bungee.api.ChatMessageType;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -17,9 +13,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.bukkit.persistence.PersistentDataType;
 
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HudManager {
 
@@ -90,7 +86,7 @@ public class HudManager {
     }
 
     public void disableHud(final Player player) {
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, player.getUniqueId());
+        OraxenPlugin.get().getAudience().player(player).sendActionBar(Component.empty());
     }
 
     public void enableHud(final Player player, Hud hud) {
@@ -98,7 +94,7 @@ public class HudManager {
 
         String hudDisplay = parsedHudDisplays.get(hud);
         hudDisplay = translatePlaceholdersForHudDisplay(player, hudDisplay);
-        player.spigot().sendMessage(ChatMessageType.ACTION_BAR, player.getUniqueId(), changeFont(hudDisplay));
+        OraxenPlugin.get().getAudience().player(player).sendActionBar(Utils.MINI_MESSAGE.deserialize(hudDisplay));
     }
 
     public void registerTask() {
@@ -131,76 +127,16 @@ public class HudManager {
     public Map<Hud, String> generateHudDisplays() {
         Map<Hud, String> hudDisplays = new HashMap<>();
         for (Map.Entry<String, Hud> entry : huds.entrySet()) {
-            hudDisplays.put(entry.getValue(), translateHudDisplay(entry.getValue()));
+            hudDisplays.put(entry.getValue(), translateMiniMessageTagsForHud(entry.getValue()));
         }
         return hudDisplays;
     }
 
-    private String translateHudDisplay(Hud hud) {
-        String message = hud.getDisplayText();
-        if (message == null) return null;
-        message = translateGlyphsForHudDisplay(message);
-        message = translateShiftForHudDisplay(message);
-        return message;
+    private String translateMiniMessageTagsForHud(Hud hud) {
+        return Utils.MINI_MESSAGE.serialize(Utils.MINI_MESSAGE.deserialize(hud.displayText()));
     }
 
     private String translatePlaceholdersForHudDisplay(Player player, String message) {
         return PlaceholderAPI.setPlaceholders(player, message);
-    }
-
-    private BaseComponent[] changeFont(String message) {
-        String regex = "<font:(.*?).+?(?=>)";
-        Matcher matcher = Pattern.compile(regex).matcher(message);
-        List<Pair<String, String>> fontStringMap = new ArrayList<>();
-        String currFont;
-
-        while (matcher.find()) {
-            currFont = "minecraft:" + matcher.group().replaceFirst("<font:", "");
-            String replaceMsg = message.replaceFirst(matcher.group(), "").replaceFirst(">", "");
-            String temp = replaceMsg.contains("<font:") ? replaceMsg.substring(0, (replaceMsg.indexOf("<font:"))) : replaceMsg;
-            message = replaceMsg.replaceFirst(temp, "");
-            fontStringMap.add(Pair.of(temp, currFont));
-        }
-
-        if (fontStringMap.isEmpty()) return new ComponentBuilder(message).create();
-
-        List<BaseComponent> componentList = new ArrayList<>();
-        for (Pair<String, String> s : fontStringMap) {
-            BaseComponent tempComp = new ComponentBuilder(s.first()).font(s.second()).getCurrentComponent();
-            componentList.add(tempComp);
-        }
-        return componentList.toArray(new BaseComponent[0]);
-    }
-
-    private String translateGlyphsForHudDisplay(String message) {
-        for (Map.Entry<String, Glyph> entry : OraxenPlugin.get().getFontManager().getGlyphByPlaceholderMap().entrySet()) {
-            String glyphName = entry.getValue().getName();
-            if (glyphName.startsWith("oraxen_shift_")) continue;
-            message = message.replace("%oraxen_" + entry.getValue().getName() + "%", "<font:default>" + entry.getValue().getCharacter() + "</font>")
-                    .replace("<glyph:" + entry.getValue().getName() + ">", "<font:default>" + entry.getValue().getCharacter() + "</font>");
-        }
-        return message;
-    }
-
-    private String translateShiftForHudDisplay(String message) {
-        FontManager fontManager = OraxenPlugin.get().getFontManager();
-        String regex = "<shift:(.*?).+?(?=>)";
-        String regex2 = "%oraxen_shift_(.*?).+?(?=%)";
-        Matcher matcher = Pattern.compile(regex).matcher(message);
-        Matcher matcher2 = Pattern.compile(regex2).matcher(message);
-        List<String> shifts = new ArrayList<>();
-
-        while (matcher.find()) {
-            shifts.add(matcher.group().replace("<shift:", ""));
-        }
-        while (matcher2.find()) {
-            shifts.add(matcher2.group().replace("%oraxen_shift_", ""));
-        }
-
-        for (String shift : shifts) {
-            message = message.replace("<shift:" + shift + ">", fontManager.getShift(Integer.parseInt(shift)));
-            message = message.replace("%oraxen_shift_" + shift + "%", fontManager.getShift(Integer.parseInt(shift)));
-        }
-        return message;
     }
 }

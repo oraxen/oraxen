@@ -17,8 +17,7 @@ import io.th0rgal.oraxen.utils.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.ZipUtils;
-import net.kyori.adventure.text.minimessage.Template;
-import net.kyori.adventure.text.minimessage.template.TemplateResolver;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -62,9 +61,9 @@ public class ResourcePack {
         File modelsFolder = new File(packFolder, "models");
         File fontFolder = new File(packFolder, "font");
         File optifineFolder = new File(packFolder, "optifine");
-        final File langFolder = new File(packFolder, "lang");
+        File langFolder = new File(packFolder, "lang");
         extractFolders(!modelsFolder.exists(), !new File(packFolder, "textures").exists(),
-                !new File(packFolder, "shaders").exists(), !langFolder.exists(),
+                !new File(packFolder, "shaders").exists(), !langFolder.exists(), !fontFolder.exists(),
                 !new File(packFolder, "sounds").exists(), !assetsFolder.exists(), !optifineFolder.exists());
 
         if (!Settings.GENERATE.toBool())
@@ -118,7 +117,7 @@ public class ResourcePack {
     }
 
     private void extractFolders(boolean extractModels, boolean extractTextures, boolean extractShaders,
-                                boolean extractLang, boolean extractSounds, boolean extractAssets, boolean extractOptifine) {
+                                boolean extractLang, boolean extractFonts, boolean extractSounds, boolean extractAssets, boolean extractOptifine) {
         if (!extractModels && !extractTextures && !extractShaders && !extractLang && !extractAssets && !extractOptifine)
             return;
         final ZipInputStream zip = ResourcesManager.browse();
@@ -127,7 +126,7 @@ public class ResourcePack {
             final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
             while (entry != null) {
                 extract(entry, extractModels, extractTextures,
-                        extractLang, extractSounds, extractAssets, extractOptifine, resourcesManager);
+                        extractLang, extractFonts, extractSounds, extractAssets, extractOptifine, resourcesManager);
                 entry = zip.getNextEntry();
             }
             zip.closeEntry();
@@ -138,7 +137,7 @@ public class ResourcePack {
     }
 
     private void extract(ZipEntry entry, boolean extractModels,
-                         boolean extractTextures, boolean extractLang,
+                         boolean extractTextures, boolean extractLang, boolean extractFonts,
                          boolean extractSounds, boolean extractAssets,
                          boolean extractOptifine, ResourcesManager resourcesManager) {
         final String name = entry.getName();
@@ -146,6 +145,7 @@ public class ResourcePack {
                 || (extractTextures && name.startsWith("pack/textures"))
                 || (extractTextures && name.startsWith("pack/shaders"))
                 || (extractLang && name.startsWith("pack/lang"))
+                || (extractFonts && name.startsWith("pack/font"))
                 || (extractSounds && name.startsWith("pack/sounds"))
                 || (extractAssets && name.startsWith("/pack/assets"))
                 || (extractOptifine && name.startsWith("pack/optifine"));
@@ -287,9 +287,19 @@ public class ResourcePack {
     }
 
     private InputStream processJsonFile(File file) throws IOException {
-        String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
-        content = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(content,
-                TemplateResolver.templates(Template.template("prefix", Message.PREFIX.toComponent()))));
+        String content = "";
+        try {
+            content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            Logs.logError("Error while reading file " + file.getPath());
+            Logs.logError("It seems to be malformed!");
+        }
+        // Serialize legacy to component then deserialize to adventure style tags
+        content = Utils.MINI_MESSAGE.serialize(Utils.LEGACY_COMPONENT_SERIALIZER.deserialize(content)).replace("\\", "");
+        // Deserialize said component to a string to handle other tags like glyphs
+        content = Utils.MINI_MESSAGE.serialize(Utils.MINI_MESSAGE.deserialize(content, Utils.tagResolver("prefix", Message.PREFIX.toString())));
+        // Deserialize adventure component to legacy format due to resourcepacks not supporting adventure components
+        content = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(content));
         return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
     }
 

@@ -4,11 +4,11 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
-import io.th0rgal.oraxen.font.GlyphTransformation;
-import io.th0rgal.oraxen.font.ShiftTransformation;
+import io.th0rgal.oraxen.font.GlyphTag;
+import io.th0rgal.oraxen.font.ShiftTag;
 import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.transformation.TransformationRegistry;
-import net.kyori.adventure.text.minimessage.transformation.TransformationType;
+import net.kyori.adventure.text.minimessage.tag.Tag;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -25,7 +25,8 @@ import java.util.Map;
 
 public class Utils {
 
-    private Utils() {}
+    private Utils() {
+    }
 
     public static final LegacyComponentSerializer LEGACY_COMPONENT_SERIALIZER = LegacyComponentSerializer.builder()
             .hexColors()
@@ -33,15 +34,15 @@ public class Utils {
             .build();
 
     public static final MiniMessage MINI_MESSAGE = MiniMessage.builder()
-            .transformations(TransformationRegistry.builder()
-                    .add(new TransformationType<>(
-                            GlyphTransformation::canParse, new GlyphTransformation.Parser()
-                    ))
-                    .add(new TransformationType<>(
-                            ShiftTransformation::canParse, new ShiftTransformation.Parser()
-                    )).build()
-            )
-            .build();
+            .tags(TagResolver.resolver(
+                    TagResolver.standard(),
+                    GlyphTag.RESOLVER,
+                    ShiftTag.RESOLVER
+            )).build();
+
+    public static TagResolver tagResolver(String string, String tag) {
+        return TagResolver.resolver(string, Tag.inserting(Utils.MINI_MESSAGE.deserialize(tag)));
+    }
 
     public static List<String> toLowercaseList(final String... values) {
         final ArrayList<String> list = new ArrayList<>();
@@ -80,9 +81,9 @@ public class Utils {
 
     public static void writeStringToFile(final File file, final String content) {
         file.getParentFile().mkdirs();
-        try(final FileWriter writer = new FileWriter(file)) {
+        try (final FileWriter writer = new FileWriter(file)) {
             writer.write(content);
-        } catch(IOException ex) {
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
     }

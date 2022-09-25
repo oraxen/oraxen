@@ -39,7 +39,7 @@ public class PackAction {
             assert messageSection != null;
             messageType = messageSection.getString("type");
             if (messageSection.getBoolean("enabled", true))
-                messageContent = Utils.MINI_MESSAGE.parse(Objects.requireNonNull(messageSection.getString("content")));
+                messageContent = Utils.MINI_MESSAGE.deserialize(Objects.requireNonNull(messageSection.getString("content")));
         }
 
         commandsParser = new CommandsParser(configurationSection.getConfigurationSection("commands"));
