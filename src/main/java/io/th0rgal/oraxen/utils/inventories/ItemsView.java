@@ -27,9 +27,9 @@ public class ItemsView {
     private final YamlConfiguration settings = new ResourcesManager(OraxenPlugin.get()).getSettings();
     private final FontManager fontManager = OraxenPlugin.get().getFontManager();
     private final String baseMenuTexture = ChatColor.WHITE +
-            fontManager.getShift(18) +
+            fontManager.getShift(-18) +
             fontManager.getGlyphFromName("menu_items").getCharacter() +
-            fontManager.getShift(193);
+            fontManager.getShift(-193);
     ChestGui mainGui;
 
     public ChestGui create() {

@@ -109,9 +109,14 @@ public class FontManager {
         if (!Path.of(OraxenPlugin.get().getDataFolder() + "/glyphs/shifts.yml").toFile().exists())
             OraxenPlugin.get().saveResource("glyphs/shifts.yml", false);
         StringBuilder output = new StringBuilder();
+        String prefix = "shift_";
+        if (length < 0) {
+            prefix = "neg_shift_";
+            length = -length;
+        }
         while (length > 0) {
             int biggestPower = Integer.highestOneBit(length);
-            output.append(getGlyphFromName("shift_" + biggestPower).getCharacter());
+            output.append(getGlyphFromName(prefix + biggestPower).getCharacter());
             length -= biggestPower;
         }
         return output.toString();

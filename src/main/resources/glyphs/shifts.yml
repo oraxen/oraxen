@@ -56,57 +56,57 @@ shift_1024:
   ascent: -32768
   height: 1022
 
-shift_-1:
+neg_shift_1:
   texture: required/null
   ascent: -32768
   height: -3
 
-shift_-2:
+neg_shift_2:
   texture: required/null
   ascent: -32768
   height: -4
 
-shift_-4:
+neg_shift_4:
   texture: required/null
   ascent: -32768
   height: -6
 
-shift_-8:
+neg_shift_8:
   texture: required/null
   ascent: -32768
   height: -10
 
-shift_-16:
+neg_shift_16:
   texture: required/null
   ascent: -32768
   height: -18
 
-shift_-32:
+neg_shift_32:
   texture: required/null
   ascent: -32768
   height: -34
 
-shift_-64:
+neg_shift_64:
   texture: required/null
   ascent: -32768
   height: -66
 
-shift_-128:
+neg_shift_128:
   texture: required/null
   ascent: -32768
   height: -130
 
-shift_-256:
+neg_shift_256:
   texture: required/null
   ascent: -32768
   height: -258
 
-shift_-512:
+neg_shift_512:
   texture: required/null
   ascent: -32768
   height: -514
 
-shift_-1024:
+neg_shift_1024:
   texture: required/null
   ascent: -32768
   height: -1026

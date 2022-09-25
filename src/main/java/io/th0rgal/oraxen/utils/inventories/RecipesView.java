@@ -19,7 +19,7 @@ public class RecipesView {
 
     private final FontManager fontManager = OraxenPlugin.get().getFontManager();
     final String menuTexture = ChatColor.WHITE +
-            fontManager.getShift(7) +
+            fontManager.getShift(-7) +
             fontManager.getGlyphFromName("menu_recipe").getCharacter();
 
     public ChestGui create(final int page, final List<CustomRecipe> filteredRecipes) {
