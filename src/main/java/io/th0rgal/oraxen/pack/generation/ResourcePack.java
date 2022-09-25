@@ -295,7 +295,7 @@ public class ResourcePack {
             Logs.logError("It seems to be malformed!");
         }
         // Serialize legacy to component then deserialize to adventure style tags
-        content = Utils.MINI_MESSAGE.serialize(Utils.LEGACY_COMPONENT_SERIALIZER.deserialize(content)).replace("\\", "");
+        content = Utils.MINI_MESSAGE.serialize(Utils.LEGACY_COMPONENT_SERIALIZER.deserialize(content)).replace("\\<", "<").replace("\\>", ">");
         // Deserialize said component to a string to handle other tags like glyphs
         content = Utils.MINI_MESSAGE.serialize(Utils.MINI_MESSAGE.deserialize(content, Utils.tagResolver("prefix", Message.PREFIX.toString())));
         // Deserialize adventure component to legacy format due to resourcepacks not supporting adventure components
