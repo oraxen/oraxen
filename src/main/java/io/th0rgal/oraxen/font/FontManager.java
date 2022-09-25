@@ -13,8 +13,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
-
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -40,6 +38,10 @@ public class FontManager {
         loadGlyphs(configsManager.parseGlyphConfigs());
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
+    }
+
+    public void verifyRequired() {
+        OraxenPlugin.get().saveResource("glyphs/required.yml", true);
     }
 
     public void registerEvents() {
@@ -89,7 +91,7 @@ public class FontManager {
     }
 
     public Glyph getGlyphFromName(final String name) {
-        return glyphMap.get(name);
+        return glyphMap.get(name) != null ? glyphMap.get(name) : glyphMap.get("required");
     }
 
     public Glyph getGlyphFromPlaceholder(final String word) {
