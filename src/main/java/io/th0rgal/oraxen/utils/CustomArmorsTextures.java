@@ -162,7 +162,8 @@ public class CustomArmorsTextures {
             // Queries all items and finds custom armors custommodeldata
             String cmdProperty = "nbt.CustomModelData=" + OraxenItems.getEntries().stream().filter(e ->
                     e.getValue().build().getType().toString().startsWith("LEATHER_") &&
-                            e.getValue().hasOraxenMeta() && !e.getValue().getOraxenMeta().getLayers().isEmpty() &&
+                            e.getValue().hasOraxenMeta() && e.getValue().getOraxenMeta().getLayers() != null &&
+                            !e.getValue().getOraxenMeta().getLayers().isEmpty() &&
                             e.getValue().getOraxenMeta().getLayers().get(0).contains(parentFolder)
             ).map(s -> s.getValue().getOraxenMeta().getCustomModelData()).findFirst().orElse(0);
 
@@ -258,7 +259,7 @@ public class CustomArmorsTextures {
             boolean isArmor = builder.build().getType().toString().contains("LEATHER_");
             boolean inLayerList = layers.keySet().stream().anyMatch(s -> s.contains(armorType));
 
-            if (isArmor && !inLayerList && builder.hasOraxenMeta() && layerList.size() == 2) {
+            if (isArmor && !inLayerList && builder.hasOraxenMeta() && layerList != null && layerList.size() == 2) {
                 for (String file : layerList) {
                     int id = layers.keySet().stream().anyMatch(s -> s.contains(armorType)) ? 2 : 1;
 
