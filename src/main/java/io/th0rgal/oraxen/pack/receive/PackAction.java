@@ -7,6 +7,8 @@ import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
+import java.util.Objects;
+
 public class PackAction {
 
     private final int delay;
@@ -26,16 +28,18 @@ public class PackAction {
 
         if (configurationSection.isConfigurationSection("sound")) {
             ConfigurationSection soundSection = configurationSection.getConfigurationSection("sound");
-            soundType = soundSection.getString("type");
+            assert soundSection != null;
+            soundType = !soundSection.getBoolean("enabled", true) ? null : soundSection.getString("type");
             soundVolume = (float) soundSection.getDouble("volume");
             soundPitch = (float) soundSection.getDouble("pitch");
         }
 
         if (configurationSection.isConfigurationSection("message")) {
             ConfigurationSection messageSection = configurationSection.getConfigurationSection("message");
+            assert messageSection != null;
             messageType = messageSection.getString("type");
             if (messageSection.getBoolean("enabled", true))
-                messageContent = Utils.MINI_MESSAGE.parse(messageSection.getString("content"));
+                messageContent = Utils.MINI_MESSAGE.deserialize(Objects.requireNonNull(messageSection.getString("content")));
         }
 
         commandsParser = new CommandsParser(configurationSection.getConfigurationSection("commands"));

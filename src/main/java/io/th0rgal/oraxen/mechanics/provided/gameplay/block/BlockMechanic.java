@@ -5,6 +5,8 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
+import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.MultipleFacing;
@@ -26,6 +28,7 @@ public class BlockMechanic extends Mechanic {
     private final String hitSound;
     private final String fallSound;
     private final boolean canIgnite;
+    private final LimitedPlacing limitedPlacing;
 
     @SuppressWarnings("unchecked")
     public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -61,6 +64,10 @@ public class BlockMechanic extends Mechanic {
                     new ArrayList<>());
         } else
             this.drop = new Drop(loots, drop.getBoolean("silktouch"), drop.getBoolean("fortune"), getItemID());
+
+        if (section.isConfigurationSection("limited_placing")) {
+            limitedPlacing = new LimitedPlacing(section.getConfigurationSection("limited_placing"));
+        } else limitedPlacing = null;
     }
 
     public String getModel(ConfigurationSection section) {
@@ -69,6 +76,9 @@ public class BlockMechanic extends Mechanic {
         // use the itemstack model if block model isn't set
         return section.getString("Pack.model");
     }
+
+    public boolean hasLimitedPlacing() { return limitedPlacing != null; }
+    public LimitedPlacing getLimitedPlacing() { return limitedPlacing; }
 
     public int getCustomVariation() {
         return customVariation;
@@ -113,12 +123,15 @@ public class BlockMechanic extends Mechanic {
     }
 
     public static int getCode(final Block block) {
-        final MultipleFacing blockData = (MultipleFacing) block.getBlockData();
-        final List<BlockFace> properties = Arrays
-                .asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
         int sum = 0;
-        for (final BlockFace blockFace : blockData.getFaces())
-            sum += (int) Math.pow(2, properties.indexOf(blockFace));
+        if (block.getType() == Material.MUSHROOM_STEM) {
+            final MultipleFacing blockData = (MultipleFacing) block.getBlockData();
+            final List<BlockFace> properties = Arrays
+                    .asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH, BlockFace.DOWN, BlockFace.UP);
+            for (final BlockFace blockFace : blockData.getFaces())
+                sum += (int) Math.pow(2, properties.indexOf(blockFace));
+        }
+
         return sum;
     }
 

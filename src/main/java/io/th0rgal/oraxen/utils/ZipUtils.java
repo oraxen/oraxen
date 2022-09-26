@@ -44,15 +44,16 @@ public class ZipUtils {
 
         final byte[] bytes = new byte[1024];
         int length;
-        while ((length = fis.read(bytes)) >= 0)
-            zos.write(bytes, 0, length);
-
-        zos.closeEntry();
-        fis.close();
-        if (!(Settings.PROTECTION.toBool()))
-            return;
-        zipEntry.setCrc(bytes.length);
-        zipEntry.setSize(new BigInteger(bytes).mod(BigInteger.valueOf(Long.MAX_VALUE)).longValue());
+        try (fis) {
+            while ((length = fis.read(bytes)) >= 0)
+                zos.write(bytes, 0, length);
+        } catch (IOException ignored) {
+        }finally {
+            zos.closeEntry();
+            if (Settings.PROTECTION.toBool()) {
+                zipEntry.setCrc(bytes.length);
+                zipEntry.setSize(new BigInteger(bytes).mod(BigInteger.valueOf(Long.MAX_VALUE)).longValue());
+            }
+        }
     }
-
 }

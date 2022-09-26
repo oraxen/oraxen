@@ -26,9 +26,12 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.repair.RepairMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.armorpotioneffects.ArmorPotionEffectsMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.commands.CommandsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.consumable.ConsumableMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.consumablepotioneffects.ConsumablePotionEffectsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.food.FoodMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.soulbound.SoulBoundMechanicFactory;
 import org.bukkit.Bukkit;
@@ -59,8 +62,11 @@ public class MechanicsManager {
         registerMechanicFactory("itemtype", ItemTypeMechanicFactory::new);
         registerMechanicFactory("consumable", ConsumableMechanicFactory::new);
         registerMechanicFactory("custom", CustomMechanicFactory::new);
+        registerMechanicFactory("commands", CommandsMechanicFactory::new);
+        registerMechanicFactory("backpack", BackpackMechanicFactory::new);
 
         // gameplay
+        registerMechanicFactory("food", FoodMechanicFactory::new);
         registerMechanicFactory("repair", RepairMechanicFactory::new);
         registerMechanicFactory("durability", DurabilityMechanicFactory::new);
         registerMechanicFactory("efficiency", EfficiencyMechanicFactory::new);

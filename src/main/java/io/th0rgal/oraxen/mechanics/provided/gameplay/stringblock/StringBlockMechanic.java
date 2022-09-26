@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
+import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ public class StringBlockMechanic extends Mechanic {
     protected final boolean hasHardness;
     private final int customVariation;
     private final Drop drop;
+    private final LimitedPlacing limitedPlacing;
     private final String breakSound;
     private final String placeSound;
     private final String stepSound;
@@ -25,6 +27,9 @@ public class StringBlockMechanic extends Mechanic {
     private String model;
     private int period;
     private final int light;
+
+    private final boolean hasRandomPlace;
+    private List<String> randomPlaceBlock;
     private final SaplingMechanic saplingMechanic;
 
     @SuppressWarnings("unchecked")
@@ -74,11 +79,20 @@ public class StringBlockMechanic extends Mechanic {
 
         light = section.getInt("light", -1);
 
+        if (section.isConfigurationSection("random_place")) {
+            ConfigurationSection randomPlace = section.getConfigurationSection("random_place");
+            hasRandomPlace = true;
+            randomPlaceBlock = randomPlace.getStringList("block");
+        } else hasRandomPlace = false;
+
         if (section.isConfigurationSection("sapling")) {
             saplingMechanic = new SaplingMechanic(getItemID(), section.getConfigurationSection("sapling"));
             ((StringBlockMechanicFactory) getFactory()).registerSaplingMechanic();
         } else saplingMechanic = null;
 
+        if (section.isConfigurationSection("limited_placing")) {
+            limitedPlacing = new LimitedPlacing(section.getConfigurationSection("limited_placing"));
+        } else limitedPlacing = null;
     }
 
     public String getModel(ConfigurationSection section) {
@@ -87,6 +101,9 @@ public class StringBlockMechanic extends Mechanic {
         // use the itemstack model if block model isn't set
         return section.getString("Pack.model");
     }
+
+    public boolean hasLimitedPlacing() { return limitedPlacing != null; }
+    public LimitedPlacing getLimitedPlacing() { return limitedPlacing; }
 
     public boolean isSapling() { return saplingMechanic != null; }
     public SaplingMechanic getSaplingMechanic() { return saplingMechanic; }
@@ -135,6 +152,14 @@ public class StringBlockMechanic extends Mechanic {
 
     public int getLight() {
         return light;
+    }
+
+    public boolean hasRandomPlace() {
+        return hasRandomPlace;
+    }
+
+    public List<String> getRandomPlaceBlock() {
+        return randomPlaceBlock;
     }
 
 }

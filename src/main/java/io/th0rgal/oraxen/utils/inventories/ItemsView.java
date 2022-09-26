@@ -27,9 +27,9 @@ public class ItemsView {
     private final YamlConfiguration settings = new ResourcesManager(OraxenPlugin.get()).getSettings();
     private final FontManager fontManager = OraxenPlugin.get().getFontManager();
     private final String baseMenuTexture = ChatColor.WHITE +
-            fontManager.getShift(18) +
+            fontManager.getShift(-18) +
             fontManager.getGlyphFromName("menu_items").getCharacter() +
-            fontManager.getShift(193);
+            fontManager.getShift(-193);
     ChestGui mainGui;
 
     public ChestGui create() {
@@ -128,11 +128,7 @@ public class ItemsView {
 
     private ItemStack getItemStack(final File file) {
         ItemStack itemStack;
-        String material = settings
-                .getString(String.format("gui_inventory.%s.icon", Utils.removeExtension(file.getName())),
-                        "PAPER");
-        if (material == null)
-            material = "PAPER";
+        String material = settings.getString(String.format("gui_inventory.%s.icon", Utils.removeExtension(file.getName())), "PAPER");
 
         try {
             itemStack = new ItemBuilder(OraxenItems.getItemById(material).build())
@@ -162,6 +158,6 @@ public class ItemsView {
 
     private String getMenuTexture(final String color) {
         return baseMenuTexture + Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE
-                .parse(color + fontManager.getGlyphFromName("menu_items_overlay").getCharacter()));
+                .deserialize(color + fontManager.getGlyphFromName("menu_items_overlay").getCharacter()));
     }
 }

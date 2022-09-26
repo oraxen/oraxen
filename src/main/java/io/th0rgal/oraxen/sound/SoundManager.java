@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.sound;
 
+import org.bukkit.SoundCategory;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -23,18 +24,22 @@ public class SoundManager {
         for (String soundName : section.getKeys(true)) {
             ConfigurationSection sound = section.getConfigurationSection(soundName);
             if (sound == null) continue;
-            List<String> sounds = !sound.getStringList("sounds").isEmpty() ?
-                    sound.getStringList("sounds") : Collections.singletonList(sound.getString("sound"));
-            output.add(new CustomSound(
-                    soundName, sounds, sound.getString("category"),
-                    sound.getBoolean("replace"), sound.getString("subtitle"))
-            );
+            SoundCategory category = null;
+            if (sound.isString("category")) {
+                try {
+                    category = (Objects.requireNonNullElse(SoundCategory.valueOf(sound.getString("category").toUpperCase(Locale.ROOT)), SoundCategory.MASTER));
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+            List<String> sounds = sound.getStringList("sounds").isEmpty()
+                    ? Collections.singletonList(sound.getString("sound")) : sound.getStringList("sounds");
+            output.add(new CustomSound(soundName, sounds, category, sound.getBoolean("replace"), sound.getString("subtitle")));
         }
         return output;
     }
 
     public Collection<CustomSound> getCustomSounds() {
-        return customSounds;
+        return new ArrayList<>(customSounds);
     }
 
     public boolean isAutoGenerate() {

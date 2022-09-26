@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils.drops;
 
+import io.lumine.mythiccrucible.MythicCrucible;
 import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -34,21 +35,20 @@ public class Loot {
     }
 
     private ItemStack getItemStack() {
-        if (itemStack != null) {
-            return itemStack;
-        }
+        if (itemStack != null) return itemStack;
+
         if (config.containsKey("oraxen_item")) {
-            String itemId = (String) config.get("oraxen_item");
+            String itemId = config.get("oraxen_item").toString();
             itemStack = OraxenItems.getItemById(itemId).build();
-            return itemStack;
-        }
-        if (config.containsKey("minecraft_type")) {
-            String itemType = (String) config.get("minecraft_type");
+        } else if (config.containsKey("crucible_item")) {
+            String crucibleID = config.get("crucible_item").toString();
+            itemStack = MythicCrucible.core().getItemManager().getItemStack(crucibleID);
+        } else if (config.containsKey("minecraft_type")) {
+            String itemType = config.get("minecraft_type").toString();
             Material material = Material.getMaterial(itemType);
+            if (material == null) return null;
             itemStack = new ItemStack(material);
-            return itemStack;
-        }
-        itemStack = (ItemStack) config.get("minecraft_item");
+        } else itemStack = (ItemStack) config.get("minecraft_item");
         return itemStack;
     }
 

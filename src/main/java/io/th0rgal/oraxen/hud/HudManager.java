@@ -1,17 +1,142 @@
 package io.th0rgal.oraxen.hud;
 
+import com.jeff_media.morepersistentdatatypes.DataType;
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.ConfigsManager;
+import io.th0rgal.oraxen.utils.Utils;
+import me.clip.placeholderapi.PlaceholderAPI;
+import net.kyori.adventure.text.Component;
+import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
+import org.bukkit.persistence.PersistentDataType;
+
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class HudManager {
 
+    public final int hudUpdateTime;
+    public final NamespacedKey hudToggleKey;
+    public final NamespacedKey hudDisplayKey;
+    private final HudEvents hudEvents;
+    private static HudTask hudTask;
+    private static boolean hudTaskEnabled;
+    private final Map<String, Hud> huds;
 
-    public HudManager(final YamlConfiguration fontConfiguration) {
-
+    public HudManager(final ConfigsManager hudManager) {
+        final ConfigurationSection hudSection = hudManager.getHud().getConfigurationSection("huds");
+        hudUpdateTime = hudManager.getHud().getInt("update_time_in_ticks", 40);
+        hudEvents = new HudEvents();
+        hudTaskEnabled = false;
+        hudToggleKey = new NamespacedKey(OraxenPlugin.get(), "hud_toggle");
+        hudDisplayKey = new NamespacedKey(OraxenPlugin.get(), "hud_display");
+        huds = new HashMap<>();
+        if (hudSection != null)
+            loadHuds(hudSection);
     }
 
-    private void loadGlyphs(final ConfigurationSection section) {
-
+    public void registerEvents() {
+        Bukkit.getPluginManager().registerEvents(hudEvents, OraxenPlugin.get());
     }
 
+    public void unregisterEvents() {
+        HandlerList.unregisterAll(hudEvents);
+    }
+
+    public final Map<String, Hud> getHuds() { return huds; }
+    public Hud getHudFromID(final String id) {return huds.get(id);}
+
+    public String getHudID(Hud hud) {
+        for (Map.Entry<String, Hud> entry : huds.entrySet()) {
+            if (entry.getValue().equals(hud)) {
+                return entry.getKey();
+            }
+        }
+        return null;
+    }
+
+    public Hud getActiveHudForPlayer(Player player) {
+        return huds.get(player.getPersistentDataContainer().get(hudDisplayKey, DataType.STRING));
+    }
+
+    public void setActiveHudForPlayer(Player player, Hud hud) {
+        player.getPersistentDataContainer().set(hudDisplayKey, PersistentDataType.STRING, getHudID(hud));
+    }
+
+    public boolean getHudStateForPlayer(Player player) {
+        return !Boolean.FALSE.equals(player.getPersistentDataContainer().get(hudToggleKey, DataType.BOOLEAN));
+    }
+
+    public void setHudStateForPlayer(Player player, boolean state) {
+        player.getPersistentDataContainer().set(hudToggleKey, DataType.BOOLEAN, state);
+    }
+
+
+
+    public Collection<Hud> getDefaultEnabledHuds() {
+        return huds.values().stream().filter(Hud::isEnabledByDefault).toList();
+    }
+
+    public void updateHud(final Player player) {
+        enableHud(player, getActiveHudForPlayer(player));
+    }
+
+    public void disableHud(final Player player) {
+        OraxenPlugin.get().getAudience().player(player).sendActionBar(Component.empty());
+    }
+
+    public void enableHud(final Player player, Hud hud) {
+        if (hud == null || hud.getDisplayText() == null || !getHudStateForPlayer(player)) return;
+
+        String hudDisplay = parsedHudDisplays.get(hud);
+        hudDisplay = translatePlaceholdersForHudDisplay(player, hudDisplay);
+        OraxenPlugin.get().getAudience().player(player).sendActionBar(Utils.MINI_MESSAGE.deserialize(hudDisplay));
+    }
+
+    public void registerTask() {
+        if (hudTaskEnabled) return;
+        if (hudTask != null) hudTask.cancel();
+        if (hudUpdateTime == 0) return;
+
+        hudTask = new HudTask();
+        hudTask.runTaskTimer(OraxenPlugin.get(), 0, hudUpdateTime);
+        hudTaskEnabled = true;
+    }
+
+    private void loadHuds(final ConfigurationSection section) {
+        for (final String hudName : section.getKeys(false)) {
+            final ConfigurationSection hudSection = section.getConfigurationSection(hudName);
+            if (hudSection == null) continue;
+            huds.put(hudName, (new Hud(
+                    hudSection.getString("display_text"),
+                    hudSection.getString("text_font", "minecraft:default"),
+                    hudSection.getString("permission", ""),
+                    hudSection.getBoolean("disabled_whilst_in_water", false),
+                    hudSection.getBoolean("enabled_by_default", false),
+                    hudSection.getBoolean("enable_for_spectator_mode", false)
+            )));
+        }
+    }
+
+    public Map<Hud, String> parsedHudDisplays;
+
+    public Map<Hud, String> generateHudDisplays() {
+        Map<Hud, String> hudDisplays = new HashMap<>();
+        for (Map.Entry<String, Hud> entry : huds.entrySet()) {
+            hudDisplays.put(entry.getValue(), translateMiniMessageTagsForHud(entry.getValue()));
+        }
+        return hudDisplays;
+    }
+
+    private String translateMiniMessageTagsForHud(Hud hud) {
+        return Utils.MINI_MESSAGE.serialize(Utils.MINI_MESSAGE.deserialize(hud.displayText()));
+    }
+
+    private String translatePlaceholdersForHudDisplay(Player player, String message) {
+        return PlaceholderAPI.setPlaceholders(player, message);
+    }
 }

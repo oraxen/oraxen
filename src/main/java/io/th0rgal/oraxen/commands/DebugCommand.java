@@ -5,7 +5,7 @@ import com.google.gson.JsonObject;
 import dev.jorel.commandapi.CommandAPICommand;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.OS;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 
 import java.util.Map;
@@ -38,12 +38,11 @@ public class DebugCommand {
                     report.add("plugin", pluginJson);
                     report.add("minecraft", minecraftJson);
 
-                    ComponentBuilder msg = new ComponentBuilder();
+                    Component msg = Component.empty();
                     for (Map.Entry<String, JsonElement> entry : report.entrySet()) {
-                        msg.append(entry.getKey());
-                        msg.append(entry.getValue().toString());
+                        msg = msg.append(Component.text(entry.getKey())).append(Component.text(entry.getValue().toString()));
                     }
-                    sender.spigot().sendMessage(msg.create());
+                    OraxenPlugin.get().getAudience().sender(sender).sendMessage(msg);
                 });
     }
 

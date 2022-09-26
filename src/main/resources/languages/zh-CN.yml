@@ -76,5 +76,11 @@ command:
     wrong_color: "<prefix><#fa4943>颜色无法识别，请尝试使用十六进制的颜色，如 #FFFFFF!"
     failed: "<prefix><#fa4943>你无法改变此物品的颜色！"
 
+  hud: #If someone could translate this, I would be very happy!
+    no_hud: "<prefix><#fa4943>There is no HUD by the name '<hud_id>'!"
+    toggle_on: "<prefix><#55ffa4>Toggled '<hud_id>' on!"
+    toggle_off: "<prefix><#fa4943>Toggled '<hud_id>' off!"
+
 mechanics:
   not_enough_exp: "<prefix><#fa4943>你需要更多经验欸"
+  backpack_stacked: "<prefix><#fa4943>Cannot open stacked backpack"

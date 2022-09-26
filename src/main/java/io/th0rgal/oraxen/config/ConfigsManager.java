@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -24,10 +23,12 @@ public class ConfigsManager {
     private final YamlConfiguration defaultFont;
     private final YamlConfiguration defaultSound;
     private final YamlConfiguration defaultLanguage;
+    private final YamlConfiguration defaultHud;
     private YamlConfiguration settings;
     private YamlConfiguration font;
     private YamlConfiguration sound;
     private YamlConfiguration language;
+    private YamlConfiguration hud;
     private File itemsFolder;
     private File glyphsFolder;
     private File schematicsFolder;
@@ -38,6 +39,7 @@ public class ConfigsManager {
         defaultFont = extractDefault("font.yml");
         defaultSound = extractDefault("sound.yml");
         defaultLanguage = extractDefault("languages/english.yml");
+        defaultHud = extractDefault("hud.yml");
     }
 
     public YamlConfiguration getSettings() {
@@ -50,6 +52,10 @@ public class ConfigsManager {
 
     public YamlConfiguration getFont() {
         return font != null ? font : defaultFont;
+    }
+
+    public YamlConfiguration getHud() {
+        return hud != null ? hud : defaultHud;
     }
 
     public YamlConfiguration getSound() {
@@ -77,6 +83,7 @@ public class ConfigsManager {
         ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
         settings = validate(resourcesManager, "settings.yml", defaultSettings);
         font = validate(resourcesManager, "font.yml", defaultFont);
+        hud = validate(resourcesManager, "hud.yml", defaultHud);
         sound = validate(resourcesManager, "sound.yml", defaultSound);
         File languagesFolder = new File(plugin.getDataFolder(), "languages");
         languagesFolder.mkdir();
@@ -114,7 +121,7 @@ public class ConfigsManager {
         for (String key : defaultConfiguration.getKeys(true))
             if (configuration.get(key) == null) {
                 updated = true;
-                Message.UPDATING_CONFIG.log(Template.template("option", key));
+                Message.UPDATING_CONFIG.log(Utils.tagResolver("option", key));
                 configuration.set(key, defaultConfiguration.get(key));
             }
         if (updated)
@@ -155,6 +162,7 @@ public class ConfigsManager {
                 Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key), code);
                 if (glyph.isFileChanged())
                     fileChanged = true;
+                glyph.verifyGlyph(output);
                 output.add(glyph);
             }
             if (fileChanged && Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool())

@@ -66,7 +66,7 @@ public class ItemParser {
     }
 
     private String parseComponentString(String miniString) {
-        return Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.parse(miniString));
+        return Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(miniString));
     }
 
     public ItemBuilder buildItem() {
@@ -91,8 +91,7 @@ public class ItemParser {
 
         if (section.contains("lore")) {
             List<String> lore = section.getStringList("lore");
-            for (int i = 0; i < lore.size(); i++)
-                lore.set(i, parseComponentString(lore.get(i)));
+            lore.replaceAll(this::parseComponentString);
             item.setLore(lore);
         }
 
@@ -101,11 +100,10 @@ public class ItemParser {
 
         if (section.contains("color")) {
             String[] colors = section.getString("color").split(", ");
-            item
-                    .setColor(org.bukkit.Color
-                            .fromRGB(Integer.parseInt(colors[0]),
-                                    Integer.parseInt(colors[1]),
-                                    Integer.parseInt(colors[2])));
+            item.setColor(org.bukkit.Color.fromRGB(
+                    Integer.parseInt(colors[0]),
+                    Integer.parseInt(colors[1]),
+                    Integer.parseInt(colors[2])));
         }
 
         parseMiscOptions(item);
@@ -141,8 +139,10 @@ public class ItemParser {
             @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
             List<LinkedHashMap<String, Object>> potionEffects = (List<LinkedHashMap<String, Object>>) section
                     .getList("PotionEffects");
+            if (potionEffects == null) return;
             for (Map<String, Object> serializedPotionEffect : potionEffects) {
                 PotionEffectType effect = PotionEffectType.getByName((String) serializedPotionEffect.get("type"));
+                if (effect == null) return;
                 int duration = (int) serializedPotionEffect.get("duration");
                 int amplifier = (int) serializedPotionEffect.get("amplifier");
                 boolean ambient = (boolean) serializedPotionEffect.get("ambient");

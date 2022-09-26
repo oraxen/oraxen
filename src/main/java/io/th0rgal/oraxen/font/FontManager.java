@@ -13,8 +13,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
-
-import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -40,6 +38,10 @@ public class FontManager {
         loadGlyphs(configsManager.parseGlyphConfigs());
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
+    }
+
+    public void verifyRequired() {
+        OraxenPlugin.get().saveResource("glyphs/required.yml", true);
     }
 
     public void registerEvents() {
@@ -84,8 +86,12 @@ public class FontManager {
         return fonts;
     }
 
+    public Font getFontFromFile(String file) {
+        return getFonts().stream().filter(font -> font.file().equals(file)).findFirst().orElse(null);
+    }
+
     public Glyph getGlyphFromName(final String name) {
-        return glyphMap.get(name);
+        return glyphMap.get(name) != null ? glyphMap.get(name) : glyphMap.get("required");
     }
 
     public Glyph getGlyphFromPlaceholder(final String word) {
@@ -100,15 +106,19 @@ public class FontManager {
         return reverse;
     }
 
-
     public String getShift(int length) {
         // Ensure shifts.yml exists as it is required
         if (!Path.of(OraxenPlugin.get().getDataFolder() + "/glyphs/shifts.yml").toFile().exists())
             OraxenPlugin.get().saveResource("glyphs/shifts.yml", false);
         StringBuilder output = new StringBuilder();
+        String prefix = "shift_";
+        if (length < 0) {
+            prefix = "neg_shift_";
+            length = -length;
+        }
         while (length > 0) {
             int biggestPower = Integer.highestOneBit(length);
-            output.append(getGlyphFromName("shift_" + biggestPower).getCharacter());
+            output.append(getGlyphFromName(prefix + biggestPower).getCharacter());
             length -= biggestPower;
         }
         return output.toString();
