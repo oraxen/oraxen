@@ -43,7 +43,7 @@ public class BlockHelpers {
 
     public static void playCustomBlockSound(Location location, String sound, SoundCategory category) {
         if (sound == null || location == null || location.getWorld() == null || category == null) return;
-        location.getWorld().playSound(location, sound, category, 1f, 0.8f);
+        location.getWorld().playSound(location, sound, category, 0.8f, 0.8f);
     }
 
     public static Location toBlockLocation(Location location) {
@@ -52,6 +52,14 @@ public class BlockHelpers {
 
     public static Location toCenterLocation(Location location) {
         return toBlockLocation(location).clone().add(0.5, 0.5, 0.5);
+    }
+
+    public static boolean isStandingInside(final Player player, final Block block) {
+        final Location playerLoc = player.getLocation();
+        final Location blockLoc = BlockHelpers.toCenterLocation(block.getLocation());
+        return Range.between(0.5, 1.5).contains(blockLoc.getY() - playerLoc.getY()) &&
+                Range.between(-0.80, 0.80).contains(blockLoc.getX() - playerLoc.getX())
+                && Range.between(-0.80, 0.80).contains(blockLoc.getZ() - playerLoc.getZ());
     }
 
     public static final List<Material> REPLACEABLE_BLOCKS = Arrays

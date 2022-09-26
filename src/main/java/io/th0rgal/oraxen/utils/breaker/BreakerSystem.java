@@ -21,6 +21,7 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -79,12 +80,13 @@ public class BreakerSystem {
                     triggeredModifier = modifier;
                     break;
                 }
-            if (triggeredModifier == null || triggeredModifier.getPeriod(player, block, item) == 0) return;
+            if (triggeredModifier == null) return;
+            final long period = triggeredModifier.getPeriod(player, block, item);
+            if (period == 0) return;
             event.setCancelled(true);
 
             final Location location = block.getLocation();
             if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
-                final long period = triggeredModifier.getPeriod(player, block, item);
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
                         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING,
                                 (int) (period * 11),
@@ -106,6 +108,9 @@ public class BreakerSystem {
                             bukkitTask.cancel();
                             return;
                         }
+
+                        if (item.getEnchantmentLevel(Enchantment.DIG_SPEED) >= 5)
+                            value = 10;
 
                         for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
                             if (entity instanceof Player viewer)

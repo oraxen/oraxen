@@ -113,7 +113,7 @@ public class BlockMechanicListener implements Listener {
                     && target.getType() != Material.CAVE_AIR)
                 return;
         }
-        if (isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
+        if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
             return;
 
         // determines the old information of the block
@@ -198,14 +198,4 @@ public class BlockMechanicListener implements Listener {
             return BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(block));
         } else return null;
     }
-
-    private boolean isStandingInside(final Player player, final Block block) {
-        final Location playerLocation = player.getLocation();
-        final Location blockLocation = block.getLocation();
-        return playerLocation.getBlockX() == blockLocation.getBlockX()
-                && (playerLocation.getBlockY() == blockLocation.getBlockY()
-                || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
-                && playerLocation.getBlockZ() == blockLocation.getBlockZ();
-    }
-
 }

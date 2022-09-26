@@ -357,13 +357,6 @@ public class StringBlockMechanicListener implements Listener {
         };
     }
 
-    private boolean isStandingInside(final Entity entity, final Block block) {
-        final Location entityLocation = entity.getLocation();
-        final Location blockLocation = block.getLocation();
-        return BlockHelpers.toBlockLocation(entityLocation).equals(BlockHelpers.toBlockLocation(blockLocation)) ||
-                BlockHelpers.toBlockLocation(entityLocation).equals(BlockHelpers.toBlockLocation(blockLocation).add(0, 1.0, 0));
-    }
-
     private Block makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
                                        final Block placedAgainst, final BlockFace face, final BlockData newBlock) {
         final Block target;
@@ -375,10 +368,10 @@ public class StringBlockMechanicListener implements Listener {
             if (!target.getType().isAir() && target.getType() != Material.WATER && target.getType() != Material.LAVA)
                 return null;
         }
-        if (isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
+        if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
             return null;
 
-        // determines the old informations of the block
+        // determines the old information of the block
         final BlockData curentBlockData = target.getBlockData();
         target.setBlockData(newBlock, false);
         final BlockState currentBlockState = target.getState();

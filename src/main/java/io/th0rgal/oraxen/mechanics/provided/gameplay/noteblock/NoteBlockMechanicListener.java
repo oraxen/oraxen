@@ -225,14 +225,6 @@ public class NoteBlockMechanicListener implements Listener {
             event.setCancelled(true);
     }
 
-    /*@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onHitBlock(final BlockDamageEvent event) {
-        final Block block = event.getBlock();
-        if (block.getBlockData().getSoundGroup().getHitSound() != Sound.BLOCK_WOOD_HIT) return;
-        if (getNoteBlockMechanic(block) != null || block.getType() == Material.MUSHROOM_STEM) return;
-        BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_HIT);
-    }*/
-
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
@@ -357,8 +349,13 @@ public class NoteBlockMechanicListener implements Listener {
         Block block = event.getBlock();
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
 
-        if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM)return;
-        if (event.getInstaBreak() || soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
+        if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM) {
+            if (event.getInstaBreak()) Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+                    block.setType(Material.AIR, false);
+                }, 1);
+            return;
+        }
+        if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (breakerPlaySound.containsKey(block)) return;
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
@@ -505,15 +502,6 @@ public class NoteBlockMechanicListener implements Listener {
         };
     }
 
-    private boolean isStandingInside(final Player player, final Block block) {
-        final Location playerLocation = player.getLocation();
-        final Location blockLocation = block.getLocation();
-        return playerLocation.getBlockX() == blockLocation.getBlockX()
-                && (playerLocation.getBlockY() == blockLocation.getBlockY()
-                || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
-                && playerLocation.getBlockZ() == blockLocation.getBlockZ();
-    }
-
     private Block makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
                                        final Block placedAgainst, final BlockFace face, final BlockData newBlock) {
         final Block target;
@@ -528,8 +516,6 @@ public class NoteBlockMechanicListener implements Listener {
             if (!target.getType().isAir() && !target.isLiquid() && target.getType() != Material.LIGHT) return null;
         }
 
-        if (isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation())) return null;
-
         final BlockData curentBlockData = target.getBlockData();
         final boolean isFlowing = (newBlock.getMaterial() == Material.WATER || newBlock.getMaterial() == Material.LAVA);
         target.setBlockData(newBlock, isFlowing);
@@ -542,7 +528,9 @@ public class NoteBlockMechanicListener implements Listener {
         if (BlockHelpers.correctAllBlockStates(target, player, face, item)) blockPlaceEvent.setCancelled(true);
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
         if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions())) blockPlaceEvent.setCancelled(true);
-        if (!ProtectionLib.canBuild(player, target.getLocation()) || !blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
+        if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
+            blockPlaceEvent.setCancelled(true);
+        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
             return null;
         }
