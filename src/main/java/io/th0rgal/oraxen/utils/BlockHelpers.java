@@ -54,6 +54,14 @@ public class BlockHelpers {
         return toBlockLocation(location).clone().add(0.5, 0.5, 0.5);
     }
 
+    public static boolean isStandingInside(final Player player, final Block block) {
+        final Location playerLoc = player.getLocation();
+        final Location blockLoc = BlockHelpers.toCenterLocation(block.getLocation());
+        return Range.between(0.5, 1.5).contains(blockLoc.getY() - playerLoc.getY()) &&
+                Range.between(-0.80, 0.80).contains(blockLoc.getX() - playerLoc.getX())
+                && Range.between(-0.80, 0.80).contains(blockLoc.getZ() - playerLoc.getZ());
+    }
+
     public static final List<Material> REPLACEABLE_BLOCKS = Arrays
             .asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,
                     Material.LARGE_FERN, Material.AIR);

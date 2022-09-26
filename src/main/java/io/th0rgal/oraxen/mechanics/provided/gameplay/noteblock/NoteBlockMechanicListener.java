@@ -502,15 +502,6 @@ public class NoteBlockMechanicListener implements Listener {
         };
     }
 
-    private boolean isStandingInside(final Player player, final Block block) {
-        final Location playerLocation = player.getLocation();
-        final Location blockLocation = block.getLocation();
-        return playerLocation.getBlockX() == blockLocation.getBlockX()
-                && (playerLocation.getBlockY() == blockLocation.getBlockY()
-                || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
-                && playerLocation.getBlockZ() == blockLocation.getBlockZ();
-    }
-
     private Block makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
                                        final Block placedAgainst, final BlockFace face, final BlockData newBlock) {
         final Block target;
@@ -525,8 +516,6 @@ public class NoteBlockMechanicListener implements Listener {
             if (!target.getType().isAir() && !target.isLiquid() && target.getType() != Material.LIGHT) return null;
         }
 
-        if (isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation())) return null;
-
         final BlockData curentBlockData = target.getBlockData();
         final boolean isFlowing = (newBlock.getMaterial() == Material.WATER || newBlock.getMaterial() == Material.LAVA);
         target.setBlockData(newBlock, isFlowing);
@@ -539,7 +528,9 @@ public class NoteBlockMechanicListener implements Listener {
         if (BlockHelpers.correctAllBlockStates(target, player, face, item)) blockPlaceEvent.setCancelled(true);
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
         if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions())) blockPlaceEvent.setCancelled(true);
-        if (!ProtectionLib.canBuild(player, target.getLocation()) || !blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
+        if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
+            blockPlaceEvent.setCancelled(true);
+        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
             return null;
         }

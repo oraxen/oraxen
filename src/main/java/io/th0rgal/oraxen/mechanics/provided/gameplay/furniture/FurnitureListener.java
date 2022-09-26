@@ -274,7 +274,7 @@ public class FurnitureListener implements Listener {
 
     private FurnitureMechanic getMechanic(ItemStack item, Player player, Block target) {
         final String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID) || isStandingInside(player, target)) return null;
+        if (factory.isNotImplementedIn(itemID) || BlockHelpers.isStandingInside(player, target)) return null;
         if (!ProtectionLib.canBuild(player, target.getLocation())) return null;
 
         for (final Entity entity : target.getWorld().getNearbyEntities(target.getLocation(), 1, 1, 1))
@@ -540,15 +540,6 @@ public class FurnitureListener implements Listener {
         } else return;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS);
-    }
-
-    private boolean isStandingInside(final Player player, final Block block) {
-        final Location playerLoc = player.getLocation();
-        final Location blockLoc = block.getLocation();
-        return playerLoc.getBlockX() == blockLoc.getBlockX()
-                && (playerLoc.getBlockY() == blockLoc.getBlockY()
-                || playerLoc.getBlockY() + 1 == blockLoc.getBlockY())
-                && playerLoc.getBlockZ() == blockLoc.getBlockZ();
     }
 
     public FurnitureMechanic getFurnitureMechanic(Block block) {
