@@ -225,14 +225,6 @@ public class NoteBlockMechanicListener implements Listener {
             event.setCancelled(true);
     }
 
-    /*@EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onHitBlock(final BlockDamageEvent event) {
-        final Block block = event.getBlock();
-        if (block.getBlockData().getSoundGroup().getHitSound() != Sound.BLOCK_WOOD_HIT) return;
-        if (getNoteBlockMechanic(block) != null || block.getType() == Material.MUSHROOM_STEM) return;
-        BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_HIT);
-    }*/
-
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
         final Block block = event.getBlock();
@@ -357,8 +349,13 @@ public class NoteBlockMechanicListener implements Listener {
         Block block = event.getBlock();
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
 
-        if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM)return;
-        if (event.getInstaBreak() || soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
+        if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM) {
+            if (event.getInstaBreak()) Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+                    block.setType(Material.AIR, false);
+                }, 1);
+            return;
+        }
+        if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (breakerPlaySound.containsKey(block)) return;
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
