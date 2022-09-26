@@ -108,7 +108,7 @@ public class FurnitureListener implements Listener {
     public void onPlacingStone(final BlockPlaceEvent event) {
         Block block = event.getBlock();
 
-        if (block.getType() == Material.BARRIER || block.getType() == Material.TRIPWIRE) return;
+        if (block.getType() == Material.TRIPWIRE) return;
         if (block.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_STONE_PLACE) return;
         BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), VANILLA_STONE_PLACE);
     }
@@ -118,7 +118,7 @@ public class FurnitureListener implements Listener {
     public void onBreakingStone(final BlockBreakEvent event) {
         Block block = event.getBlock();
 
-        if (block.getType() == Material.BARRIER || block.getType() == Material.TRIPWIRE) return;
+        if (block.getType() == Material.TRIPWIRE) return;
         if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_STONE_BREAK) return;
         if (breakerPlaySound.containsKey(block)) {
             breakerPlaySound.get(block).cancel();
@@ -525,6 +525,9 @@ public class FurnitureListener implements Listener {
         Block blockBelow = block.getRelative(BlockFace.DOWN);
         SoundGroup soundGroup = blockBelow.getBlockData().getSoundGroup();
 
+        // Apparently water and air use stone sounds
+        // Seems stone is the generic one so might be used in alot of places we don't want this to play
+        if (blockBelow.getType() == Material.WATER || blockBelow.getType() == Material.AIR) return;
         if (soundGroup.getStepSound() != Sound.BLOCK_STONE_STEP) return;
         if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(block.getType()) || block.getType() == Material.TRIPWIRE) return;
         FurnitureMechanic mechanic = getFurnitureMechanic(blockBelow);

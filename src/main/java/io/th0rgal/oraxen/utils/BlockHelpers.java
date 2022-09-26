@@ -43,7 +43,7 @@ public class BlockHelpers {
 
     public static void playCustomBlockSound(Location location, String sound, SoundCategory category) {
         if (sound == null || location == null || location.getWorld() == null || category == null) return;
-        location.getWorld().playSound(location, sound, category, 1f, 0.8f);
+        location.getWorld().playSound(location, sound, category, 0.8f, 0.8f);
     }
 
     public static Location toBlockLocation(Location location) {
