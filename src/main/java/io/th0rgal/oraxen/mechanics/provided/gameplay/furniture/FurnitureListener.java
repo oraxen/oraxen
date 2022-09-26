@@ -453,12 +453,10 @@ public class FurnitureListener implements Listener {
             }
         }
 
-        final ArmorStand seat = getSeat(block.getLocation());
-        if (seat == null || !seat.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) return;
-
-        final String entityId = seat.getPersistentDataContainer().get(SEAT_KEY, PersistentDataType.STRING);
-        if (entityId == null) return;
-        final Entity stand = Bukkit.getEntity(UUID.fromString(entityId));
+        final PersistentDataContainer blockPDC = new CustomBlockData(block, OraxenPlugin.get());
+        final String entityUuid = blockPDC.getOrDefault(SEAT_KEY, PersistentDataType.STRING, "");
+        if (entityUuid.isBlank()) return;
+        final Entity stand = Bukkit.getEntity(UUID.fromString(entityUuid));
 
         if (stand != null && stand.getPassengers().isEmpty()) {
             stand.addPassenger(event.getPlayer());
@@ -545,12 +543,12 @@ public class FurnitureListener implements Listener {
     }
 
     private boolean isStandingInside(final Player player, final Block block) {
-        final Location playerLocation = player.getLocation();
-        final Location blockLocation = block.getLocation();
-        return playerLocation.getBlockX() == blockLocation.getBlockX()
-                && (playerLocation.getBlockY() == blockLocation.getBlockY()
-                || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
-                && playerLocation.getBlockZ() == blockLocation.getBlockZ();
+        final Location playerLoc = player.getLocation();
+        final Location blockLoc = block.getLocation();
+        return playerLoc.getBlockX() == blockLoc.getBlockX()
+                && (playerLoc.getBlockY() == blockLoc.getBlockY()
+                || playerLoc.getBlockY() + 1 == blockLoc.getBlockY())
+                && playerLoc.getBlockZ() == blockLoc.getBlockZ();
     }
 
     public FurnitureMechanic getFurnitureMechanic(Block block) {
