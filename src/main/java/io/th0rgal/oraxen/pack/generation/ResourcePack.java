@@ -297,6 +297,8 @@ public class ResourcePack {
             Logs.logError("Error while reading file " + file.getPath());
             Logs.logError("It seems to be malformed!");
             return new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
+        } finally {
+            IOUtils.closeQuietly();
         }
 
         // Serialize legacy to component then deserialize to adventure style tags
