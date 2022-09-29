@@ -64,7 +64,7 @@ public class Drop {
 
     public boolean isTypeEnough(ItemStack itemInHand) {
         if (hasMinimalType) {
-            String itemType = getItemType(itemInHand);
+            String itemType = itemInHand == null ? "" : getItemType(itemInHand);
             return !itemType.isEmpty() && hierarchy.contains(itemType)
                     && (hierarchy.indexOf(itemType) >= hierarchy.indexOf(minimalType));
         }
