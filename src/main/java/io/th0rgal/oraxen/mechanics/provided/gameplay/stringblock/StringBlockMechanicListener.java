@@ -4,6 +4,8 @@ import com.jeff_media.customblockdata.CustomBlockData;
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
+import io.th0rgal.oraxen.events.OraxenStringBlockBreakEvent;
+import io.th0rgal.oraxen.events.OraxenStringBlockInteractEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
@@ -136,7 +138,17 @@ public class StringBlockMechanicListener implements Listener {
         if (event.getAction() == Action.RIGHT_CLICK_BLOCK
                 && block != null
                 && block.getType() == Material.TRIPWIRE) {
-            final ItemStack clicked = event.getItem();
+            ItemStack clicked = event.getItem();
+            // Call the event
+            StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
+            if (stringBlockMechanic == null) return;
+            OraxenStringBlockInteractEvent wireBlockInteractEvent = new OraxenStringBlockInteractEvent(stringBlockMechanic, block, event.getItem(), event.getPlayer());
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockInteractEvent);
+            if (wireBlockInteractEvent.isCancelled()) {
+                event.setCancelled(true);
+                return;
+            }
+
             event.setCancelled(true);
             if (clicked == null)
                 return;
@@ -161,9 +173,18 @@ public class StringBlockMechanicListener implements Listener {
             if (face == BlockFace.SELF && !face.isCartesian()) continue;
             if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
             if (block.getRelative(face).getType() == Material.TRIPWIRE) {
-                if (getStringMechanic(block.getRelative(face)) != null && player.getGameMode() != GameMode.CREATIVE)
+                StringBlockMechanic mechanic = getStringMechanic(block.getRelative(face));
+                if (mechanic != null) {
+                    OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
+                    OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockBreakEvent);
+                    if (wireBlockBreakEvent.isCancelled()) {
+                        event.setCancelled(true);
+                        return;
+                    }
+                    if (player.getGameMode() != GameMode.CREATIVE)
                     for (ItemStack item : block.getDrops())
                         player.getWorld().dropItemNaturally(block.getLocation(), item);
+                }
                 block.setType(Material.AIR, false);
                 if (BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) blockAbove.breakNaturally();
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
@@ -236,6 +257,7 @@ public class StringBlockMechanicListener implements Listener {
         if (factory.isNotImplementedIn(itemID)) return;
         // determines the new block data of the block
         StringBlockMechanic mechanic = (StringBlockMechanic) factory.getMechanic(itemID);
+
         int customVariation = mechanic.getCustomVariation();
 
         if (mechanic.hasRandomPlace()) {
