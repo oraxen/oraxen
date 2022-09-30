@@ -407,11 +407,21 @@ public class FurnitureListener implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
-    public void onPlayerRotateFurniture(final PlayerInteractEntityEvent event) {
-        if (event.getRightClicked() instanceof ItemFrame
-                && event.getRightClicked().getPersistentDataContainer()
-                .has(FURNITURE_KEY, PersistentDataType.STRING))
-            event.setCancelled(true);
+    public void onPlayerInteractFurniture(PlayerInteractEntityEvent event) {
+        final Entity entity = event.getRightClicked();
+        final Player player = event.getPlayer();
+        if (!(entity instanceof ItemFrame frame)) return;
+        String mechanicID = entity.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING);
+        if (mechanicID == null) return;
+        //prevent rotation
+        event.setCancelled(true);
+        FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
+        OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, null, player);
+        if (furnitureInteractEvent.isCancelled()) {
+            return;
+        }
+        if (mechanic.hasClickActions())
+            mechanic.runClickActions(player);
     }
 
     @EventHandler(ignoreCancelled = true)
