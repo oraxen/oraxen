@@ -182,8 +182,8 @@ public class StringBlockMechanicListener implements Listener {
                         return;
                     }
                     if (player.getGameMode() != GameMode.CREATIVE)
-                    for (ItemStack item : block.getDrops())
-                        player.getWorld().dropItemNaturally(block.getLocation(), item);
+                        for (ItemStack item : block.getDrops())
+                            player.getWorld().dropItemNaturally(block.getLocation(), item);
                 }
                 block.setType(Material.AIR, false);
                 if (BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) blockAbove.breakNaturally();
