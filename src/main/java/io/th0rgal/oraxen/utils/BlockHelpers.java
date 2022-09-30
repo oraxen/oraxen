@@ -46,6 +46,14 @@ public class BlockHelpers {
         location.getWorld().playSound(location, sound, category, 0.8f, 0.8f);
     }
 
+    public static String validateReplacedSounds(String sound) {
+        if (sound.startsWith("block.wood"))
+            return sound.replace("block.wood", "required.wood");
+        else if (sound.startsWith("block.stone"))
+            return sound.replace("block.stone", "required.stone");
+        else return sound;
+    }
+
     public static Location toBlockLocation(Location location) {
         return new Location(location.getWorld(), location.getBlockX(), location.getBlockY(), location.getBlockZ());
     }

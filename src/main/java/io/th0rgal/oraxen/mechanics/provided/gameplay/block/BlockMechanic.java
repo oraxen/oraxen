@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
@@ -96,31 +97,20 @@ public class BlockMechanic extends Mechanic {
         return breakSound != null;
     }
     public String getBreakSound() {
-        return validateReplacedSounds(breakSound);
+        return BlockHelpers.validateReplacedSounds(breakSound);
     }
 
-    public boolean hasPlaceSound() {
-        return placeSound != null;
-    }
-    public String getPlaceSound() {
-        return validateReplacedSounds(placeSound);
-    }
+    public boolean hasPlaceSound() { return placeSound != null; }
+    public String getPlaceSound() { return BlockHelpers.validateReplacedSounds(placeSound); }
 
     public boolean hasStepSound() { return stepSound != null; }
-    public String getStepSound() { return validateReplacedSounds(stepSound); }
+    public String getStepSound() { return BlockHelpers.validateReplacedSounds(stepSound); }
 
     public boolean hasHitSound() { return hitSound != null; }
-    public String getHitSound() { return validateReplacedSounds(hitSound); }
+    public String getHitSound() { return BlockHelpers.validateReplacedSounds(hitSound); }
 
     public boolean hasFallSound() { return fallSound != null; }
-    public String getFallSound() { return validateReplacedSounds(fallSound); }
-    private String validateReplacedSounds(String sound) {
-        if (sound.startsWith("block.wood"))
-            return sound.replace("block.wood", "required.wood.");
-        else if (sound.startsWith("block.stone"))
-            return sound.replace("block.stone", "required.stone.");
-        else return sound;
-    }
+    public String getFallSound() { return BlockHelpers.validateReplacedSounds(fallSound); }
 
     public static int getCode(final Block block) {
         int sum = 0;
