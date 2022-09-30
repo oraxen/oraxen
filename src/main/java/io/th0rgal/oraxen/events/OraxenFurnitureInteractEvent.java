@@ -58,13 +58,6 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return whether the furniture has barrier
-     */
-    public boolean hasBarrier() {
-        return block != null;
-    }
-
-    /**
      * @return The block that was interacted with
      */
     @Nullable

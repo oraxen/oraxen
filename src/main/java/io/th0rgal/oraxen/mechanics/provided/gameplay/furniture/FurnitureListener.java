@@ -410,7 +410,7 @@ public class FurnitureListener implements Listener {
     public void onPlayerInteractFurniture(PlayerInteractEntityEvent event) {
         final Entity entity = event.getRightClicked();
         final Player player = event.getPlayer();
-        if (!(entity instanceof ItemFrame frame)) return;
+        if (!(entity instanceof ItemFrame)) return;
         String mechanicID = entity.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING);
         if (mechanicID == null) return;
         //prevent rotation
