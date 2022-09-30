@@ -4,24 +4,19 @@ import dev.jorel.commandapi.CommandAPICommand;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.font.Glyph;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ClickEvent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
-import net.md_5.bungee.api.chat.HoverEvent;
+import io.th0rgal.oraxen.utils.Utils;
+import net.kyori.adventure.inventory.Book;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.event.ClickEvent;
+import net.kyori.adventure.text.event.HoverEvent;
 import org.bukkit.ChatColor;
-import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.BookMeta;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
-
-import static net.md_5.bungee.api.chat.ClickEvent.Action.SUGGEST_COMMAND;
-import static net.md_5.bungee.api.chat.HoverEvent.Action.SHOW_TEXT;
-import static org.bukkit.inventory.meta.BookMeta.Generation.ORIGINAL;
 
 public class GlyphCommand {
 
@@ -38,22 +33,15 @@ public class GlyphCommand {
 
                     List<Glyph> emojis = !onlyShowPermissable
                             ? emojiList : emojiList.stream().filter(glyph -> glyph.hasPermission(player)).toList();
-                    List<BaseComponent[]> list = new ArrayList<>();
-                    BaseComponent[] page;
-                    ComponentBuilder page2 = new ComponentBuilder("");
+                    Collection<Component> list = new ArrayList<>();
+                    Component pages = Component.empty();
                     int s;
 
-                    ItemStack book = new ItemStack(Material.WRITTEN_BOOK);
-                    BookMeta meta = (BookMeta) book.getItemMeta();
-
-                    if (meta == null || emojis.isEmpty()) {
+                    if (emojis.isEmpty()) {
                         Message.NO_EMOJIS.send(player);
                         return;
                     }
 
-                    meta.setTitle("Glyph Book");
-                    meta.setAuthor("Oraxen");
-                    meta.setGeneration(ORIGINAL);
                     pageLoop:
                     for (int p = 0; p < 50; p++) {
                         for (int i = 0; i < 256; i++) {
@@ -70,22 +58,20 @@ public class GlyphCommand {
                                     finalString += (placeholder + "\n");
                                 }
 
-                                if (!onlyShowPermissable)
+                                if (!onlyShowPermissable) {
                                     permissionMessage += emoji.hasPermission(player) ?
-                                            ("\n" + ChatColor.GREEN + "Permitted") : ("\n" + ChatColor.RED +"No Permission");
+                                            ("\n" + ChatColor.GREEN + "Permitted") : ("\n" + ChatColor.RED + "No Permission");
+                                }
                             }
-                            page = new ComponentBuilder(ChatColor.WHITE + String.valueOf(emoji.getCharacter()))
-                                    .event(new ClickEvent(SUGGEST_COMMAND, String.valueOf(emoji.getCharacter())))
-                                    .event(new HoverEvent(SHOW_TEXT, new ComponentBuilder(finalString + permissionMessage).create()))
-                                    .create();
-                             list.add(page);
+
+                            pages = pages.append(Utils.MINI_MESSAGE.deserialize("<white>" + emoji.getCharacter())
+                                    .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, String.valueOf(emoji.getCharacter())))
+                                    .hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Component.text(finalString + permissionMessage))));
                         }
                     }
-                    for (BaseComponent[] b : list)
-                        page2.append(b);
-                    meta.spigot().setPages(page2.create());
-                    book.setItemMeta(meta);
-                    player.openBook(book);
+
+                    Book book = Book.book(Component.text("Glyph Book"), Component.text("Oraxen"), pages);
+                    OraxenPlugin.get().getAudience().player(player).openBook(book);
                 });
     }
 }
