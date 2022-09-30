@@ -33,6 +33,7 @@ import io.th0rgal.oraxen.mechanics.provided.misc.consumablepotioneffects.Consuma
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.food.FoodMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.smelt.SmeltMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.soulbound.SoulBoundMechanicFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -67,6 +68,7 @@ public class MechanicsManager {
 
         // gameplay
         registerMechanicFactory("food", FoodMechanicFactory::new);
+        registerMechanicFactory("smelt", SmeltMechanicFactory::new);
         registerMechanicFactory("repair", RepairMechanicFactory::new);
         registerMechanicFactory("durability", DurabilityMechanicFactory::new);
         registerMechanicFactory("efficiency", EfficiencyMechanicFactory::new);
