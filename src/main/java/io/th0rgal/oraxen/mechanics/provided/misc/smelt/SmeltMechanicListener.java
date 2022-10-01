@@ -41,6 +41,8 @@ public class SmeltMechanicListener implements Listener {
                 case "minecraft_type" -> new ItemStack(Objects.requireNonNull(Material.getMaterial(mechanic.getReplacementItem())));
                 case "oraxen_item" -> OraxenItems.getItemById(mechanic.getReplacementItem()).build();
                 case "crucible_item" -> MythicCrucible.core().getItemManager().getItemStack(mechanic.getReplacementItem());
+                default ->
+                        new ItemStack(Objects.requireNonNull(Material.AIR));
                     }
                 );
         }
