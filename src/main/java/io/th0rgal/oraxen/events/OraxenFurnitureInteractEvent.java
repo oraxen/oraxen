@@ -7,6 +7,7 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     FurnitureMechanic furnitureMechanic;
@@ -15,7 +16,7 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurnitureInteractEvent(FurnitureMechanic mechanic, Block block, Player player) {
+    public OraxenFurnitureInteractEvent(FurnitureMechanic mechanic, @Nullable Block block, Player player) {
         this.furnitureMechanic = mechanic;
         this.player = player;
         this.block = block;
@@ -59,6 +60,7 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     /**
      * @return The block that was interacted with
      */
+    @Nullable
     public Block getBlock() {
         return block;
     }
