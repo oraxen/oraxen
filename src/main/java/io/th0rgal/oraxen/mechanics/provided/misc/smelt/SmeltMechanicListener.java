@@ -37,14 +37,12 @@ public class SmeltMechanicListener implements Listener {
         if (furnace.getState() instanceof Furnace) {
             Furnace furnaceData = (Furnace) furnace.getState();
             FurnaceInventory furnaceInventory = furnaceData.getInventory();
-            switch(mechanic.getReplacementItemType().toLowerCase()) {
-                case "minecraft_item": furnaceInventory.setFuel(new ItemStack(Objects.requireNonNull(Material.getMaterial(mechanic.getReplacementItem()))));
-                case "oraxen_item": furnaceInventory.setFuel(OraxenItems.getItemById(mechanic.getReplacementItem()).build());
-                case "curcible_item": furnaceInventory.setFuel(MythicCrucible.core().getItemManager().getItemStack(mechanic.getReplacementItem()));
-                default:
-                    Logs.logError("Invalid replacement item type: " + mechanic.getReplacementItemType());
-                    return;
-            }
+            furnaceInventory.setFuel(switch(mechanic.getReplacementItemType().toLowerCase()) {
+                case "minecraft_type" -> new ItemStack(Objects.requireNonNull(Material.getMaterial(mechanic.getReplacementItem())));
+                case "oraxen_item" -> OraxenItems.getItemById(mechanic.getReplacementItem()).build();
+                case "crucible_item" -> MythicCrucible.core().getItemManager().getItemStack(mechanic.getReplacementItem());
+                    }
+                );
         }
     }
 }
