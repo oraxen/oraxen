@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Furnace;
+import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.FurnaceBurnEvent;
 import org.bukkit.inventory.FurnaceInventory;
@@ -22,6 +23,7 @@ public class SmeltMechanicListener implements Listener {
         this.factory = factory;
     }
 
+    @EventHandler
     public void onFurnaceBurn(FurnaceBurnEvent event) {
         String itemID = OraxenItems.getIdByItem(event.getFuel());
         if (itemID == null || factory.isNotImplementedIn(itemID))
