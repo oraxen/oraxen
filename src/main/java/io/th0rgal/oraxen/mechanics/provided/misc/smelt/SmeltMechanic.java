@@ -30,7 +30,7 @@ public class SmeltMechanic extends Mechanic {
     }
 
     public boolean isHasReplacement() {
-        return hasReplacement != false;
+        return hasReplacement;
     }
 
     public String getReplacementItemType() {

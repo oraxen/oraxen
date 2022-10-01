@@ -87,6 +87,9 @@ repair:
 food:
   enabled: true
 
+smelt:
+  enabled: true
+
 
 # COSMETIC
 
