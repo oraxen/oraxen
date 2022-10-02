@@ -64,6 +64,4 @@ public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
         return block;
     }
 
-
-
 }

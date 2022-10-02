@@ -12,15 +12,10 @@ import org.jetbrains.annotations.NotNull;
 public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
 
     FurnitureMechanic furnitureMechanic;
-
     Player player;
-
     Block block;
-
     ItemFrame itemFrame;
-
     boolean isCancelled;
-
     private static final HandlerList HANDLERS = new HandlerList();
 
     public OraxenFurniturePlaceEvent(FurnitureMechanic mechanic, Block block, ItemFrame itemFrame,  Player player){
@@ -30,7 +25,6 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
         this.isCancelled = false;
         this.itemFrame = itemFrame;
     }
-
 
     @Override
     public boolean isCancelled() {
@@ -63,4 +57,5 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
     public ItemFrame getItemFrame() {
         return itemFrame;
     }
+
 }

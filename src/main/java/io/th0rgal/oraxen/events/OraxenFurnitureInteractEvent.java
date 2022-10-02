@@ -10,6 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
+
     FurnitureMechanic furnitureMechanic;
     Player player;
     Block block;
@@ -64,4 +65,5 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     public Block getBlock() {
         return block;
     }
+
 }
