@@ -181,8 +181,7 @@ public class StringBlockMechanicListener implements Listener {
             if (face == BlockFace.SELF) continue;
             if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
             if (block.getRelative(face).getType() == Material.TRIPWIRE) {
-                StringBlockMechanic mechanic = getStringMechanic(block.getRelative(face));
-                if (mechanic != null && player.getGameMode() != GameMode.CREATIVE)
+                if (player.getGameMode() != GameMode.CREATIVE)
                     for (ItemStack item : block.getDrops())
                         player.getWorld().dropItemNaturally(block.getLocation(), item);
                 block.setType(Material.AIR, false);

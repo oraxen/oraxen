@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.events;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.block.Block;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -15,9 +16,10 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     Player player;
     Block block;
     boolean isCancelled;
+    ItemFrame itemFrame;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurnitureInteractEvent(FurnitureMechanic mechanic, @Nullable Block block, Player player) {
+    public OraxenFurnitureInteractEvent(FurnitureMechanic mechanic, @Nullable Block block, Player player, ItemFrame itemFrame) {
         this.furnitureMechanic = mechanic;
         this.player = player;
         this.block = block;
@@ -66,4 +68,7 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
         return block;
     }
 
+    public ItemFrame getItemFrame() {
+        return itemFrame;
+    }
 }

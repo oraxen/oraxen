@@ -412,13 +412,13 @@ public class FurnitureListener implements Listener {
     public void onPlayerInteractFurniture(PlayerInteractEntityEvent event) {
         final Entity entity = event.getRightClicked();
         final Player player = event.getPlayer();
-        if (!(entity instanceof ItemFrame)) return;
+        if (!(entity instanceof ItemFrame itemFrame)) return;
         String mechanicID = entity.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING);
         if (mechanicID == null) return;
         //prevent rotation
         event.setCancelled(true);
         FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
-        OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, null, player);
+        OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, null, player, itemFrame);
         if (furnitureInteractEvent.isCancelled()) {
             return;
         }
@@ -439,7 +439,12 @@ public class FurnitureListener implements Listener {
 
         if (mechanic != null) {
             // Call the oraxen furniture event
-            final OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, block, player);
+            final PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
+            Float orientation = pdc.get(ORIENTATION_KEY, PersistentDataType.FLOAT);
+            final BlockLocation rootBlockLocation = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
+            final ItemFrame frame = mechanic.getItemFrame(block, rootBlockLocation, orientation);
+
+            final OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, block, player, frame);
             Bukkit.getPluginManager().callEvent(furnitureInteractEvent);
 
             if (furnitureInteractEvent.isCancelled()) {
@@ -451,10 +456,6 @@ public class FurnitureListener implements Listener {
                 mechanic.runClickActions(player);
 
             if (mechanic.isStorage()) {
-                final PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
-                Float orientation = pdc.get(ORIENTATION_KEY, PersistentDataType.FLOAT);
-                final BlockLocation rootBlockLocation = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
-                final ItemFrame frame = mechanic.getItemFrame(block, rootBlockLocation, orientation);
                 StorageMechanic storage = mechanic.getStorage();
                 switch (storage.getStorageType()) {
                     case STORAGE -> storage.openStorage(frame, player);

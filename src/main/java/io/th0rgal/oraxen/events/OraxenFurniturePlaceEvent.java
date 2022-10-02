@@ -18,7 +18,7 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
     boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurniturePlaceEvent(FurnitureMechanic mechanic, Block block, ItemFrame itemFrame,  Player player){
+    public OraxenFurniturePlaceEvent(FurnitureMechanic mechanic, Block block, ItemFrame itemFrame, Player player){
         this.furnitureMechanic = mechanic;
         this.player = player;
         this.block = block;
