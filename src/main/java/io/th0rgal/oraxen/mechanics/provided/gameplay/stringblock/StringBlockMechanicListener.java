@@ -13,7 +13,6 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -179,7 +178,7 @@ public class StringBlockMechanicListener implements Listener {
         final Block blockAbove = block.getRelative(BlockFace.UP);
         final Player player = event.getPlayer();
         for (BlockFace face : BlockFace.values()) {
-            if (face == BlockFace.SELF || !face.isCartesian()) continue;
+            if (face == BlockFace.SELF) continue;
             if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
             if (block.getRelative(face).getType() == Material.TRIPWIRE) {
                 StringBlockMechanic mechanic = getStringMechanic(block.getRelative(face));
