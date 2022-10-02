@@ -292,7 +292,7 @@ public class ResourcePack {
         if (!file.exists())
             return new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
         try {
-            content = IOUtils.toString(new FileReader(file, StandardCharsets.UTF_8));
+            content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
         } catch (IOException | NullPointerException e) {
             Logs.logError("Error while reading file " + file.getPath());
             Logs.logError("It seems to be malformed!");
