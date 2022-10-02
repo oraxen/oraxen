@@ -9,6 +9,8 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
@@ -42,6 +44,7 @@ public class FurnitureMechanic extends Mechanic {
     private final LimitedPlacing limitedPlacing;
     private final StorageMechanic storage;
     private final BlockSounds blockSounds;
+    private final JukeboxBlock jukebox;
     public final boolean farmlandRequired;
     public final boolean farmblockRequired;
     private final List<BlockLocation> barriers;
@@ -142,6 +145,10 @@ public class FurnitureMechanic extends Mechanic {
             blockSounds = new BlockSounds(Objects.requireNonNull(section.getConfigurationSection("block_sounds")));
         } else blockSounds = null;
 
+        if (section.isConfigurationSection("jukebox")) {
+            jukebox = new JukeboxBlock(mechanicFactory, Objects.requireNonNull(section.getConfigurationSection("jukebox")));
+        } else jukebox = null;
+
         clickActions = ClickAction.parseList(section);
     }
 
@@ -162,7 +169,6 @@ public class FurnitureMechanic extends Mechanic {
     public boolean hasLimitedPlacing() {
         return limitedPlacing != null;
     }
-
     public LimitedPlacing getLimitedPlacing() {
         return limitedPlacing;
     }
@@ -170,7 +176,6 @@ public class FurnitureMechanic extends Mechanic {
     public boolean isStorage() {
         return storage != null;
     }
-
     public StorageMechanic getStorage() {
         return storage;
     }
@@ -182,6 +187,9 @@ public class FurnitureMechanic extends Mechanic {
     public BlockSounds getBlockSounds() {
         return blockSounds;
     }
+
+    public boolean isJukebox() { return jukebox != null; }
+    public JukeboxBlock getJukebox() { return jukebox; }
 
     public boolean hasBarriers() {
         return !barriers.isEmpty();

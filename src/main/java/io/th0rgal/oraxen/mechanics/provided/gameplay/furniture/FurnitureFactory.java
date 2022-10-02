@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionTask;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxListener;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.List;
@@ -22,6 +23,8 @@ public class FurnitureFactory extends MechanicFactory {
         super(section);
         toolTypes = section.getStringList("tool_types");
         evolutionCheckDelay = section.getInt("evolution_check_delay");
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new JukeboxListener());
         evolvingFurnitures = false;
         instance = this;
         customSounds = section.getBoolean("custom_sounds", true);

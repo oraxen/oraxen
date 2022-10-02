@@ -3,11 +3,10 @@ package io.th0rgal.oraxen.mechanics.provided.misc.music_disc;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureListener;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.SoundCategory;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,7 +26,7 @@ import javax.annotation.Nullable;
 public class MusicDiscListener implements Listener {
 
     private final MusicDiscMechanicFactory factory;
-    private final NamespacedKey MUSIC_DISC_KEY = new NamespacedKey(OraxenPlugin.get(), "music_disc");
+    public static final NamespacedKey MUSIC_DISC_KEY = new NamespacedKey(OraxenPlugin.get(), "music_disc");
 
     public MusicDiscListener(MusicDiscMechanicFactory factory) {
         this.factory = factory;
@@ -39,7 +38,7 @@ public class MusicDiscListener implements Listener {
         if (event.getHand() != EquipmentSlot.HAND) return;
 
         Player player = event.getPlayer();
-        boolean playing = insertAndPlayDisc(event.getClickedBlock(), player.getInventory().getItemInMainHand(), player);
+        boolean playing = insertAndPlayCustomDisc(event.getClickedBlock(), player.getInventory().getItemInMainHand(), player);
         if (!playing) return;
         player.swingMainHand();
         event.setCancelled(true);
@@ -50,7 +49,7 @@ public class MusicDiscListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
 
-        boolean stopped = ejectAndStopDisc(event.getClickedBlock());
+        boolean stopped = ejectAndStopCustomDisc(event.getClickedBlock());
         if (!stopped) return;
         event.getPlayer().swingMainHand();
         event.setCancelled(true);
@@ -58,17 +57,17 @@ public class MusicDiscListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onJukeboxBreak(BlockBreakEvent event) {
-        ejectAndStopDisc(event.getBlock());
+        ejectAndStopCustomDisc(event.getBlock());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onJukeboxBreak(BlockExplodeEvent event) {
-        ejectAndStopDisc(event.getBlock());
+        ejectAndStopCustomDisc(event.getBlock());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onJukeboxBreak(BlockBurnEvent event) {
-        ejectAndStopDisc(event.getBlock());
+        ejectAndStopCustomDisc(event.getBlock());
     }
 
     /**
@@ -79,11 +78,13 @@ public class MusicDiscListener implements Listener {
      * @param disc The Oraxen Disc item to insert
      * @param player The player who inserted the disc, null if inserted by a non-player, i.e hoppers or other entities
      **/
-    private boolean insertAndPlayDisc(Block block, ItemStack disc, @Nullable Player player) {
+    private boolean insertAndPlayCustomDisc(Block block, ItemStack disc, @Nullable Player player) {
         String itemID = OraxenItems.getIdByItem(disc);
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(itemID);
+        FurnitureMechanic furnitureMechanic = FurnitureListener.getFurnitureMechanic(block);
 
+        if (block.getType() != Material.JUKEBOX && (furnitureMechanic == null || !furnitureMechanic.isJukebox())) return false;
         if (pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK)) return false;
         if (disc.getType() == Material.AIR || factory.isNotImplementedIn(itemID)) return false;
         if (mechanic == null || mechanic.hasNoSong()) return false;
@@ -103,22 +104,24 @@ public class MusicDiscListener implements Listener {
      * Stops the sound attached to the disc, if any.
      * @param block The Jukebox block to eject the disc from
      */
-    private boolean ejectAndStopDisc(Block block) {
+    private boolean ejectAndStopCustomDisc(Block block) {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         ItemStack ejectedDisc = pdc.get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
         String itemID = OraxenItems.getIdByItem(ejectedDisc);
         MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(itemID);
+        FurnitureMechanic furnitureMechanic = FurnitureListener.getFurnitureMechanic(block);
+        Location loc = BlockHelpers.toCenterLocation(block.getLocation());
 
-        if (block.getType() != Material.JUKEBOX) return false;
+        if (block.getType() != Material.JUKEBOX && (furnitureMechanic == null || !furnitureMechanic.isJukebox())) return false;
         if (!pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK)) return false;
         if (ejectedDisc == null || factory.isNotImplementedIn(itemID)) return false;
         if (mechanic == null || mechanic.hasNoSong()) return false;
 
-        block.getWorld().getNearbyEntities(block.getLocation(), 16, 16, 16).stream()
+        block.getWorld().getNearbyEntities(loc, 32, 32, 32).stream()
                 .filter(entity -> entity instanceof Player)
                 .map(entity -> (Player) entity)
                 .forEach(p -> p.stopSound(mechanic.getSong(), SoundCategory.RECORDS));
-        block.getWorld().dropItemNaturally(BlockHelpers.toCenterLocation(block.getLocation()), ejectedDisc);
+        block.getWorld().dropItemNaturally(loc, ejectedDisc);
         pdc.remove(MUSIC_DISC_KEY);
         return true;
     }
