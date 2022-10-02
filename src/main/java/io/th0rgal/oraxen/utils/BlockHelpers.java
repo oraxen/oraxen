@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
+import com.jeff_media.customblockdata.CustomBlockData;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.OraxenPlugin;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
@@ -16,6 +18,8 @@ import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.RayTraceResult;
 
 import java.util.Arrays;
@@ -72,6 +76,21 @@ public class BlockHelpers {
         return Range.between(0.5, 1.5).contains(blockLoc.getY() - playerLoc.getY()) &&
                 Range.between(-0.80, 0.80).contains(blockLoc.getX() - playerLoc.getX())
                 && Range.between(-0.80, 0.80).contains(blockLoc.getZ() - playerLoc.getZ());
+    }
+
+    /** Returns the PersistentDataContainer from CustomBlockData
+     * @param block The block to get the PersistentDataContainer for
+     * */
+    public static PersistentDataContainer getPDC(Block block) {
+        return getPDC(block, OraxenPlugin.get());
+    }
+
+    /** Returns the PersistentDataContainer from CustomBlockData
+     * @param block The block to get the PersistentDataContainer for
+     * @param plugin The plugin to get the CustomBlockData from
+     * */
+    public static PersistentDataContainer getPDC(Block block, JavaPlugin plugin) {
+        return new CustomBlockData(block, plugin);
     }
 
     public static final List<Material> REPLACEABLE_BLOCKS = Arrays

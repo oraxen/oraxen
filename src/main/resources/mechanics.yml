@@ -24,6 +24,9 @@ soulbound:
 backpack:
   enabled: true
 
+music_disc:
+  enabled: true
+
 
 # GAMEPLAY
 
