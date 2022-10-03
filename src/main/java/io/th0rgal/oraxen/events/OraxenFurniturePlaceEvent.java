@@ -11,11 +11,11 @@ import org.jetbrains.annotations.NotNull;
 
 public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
 
-    FurnitureMechanic furnitureMechanic;
-    Player player;
-    Block block;
-    ItemFrame itemFrame;
-    boolean isCancelled;
+    private final FurnitureMechanic furnitureMechanic;
+    private final Player player;
+    private final Block block;
+    private final ItemFrame itemFrame;
+    private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
     public OraxenFurniturePlaceEvent(FurnitureMechanic mechanic, Block block, ItemFrame itemFrame, Player player){

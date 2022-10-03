@@ -11,10 +11,10 @@ import org.jetbrains.annotations.Nullable;
 
 public class OraxenStringBlockBreakEvent extends Event implements Cancellable {
 
-    StringBlockMechanic stringBlockMechanic;
-    Player player;
-    Block block;
-    boolean isCancelled;
+    private final StringBlockMechanic stringBlockMechanic;
+    private final Player player;
+    private final Block block;
+    private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
     public OraxenStringBlockBreakEvent(StringBlockMechanic mechanic, Block block, @Nullable Player player) {

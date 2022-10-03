@@ -178,7 +178,7 @@ public class StringBlockMechanicListener implements Listener {
         final Block blockAbove = block.getRelative(BlockFace.UP);
         final Player player = event.getPlayer();
         for (BlockFace face : BlockFace.values()) {
-            if (face == BlockFace.SELF) continue;
+            if (face == BlockFace.SELF && !face.isCartesian()) continue;
             if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
             if (block.getRelative(face).getType() == Material.TRIPWIRE) {
                 if (player.getGameMode() != GameMode.CREATIVE)

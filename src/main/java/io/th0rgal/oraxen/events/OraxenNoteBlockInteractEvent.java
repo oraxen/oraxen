@@ -12,12 +12,12 @@ import org.jetbrains.annotations.NotNull;
 
 public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
 
-    NoteBlockMechanic noteBlockMechanic;
-    Player player;
-    Block block;
-    ItemStack itemInHand;
-    BlockFace blockFace;
-    boolean isCancelled;
+    private final NoteBlockMechanic noteBlockMechanic;
+    private final Player player;
+    private final Block block;
+    private final ItemStack itemInHand;
+    private final BlockFace blockFace;
+    private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
     public OraxenNoteBlockInteractEvent(NoteBlockMechanic mechanic, Block block, ItemStack itemInHand, Player player, BlockFace blockFace) {

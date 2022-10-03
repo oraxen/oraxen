@@ -13,10 +13,10 @@ import org.jetbrains.annotations.Nullable;
 public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
 
     boolean isCancelled;
-    Block block;
-    FurnitureMechanic furnitureMechanic;
-    Player player;
-    ItemFrame itemFrame;
+    private final Block block;
+    private final FurnitureMechanic furnitureMechanic;
+    private final Player player;
+    private final ItemFrame itemFrame;
     private static final HandlerList HANDLERS = new HandlerList();
 
     public OraxenFurnitureBreakEvent(FurnitureMechanic furnitureMechanic, Player player, @Nullable Block block, ItemFrame itemFrame) {
