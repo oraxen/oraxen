@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.logs.Logs;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -36,11 +37,10 @@ public class ZipUtils {
         }
     }
 
-    public static void addToZip(String zipFilePath, final InputStream fis, final ZipOutputStream zos)
-            throws IOException {
+    public static void addToZip(String zipFilePath, final InputStream fis, ZipOutputStream zos) throws IOException {
         final ZipEntry zipEntry = new ZipEntry(zipFilePath);
         zipEntry.setLastModifiedTime(FileTime.fromMillis(0L));
-        zos.putNextEntry(zipEntry);
+        checkForDuplicate(zos, zipEntry);
 
         final byte[] bytes = new byte[1024];
         int length;
@@ -54,6 +54,20 @@ public class ZipUtils {
                 zipEntry.setCrc(bytes.length);
                 zipEntry.setSize(new BigInteger(bytes).mod(BigInteger.valueOf(Long.MAX_VALUE)).longValue());
             }
+        }
+    }
+
+    /**
+     * Check if the file already exists in the zip file
+     * In the future this method will handle and merge files aswell
+     */
+    private static void checkForDuplicate(ZipOutputStream out, ZipEntry entry) {
+        try {
+            out.putNextEntry(entry);
+        } catch (IOException e) {
+            Logs.logError("Duplicate file-entry found: " + entry.getName());
+            Logs.logWarning("This happens when you import a file that Oraxen already generates");
+            Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
         }
     }
 }
