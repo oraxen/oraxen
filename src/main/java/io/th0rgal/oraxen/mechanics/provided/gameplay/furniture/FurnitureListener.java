@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.storage.StorageMechanic;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
@@ -419,6 +420,7 @@ public class FurnitureListener implements Listener {
         event.setCancelled(true);
         FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
         OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, null, player, itemFrame);
+        OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureInteractEvent);
         if (furnitureInteractEvent.isCancelled()) {
             return;
         }
