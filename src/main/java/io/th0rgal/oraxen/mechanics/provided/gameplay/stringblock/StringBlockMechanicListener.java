@@ -8,6 +8,8 @@ import io.th0rgal.oraxen.events.OraxenStringBlockBreakEvent;
 import io.th0rgal.oraxen.events.OraxenStringBlockInteractEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -202,7 +204,18 @@ public class StringBlockMechanicListener implements Listener {
             final StringBlockMechanic stringBlockMechanic = getStringMechanic(blockAbove);
             if (stringBlockMechanic == null) return;
             event.setCancelled(true);
-            block.breakNaturally(item);
+
+            NoteBlockMechanic mechanic = NoteBlockMechanicListener.getNoteBlockMechanic(block);
+            if (block.getType() != Material.NOTE_BLOCK)
+                block.breakNaturally(item);
+            else {
+                if (mechanic == null)
+                    if (player.getGameMode() != GameMode.CREATIVE)
+                        for (ItemStack drop : block.getDrops())
+                            block.getWorld().dropItemNaturally(block.getLocation(), drop);
+                block.setType(Material.AIR);
+            }
+
             breakStringBlock(blockAbove, stringBlockMechanic, item, player);
             event.setDropItems(false);
         }
