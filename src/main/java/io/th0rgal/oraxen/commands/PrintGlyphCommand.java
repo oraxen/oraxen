@@ -54,10 +54,12 @@ public class PrintGlyphCommand {
                 i++;
             }
         } else if (glyphName.contains("shift_")) {
-            try {
-                int shift = Integer.parseInt(glyphName.split("_")[1]);
+            try { // Real ugly but its mainly formatting output msg
+                int shift = Integer.parseInt(glyphName.split("shift_")[1]);
+                if (glyphName.startsWith("neg_shift") && shift > 0) shift = -shift;
                 String s = fontManager.getShift(shift);
-                component = printClickableMsg("<white>" + glyphName, s, s);
+                String name = shift < 0 ? "neg_shift_" + -shift : "shift_" + shift;
+                component = printClickableMsg("<white>" + name, s, s);
             } catch (NumberFormatException e) {
                 audience.sendMessage(Utils.MINI_MESSAGE.deserialize("<dark_red><b>Invalid shift number!"));
             }
