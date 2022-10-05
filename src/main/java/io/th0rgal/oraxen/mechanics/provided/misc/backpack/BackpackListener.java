@@ -21,8 +21,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 
-import java.util.Objects;
-
 import static io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanic.BACKPACK_KEY;
 
 public class BackpackListener implements Listener {
@@ -36,21 +34,8 @@ public class BackpackListener implements Listener {
     // Cancels placing backpacks if the base material is a block
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBlockPlace(final BlockPlaceEvent event) {
-        ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
-        if (isBackpack(item)) event.setCancelled(true);
-    }
-
-    @EventHandler
-    public void onPlayerInteract(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() == EquipmentSlot.OFF_HAND) return;
-
-        openBackpack(event.getPlayer());
-    }
-
-    @EventHandler
-    public void onPickupItem(final PlayerAttemptPickupItemEvent event) {
-        openBackpack(event.getPlayer());
+        if (isBackpack(event.getPlayer().getInventory().getItemInMainHand()))
+            event.setCancelled(true);
     }
 
     @EventHandler
@@ -63,10 +48,24 @@ public class BackpackListener implements Listener {
         closeBackpack(event.getPlayer());
     }
 
+    @EventHandler
+    public void onPlayerInteract(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getHand() == EquipmentSlot.OFF_HAND) return;
+        openBackpack(event.getPlayer());
+    }
+
+    // Refresh close backpack if open to refresh with picked up items
+    @EventHandler
+    public void onPickupItem(final PlayerAttemptPickupItemEvent event) {
+        Player player = event.getPlayer();
+        closeBackpack(player);
+        openBackpack(player);
+    }
+
     private StorageGui createGUI(BackpackMechanic mechanic, ItemStack backpack) {
         ItemMeta backpackMeta = backpack.getItemMeta();
-        if (!backpack.hasItemMeta()) return null;
-        assert backpackMeta != null;
+        if (!isBackpack(backpack) || backpackMeta == null) return null;
         PersistentDataContainer pdc = backpackMeta.getPersistentDataContainer();
         StorageGui gui = Gui.storage().title(Utils.MINI_MESSAGE.deserialize(mechanic.getTitle())).rows(mechanic.getRows()).create();
 
@@ -109,21 +108,12 @@ public class BackpackListener implements Listener {
     }
 
     private boolean isBackpack(ItemStack item) {
-        return item  != null && item.hasItemMeta() && Objects.requireNonNull(item.getItemMeta()).getPersistentDataContainer().has(BACKPACK_KEY, DataType.ITEM_STACK_ARRAY);
+        return item  != null && factory.getMechanic(OraxenItems.getIdByItem(item)) != null;
     }
 
     private void openBackpack(Player player) {
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
-        InventoryHolder holder = player.getOpenInventory().getTopInventory().getHolder();
-        if (!isBackpack(itemInHand)) return;
-        if (!(holder instanceof Gui)) return;
-
-        // Trigger gui.close to save the backpack content
-        ((Gui) holder).close(player, true);
-
-        // Reopen it from the backpack to refresh the picked up items
         BackpackMechanic mechanic = (BackpackMechanic) factory.getMechanic(OraxenItems.getIdByItem(itemInHand));
-        if (mechanic == null) return;
         StorageGui gui = createGUI(mechanic, itemInHand);
         if (gui == null) return;
         gui.open(player);
