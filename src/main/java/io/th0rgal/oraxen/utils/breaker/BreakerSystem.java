@@ -21,11 +21,16 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemDamageEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -61,6 +66,7 @@ public class BreakerSystem {
             if (player.getGameMode() == GameMode.CREATIVE) return;
 
             final StructureModifier<BlockPosition> dataTemp = packet.getBlockPositionModifier();
+            final StructureModifier<EnumWrappers.Direction> dataDirection = packet.getDirections();
             final StructureModifier<EnumWrappers.PlayerDigType> data = packet
                     .getEnumModifier(EnumWrappers.PlayerDigType.class, 2);
             EnumWrappers.PlayerDigType type;
@@ -73,6 +79,9 @@ public class BreakerSystem {
             final BlockPosition pos = dataTemp.getValues().get(0);
             final World world = player.getWorld();
             final Block block = world.getBlockAt(pos.getX(), pos.getY(), pos.getZ());
+            final BlockFace blockFace = dataDirection.size() > 0 ?
+                    BlockFace.valueOf(dataDirection.read(0).name()) :
+                    BlockFace.UP;
 
             HardnessModifier triggeredModifier = null;
             for (final HardnessModifier modifier : MODIFIERS)
@@ -95,9 +104,20 @@ public class BreakerSystem {
                 BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block));
                 if (breakerPerLocation.containsKey(location))
                     breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
-                final BukkitScheduler scheduler = Bukkit.getScheduler();
-                breakerPerLocation.put(location, scheduler);
 
+                final BukkitScheduler scheduler = Bukkit.getScheduler();
+                final PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(
+                        player,
+                        Action.LEFT_CLICK_BLOCK,
+                        player.getInventory().getItemInMainHand(),
+                        block,
+                        blockFace,
+                        EquipmentSlot.HAND
+                );
+                scheduler.runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
+                if (playerInteractEvent.useInteractedBlock().equals(Event.Result.DENY)) return;
+
+                breakerPerLocation.put(location, scheduler);
                 final HardnessModifier modifier = triggeredModifier;
                 scheduler.runTaskTimer(OraxenPlugin.get(), new Consumer<>() {
                     int value = 0;
