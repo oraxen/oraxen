@@ -18,7 +18,7 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockM
 import static io.th0rgal.oraxen.utils.Utils.msToTicks;
 
 public class FarmBlockDryout {
-    private static NamespacedKey FARMBLOCK_MOIST = new NamespacedKey(OraxenPlugin.get(), "farmblock_moist");
+    private static final NamespacedKey FARMBLOCK_MOIST = new NamespacedKey(OraxenPlugin.get(), "farmblock_moist");
     private final String farmBlock;
     private final String moistFarmBlock;
     private final int farmBlockDryoutTime;
