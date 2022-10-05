@@ -306,7 +306,7 @@ public class FurnitureListener implements Listener {
             final String itemID = pdc.get(FURNITURE_KEY, PersistentDataType.STRING);
             if (!OraxenItems.exists(itemID)) return;
             final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
-            if (mechanic.hasBarriers()) return;
+            if (mechanic == null || mechanic.hasBarriers()) return;
 
             mechanic.removeAirFurniture(frame);
             mechanic.getDrop().spawns(frame.getLocation(), new ItemStack(Material.AIR));
