@@ -155,6 +155,7 @@ public class FurnitureMechanic extends Mechanic {
 
     public static ArmorStand getSeat(Location location) {
         Location seatLoc = location.clone().add(0.5, 0.0, 0.5);
+        if (location.getWorld() == null) return null;
         for (Entity entity : location.getWorld().getNearbyEntities(seatLoc, 0.1, 10, 0.1)) {
             if (entity instanceof ArmorStand seat
                     && entity.getLocation().getX() == seatLoc.getX()
@@ -169,49 +170,36 @@ public class FurnitureMechanic extends Mechanic {
     public boolean hasBreakSound() {
         return breakSound != null;
     }
-
     public String getBreakSound() {
-        return validateReplacedSounds(breakSound);
+        return BlockHelpers.validateReplacedSounds(breakSound);
     }
 
     public boolean hasPlaceSound() {
         return placeSound != null;
     }
-
     public String getPlaceSound() {
-        return validateReplacedSounds(placeSound);
+        return BlockHelpers.validateReplacedSounds(placeSound);
     }
 
     public boolean hasStepSound() {
         return stepSound != null;
     }
-
     public String getStepSound() {
-        return validateReplacedSounds(stepSound);
+        return BlockHelpers.validateReplacedSounds(stepSound);
     }
 
     public boolean hasHitSound() {
         return hitSound != null;
     }
-
     public String getHitSound() {
-        return validateReplacedSounds(hitSound);
+        return BlockHelpers.validateReplacedSounds(hitSound);
     }
 
     public boolean hasFallSound() {
         return fallSound != null;
     }
-
     public String getFallSound() {
-        return validateReplacedSounds(fallSound);
-    }
-
-    private String validateReplacedSounds(String sound) {
-        if (sound.startsWith("block.wood"))
-            return sound.replace("block.wood", "required.wood.");
-        else if (sound.startsWith("block.stone"))
-            return sound.replace("block.stone", "required.stone.");
-        else return sound;
+        return BlockHelpers.validateReplacedSounds(fallSound);
     }
 
     public boolean hasLimitedPlacing() {

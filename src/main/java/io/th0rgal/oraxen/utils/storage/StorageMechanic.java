@@ -15,6 +15,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 
@@ -246,16 +247,29 @@ public class StorageMechanic {
 
     // Closes any open storage gui on plugin/server shutdown to force save content to pdc
     public static void forceCloseStorages() {
-        blockStorages.values().forEach(gui -> {
+        for (StorageGui gui : blockStorages.values()) {
             HumanEntity[] players = gui.getInventory().getViewers().toArray(HumanEntity[]::new);
-            for (HumanEntity player : players) player.closeInventory();
-        });
+            for (HumanEntity player : players)
+                closeStorage(player);
+        }
 
-        frameStorages.values().forEach(gui -> {
+        for (StorageGui gui : frameStorages.values()) {
             HumanEntity[] players = gui.getInventory().getViewers().toArray(HumanEntity[]::new);
-            for (HumanEntity player : players) player.closeInventory();
-        });
+            for (HumanEntity player : players)
+                closeStorage(player);
+        }
 
-        playerStorages.forEach(Player::closeInventory);
+        for (Player player : playerStorages)
+            closeStorage(player);
+
+        blockStorages.clear();
+        frameStorages.clear();
+        playerStorages.clear();
+    }
+
+    private static void closeStorage(HumanEntity player) {
+        InventoryHolder holder = player.getOpenInventory().getTopInventory().getHolder();
+        if ((holder instanceof Gui))
+            ((Gui) holder).close(player, true);
     }
 }

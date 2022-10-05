@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripping;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
@@ -153,31 +154,24 @@ public class NoteBlockMechanic extends Mechanic {
         return breakSound != null;
     }
     public String getBreakSound() {
-        return validateReplacedSounds(breakSound);
+        return BlockHelpers.validateReplacedSounds(breakSound);
     }
 
     public boolean hasPlaceSound() {
         return placeSound != null;
     }
     public String getPlaceSound() {
-        return validateReplacedSounds(placeSound);
+        return BlockHelpers.validateReplacedSounds(placeSound);
     }
 
     public boolean hasStepSound() { return stepSound != null; }
-    public String getStepSound() { return validateReplacedSounds(stepSound); }
+    public String getStepSound() { return BlockHelpers.validateReplacedSounds(stepSound); }
 
     public boolean hasHitSound() { return hitSound != null; }
-    public String getHitSound() { return validateReplacedSounds(hitSound); }
+    public String getHitSound() { return BlockHelpers.validateReplacedSounds(hitSound); }
 
     public boolean hasFallSound() { return fallSound != null; }
-    public String getFallSound() { return validateReplacedSounds(fallSound); }
-    private String validateReplacedSounds(String sound) {
-        if (sound.startsWith("block.wood"))
-            return sound.replaceFirst("block.wood", "required.wood");
-        else if (sound.startsWith("block.stone"))
-            return sound.replaceFirst("block.stone", "required.stone");
-        else return sound;
-    }
+    public String getFallSound() { return BlockHelpers.validateReplacedSounds(fallSound); }
 
     public int getPeriod() {
         return period;

@@ -7,16 +7,17 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class OraxenStringBlockBreakEvent extends Event implements Cancellable {
 
-    StringBlockMechanic stringBlockMechanic;
-    Player player;
-    Block block;
-    boolean isCancelled;
+    private final StringBlockMechanic stringBlockMechanic;
+    private final Player player;
+    private final Block block;
+    private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenStringBlockBreakEvent(StringBlockMechanic mechanic, Block block, Player player) {
+    public OraxenStringBlockBreakEvent(StringBlockMechanic mechanic, Block block, @Nullable Player player) {
         this.stringBlockMechanic = mechanic;
         this.player = player;
         this.block = block;
@@ -51,8 +52,10 @@ public class OraxenStringBlockBreakEvent extends Event implements Cancellable {
     }
 
     /**
+     * Null if the event is not triggered by player
      * @return The player who broke the string block
      */
+    @Nullable
     public Player getPlayer() {
         return player;
     }

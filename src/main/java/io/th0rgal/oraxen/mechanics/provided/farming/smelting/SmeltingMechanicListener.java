@@ -2,8 +2,11 @@ package io.th0rgal.oraxen.mechanics.provided.farming.smelting;
 
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -24,40 +27,37 @@ public class SmeltingMechanicListener implements Listener {
         this.factory = factory;
     }
 
-    @EventHandler(priority = EventPriority.NORMAL)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockBreak(BlockBreakEvent event) {
-        if (event.isCancelled())
-            return;
-        ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
-
-        String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID))
-            return;
-
-        if (event.getPlayer().getGameMode() == GameMode.CREATIVE)
-            return;
-
+        Player player = event.getPlayer();
+        ItemStack item = player.getInventory().getItemInMainHand();
+        Block block = event.getBlock();
+        Location location = BlockHelpers.toCenterLocation(block.getLocation());
         Collection<ItemStack> itemStacks = event.getBlock().getDrops();
-        if (itemStacks.isEmpty())
-            return;
-        ItemStack loot = furnace(itemStacks.stream().findAny().orElse(null));
-        if (loot == null)
-            return; // not recipe
-        ItemMeta itemMeta = item.getItemMeta();
-        if (itemMeta == null) return;
+        String itemID = OraxenItems.getIdByItem(item);
 
-        if (event.getBlock().getType().toString().contains("ORE")
-                && itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
+        if (itemStacks.isEmpty()) return;
+        if (factory.isNotImplementedIn(itemID)) return;
+        if (player.getGameMode() == GameMode.CREATIVE) return;
+
+        ItemStack loot = furnace(itemStacks.stream().findAny().orElse(null));
+        if (loot == null) return; // not recipe
+
+        ItemMeta itemMeta = item.getItemMeta();
+        if (item.hasItemMeta()) return;
+        assert itemMeta != null;
+        if (block.getType().toString().contains("ORE") && itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
             loot.setAmount(1 + ThreadLocalRandom.current().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
         }
+
         event.setDropItems(false);
-        Location location = event.getBlock().getLocation().add(0, 0.5, 0);
         if (!location.isWorldLoaded()) return;
+        assert location.getWorld() != null;
         location.getWorld().dropItemNaturally(location, loot);
+
         SmeltingMechanic mechanic = (SmeltingMechanic) factory.getMechanic(itemID);
-        if (mechanic.playSound()) {
+        if (mechanic != null && mechanic.playSound())
             location.getWorld().playSound(location, Sound.ENTITY_GUARDIAN_ATTACK, 0.10f, 0.8f);
-        }
     }
 
     private ItemStack furnace(ItemStack item) {
@@ -68,6 +68,7 @@ public class SmeltingMechanicListener implements Listener {
             item.setType(Material.valueOf(item.getType().toString().substring(4) + "_INGOT"));
             return item;
         }
+
         for (Recipe recipe : Bukkit.getRecipesFor(item)) {
             if (!(recipe instanceof CookingRecipe<?> cookingRecipe))
                 continue;
