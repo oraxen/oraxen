@@ -187,9 +187,9 @@ public class FurnitureListener implements Listener {
         ItemStack item = event.getItem();
 
         // Cancel placing when clicking a clickAction furniture
-        final PersistentDataContainer customBlockData = new CustomBlockData(placedAgainst, OraxenPlugin.get());
-        if (customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING)) {
-            String id = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
+        final PersistentDataContainer pdc = new CustomBlockData(placedAgainst, OraxenPlugin.get());
+        if (pdc.has(FURNITURE_KEY, PersistentDataType.STRING)) {
+            String id = pdc.get(FURNITURE_KEY, PersistentDataType.STRING);
             if (!OraxenItems.exists(id)) return;
             final FurnitureMechanic fMechanic = (FurnitureMechanic) factory.getMechanic(id);
             if (fMechanic.hasClickActions() && !player.isSneaking()) {
@@ -435,40 +435,38 @@ public class FurnitureListener implements Listener {
         if (block == null || block.getType() != Material.BARRIER || player.isSneaking()) return;
 
         final FurnitureMechanic mechanic = getFurnitureMechanic(block);
+        if (mechanic == null) return;
 
         Utils.sendAnimation(player, event.getHand());
 
-        if (mechanic != null) {
-            // Call the oraxen furniture event
-            final PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
-            Float orientation = pdc.get(ORIENTATION_KEY, PersistentDataType.FLOAT);
-            final BlockLocation rootBlockLocation = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
-            final ItemFrame frame = mechanic.getItemFrame(block, rootBlockLocation, orientation);
+        // Call the oraxen furniture event
+        final PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
+        Float orientation = pdc.get(ORIENTATION_KEY, PersistentDataType.FLOAT);
+        final BlockLocation rootBlockLocation = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
+        final ItemFrame frame = mechanic.getItemFrame(block, rootBlockLocation, orientation);
 
-            final OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, block, player, frame);
-            Bukkit.getPluginManager().callEvent(furnitureInteractEvent);
+        final OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, block, player, frame);
+        Bukkit.getPluginManager().callEvent(furnitureInteractEvent);
 
-            if (furnitureInteractEvent.isCancelled()) {
-                event.setCancelled(true);
-                return;
-            }
+        if (furnitureInteractEvent.isCancelled()) {
+            event.setCancelled(true);
+            return;
+        }
 
-            if (mechanic.hasClickActions())
-                mechanic.runClickActions(player);
+        if (mechanic.hasClickActions())
+            mechanic.runClickActions(player);
 
-            if (mechanic.isStorage()) {
-                StorageMechanic storage = mechanic.getStorage();
-                switch (storage.getStorageType()) {
-                    case STORAGE -> storage.openStorage(frame, player);
-                    case PERSONAL -> storage.openPersonalStorage(player);
-                    case DISPOSAL -> storage.openDisposal(player, frame.getLocation());
-                    case ENDERCHEST -> player.openInventory(player.getEnderChest());
-                }
+        if (mechanic.isStorage()) {
+            StorageMechanic storage = mechanic.getStorage();
+            switch (storage.getStorageType()) {
+                case STORAGE -> storage.openStorage(frame, player);
+                case PERSONAL -> storage.openPersonalStorage(player);
+                case DISPOSAL -> storage.openDisposal(player, frame.getLocation());
+                case ENDERCHEST -> player.openInventory(player.getEnderChest());
             }
         }
 
-        final PersistentDataContainer blockPDC = new CustomBlockData(block, OraxenPlugin.get());
-        final String entityUuid = blockPDC.getOrDefault(SEAT_KEY, PersistentDataType.STRING, "");
+        final String entityUuid = pdc.getOrDefault(SEAT_KEY, PersistentDataType.STRING, "");
         if (entityUuid.isBlank()) return;
         final Entity stand = Bukkit.getEntity(UUID.fromString(entityUuid));
 
@@ -558,8 +556,8 @@ public class FurnitureListener implements Listener {
 
     public FurnitureMechanic getFurnitureMechanic(Block block) {
         if (block.getType() != Material.BARRIER) return null;
-        final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
-        final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
-        return (FurnitureMechanic) factory.getMechanic(mechanicID);
+        final PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
+        final String itemID = pdc.get(FURNITURE_KEY, PersistentDataType.STRING);
+        return (FurnitureMechanic) factory.getMechanic(itemID);
     }
 }
