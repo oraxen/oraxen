@@ -38,9 +38,17 @@ public class BackpackListener implements Listener {
             event.setCancelled(true);
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerDeath(final PlayerDeathEvent event) {
-        closeBackpack(event.getEntity());
+        Player player = event.getEntity();
+        ItemStack item = player.getInventory().getItemInMainHand().clone();
+        InventoryHolder holder = player.getOpenInventory().getTopInventory().getHolder();
+        if (!isBackpack(item) || !(holder instanceof StorageGui gui)) return;
+
+        // Remove backpack as this is dropped by gui.close()
+        if (!event.getKeepInventory())
+            event.getDrops().remove(item);
+        gui.close(player, true);
     }
 
     @EventHandler
@@ -103,6 +111,8 @@ public class BackpackListener implements Listener {
             backpack.setItemMeta(backpackMeta);
             if (mechanic.hasCloseSound())
                 player.getWorld().playSound(player.getLocation(), mechanic.getCloseSound(), mechanic.getVolume(), mechanic.getPitch());
+            if (player.isDead()) // Otherwise it dupes the backpack
+                player.getWorld().dropItemNaturally(player.getLocation(), backpack);
         });
 
         return gui;
@@ -123,6 +133,7 @@ public class BackpackListener implements Listener {
     private void closeBackpack(Player player) {
         InventoryHolder holder = player.getOpenInventory().getTopInventory().getHolder();
         if (!isBackpack(player.getInventory().getItemInMainHand())) return;
-        if (holder instanceof Gui) ((Gui) holder).close(player, true);
+        if (holder instanceof StorageGui gui)
+            gui.close(player, true);
     }
 }
