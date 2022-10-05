@@ -10,10 +10,10 @@ import org.jetbrains.annotations.NotNull;
 
 public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
 
-    NoteBlockMechanic noteBlockMechanic;
-    Player player;
-    Block block;
-    boolean isCancelled;
+    private final NoteBlockMechanic noteBlockMechanic;
+    private final Player player;
+    private final Block block;
+    private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
     public OraxenNoteBlockBreakEvent(NoteBlockMechanic mechanic, Block block, Player player) {
@@ -63,7 +63,5 @@ public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
     public Block getBlock() {
         return block;
     }
-
-
 
 }

@@ -149,7 +149,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (noteBlockMechanic.isDirectional())
             noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
 
-        OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(noteBlockMechanic, block, event.getItem(), event.getPlayer());
+        OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(noteBlockMechanic, block, event.getItem(), event.getPlayer(), event.getBlockFace());
         OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockInteractEvent);
         if (noteBlockInteractEvent.isCancelled()) {
             event.setCancelled(true);

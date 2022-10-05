@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.events;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -11,19 +12,21 @@ import org.jetbrains.annotations.NotNull;
 
 public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
 
-    NoteBlockMechanic noteBlockMechanic;
-    Player player;
-    Block block;
-    ItemStack itemInHand;
-    boolean isCancelled;
+    private final NoteBlockMechanic noteBlockMechanic;
+    private final Player player;
+    private final Block block;
+    private final ItemStack itemInHand;
+    private final BlockFace blockFace;
+    private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenNoteBlockInteractEvent(NoteBlockMechanic mechanic, Block block, ItemStack itemInHand, Player player) {
+    public OraxenNoteBlockInteractEvent(NoteBlockMechanic mechanic, Block block, ItemStack itemInHand, Player player, BlockFace blockFace) {
         this.noteBlockMechanic = mechanic;
         this.itemInHand = itemInHand;
         this.block = block;
         this.player = player;
         this.isCancelled = false;
+        this.blockFace = blockFace;
     }
 
     @Override
@@ -73,6 +76,13 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
      */
     public ItemStack getItemInHand() {
         return itemInHand;
+    }
+
+    /**
+     * @return Clicked block face
+     */
+    public BlockFace getBlockFace() {
+        return blockFace;
     }
 
 }
