@@ -59,6 +59,7 @@ public class BackpackListener implements Listener {
     @EventHandler
     public void onPickupItem(final PlayerAttemptPickupItemEvent event) {
         Player player = event.getPlayer();
+        if (!(player.getOpenInventory().getTopInventory().getHolder() instanceof Gui)) return;
         closeBackpack(player);
         openBackpack(player);
     }
@@ -122,6 +123,6 @@ public class BackpackListener implements Listener {
     private void closeBackpack(Player player) {
         InventoryHolder holder = player.getOpenInventory().getTopInventory().getHolder();
         if (!isBackpack(player.getInventory().getItemInMainHand())) return;
-        if ((holder instanceof Gui)) ((Gui) holder).close(player, true);
+        if (holder instanceof Gui) ((Gui) holder).close(player, true);
     }
 }
