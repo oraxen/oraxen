@@ -47,8 +47,7 @@ public class PackReceiver implements Listener {
             case "KICK" -> receiver.kickPlayer(Utils.LEGACY_COMPONENT_SERIALIZER.serialize(message));
             case "CHAT" -> audience.sendMessage(message);
             case "ACTION_BAR" -> audience.sendActionBar(message);
-            case "TITLE" -> audience.showTitle(Title.title(Component.empty(), message,
-                    Title.Times.of(Duration.ofMillis(250), Duration.ofMillis(3500), Duration.ofMillis(250))));
+            case "TITLE" -> audience.showTitle(Title.title(Component.empty(), message, Title.Times.times(Duration.ofMillis(250), Duration.ofMillis(3500), Duration.ofMillis(250))));
             default -> throw new IllegalStateException("Unexpected value: " + action);
         }
     }

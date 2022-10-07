@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.events;
 
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -10,18 +10,18 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
+public class OraxenStringBlockInteractEvent extends Event implements Cancellable {
 
-    private final NoteBlockMechanic noteBlockMechanic;
+    private final StringBlockMechanic stringBlockMechanic;
     private final Player player;
     private final Block block;
     private final ItemStack itemInHand;
-    private final BlockFace blockFace;
     private boolean isCancelled;
+    private final BlockFace blockFace;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenNoteBlockInteractEvent(NoteBlockMechanic mechanic, Block block, ItemStack itemInHand, Player player, BlockFace blockFace) {
-        this.noteBlockMechanic = mechanic;
+    public OraxenStringBlockInteractEvent(StringBlockMechanic mechanic, Block block, ItemStack itemInHand, Player player, BlockFace blockFace) {
+        this.stringBlockMechanic = mechanic;
         this.itemInHand = itemInHand;
         this.block = block;
         this.player = player;
@@ -51,20 +51,20 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return The note block mechanic
+     * @return The string block mechanic
      */
-    public NoteBlockMechanic getNoteBlockMechanic() {
-        return noteBlockMechanic;
+    public StringBlockMechanic getStringBlockMechanic() {
+        return stringBlockMechanic;
     }
 
     /**
-     * @return The player who interacted with the note block
+     * @return The player who interacted with the string block
      */
     public Player getPlayer() {
         return player;
     }
 
-    /*
+    /**
      * @return The block that was interacted with
      */
     public Block getBlock() {
@@ -72,11 +72,12 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return The item in hand when the player interacted with the note block
+     * @return The item in hand when the player interacted with the string block
      */
     public ItemStack getItemInHand() {
         return itemInHand;
     }
+
 
     /**
      * @return Clicked block face

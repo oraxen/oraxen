@@ -2,10 +2,7 @@ package io.th0rgal.oraxen.hud;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
-import org.apache.commons.lang3.Range;
 import org.bukkit.GameMode;
-import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -13,11 +10,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityAirChangeEvent;
 import org.bukkit.event.player.PlayerGameModeChangeEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.checkerframework.common.value.qual.IntRange;
-
-import java.util.Objects;
 
 public class HudEvents implements Listener {
 
@@ -62,9 +55,9 @@ public class HudEvents implements Listener {
         HudManager hudManager = OraxenPlugin.get().getHudManager();
         Player player = event.getPlayer();
         Hud hud = hudManager.getActiveHudForPlayer(player);
-        if (hud == null || hud.enableInSpectatorMode()) return;
+        if (hud == null) return;
 
-        if (player.getGameMode() == GameMode.SPECTATOR) {
+        if (player.getGameMode() == GameMode.SPECTATOR && !hud.enableInSpectatorMode()) {
             hudManager.setHudStateForPlayer(player, false);
             hudManager.disableHud(player);
         } else {

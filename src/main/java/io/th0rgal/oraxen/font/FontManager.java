@@ -7,13 +7,18 @@ import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.io.IOUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 
-import java.nio.file.Path;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.*;
 
 public class FontManager {
@@ -53,6 +58,7 @@ public class FontManager {
     }
 
     private void loadGlyphs(Collection<Glyph> glyphs) {
+        verifyRequiredGlyphs();
         for (Glyph glyph : glyphs) {
             glyphMap.put(glyph.getName(), glyph);
             reverse.put(glyph.getCharacter(), glyph.getName());
@@ -71,6 +77,37 @@ public class FontManager {
                     (float) fontSection.getDouble("size"),
                     (float) fontSection.getDouble("oversample")
             ));
+        }
+    }
+
+    private void verifyRequiredGlyphs() {
+        // Ensure shifts.yml exists as it is required
+        File shiftFile = new File(OraxenPlugin.get().getDataFolder() + "/glyphs/shifts.yml");
+        File requiredFile = new File(OraxenPlugin.get().getDataFolder() + "/glyphs/required.yml");
+        try {
+            if (!shiftFile.exists()) {
+                OraxenPlugin.get().saveResource("glyphs/shifts.yml", false);
+            }
+            // Check if shiftfile is equal to the resource
+            else if (!Files.readString(shiftFile.toPath()).contains(IOUtils.toString(Objects.requireNonNull(OraxenPlugin.get().getResource("glyphs/shifts.yml")), StandardCharsets.UTF_8))) {
+                shiftFile.renameTo(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/shifts.yml.old"));
+                OraxenPlugin.get().saveResource("glyphs/shifts.yml", true);
+                Logs.logWarning("glyphs/shifts.yml was incorrect, renamed to .old and regenerated the default one");
+            }
+        } catch (IOException e) {
+            shiftFile.renameTo(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/shifts.yml.old"));
+            OraxenPlugin.get().saveResource("glyphs/shifts.yml", true);
+        }
+
+        try { // Ensure required.yml exists as it is required and that it contains required glyph
+            if (!Files.readString(requiredFile.toPath()).contains(IOUtils.toString(Objects.requireNonNull(OraxenPlugin.get().getResource("glyphs/required.yml")), StandardCharsets.UTF_8))) {
+                requiredFile.renameTo(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/required.yml.old"));
+                OraxenPlugin.get().saveResource("glyphs/required.yml", true);
+                Logs.logWarning("glyphs/required.yml was incorrect, renamed to .old and regenerated the default one");
+            }
+        } catch (IOException e) {
+            requiredFile.renameTo(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/required.yml.old"));
+            OraxenPlugin.get().saveResource("glyphs/required.yml", true);
         }
     }
 
@@ -107,9 +144,6 @@ public class FontManager {
     }
 
     public String getShift(int length) {
-        // Ensure shifts.yml exists as it is required
-        if (!Path.of(OraxenPlugin.get().getDataFolder() + "/glyphs/shifts.yml").toFile().exists())
-            OraxenPlugin.get().saveResource("glyphs/shifts.yml", false);
         StringBuilder output = new StringBuilder();
         String prefix = "shift_";
         if (length < 0) {

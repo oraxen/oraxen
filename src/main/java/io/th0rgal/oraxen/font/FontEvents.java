@@ -4,13 +4,18 @@ import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.ChatColor;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.SignChangeEvent;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerEditBookEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.AnvilInventory;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.util.Arrays;
 import java.util.Map;
@@ -104,6 +109,43 @@ public class FontEvents implements Listener {
                                 + PapiAliases.setPlaceholders(event.getPlayer(), manager.permsChatcolor));
 
         event.setMessage(message);
+    }
+
+    @EventHandler
+    public void onPlayerRename(final InventoryClickEvent event) {
+        if (!(event.getClickedInventory() instanceof AnvilInventory clickedInv)) return;
+        if (event.getSlot() != 2) return;
+
+        Player player = (Player) event.getWhoClicked();
+        String displayName = clickedInv.getRenameText();
+        ItemStack clickedItem = clickedInv.getItem(2);
+        if (clickedItem == null) return;
+        if (displayName == null || displayName.isBlank()) return;
+        for (Character character : manager.getReverseMap().keySet()) {
+            if (!displayName.contains(String.valueOf(character))) continue;
+            Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
+            if (!glyph.hasPermission(player)) {
+                Glyph required = manager.getGlyphFromName("required");
+                String replacement = required.hasPermission(player) ? String.valueOf(required.getCharacter()) : "";
+                Message.NO_PERMISSION.send(player, Utils.tagResolver("permission", glyph.getPermission()));
+                displayName = displayName.replace(String.valueOf(character), replacement);
+            }
+        }
+
+        for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
+            if (entry.getValue().hasPermission(player))
+                displayName = (manager.permsChatcolor == null)
+                        ? displayName.replace(entry.getKey(),
+                        String.valueOf(entry.getValue().getCharacter()))
+                        : displayName.replace(entry.getKey(),
+                        ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter())
+                                + PapiAliases.setPlaceholders(player, manager.permsChatcolor));
+        }
+
+        ItemMeta meta = clickedItem.getItemMeta();
+        if (meta == null) return;
+        meta.setDisplayName(displayName);
+        clickedItem.setItemMeta(meta);
     }
 
     @EventHandler

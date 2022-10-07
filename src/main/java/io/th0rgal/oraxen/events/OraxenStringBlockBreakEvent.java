@@ -1,8 +1,7 @@
 package io.th0rgal.oraxen.events;
 
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import org.bukkit.block.Block;
-import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -10,21 +9,19 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
+public class OraxenStringBlockBreakEvent extends Event implements Cancellable {
 
-    private final FurnitureMechanic furnitureMechanic;
+    private final StringBlockMechanic stringBlockMechanic;
     private final Player player;
     private final Block block;
     private boolean isCancelled;
-    private final ItemFrame itemFrame;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurnitureInteractEvent(FurnitureMechanic mechanic, @Nullable Block block, Player player, ItemFrame itemFrame) {
-        this.furnitureMechanic = mechanic;
+    public OraxenStringBlockBreakEvent(StringBlockMechanic mechanic, Block block, @Nullable Player player) {
+        this.stringBlockMechanic = mechanic;
         this.player = player;
         this.block = block;
         this.isCancelled = false;
-        this.itemFrame = itemFrame;
     }
 
     @Override
@@ -48,28 +45,26 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return The furniture mechanic that was interacted with
+     * @return The string block mechanic
      */
-    public FurnitureMechanic getFurnitureMechanic() {
-        return furnitureMechanic;
+    public StringBlockMechanic getStringBlockMechanic() {
+        return stringBlockMechanic;
     }
 
     /**
-     * @return The player who interacted with the furniture
+     * Null if the event is not triggered by player
+     * @return The player who broke the string block
      */
+    @Nullable
     public Player getPlayer() {
         return player;
     }
 
     /**
-     * @return The block that was interacted with
+     * @return The block that was broken
      */
-    @Nullable
     public Block getBlock() {
         return block;
     }
 
-    public ItemFrame getItemFrame() {
-        return itemFrame;
-    }
 }

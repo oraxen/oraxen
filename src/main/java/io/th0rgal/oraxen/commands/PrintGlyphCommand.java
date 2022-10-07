@@ -46,17 +46,26 @@ public class PrintGlyphCommand {
         if (glyphName.equals("all")) {
             int i = 0;
             for (Glyph glyph : fontManager.getGlyphs()) {
-                component = component.append(printClickableMsg("<reset>[<green>" + glyph.getName() + "<reset>] ", glyph.getCharacter(), String.valueOf(glyph.getCharacter())));
+                component = component.append(printClickableMsg("<reset>[<green>" + glyph.getName() + "<reset>] ", String.valueOf(glyph.getCharacter()), String.valueOf(glyph.getCharacter())));
                 if (i % 3 == 0) {
                     audience.sendMessage(component);
                     component = Component.empty();
                 }
                 i++;
             }
-        } else {
+        } else if (glyphName.contains("shift_")) {
+            try {
+                int shift = Integer.parseInt(glyphName.split("_")[1]);
+                String s = fontManager.getShift(shift);
+                component = printClickableMsg("<white>" + glyphName, s, s);
+            } catch (NumberFormatException e) {
+                audience.sendMessage(Utils.MINI_MESSAGE.deserialize("<dark_red><b>Invalid shift number!"));
+            }
+        }
+        else {
             Glyph g = fontManager.getGlyphs().stream().filter(glyph -> glyph.getName().equals(glyphName)).findFirst().orElse(null);
             if (g == null) return;
-            component = printClickableMsg("<white>" + g.getName(), g.getCharacter(), "<reset>" + g.getCharacter());
+            component = printClickableMsg("<white>" + g.getName(), String.valueOf(g.getCharacter()), "<reset>" + g.getCharacter());
         }
         audience.sendMessage(component);
     }
@@ -81,7 +90,7 @@ public class PrintGlyphCommand {
             Component component = Component.text("");
             for (int i = 0; i < range; i++) {
                 component = component.append(printClickableMsg("<white>[<aqua>U+" + Integer.toHexString(utf).toUpperCase() + "," + ((int) utf) + "(dec)<white>] ",
-                        utf, "<white>" + utf));
+                        String.valueOf(utf), "<white>" + utf));
                 if (i == 2) {
                     audience.sendMessage(component);
                     component = Component.empty();
@@ -95,10 +104,10 @@ public class PrintGlyphCommand {
         }
     }
 
-    private Component printClickableMsg(String text, char unicode, String hoverText) {
+    private Component printClickableMsg(String text, String unicode, String hoverText) {
         return Utils.MINI_MESSAGE.deserialize(text)
                 .hoverEvent(HoverEvent.showText(Utils.MINI_MESSAGE.deserialize(hoverText)))
-                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, String.valueOf(unicode)));
+                .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, unicode));
 
     }
 }

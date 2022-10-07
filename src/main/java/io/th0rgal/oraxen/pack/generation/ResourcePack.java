@@ -18,6 +18,7 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.ZipUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.io.IOUtils;
 import org.bukkit.Material;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -287,13 +288,19 @@ public class ResourcePack {
     }
 
     private InputStream processJsonFile(File file) throws IOException {
-        String content = "";
+        String content;
+        if (!file.exists())
+            return new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
         try {
-            content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
-        } catch (IOException e) {
+            content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+        } catch (IOException | NullPointerException e) {
             Logs.logError("Error while reading file " + file.getPath());
             Logs.logError("It seems to be malformed!");
+            return new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
+        } finally {
+            IOUtils.closeQuietly();
         }
+
         // Serialize legacy to component then deserialize to adventure style tags
         content = Utils.MINI_MESSAGE.serialize(Utils.LEGACY_COMPONENT_SERIALIZER.deserialize(content)).replace("\\<", "<").replace("\\>", ">");
         // Deserialize said component to a string to handle other tags like glyphs
