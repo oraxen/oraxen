@@ -40,20 +40,28 @@ public class CustomArmorsTextures {
         this.resolution = resolution;
     }
 
-    public boolean registerImage(File file) throws IOException {
+    public boolean registerImage(File file) {
         String name = file.getName();
 
         if (!name.endsWith(".png")) return false;
         if (!name.contains("armor_layer") && !name.contains("leather_layer")) return false;
 
+        BufferedImage img;
+        try {
+            img = ImageIO.read(file);
+        } catch (IOException e) {
+            OraxenPlugin.get().getLogger().warning("Error while reading " + name + ": " + e.getMessage());
+            return false;
+        }
+
         if (name.equals("leather_layer_1.png")) {
-            layer1 = initLayer(ImageIO.read(file));
+            layer1 = initLayer(img);
             layer1Width += layer1.getWidth();
             return true;
         }
 
         if (name.equals("leather_layer_2.png")) {
-            layer2 = initLayer(ImageIO.read(file));
+            layer2 = initLayer(img);
             layer2Width += layer2.getWidth();
             return true;
         }
@@ -77,7 +85,7 @@ public class CustomArmorsTextures {
         return output;
     }
 
-    private boolean handleArmorLayer(String name, File file) throws IOException {
+    private boolean handleArmorLayer(String name, File file) {
         if (name.endsWith("_e.png"))
             return true;
 
@@ -93,10 +101,24 @@ public class CustomArmorsTextures {
                     Utils.tagResolver("armor_layer_file", name));
             return true;
         }
-        BufferedImage image = initLayer(ImageIO.read(file));
+        BufferedImage original;
+        try {
+            original = ImageIO.read(file);
+        } catch (IOException e) {
+            OraxenPlugin.get().getLogger().warning("Error while reading " + name + ": " + e.getMessage());
+            return false;
+        }
+        BufferedImage image = initLayer(original);
         File emissiveFile = new File(file.getPath().replace(".png", "_e.png"));
         if (emissiveFile.exists()) {
-            BufferedImage emissiveImage = initLayer(ImageIO.read(emissiveFile));
+            BufferedImage emissive;
+            try {
+                emissive = ImageIO.read(emissiveFile);
+            } catch (IOException e) {
+                OraxenPlugin.get().getLogger().warning("Error while reading " + name + ": " + e.getMessage());
+                return false;
+            }
+            BufferedImage emissiveImage = initLayer(emissive);
             image = mergeImages(image.getWidth() + emissiveImage.getWidth(),
                     image.getHeight(),
                     image, emissiveImage);
@@ -288,8 +310,7 @@ public class CustomArmorsTextures {
                                        BufferedImage layer, List<BufferedImage> layers) throws IOException {
         layers.add(0, layer);
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ImageIO.write(mergeImages(layerWidth, layerHeight, layers.toArray(new BufferedImage[0])),
-                "png", outputStream);
+        ImageIO.write(mergeImages(layerWidth, layerHeight, layers.toArray(new BufferedImage[0])), "png", outputStream);
         return new ByteArrayInputStream(outputStream.toByteArray());
     }
 

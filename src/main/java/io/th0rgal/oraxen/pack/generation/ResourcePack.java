@@ -63,9 +63,12 @@ public class ResourcePack {
         File fontFolder = new File(packFolder, "font");
         File optifineFolder = new File(packFolder, "optifine");
         File langFolder = new File(packFolder, "lang");
-        extractFolders(!modelsFolder.exists(), !new File(packFolder, "textures").exists(),
-                !new File(packFolder, "shaders").exists(), !langFolder.exists(), !fontFolder.exists(),
-                !new File(packFolder, "sounds").exists(), !assetsFolder.exists(), !optifineFolder.exists());
+        File textureFolder = new File(packFolder, "textures");
+        File shaderFolder = new File(packFolder, "shaders");
+        File soundFolder = new File(packFolder, "sounds");
+        extractFolders(!modelsFolder.exists(), !textureFolder.exists(),
+                !shaderFolder.exists(), !langFolder.exists(), !fontFolder.exists(),
+                !soundFolder.exists(), !assetsFolder.exists(), !optifineFolder.exists());
 
         if (!Settings.GENERATE.toBool())
             return;
@@ -97,7 +100,8 @@ public class ResourcePack {
                     packFolder.getName() + ".zip");
 
             // needs to be ordered, forEach cannot be used
-            for (final File folder : packFolder.listFiles())
+            File [] files = packFolder.listFiles();
+            if (files != null) for (final File folder : files)
                 if (folder.isDirectory() && folder.getName().equalsIgnoreCase("assets"))
                     getAllFiles(folder, output, "");
                 else if (folder.isDirectory())
@@ -254,7 +258,7 @@ public class ResourcePack {
                              final String... blacklisted) {
         final File[] files = directory.listFiles();
         final List<String> blacklist = Arrays.asList(blacklisted);
-        for (final File file : files) {
+        if (files != null) for (final File file : files) {
             if (!blacklist.contains(file.getName()) && !file.isDirectory())
                 readFileToVirtuals(fileList, file, newFolder);
             if (file.isDirectory())
@@ -266,7 +270,7 @@ public class ResourcePack {
                                   String newFolder,
                                   final String... blacklisted) {
         final File[] files = dir.listFiles();
-        for (final File file : files)
+        if (files != null) for (final File file : files)
             if (!file.isDirectory() && !Arrays.asList(blacklisted).contains(file.getName()))
                 readFileToVirtuals(fileList, file, newFolder);
     }
