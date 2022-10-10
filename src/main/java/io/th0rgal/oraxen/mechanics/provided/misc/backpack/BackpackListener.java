@@ -15,6 +15,7 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.PlayerSwapHandItemsEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
@@ -61,6 +62,14 @@ public class BackpackListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() == EquipmentSlot.OFF_HAND) return;
         openBackpack(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onPlayerSwapHandItems(final PlayerSwapHandItemsEvent event) {
+        Player player = event.getPlayer();
+        if (!isBackpack(event.getOffHandItem()) && !isBackpack(event.getMainHandItem())) return;
+        if (!(player.getOpenInventory().getTopInventory().getHolder() instanceof StorageGui gui)) return;
+        gui.close(player, true);
     }
 
     // Refresh close backpack if open to refresh with picked up items
