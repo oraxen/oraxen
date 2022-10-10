@@ -88,7 +88,9 @@ public class OraxenPlugin extends JavaPlugin {
         new BreakerSystem().registerListener();
         new CommandsManager().loadCommands();
         postLoading(configsManager);
-        Message.PLUGIN_LOADED.log(Utils.tagResolver("os", OS.getOs().getPlatformName()));
+        try {
+            Message.PLUGIN_LOADED.log(Utils.tagResolver("os", OS.getOs().getPlatformName()));
+        } catch (Exception ignore) {}
         CompatibilitiesManager.enableNativeCompatibilities();
     }
 
