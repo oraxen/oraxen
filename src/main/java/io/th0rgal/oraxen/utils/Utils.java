@@ -102,10 +102,4 @@ public class Utils {
         protocolManager.sendServerPacket(player, animation);
     }
 
-    public static int msToTicks(int ms) {
-        return ms != 0 ?
-                (ms / 1000) * 20 :
-                0;
-    }
-
 }

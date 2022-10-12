@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
-import static io.th0rgal.oraxen.utils.Utils.msToTicks;
 
 public class FarmBlockDryout {
     private static final NamespacedKey FARMBLOCK_MOIST = new NamespacedKey(OraxenPlugin.get(), "farmblock_moist");
@@ -28,7 +27,7 @@ public class FarmBlockDryout {
         id = itemID;
         farmBlock = farmblockSection.getString("farmBlockPath");
         moistFarmBlock = farmblockSection.getString("moistFarmBlockPath");
-        farmBlockDryoutTime = msToTicks(farmblockSection.getInt("farmBlockDryOutTime", 50000));
+        farmBlockDryoutTime = farmblockSection.getInt("farmBlockDryOutTime", 50000);
     }
 
     public int getDelay() {
