@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
 import org.bukkit.block.Sign;
@@ -9,6 +10,7 @@ import org.bukkit.block.data.type.Bed;
 import org.bukkit.block.data.type.Chest;
 import org.bukkit.block.data.type.Lectern;
 import org.bukkit.block.data.type.*;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
@@ -25,8 +27,8 @@ import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
 
 public class BlockHelpers {
 
-    public static String VANILLA_STONE_PLACE = "minecraft:required.stone.place";
-    public static String VANILLA_STONE_BREAK = "minecraft:required.stone.break";
+    public static String VANILLA_STONE_PLACE = "minecraft:new ImmutablePair<>tone.place";
+    public static String VANILLA_STONE_BREAK = "minecraft:new ImmutablePair<>tone.break";
     public static String VANILLA_STONE_HIT = "minecraft:required.stone.hit";
     public static String VANILLA_STONE_STEP = "minecraft:required.stone.step";
     public static String VANILLA_STONE_FALL = "minecraft:required.stone.fall";
@@ -47,11 +49,13 @@ public class BlockHelpers {
     }
 
     public static String validateReplacedSounds(String sound) {
-        if (sound.startsWith("block.wood"))
+        ConfigurationSection mechanics = OraxenPlugin.get().getConfigsManager().getMechanics();
+        if (sound.startsWith("block.wood") && mechanics.getConfigurationSection("noteblock").getBoolean("custom_sounds")) {
             return sound.replace("block.wood", "required.wood");
-        else if (sound.startsWith("block.stone"))
-            return sound.replace("block.stone", "required.stone");
-        else return sound;
+        } else if (sound.startsWith("block.stone") && mechanics.getConfigurationSection("furniture").getBoolean("custom_sounds") &&
+                mechanics.getConfigurationSection("stringblock").getBoolean("custom_sounds")) {
+                return sound.replace("block.stone", "required.stone");
+        }else return sound;
     }
 
     public static Location toBlockLocation(Location location) {
@@ -315,7 +319,7 @@ public class BlockHelpers {
         };
         boolean isChest =
                 rightBlock.getBlockData() instanceof Chest chest &&
-                (chest.getFacing() != playerFacing.getOppositeFace());
+                        (chest.getFacing() != playerFacing.getOppositeFace());
         return isChest ? block : rightBlock;
     }
 
@@ -349,9 +353,9 @@ public class BlockHelpers {
     }
 
     /*
-    * Calling loc.getChunk() will crash a Paper 1.19 build 62-66 (possibly more) Server if the Chunk does not exist.
-    * Instead, get Chunk location and check with World.isChunkLoaded() if the Chunk is loaded.
-    */
+     * Calling loc.getChunk() will crash a Paper 1.19 build 62-66 (possibly more) Server if the Chunk does not exist.
+     * Instead, get Chunk location and check with World.isChunkLoaded() if the Chunk is loaded.
+     */
     public static boolean isLoaded(World world, Location loc) {
         return world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
     }

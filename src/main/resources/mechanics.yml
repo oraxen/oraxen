@@ -37,6 +37,7 @@ block:
     - DIAMOND
     - NETHERITE
   enabled: false
+  custom_sounds: true
 
 noteblock:
   tool_types:
@@ -49,6 +50,7 @@ noteblock:
     - # ticks between each check for dryout
   farmblock_check_delay: 1000
   enabled: true
+  custom_sounds: true
 
 stringblock:
     tool_types:
@@ -60,6 +62,7 @@ stringblock:
       - NETHERITE
     sapling_growth_check_delay: 4000
     enabled: true
+    custom_sounds: true
 
 # Only 1.16+
 furniture:
@@ -73,6 +76,7 @@ furniture:
   # ticks between each check for plant growth
   evolution_check_delay: 200
   enabled: true
+  custom_sounds: true
 
 durability:
   enabled: true

@@ -32,9 +32,6 @@ import org.bukkit.persistence.PersistentDataType;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static io.th0rgal.oraxen.utils.BlockHelpers.VANILLA_STONE_BREAK;
-import static io.th0rgal.oraxen.utils.BlockHelpers.VANILLA_STONE_PLACE;
-
 public class FurnitureMechanic extends Mechanic {
 
     public static final NamespacedKey FURNITURE_KEY = new NamespacedKey(OraxenPlugin.get(), "furniture");
@@ -326,7 +323,6 @@ public class FurnitureMechanic extends Mechanic {
         else if (light != -1)
             WrappedLightAPI.createBlockLight(location, light);
 
-        BlockHelpers.playCustomBlockSound(location, hasPlaceSound() ? getPlaceSound() : VANILLA_STONE_PLACE);
         return output;
     }
 
@@ -374,7 +370,6 @@ public class FurnitureMechanic extends Mechanic {
             }
         }
 
-        BlockHelpers.playCustomBlockSound(rootLocation, hasBreakSound() ? getBreakSound() : VANILLA_STONE_BREAK);
         return removed;
     }
 
@@ -392,8 +387,6 @@ public class FurnitureMechanic extends Mechanic {
             WrappedLightAPI.removeBlockLight(location);
         }
         frame.remove();
-        if (hasBreakSound())
-            BlockHelpers.playCustomBlockSound(location, getBreakSound());
     }
 
     public void remove(ItemFrame frame) {

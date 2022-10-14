@@ -30,6 +30,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     private boolean farmBlock;
     private static FarmBlockTask farmBlockTask;
     public final int farmBlockCheckDelay;
+    public final boolean customSounds;
 
     public NoteBlockMechanicFactory(ConfigurationSection section) {
         super(section);
@@ -39,6 +40,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         toolTypes = section.getStringList("tool_types");
         farmBlockCheckDelay = section.getInt("farmblock_check_delay");
         farmBlock = false;
+        customSounds = section.getBoolean("custom_sounds", true);
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
@@ -50,6 +52,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         );
         MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockMechanicListener(this));
         MechanicsManager.registerListeners(OraxenPlugin.get(), new LogStripListener(this));
+        if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockSoundListener(this));
     }
 
     public static String getInstrumentName(int id) {

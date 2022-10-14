@@ -20,6 +20,7 @@ import io.th0rgal.oraxen.utils.ZipUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
 import org.bukkit.Material;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.*;
@@ -100,7 +101,7 @@ public class ResourcePack {
                     packFolder.getName() + ".zip");
 
             // needs to be ordered, forEach cannot be used
-            File [] files = packFolder.listFiles();
+            File[] files = packFolder.listFiles();
             if (files != null) for (final File folder : files)
                 if (folder.isDirectory() && folder.getName().equalsIgnoreCase("assets"))
                     getAllFiles(folder, output, "");
@@ -243,9 +244,37 @@ public class ResourcePack {
         if (!soundManager.isAutoGenerate())
             return;
         final JsonObject output = new JsonObject();
-        for (CustomSound sound : soundManager.getCustomSounds())
+
+        for (CustomSound sound : handleCustomSoundEntries(soundManager.getCustomSounds()))
             output.add(sound.getName(), sound.toJson());
         writeStringToVirtual("assets/minecraft", "sounds.json", output.toString());
+    }
+
+    private Collection<CustomSound> handleCustomSoundEntries(Collection<CustomSound> sounds) {
+        ConfigurationSection mechanic = OraxenPlugin.get().getConfigsManager().getMechanics();
+        ConfigurationSection noteblock = mechanic.getConfigurationSection("noteblock");
+        ConfigurationSection stringblock = mechanic.getConfigurationSection("stringblock");
+        ConfigurationSection furniture = mechanic.getConfigurationSection("furniture");
+        ConfigurationSection block = mechanic.getConfigurationSection("block");
+
+        if ((noteblock == null || !noteblock.getBoolean("custom_sounds", true)) || (block == null || !block.getBoolean("custom_sounds", true))) {
+            sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
+        }
+        if ((stringblock == null || !stringblock.getBoolean("custom_sounds", true)) || (furniture == null || !furniture.getBoolean("custom_sounds", true))) {
+            sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
+        }
+
+        // Clear the sounds.json file of yaml configuration entries that should not be there
+        sounds.removeIf(s ->
+                s.getName().equals("required") ||
+                s.getName().equals("block") ||
+                s.getName().equals("block.wood") ||
+                s.getName().equals("block.stone") ||
+                s.getName().equals("required.wood") ||
+                s.getName().equals("required.stone")
+        );
+
+        return sounds;
     }
 
     public void writeStringToVirtual(String folder, String name, String content) {
