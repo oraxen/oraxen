@@ -3,10 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.SoundCategory;
-import org.bukkit.Tag;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -38,6 +35,7 @@ public class JukeboxListener implements Listener {
 
         boolean played = insertAndPlayDisc(block, player.getInventory().getItemInMainHand(), player);
         if (!played) return;
+        Bukkit.broadcastMessage(block.getType().toString());
         player.swingMainHand();
         event.setCancelled(true);
     }
@@ -70,16 +68,15 @@ public class JukeboxListener implements Listener {
 
     private boolean insertAndPlayDisc(Block block, ItemStack disc, @Nullable Player player) {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
-        ItemStack item = pdc.get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
         FurnitureMechanic furnitureMechanic = getFurnitureMechanic(block);
         Location loc = BlockHelpers.toCenterLocation(block.getLocation());
 
         if (furnitureMechanic == null || !furnitureMechanic.isJukebox()) return false;
-        if (!pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK)) return false;
-        if (item == null || !Tag.ITEMS_MUSIC_DISCS.isTagged(item.getType())) return false;
+        if (pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK)) return false;
+        if (disc == null || !Tag.ITEMS_MUSIC_DISCS.isTagged(disc.getType())) return false;
 
         JukeboxBlock jukebox = furnitureMechanic.getJukebox();
-        if (player != null && !player.hasPermission(jukebox.getPermission())) return false;
+        if (!jukebox.checkPermission(player)) return false;
 
         ItemStack insertedDisc = disc.clone();
         insertedDisc.setAmount(1);

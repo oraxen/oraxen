@@ -5,8 +5,10 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
 import static io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscListener.MUSIC_DISC_KEY;
@@ -33,7 +35,8 @@ public class JukeboxBlock {
         ItemStack disc = BlockHelpers.getPDC(block).get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
         if (disc == null) return null;
         MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(OraxenItems.getIdByItem(disc));
-        return (mechanic != null && !mechanic.hasNoSong()) ? mechanic.getSong() : null;
+        return (mechanic != null && !mechanic.hasNoSong()) ? mechanic.getSong()
+                : Tag.ITEMS_MUSIC_DISCS.isTagged(disc.getType()) ? disc.getType().toString().toLowerCase().replace("music_disc_", "minecraft:music_disc.") : null;
     }
 
     public boolean loopDisc() {
@@ -41,7 +44,7 @@ public class JukeboxBlock {
     }
 
     public String getPermission() {
-        return permission;
+        return permission != null ? permission : "";
     }
 
     public float getVolume() {
@@ -50,5 +53,9 @@ public class JukeboxBlock {
 
     public float getPitch() {
         return (float) pitch;
+    }
+
+    public boolean checkPermission(Player player) {
+        return player != null && !getPermission().isBlank() && player.hasPermission(getPermission());
     }
 }
