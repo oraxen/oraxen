@@ -42,10 +42,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.RayTraceResult;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 import static io.th0rgal.oraxen.utils.BlockHelpers.*;
@@ -220,10 +217,16 @@ public class NoteBlockMechanicListener implements Listener {
             makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), Bukkit.createBlockData(type));
     }
 
+    // If block is not a custom block, play the correct sound according to the below block or default
     @EventHandler(priority = EventPriority.NORMAL)
     public void onNotePlayed(final NotePlayEvent event) {
-        if (event.getInstrument() != Instrument.PIANO)
-            event.setCancelled(true);
+        if (event.getInstrument() != Instrument.PIANO) event.setCancelled(true);
+        else {
+            if (instrumentMap.isEmpty()) instrumentMap = getInstrumentMap();
+            String blockType = event.getBlock().getRelative(BlockFace.DOWN).getType().toString().toLowerCase();
+            Instrument fakeInstrument = instrumentMap.entrySet().stream().filter(e -> e.getValue().contains(blockType)).map(Map.Entry::getKey).findFirst().orElse(Instrument.PIANO);
+            event.setInstrument(fakeInstrument);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -352,8 +355,8 @@ public class NoteBlockMechanicListener implements Listener {
 
         if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM) {
             if (event.getInstaBreak()) Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
-                    block.setType(Material.AIR, false);
-                }, 1);
+                block.setType(Material.AIR, false);
+            }, 1);
             return;
         }
         if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
@@ -528,7 +531,8 @@ public class NoteBlockMechanicListener implements Listener {
 
         if (BlockHelpers.correctAllBlockStates(target, player, face, item)) blockPlaceEvent.setCancelled(true);
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
-        if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions())) blockPlaceEvent.setCancelled(true);
+        if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions()))
+            blockPlaceEvent.setCancelled(true);
         if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
             blockPlaceEvent.setCancelled(true);
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
@@ -558,5 +562,28 @@ public class NoteBlockMechanicListener implements Listener {
         return NoteBlockMechanicFactory
                 .getBlockMechanic((noteblock.getInstrument().getType()) * 25
                         + noteblock.getNote().getId() + (noteblock.isPowered() ? 400 : 0) - 26);
+    }
+
+    // Used to determine what instrument to use when playing a note depending on below block
+    private static Map<Instrument, List<String>> instrumentMap = new HashMap<>();
+    private static Map<Instrument, List<String>> getInstrumentMap() {
+        Map<Instrument, List<String>> map = new HashMap<>();
+        map.put(Instrument.BELL, List.of("gold_block"));
+        map.put(Instrument.BASS_DRUM, Arrays.asList("stone", "netherrack", "bedrock", "observer", "coral", "obsidian", "anchor", "quartz"));
+        map.put(Instrument.FLUTE, List.of("clay"));
+        map.put(Instrument.CHIME, List.of("packed_ice"));
+        map.put(Instrument.GUITAR, List.of("wool"));
+        map.put(Instrument.XYLOPHONE, List.of("bone_block"));
+        map.put(Instrument.IRON_XYLOPHONE, List.of("iron_block"));
+        map.put(Instrument.COW_BELL, List.of("soul_sand"));
+        map.put(Instrument.DIDGERIDOO, List.of("pumpkin"));
+        map.put(Instrument.BIT, List.of("emerald_block"));
+        map.put(Instrument.BANJO, List.of("hay_bale"));
+        map.put(Instrument.PLING, List.of("glowstone"));
+        map.put(Instrument.BASS_GUITAR, List.of("wood"));
+        map.put(Instrument.SNARE_DRUM, Arrays.asList("sand", "gravel", "concrete_powder", "soul_soil"));
+        map.put(Instrument.STICKS, Arrays.asList("glass", "sea_lantern", "beacon"));
+
+        return map;
     }
 }
