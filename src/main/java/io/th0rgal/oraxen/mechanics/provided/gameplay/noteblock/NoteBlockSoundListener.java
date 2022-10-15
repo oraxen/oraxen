@@ -101,7 +101,7 @@ public class NoteBlockSoundListener implements Listener {
         if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(block.getType()) || block.getType() == Material.TRIPWIRE) return;
         NoteBlockMechanic mechanic = NoteBlockMechanicListener.getNoteBlockMechanic(blockBelow);
         if (mechanic != null && mechanic.isDirectional())
-            mechanic = ((NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock()));
+            mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
 
         String sound;
         if (gameEvent == GameEvent.STEP) {
@@ -119,7 +119,7 @@ public class NoteBlockSoundListener implements Listener {
     public void onPlacing(final OraxenNoteBlockPlaceEvent event) {
         NoteBlockMechanic mechanic = event.getNoteBlockMechanic();
         if (mechanic != null && mechanic.isDirectional())
-            mechanic = ((NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock()));
+            mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
 
         if (mechanic != null && mechanic.hasPlaceSound())
             BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), mechanic.getPlaceSound());
@@ -129,7 +129,7 @@ public class NoteBlockSoundListener implements Listener {
     public void onBreaking(final OraxenNoteBlockBreakEvent event) {
         NoteBlockMechanic mechanic = event.getNoteBlockMechanic();
         if (mechanic != null && mechanic.isDirectional())
-            mechanic = ((NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock()));
+            mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
         if (mechanic != null && mechanic.hasPlaceSound())
             BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), mechanic.getBreakSound());
     }

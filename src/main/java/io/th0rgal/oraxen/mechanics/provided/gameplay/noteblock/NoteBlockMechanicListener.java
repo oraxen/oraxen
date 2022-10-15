@@ -144,7 +144,7 @@ public class NoteBlockMechanicListener implements Listener {
         NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
         if (noteBlockMechanic == null) return;
         if (noteBlockMechanic.isDirectional())
-            noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
+            noteBlockMechanic = noteBlockMechanic.getDirectional().getParentBlockMechanic(noteBlockMechanic);
 
         OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(noteBlockMechanic, block, event.getItem(), event.getPlayer(), event.getBlockFace());
         OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockInteractEvent);
@@ -240,7 +240,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (mechanic == null) return;
         if (block.getType() != Material.NOTE_BLOCK || !event.isDropItems()) return;
         if (mechanic.isDirectional())
-            mechanic = (NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock());
+            mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
 
         OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockBreakEvent);
@@ -266,7 +266,7 @@ public class NoteBlockMechanicListener implements Listener {
             NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
             if (mechanic == null) return;
             if (mechanic.isDirectional())
-                mechanic = (NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock());
+                mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
             if (mechanic.isStorage()) //TODO Should this drop items on explosions?
                 mechanic.getStorage().dropStorageContent(block);
 
@@ -294,7 +294,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (mechanic.isDirectional()) {
             DirectionalBlock directional = mechanic.getDirectional();
             if (!directional.isParentBlock())
-                directional = ((NoteBlockMechanic) factory.getMechanic(directional.getParentBlock())).getDirectional();
+                directional = directional.getParentBlockMechanic(mechanic).getDirectional();
 
             customVariation = directional.getDirectionVariation(face, player);
         }
@@ -313,7 +313,7 @@ public class NoteBlockMechanicListener implements Listener {
                 final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
                 customBlockData.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
             }
-            // TODO Check if this is causing sound issues or move to sound listener
+
             BlockHelpers.playCustomBlockSound(placedBlock.getLocation(), mechanic.hasPlaceSound() ? mechanic.getPlaceSound() : VANILLA_WOOD_PLACE);
         }
     }
@@ -329,7 +329,7 @@ public class NoteBlockMechanicListener implements Listener {
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
         if (mechanic == null) return;
         if (mechanic.isDirectional())
-            mechanic = (NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock());
+            mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
 
         if (!mechanic.canIgnite()) return;
         if (item.getType() != Material.FLINT_AND_STEEL && item.getType() != Material.FIRE_CHARGE) return;
@@ -400,7 +400,7 @@ public class NoteBlockMechanicListener implements Listener {
                 if (noteBlockMechanic == null) return false;
 
                 if (noteBlockMechanic.isDirectional())
-                    noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
+                    noteBlockMechanic = noteBlockMechanic.getDirectional().getParentBlockMechanic(noteBlockMechanic);
 
                 return noteBlockMechanic.hasHardness;
             }
@@ -415,7 +415,7 @@ public class NoteBlockMechanicListener implements Listener {
                 NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(block);
                 if (noteBlockMechanic == null) return 0;
                 if (noteBlockMechanic.isDirectional())
-                    noteBlockMechanic = (NoteBlockMechanic) factory.getMechanic(noteBlockMechanic.getDirectional().getParentBlock());
+                    noteBlockMechanic = noteBlockMechanic.getDirectional().getParentBlockMechanic(noteBlockMechanic);
 
                 final long period = noteBlockMechanic.getPeriod();
                 double modifier = 1;
