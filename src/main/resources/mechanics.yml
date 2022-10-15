@@ -27,6 +27,12 @@ backpack:
 
 # GAMEPLAY
 
+# Specify if custom block sounds should be enabled for the below mechanics
+# If both mechanics are disabled, this will force the sound system for those off
+custom_block_sounds:
+  noteblock_and_block: true
+  stringblock_and_furniture: true
+
 # legacy blocks using mushroom stems, prefer to use noteblock
 block:
   tool_types:
@@ -37,7 +43,6 @@ block:
     - DIAMOND
     - NETHERITE
   enabled: false
-  custom_sounds: true
 
 noteblock:
   tool_types:
@@ -50,7 +55,6 @@ noteblock:
     - # ticks between each check for dryout
   farmblock_check_delay: 1000
   enabled: true
-  custom_sounds: true
 
 stringblock:
     tool_types:
@@ -62,7 +66,6 @@ stringblock:
       - NETHERITE
     sapling_growth_check_delay: 4000
     enabled: true
-    custom_sounds: true
 
 # Only 1.16+
 furniture:
@@ -76,7 +79,6 @@ furniture:
   # ticks between each check for plant growth
   evolution_check_delay: 200
   enabled: true
-  custom_sounds: true
 
 durability:
   enabled: true

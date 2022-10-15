@@ -22,6 +22,7 @@ import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -201,22 +202,28 @@ public class BreakerSystem {
     }
 
     private String getSound(Block block) {
+        ConfigurationSection soundSection = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds");
+        if (soundSection == null) return null;
         switch (block.getType()) {
             case NOTE_BLOCK -> {
                 NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
-                return (mechanic != null && mechanic.hasHitSound()) ? mechanic.getHitSound() : "required.wood.hit";
+                if (!soundSection.getBoolean("noteblock_and_block")) return null;
+                else return (mechanic != null && mechanic.hasHitSound()) ? mechanic.getHitSound() : "required.wood.hit";
             }
             case MUSHROOM_STEM -> {
                 BlockMechanic mechanic = getBlockMechanic(block);
-                return (mechanic != null && mechanic.hasHitSound()) ? mechanic.getHitSound() : "required.wood.hit";
+                if (!soundSection.getBoolean("noteblock_and_block")) return null;
+                else return (mechanic != null && mechanic.hasHitSound()) ? mechanic.getHitSound() : "required.wood.hit";
             }
             case TRIPWIRE -> {
                 StringBlockMechanic mechanic = getStringMechanic(block);
-                return (mechanic != null && mechanic.hasHitSound()) ? mechanic.getHitSound() : "block.tripwire.detach";
+                if (!soundSection.getBoolean("stringblock_and_furniture")) return null;
+                else return (mechanic != null && mechanic.hasHitSound()) ? mechanic.getHitSound() : "block.tripwire.detach";
             }
             case BARRIER -> {
                 FurnitureMechanic mechanic = getFurnitureMechanic(block);
-                return (mechanic != null && mechanic.hasHitSound()) ? mechanic.getHitSound() : "required.stone.hit";
+                if (!soundSection.getBoolean("stringblock_and_furniture")) return null;
+                else return (mechanic != null && mechanic.hasHitSound()) ? mechanic.getHitSound() : "required.stone.hit";
             }
             default -> {
                 return block.getBlockData().getSoundGroup().getHitSound().getKey().toString();

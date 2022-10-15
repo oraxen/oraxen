@@ -120,7 +120,6 @@ public class NoteBlockSoundListener implements Listener {
         NoteBlockMechanic mechanic = event.getNoteBlockMechanic();
         if (mechanic != null && mechanic.isDirectional())
             mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
-
         if (mechanic != null && mechanic.hasPlaceSound())
             BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), mechanic.getPlaceSound());
     }
@@ -130,7 +129,7 @@ public class NoteBlockSoundListener implements Listener {
         NoteBlockMechanic mechanic = event.getNoteBlockMechanic();
         if (mechanic != null && mechanic.isDirectional())
             mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
-        if (mechanic != null && mechanic.hasPlaceSound())
+        if (mechanic != null && mechanic.hasBreakSound())
             BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), mechanic.getBreakSound());
     }
 }

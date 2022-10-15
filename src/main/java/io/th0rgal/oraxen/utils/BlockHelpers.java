@@ -27,8 +27,8 @@ import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
 
 public class BlockHelpers {
 
-    public static String VANILLA_STONE_PLACE = "minecraft:new ImmutablePair<>tone.place";
-    public static String VANILLA_STONE_BREAK = "minecraft:new ImmutablePair<>tone.break";
+    public static String VANILLA_STONE_PLACE = "minecraft:required.stone.place";
+    public static String VANILLA_STONE_BREAK = "minecraft:required.stone.break";
     public static String VANILLA_STONE_HIT = "minecraft:required.stone.hit";
     public static String VANILLA_STONE_STEP = "minecraft:required.stone.step";
     public static String VANILLA_STONE_FALL = "minecraft:required.stone.fall";

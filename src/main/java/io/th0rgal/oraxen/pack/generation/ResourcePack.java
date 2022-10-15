@@ -252,26 +252,33 @@ public class ResourcePack {
 
     private Collection<CustomSound> handleCustomSoundEntries(Collection<CustomSound> sounds) {
         ConfigurationSection mechanic = OraxenPlugin.get().getConfigsManager().getMechanics();
+        ConfigurationSection customSounds = mechanic.getConfigurationSection("custom_block_sounds");
         ConfigurationSection noteblock = mechanic.getConfigurationSection("noteblock");
         ConfigurationSection stringblock = mechanic.getConfigurationSection("stringblock");
         ConfigurationSection furniture = mechanic.getConfigurationSection("furniture");
         ConfigurationSection block = mechanic.getConfigurationSection("block");
 
-        if ((noteblock == null || !noteblock.getBoolean("custom_sounds", true)) || (block == null || !block.getBoolean("custom_sounds", true))) {
+        if (customSounds == null) {
             sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
-        }
-        if ((stringblock == null || !stringblock.getBoolean("custom_sounds", true)) || (furniture == null || !furniture.getBoolean("custom_sounds", true))) {
+            sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
+        } else if (!customSounds.getBoolean("noteblock_and_block", true)) {
+            sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
+        } else if (!customSounds.getBoolean("stringblock_and_furniture", true)) {
+            sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
+        } else if ((noteblock != null && !noteblock.getBoolean("enabled", true) && block != null && block.getBoolean("enabled", false))) {
+            sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
+        } else if (stringblock != null && !stringblock.getBoolean("enabled", true) && furniture != null && furniture.getBoolean("enabled", true)) {
             sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
         }
 
         // Clear the sounds.json file of yaml configuration entries that should not be there
         sounds.removeIf(s ->
                 s.getName().equals("required") ||
-                s.getName().equals("block") ||
-                s.getName().equals("block.wood") ||
-                s.getName().equals("block.stone") ||
-                s.getName().equals("required.wood") ||
-                s.getName().equals("required.stone")
+                        s.getName().equals("block") ||
+                        s.getName().equals("block.wood") ||
+                        s.getName().equals("block.stone") ||
+                        s.getName().equals("required.wood") ||
+                        s.getName().equals("required.stone")
         );
 
         return sounds;
