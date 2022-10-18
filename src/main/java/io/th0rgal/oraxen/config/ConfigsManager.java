@@ -19,11 +19,13 @@ import java.util.*;
 public class ConfigsManager {
 
     private final JavaPlugin plugin;
+    private final YamlConfiguration defaultMechanics;
     private final YamlConfiguration defaultSettings;
     private final YamlConfiguration defaultFont;
     private final YamlConfiguration defaultSound;
     private final YamlConfiguration defaultLanguage;
     private final YamlConfiguration defaultHud;
+    private YamlConfiguration mechanics;
     private YamlConfiguration settings;
     private YamlConfiguration font;
     private YamlConfiguration sound;
@@ -35,11 +37,16 @@ public class ConfigsManager {
 
     public ConfigsManager(JavaPlugin plugin) {
         this.plugin = plugin;
+        defaultMechanics = extractDefault("mechanics.yml");
         defaultSettings = extractDefault("settings.yml");
         defaultFont = extractDefault("font.yml");
         defaultSound = extractDefault("sound.yml");
         defaultLanguage = extractDefault("languages/english.yml");
         defaultHud = extractDefault("hud.yml");
+    }
+
+    public YamlConfiguration getMechanics() {
+        return mechanics != null ? mechanics : defaultMechanics;
     }
 
     public YamlConfiguration getSettings() {
@@ -81,6 +88,7 @@ public class ConfigsManager {
 
     public boolean validatesConfig() {
         ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
+        mechanics = validate(resourcesManager, "mechanics.yml", defaultMechanics);
         settings = validate(resourcesManager, "settings.yml", defaultSettings);
         font = validate(resourcesManager, "font.yml", defaultFont);
         hud = validate(resourcesManager, "hud.yml", defaultHud);
@@ -94,21 +102,24 @@ public class ConfigsManager {
         itemsFolder = new File(plugin.getDataFolder(), "items");
         if (!itemsFolder.exists()) {
             itemsFolder.mkdirs();
-            new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
         }
 
         // check glyphsFolder
         glyphsFolder = new File(plugin.getDataFolder(), "glyphs");
         if (!glyphsFolder.exists()) {
             glyphsFolder.mkdirs();
-            new ResourcesManager(plugin).extractConfigsInFolder("glyphs", "yml");
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("glyphs", "yml");
         }
 
         // check schematicsFolder
         schematicsFolder = new File(plugin.getDataFolder(), "schematics");
         if (!schematicsFolder.exists()) {
             schematicsFolder.mkdirs();
-            new ResourcesManager(plugin).extractConfigsInFolder("schematics", "schem");
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("schematics", "schem");
         }
 
         return true; // todo : return false when an error is detected + prints a detailed error

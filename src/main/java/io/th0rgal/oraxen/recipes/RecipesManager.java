@@ -17,6 +17,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 
 public class RecipesManager {
@@ -30,7 +31,15 @@ public class RecipesManager {
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {
             recipesFolder.mkdirs();
-            new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
+            else try {
+                new File(recipesFolder, "furnace.yml").createNewFile();
+                new File(recipesFolder, "shaped.yml").createNewFile();
+                new File(recipesFolder, "shapeless.yml").createNewFile();
+            } catch (IOException e) {
+                Logs.logError("Error while creating recipes files: " + e.getMessage());
+            }
         }
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();
@@ -43,7 +52,8 @@ public class RecipesManager {
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {
             recipesFolder.mkdirs();
-            new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
         }
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();

@@ -42,7 +42,7 @@ public class LogStripListener implements Listener {
             if (mechanic == null) return;
 
             if (mechanic.isDirectional() && !mechanic.isLog())
-                mechanic = (NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock());
+                mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
 
             LogStripping log = mechanic.getLog();
             if (!mechanic.isLog() || !log.canBeStripped()) return;

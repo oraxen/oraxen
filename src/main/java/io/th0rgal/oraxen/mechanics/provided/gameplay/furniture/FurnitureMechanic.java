@@ -9,8 +9,8 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
-import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
+import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
@@ -32,9 +32,6 @@ import org.bukkit.persistence.PersistentDataType;
 import javax.annotation.Nullable;
 import java.util.*;
 
-import static io.th0rgal.oraxen.utils.BlockHelpers.VANILLA_STONE_BREAK;
-import static io.th0rgal.oraxen.utils.BlockHelpers.VANILLA_STONE_PLACE;
-
 public class FurnitureMechanic extends Mechanic {
 
     public static final NamespacedKey FURNITURE_KEY = new NamespacedKey(OraxenPlugin.get(), "furniture");
@@ -44,13 +41,9 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
     private final LimitedPlacing limitedPlacing;
     private final StorageMechanic storage;
+    private final BlockSounds blockSounds;
     public final boolean farmlandRequired;
     public final boolean farmblockRequired;
-    private final String breakSound;
-    private final String placeSound;
-    private final String stepSound;
-    private final String hitSound;
-    private final String fallSound;
     private final List<BlockLocation> barriers;
     private final boolean hasRotation;
     private final boolean hasSeat;
@@ -71,12 +64,6 @@ public class FurnitureMechanic extends Mechanic {
         super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY,
                 PersistentDataType.BYTE, (byte) 1));
 
-        placeSound = section.getString("place_sound", null);
-        breakSound = section.getString("break_sound", null);
-        stepSound = section.getString("step_sound", null);
-        hitSound = section.getString("hit_sound", null);
-        fallSound = section.getString("fall_sound", null);
-
         if (section.isString("item"))
             placedItemId = section.getString("item");
 
@@ -87,8 +74,8 @@ public class FurnitureMechanic extends Mechanic {
             for (Object barrierObject : section.getList("barriers"))
                 barriers.add(new BlockLocation((Map<String, Object>) barrierObject));
 
-        if (section.isConfigurationSection("seat")) {
-            ConfigurationSection seatSection = section.getConfigurationSection("seat");
+        ConfigurationSection seatSection = section.getConfigurationSection("seat");
+        if (seatSection != null) {
             hasSeat = true;
             seatHeight = (float) seatSection.getDouble("height");
             if (seatSection.contains("yaw")) {
@@ -100,8 +87,9 @@ public class FurnitureMechanic extends Mechanic {
         } else
             hasSeat = false;
 
-        if (section.isConfigurationSection("evolution")) {
-            evolvingFurniture = new EvolvingFurniture(getItemID(), section.getConfigurationSection("evolution"));
+        ConfigurationSection evoSection = section.getConfigurationSection("evolution");
+        if (evoSection != null) {
+            evolvingFurniture = new EvolvingFurniture(getItemID(), evoSection);
             ((FurnitureFactory) getFactory()).registerEvolution();
         } else evolvingFurniture = null;
 
@@ -117,7 +105,7 @@ public class FurnitureMechanic extends Mechanic {
         farmblockRequired = section.getBoolean("farmblock_required", false);
 
         facing = section.isString("facing")
-                ? BlockFace.valueOf(section.getString("facing").toUpperCase())
+                ? BlockFace.valueOf(section.getString("facing", "UP").toUpperCase())
                 : null;
 
         List<Loot> loots = new ArrayList<>();
@@ -143,12 +131,16 @@ public class FurnitureMechanic extends Mechanic {
             drop = new Drop(loots, false, false, getItemID());
 
         if (section.isConfigurationSection("limited_placing")) {
-            limitedPlacing = new LimitedPlacing(section.getConfigurationSection("limited_placing"));
+            limitedPlacing = new LimitedPlacing(Objects.requireNonNull(section.getConfigurationSection("limited_placing")));
         } else limitedPlacing = null;
 
         if (section.isConfigurationSection("storage")) {
             storage = new StorageMechanic(Objects.requireNonNull(section.getConfigurationSection("storage")));
         } else storage = null;
+
+        if (section.isConfigurationSection("block_sounds")) {
+            blockSounds = new BlockSounds(Objects.requireNonNull(section.getConfigurationSection("block_sounds")));
+        } else blockSounds = null;
 
         clickActions = ClickAction.parseList(section);
     }
@@ -167,41 +159,6 @@ public class FurnitureMechanic extends Mechanic {
         return null;
     }
 
-    public boolean hasBreakSound() {
-        return breakSound != null;
-    }
-    public String getBreakSound() {
-        return BlockHelpers.validateReplacedSounds(breakSound);
-    }
-
-    public boolean hasPlaceSound() {
-        return placeSound != null;
-    }
-    public String getPlaceSound() {
-        return BlockHelpers.validateReplacedSounds(placeSound);
-    }
-
-    public boolean hasStepSound() {
-        return stepSound != null;
-    }
-    public String getStepSound() {
-        return BlockHelpers.validateReplacedSounds(stepSound);
-    }
-
-    public boolean hasHitSound() {
-        return hitSound != null;
-    }
-    public String getHitSound() {
-        return BlockHelpers.validateReplacedSounds(hitSound);
-    }
-
-    public boolean hasFallSound() {
-        return fallSound != null;
-    }
-    public String getFallSound() {
-        return BlockHelpers.validateReplacedSounds(fallSound);
-    }
-
     public boolean hasLimitedPlacing() {
         return limitedPlacing != null;
     }
@@ -216,6 +173,14 @@ public class FurnitureMechanic extends Mechanic {
 
     public StorageMechanic getStorage() {
         return storage;
+    }
+
+    public boolean hasBlockSounds() {
+        return blockSounds != null;
+    }
+
+    public BlockSounds getBlockSounds() {
+        return blockSounds;
     }
 
     public boolean hasBarriers() {
@@ -326,7 +291,6 @@ public class FurnitureMechanic extends Mechanic {
         else if (light != -1)
             WrappedLightAPI.createBlockLight(location, light);
 
-        BlockHelpers.playCustomBlockSound(location, hasPlaceSound() ? getPlaceSound() : VANILLA_STONE_PLACE);
         return output;
     }
 
@@ -374,7 +338,6 @@ public class FurnitureMechanic extends Mechanic {
             }
         }
 
-        BlockHelpers.playCustomBlockSound(rootLocation, hasBreakSound() ? getBreakSound() : VANILLA_STONE_BREAK);
         return removed;
     }
 
@@ -392,8 +355,6 @@ public class FurnitureMechanic extends Mechanic {
             WrappedLightAPI.removeBlockLight(location);
         }
         frame.remove();
-        if (hasBreakSound())
-            BlockHelpers.playCustomBlockSound(location, getBreakSound());
     }
 
     public void remove(ItemFrame frame) {

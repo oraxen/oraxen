@@ -5,10 +5,13 @@ Plugin:
       oraxen_durability_only: false # will not repair vanilla items if set to true
     emoji_list:
       only_show_emojis_with_permission: true # will only show emojis player has permission to use if set to true
+  generation:
+    default_assets: true
+    default_configs: true
 
 Pack:
   generation:
-    generate: true
+    generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
     # 64x32 layer is default size and corresponds to 16. If you need higher
     # resolution, e.g. 128x64, you should set this parameter to 32 and so on.
     armor_resolution: 16

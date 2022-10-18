@@ -16,14 +16,18 @@ public class FurnitureFactory extends MechanicFactory {
     public final int evolutionCheckDelay;
     private boolean evolvingFurnitures;
     private static EvolutionTask evolutionTask;
+    public final boolean customSounds;
 
     public FurnitureFactory(ConfigurationSection section) {
         super(section);
         toolTypes = section.getStringList("tool_types");
         evolutionCheckDelay = section.getInt("evolution_check_delay");
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureListener(this));
         evolvingFurnitures = false;
         instance = this;
+        customSounds = section.getBoolean("custom_sounds", true);
+
+        MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureListener(this));
+        if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureSoundListener());
     }
 
     @Override

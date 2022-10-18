@@ -39,6 +39,7 @@ public class DirectionalBlock {
     }
     public boolean isParentBlock() { return parentBlock == null; }
     public String getParentBlock() { return parentBlock; }
+    public NoteBlockMechanic getParentBlockMechanic(NoteBlockMechanic mechanic) { return (NoteBlockMechanic) NoteBlockMechanicFactory.getInstance().getMechanic(mechanic.getDirectional().getParentBlock()); }
 
     public DirectionalType getDirectionalType() { return directionalType; }
     public boolean isLog() { return directionalType == DirectionalType.LOG; }

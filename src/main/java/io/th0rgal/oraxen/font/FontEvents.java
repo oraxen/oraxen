@@ -144,6 +144,7 @@ public class FontEvents implements Listener {
 
         ItemMeta meta = clickedItem.getItemMeta();
         if (meta == null) return;
+        displayName = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(displayName));
         meta.setDisplayName(displayName);
         clickedItem.setItemMeta(meta);
     }
