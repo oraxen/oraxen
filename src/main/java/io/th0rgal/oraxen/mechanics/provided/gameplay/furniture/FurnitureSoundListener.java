@@ -3,8 +3,8 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.events.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.events.OraxenFurniturePlaceEvent;
-import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -29,10 +29,6 @@ public class FurnitureSoundListener implements Listener {
 
     private final Map<Block, BukkitTask> breakerPlaySound = new HashMap<>();
 
-
-    public FurnitureSoundListener(final MechanicFactory factory) {
-    }
-
     // Play sound due to furniture/barrier custom sound replacing stone
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlacingStone(final BlockPlaceEvent event) {
@@ -40,7 +36,7 @@ public class FurnitureSoundListener implements Listener {
 
         if (block.getType() == Material.TRIPWIRE) return;
         if (block.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_STONE_PLACE) return;
-        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), VANILLA_STONE_PLACE);
+        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), VANILLA_STONE_PLACE, 0.8f, 0.8f);
     }
 
     // Play sound due to furniture/barrier custom sound replacing stone
@@ -56,7 +52,7 @@ public class FurnitureSoundListener implements Listener {
         }
 
         if (!event.isCancelled() && ProtectionLib.canBreak(event.getPlayer(), block.getLocation()))
-            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), VANILLA_STONE_BREAK);
+            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), VANILLA_STONE_BREAK, 0.8f, 0.8f);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -69,7 +65,7 @@ public class FurnitureSoundListener implements Listener {
         if (breakerPlaySound.containsKey(block)) return;
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_STONE_HIT), 2L, 4L);
+                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_STONE_HIT, 0.8f, 0.8f), 2L, 4L);
         breakerPlaySound.put(block, task);
     }
 
@@ -103,28 +99,35 @@ public class FurnitureSoundListener implements Listener {
 
         String sound;
         if (gameEvent == GameEvent.STEP) {
-            sound = (blockBelow.getType() == Material.BARRIER && mechanic != null && mechanic.hasStepSound())
-                    ? mechanic.getStepSound() : VANILLA_STONE_STEP;
+            sound = (blockBelow.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasStepSound())
+                    ? mechanic.getBlockSounds().getStepSound() : VANILLA_STONE_STEP;
         } else if (gameEvent == GameEvent.HIT_GROUND) {
-            sound = (blockBelow.getType() == Material.BARRIER && mechanic != null && mechanic.hasFallSound())
-                    ? mechanic.getFallSound() : VANILLA_STONE_FALL;
+            sound = (blockBelow.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasFallSound())
+                    ? mechanic.getBlockSounds().getFallSound() : VANILLA_STONE_FALL;
         } else return;
 
-        BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS);
+        float volume = mechanic != null && mechanic.hasBlockSounds() ? mechanic.getBlockSounds().getVolume() : 0.8f;
+        float pitch = mechanic != null && mechanic.hasBlockSounds() ? mechanic.getBlockSounds().getPitch() : 0.8f;
+
+        BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS, volume, pitch);
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlacingFurniture(final OraxenFurniturePlaceEvent event) {
         final FurnitureMechanic mechanic = event.getFurnitureMechanic();
-        if (mechanic != null && mechanic.hasPlaceSound())
-            BlockHelpers.playCustomBlockSound(event.getItemFrame().getLocation(), event.getFurnitureMechanic().getPlaceSound());
+        if (mechanic == null || !mechanic.hasBlockSounds()) return;
+        BlockSounds blockSounds = mechanic.getBlockSounds();
+        if (blockSounds.hasPlaceSound())
+            BlockHelpers.playCustomBlockSound(event.getItemFrame().getLocation(), blockSounds.getPlaceSound(), blockSounds.getVolume(), blockSounds.getPitch());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreakingFurniture(final OraxenFurnitureBreakEvent event) {
         Location loc = event.getBlock() != null ? event.getBlock().getLocation() : event.getItemFrame().getLocation();
         final FurnitureMechanic mechanic = event.getFurnitureMechanic();
-        if (mechanic != null && mechanic.hasBreakSound())
-            BlockHelpers.playCustomBlockSound(loc, event.getFurnitureMechanic().getPlaceSound());
+        if (mechanic == null || !mechanic.hasBlockSounds()) return;
+        BlockSounds blockSounds = mechanic.getBlockSounds();
+        if (blockSounds.hasBreakSound())
+            BlockHelpers.playCustomBlockSound(loc, blockSounds.getBreakSound(), blockSounds.getVolume(), blockSounds.getPitch());
     }
 }

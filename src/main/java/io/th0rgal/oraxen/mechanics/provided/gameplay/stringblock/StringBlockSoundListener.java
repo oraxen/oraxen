@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.events.OraxenStringBlockBreakEvent;
 import io.th0rgal.oraxen.events.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import org.bukkit.GameEvent;
 import org.bukkit.Material;
 import org.bukkit.SoundCategory;
@@ -29,27 +30,32 @@ public class StringBlockSoundListener implements Listener {
             final StringBlockMechanic mechanic = StringBlockMechanicListener.getStringMechanic(block);
             block.setType(Material.AIR, false);
             if (mechanic == null) return;
+            BlockSounds blockSounds = mechanic.getBlockSounds();
             OraxenStringBlockBreakEvent stringBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, null);
             OraxenPlugin.get().getServer().getPluginManager().callEvent(stringBlockBreakEvent);
             if (stringBlockBreakEvent.isCancelled()) return;
 
-            if (mechanic.hasBreakSound())
-                BlockHelpers.playCustomBlockSound(block.getLocation(), mechanic.getBreakSound());
+            if (mechanic.hasBlockSounds() && blockSounds.hasBreakSound())
+                BlockHelpers.playCustomBlockSound(block.getLocation(), blockSounds.getBreakSound(), blockSounds.getVolume(), blockSounds.getPitch());
         }
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlaceString(OraxenStringBlockPlaceEvent event) {
         final StringBlockMechanic mechanic = event.getStringBlockMechanic();
-        if (mechanic != null && mechanic.hasPlaceSound())
-            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), mechanic.getPlaceSound());
+        if (mechanic == null || !mechanic.hasBlockSounds()) return;
+        BlockSounds blockSounds = mechanic.getBlockSounds();
+        if (blockSounds.hasPlaceSound())
+            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getPlaceSound(), blockSounds.getVolume(), blockSounds.getPitch());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreakString(OraxenStringBlockBreakEvent event) {
-        StringBlockMechanic mechanic = event.getStringBlockMechanic();
-        if (mechanic != null && mechanic.hasBreakSound())
-            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), mechanic.getBreakSound());
+        final StringBlockMechanic mechanic = event.getStringBlockMechanic();
+        if (mechanic == null || !mechanic.hasBlockSounds()) return;
+        BlockSounds blockSounds = mechanic.getBlockSounds();
+        if (blockSounds.hasBreakSound())
+            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getBreakSound(), blockSounds.getVolume(), blockSounds.getPitch());
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -62,11 +68,12 @@ public class StringBlockSoundListener implements Listener {
         StringBlockMechanic mechanic = StringBlockMechanicListener.getStringMechanic(block);
         String sound;
 
-        if (mechanic == null) return;
-        if (gameEvent == GameEvent.STEP && mechanic.hasStepSound()) sound = mechanic.getStepSound();
-        else if (gameEvent == GameEvent.HIT_GROUND && mechanic.hasStepSound()) sound = mechanic.getFallSound();
+        if (mechanic == null || !mechanic.hasBlockSounds()) return;
+        BlockSounds blockSounds = mechanic.getBlockSounds();
+        if (gameEvent == GameEvent.STEP && blockSounds.hasStepSound()) sound = blockSounds.getStepSound();
+        else if (gameEvent == GameEvent.HIT_GROUND && blockSounds.hasStepSound()) sound = blockSounds.getFallSound();
         else return;
-        BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS);
+        BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS, blockSounds.getVolume(), blockSounds.getPitch());
     }
 
 }

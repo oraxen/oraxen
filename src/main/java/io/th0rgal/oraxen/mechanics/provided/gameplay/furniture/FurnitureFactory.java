@@ -27,7 +27,7 @@ public class FurnitureFactory extends MechanicFactory {
         customSounds = section.getBoolean("custom_sounds", true);
 
         MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureListener(this));
-        if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureSoundListener(this));
+        if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureSoundListener());
     }
 
     @Override

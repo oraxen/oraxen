@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
@@ -13,23 +13,16 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.MultipleFacing;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedHashMap;
-import java.util.List;
+import java.util.*;
 
 public class BlockMechanic extends Mechanic {
 
     private String model;
     private final int customVariation;
     private final Drop drop;
-    private final String breakSound;
-    private final String placeSound;
-    private final String stepSound;
-    private final String hitSound;
-    private final String fallSound;
     private final boolean canIgnite;
     private final LimitedPlacing limitedPlacing;
+    private final BlockSounds blockSounds;
 
     @SuppressWarnings("unchecked")
     public BlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -43,12 +36,6 @@ public class BlockMechanic extends Mechanic {
 
         customVariation = section.getInt("custom_variation");
         canIgnite = section.getBoolean("can_ignite", false);
-
-        placeSound = section.getString("place_sound", null);
-        breakSound = section.getString("break_sound", null);
-        stepSound = section.getString("step_sound", null);
-        hitSound = section.getString("hit_sound", null);
-        fallSound = section.getString("fall_sound", null);
 
 
         List<Loot> loots = new ArrayList<>();
@@ -67,8 +54,12 @@ public class BlockMechanic extends Mechanic {
             this.drop = new Drop(loots, drop.getBoolean("silktouch"), drop.getBoolean("fortune"), getItemID());
 
         if (section.isConfigurationSection("limited_placing")) {
-            limitedPlacing = new LimitedPlacing(section.getConfigurationSection("limited_placing"));
+            limitedPlacing = new LimitedPlacing(Objects.requireNonNull(section.getConfigurationSection("limited_placing")));
         } else limitedPlacing = null;
+
+        if (section.isConfigurationSection("block_sounds")) {
+            blockSounds = new BlockSounds(Objects.requireNonNull(section.getConfigurationSection("block_sounds")));
+        } else blockSounds = null;
     }
 
     public String getModel(ConfigurationSection section) {
@@ -81,6 +72,9 @@ public class BlockMechanic extends Mechanic {
     public boolean hasLimitedPlacing() { return limitedPlacing != null; }
     public LimitedPlacing getLimitedPlacing() { return limitedPlacing; }
 
+    public boolean hasBlockSounds() { return blockSounds != null; }
+    public BlockSounds getBlockSounds() { return blockSounds; }
+
     public int getCustomVariation() {
         return customVariation;
     }
@@ -92,25 +86,6 @@ public class BlockMechanic extends Mechanic {
     public boolean canIgnite() {
         return canIgnite;
     }
-
-    public boolean hasBreakSound() {
-        return breakSound != null;
-    }
-    public String getBreakSound() {
-        return BlockHelpers.validateReplacedSounds(breakSound);
-    }
-
-    public boolean hasPlaceSound() { return placeSound != null; }
-    public String getPlaceSound() { return BlockHelpers.validateReplacedSounds(placeSound); }
-
-    public boolean hasStepSound() { return stepSound != null; }
-    public String getStepSound() { return BlockHelpers.validateReplacedSounds(stepSound); }
-
-    public boolean hasHitSound() { return hitSound != null; }
-    public String getHitSound() { return BlockHelpers.validateReplacedSounds(hitSound); }
-
-    public boolean hasFallSound() { return fallSound != null; }
-    public String getFallSound() { return BlockHelpers.validateReplacedSounds(fallSound); }
 
     public static int getCode(final Block block) {
         int sum = 0;

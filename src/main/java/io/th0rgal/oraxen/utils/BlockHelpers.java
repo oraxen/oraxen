@@ -39,13 +39,13 @@ public class BlockHelpers {
     public static String VANILLA_WOOD_STEP = "minecraft:required.wood.step";
     public static String VANILLA_WOOD_FALL = "minecraft:required.wood.fall";
 
-    public static void playCustomBlockSound(Location location, String sound) {
-        playCustomBlockSound(toCenterLocation(location), sound, SoundCategory.BLOCKS);
+    public static void playCustomBlockSound(Location location, String sound, float volume, float pitch) {
+        playCustomBlockSound(toCenterLocation(location), sound, SoundCategory.BLOCKS, volume, pitch);
     }
 
-    public static void playCustomBlockSound(Location location, String sound, SoundCategory category) {
+    public static void playCustomBlockSound(Location location, String sound, SoundCategory category, float volume, float pitch) {
         if (sound == null || location == null || location.getWorld() == null || category == null) return;
-        location.getWorld().playSound(location, sound, category, 0.8f, 0.8f);
+        location.getWorld().playSound(location, sound, category, volume, pitch);
     }
 
     public static String validateReplacedSounds(String sound) {
