@@ -102,21 +102,24 @@ public class ConfigsManager {
         itemsFolder = new File(plugin.getDataFolder(), "items");
         if (!itemsFolder.exists()) {
             itemsFolder.mkdirs();
-            new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
         }
 
         // check glyphsFolder
         glyphsFolder = new File(plugin.getDataFolder(), "glyphs");
         if (!glyphsFolder.exists()) {
             glyphsFolder.mkdirs();
-            new ResourcesManager(plugin).extractConfigsInFolder("glyphs", "yml");
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("glyphs", "yml");
         }
 
         // check schematicsFolder
         schematicsFolder = new File(plugin.getDataFolder(), "schematics");
         if (!schematicsFolder.exists()) {
             schematicsFolder.mkdirs();
-            new ResourcesManager(plugin).extractConfigsInFolder("schematics", "schem");
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("schematics", "schem");
         }
 
         return true; // todo : return false when an error is detected + prints a detailed error

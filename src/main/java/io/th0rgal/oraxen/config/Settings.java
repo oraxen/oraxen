@@ -9,6 +9,8 @@ public enum Settings {
 
     PLUGIN_LANGUAGE("Plugin.language"),
     REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),
+    GENERATE_DEFAULT_ASSETS("Plugin.generation.default_assets"),
+    GENERATE_DEFAULT_CONFIGS("Plugin.generation.default_configs"),
 
     CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),

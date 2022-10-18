@@ -58,6 +58,7 @@ public class ResourcePack {
         customArmorsTextures = new CustomArmorsTextures((int) Settings.ARMOR_RESOLUTION.getValue());
         packFolder = new File(plugin.getDataFolder(), "pack");
         makeDirsIfNotExists(packFolder);
+        makeDirsIfNotExists(new File(packFolder, "assets"));
         pack = new File(packFolder, packFolder.getName() + ".zip");
         File assetsFolder = new File(packFolder, "assets");
         File modelsFolder = new File(packFolder, "models");
@@ -67,9 +68,11 @@ public class ResourcePack {
         File textureFolder = new File(packFolder, "textures");
         File shaderFolder = new File(packFolder, "shaders");
         File soundFolder = new File(packFolder, "sounds");
-        extractFolders(!modelsFolder.exists(), !textureFolder.exists(),
-                !shaderFolder.exists(), !langFolder.exists(), !fontFolder.exists(),
-                !soundFolder.exists(), !assetsFolder.exists(), !optifineFolder.exists());
+
+        if (Settings.GENERATE_DEFAULT_ASSETS.toBool())
+            extractFolders(!modelsFolder.exists(), !textureFolder.exists(),
+                    !shaderFolder.exists(), !langFolder.exists(), !fontFolder.exists(),
+                    !soundFolder.exists(), !assetsFolder.exists(), !optifineFolder.exists());
 
         if (!Settings.GENERATE.toBool())
             return;
