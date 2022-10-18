@@ -6,6 +6,8 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import net.kyori.adventure.key.Key;
+import net.kyori.adventure.sound.Sound;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -32,7 +34,7 @@ public class MusicDiscListener implements Listener {
         this.factory = factory;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onInsertDisc(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
@@ -44,7 +46,7 @@ public class MusicDiscListener implements Listener {
         event.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onEjectDisc(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
@@ -55,17 +57,17 @@ public class MusicDiscListener implements Listener {
         event.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onJukeboxBreak(BlockBreakEvent event) {
         ejectAndStopCustomDisc(event.getBlock());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onJukeboxBreak(BlockExplodeEvent event) {
         ejectAndStopCustomDisc(event.getBlock());
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onJukeboxBreak(BlockBurnEvent event) {
         ejectAndStopCustomDisc(event.getBlock());
     }
@@ -120,7 +122,7 @@ public class MusicDiscListener implements Listener {
         block.getWorld().getNearbyEntities(loc, 32, 32, 32).stream()
                 .filter(entity -> entity instanceof Player)
                 .map(entity -> (Player) entity)
-                .forEach(p -> p.stopSound(mechanic.getSong(), SoundCategory.RECORDS));
+                .forEach(p -> OraxenPlugin.get().getAudience().player(p).stopSound(Sound.sound(Key.key(mechanic.getSong()), Sound.Source.RECORD, 1, 1)));
         block.getWorld().dropItemNaturally(loc, ejectedDisc);
         pdc.remove(MUSIC_DISC_KEY);
         return true;

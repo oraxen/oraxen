@@ -56,6 +56,6 @@ public class JukeboxBlock {
     }
 
     public boolean checkPermission(Player player) {
-        return player != null && !getPermission().isBlank() && player.hasPermission(getPermission());
+        return player == null || getPermission().isBlank() || player.hasPermission(getPermission());
     }
 }
