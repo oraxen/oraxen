@@ -27,6 +27,7 @@ public enum Settings {
     BOW_DISPLAY("Misc.bow_display"),
     CROSSBOW_DISPLAY("Misc.crossbow_display"),
     AUTO_UPDATE_ITEMS("Misc.auto_update_items"),
+    HIDE_SCOREBOARD_NUMBERS("Misc.hide_scoreboard_numbers"),
 
     GENERATE("Pack.generation.generate"),
     ARMOR_RESOLUTION("Pack.generation.armor_resolution"),
