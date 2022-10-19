@@ -112,6 +112,7 @@ public class ConfigsManager {
             glyphsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
                 new ResourcesManager(plugin).extractConfigsInFolder("glyphs", "yml");
+            else new ResourcesManager(plugin).extractConfiguration("glyphs/interface.yml");
         }
 
         // check schematicsFolder
