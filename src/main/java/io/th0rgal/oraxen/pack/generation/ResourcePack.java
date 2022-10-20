@@ -73,6 +73,7 @@ public class ResourcePack {
             extractFolders(!modelsFolder.exists(), !textureFolder.exists(),
                     !shaderFolder.exists(), !langFolder.exists(), !fontFolder.exists(),
                     !soundFolder.exists(), !assetsFolder.exists(), !optifineFolder.exists());
+        else extractRequired();
 
         if (!Settings.GENERATE.toBool())
             return;
@@ -136,6 +137,24 @@ public class ResourcePack {
             while (entry != null) {
                 extract(entry, extractModels, extractTextures,
                         extractLang, extractFonts, extractSounds, extractAssets, extractOptifine, resourcesManager);
+                entry = zip.getNextEntry();
+            }
+            zip.closeEntry();
+            zip.close();
+        } catch (final IOException ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void extractRequired() {
+        final ZipInputStream zip = ResourcesManager.browse();
+        try {
+            ZipEntry entry = zip.getNextEntry();
+            final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
+            while (entry != null) {
+                if (entry.getName().startsWith("pack/textures/required") || entry.getName().startsWith("pack/models/required")) {
+                    resourcesManager.extractFileIfTrue(entry, entry.getName(), true);
+                }
                 entry = zip.getNextEntry();
             }
             zip.closeEntry();
