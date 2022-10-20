@@ -98,16 +98,17 @@ public class FurnitureSoundListener implements Listener {
         FurnitureMechanic mechanic = FurnitureListener.getFurnitureMechanic(blockBelow);
 
         String sound;
+        boolean hasBlockSound = mechanic != null && mechanic.hasBlockSounds();
         if (gameEvent == GameEvent.STEP) {
-            sound = (blockBelow.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasStepSound())
+            sound = (blockBelow.getType() == Material.BARRIER && hasBlockSound && mechanic.getBlockSounds().hasStepSound())
                     ? mechanic.getBlockSounds().getStepSound() : VANILLA_STONE_STEP;
         } else if (gameEvent == GameEvent.HIT_GROUND) {
-            sound = (blockBelow.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasFallSound())
+            sound = (blockBelow.getType() == Material.BARRIER && hasBlockSound && mechanic.getBlockSounds().hasFallSound())
                     ? mechanic.getBlockSounds().getFallSound() : VANILLA_STONE_FALL;
         } else return;
 
-        float volume = mechanic != null && mechanic.hasBlockSounds() ? mechanic.getBlockSounds().getVolume() : 0.8f;
-        float pitch = mechanic != null && mechanic.hasBlockSounds() ? mechanic.getBlockSounds().getPitch() : 0.8f;
+        float volume = hasBlockSound ? mechanic.getBlockSounds().getVolume() : 0.8f;
+        float pitch = hasBlockSound ? mechanic.getBlockSounds().getPitch() : 0.8f;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS, volume, pitch);
     }
