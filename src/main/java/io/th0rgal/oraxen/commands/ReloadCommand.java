@@ -6,6 +6,7 @@ import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.font.FontManager;
+import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
@@ -31,14 +32,26 @@ public class ReloadCommand {
         plugin.getUploadManager().uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true);
     }
 
+    private static void reloadHud(CommandSender sender) {
+        Message.RELOAD.send(sender, Utils.tagResolver("reloaded", "hud"));
+        OraxenPlugin.get().reloadConfigs();
+        HudManager hudManager = new HudManager(OraxenPlugin.get().getConfigsManager());
+        OraxenPlugin.get().setHudManager(hudManager);
+        hudManager.loadHuds(hudManager.getHudConfigSection());
+        hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
+        hudManager.reregisterEvents();
+        hudManager.restartTask();
+    }
+
     public CommandAPICommand getReloadCommand() {
         return new CommandAPICommand("reload")
                 .withAliases("rl")
                 .withPermission("oraxen.command.reload")
                 .withArguments(new TextArgument("type").replaceSuggestions(
-                        ArgumentSuggestions.strings("items", "pack", "recipes", "messages", "all")))
+                        ArgumentSuggestions.strings("items", "pack", "hud", "recipes", "messages", "all")))
                 .executes((sender, args) -> {
                     switch (((String) args[0]).toUpperCase()) {
+                        case "HUD" -> reloadHud(sender);
                         case "ITEMS" -> {
                             reloadItems(sender);
                             OraxenPlugin.get().getInvManager().regen();
@@ -53,6 +66,7 @@ public class ReloadCommand {
                             OraxenPlugin.get().reloadConfigs();
                             reloadItems(sender);
                             reloadPack(oraxen, sender);
+                            reloadHud(sender);
                             RecipesManager.reload(oraxen);
                             OraxenPlugin.get().getInvManager().regen();
                         }
