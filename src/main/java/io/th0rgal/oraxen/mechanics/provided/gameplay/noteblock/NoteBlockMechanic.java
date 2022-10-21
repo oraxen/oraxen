@@ -119,12 +119,8 @@ public class NoteBlockMechanic extends Mechanic {
     public boolean hasBlockSounds() { return blockSounds != null; }
     public BlockSounds getBlockSounds() { return blockSounds; }
 
-    public boolean hasDryout() {
-        return farmBlockDryout != null;
-    }
-    public FarmBlockDryout getDryout() {
-        return farmBlockDryout;
-    }
+    public boolean hasDryout() { return farmBlockDryout != null; }
+    public FarmBlockDryout getDryout() { return farmBlockDryout; }
 
     public boolean isLog() { return logStripping != null; }
     public LogStripping getLog() { return logStripping; }
