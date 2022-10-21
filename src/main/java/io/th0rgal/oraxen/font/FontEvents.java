@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.font;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.utils.Utils;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -144,6 +145,7 @@ public class FontEvents implements Listener {
 
         ItemMeta meta = clickedItem.getItemMeta();
         if (meta == null) return;
+        displayName = Utils.MINI_MESSAGE.serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(displayName)).replace("\\<", "<");
         displayName = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(displayName));
         meta.setDisplayName(displayName);
         clickedItem.setItemMeta(meta);
