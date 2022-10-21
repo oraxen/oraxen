@@ -1,10 +1,13 @@
 package io.th0rgal.oraxen.font;
 
+import com.comphenix.protocol.ProtocolLibrary;
+import com.comphenix.protocol.ProtocolManager;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.utils.Utils;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -115,40 +118,68 @@ public class FontEvents implements Listener {
     @EventHandler
     public void onPlayerRename(final InventoryClickEvent event) {
         if (!(event.getClickedInventory() instanceof AnvilInventory clickedInv)) return;
-        if (event.getSlot() != 2) return;
-
         Player player = (Player) event.getWhoClicked();
         String displayName = clickedInv.getRenameText();
-        ItemStack clickedItem = clickedInv.getItem(2);
-        if (clickedItem == null) return;
-        if (displayName == null || displayName.isBlank()) return;
-        for (Character character : manager.getReverseMap().keySet()) {
-            if (!displayName.contains(String.valueOf(character))) continue;
-            Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
-            if (!glyph.hasPermission(player)) {
-                Glyph required = manager.getGlyphFromName("required");
-                String replacement = required.hasPermission(player) ? String.valueOf(required.getCharacter()) : "";
-                Message.NO_PERMISSION.send(player, Utils.tagResolver("permission", glyph.getPermission()));
-                displayName = displayName.replace(String.valueOf(character), replacement);
+        final ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
+
+        switch (event.getSlot()) {
+            case 0 -> { // Clicking first item
+                ItemStack cursor = event.getCursor();
+                ItemStack current = event.getCurrentItem();
+
+                // Adding item to first slot
+                if (cursor != null && cursor.getType() != Material.AIR) {
+                    ItemMeta meta = cursor.getItemMeta();
+                    if (meta == null || !meta.hasDisplayName()) return;
+                    String name = meta.getDisplayName();
+                    name = Utils.MINI_MESSAGE.serialize(Utils.LEGACY_COMPONENT_SERIALIZER.deserialize(name)).replace("\\<", "<");
+                    meta.setDisplayName(name);
+                    cursor.setItemMeta(meta);
+                }
+                // Taking item from first slot
+                else if (current != null && current.getType() != Material.AIR) {
+                    ItemMeta meta = current.getItemMeta();
+                    if (meta == null || !meta.hasDisplayName()) return;
+                    String name = meta.getDisplayName();
+                    name = Utils.MINI_MESSAGE.serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(name)).replace("\\<", "<");
+                    name = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(name));
+                    meta.setDisplayName(name);
+                    current.setItemMeta(meta);
+                }
+            }
+            case 2 -> { // Clicking result item
+                ItemStack clickedItem = clickedInv.getItem(2);
+                if (clickedItem == null) return;
+                if (displayName == null || displayName.isBlank()) return;
+                for (Character character : manager.getReverseMap().keySet()) {
+                    if (!displayName.contains(String.valueOf(character))) continue;
+                    Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
+                    if (!glyph.hasPermission(player)) {
+                        Glyph required = manager.getGlyphFromName("required");
+                        String replacement = required.hasPermission(player) ? String.valueOf(required.getCharacter()) : "";
+                        Message.NO_PERMISSION.send(player, Utils.tagResolver("permission", glyph.getPermission()));
+                        displayName = displayName.replace(String.valueOf(character), replacement);
+                    }
+                }
+
+                for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
+                    if (entry.getValue().hasPermission(player))
+                        displayName = (manager.permsChatcolor == null)
+                                ? displayName.replace(entry.getKey(),
+                                String.valueOf(entry.getValue().getCharacter()))
+                                : displayName.replace(entry.getKey(),
+                                ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter())
+                                        + PapiAliases.setPlaceholders(player, manager.permsChatcolor));
+                }
+
+                ItemMeta meta = clickedItem.getItemMeta();
+                if (meta == null) return;
+                displayName = Utils.MINI_MESSAGE.serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(displayName)).replace("\\<", "<");
+                displayName = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(displayName));
+                meta.setDisplayName(displayName);
+                clickedItem.setItemMeta(meta);
             }
         }
-
-        for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-            if (entry.getValue().hasPermission(player))
-                displayName = (manager.permsChatcolor == null)
-                        ? displayName.replace(entry.getKey(),
-                        String.valueOf(entry.getValue().getCharacter()))
-                        : displayName.replace(entry.getKey(),
-                        ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter())
-                                + PapiAliases.setPlaceholders(player, manager.permsChatcolor));
-        }
-
-        ItemMeta meta = clickedItem.getItemMeta();
-        if (meta == null) return;
-        displayName = Utils.MINI_MESSAGE.serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(displayName)).replace("\\<", "<");
-        displayName = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(displayName));
-        meta.setDisplayName(displayName);
-        clickedItem.setItemMeta(meta);
     }
 
     @EventHandler
