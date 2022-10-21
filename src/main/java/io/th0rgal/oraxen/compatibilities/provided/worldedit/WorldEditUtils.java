@@ -65,45 +65,46 @@ public class WorldEditUtils {
             if (stringMechanic != null)
                 blockData = StringBlockMechanicFactory.createTripwireData(stringMechanic.getCustomVariation());
             else if (noteMechanic != null) {
-                NoteBlockMechanicFactory factory = NoteBlockMechanicFactory.getInstance();
-                if (noteMechanic.isDirectional()) {
-                    String direction = (input.contains("\\[")) ? input.split("\\[")[1].split("=")[1].split("]")[0] : input;
-                    DirectionalBlock dirBlock = noteMechanic.getDirectional();
-
-                    if (dirBlock.isParentBlock() && !direction.equals(input)) {
-                        String dir;
-                        if (dirBlock.getDirectionalType() == DirectionalBlock.DirectionalType.LOG)
-                            dir = switch (direction) {
-                                case "x" -> dirBlock.getXBlock();
-                                case "y" -> dirBlock.getYBlock();
-                                case "z" -> dirBlock.getZBlock();
-                                default -> noteMechanic.getItemID();
-                            };
-                        else if (dirBlock.getDirectionalType() == DirectionalBlock.DirectionalType.FURNACE)
-                            dir = switch (direction) {
-                                case "north" -> dirBlock.getNorthBlock();
-                                case "south" -> dirBlock.getSouthBlock();
-                                case "west" -> dirBlock.getWestBlock();
-                                case "east" -> dirBlock.getEastBlock();
-                                default -> noteMechanic.getItemID();
-                            };
-                        else dir = switch (direction) {
-                                case "north" -> dirBlock.getNorthBlock();
-                                case "south" -> dirBlock.getSouthBlock();
-                                case "west" -> dirBlock.getWestBlock();
-                                case "east" -> dirBlock.getEastBlock();
-                                case "up" -> dirBlock.getUpBlock();
-                                case "down" -> dirBlock.getDownBlock();
-                                default -> noteMechanic.getItemID();
-                            };
-                        blockData = factory.createNoteBlockData(dir);
-
-                    } else if (!dirBlock.isParentBlock()) blockData = factory.createNoteBlockData(dirBlock.getParentBlock());
-                    else blockData = factory.createNoteBlockData(noteMechanic.getItemID());
-                } else blockData = factory.createNoteBlockData(noteMechanic.getItemID());
+                blockData = parseNoteBlock(noteMechanic, input);
             } else return null;
 
             return BukkitAdapter.adapt(blockData).toBaseBlock();
+        }
+    }
+
+    private static BlockData parseNoteBlock(NoteBlockMechanic mechanic, String input) {
+        NoteBlockMechanicFactory factory = NoteBlockMechanicFactory.getInstance();
+        if (mechanic.isDirectional()) {
+            String direction = (input.contains("\\[")) ? input.split("\\[")[1].split("=")[1].split("]")[0] : input;
+            DirectionalBlock dirBlock = mechanic.getDirectional();
+
+            if (!dirBlock.isParentBlock()) {
+                return factory.createNoteBlockData(dirBlock.getParentBlock());
+            } else if (dirBlock.isParentBlock() && !direction.equals(input)) {
+                return  factory.createNoteBlockData(getDirectionalID(mechanic, direction));
+            } else return factory.createNoteBlockData(mechanic.getItemID());
+        } else return factory.createNoteBlockData(mechanic.getItemID());
+    }
+
+    private static String getDirectionalID(NoteBlockMechanic mechanic, String direction) {
+        DirectionalBlock dirBlock = mechanic.getDirectional();
+        if (dirBlock.isLog()) {
+            return switch (direction) {
+                case "x" -> dirBlock.getXBlock();
+                case "y" -> dirBlock.getYBlock();
+                case "z" -> dirBlock.getZBlock();
+                default -> mechanic.getItemID();
+            };
+        } else {
+            return switch (direction) {
+                case "north" -> dirBlock.getNorthBlock();
+                case "south" -> dirBlock.getSouthBlock();
+                case "west" -> dirBlock.getWestBlock();
+                case "east" -> dirBlock.getEastBlock();
+                case "up" -> dirBlock.isDropper() ? dirBlock.getUpBlock() : mechanic.getItemID();
+                case "down" -> dirBlock.isDropper() ? dirBlock.getDownBlock() : mechanic.getItemID();
+                default -> mechanic.getItemID();
+            };
         }
     }
 

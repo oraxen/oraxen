@@ -21,7 +21,13 @@ public class WrappedWorldEdit {
     public static void registerParser() {
         if (loaded) {
             WorldEdit.getInstance().getBlockFactory().register(new WorldEditUtils.OraxenBlockInputParser());
-            Bukkit.getPluginManager().registerEvents(new WorldEditListener(), OraxenPlugin.get());
+            try {
+                // Try and load class, if it fails it is not Paper server so don't register event
+                Class.forName("com.destroystokyo.paper.event.server.AsyncTabCompleteEvent");
+                Bukkit.getPluginManager().registerEvents(new WorldEditListener(), OraxenPlugin.get());
+            }
+            catch (ClassNotFoundException ignored) {
+            }
         }
     }
 
