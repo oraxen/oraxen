@@ -1,9 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling;
 
-import com.jeff_media.customblockdata.CustomBlockData;
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -47,8 +46,8 @@ public class SaplingListener implements Listener {
         if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         block.getWorld().playEffect(loc, Effect.BONE_MEAL_USE, 3);
 
-        PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
-        int growthTimeRemains = pdc.get(SAPLING_KEY, PersistentDataType.INTEGER) - sapling.getBoneMealGrowthSpeedup();
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        int growthTimeRemains = pdc.getOrDefault(SAPLING_KEY, PersistentDataType.INTEGER, 0) - sapling.getBoneMealGrowthSpeedup();
         if (growthTimeRemains <= 0) {
             block.setType(Material.AIR, false);
             if (sapling.hasGrowSound())

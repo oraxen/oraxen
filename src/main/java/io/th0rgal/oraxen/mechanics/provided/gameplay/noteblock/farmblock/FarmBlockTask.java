@@ -4,6 +4,7 @@ import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.World;
@@ -44,7 +45,7 @@ public class FarmBlockTask extends BukkitRunnable {
                         updateBlockModel(block, pdc, farmMechanic.getMoistFarmBlock());
                     pdc.set(FARMBLOCK_KEY, PersistentDataType.INTEGER, 0);
                 } else if (pdc.has(FARMBLOCK_KEY, PersistentDataType.INTEGER)) {
-                    int moistTimerRemain = pdc.get(FARMBLOCK_KEY, PersistentDataType.INTEGER) + delay;
+                    int moistTimerRemain = pdc.getOrDefault(FARMBLOCK_KEY, PersistentDataType.INTEGER, 0) + delay;
                     if (farmMechanic.getDryoutTime() - moistTimerRemain <= 0) {
                         updateBlockModel(block, pdc, farmMechanic.getFarmBlock());
                         pdc.set(FARMBLOCK_KEY, PersistentDataType.STRING, farmMechanic.getFarmBlock());
@@ -61,6 +62,6 @@ public class FarmBlockTask extends BukkitRunnable {
         for (World world : Bukkit.getWorlds())
             for (Chunk chunk : world.getLoadedChunks())
                 CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk).forEach(block ->
-                        updateBlock(block, new CustomBlockData(block, OraxenPlugin.get())));
+                        updateBlock(block, BlockHelpers.getPDC(block)));
     }
 }

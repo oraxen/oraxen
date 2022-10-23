@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
@@ -37,7 +36,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
 
@@ -226,7 +224,7 @@ public class NoteBlockMechanicListener implements Listener {
             if (instrumentMap.isEmpty()) instrumentMap = getInstrumentMap();
             String blockType = event.getBlock().getRelative(BlockFace.DOWN).getType().toString().toLowerCase();
             Instrument fakeInstrument = instrumentMap.entrySet().stream().filter(e -> e.getValue().contains(blockType)).map(Map.Entry::getKey).findFirst().orElse(Instrument.PIANO);
-            // This is deprecated, but it seems to just be because it doesn't handle null, which our instrument never is
+            // This is deprecated, but seems to be without reason
             event.setInstrument(fakeInstrument);
         }
     }
@@ -306,13 +304,11 @@ public class NoteBlockMechanicListener implements Listener {
                 WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
 
             if (mechanic.hasDryout() && mechanic.getDryout().isFarmBlock()) {
-                final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
-                customBlockData.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
+                BlockHelpers.getPDC(placedBlock).set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
             }
 
             if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
-                final PersistentDataContainer customBlockData = new CustomBlockData(placedBlock, OraxenPlugin.get());
-                customBlockData.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
+                BlockHelpers.getPDC(placedBlock).set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
             }
         }
     }

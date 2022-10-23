@@ -1,10 +1,10 @@
 package io.th0rgal.oraxen.utils.storage;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.StorageGui;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -77,7 +77,7 @@ public class StorageMechanic {
 
     public void dropStorageContent(Block block) {
         StorageGui gui = blockStorages.get(block);
-        PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         // If shutdown the gui isn't saved and map is empty, so use pdc storage
         ItemStack[] items = (blockStorages.containsKey(block) && gui != null)
                 ? gui.getInventory().getContents() : pdc.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
@@ -216,7 +216,7 @@ public class StorageMechanic {
 
     private StorageGui createGui(Block block) {
         Location location = block.getLocation();
-        PersistentDataContainer storagePDC = new CustomBlockData(block, OraxenPlugin.get());
+        PersistentDataContainer storagePDC = BlockHelpers.getPDC(block);
         StorageGui gui = Gui.storage().title(Utils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
 
         // Slight delay to catch stacks sometimes moving too fast
