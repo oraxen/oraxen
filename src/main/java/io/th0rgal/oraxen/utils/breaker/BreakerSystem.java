@@ -101,7 +101,7 @@ public class BreakerSystem {
                                 false, false, false)));
                 BlockSounds blockSounds = getBlockSounds(block);
                 if (blockSounds != null)
-                    BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getVolume(), blockSounds.getPitch());
+                    BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getHitVolume(), blockSounds.getHitPitch());
                 if (breakerPerLocation.containsKey(location))
                     breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
 
@@ -184,7 +184,7 @@ public class BreakerSystem {
             breakerPlaySound.add(block);
             BlockSounds blockSounds = getBlockSounds(block);
             if (blockSounds != null)
-                BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getVolume(), blockSounds.getPitch());
+                BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getHitVolume(), blockSounds.getHitPitch());
             // Furniture is triggered more often so delay is longer
             if (block.getType() == Material.BARRIER) {
                 Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->

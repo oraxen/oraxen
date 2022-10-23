@@ -103,13 +103,13 @@ public class NoteBlockSoundListener implements Listener {
         if (gameEvent == GameEvent.STEP) {
             boolean check = blockBelow.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasStepSound();
             sound = (check) ? mechanic.getBlockSounds().getStepSound() : VANILLA_WOOD_STEP;
-            volume = (check) ? mechanic.getBlockSounds().getVolume() : 0.15f;
-            pitch = (check) ? mechanic.getBlockSounds().getPitch() : 1.0f;
+            volume = (check) ? mechanic.getBlockSounds().getStepVolume() : 0.15f;
+            pitch = (check) ? mechanic.getBlockSounds().getStepPitch() : 1.0f;
         } else if (gameEvent == GameEvent.HIT_GROUND) {
             boolean check = (blockBelow.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasFallSound());
             sound = (check) ? mechanic.getBlockSounds().getFallSound() : VANILLA_WOOD_FALL;
-            volume = (check) ? mechanic.getBlockSounds().getVolume() : 0.5f;
-            pitch = (check) ? mechanic.getBlockSounds().getPitch() : 0.75f;
+            volume = (check) ? mechanic.getBlockSounds().getFallVolume() : 0.5f;
+            pitch = (check) ? mechanic.getBlockSounds().getFallPitch() : 0.75f;
         } else return;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS, volume, pitch);
@@ -123,7 +123,7 @@ public class NoteBlockSoundListener implements Listener {
         if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.getBlockSounds().hasPlaceSound()) return;
 
         BlockSounds blockSounds = mechanic.getBlockSounds();
-        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getPlaceSound(), blockSounds.getVolume(), blockSounds.getPitch());
+        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getPlaceSound(), blockSounds.getPlaceVolume(), blockSounds.getPlacePitch());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -134,7 +134,7 @@ public class NoteBlockSoundListener implements Listener {
         if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.getBlockSounds().hasBreakSound()) return;
 
         BlockSounds blockSounds = mechanic.getBlockSounds();
-        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getBreakSound(), blockSounds.getVolume(), blockSounds.getPitch());
+        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());
 
     }
 }

@@ -103,13 +103,13 @@ public class FurnitureSoundListener implements Listener {
         if (gameEvent == GameEvent.STEP) {
             boolean check = blockBelow.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasStepSound();
             sound = (check) ? mechanic.getBlockSounds().getStepSound() : VANILLA_STONE_STEP;
-            volume = (check) ? mechanic.getBlockSounds().getVolume() : 0.15f;
-            pitch = (check) ? mechanic.getBlockSounds().getPitch() : 1.0f;
+            volume = (check) ? mechanic.getBlockSounds().getStepVolume() : 0.15f;
+            pitch = (check) ? mechanic.getBlockSounds().getStepPitch() : 1.0f;
         } else if (gameEvent == GameEvent.HIT_GROUND) {
             boolean check = (blockBelow.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasFallSound());
             sound = (check) ? mechanic.getBlockSounds().getFallSound() : VANILLA_STONE_FALL;
-            volume = (check) ? mechanic.getBlockSounds().getVolume() : 0.5f;
-            pitch = (check) ? mechanic.getBlockSounds().getPitch() : 0.75f;
+            volume = (check) ? mechanic.getBlockSounds().getFallVolume() : 0.5f;
+            pitch = (check) ? mechanic.getBlockSounds().getFallPitch() : 0.75f;
         } else return;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS, volume, pitch);
@@ -121,7 +121,7 @@ public class FurnitureSoundListener implements Listener {
         if (mechanic == null || !mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
         if (blockSounds.hasPlaceSound())
-            BlockHelpers.playCustomBlockSound(event.getItemFrame().getLocation(), blockSounds.getPlaceSound(), blockSounds.getVolume(), blockSounds.getPitch());
+            BlockHelpers.playCustomBlockSound(event.getItemFrame().getLocation(), blockSounds.getPlaceSound(), blockSounds.getPlaceVolume(), blockSounds.getPlacePitch());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -131,6 +131,6 @@ public class FurnitureSoundListener implements Listener {
         if (mechanic == null || !mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
         if (blockSounds.hasBreakSound())
-            BlockHelpers.playCustomBlockSound(loc, blockSounds.getBreakSound(), blockSounds.getVolume(), blockSounds.getPitch());
+            BlockHelpers.playCustomBlockSound(loc, blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());
     }
 }
