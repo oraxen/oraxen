@@ -35,7 +35,7 @@ public class NoteBlockSoundListener implements Listener {
         if (NoteBlockMechanicListener.getNoteBlockMechanic(placed) != null || placed.getType() == Material.MUSHROOM_STEM) return;
 
         // Play sound for wood
-        BlockHelpers.playCustomBlockSound(placed.getLocation(), VANILLA_WOOD_PLACE, 0.8f, 0.8f);
+        BlockHelpers.playCustomBlockSound(placed.getLocation(), VANILLA_WOOD_PLACE, 1.0f, 0.8f);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -50,7 +50,7 @@ public class NoteBlockSoundListener implements Listener {
         }
 
         if (!event.isCancelled() && ProtectionLib.canBreak(event.getPlayer(), block.getLocation()))
-            BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_BREAK, 0.8f, 0.8f);
+            BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_BREAK, 1.0f, 0.8f);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -67,7 +67,7 @@ public class NoteBlockSoundListener implements Listener {
         if (breakerPlaySound.containsKey(block)) return;
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_HIT, 0.8f, 0.8f), 2L, 4L);
+                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_HIT, 0.25f, 0.5f), 2L, 4L);
         breakerPlaySound.put(block, task);
     }
 
@@ -98,17 +98,19 @@ public class NoteBlockSoundListener implements Listener {
             mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
 
         String sound;
-        boolean hasBlockSound = mechanic != null && mechanic.hasBlockSounds();
+        float volume;
+        float pitch;
         if (gameEvent == GameEvent.STEP) {
-            sound = (blockBelow.getType() == Material.NOTE_BLOCK && hasBlockSound && mechanic.getBlockSounds().hasStepSound())
-                    ? mechanic.getBlockSounds().getStepSound() : VANILLA_WOOD_STEP;
+            boolean check = blockBelow.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasStepSound();
+            sound = (check) ? mechanic.getBlockSounds().getStepSound() : VANILLA_WOOD_STEP;
+            volume = (check) ? mechanic.getBlockSounds().getVolume() : 0.15f;
+            pitch = (check) ? mechanic.getBlockSounds().getPitch() : 1.0f;
         } else if (gameEvent == GameEvent.HIT_GROUND) {
-            sound = (blockBelow.getType() == Material.NOTE_BLOCK && hasBlockSound && mechanic.getBlockSounds().hasFallSound())
-                    ? mechanic.getBlockSounds().getFallSound() : VANILLA_WOOD_FALL;
+            boolean check = (blockBelow.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasFallSound());
+            sound = (check) ? mechanic.getBlockSounds().getFallSound() : VANILLA_WOOD_FALL;
+            volume = (check) ? mechanic.getBlockSounds().getVolume() : 0.5f;
+            pitch = (check) ? mechanic.getBlockSounds().getPitch() : 0.75f;
         } else return;
-
-        float volume = hasBlockSound ? mechanic.getBlockSounds().getVolume() : 0.8f;
-        float pitch = hasBlockSound ? mechanic.getBlockSounds().getPitch() : 0.8f;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS, volume, pitch);
     }
@@ -116,22 +118,23 @@ public class NoteBlockSoundListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlacing(final OraxenNoteBlockPlaceEvent event) {
         NoteBlockMechanic mechanic = event.getNoteBlockMechanic();
-        if (mechanic != null && mechanic.isDirectional())
+        if (mechanic != null && mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
-        if (mechanic == null || !mechanic.hasBlockSounds()) return;
+        if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.getBlockSounds().hasPlaceSound()) return;
+
         BlockSounds blockSounds = mechanic.getBlockSounds();
-        if (blockSounds.hasPlaceSound())
-            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getPlaceSound(), blockSounds.getVolume(), blockSounds.getPitch());
+        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getPlaceSound(), blockSounds.getVolume(), blockSounds.getPitch());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreaking(final OraxenNoteBlockBreakEvent event) {
         NoteBlockMechanic mechanic = event.getNoteBlockMechanic();
-        if (mechanic != null && mechanic.isDirectional())
+        if (mechanic != null && mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
-        if (mechanic == null || !mechanic.hasBlockSounds()) return;
+        if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.getBlockSounds().hasBreakSound()) return;
+
         BlockSounds blockSounds = mechanic.getBlockSounds();
-        if (blockSounds.hasBreakSound())
-            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getBreakSound(), blockSounds.getVolume(), blockSounds.getPitch());
+        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getBreakSound(), blockSounds.getVolume(), blockSounds.getPitch());
+
     }
 }
