@@ -130,12 +130,13 @@ public class ConfigsManager {
         File configurationFile = resourcesManager.extractConfiguration(configName);
         YamlConfiguration configuration = YamlConfiguration.loadConfiguration(configurationFile);
         boolean updated = false;
-        for (String key : defaultConfiguration.getKeys(true))
+        for (String key : defaultConfiguration.getKeys(true)) {
+            if (!skippedYamlKeys.stream().filter(key::startsWith).toList().isEmpty()) continue;
             if (configuration.get(key) == null) {
                 updated = true;
                 Message.UPDATING_CONFIG.log(Utils.tagResolver("option", key));
                 configuration.set(key, defaultConfiguration.get(key));
-            }
+            }        }
         if (updated)
             try {
                 configuration.save(configurationFile);
@@ -144,6 +145,13 @@ public class ConfigsManager {
             }
         return configuration;
     }
+
+    // Skip optional keys and subkeys
+    private final List<String> skippedYamlKeys =
+            List.of(
+                    "gui_inventory",
+                    "Misc.armor_equip_event_bypass"
+            );
 
     public Collection<Glyph> parseGlyphConfigs() {
         List<Glyph> output = new ArrayList<>();
@@ -156,6 +164,7 @@ public class ConfigsManager {
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
+                if (glyphSection == null) continue;
                 int code = glyphSection.getInt("code", -1);
                 if (code != -1)
                     codePerGlyph.put(key, code);
