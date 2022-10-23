@@ -270,6 +270,7 @@ public class StorageMechanic {
     private StorageGui createGui(ItemFrame frame) {
         Location location = frame.getLocation();
         PersistentDataContainer storagePDC = frame.getPersistentDataContainer();
+        PersistentDataContainer shulkerPDC = Objects.requireNonNull(frame.getItem().getItemMeta()).getPersistentDataContainer();
         StorageGui gui = Gui.storage().title(Utils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
 
         // Slight delay to catch stacks sometimes moving too fast
@@ -280,20 +281,22 @@ public class StorageMechanic {
             }
         });
 
-        gui.setOpenGuiAction(event -> {
-            if (storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)) {
-                // If it's a shulker, get the itemstack array of the items pdc, otherwise use the frame pdc
-                ItemStack shulker = frame.getItem();
-                ItemStack[] defaultItems = storagePDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
-                ItemStack[] items = isShulker() && shulker.getItemMeta() != null ? shulker.getItemMeta().getPersistentDataContainer().getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, defaultItems) : defaultItems;
-                gui.getInventory().setContents(items);
-
-            }
-        });
+        // If it's a shulker, get the itemstack array of the items pdc, otherwise use the frame pdc
+        gui.setOpenGuiAction(event -> gui.getInventory().setContents(
+                (!isShulker() && storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)
+                        ? storagePDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{})
+                        : (isShulker() && shulkerPDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY))
+                        ? shulkerPDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{})
+                        : new ItemStack[]{})));
 
         gui.setCloseGuiAction(event -> {
-            if (gui.getInventory().getViewers().size() <= 1)
-                storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
+            if (gui.getInventory().getViewers().size() <= 1) {
+                if (isShulker()) {
+                    shulkerPDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
+                } else {
+                    storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
+                }
+            }
             if (hasCloseSound() && location.isWorldLoaded() && frame.getWorld().isChunkLoaded(frame.getLocation().getChunk()))
                 Objects.requireNonNull(location.getWorld()).playSound(location, closeSound, volume, pitch);
         });
