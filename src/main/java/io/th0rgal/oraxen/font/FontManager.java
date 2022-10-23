@@ -6,7 +6,9 @@ import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.*;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.ConfigsManager;
+import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
 import org.bukkit.Bukkit;
@@ -32,9 +34,11 @@ public class FontManager {
     private final Map<Character, String> reverse;
     private final FontEvents fontEvents;
     private final Set<Font> fonts;
+    private final ProtocolManager protocolManager;
 
     public FontManager(final ConfigsManager configsManager) {
         final Configuration fontConfiguration = configsManager.getFont();
+        protocolManager = ProtocolLibrary.getProtocolManager();
         autoGenerate = fontConfiguration.getBoolean("settings.automatically_generate");
         permsChatcolor = fontConfiguration.getString("settings.perms_chatcolor");
         glyphMap = new HashMap<>();
@@ -53,6 +57,9 @@ public class FontManager {
 
     public void registerEvents() {
         Bukkit.getPluginManager().registerEvents(fontEvents, OraxenPlugin.get());
+        if (CompatibilitiesManager.isCompatibilityEnabled("PlaceholderAPI")) {
+            protocolManager.addPacketListener(new InventoryPacketListener());
+        }
     }
 
     public void unregisterEvents() {
@@ -166,7 +173,6 @@ public class FontManager {
     public void sendGlyphTabCompletion(Player player, Boolean addPlayers) {
         for (Map.Entry<String, Glyph> entry : getGlyphByPlaceholderMap().entrySet()) {
             if (entry.getValue().hasTabCompletion()) {
-                ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
                 PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
 
                 if (addPlayers) packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);

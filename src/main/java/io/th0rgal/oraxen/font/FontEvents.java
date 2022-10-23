@@ -1,7 +1,5 @@
 package io.th0rgal.oraxen.font;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -119,7 +117,6 @@ public class FontEvents implements Listener {
         if (!(event.getClickedInventory() instanceof AnvilInventory clickedInv)) return;
         Player player = (Player) event.getWhoClicked();
         String displayName = clickedInv.getRenameText();
-        final ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
 
         switch (event.getSlot()) {
             case 0 -> { // Clicking first item
