@@ -86,7 +86,8 @@ public class FurnitureListener implements Listener {
                     }
 
                     if (mechanic.removeSolid(block.getWorld(), rootBlockLocation, orientation)) {
-                        mechanic.getDrop().furnitureSpawns(frame, tool);
+                        if (!mechanic.isStorage() || !mechanic.getStorage().isShulker())
+                            mechanic.getDrop().furnitureSpawns(frame, tool);
                     }
                 });
             }
@@ -283,8 +284,10 @@ public class FurnitureListener implements Listener {
                         ItemStack itemInHand = player.getInventory().getItemInMainHand();
                         ItemMeta meta = frame.getItem().getItemMeta();
 
-                        if (mechanic.isStorage())
-                            mechanic.getStorage().dropStorageContent(frame);
+                        if (mechanic.isStorage()) {
+                            mechanic.getStorage().dropStorageContent(mechanic, frame);
+                            if (mechanic.getStorage().isShulker()) return; // drop method handles all relevant drops
+                        }
 
                         if (mechanic.hasEvolution())
                             mechanic.getDrop().spawns(frame.getLocation(), itemInHand);
@@ -405,7 +408,7 @@ public class FurnitureListener implements Listener {
             if (mechanic.isStorage()) {
                 StorageMechanic storage = mechanic.getStorage();
                 switch (storage.getStorageType()) {
-                    case STORAGE -> storage.openStorage(frame, player);
+                    case STORAGE, SHULKER -> storage.openStorage(frame, player);
                     case PERSONAL -> storage.openPersonalStorage(player);
                     case DISPOSAL -> storage.openDisposal(player, frame.getLocation());
                     case ENDERCHEST -> player.openInventory(player.getEnderChest());

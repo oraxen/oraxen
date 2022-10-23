@@ -315,8 +315,8 @@ public class FurnitureMechanic extends Mechanic {
                     seat.remove();
                 }
             }
-            if (isStorage() && getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
-                getStorage().dropStorageContent(getItemFrame(rootLocation.getBlock(), rootBlockLocation, orientation));
+            if (isStorage() && getStorage().isStorage() || getStorage().isShulker()) {
+                getStorage().dropStorageContent(this, getItemFrame(rootLocation.getBlock(), rootBlockLocation, orientation));
             }
             location.getBlock().setType(Material.AIR);
             new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();

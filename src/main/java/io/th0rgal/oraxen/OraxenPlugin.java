@@ -103,7 +103,6 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        //StorageMechanic.forceCloseStorages();
         unregisterListeners();
         CompatibilitiesManager.disableCompatibilities();
         Message.PLUGIN_UNLOADED.log();

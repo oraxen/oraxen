@@ -158,7 +158,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (noteBlockMechanic.isStorage() && !player.isSneaking()) {
             StorageMechanic storageMechanic = noteBlockMechanic.getStorage();
             switch (storageMechanic.getStorageType()) {
-                case STORAGE -> storageMechanic.openStorage(block, player);
+                case STORAGE, SHULKER -> storageMechanic.openStorage(block, player);
                 case PERSONAL -> storageMechanic.openPersonalStorage(player);
                 case DISPOSAL -> storageMechanic.openDisposal(player, block.getLocation());
                 case ENDERCHEST -> player.openInventory(player.getEnderChest());

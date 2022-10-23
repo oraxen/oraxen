@@ -4,6 +4,10 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.StorageGui;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Bukkit;
@@ -15,8 +19,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 
 import java.util.*;
@@ -27,7 +31,7 @@ public class StorageMechanic {
     public static Map<Block, StorageGui> blockStorages = new HashMap<>();
     public static Map<ItemFrame, StorageGui> frameStorages = new HashMap<>();
     public static final NamespacedKey STORAGE_KEY = new NamespacedKey(OraxenPlugin.get(), "storage");
-    public static final NamespacedKey PERSONAL_STORAGE_KEY =  new NamespacedKey(OraxenPlugin.get(), "personal_storage");
+    public static final NamespacedKey PERSONAL_STORAGE_KEY = new NamespacedKey(OraxenPlugin.get(), "personal_storage");
     private final int rows;
     private final String title;
     private final StorageType type;
@@ -80,9 +84,21 @@ public class StorageMechanic {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         // If shutdown the gui isn't saved and map is empty, so use pdc storage
         ItemStack[] items = (blockStorages.containsKey(block) && gui != null)
-                ? gui.getInventory().getContents() : pdc.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
+                ? gui.getInventory().getContents() : pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
 
-        if (items != null) for (ItemStack item : items) {
+        if (isShulker()) {
+            NoteBlockMechanic mechanic = NoteBlockMechanicListener.getNoteBlockMechanic(block);
+            if (mechanic == null) return;
+
+            ItemStack shulker = OraxenItems.getItemById(mechanic.getItemID()).build();
+            ItemMeta shulkerMeta = shulker.getItemMeta();
+
+            if (shulkerMeta != null)
+                shulkerMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
+
+            shulker.setItemMeta(shulkerMeta);
+            block.getWorld().dropItemNaturally(block.getLocation(), shulker);
+        } else for (ItemStack item : items) {
             if (item == null) continue;
             block.getWorld().dropItemNaturally(block.getLocation(), item);
         }
@@ -94,17 +110,28 @@ public class StorageMechanic {
         blockStorages.remove(block);
     }
 
-    public void dropStorageContent(ItemFrame frame) {
+    public void dropStorageContent(FurnitureMechanic mechanic, ItemFrame frame) {
         StorageGui gui = frameStorages.get(frame);
         PersistentDataContainer pdc = frame.getPersistentDataContainer();
         // If shutdown the gui isn't saved and map is empty, so use pdc storage
         ItemStack[] items = (frameStorages.containsKey(frame) && gui != null)
-                ? gui.getInventory().getContents() : pdc.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
+                ? gui.getInventory().getContents() : pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
+        if (isShulker()) {
+            ItemStack defaultItem = OraxenItems.getItemById(mechanic.getItemID()).build();
+            ItemStack shulker = frame.getItem();
+            ItemMeta shulkerMeta = shulker.getItemMeta();
 
-        if (items != null) for (ItemStack item : items) {
+            if (shulkerMeta != null) {
+                shulkerMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
+                shulkerMeta.setDisplayName(defaultItem.getItemMeta() != null ? defaultItem.getItemMeta().getDisplayName() : null);
+                shulker.setItemMeta(shulkerMeta);
+            }
+            frame.getWorld().dropItemNaturally(frame.getLocation(), shulker);
+        } else for (ItemStack item : items) {
             if (item == null) continue;
             frame.getWorld().dropItemNaturally(frame.getLocation(), item);
         }
+
         if (gui != null) {
             HumanEntity[] players = gui.getInventory().getViewers().toArray(new HumanEntity[0]);
             for (HumanEntity player : players) gui.close(player);
@@ -228,7 +255,7 @@ public class StorageMechanic {
         });
         gui.setOpenGuiAction(event -> {
             if (storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY))
-                gui.getInventory().setContents(Objects.requireNonNull(storagePDC.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)));
+                gui.getInventory().setContents(storagePDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{}));
         });
 
         gui.setCloseGuiAction(event -> {
@@ -252,9 +279,16 @@ public class StorageMechanic {
                         storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
             }
         });
+
         gui.setOpenGuiAction(event -> {
-            if (storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY))
-                gui.getInventory().setContents(Objects.requireNonNull(storagePDC.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)));
+            if (storagePDC.has(STORAGE_KEY, DataType.ITEM_STACK_ARRAY)) {
+                // If it's a shulker, get the itemstack array of the items pdc, otherwise use the frame pdc
+                ItemStack shulker = frame.getItem();
+                ItemStack[] defaultItems = storagePDC.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
+                ItemStack[] items = isShulker() && shulker.getItemMeta() != null ? shulker.getItemMeta().getPersistentDataContainer().getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, defaultItems) : defaultItems;
+                gui.getInventory().setContents(items);
+
+            }
         });
 
         gui.setCloseGuiAction(event -> {
@@ -265,33 +299,5 @@ public class StorageMechanic {
         });
 
         return gui;
-    }
-
-    // Closes any open storage gui on plugin/server shutdown to force save content to pdc
-    public static void forceCloseStorages() {
-        for (StorageGui gui : blockStorages.values()) {
-            HumanEntity[] players = gui.getInventory().getViewers().toArray(HumanEntity[]::new);
-            for (HumanEntity player : players)
-                closeStorage(player);
-        }
-
-        for (StorageGui gui : frameStorages.values()) {
-            HumanEntity[] players = gui.getInventory().getViewers().toArray(HumanEntity[]::new);
-            for (HumanEntity player : players)
-                closeStorage(player);
-        }
-
-        for (Player player : playerStorages)
-            closeStorage(player);
-
-        blockStorages.clear();
-        frameStorages.clear();
-        playerStorages.clear();
-    }
-
-    private static void closeStorage(HumanEntity player) {
-        InventoryHolder holder = player.getOpenInventory().getTopInventory().getHolder();
-        if ((holder instanceof Gui))
-            ((Gui) holder).close(player, true);
     }
 }
