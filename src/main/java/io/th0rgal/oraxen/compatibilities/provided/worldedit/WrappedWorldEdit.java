@@ -21,6 +21,7 @@ public class WrappedWorldEdit {
     public static void registerParser() {
         if (loaded) {
             WorldEdit.getInstance().getBlockFactory().register(new WorldEditUtils.OraxenBlockInputParser());
+            WorldEdit.getInstance().getEventBus().register(new WorldEditListener());
             try {
                 // Try and load class, if it fails it is not Paper server so don't register event
                 Class.forName("com.destroystokyo.paper.event.server.AsyncTabCompleteEvent");
@@ -28,6 +29,12 @@ public class WrappedWorldEdit {
             }
             catch (ClassNotFoundException ignored) {
             }
+        }
+    }
+
+    public static void unregister() {
+        if (loaded) {
+            WorldEdit.getInstance().getEventBus().unregister(new WorldEditListener());
         }
     }
 

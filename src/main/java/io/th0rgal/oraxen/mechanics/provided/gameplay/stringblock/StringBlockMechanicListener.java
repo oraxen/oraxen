@@ -122,7 +122,7 @@ public class StringBlockMechanicListener implements Listener {
             OraxenPlugin.get().getServer().getPluginManager().callEvent(stringBlockBreakEvent);
             if (stringBlockBreakEvent.isCancelled()) return;
 
-            if (mechanic.getLight() != -1)
+            if (mechanic.hasLight())
                 WrappedLightAPI.removeBlockLight(block.getLocation());
             mechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
         }
@@ -303,7 +303,7 @@ public class StringBlockMechanicListener implements Listener {
                 StringBlockMechanicFactory.createTripwireData(customVariation));
         if (placedBlock == null)
             return;
-        if (mechanic.getLight() != -1)
+        if (mechanic.hasLight())
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
         if (mechanic.isSapling()) {
             SaplingMechanic sapling = mechanic.getSaplingMechanic();
@@ -356,6 +356,10 @@ public class StringBlockMechanicListener implements Listener {
             final Tripwire tripwire = (Tripwire) block.getBlockData();
             return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
         } else return null;
+    }
+
+    public static StringBlockMechanic getStringMechanic(Tripwire tripwire) {
+        return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
     }
 
     private HardnessModifier getHardnessModifier() {
@@ -439,7 +443,7 @@ public class StringBlockMechanicListener implements Listener {
         }
 
 
-        if (mechanic.getLight() != -1)
+        if (mechanic.hasLight())
             WrappedLightAPI.removeBlockLight(block.getLocation());
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
             mechanic.getDrop().spawns(block.getLocation(), item);

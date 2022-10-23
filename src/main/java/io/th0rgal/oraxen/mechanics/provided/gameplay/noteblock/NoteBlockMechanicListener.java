@@ -279,7 +279,7 @@ public class NoteBlockMechanicListener implements Listener {
             return;
         }
 
-        if (mechanic.getLight() != -1)
+        if (mechanic.hasLight())
             WrappedLightAPI.removeBlockLight(block.getLocation());
         if (player.getGameMode() != GameMode.CREATIVE)
             mechanic.getDrop().spawns(block.getLocation(), player.getInventory().getItemInMainHand());
@@ -331,7 +331,7 @@ public class NoteBlockMechanicListener implements Listener {
 
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(), placedAgainst, face, NoteBlockMechanicFactory.createNoteBlockData(customVariation));
         if (placedBlock != null) {
-            if (mechanic.getLight() != -1)
+            if (mechanic.hasLight())
                 WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
 
             if (mechanic.hasDryout() && mechanic.getDryout().isFarmBlock()) {
@@ -522,9 +522,14 @@ public class NoteBlockMechanicListener implements Listener {
                         + noteblock.getNote().getId() + (noteblock.isPowered() ? 400 : 0) - 26);
     }
 
-    // Used to determine what instrument to use when playing a note depending on below block
-    private static Map<Instrument, List<String>> instrumentMap = new HashMap<>();
+    public static NoteBlockMechanic getNoteBlockMechanic(NoteBlock noteblock) {
+        return NoteBlockMechanicFactory
+                .getBlockMechanic((noteblock.getInstrument().getType()) * 25
+                        + noteblock.getNote().getId() + (noteblock.isPowered() ? 400 : 0) - 26);
+    }
 
+    // Used to determine what instrument to use when playing a note depending on below block
+    public static Map<Instrument, List<String>> instrumentMap = new HashMap<>();
     private static Map<Instrument, List<String>> getInstrumentMap() {
         Map<Instrument, List<String>> map = new HashMap<>();
         map.put(Instrument.BELL, List.of("gold_block"));

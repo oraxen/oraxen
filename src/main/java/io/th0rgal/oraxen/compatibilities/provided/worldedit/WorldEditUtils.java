@@ -48,9 +48,9 @@ public class WorldEditUtils {
 
         @Override
         public BaseBlock parseFromInput(String input, ParserContext context) {
-            if (input.startsWith("minecraft:note_block") || input.startsWith("note_block")) {
+            if (input.equals("minecraft:note_block") || input.equals("note_block")) {
                 return BukkitAdapter.adapt(Bukkit.createBlockData(Material.NOTE_BLOCK)).toBaseBlock();
-            } else if (input.startsWith("minecraft:tripwire") || input.startsWith("tripwire")) {
+            } else if (input.equals("minecraft:tripwire") || input.equals("tripwire")) {
                 return BukkitAdapter.adapt(Bukkit.createBlockData(Material.TRIPWIRE)).toBaseBlock();
             }
 

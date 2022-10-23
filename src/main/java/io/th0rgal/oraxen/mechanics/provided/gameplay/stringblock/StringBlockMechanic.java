@@ -13,7 +13,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Objects;
 
 public class StringBlockMechanic extends Mechanic {
 
@@ -26,8 +25,7 @@ public class StringBlockMechanic extends Mechanic {
     private int period;
     private final int light;
 
-    private final boolean hasRandomPlace;
-    private List<String> randomPlaceBlock;
+    private final List<String> randomPlaceBlock;
     private final SaplingMechanic saplingMechanic;
 
     @SuppressWarnings("unchecked")
@@ -72,23 +70,25 @@ public class StringBlockMechanic extends Mechanic {
 
         light = section.getInt("light", -1);
 
-        if (section.isConfigurationSection("random_place")) {
-            ConfigurationSection randomPlace = section.getConfigurationSection("random_place");
-            hasRandomPlace = true;
-            randomPlaceBlock = randomPlace.getStringList("block");
-        } else hasRandomPlace = false;
+        ConfigurationSection randomPlaceSection = section.getConfigurationSection("random_place");
+        if (randomPlaceSection != null) {
+            randomPlaceBlock = randomPlaceSection.getStringList("block");
+        } else randomPlaceBlock = new ArrayList<>();
 
-        if (section.isConfigurationSection("sapling")) {
-            saplingMechanic = new SaplingMechanic(getItemID(), Objects.requireNonNull(section.getConfigurationSection("sapling")));
+        ConfigurationSection saplingSection = section.getConfigurationSection("sapling");
+        if (saplingSection != null) {
+            saplingMechanic = new SaplingMechanic(getItemID(), saplingSection);
             ((StringBlockMechanicFactory) getFactory()).registerSaplingMechanic();
         } else saplingMechanic = null;
 
-        if (section.isConfigurationSection("limited_placing")) {
-            limitedPlacing = new LimitedPlacing(Objects.requireNonNull(section.getConfigurationSection("limited_placing")));
+        ConfigurationSection limitedSection = section.getConfigurationSection("limited_placing");
+        if (limitedSection != null) {
+            limitedPlacing = new LimitedPlacing(limitedSection);
         } else limitedPlacing = null;
 
-        if (section.isConfigurationSection("block_sounds")) {
-            blockSounds = new BlockSounds(Objects.requireNonNull(section.getConfigurationSection("block_sounds")));
+        ConfigurationSection blockSoundsSection = section.getConfigurationSection("block_sounds");
+        if (blockSoundsSection != null) {
+            blockSounds = new BlockSounds(blockSoundsSection);
         } else blockSounds = null;
     }
 
@@ -124,12 +124,16 @@ public class StringBlockMechanic extends Mechanic {
         return period;
     }
 
+    public boolean hasLight() {
+        return light <= -1;
+    }
+
     public int getLight() {
         return light;
     }
 
     public boolean hasRandomPlace() {
-        return hasRandomPlace;
+        return !randomPlaceBlock.isEmpty();
     }
 
     public List<String> getRandomPlaceBlock() {
