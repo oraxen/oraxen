@@ -47,7 +47,7 @@ public class StorageMechanic {
     }
 
     public enum StorageType {
-        STORAGE, PERSONAL, ENDERCHEST, DISPOSAL
+        STORAGE, PERSONAL, ENDERCHEST, DISPOSAL, SHULKER
     }
 
     public void openPersonalStorage(Player player) {
@@ -81,6 +81,7 @@ public class StorageMechanic {
         // If shutdown the gui isn't saved and map is empty, so use pdc storage
         ItemStack[] items = (blockStorages.containsKey(block) && gui != null)
                 ? gui.getInventory().getContents() : pdc.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
+
         if (items != null) for (ItemStack item : items) {
             if (item == null) continue;
             block.getWorld().dropItemNaturally(block.getLocation(), item);
@@ -99,6 +100,7 @@ public class StorageMechanic {
         // If shutdown the gui isn't saved and map is empty, so use pdc storage
         ItemStack[] items = (frameStorages.containsKey(frame) && gui != null)
                 ? gui.getInventory().getContents() : pdc.get(STORAGE_KEY, DataType.ITEM_STACK_ARRAY);
+
         if (items != null) for (ItemStack item : items) {
             if (item == null) continue;
             frame.getWorld().dropItemNaturally(frame.getLocation(), item);
@@ -121,6 +123,26 @@ public class StorageMechanic {
 
     public StorageType getStorageType() {
         return type;
+    }
+
+    public boolean isStorage() {
+        return type == StorageType.STORAGE;
+    }
+
+    public boolean isPersonal() {
+        return type == StorageType.PERSONAL;
+    }
+
+    public boolean isEnderchest() {
+        return type == StorageType.ENDERCHEST;
+    }
+
+    public boolean isDisposal() {
+        return type == StorageType.DISPOSAL;
+    }
+
+    public boolean isShulker() {
+        return type == StorageType.SHULKER;
     }
 
     public boolean hasOpenSound() {
