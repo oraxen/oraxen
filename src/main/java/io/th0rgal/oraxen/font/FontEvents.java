@@ -1,17 +1,22 @@
 package io.th0rgal.oraxen.font;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import net.kyori.adventure.inventory.Book;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerEditBookEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
@@ -29,9 +34,12 @@ public class FontEvents implements Listener {
         this.manager = manager;
     }
 
-    @EventHandler
-    public void onBookGlyph(final PlayerEditBookEvent event) {
-        BookMeta meta = event.getNewBookMeta();
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBookGlyph(final PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getItem() == null) return;
+        BookMeta meta = (BookMeta) event.getItem().getItemMeta();
+        if (meta == null) return;
         for (String page : meta.getPages()) {
             int i = meta.getPages().indexOf(page) + 1;
             if (i == 0) continue;
@@ -57,7 +65,15 @@ public class FontEvents implements Listener {
                 meta.setPage(i, AdventureUtils.parseLegacyThroughMiniMessage(page));
             }
         }
-        event.setNewBookMeta(meta);
+
+        Book book = Book.builder()
+                .title(Utils.MINI_MESSAGE.deserialize(meta.getTitle() != null ? meta.getTitle() : ""))
+                .pages(meta.getPages().stream().map(Utils.MINI_MESSAGE::deserialize).toList())
+                .author(Utils.MINI_MESSAGE.deserialize(meta.getAuthor() != null ? meta.getAuthor() : ""))
+                .build();
+        // Open fake book and cancel event to prevent normal book opening
+        OraxenPlugin.get().getAudience().player(event.getPlayer()).openBook(book);
+        event.setCancelled(true);
     }
 
     @EventHandler
