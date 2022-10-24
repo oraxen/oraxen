@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.utils;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.OraxenPlugin;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
 import org.bukkit.block.Sign;
@@ -30,18 +29,6 @@ import static org.bukkit.block.data.FaceAttachable.AttachedFace.CEILING;
 import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
 
 public class BlockHelpers {
-
-    public static String VANILLA_STONE_PLACE = "minecraft:required.stone.place";
-    public static String VANILLA_STONE_BREAK = "minecraft:required.stone.break";
-    public static String VANILLA_STONE_HIT = "minecraft:required.stone.hit";
-    public static String VANILLA_STONE_STEP = "minecraft:required.stone.step";
-    public static String VANILLA_STONE_FALL = "minecraft:required.stone.fall";
-
-    public static String VANILLA_WOOD_PLACE = "minecraft:required.wood.place";
-    public static String VANILLA_WOOD_BREAK = "minecraft:required.wood.break";
-    public static String VANILLA_WOOD_HIT = "minecraft:required.wood.hit";
-    public static String VANILLA_WOOD_STEP = "minecraft:required.wood.step";
-    public static String VANILLA_WOOD_FALL = "minecraft:required.wood.fall";
 
     public static void playCustomBlockSound(Location location, String sound, float volume, float pitch) {
         playCustomBlockSound(toCenterLocation(location), sound, SoundCategory.BLOCKS, volume, pitch);

@@ -16,7 +16,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.world.GenericGameEvent;
 
-import static io.th0rgal.oraxen.utils.BlockHelpers.*;
+import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
 public class BlockSoundListener implements Listener {
 
@@ -41,11 +41,11 @@ public class BlockSoundListener implements Listener {
         BlockSounds blockSounds = mechanic.getBlockSounds();
 
         if (gameEvent == GameEvent.STEP) {
-            sound = blockSounds.hasStepSound() ? blockSounds.getStepSound() : VANILLA_WOOD_STEP;
+            sound = blockSounds.hasStepSound() ? blockSounds.getStepSound() : BlockSounds.VANILLA_WOOD_STEP;
             volume = blockSounds.getStepVolume();
             pitch = blockSounds.getStepPitch();
         } else if (gameEvent == GameEvent.HIT_GROUND) {
-            sound = blockSounds.hasFallSound() ? blockSounds.getFallSound() : VANILLA_WOOD_FALL;
+            sound = blockSounds.hasFallSound() ? blockSounds.getFallSound() : BlockSounds.VANILLA_WOOD_FALL;
             volume = blockSounds.getFallVolume();
             pitch = blockSounds.getFallPitch();
         } else return;

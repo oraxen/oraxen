@@ -5,6 +5,29 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class BlockSounds {
 
+    public static String VANILLA_STONE_PLACE = "minecraft:required.stone.place";
+    public static String VANILLA_STONE_BREAK = "minecraft:required.stone.break";
+    public static String VANILLA_STONE_HIT = "minecraft:required.stone.hit";
+    public static String VANILLA_STONE_STEP = "minecraft:required.stone.step";
+    public static String VANILLA_STONE_FALL = "minecraft:required.stone.fall";
+
+    public static String VANILLA_WOOD_PLACE = "minecraft:required.wood.place";
+    public static String VANILLA_WOOD_BREAK = "minecraft:required.wood.break";
+    public static String VANILLA_WOOD_HIT = "minecraft:required.wood.hit";
+    public static String VANILLA_WOOD_STEP = "minecraft:required.wood.step";
+    public static String VANILLA_WOOD_FALL = "minecraft:required.wood.fall";
+
+    public static float VANILLA_PLACE_VOLUME = 1.0f;
+    public static float VANILLA_PLACE_PITCH = 0.8f;
+    public static float VANILLA_BREAK_VOLUME = 1.0f;
+    public static float VANILLA_BREAK_PITCH = 0.8f;
+    public static float VANILLA_HIT_VOLUME = 0.25f;
+    public static float VANILLA_HIT_PITCH = 0.5f;
+    public static float VANILLA_STEP_VOLUME = 0.15f;
+    public static float VANILLA_STEP_PITCH = 1.0f;
+    public static float VANILLA_FALL_VOLUME = 0.5f;
+    public static float VANILLA_FALL_PITCH = 0.75f;
+
     private final String placeSound;
     private final String breakSound;
     private final String stepSound;
@@ -22,23 +45,23 @@ public class BlockSounds {
     private final float fallPitch;
 
     public BlockSounds(ConfigurationSection section) {
-        placeSound = section.getString("place");
-        breakSound = section.getString("break");
-        stepSound = section.getString("step");
+        placeSound = getSound(section, "place");
+        breakSound = getSound(section, "break");
+        stepSound = getSound(section, "step");
         hitSound = getSound(section, "hit");
         fallSound = getSound(section, "fall");
 
-        placeVolume = getFloat(section, "place_volume", "place", 1.0f);
-        breakVolume = getFloat(section, "break_volume", "break", 1.0f);
-        stepVolume = getFloat(section, "step_volume", "step", 0.15f);
-        hitVolume = getFloat(section, "hit_volume", "hit", 0.25f);
-        fallVolume = getFloat(section, "fall_volume", "fall", 0.5f);
+        placeVolume = getVolume(section, "place", VANILLA_PLACE_VOLUME);
+        breakVolume = getVolume(section, "break", VANILLA_BREAK_VOLUME);
+        stepVolume = getVolume(section, "step", VANILLA_STEP_VOLUME);
+        hitVolume = getVolume(section, "hit", VANILLA_HIT_VOLUME);
+        fallVolume = getVolume(section, "fall", VANILLA_FALL_VOLUME);
 
-        placePitch = getFloat(section, "place_pitch", "place", 0.8f);
-        breakPitch = getFloat(section, "break_pitch", "break", 0.8f);
-        stepPitch = getFloat(section, "step_pitch", "step", 1.0f);
-        hitPitch = getFloat(section, "hit_pitch", "hit", 0.5f);
-        fallPitch = getFloat(section, "fall_sound", "fall", 0.75f);
+        placePitch = getPitch(section, "place", VANILLA_PLACE_PITCH);
+        breakPitch = getPitch(section, "break", VANILLA_BREAK_PITCH);
+        stepPitch = getPitch(section, "step", VANILLA_STEP_PITCH);
+        hitPitch = getPitch(section, "hit", VANILLA_HIT_PITCH);
+        fallPitch = getPitch(section, "fall", VANILLA_FALL_PITCH);
     }
 
     private String getSound(ConfigurationSection section, String key) {
@@ -50,10 +73,17 @@ public class BlockSounds {
                 : null;
     }
 
-    private float getFloat(ConfigurationSection section, String key, String type, float defaultValue) {
-        ConfigurationSection soundSection = section.getConfigurationSection(key);
+    private float getVolume(ConfigurationSection section, String type, float defaultValue) {
+        ConfigurationSection soundSection = section.getConfigurationSection(type);
+        if (soundSection == null) {
+            return (float) section.getDouble("volume", defaultValue);
+        } else return defaultValue;
+    }
+
+    private float getPitch(ConfigurationSection section, String type, float defaultValue) {
+        ConfigurationSection soundSection = section.getConfigurationSection(type);
         if (soundSection != null) {
-            return (float) soundSection.getDouble(type, defaultValue);
+            return (float) soundSection.getDouble("pitch", defaultValue);
         } else return defaultValue;
     }
 

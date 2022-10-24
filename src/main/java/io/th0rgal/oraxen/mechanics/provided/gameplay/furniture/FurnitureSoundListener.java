@@ -23,7 +23,8 @@ import org.bukkit.scheduler.BukkitTask;
 import java.util.HashMap;
 import java.util.Map;
 
-import static io.th0rgal.oraxen.utils.BlockHelpers.*;
+import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.*;
 
 public class FurnitureSoundListener implements Listener {
 
@@ -103,13 +104,13 @@ public class FurnitureSoundListener implements Listener {
         if (gameEvent == GameEvent.STEP) {
             boolean check = blockBelow.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasStepSound();
             sound = (check) ? mechanic.getBlockSounds().getStepSound() : VANILLA_STONE_STEP;
-            volume = (check) ? mechanic.getBlockSounds().getStepVolume() : 0.15f;
-            pitch = (check) ? mechanic.getBlockSounds().getStepPitch() : 1.0f;
+            volume = (check) ? mechanic.getBlockSounds().getStepVolume() : VANILLA_STEP_VOLUME;
+            pitch = (check) ? mechanic.getBlockSounds().getStepPitch() : VANILLA_STEP_PITCH;
         } else if (gameEvent == GameEvent.HIT_GROUND) {
             boolean check = (blockBelow.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasFallSound());
             sound = (check) ? mechanic.getBlockSounds().getFallSound() : VANILLA_STONE_FALL;
-            volume = (check) ? mechanic.getBlockSounds().getFallVolume() : 0.5f;
-            pitch = (check) ? mechanic.getBlockSounds().getFallPitch() : 0.75f;
+            volume = (check) ? mechanic.getBlockSounds().getFallVolume() : VANILLA_FALL_VOLUME;
+            pitch = (check) ? mechanic.getBlockSounds().getFallPitch() : VANILLA_FALL_PITCH;
         } else return;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS, volume, pitch);
