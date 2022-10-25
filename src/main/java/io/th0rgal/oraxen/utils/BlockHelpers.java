@@ -40,11 +40,11 @@ public class BlockHelpers {
     }
 
     public static String validateReplacedSounds(String sound) {
-        ConfigurationSection mechanics = OraxenPlugin.get().getConfigsManager().getMechanics();
-        if (sound.startsWith("block.wood") && mechanics.getConfigurationSection("noteblock").getBoolean("custom_sounds")) {
+        ConfigurationSection mechanics = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds");
+        if (mechanics == null) return sound;
+        else if (sound.startsWith("block.wood") && mechanics.getBoolean("noteblock_and_block")) {
             return sound.replace("block.wood", "required.wood");
-        } else if (sound.startsWith("block.stone") && mechanics.getConfigurationSection("furniture").getBoolean("custom_sounds") &&
-                mechanics.getConfigurationSection("stringblock").getBoolean("custom_sounds")) {
+        } else if (sound.startsWith("block.stone") && mechanics.getBoolean("stringblock_and_furniture")) {
                 return sound.replace("block.stone", "required.stone");
         }else return sound;
     }
