@@ -13,6 +13,11 @@ public enum Settings {
     GENERATE_DEFAULT_CONFIGS("Plugin.generation.default_configs"),
     WORLDEDIT_NOTEBLOCKS("Plugin.worldedit.noteblock_mechanic"),
     WORLDEDIT_STRINGBLOCKS("Plugin.worldedit.stringblock_mechanic"),
+    FORMAT_INVENTORY_TITLES("Plugin.formatting.inventory_titles"),
+    FORMAT_TITLES("Plugin.formatting.titles"),
+    FORMAT_SUBTITLES("Plugin.formatting.subtitles"),
+    FORMAT_ACTION_BAR("Plugin.formatting.action_bar"),
+
 
     CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),
