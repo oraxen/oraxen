@@ -12,6 +12,9 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.events.OraxenFurnitureDamageEvent;
+import io.th0rgal.oraxen.api.events.OraxenNoteBlockDamageEvent;
+import io.th0rgal.oraxen.api.events.OraxenStringBlockDamageEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -130,12 +133,16 @@ public class BreakerSystem {
                             return;
                         }
 
+                        // If the relevant damage event is cancelled, don't increase this
+                        if (!callBlockDamageEvent(block, value, player)) return;
+
                         if (item.getEnchantmentLevel(Enchantment.DIG_SPEED) >= 5)
                             value = 10;
 
                         for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
-                            if (entity instanceof Player viewer)
+                            if (entity instanceof Player viewer) {
                                 sendBlockBreak(viewer, location, value);
+                            }
 
                         if (value++ < 10) return;
 
@@ -174,6 +181,29 @@ public class BreakerSystem {
 
     public BreakerSystem() {
         protocolManager = ProtocolLibrary.getProtocolManager();
+    }
+
+    private boolean callBlockDamageEvent(Block block, int newDamageStage, Player player) {
+        switch (block.getType()) {
+            case NOTE_BLOCK -> {
+                OraxenNoteBlockDamageEvent event = new OraxenNoteBlockDamageEvent(OraxenBlocks.getNoteBlockMechanic(block), block, newDamageStage, player);
+                Bukkit.getPluginManager().callEvent(event);
+                return event.isCancelled();
+            }
+            case TRIPWIRE -> {
+                OraxenStringBlockDamageEvent event = new OraxenStringBlockDamageEvent(OraxenBlocks.getStringMechanic(block), block, newDamageStage, player);
+                Bukkit.getPluginManager().callEvent(event);
+                return event.isCancelled();
+            }
+            case BARRIER -> {
+                FurnitureMechanic mechanic = OraxenBlocks.getFurnitureMechanic(block);
+                if (mechanic == null) return false;
+                OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, player, block, newDamageStage, mechanic.getItemFrame(block));
+                Bukkit.getPluginManager().callEvent(event);
+                return event.isCancelled();
+            }
+            default -> { return false; }
+        }
     }
 
     private void sendBlockBreak(final Player player, final Location location, final int stage) {
