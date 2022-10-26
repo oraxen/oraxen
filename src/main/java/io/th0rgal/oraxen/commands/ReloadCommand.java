@@ -11,7 +11,7 @@ import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
@@ -19,7 +19,7 @@ import org.bukkit.entity.Player;
 public class ReloadCommand {
 
     private static void reloadItems(CommandSender sender) {
-        Message.RELOAD.send(sender, Utils.tagResolver("reloaded", "items"));
+        Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "items"));
         OraxenItems.loadItems();
     }
 

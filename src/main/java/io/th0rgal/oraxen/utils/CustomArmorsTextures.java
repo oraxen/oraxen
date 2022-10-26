@@ -97,8 +97,8 @@ public class CustomArmorsTextures {
                 break;
         }
         if (builder == null) {
-            Message.NO_ARMOR_ITEM.log(Utils.tagResolver("name", prefix + "<part>"),
-                    Utils.tagResolver("armor_layer_file", name));
+            Message.NO_ARMOR_ITEM.log(AdventureUtils.tagResolver("name", prefix + "<part>"),
+                    AdventureUtils.tagResolver("armor_layer_file", name));
             return true;
         }
         BufferedImage original;
@@ -135,8 +135,8 @@ public class CustomArmorsTextures {
             String detectedPrefix = usedColors.get(stuffColor.asRGB());
             if (!detectedPrefix.equals(prefix))
                 Message.DUPLICATE_ARMOR_COLOR.log(
-                        Utils.tagResolver("first_armor_prefix", prefix),
-                        Utils.tagResolver("second_armor_prefix", detectedPrefix));
+                        AdventureUtils.tagResolver("first_armor_prefix", prefix),
+                        AdventureUtils.tagResolver("second_armor_prefix", detectedPrefix));
         } else usedColors.put(stuffColor.asRGB(), prefix);
 
         setPixel(image.getRaster(), 0, 0, stuffColor);

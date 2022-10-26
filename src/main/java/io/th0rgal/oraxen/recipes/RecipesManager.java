@@ -9,7 +9,7 @@ import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.recipes.loaders.FurnaceLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapedLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -83,7 +83,7 @@ public class RecipesManager {
                 default -> Logs.logError(configFile.getName());
             }
         } catch (NullPointerException exception) {
-            Message.BAD_RECIPE.log(Utils.tagResolver("recipe", recipeSection.getName()));
+            Message.BAD_RECIPE.log(AdventureUtils.tagResolver("recipe", recipeSection.getName()));
         }
     }
 }

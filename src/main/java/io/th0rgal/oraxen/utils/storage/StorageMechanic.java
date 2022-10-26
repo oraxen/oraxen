@@ -9,7 +9,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -197,7 +197,7 @@ public class StorageMechanic {
     }
 
     private StorageGui createDisposalGui(Location location) {
-        StorageGui gui = Gui.storage().title(Utils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
+        StorageGui gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
 
         gui.setOpenGuiAction(event -> {
             gui.getInventory().clear();
@@ -215,7 +215,7 @@ public class StorageMechanic {
 
     private StorageGui createPersonalGui(Player player) {
         PersistentDataContainer storagePDC = player.getPersistentDataContainer();
-        StorageGui gui = Gui.storage().title(Utils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
+        StorageGui gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
 
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
@@ -244,7 +244,7 @@ public class StorageMechanic {
     private StorageGui createGui(Block block) {
         Location location = block.getLocation();
         PersistentDataContainer storagePDC = BlockHelpers.getPDC(block);
-        StorageGui gui = Gui.storage().title(Utils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
+        StorageGui gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
 
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
@@ -271,7 +271,7 @@ public class StorageMechanic {
         Location location = frame.getLocation();
         PersistentDataContainer storagePDC = frame.getPersistentDataContainer();
         PersistentDataContainer shulkerPDC = Objects.requireNonNull(frame.getItem().getItemMeta()).getPersistentDataContainer();
-        StorageGui gui = Gui.storage().title(Utils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
+        StorageGui gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
 
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {

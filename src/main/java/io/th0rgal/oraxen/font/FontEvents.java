@@ -4,8 +4,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.config.Message;
-import io.th0rgal.oraxen.utils.Utils;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -44,7 +43,7 @@ public class FontEvents implements Listener {
 
                 Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
                 if (!glyph.hasPermission(event.getPlayer())) {
-                    Message.NO_PERMISSION.send(event.getPlayer(), Utils.tagResolver("permission", glyph.getPermission()));
+                    Message.NO_PERMISSION.send(event.getPlayer(), AdventureUtils.tagResolver("permission", glyph.getPermission()));
                     event.setCancelled(true);
                 }
             }
@@ -57,7 +56,7 @@ public class FontEvents implements Listener {
                             .replace(unicode, ChatColor.WHITE + unicode)
                             : page.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(event.getPlayer(), manager.permsChatcolor))
                             .replace(unicode, ChatColor.WHITE + unicode);
-                meta.setPage(i, page);
+                meta.setPage(i, AdventureUtils.parseLegacyThroughMiniMessage(page));
             }
         }
         event.setNewBookMeta(meta);
@@ -73,7 +72,7 @@ public class FontEvents implements Listener {
 
                 Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
                 if (!glyph.hasPermission(event.getPlayer())) {
-                    Message.NO_PERMISSION.send(event.getPlayer(), Utils.tagResolver("permission", glyph.getPermission()));
+                    Message.NO_PERMISSION.send(event.getPlayer(), AdventureUtils.tagResolver("permission", glyph.getPermission()));
                     event.setCancelled(true);
                 }
             }
@@ -87,7 +86,7 @@ public class FontEvents implements Listener {
                             : line.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(event.getPlayer(), manager.permsChatcolor))
                             .replace(unicode, ChatColor.WHITE + unicode);
             }
-            event.setLine(i, line);
+            event.setLine(i, AdventureUtils.parseLegacyThroughMiniMessage(line));
         }
     }
 
@@ -99,7 +98,7 @@ public class FontEvents implements Listener {
                 continue;
             Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
             if (!glyph.hasPermission(event.getPlayer())) {
-                Message.NO_PERMISSION.send(event.getPlayer(), Utils.tagResolver("permission", glyph.getPermission()));
+                Message.NO_PERMISSION.send(event.getPlayer(), AdventureUtils.tagResolver("permission", glyph.getPermission()));
                 event.setCancelled(true);
             }
         }
@@ -132,7 +131,7 @@ public class FontEvents implements Listener {
                     ItemMeta meta = cursor.getItemMeta();
                     if (meta == null || !meta.hasDisplayName()) return;
                     String name = meta.getDisplayName();
-                    name = Utils.MINI_MESSAGE.serialize(Utils.LEGACY_COMPONENT_SERIALIZER.deserialize(name)).replace("\\<", "<");
+                    name = AdventureUtils.MINI_MESSAGE.serialize(AdventureUtils.LEGACY_SERIALIZER.deserialize(name)).replace("\\<", "<");
                     meta.setDisplayName(name);
                     cursor.setItemMeta(meta);
                 }
@@ -141,9 +140,7 @@ public class FontEvents implements Listener {
                     ItemMeta meta = current.getItemMeta();
                     if (meta == null || !meta.hasDisplayName()) return;
                     String name = meta.getDisplayName();
-                    name = Utils.MINI_MESSAGE.serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(name)).replace("\\<", "<");
-                    name = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(name));
-                    meta.setDisplayName(name);
+                    meta.setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage(name));
                     current.setItemMeta(meta);
                 }
             }
@@ -157,7 +154,7 @@ public class FontEvents implements Listener {
                     if (!glyph.hasPermission(player)) {
                         Glyph required = manager.getGlyphFromName("required");
                         String replacement = required.hasPermission(player) ? String.valueOf(required.getCharacter()) : "";
-                        Message.NO_PERMISSION.send(player, Utils.tagResolver("permission", glyph.getPermission()));
+                        Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
                         displayName = displayName.replace(String.valueOf(character), replacement);
                     }
                 }
@@ -174,9 +171,7 @@ public class FontEvents implements Listener {
 
                 ItemMeta meta = clickedItem.getItemMeta();
                 if (meta == null) return;
-                displayName = Utils.MINI_MESSAGE.serialize(LegacyComponentSerializer.legacyAmpersand().deserialize(displayName)).replace("\\<", "<");
-                displayName = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(displayName));
-                meta.setDisplayName(displayName);
+                meta.setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage(displayName));
                 clickedItem.setItemMeta(meta);
             }
         }

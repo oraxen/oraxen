@@ -16,8 +16,8 @@ import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OS;
-import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -89,7 +89,7 @@ public class OraxenPlugin extends JavaPlugin {
         new CommandsManager().loadCommands();
         postLoading(configsManager);
         try {
-            Message.PLUGIN_LOADED.log(Utils.tagResolver("os", OS.getOs().getPlatformName()));
+            Message.PLUGIN_LOADED.log(AdventureUtils.tagResolver("os", OS.getOs().getPlatformName()));
         } catch (Exception ignore) {}
         CompatibilitiesManager.enableNativeCompatibilities();
     }

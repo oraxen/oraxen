@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.events.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.events.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.events.OraxenFurnitureInteractEvent;
@@ -197,8 +198,8 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        ItemFrame itemframe = mechanic.place(rotation, yaw, event.getBlockFace(), block.getLocation(), item, player);
-        Utils.sendAnimation(player, event.getHand());
+        ItemFrame itemframe = mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), item, player);
+        Utils.swingHand(player, event.getHand());
 
         final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, block, itemframe, player);
 
@@ -394,7 +395,7 @@ public class FurnitureListener implements Listener {
 
         final FurnitureMechanic mechanic = getFurnitureMechanic(block);
 
-        Utils.sendAnimation(player, event.getHand());
+        Utils.swingHand(player, event.getHand());
 
         if (mechanic != null) {
             // Call the oraxen furniture event

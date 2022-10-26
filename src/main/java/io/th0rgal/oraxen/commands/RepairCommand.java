@@ -8,7 +8,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -48,10 +48,10 @@ public class RepairCommand {
                             }
                         }
                         Message.REPAIRED_ITEMS.send(sender,
-                                Utils.tagResolver("amount", String.valueOf(items.length - failed)));
+                                AdventureUtils.tagResolver("amount", String.valueOf(items.length - failed)));
                     } else
                         Message.NO_PERMISSION.send(sender,
-                                Utils.tagResolver("permission", "oraxen.command.repair.all"));
+                                AdventureUtils.tagResolver("permission", "oraxen.command.repair.all"));
                     else
                         Message.NOT_PLAYER.send(sender);
                 });
@@ -73,10 +73,10 @@ public class RepairCommand {
             DurabilityMechanic durabilityMechanic = (DurabilityMechanic) durabilityFactory.getMechanic(itemId);
             PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
             int realMaxDurability = durabilityMechanic.getItemMaxDurability();
-            int damage = realMaxDurability - pdc.get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER);
+            int damage = realMaxDurability - pdc.get(DurabilityMechanic.DURAB_KEY, PersistentDataType.INTEGER);
             if (damage == 0)
                 return true; // full durability
-            pdc.set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realMaxDurability);
+            pdc.set(DurabilityMechanic.DURAB_KEY, PersistentDataType.INTEGER, realMaxDurability);
         }
         damageable.setDamage(0);
         itemStack.setItemMeta(damageable);

@@ -13,8 +13,8 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.CustomArmorsTextures;
-import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.ZipUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -363,12 +363,10 @@ public class ResourcePack {
             IOUtils.closeQuietly();
         }
 
-        // Serialize legacy to component then deserialize to adventure style tags
-        content = Utils.MINI_MESSAGE.serialize(Utils.LEGACY_COMPONENT_SERIALIZER.deserialize(content)).replace("\\<", "<").replace("\\>", ">");
         // Deserialize said component to a string to handle other tags like glyphs
-        content = Utils.MINI_MESSAGE.serialize(Utils.MINI_MESSAGE.deserialize(content, Utils.tagResolver("prefix", Message.PREFIX.toString())));
+        content = AdventureUtils.parseMiniMessage(AdventureUtils.parseLegacy(content), AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
         // Deserialize adventure component to legacy format due to resourcepacks not supporting adventure components
-        content = Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(content));
+        content = AdventureUtils.parseLegacyThroughMiniMessage(content);
         return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
     }
 

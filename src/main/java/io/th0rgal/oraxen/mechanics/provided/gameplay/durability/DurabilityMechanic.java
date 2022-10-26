@@ -10,7 +10,7 @@ import org.bukkit.persistence.PersistentDataType;
 public class DurabilityMechanic extends Mechanic {
 
     private final int itemDurability;
-    public static final NamespacedKey NAMESPACED_KEY = new NamespacedKey(OraxenPlugin.get(), "durability");
+    public static final NamespacedKey DURAB_KEY = new NamespacedKey(OraxenPlugin.get(), "durability");
 
     public DurabilityMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         /*
@@ -18,7 +18,7 @@ public class DurabilityMechanic extends Mechanic {
          * section used to configure the mechanic - the item modifier(s)
          */
         super(mechanicFactory, section,
-            item -> item.setCustomTag(NAMESPACED_KEY, PersistentDataType.INTEGER, section.getInt("value")));
+            item -> item.setCustomTag(DURAB_KEY, PersistentDataType.INTEGER, section.getInt("value")));
         this.itemDurability = section.getInt("value");
     }
 

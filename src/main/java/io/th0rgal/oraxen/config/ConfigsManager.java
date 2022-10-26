@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.ChatColor;
@@ -134,7 +135,7 @@ public class ConfigsManager {
             if (!skippedYamlKeys.stream().filter(key::startsWith).toList().isEmpty()) continue;
             if (configuration.get(key) == null) {
                 updated = true;
-                Message.UPDATING_CONFIG.log(Utils.tagResolver("option", key));
+                Message.UPDATING_CONFIG.log(AdventureUtils.tagResolver("option", key));
                 configuration.set(key, defaultConfiguration.get(key));
             }        }
         if (updated)

@@ -4,7 +4,7 @@ import dev.jorel.commandapi.CommandAPICommand;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.font.Glyph;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -64,7 +64,7 @@ public class GlyphCommand {
                                 }
                             }
 
-                            pages = pages.append(Utils.MINI_MESSAGE.deserialize("<white>" + emoji.getCharacter())
+                            pages = pages.append(AdventureUtils.MINI_MESSAGE.deserialize("<white>" + emoji.getCharacter())
                                     .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, String.valueOf(emoji.getCharacter())))
                                     .hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Component.text(finalString + permissionMessage))));
                         }

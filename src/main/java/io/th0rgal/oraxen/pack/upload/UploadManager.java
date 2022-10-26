@@ -11,7 +11,7 @@ import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -67,8 +67,8 @@ public class UploadManager {
                 return;
             }
             Message.PACK_UPLOADED.log(
-                    Utils.tagResolver("url", hostingProvider.getPackURL()),
-                    Utils.tagResolver("delay", String.valueOf(System.currentTimeMillis() - time)));
+                    AdventureUtils.tagResolver("url", hostingProvider.getPackURL()),
+                    AdventureUtils.tagResolver("delay", String.valueOf(System.currentTimeMillis() - time)));
 
             if (packSender == null) {
                 packSender = (CompatibilitiesManager.hasPlugin("ProtocolLib") && Settings.SEND_PACK_ADVANCED.toBool())

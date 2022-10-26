@@ -7,7 +7,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -68,7 +68,7 @@ public class ItemParser {
     }
 
     private String parseComponentString(String miniString) {
-        return Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.deserialize(miniString));
+        return AdventureUtils.LEGACY_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE.deserialize(miniString));
     }
 
     public ItemBuilder buildItem() {

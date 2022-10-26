@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -157,7 +158,7 @@ public class ItemsView {
     }
 
     private String getMenuTexture(final String color) {
-        return baseMenuTexture + Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE
+        return baseMenuTexture + AdventureUtils.LEGACY_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE
                 .deserialize(color + fontManager.getGlyphFromName("menu_items_overlay").getCharacter()));
     }
 }

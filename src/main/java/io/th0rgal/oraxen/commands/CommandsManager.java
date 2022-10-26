@@ -7,7 +7,7 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.Color;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -96,7 +96,7 @@ public class CommandsManager {
                     final Collection<Player> targets = (Collection<Player>) args[1];
                     if (args[0].equals("msg"))
                         for (final Player target : targets)
-                            Message.COMMAND_JOIN_MESSAGE.send(target, Utils.tagResolver("pack_url",
+                            Message.COMMAND_JOIN_MESSAGE.send(target, AdventureUtils.tagResolver("pack_url",
                                     (OraxenPlugin.get().getUploadManager().getHostingProvider().getPackURL())));
                     else for (final Player target : targets)
                         OraxenPlugin.get().getUploadManager().getSender().sendPack(target);
@@ -146,14 +146,14 @@ public class CommandsManager {
 
                     if (targets.size() == 1)
                         Message.GIVE_PLAYER
-                                .send(sender, Utils.tagResolver("player", (targets.iterator().next().getName())),
-                                        Utils.tagResolver("amount", (String.valueOf(amount))),
-                                        Utils.tagResolver("item", itemID));
+                                .send(sender, AdventureUtils.tagResolver("player", (targets.iterator().next().getName())),
+                                        AdventureUtils.tagResolver("amount", (String.valueOf(amount))),
+                                        AdventureUtils.tagResolver("item", itemID));
                     else
                         Message.GIVE_PLAYERS
-                                .send(sender, Utils.tagResolver("count", String.valueOf(targets.size())),
-                                        Utils.tagResolver("amount", String.valueOf(amount)),
-                                        Utils.tagResolver("item", itemID));
+                                .send(sender, AdventureUtils.tagResolver("count", String.valueOf(targets.size())),
+                                        AdventureUtils.tagResolver("amount", String.valueOf(amount)),
+                                        AdventureUtils.tagResolver("item", itemID));
                 });
     }
 
@@ -178,14 +178,14 @@ public class CommandsManager {
 
                     if (targets.size() == 1)
                         Message.GIVE_PLAYER
-                                .send(sender, Utils.tagResolver("player", targets.iterator().next().getName()),
-                                        Utils.tagResolver("amount", String.valueOf(1)),
-                                        Utils.tagResolver("item", itemID));
+                                .send(sender, AdventureUtils.tagResolver("player", targets.iterator().next().getName()),
+                                        AdventureUtils.tagResolver("amount", String.valueOf(1)),
+                                        AdventureUtils.tagResolver("item", itemID));
                     else
                         Message.GIVE_PLAYERS
-                                .send(sender, Utils.tagResolver("count", String.valueOf(targets.size())),
-                                        Utils.tagResolver("amount", String.valueOf(1)),
-                                        Utils.tagResolver("item", itemID));
+                                .send(sender, AdventureUtils.tagResolver("count", String.valueOf(targets.size())),
+                                        AdventureUtils.tagResolver("amount", String.valueOf(1)),
+                                        AdventureUtils.tagResolver("item", itemID));
                 });
     }
 
@@ -203,8 +203,8 @@ public class CommandsManager {
                     if ("hand".equals(args[1])) for (final Player player : targets) {
                         player.getInventory().setItemInMainHand(
                                 ItemUpdater.updateItem(player.getInventory().getItemInMainHand()));
-                        Message.UPDATED_ITEMS.send(sender, Utils.tagResolver("amount", String.valueOf(1)),
-                                Utils.tagResolver("player", player.getDisplayName()));
+                        Message.UPDATED_ITEMS.send(sender, AdventureUtils.tagResolver("amount", String.valueOf(1)),
+                                AdventureUtils.tagResolver("player", player.getDisplayName()));
                     }
 
                     if (sender.hasPermission("oraxen.command.update.all")) for (final Player player : targets) {
@@ -217,11 +217,11 @@ public class CommandsManager {
                             player.getInventory().setItem(i, newItem);
                             updated++;
                         }
-                        Message.UPDATED_ITEMS.send(sender, Utils.tagResolver("amount", String.valueOf(updated)),
-                                Utils.tagResolver("player", player.getDisplayName()));
+                        Message.UPDATED_ITEMS.send(sender, AdventureUtils.tagResolver("amount", String.valueOf(updated)),
+                                AdventureUtils.tagResolver("player", player.getDisplayName()));
                     }
                     else
-                        Message.NO_PERMISSION.send(sender, Utils.tagResolver("permission", "oraxen.command.update.all"));
+                        Message.NO_PERMISSION.send(sender, AdventureUtils.tagResolver("permission", "oraxen.command.update.all"));
                 });
     }
 }

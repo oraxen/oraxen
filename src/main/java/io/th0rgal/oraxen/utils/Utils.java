@@ -1,11 +1,5 @@
 package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.font.GlyphTag;
-import io.th0rgal.oraxen.font.ShiftTag;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.tag.Tag;
-import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -25,22 +19,6 @@ import java.util.function.Function;
 public class Utils {
 
     private Utils() {
-    }
-
-    public static final LegacyComponentSerializer LEGACY_COMPONENT_SERIALIZER = LegacyComponentSerializer.builder()
-            .hexColors()
-            .useUnusualXRepeatedCharacterHexFormat()
-            .build();
-
-    public static final MiniMessage MINI_MESSAGE = MiniMessage.builder()
-            .tags(TagResolver.resolver(
-                    TagResolver.standard(),
-                    GlyphTag.RESOLVER,
-                    ShiftTag.RESOLVER
-            )).build();
-
-    public static TagResolver tagResolver(String string, String tag) {
-        return TagResolver.resolver(string, Tag.inserting(Utils.MINI_MESSAGE.deserialize(tag)));
     }
 
     public static List<String> toLowercaseList(final String... values) {

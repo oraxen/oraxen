@@ -509,7 +509,7 @@ public class NoteBlockMechanicListener implements Listener {
 
         if (sound != null)
             BlockHelpers.playCustomBlockSound(target.getLocation(), sound, SoundCategory.BLOCKS, 0.8f, 0.8f);
-        Utils.sendAnimation(player, hand);
+        Utils.swingHand(player, hand);
 
         return target;
     }
