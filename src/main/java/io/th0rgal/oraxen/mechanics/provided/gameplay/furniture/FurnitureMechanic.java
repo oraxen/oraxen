@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
@@ -325,7 +326,7 @@ public class FurnitureMechanic extends Mechanic {
             }
             StorageMechanic storageMechanic = getStorage();
             if (storageMechanic != null && (storageMechanic.isStorage() || storageMechanic.isShulker())) {
-                storageMechanic.dropStorageContent(this, getItemFrame(rootLocation.getBlock(), rootBlockLocation, orientation));
+                storageMechanic.dropStorageContent(this, getItemFrame(rootLocation.getBlock()));
             }
             location.getBlock().setType(Material.AIR);
             new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
@@ -442,9 +443,13 @@ public class FurnitureMechanic extends Mechanic {
         return null;
     }
 
-    public ItemFrame getItemFrame(Block block, BlockLocation blockLocation, Float orientation) {
+    public ItemFrame getItemFrame(Block block) {
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        float orientation = pdc.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
+        final BlockLocation blockLoc = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
+
         if (hasBarriers()) {
-            for (Location sideLocation : getLocations(orientation, blockLocation.toLocation(block.getWorld()), getBarriers())) {
+            for (Location sideLocation : getLocations(orientation, blockLoc.toLocation(block.getWorld()), getBarriers())) {
                 for (Entity entity : block.getWorld().getNearbyEntities(sideLocation, 1, 1, 1))
                     if (entity instanceof ItemFrame frame
                             && entity.getLocation().getBlockX() == sideLocation.getBlockX()

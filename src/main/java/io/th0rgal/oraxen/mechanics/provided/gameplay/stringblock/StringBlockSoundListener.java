@@ -43,7 +43,7 @@ public class StringBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlaceString(OraxenStringBlockPlaceEvent event) {
-        final StringBlockMechanic mechanic = event.getStringBlockMechanic();
+        final StringBlockMechanic mechanic = event.getMechanic();
         if (mechanic == null || !mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
         if (blockSounds.hasPlaceSound())
@@ -52,7 +52,7 @@ public class StringBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreakString(OraxenStringBlockBreakEvent event) {
-        final StringBlockMechanic mechanic = event.getStringBlockMechanic();
+        final StringBlockMechanic mechanic = event.getMechanic();
         if (mechanic == null || !mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
         if (blockSounds.hasBreakSound())

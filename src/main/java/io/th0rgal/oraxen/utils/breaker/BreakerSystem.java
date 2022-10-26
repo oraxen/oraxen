@@ -208,9 +208,9 @@ public class BreakerSystem {
 
     private void sendBlockBreak(final Player player, final Location location, final int stage) {
         Block block = location.getBlock();
-        final PacketContainer fakeAnimation = protocolManager.createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
-        fakeAnimation.getIntegers().write(0, location.hashCode()).write(1, stage);
-        fakeAnimation.getBlockPositionModifier().write(0, new BlockPosition(location.toVector()));
+        final PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
+        packet.getIntegers().write(0, location.hashCode()).write(1, stage);
+        packet.getBlockPositionModifier().write(0, new BlockPosition(location.toVector()));
         if (!breakerPlaySound.contains(block)) {
             breakerPlaySound.add(block);
             BlockSounds blockSounds = getBlockSounds(block);
@@ -220,7 +220,7 @@ public class BreakerSystem {
                     breakerPlaySound.remove(block), 3L);
         }
 
-        protocolManager.sendServerPacket(player, fakeAnimation);
+        protocolManager.sendServerPacket(player, packet);
     }
 
     public void registerListener() {

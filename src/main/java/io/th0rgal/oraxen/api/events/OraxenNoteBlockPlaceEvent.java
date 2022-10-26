@@ -10,17 +10,38 @@ import org.jetbrains.annotations.NotNull;
 
 public class OraxenNoteBlockPlaceEvent extends Event implements Cancellable {
 
-    private final NoteBlockMechanic noteBlockMechanic;
+    private final NoteBlockMechanic mechanic;
     private final Player player;
     private final Block block;
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
     public OraxenNoteBlockPlaceEvent(NoteBlockMechanic mechanic, Block block, Player player) {
-        this.noteBlockMechanic = mechanic;
+        this.mechanic = mechanic;
         this.player = player;
         this.block = block;
         this.isCancelled = false;
+    }
+
+    /**
+     * @return The NoteBlockMechanic of this block
+     */
+    public NoteBlockMechanic getMechanic() {
+        return mechanic;
+    }
+
+    /**
+     * @return The player who broke this block
+     */
+    public Player getPlayer() {
+        return player;
+    }
+
+    /**
+     * @return The block that was broken
+     */
+    public Block getBlock() {
+        return block;
     }
 
     @Override
@@ -41,27 +62,6 @@ public class OraxenNoteBlockPlaceEvent extends Event implements Cancellable {
 
     public static HandlerList getHandlerList() {
         return HANDLERS;
-    }
-
-    /**
-     * @return The note block mechanic
-     */
-    public NoteBlockMechanic getNoteBlockMechanic() {
-        return noteBlockMechanic;
-    }
-
-    /**
-     * @return The player who broke the note block
-     */
-    public Player getPlayer() {
-        return player;
-    }
-
-    /**
-     * @return The block that was broken
-     */
-    public Block getBlock() {
-        return block;
     }
 
 }

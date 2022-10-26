@@ -12,19 +12,45 @@ import org.jetbrains.annotations.Nullable;
 
 public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
 
-    private final FurnitureMechanic furnitureMechanic;
+    private final FurnitureMechanic mechanic;
     private final Player player;
     private final Block block;
     private boolean isCancelled;
     private final ItemFrame itemFrame;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurnitureInteractEvent(FurnitureMechanic mechanic, @Nullable Block block, Player player, ItemFrame itemFrame) {
-        this.furnitureMechanic = mechanic;
+    public OraxenFurnitureInteractEvent(FurnitureMechanic mechanic, Player player, @Nullable Block block, ItemFrame itemFrame) {
+        this.mechanic = mechanic;
         this.player = player;
         this.block = block;
         this.isCancelled = false;
         this.itemFrame = itemFrame;
+    }
+
+    /**
+     * @return The FurnitureMechanic of the furniture that was interacted with
+     */
+    public FurnitureMechanic getMechanic() {
+        return mechanic;
+    }
+
+    /**
+     * @return The player who interacted with the furniture
+     */
+    public Player getPlayer() {
+        return player;
+    }
+
+    /**
+     * @return The block that was interacted with, null if the furniture has no hitbox
+     */
+    @Nullable
+    public Block getBlock() {
+        return block;
+    }
+
+    public ItemFrame getItemFrame() {
+        return itemFrame;
     }
 
     @Override
@@ -45,31 +71,5 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
 
     public static HandlerList getHandlerList() {
         return HANDLERS;
-    }
-
-    /**
-     * @return The furniture mechanic that was interacted with
-     */
-    public FurnitureMechanic getFurnitureMechanic() {
-        return furnitureMechanic;
-    }
-
-    /**
-     * @return The player who interacted with the furniture
-     */
-    public Player getPlayer() {
-        return player;
-    }
-
-    /**
-     * @return The block that was interacted with
-     */
-    @Nullable
-    public Block getBlock() {
-        return block;
-    }
-
-    public ItemFrame getItemFrame() {
-        return itemFrame;
     }
 }

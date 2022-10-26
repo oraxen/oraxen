@@ -119,7 +119,7 @@ public class NoteBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlacing(final OraxenNoteBlockPlaceEvent event) {
-        NoteBlockMechanic mechanic = event.getNoteBlockMechanic();
+        NoteBlockMechanic mechanic = event.getMechanic();
         if (mechanic != null && mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
         if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.getBlockSounds().hasPlaceSound()) return;
@@ -130,7 +130,7 @@ public class NoteBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreaking(final OraxenNoteBlockBreakEvent event) {
-        NoteBlockMechanic mechanic = event.getNoteBlockMechanic();
+        NoteBlockMechanic mechanic = event.getMechanic();
         if (mechanic != null && mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
         if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.getBlockSounds().hasBreakSound()) return;

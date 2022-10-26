@@ -81,7 +81,7 @@ public class FurnitureListener implements Listener {
                     final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
                     Float orientation = customBlockData.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
                     final BlockLocation rootBlockLocation = new BlockLocation(Objects.requireNonNull(customBlockData.get(ROOT_KEY, PersistentDataType.STRING)));
-                    final ItemFrame frame = mechanic.getItemFrame(block, rootBlockLocation, orientation);
+                    final ItemFrame frame = mechanic.getItemFrame(block);
 
                     OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, player, block, frame);
                     OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
@@ -321,7 +321,7 @@ public class FurnitureListener implements Listener {
             final String itemID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
             if (!OraxenItems.exists(itemID)) return;
             final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
-            ItemFrame frame = mechanic.getItemFrame(hitBlock, furnitureLocation, orientation);
+            ItemFrame frame = mechanic.getItemFrame(hitBlock);
 
             if (event.getEntity() instanceof Explosive) {
                 mechanic.getDrop().furnitureSpawns(frame, new ItemStack(Material.AIR));
@@ -354,7 +354,7 @@ public class FurnitureListener implements Listener {
         final BlockLocation rootBlockLocation = new BlockLocation(Objects.requireNonNull(customBlockData.get(ROOT_KEY, PersistentDataType.STRING)));
         Float orientation = customBlockData.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
 
-        ItemFrame frame = mechanic.getItemFrame(block, rootBlockLocation, orientation);
+        ItemFrame frame = mechanic.getItemFrame(block);
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, event.getPlayer(), block, frame);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
         if (furnitureBreakEvent.isCancelled()) {
@@ -375,7 +375,7 @@ public class FurnitureListener implements Listener {
         //prevent rotation
         event.setCancelled(true);
         FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
-        OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, null, player, itemFrame);
+        OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, player, null, itemFrame);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureInteractEvent);
         if (furnitureInteractEvent.isCancelled()) {
             return;
@@ -402,9 +402,9 @@ public class FurnitureListener implements Listener {
             final PersistentDataContainer pdc = BlockHelpers.getPDC(block);
             Float orientation = pdc.get(ORIENTATION_KEY, PersistentDataType.FLOAT);
             final BlockLocation rootBlockLocation = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
-            final ItemFrame frame = mechanic.getItemFrame(block, rootBlockLocation, orientation);
+            final ItemFrame frame = mechanic.getItemFrame(block);
 
-            final OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, block, player, frame);
+            final OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, player, block, frame);
             Bukkit.getPluginManager().callEvent(furnitureInteractEvent);
 
             if (furnitureInteractEvent.isCancelled()) {
