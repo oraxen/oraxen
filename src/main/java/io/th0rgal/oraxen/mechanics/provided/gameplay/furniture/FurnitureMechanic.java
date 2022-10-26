@@ -377,14 +377,6 @@ public class FurnitureMechanic extends Mechanic {
         frame.remove();
     }
 
-    public void remove(ItemFrame frame) {
-        if (this.hasBarriers())
-            this.removeSolid(frame.getWorld(), new BlockLocation(frame.getLocation()),
-                    this.getYaw(frame.getRotation()));
-        else
-            this.removeAirFurniture(frame);
-    }
-
     public List<Location> getLocations(float rotation, Location center, List<BlockLocation> relativeCoordinates) {
         List<Location> output = new ArrayList<>();
         for (BlockLocation modifier : relativeCoordinates)

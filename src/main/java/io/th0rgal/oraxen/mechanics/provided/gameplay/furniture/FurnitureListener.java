@@ -249,7 +249,7 @@ public class FurnitureListener implements Listener {
         return Rotation.values()[id];
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onHangingBreak(final HangingBreakEvent event) {
         final PersistentDataContainer pdc = event.getEntity().getPersistentDataContainer();
         if (pdc.has(FURNITURE_KEY, PersistentDataType.STRING)) {
@@ -268,7 +268,7 @@ public class FurnitureListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerBreakHanging(final EntityDamageByEntityEvent event) {
         if (event.getEntity() instanceof ItemFrame frame)
             if (event.getDamager() instanceof Player player) {
@@ -307,7 +307,7 @@ public class FurnitureListener implements Listener {
             }
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onProjectileHitFurniture(final ProjectileHitEvent event) {
         Block hitBlock = event.getHitBlock();
         Entity hitEntity = event.getHitEntity();
@@ -341,28 +341,18 @@ public class FurnitureListener implements Listener {
         }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onFurnitureBreak(final BlockBreakEvent event) {
         final Block block = event.getBlock();
-        if (block.getType() != Material.BARRIER || event.getPlayer().getGameMode() != GameMode.CREATIVE) return;
+        if (block.getType() != Material.BARRIER) return;
 
-        final PersistentDataContainer customBlockData = BlockHelpers.getPDC(block);
-        if (!customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING)) return;
+        final FurnitureMechanic mechanic = OraxenBlocks.getFurnitureMechanic(block);
+        if (mechanic == null) return;
 
-        final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
-        final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
-        final BlockLocation rootBlockLocation = new BlockLocation(Objects.requireNonNull(customBlockData.get(ROOT_KEY, PersistentDataType.STRING)));
-        Float orientation = customBlockData.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
-
-        ItemFrame frame = mechanic.getItemFrame(block);
-        OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, event.getPlayer(), block, frame);
+        OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, event.getPlayer(), block, mechanic.getItemFrame(block));
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
-        if (furnitureBreakEvent.isCancelled()) {
-            event.setCancelled(true);
-            return;
-        }
-
-        mechanic.removeSolid(block.getWorld(), rootBlockLocation, customBlockData.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f));
+        if (furnitureBreakEvent.isCancelled()) event.setCancelled(true);
+        else OraxenBlocks.remove(block.getLocation(), event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
