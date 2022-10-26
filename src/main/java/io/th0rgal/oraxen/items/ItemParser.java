@@ -39,11 +39,13 @@ public class ItemParser {
     public ItemParser(ConfigurationSection section) {
         this.section = section;
 
-        if (section.isConfigurationSection("crucible"))
-            crucibleItem = new WrappedCrucibleItem(section.getConfigurationSection("crucible"));
-        else if (section.isConfigurationSection("mmoitem"))
-            mmoItem = new WrappedMMOItem(section.getConfigurationSection("mmoitem"));
-        else type = Material.getMaterial(section.getString("material"));
+        ConfigurationSection crucibleSection = section.getConfigurationSection("crucible");
+        ConfigurationSection mmoSection = section.getConfigurationSection("mmoitem");
+        if (crucibleSection != null)
+            crucibleItem = new WrappedCrucibleItem(crucibleSection);
+        else if (mmoSection != null)
+            mmoItem = new WrappedMMOItem(mmoSection);
+        else type = Material.getMaterial(section.getString("material", "PAPER"));
 
         oraxenMeta = new OraxenMeta();
         if (section.isConfigurationSection("Pack")) {
@@ -96,7 +98,10 @@ public class ItemParser {
         }
 
         if (section.contains("unbreakable"))
-            item.setUnbreakable(section.getBoolean("unbreakable"));
+            item.setUnbreakable(section.getBoolean("unbreakable", false));
+
+        if (section.contains("unstackable"))
+            item.setUnstackable(section.getBoolean("unstackable", false));
 
         if (section.contains("color")) {
             String[] colors = section.getString("color").split(", ");
@@ -182,9 +187,8 @@ public class ItemParser {
 
         if (section.contains("Enchantments")) {
             ConfigurationSection enchantSection = section.getConfigurationSection("Enchantments");
-            for (String enchant : enchantSection.getKeys(false))
-                item
-                        .addEnchant(EnchantmentWrapper.getByKey(NamespacedKey.minecraft(enchant)),
+            if (enchantSection != null )for (String enchant : enchantSection.getKeys(false))
+                item.addEnchant(EnchantmentWrapper.getByKey(NamespacedKey.minecraft(enchant)),
                                 enchantSection.getInt(enchant));
         }
     }
@@ -193,7 +197,7 @@ public class ItemParser {
 
         if (section.isConfigurationSection("Mechanics")) {
             ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
-            for (String mechanicID : mechanicsSection.getKeys(false)) {
+            if (mechanicsSection != null) for (String mechanicID : mechanicsSection.getKeys(false)) {
                 MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
                 if (factory != null) {
                     Mechanic mechanic = factory.parse(mechanicsSection.getConfigurationSection(mechanicID));
