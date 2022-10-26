@@ -3,14 +3,13 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
-import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
-import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
@@ -169,6 +168,7 @@ public class FurnitureMechanic extends Mechanic {
     public boolean hasLimitedPlacing() {
         return limitedPlacing != null;
     }
+
     public LimitedPlacing getLimitedPlacing() {
         return limitedPlacing;
     }
@@ -176,6 +176,7 @@ public class FurnitureMechanic extends Mechanic {
     public boolean isStorage() {
         return storage != null;
     }
+
     public StorageMechanic getStorage() {
         return storage;
     }
@@ -188,8 +189,13 @@ public class FurnitureMechanic extends Mechanic {
         return blockSounds;
     }
 
-    public boolean isJukebox() { return jukebox != null; }
-    public JukeboxBlock getJukebox() { return jukebox; }
+    public boolean isJukebox() {
+        return jukebox != null;
+    }
+
+    public JukeboxBlock getJukebox() {
+        return jukebox;
+    }
 
     public boolean hasBarriers() {
         return !barriers.isEmpty();
@@ -256,7 +262,7 @@ public class FurnitureMechanic extends Mechanic {
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item, @Nullable Player player) {
         if (this.notEnoughSpace(yaw, location)) return null;
         if (!location.isWorldLoaded()) return null;
-
+        assert location.getWorld() != null;
         setPlacedItem();
         assert location.getWorld() != null;
         ItemFrame output = location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) -> {

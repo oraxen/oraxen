@@ -11,8 +11,8 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
@@ -48,8 +48,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory.getBlockMechanic;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener.getStringMechanic;
 
 public class BreakerSystem {
 
@@ -204,7 +202,7 @@ public class BreakerSystem {
         if (soundSection == null) return null;
         switch (block.getType()) {
             case NOTE_BLOCK -> {
-                NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
+                NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
                 if (!soundSection.getBoolean("noteblock_and_block")) return null;
                 else return mechanic.getBlockSounds();
@@ -216,13 +214,13 @@ public class BreakerSystem {
                 else return mechanic.getBlockSounds();
             }
             case TRIPWIRE -> {
-                StringBlockMechanic mechanic = getStringMechanic(block);
+                StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
                 if (!soundSection.getBoolean("stringblock_and_furniture")) return null;
                 else return mechanic.getBlockSounds();
             }
             case BARRIER -> {
-                FurnitureMechanic mechanic = FurnitureListener.getFurnitureMechanic(block);
+                FurnitureMechanic mechanic = OraxenBlocks.getFurnitureMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
                 if (!soundSection.getBoolean("stringblock_and_furniture")) return null;
                 else return mechanic.getBlockSounds();

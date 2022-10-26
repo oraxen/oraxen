@@ -1,26 +1,30 @@
-package io.th0rgal.oraxen.events;
+package io.th0rgal.oraxen.api.events;
 
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.block.Block;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
+public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
 
-    private final NoteBlockMechanic noteBlockMechanic;
+    private final FurnitureMechanic furnitureMechanic;
     private final Player player;
     private final Block block;
     private boolean isCancelled;
+    private final ItemFrame itemFrame;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenNoteBlockBreakEvent(NoteBlockMechanic mechanic, Block block, Player player) {
-        this.noteBlockMechanic = mechanic;
+    public OraxenFurnitureInteractEvent(FurnitureMechanic mechanic, @Nullable Block block, Player player, ItemFrame itemFrame) {
+        this.furnitureMechanic = mechanic;
         this.player = player;
         this.block = block;
         this.isCancelled = false;
+        this.itemFrame = itemFrame;
     }
 
     @Override
@@ -44,24 +48,28 @@ public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return The note block mechanic
+     * @return The furniture mechanic that was interacted with
      */
-    public NoteBlockMechanic getNoteBlockMechanic() {
-        return noteBlockMechanic;
+    public FurnitureMechanic getFurnitureMechanic() {
+        return furnitureMechanic;
     }
 
     /**
-     * @return The player who broke the note block
+     * @return The player who interacted with the furniture
      */
     public Player getPlayer() {
         return player;
     }
 
     /**
-     * @return The block that was broken
+     * @return The block that was interacted with
      */
+    @Nullable
     public Block getBlock() {
         return block;
     }
 
+    public ItemFrame getItemFrame() {
+        return itemFrame;
+    }
 }

@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -55,7 +55,7 @@ public class JukeboxBlock {
         return (float) pitch;
     }
 
-    public boolean checkPermission(Player player) {
+    public boolean hasPermission(Player player) {
         return player == null || getPermission().isBlank() || player.hasPermission(getPermission());
     }
 }

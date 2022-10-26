@@ -4,6 +4,7 @@ import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.hud.HudManager;
@@ -33,7 +34,7 @@ public class ReloadCommand {
     }
 
     private static void reloadHud(CommandSender sender) {
-        Message.RELOAD.send(sender, Utils.tagResolver("reloaded", "hud"));
+        Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "hud"));
         OraxenPlugin.get().reloadConfigs();
         HudManager hudManager = new HudManager(OraxenPlugin.get().getConfigsManager());
         OraxenPlugin.get().setHudManager(hudManager);

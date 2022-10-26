@@ -1,8 +1,9 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.events.OraxenStringBlockBreakEvent;
-import io.th0rgal.oraxen.events.OraxenStringBlockPlaceEvent;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.events.OraxenStringBlockBreakEvent;
+import io.th0rgal.oraxen.api.events.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import org.bukkit.GameEvent;
@@ -27,7 +28,7 @@ public class StringBlockSoundListener implements Listener {
         List<Block> tripwireList = event.getBlocks().stream().filter(block -> block.getType().equals(Material.TRIPWIRE)).toList();
 
         for (Block block : tripwireList) {
-            final StringBlockMechanic mechanic = StringBlockMechanicListener.getStringMechanic(block);
+            final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
             block.setType(Material.AIR, false);
             if (mechanic == null) return;
             BlockSounds blockSounds = mechanic.getBlockSounds();
@@ -65,7 +66,7 @@ public class StringBlockSoundListener implements Listener {
         if (!isLoaded(event.getLocation())) return;
         GameEvent gameEvent = event.getEvent();
         Block block = entity.getLocation().getBlock();
-        StringBlockMechanic mechanic = StringBlockMechanicListener.getStringMechanic(block);
+        StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
         String sound;
         float volume;
         float pitch;

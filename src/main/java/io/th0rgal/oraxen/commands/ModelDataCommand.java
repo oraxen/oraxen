@@ -2,8 +2,8 @@ package io.th0rgal.oraxen.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.items.OraxenItems;
 import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;

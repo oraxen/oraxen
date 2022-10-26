@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -14,7 +15,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener.getStringMechanic;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 
 public class SaplingTask extends BukkitRunnable {
@@ -33,7 +33,7 @@ public class SaplingTask extends BukkitRunnable {
                 for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk)) {
                     PersistentDataContainer pdc = BlockHelpers.getPDC(block);
                     if (pdc.has(SAPLING_KEY, PersistentDataType.INTEGER) && block.getType() == Material.TRIPWIRE) {
-                        StringBlockMechanic string = getStringMechanic(block);
+                        StringBlockMechanic string = OraxenBlocks.getStringMechanic(block);
                         if (string == null || !string.isSapling()) return;
 
                         SaplingMechanic sapling = string.getSaplingMechanic();

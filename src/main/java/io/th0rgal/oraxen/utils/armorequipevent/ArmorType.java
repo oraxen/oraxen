@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.utils.armorequipevent;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.hat.HatMechanicFactory;
 import org.bukkit.inventory.ItemStack;
 

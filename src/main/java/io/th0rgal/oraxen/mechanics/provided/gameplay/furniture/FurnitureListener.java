@@ -3,12 +3,13 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.api.events.OraxenFurnitureBreakEvent;
+import io.th0rgal.oraxen.api.events.OraxenFurnitureInteractEvent;
+import io.th0rgal.oraxen.api.events.OraxenFurniturePlaceEvent;
 import io.th0rgal.oraxen.api.events.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.config.Message;
-import io.th0rgal.oraxen.events.OraxenFurnitureBreakEvent;
-import io.th0rgal.oraxen.events.OraxenFurnitureInteractEvent;
-import io.th0rgal.oraxen.events.OraxenFurniturePlaceEvent;
-import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -51,7 +52,6 @@ import java.util.Objects;
 import java.util.UUID;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.*;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 
 public class FurnitureListener implements Listener {
 
@@ -169,7 +169,7 @@ public class FurnitureListener implements Listener {
 
         if (mechanic.farmblockRequired) {
             if (farm.getType() != Material.NOTE_BLOCK) return;
-            NoteBlockMechanic farmMechanic = getNoteBlockMechanic(farm);
+            NoteBlockMechanic farmMechanic = OraxenBlocks.getNoteBlockMechanic(farm);
             if (farmMechanic == null || !farmMechanic.hasDryout()) return;
             if (!farmMechanic.getDryout().isFarmBlock()) return;
         }
@@ -393,7 +393,7 @@ public class FurnitureListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() != EquipmentSlot.HAND) return;
         if (block == null || block.getType() != Material.BARRIER || player.isSneaking()) return;
 
-        final FurnitureMechanic mechanic = getFurnitureMechanic(block);
+        final FurnitureMechanic mechanic = OraxenBlocks.getFurnitureMechanic(block);
 
         Utils.swingHand(player, event.getHand());
 
@@ -449,7 +449,7 @@ public class FurnitureListener implements Listener {
             if (rayTraceResult == null) return;
             final Block block = rayTraceResult.getHitBlock();
             if (block == null) return;
-            FurnitureMechanic furnitureMechanic = getFurnitureMechanic(block);
+            FurnitureMechanic furnitureMechanic = OraxenBlocks.getFurnitureMechanic(block);
             if (furnitureMechanic == null) return;
 
             ItemStack item = OraxenItems.getItemById(furnitureMechanic.getItemID()).build();

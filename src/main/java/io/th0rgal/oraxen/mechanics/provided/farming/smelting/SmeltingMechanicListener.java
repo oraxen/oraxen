@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.farming.smelting;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.*;

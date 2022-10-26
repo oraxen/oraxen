@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.utils.drops;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
 import org.bukkit.Location;
@@ -97,8 +97,8 @@ public class Drop {
 
         int fortuneMultiplier = 1;
         if (itemInHand != null && itemInHand.hasItemMeta()) {
-            if (silktouch && itemInHand.hasItemMeta() && itemInHand.getItemMeta().hasEnchant(Enchantment.SILK_TOUCH)) {
-                location.getWorld().dropItemNaturally(location, OraxenItems.getItemById(sourceID).build());
+            if (silktouch && itemInHand.getItemMeta() != null && itemInHand.getItemMeta().hasEnchant(Enchantment.SILK_TOUCH)) {
+                if (location.getWorld() != null) location.getWorld().dropItemNaturally(location, OraxenItems.getItemById(sourceID).build());
                 return;
             }
 

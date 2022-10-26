@@ -49,8 +49,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                         "assets/minecraft/blockstates", "note_block.json", getBlockstateContent())
         );
         MechanicsManager.registerListeners(OraxenPlugin.get(),
-                new NoteBlockMechanicListener(this),
-                new LogStripListener(this)
+                new NoteBlockMechanicListener(),
+                new LogStripListener()
         );
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockSoundListener());
     }

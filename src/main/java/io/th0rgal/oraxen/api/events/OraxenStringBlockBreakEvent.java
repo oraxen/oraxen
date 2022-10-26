@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.events;
+package io.th0rgal.oraxen.api.events;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import org.bukkit.block.Block;

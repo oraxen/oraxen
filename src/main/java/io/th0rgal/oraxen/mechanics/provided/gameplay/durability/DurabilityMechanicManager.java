@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.durability;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

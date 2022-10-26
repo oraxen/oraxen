@@ -1,8 +1,9 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.events.OraxenNoteBlockBreakEvent;
-import io.th0rgal.oraxen.events.OraxenNoteBlockPlaceEvent;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.events.OraxenNoteBlockBreakEvent;
+import io.th0rgal.oraxen.api.events.OraxenNoteBlockPlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -33,7 +34,7 @@ public class NoteBlockSoundListener implements Listener {
     public void onPlacingWood(final BlockPlaceEvent event) {
         Block placed = event.getBlockPlaced();
         if (placed.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_WOOD_PLACE) return;
-        if (NoteBlockMechanicListener.getNoteBlockMechanic(placed) != null || placed.getType() == Material.MUSHROOM_STEM) return;
+        if (OraxenBlocks.getNoteBlockMechanic(placed) != null || placed.getType() == Material.MUSHROOM_STEM) return;
 
         // Play sound for wood
         BlockHelpers.playCustomBlockSound(placed.getLocation(), VANILLA_WOOD_PLACE, VANILLA_PLACE_VOLUME, VANILLA_PLACE_PITCH);
@@ -43,7 +44,7 @@ public class NoteBlockSoundListener implements Listener {
     public void onBreakingWood(final BlockBreakEvent event) {
         final Block block = event.getBlock();
         if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
-        if (NoteBlockMechanicListener.getNoteBlockMechanic(block) != null || block.getType() == Material.MUSHROOM_STEM) return;
+        if (OraxenBlocks.getNoteBlockMechanic(block) != null || block.getType() == Material.MUSHROOM_STEM) return;
 
         if (breakerPlaySound.containsKey(block)) {
             breakerPlaySound.get(block).cancel();
@@ -94,7 +95,7 @@ public class NoteBlockSoundListener implements Listener {
 
         if (blockBelow.getBlockData().getSoundGroup().getStepSound() != Sound.BLOCK_WOOD_STEP) return;
         if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(block.getType()) || block.getType() == Material.TRIPWIRE) return;
-        NoteBlockMechanic mechanic = NoteBlockMechanicListener.getNoteBlockMechanic(blockBelow);
+        NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(blockBelow);
         if (mechanic != null && mechanic.isDirectional())
             mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
 

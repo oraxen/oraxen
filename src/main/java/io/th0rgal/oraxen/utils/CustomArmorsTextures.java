@@ -1,10 +1,10 @@
 package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.items.OraxenItems;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
 

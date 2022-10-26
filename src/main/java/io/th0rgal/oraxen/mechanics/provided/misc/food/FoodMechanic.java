@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.food;
 
 import io.lumine.mythiccrucible.MythicCrucible;
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -18,7 +18,7 @@ import java.util.Set;
 public class FoodMechanic extends Mechanic {
 
     private final Set<PotionEffect> effects = new HashSet<>();
-    private double effectProbability = 1.0;
+    private final double effectProbability;
     private final int hunger;
     private final int saturation;
     private ItemStack replacementItem;

@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.misc.backpack;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.StorageGui;
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

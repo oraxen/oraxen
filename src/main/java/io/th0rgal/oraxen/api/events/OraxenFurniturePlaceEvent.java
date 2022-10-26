@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.events;
+package io.th0rgal.oraxen.api.events;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.block.Block;
@@ -8,18 +8,17 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
+public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
 
     private final FurnitureMechanic furnitureMechanic;
     private final Player player;
     private final Block block;
-    private boolean isCancelled;
     private final ItemFrame itemFrame;
+    private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurnitureInteractEvent(FurnitureMechanic mechanic, @Nullable Block block, Player player, ItemFrame itemFrame) {
+    public OraxenFurniturePlaceEvent(FurnitureMechanic mechanic, Block block, ItemFrame itemFrame, Player player){
         this.furnitureMechanic = mechanic;
         this.player = player;
         this.block = block;
@@ -33,38 +32,24 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     }
 
     @Override
-    public void setCancelled(boolean cancel) {
-        isCancelled = cancel;
+    public void setCancelled(boolean cancelled) {
+        isCancelled = cancelled;
     }
 
     @NotNull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
-    }
-
+    public HandlerList getHandlers() { return getHandlerList(); }
     public static HandlerList getHandlerList() {
         return HANDLERS;
     }
 
-    /**
-     * @return The furniture mechanic that was interacted with
-     */
     public FurnitureMechanic getFurnitureMechanic() {
         return furnitureMechanic;
     }
 
-    /**
-     * @return The player who interacted with the furniture
-     */
     public Player getPlayer() {
         return player;
     }
 
-    /**
-     * @return The block that was interacted with
-     */
-    @Nullable
     public Block getBlock() {
         return block;
     }
@@ -72,4 +57,5 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     public ItemFrame getItemFrame() {
         return itemFrame;
     }
+
 }

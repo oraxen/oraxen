@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 
+import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import org.bukkit.GameEvent;
@@ -36,7 +37,7 @@ public class BlockSoundListener implements Listener {
 
         if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(currentBlock.getType()) || currentBlock.getType() == Material.TRIPWIRE) return;
         if (blockBelow.getType() != Material.MUSHROOM_STEM) return;
-        final BlockMechanic mechanic = BlockMechanicListener.getBlockMechanic(blockBelow);
+        final BlockMechanic mechanic = OraxenBlocks.getBlockMechanic(blockBelow);
         if (mechanic == null || !mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
 
@@ -55,7 +56,7 @@ public class BlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlacing(final BlockBreakEvent event) {
-        BlockMechanic mechanic = BlockMechanicListener.getBlockMechanic(event.getBlock());
+        BlockMechanic mechanic = OraxenBlocks.getBlockMechanic(event.getBlock());
         if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.getBlockSounds().hasPlaceSound()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
         BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getPlaceSound(), blockSounds.getPlaceVolume(), blockSounds.getPlacePitch());
@@ -64,7 +65,7 @@ public class BlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreaking(final BlockPlaceEvent event) {
-        BlockMechanic mechanic = BlockMechanicListener.getBlockMechanic(event.getBlock());
+        BlockMechanic mechanic = OraxenBlocks.getBlockMechanic(event.getBlock());
         if (mechanic == null || !mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
             BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());

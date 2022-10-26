@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -38,8 +39,8 @@ public class FarmBlockDryout {
     }
 
     public byte getMoistureLevel(PersistentDataContainer pdc) {
-        return isMoistFarmBlock() && pdc.has(FARMBLOCK_MOIST, PersistentDataType.BYTE) ?
-                pdc.get(FARMBLOCK_MOIST, PersistentDataType.BYTE) :
+        return isMoistFarmBlock() && pdc.has(FarmBlockDryout.FARMBLOCK_MOIST, PersistentDataType.BYTE) ?
+                pdc.get(FarmBlockDryout.FARMBLOCK_MOIST, PersistentDataType.BYTE) :
                 (byte) 0;
     }
 
@@ -64,7 +65,7 @@ public class FarmBlockDryout {
         return switch (block.getType()) {
             case WATER -> 5;
             case FARMLAND -> ((Farmland) block.getBlockData()).getMoisture() > 0 ? 1 : 0;
-            case NOTE_BLOCK -> (temp = NoteBlockMechanicListener.getNoteBlockMechanic(block)).hasDryout() ?
+            case NOTE_BLOCK -> ((temp = OraxenBlocks.getNoteBlockMechanic(block)) != null && temp.hasDryout()) ?
                     (int) temp.getDryout().getMoistureLevel(BlockHelpers.getPDC(block)) : 0;
             default -> 0;
         };
@@ -86,7 +87,7 @@ public class FarmBlockDryout {
         }
 
         int moistLevel = Math.max(0, maxLevel - 1);
-        pdc.set(FARMBLOCK_MOIST, PersistentDataType.BYTE, (byte) moistLevel);
+        pdc.set(FarmBlockDryout.FARMBLOCK_MOIST, PersistentDataType.BYTE, (byte) moistLevel);
         return moistLevel > 0;
     }
 }

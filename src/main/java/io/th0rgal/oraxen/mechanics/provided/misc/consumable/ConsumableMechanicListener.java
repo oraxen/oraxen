@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.consumable;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -25,17 +25,13 @@ public class ConsumableMechanicListener implements Listener {
 
         ItemStack item = event.getItem();
         String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID))
-            return;
+        if (item == null || factory.isNotImplementedIn(itemID)) return;
 
         Player player = event.getPlayer();
         PlayerInventory inventory = player.getInventory();
-        item.setAmount(item.getAmount() -1);
-        if(event.getHand().equals(EquipmentSlot.OFF_HAND)){
-            inventory.setItem(45, item);
-        } else {
-            inventory.setItem(inventory.getHeldItemSlot(), item);
-        }
+
+        item.setAmount(item.getAmount() - 1);
+        inventory.setItem(event.getHand() == EquipmentSlot.OFF_HAND ? 45 : inventory.getHeldItemSlot(), item);
     }
 
 }

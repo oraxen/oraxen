@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.custom.listeners;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.fields.CustomEvent;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;

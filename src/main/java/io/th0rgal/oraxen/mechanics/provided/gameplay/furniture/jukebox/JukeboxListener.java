@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureListener;
+import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import net.kyori.adventure.key.Key;
@@ -80,14 +80,14 @@ public class JukeboxListener implements Listener {
 
     private boolean insertAndPlayDisc(Block block, ItemStack disc, @Nullable Player player) {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
-        FurnitureMechanic furnitureMechanic = FurnitureListener.getFurnitureMechanic(block);
+        FurnitureMechanic furnitureMechanic = OraxenBlocks.getFurnitureMechanic(block);
         Location loc = BlockHelpers.toCenterLocation(block.getLocation());
 
         if (furnitureMechanic == null || !furnitureMechanic.isJukebox()) return false;
         if (pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK)) return false;
         if (disc == null || !Tag.ITEMS_MUSIC_DISCS.isTagged(disc.getType())) return false;
         JukeboxBlock jukebox = furnitureMechanic.getJukebox();
-        if (!jukebox.checkPermission(player)) return false;
+        if (!jukebox.hasPermission(player)) return false;
         ItemStack insertedDisc = disc.clone();
         insertedDisc.setAmount(1);
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
@@ -110,7 +110,7 @@ public class JukeboxListener implements Listener {
     private boolean ejectAndStopDisc(Block block, @Nullable Player player) {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         ItemStack item = pdc.get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
-        FurnitureMechanic furnitureMechanic = FurnitureListener.getFurnitureMechanic(block);
+        FurnitureMechanic furnitureMechanic = OraxenBlocks.getFurnitureMechanic(block);
         Location loc = BlockHelpers.toCenterLocation(block.getLocation());
 
         if (furnitureMechanic == null || !furnitureMechanic.isJukebox()) return false;
@@ -118,7 +118,7 @@ public class JukeboxListener implements Listener {
         if (item == null || !Tag.ITEMS_MUSIC_DISCS.isTagged(item.getType())) return false;
 
         JukeboxBlock jukebox = furnitureMechanic.getJukebox();
-        if (!jukebox.checkPermission(player)) return false;
+        if (!jukebox.hasPermission(player)) return false;
 
         block.getWorld().getNearbyEntities(loc, 32, 32, 32).stream()
                 .filter(entity -> entity instanceof Player)

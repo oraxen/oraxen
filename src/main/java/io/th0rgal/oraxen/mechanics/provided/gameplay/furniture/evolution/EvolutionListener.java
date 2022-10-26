@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 
+import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -18,7 +19,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 
 public class EvolutionListener implements Listener {
     private final MechanicFactory factory;
@@ -54,7 +54,7 @@ public class EvolutionListener implements Listener {
                     return;
                 }
 
-                NoteBlockMechanic noteBlockMechanic = getNoteBlockMechanic(blockBelow);
+                NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(blockBelow);
                 if (noteBlockMechanic == null) {
                     mechanic.remove(crop);
                     return;
