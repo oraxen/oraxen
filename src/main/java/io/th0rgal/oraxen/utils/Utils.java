@@ -1,9 +1,5 @@
 package io.th0rgal.oraxen.utils;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
 import io.th0rgal.oraxen.font.GlyphTag;
 import io.th0rgal.oraxen.font.ShiftTag;
 import net.kyori.adventure.text.minimessage.MiniMessage;
@@ -12,6 +8,8 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -22,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Function;
 
 public class Utils {
 
@@ -94,12 +93,21 @@ public class Utils {
         return min;
     }
 
-    public static void sendAnimation(Player player, EquipmentSlot hand) {
-        final ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
-        final PacketContainer animation = protocolManager.createPacket(PacketType.Play.Server.ANIMATION);
-        animation.getIntegers().write(0, player.getEntityId());
-        animation.getIntegers().write(1, (hand == EquipmentSlot.HAND) ? 0 : 3);
-        protocolManager.sendServerPacket(player, animation);
+    public static void swingHand(Player player, EquipmentSlot hand) {
+        if (hand == EquipmentSlot.HAND) player.swingMainHand();
+        else player.swingOffHand();
+    }
+
+    /**
+     * @param itemStack The ItemStack to edit the ItemMeta of
+     * @param function  The function-block to edit the ItemMeta in
+     * @return The original ItemStack with the new ItemMeta
+     */
+    public static ItemStack editItemMeta(ItemStack itemStack, Function<ItemMeta, ItemStack> function) {
+        ItemMeta meta = itemStack.getItemMeta();
+        function.apply(meta);
+        itemStack.setItemMeta(meta);
+        return itemStack;
     }
 
 }
