@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.function.Consumer;
 
 public class Utils {
 
@@ -81,9 +81,9 @@ public class Utils {
      * @param function  The function-block to edit the ItemMeta in
      * @return The original ItemStack with the new ItemMeta
      */
-    public static ItemStack editItemMeta(ItemStack itemStack, Function<ItemMeta, ItemStack> function) {
+    public static ItemStack editItemMeta(ItemStack itemStack, Consumer<ItemMeta> function) {
         ItemMeta meta = itemStack.getItemMeta();
-        function.apply(meta);
+        function.accept(meta);
         itemStack.setItemMeta(meta);
         return itemStack;
     }

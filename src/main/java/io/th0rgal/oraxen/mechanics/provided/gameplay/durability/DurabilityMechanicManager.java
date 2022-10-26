@@ -55,14 +55,13 @@ public class DurabilityMechanicManager implements Listener {
 
                     if(!(itemMeta instanceof Damageable damageable)) {
                         check.set(true);
-                        return item;
+                        return;
                     }
                     double realMaxDurab = durabilityMechanic.getItemMaxDurability(); // because int rounded values suck
 
                     (damageable).setDamage((int) (item.getType().getMaxDurability() - realDurabRemain / realMaxDurab * item.getType().getMaxDurability()));
                 } else item.setAmount(0);
             }
-            return item;
         });
         return check.get();
     }

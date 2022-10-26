@@ -63,23 +63,22 @@ public abstract class SpellMechanic extends Mechanic {
     public void removeCharge(ItemStack item){
         Utils.editItemMeta(item, (itemMeta -> {
             PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-            if (!pdc.has(NAMESPACED_KEY, PersistentDataType.INTEGER)) return item;
+            if (!pdc.has(NAMESPACED_KEY, PersistentDataType.INTEGER)) return;
 
             int chargesLeft = pdc.getOrDefault(NAMESPACED_KEY, PersistentDataType.INTEGER, -1);
-            if (chargesLeft == -1) return item;
+            if (chargesLeft == -1) return;
 
             if (chargesLeft == 1) {
                 item.setAmount(0);
-                return item;
+                return;
             }
 
             pdc.set(NAMESPACED_KEY, PersistentDataType.INTEGER, chargesLeft - 1);
 
             List<String> lore = itemMeta.getLore();
-            if(lore == null) return item;
+            if(lore == null) return;
             lore.set(0, "Charges " + (chargesLeft - 1) + "/" + this.getMaxCharges());
             itemMeta.setLore(lore);
-            return item;
         }));
     }
 }
