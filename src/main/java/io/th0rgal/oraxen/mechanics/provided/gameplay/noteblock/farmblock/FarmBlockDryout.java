@@ -1,8 +1,9 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -13,8 +14,6 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 
 public class FarmBlockDryout {
     private static final NamespacedKey FARMBLOCK_MOIST = new NamespacedKey(OraxenPlugin.get(), "farmblock_moist");
@@ -65,8 +64,8 @@ public class FarmBlockDryout {
         return switch (block.getType()) {
             case WATER -> 5;
             case FARMLAND -> ((Farmland) block.getBlockData()).getMoisture() > 0 ? 1 : 0;
-            case NOTE_BLOCK -> (temp = getNoteBlockMechanic(block)).hasDryout() ?
-                    (int) temp.getDryout().getMoistureLevel(new CustomBlockData(block, OraxenPlugin.get())) : 0;
+            case NOTE_BLOCK -> (temp = NoteBlockMechanicListener.getNoteBlockMechanic(block)).hasDryout() ?
+                    (int) temp.getDryout().getMoistureLevel(BlockHelpers.getPDC(block)) : 0;
             default -> 0;
         };
     }

@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
@@ -40,7 +39,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
 import org.jetbrains.annotations.Nullable;
@@ -293,9 +291,8 @@ public class StringBlockMechanicListener implements Listener {
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
         if (mechanic.isSapling()) {
             SaplingMechanic sapling = mechanic.getSaplingMechanic();
-            final PersistentDataContainer pdc = new CustomBlockData(placedBlock, OraxenPlugin.get());
             if (mechanic.getSaplingMechanic().canGrowNaturally())
-                pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, sapling.getNaturalGrowthTime());
+                BlockHelpers.getPDC(placedBlock).set(SAPLING_KEY, PersistentDataType.INTEGER, sapling.getNaturalGrowthTime());
         }
         event.setCancelled(true);
     }
@@ -466,13 +463,5 @@ public class StringBlockMechanicListener implements Listener {
             }
             loc = loc.add(-1, 0, 9);
         }
-    }
-
-    private boolean checkSurroundingBlocks(Block block) {
-        for (BlockFace face : BlockFace.values()) {
-            if (face == BlockFace.SELF) continue;
-            if (block.getRelative(face).getType() == Material.TRIPWIRE) return true;
-        }
-        return false;
     }
 }

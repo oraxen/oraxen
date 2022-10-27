@@ -71,11 +71,13 @@ public class FurnitureMechanic extends Mechanic {
             placedItemId = section.getString("item");
 
         barriers = new ArrayList<>();
-        if (CompatibilitiesManager.hasPlugin("ProtocolLib") && section.getBoolean("barrier", false))
-            barriers.add(new BlockLocation(0, 0, 0));
-        if (CompatibilitiesManager.hasPlugin("ProtocolLib") && section.isList("barriers"))
-            for (Object barrierObject : section.getList("barriers"))
-                barriers.add(new BlockLocation((Map<String, Object>) barrierObject));
+        if (CompatibilitiesManager.hasPlugin("ProtocolLib")) {
+            if (section.getBoolean("barrier", false))
+                barriers.add(new BlockLocation(0, 0, 0));
+            if (section.isList("barriers"))
+                for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
+                    barriers.add(new BlockLocation((Map<String, Object>) barrierObject));
+        }
 
         ConfigurationSection seatSection = section.getConfigurationSection("seat");
         if (seatSection != null) {
@@ -114,24 +116,21 @@ public class FurnitureMechanic extends Mechanic {
         List<Loot> loots = new ArrayList<>();
         if (section.isConfigurationSection("drop")) {
             ConfigurationSection drop = section.getConfigurationSection("drop");
-            for (LinkedHashMap<String, Object> lootConfig : (List<LinkedHashMap<String, Object>>)
-                    drop.getList("loots"))
-                loots.add(new Loot(lootConfig));
+            if (drop != null) {
+                for (LinkedHashMap<String, Object> lootConfig : (List<LinkedHashMap<String, Object>>) drop.getList("loots", new ArrayList<>()))
+                    loots.add(new Loot(lootConfig));
 
-            if (drop.isString("minimal_type")) {
-                FurnitureFactory mechanic = (FurnitureFactory) mechanicFactory;
-                List<String> bestTools = drop.isList("best_tools")
-                        ? drop.getStringList("best_tools")
-                        : new ArrayList<>();
-                this.drop = new Drop(mechanic.toolTypes, loots, drop.getBoolean("silktouch"),
-                        drop.getBoolean("fortune"), getItemID(),
-                        drop.getString("minimal_type"),
-                        bestTools);
-            } else
-                this.drop = new Drop(loots, drop.getBoolean("silktouch"), drop.getBoolean("fortune"),
-                        getItemID());
-        } else
-            drop = new Drop(loots, false, false, getItemID());
+                if (drop.isString("minimal_type")) {
+                    FurnitureFactory mechanic = (FurnitureFactory) mechanicFactory;
+                    List<String> bestTools = drop.isList("best_tools") ? drop.getStringList("best_tools") : new ArrayList<>();
+                    this.drop = new Drop(mechanic.toolTypes, loots, drop.getBoolean("silktouch"),
+                            drop.getBoolean("fortune"), getItemID(),
+                            drop.getString("minimal_type"),
+                            bestTools);
+                } else this.drop =
+                            new Drop(loots, drop.getBoolean("silktouch", false), drop.getBoolean("fortune", false), getItemID());
+            } else this.drop = new Drop(loots, false, false, getItemID());
+        } else drop = new Drop(loots, false, false, getItemID());
 
         if (section.isConfigurationSection("limited_placing")) {
             limitedPlacing = new LimitedPlacing(Objects.requireNonNull(section.getConfigurationSection("limited_placing")));
@@ -243,7 +242,7 @@ public class FurnitureMechanic extends Mechanic {
         if (placedItem == null) {
             placedItem = OraxenItems.getItemById(placedItemId != null ? placedItemId : getItemID()).build();
             ItemMeta meta = placedItem.getItemMeta();
-            meta.setDisplayName("");
+            if (meta != null) meta.setDisplayName("");
             placedItem.setItemMeta(meta);
         }
     }
@@ -254,10 +253,11 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item, @Nullable Player player) {
-        if (!this.isEnoughSpace(yaw, location)) return null;
+        if (this.notEnoughSpace(yaw, location)) return null;
         if (!location.isWorldLoaded()) return null;
 
         setPlacedItem();
+        assert location.getWorld() != null;
         ItemFrame output = location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) -> {
             frame.setVisible(false);
             frame.setFixed(false);
@@ -266,7 +266,7 @@ public class FurnitureMechanic extends Mechanic {
             if (evolvingFurniture == null) {
                 ItemStack clone = item.clone();
                 ItemMeta meta = clone.getItemMeta();
-                meta.setDisplayName("");
+                if (meta != null) meta.setDisplayName("");
                 clone.setItemMeta(meta);
                 frame.setItem(clone, false);
             } else frame.setItem(placedItem, false);
@@ -284,11 +284,11 @@ public class FurnitureMechanic extends Mechanic {
         if (hasBarriers())
             for (Location barrierLocation : getLocations(yaw, location, getBarriers())) {
                 Block block = barrierLocation.getBlock();
-                PersistentDataContainer data = new CustomBlockData(block, OraxenPlugin.get());
+                PersistentDataContainer data = BlockHelpers.getPDC(block);
                 data.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
                 if (hasSeat()) {
                     String entityId = spawnSeat(this, block, hasSeatYaw ? seatYaw : yaw);
-                    data.set(SEAT_KEY, PersistentDataType.STRING, entityId);
+                    if (entityId != null) data.set(SEAT_KEY, PersistentDataType.STRING, entityId);
                 }
                 data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location).toString());
                 data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
@@ -315,15 +315,15 @@ public class FurnitureMechanic extends Mechanic {
                     seat.remove();
                 }
             }
-            if (isStorage() && getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
-                getStorage().dropStorageContent(getItemFrame(rootLocation.getBlock(), rootBlockLocation, orientation));
+            if (isStorage() && getStorage().isStorage() || getStorage().isShulker()) {
+                getStorage().dropStorageContent(this, getItemFrame(rootLocation.getBlock(), rootBlockLocation, orientation));
             }
             location.getBlock().setType(Material.AIR);
             new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
         }
 
         boolean removed = false;
-        for (Entity entity : rootLocation.getWorld().getNearbyEntities(rootLocation, 1, 1, 1)) {
+        for (Entity entity : world.getNearbyEntities(rootLocation, 1, 1, 1)) {
             PersistentDataContainer pdc = entity.getPersistentDataContainer();
             if (entity instanceof ItemFrame frame
                     && entity.getLocation().getBlockX() == rootLocation.getX()
@@ -331,7 +331,8 @@ public class FurnitureMechanic extends Mechanic {
                     && entity.getLocation().getBlockZ() == rootLocation.getZ()
                     && pdc.has(FURNITURE_KEY, PersistentDataType.STRING)) {
                 if (pdc.has(SEAT_KEY, PersistentDataType.STRING)) {
-                    Entity seat = Bukkit.getEntity(UUID.fromString(pdc.get(SEAT_KEY, PersistentDataType.STRING)));
+                    String uuid = pdc.get(SEAT_KEY, PersistentDataType.STRING);
+                    Entity seat = uuid != null ? Bukkit.getEntity(UUID.fromString(uuid)): null;
                     if (seat != null) {
                         seat.getPassengers().clear();
                         seat.remove();
@@ -352,7 +353,8 @@ public class FurnitureMechanic extends Mechanic {
     public void removeAirFurniture(ItemFrame frame) {
         PersistentDataContainer framePDC = frame.getPersistentDataContainer();
         if (framePDC.has(SEAT_KEY, PersistentDataType.STRING)) {
-            Entity stand = Bukkit.getEntity(UUID.fromString(framePDC.get(SEAT_KEY, PersistentDataType.STRING)));
+            String uuid = framePDC.get(SEAT_KEY, PersistentDataType.STRING);
+            Entity stand = uuid != null ? Bukkit.getEntity(UUID.fromString(uuid)): null;
             if (stand != null) {
                 stand.getPassengers().forEach(stand::removePassenger);
                 stand.remove();
@@ -380,10 +382,9 @@ public class FurnitureMechanic extends Mechanic {
         return output;
     }
 
-    public boolean isEnoughSpace(float yaw, Location rootLocation) {
-        if (!hasBarriers())
-            return true;
-        return getLocations(yaw, rootLocation, getBarriers()).stream()
+    public boolean notEnoughSpace(float yaw, Location rootLocation) {
+        if (!hasBarriers()) return false;
+        return !getLocations(yaw, rootLocation, getBarriers()).stream()
                 .allMatch(sideLocation -> sideLocation.getBlock().getType().isAir());
     }
 
@@ -435,7 +436,7 @@ public class FurnitureMechanic extends Mechanic {
     public ItemFrame getItemFrame(Block block, BlockLocation blockLocation, Float orientation) {
         if (hasBarriers()) {
             for (Location sideLocation : getLocations(orientation, blockLocation.toLocation(block.getWorld()), getBarriers())) {
-                for (Entity entity : sideLocation.getWorld().getNearbyEntities(sideLocation, 1, 1, 1))
+                for (Entity entity : block.getWorld().getNearbyEntities(sideLocation, 1, 1, 1))
                     if (entity instanceof ItemFrame frame
                             && entity.getLocation().getBlockX() == sideLocation.getBlockX()
                             && entity.getLocation().getBlockY() == sideLocation.getBlockY()
