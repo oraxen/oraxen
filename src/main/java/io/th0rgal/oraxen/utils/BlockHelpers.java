@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.utils;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.OraxenPlugin;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
 import org.bukkit.block.Sign;
@@ -31,18 +30,6 @@ import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
 
 public class BlockHelpers {
 
-    public static String VANILLA_STONE_PLACE = "minecraft:required.stone.place";
-    public static String VANILLA_STONE_BREAK = "minecraft:required.stone.break";
-    public static String VANILLA_STONE_HIT = "minecraft:required.stone.hit";
-    public static String VANILLA_STONE_STEP = "minecraft:required.stone.step";
-    public static String VANILLA_STONE_FALL = "minecraft:required.stone.fall";
-
-    public static String VANILLA_WOOD_PLACE = "minecraft:required.wood.place";
-    public static String VANILLA_WOOD_BREAK = "minecraft:required.wood.break";
-    public static String VANILLA_WOOD_HIT = "minecraft:required.wood.hit";
-    public static String VANILLA_WOOD_STEP = "minecraft:required.wood.step";
-    public static String VANILLA_WOOD_FALL = "minecraft:required.wood.fall";
-
     public static void playCustomBlockSound(Location location, String sound, float volume, float pitch) {
         playCustomBlockSound(toCenterLocation(location), sound, SoundCategory.BLOCKS, volume, pitch);
     }
@@ -53,11 +40,11 @@ public class BlockHelpers {
     }
 
     public static String validateReplacedSounds(String sound) {
-        ConfigurationSection mechanics = OraxenPlugin.get().getConfigsManager().getMechanics();
-        if (sound.startsWith("block.wood") && mechanics.getConfigurationSection("noteblock").getBoolean("custom_sounds")) {
+        ConfigurationSection mechanics = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds");
+        if (mechanics == null) return sound;
+        else if (sound.startsWith("block.wood") && mechanics.getBoolean("noteblock_and_block")) {
             return sound.replace("block.wood", "required.wood");
-        } else if (sound.startsWith("block.stone") && mechanics.getConfigurationSection("furniture").getBoolean("custom_sounds") &&
-                mechanics.getConfigurationSection("stringblock").getBoolean("custom_sounds")) {
+        } else if (sound.startsWith("block.stone") && mechanics.getBoolean("stringblock_and_furniture")) {
                 return sound.replace("block.stone", "required.stone");
         }else return sound;
     }

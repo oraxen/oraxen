@@ -19,7 +19,10 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
@@ -101,7 +104,7 @@ public class BreakerSystem {
                                 false, false, false)));
                 BlockSounds blockSounds = getBlockSounds(block);
                 if (blockSounds != null)
-                    BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getVolume(), blockSounds.getPitch());
+                    BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getHitVolume(), blockSounds.getHitPitch());
                 if (breakerPerLocation.containsKey(location))
                     breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
 
@@ -183,16 +186,10 @@ public class BreakerSystem {
         if (!breakerPlaySound.contains(block)) {
             breakerPlaySound.add(block);
             BlockSounds blockSounds = getBlockSounds(block);
-            if (blockSounds != null)
-                BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getVolume(), blockSounds.getPitch());
-            // Furniture is triggered more often so delay is longer
-            if (block.getType() == Material.BARRIER) {
-                Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                        breakerPlaySound.remove(block), 6L, 12L);
-            } else {
-                Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                        breakerPlaySound.remove(block), 2L, 4L);
-            }
+            if (blockSounds != null && blockSounds.hasHitSound())
+                BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getHitVolume(), blockSounds.getHitPitch());
+            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
+                    breakerPlaySound.remove(block), 3L);
         }
 
         protocolManager.sendServerPacket(player, fakeAnimation);
