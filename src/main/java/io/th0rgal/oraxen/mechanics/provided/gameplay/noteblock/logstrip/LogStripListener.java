@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip;
 
-import com.destroystokyo.paper.MaterialTags;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -35,41 +34,40 @@ public class LogStripListener implements Listener {
         ItemStack item = player.getInventory().getItemInMainHand();
         ItemMeta itemMeta = item.getItemMeta();
 
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK)
-            return;
-        if (MaterialTags.AXES.isTagged(item)) {
-            NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
-            if (mechanic == null) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null) return;
+        if (block.getType() != Material.NOTE_BLOCK || !item.getType().toString().endsWith("_AXE")) return;
 
-            if (mechanic.isDirectional() && !mechanic.isLog())
-                mechanic = (NoteBlockMechanic) factory.getMechanic(mechanic.getDirectional().getParentBlock());
+        NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
+        if (mechanic == null) return;
 
-            LogStripping log = mechanic.getLog();
-            if (!mechanic.isLog() || !log.canBeStripped()) return;
+        if (mechanic.isDirectional() && !mechanic.isLog())
+            mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
 
-            if (log.hasStrippedDrop()) {
-                player.getWorld().dropItemNaturally(
-                        block.getRelative(player.getFacing().getOppositeFace()).getLocation(),
-                        OraxenItems.getItemById(log.getStrippedLogDrop()).build());
-            }
+        LogStripping log = mechanic.getLog();
+        if (!mechanic.isLog() || !log.canBeStripped()) return;
 
-            if (log.shouldDecreaseAxeDurability() && player.getGameMode() != GameMode.CREATIVE) {
-                if (itemMeta instanceof Damageable axeDurabilityMeta) {
-                    int durability = axeDurabilityMeta.getDamage();
-                    int maxDurability = item.getType().getMaxDurability();
+        if (log.hasStrippedDrop()) {
+            player.getWorld().dropItemNaturally(
+                    block.getRelative(player.getFacing().getOppositeFace()).getLocation(),
+                    OraxenItems.getItemById(log.getStrippedLogDrop()).build());
+        }
 
-                    if (durability + 1 <= maxDurability) {
-                        axeDurabilityMeta.setDamage(durability + 1);
-                        item.setItemMeta(axeDurabilityMeta);
-                    } else {
-                        player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
-                        item.setType(Material.AIR);
-                    }
+        if (log.shouldDecreaseAxeDurability() && player.getGameMode() != GameMode.CREATIVE) {
+            if (itemMeta instanceof Damageable axeDurabilityMeta) {
+                int durability = axeDurabilityMeta.getDamage();
+                int maxDurability = item.getType().getMaxDurability();
+
+                if (durability + 1 <= maxDurability) {
+                    axeDurabilityMeta.setDamage(durability + 1);
+                    item.setItemMeta(axeDurabilityMeta);
+                } else {
+                    player.playSound(player.getLocation(), Sound.ENTITY_ITEM_BREAK, 1, 1);
+                    item.setType(Material.AIR);
                 }
             }
-
-            NoteBlockMechanicFactory.setBlockModel(block, log.getStrippedLogBlock());
-            player.playSound(block.getLocation(), Sound.ITEM_AXE_STRIP, 1.0f, 0.8f);
         }
+
+        NoteBlockMechanicFactory.setBlockModel(block, log.getStrippedLogBlock());
+        player.playSound(block.getLocation(), Sound.ITEM_AXE_STRIP, 1.0f, 0.8f);
     }
 }

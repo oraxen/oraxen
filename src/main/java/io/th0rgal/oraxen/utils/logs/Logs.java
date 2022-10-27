@@ -31,4 +31,6 @@ public class Logs {
         LOGGER.newLog(Level.WARNING, message);
     }
 
+    public static void broadcast(String message) { Bukkit.broadcastMessage(message); }
+
 }

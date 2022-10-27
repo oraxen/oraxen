@@ -55,7 +55,7 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
      *
      * @param cancel If this event should be cancelled.
      */
-    public final void setCancelled(final boolean cancel) {
+    public void setCancelled(final boolean cancel) {
         this.cancel = cancel;
     }
 
@@ -64,11 +64,11 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
      *
      * @return If this event is cancelled
      */
-    public final boolean isCancelled() {
+    public boolean isCancelled() {
         return cancel;
     }
 
-    public final ArmorType getType() {
+    public ArmorType getType() {
         return type;
     }
 
@@ -76,11 +76,11 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
      * Returns the last equipped armor piece, could be a piece of armor, or null
      * @return the old armor piece
      */
-    public final ItemStack getOldArmorPiece() {
+    public ItemStack getOldArmorPiece() {
         return oldArmorPiece;
     }
 
-    public final void setOldArmorPiece(final ItemStack oldArmorPiece) {
+    public void setOldArmorPiece(final ItemStack oldArmorPiece) {
         this.oldArmorPiece = oldArmorPiece;
     }
 
@@ -88,11 +88,11 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
      * Returns the newly equipped armor, could be a piece of armor, or null
      * @return the new armor piece
      */
-    public final ItemStack getNewArmorPiece() {
+    public ItemStack getNewArmorPiece() {
         return newArmorPiece;
     }
 
-    public final void setNewArmorPiece(final ItemStack newArmorPiece) {
+    public void setNewArmorPiece(final ItemStack newArmorPiece) {
         this.newArmorPiece = newArmorPiece;
     }
 
@@ -144,6 +144,6 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
         /**
          * When you use HatMechanic from Oraxen
          */
-        ORAXEN_HAT,;
+        ORAXEN_HAT,
     }
 }

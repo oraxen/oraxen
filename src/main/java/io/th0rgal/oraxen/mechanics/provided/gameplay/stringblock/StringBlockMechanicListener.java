@@ -1,11 +1,11 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.events.OraxenStringBlockBreakEvent;
 import io.th0rgal.oraxen.events.OraxenStringBlockInteractEvent;
+import io.th0rgal.oraxen.events.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -16,7 +16,10 @@ import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -33,11 +36,9 @@ import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
-import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
 import org.jetbrains.annotations.Nullable;
@@ -48,7 +49,6 @@ import java.util.Random;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
-import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
 public class StringBlockMechanicListener implements Listener {
 
@@ -106,12 +106,8 @@ public class StringBlockMechanicListener implements Listener {
 
             OraxenStringBlockBreakEvent stringBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, null);
             OraxenPlugin.get().getServer().getPluginManager().callEvent(stringBlockBreakEvent);
-            if (stringBlockBreakEvent.isCancelled()) {
-                return;
-            }
+            if (stringBlockBreakEvent.isCancelled()) return;
 
-            if (mechanic.hasBreakSound())
-                BlockHelpers.playCustomBlockSound(block.getLocation(), mechanic.getBreakSound());
             if (mechanic.getLight() != -1)
                 WrappedLightAPI.removeBlockLight(block.getLocation());
             mechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
@@ -291,15 +287,12 @@ public class StringBlockMechanicListener implements Listener {
                 StringBlockMechanicFactory.createTripwireData(customVariation));
         if (placedBlock == null)
             return;
-        if (mechanic.hasPlaceSound())
-            BlockHelpers.playCustomBlockSound(placedBlock.getLocation(), mechanic.getPlaceSound());
         if (mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
         if (mechanic.isSapling()) {
             SaplingMechanic sapling = mechanic.getSaplingMechanic();
-            final PersistentDataContainer pdc = new CustomBlockData(placedBlock, OraxenPlugin.get());
             if (mechanic.getSaplingMechanic().canGrowNaturally())
-                pdc.set(SAPLING_KEY, PersistentDataType.INTEGER, sapling.getNaturalGrowthTime());
+                BlockHelpers.getPDC(placedBlock).set(SAPLING_KEY, PersistentDataType.INTEGER, sapling.getNaturalGrowthTime());
         }
         event.setCancelled(true);
     }
@@ -315,23 +308,6 @@ public class StringBlockMechanicListener implements Listener {
                 changed.setType(Material.AIR, false);
             }
         }
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onStepFall(final GenericGameEvent event) {
-        Entity entity = event.getEntity();
-        if (entity == null) return;
-        if (!isLoaded(event.getLocation())) return;
-        GameEvent gameEvent = event.getEvent();
-        Block block = entity.getLocation().getBlock();
-        StringBlockMechanic mechanic = getStringMechanic(block);
-        String sound;
-
-        if (mechanic == null) return;
-        if (gameEvent == GameEvent.STEP && mechanic.hasStepSound()) sound = mechanic.getStepSound();
-        else if (gameEvent == GameEvent.HIT_GROUND && mechanic.hasStepSound()) sound = mechanic.getFallSound();
-        else return;
-        BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -418,14 +394,15 @@ public class StringBlockMechanicListener implements Listener {
         target.setBlockData(newBlock, false);
         final BlockState currentBlockState = target.getState();
 
-        final BlockPlaceEvent blockPlaceEvent =
-                new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
+        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
+        final OraxenStringBlockPlaceEvent oraxenBlockPlaceEvent = new OraxenStringBlockPlaceEvent(getStringMechanic(target), target, player);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
+        Bukkit.getPluginManager().callEvent(oraxenBlockPlaceEvent);
 
-        if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
-        if (BlockHelpers.correctAllBlockStates(target, player, face, item)) blockPlaceEvent.setCancelled(true);
+        if (player.getGameMode() == GameMode.ADVENTURE || BlockHelpers.correctAllBlockStates(target, player, face, item))
+            blockPlaceEvent.setCancelled(true);
 
-        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
+        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled() || oraxenBlockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
             return null;
         }
@@ -445,8 +422,6 @@ public class StringBlockMechanicListener implements Listener {
             return;
         }
 
-        if (mechanic.hasBreakSound())
-            BlockHelpers.playCustomBlockSound(block.getLocation(), mechanic.getBreakSound());
         if (mechanic.getLight() != -1)
             WrappedLightAPI.removeBlockLight(block.getLocation());
         mechanic.getDrop().spawns(block.getLocation(), item);
@@ -488,13 +463,5 @@ public class StringBlockMechanicListener implements Listener {
             }
             loc = loc.add(-1, 0, 9);
         }
-    }
-
-    private boolean checkSurroundingBlocks(Block block) {
-        for (BlockFace face : BlockFace.values()) {
-            if (face == BlockFace.SELF) continue;
-            if (block.getRelative(face).getType() == Material.TRIPWIRE) return true;
-        }
-        return false;
     }
 }

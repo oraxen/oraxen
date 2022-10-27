@@ -7,8 +7,8 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripping;
-import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
+import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
@@ -30,11 +30,7 @@ public class NoteBlockMechanic extends Mechanic {
     private final Drop drop;
     private final LimitedPlacing limitedPlacing;
     private final StorageMechanic storage;
-    private final String breakSound;
-    private final String placeSound;
-    private final String stepSound;
-    private final String hitSound;
-    private final String fallSound;
+    private final BlockSounds blockSounds;
     private String model;
     private int period;
     private final int light;
@@ -55,12 +51,6 @@ public class NoteBlockMechanic extends Mechanic {
             model = section.getString("model");
 
         customVariation = section.getInt("custom_variation");
-
-        placeSound = section.getString("place_sound", null);
-        breakSound = section.getString("break_sound", null);
-        stepSound = section.getString("step_sound", null);
-        hitSound = section.getString("hit_sound", null);
-        fallSound = section.getString("fall_sound", null);
 
         List<Loot> loots = new ArrayList<>();
         if (section.isConfigurationSection("drop")) {
@@ -114,6 +104,10 @@ public class NoteBlockMechanic extends Mechanic {
         if (section.isConfigurationSection("storage")) {
             storage = new StorageMechanic(Objects.requireNonNull(section.getConfigurationSection("storage")));
         } else storage = null;
+
+        if (section.isConfigurationSection("block_sounds")) {
+            blockSounds = new BlockSounds(Objects.requireNonNull(section.getConfigurationSection("block_sounds")));
+        } else blockSounds = null;
     }
 
     public boolean hasLimitedPlacing() { return limitedPlacing != null; }
@@ -122,12 +116,11 @@ public class NoteBlockMechanic extends Mechanic {
     public boolean isStorage() { return storage != null; }
     public StorageMechanic getStorage() { return storage; }
 
-    public boolean hasDryout() {
-        return farmBlockDryout != null;
-    }
-    public FarmBlockDryout getDryout() {
-        return farmBlockDryout;
-    }
+    public boolean hasBlockSounds() { return blockSounds != null; }
+    public BlockSounds getBlockSounds() { return blockSounds; }
+
+    public boolean hasDryout() { return farmBlockDryout != null; }
+    public FarmBlockDryout getDryout() { return farmBlockDryout; }
 
     public boolean isLog() { return logStripping != null; }
     public LogStripping getLog() { return logStripping; }
@@ -149,29 +142,6 @@ public class NoteBlockMechanic extends Mechanic {
     public Drop getDrop() {
         return drop;
     }
-
-    public boolean hasBreakSound() {
-        return breakSound != null;
-    }
-    public String getBreakSound() {
-        return BlockHelpers.validateReplacedSounds(breakSound);
-    }
-
-    public boolean hasPlaceSound() {
-        return placeSound != null;
-    }
-    public String getPlaceSound() {
-        return BlockHelpers.validateReplacedSounds(placeSound);
-    }
-
-    public boolean hasStepSound() { return stepSound != null; }
-    public String getStepSound() { return BlockHelpers.validateReplacedSounds(stepSound); }
-
-    public boolean hasHitSound() { return hitSound != null; }
-    public String getHitSound() { return BlockHelpers.validateReplacedSounds(hitSound); }
-
-    public boolean hasFallSound() { return fallSound != null; }
-    public String getFallSound() { return BlockHelpers.validateReplacedSounds(fallSound); }
 
     public int getPeriod() {
         return period;

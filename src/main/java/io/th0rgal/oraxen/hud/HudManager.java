@@ -28,7 +28,7 @@ public class HudManager {
     private final Map<String, Hud> huds;
 
     public HudManager(final ConfigsManager hudManager) {
-        final ConfigurationSection hudSection = hudManager.getHud().getConfigurationSection("huds");
+        final ConfigurationSection hudSection = getHudConfigSection();
         hudUpdateTime = hudManager.getHud().getInt("update_time_in_ticks", 40);
         hudEvents = new HudEvents();
         hudTaskEnabled = false;
@@ -39,12 +39,21 @@ public class HudManager {
             loadHuds(hudSection);
     }
 
+    public ConfigurationSection getHudConfigSection() {
+        return OraxenPlugin.get().getConfigsManager().getHud().getConfigurationSection("huds");
+    }
+
     public void registerEvents() {
         Bukkit.getPluginManager().registerEvents(hudEvents, OraxenPlugin.get());
     }
 
     public void unregisterEvents() {
         HandlerList.unregisterAll(hudEvents);
+    }
+
+    public void reregisterEvents() {
+        unregisterEvents();
+        registerEvents();
     }
 
     public final Map<String, Hud> getHuds() { return huds; }
@@ -107,10 +116,22 @@ public class HudManager {
         hudTaskEnabled = true;
     }
 
-    private void loadHuds(final ConfigurationSection section) {
+    public void unregisterTask() {
+        if (!hudTaskEnabled) return;
+        if (hudTask != null) hudTask.cancel();
+        hudTaskEnabled = false;
+    }
+
+    public void restartTask() {
+        unregisterTask();
+        registerTask();
+    }
+
+    public void loadHuds(final ConfigurationSection section) {
         for (final String hudName : section.getKeys(false)) {
             final ConfigurationSection hudSection = section.getConfigurationSection(hudName);
             if (hudSection == null) continue;
+            huds.clear();
             huds.put(hudName, (new Hud(
                     hudSection.getString("display_text"),
                     hudSection.getString("text_font", "minecraft:default"),

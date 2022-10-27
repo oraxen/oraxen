@@ -33,6 +33,7 @@ public class SoundManager {
             }
             List<String> sounds = sound.getStringList("sounds").isEmpty()
                     ? Collections.singletonList(sound.getString("sound")) : sound.getStringList("sounds");
+
             output.add(new CustomSound(soundName, sounds, category, sound.getBoolean("replace"), sound.getString("subtitle")));
         }
         return output;

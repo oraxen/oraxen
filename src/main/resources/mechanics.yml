@@ -24,8 +24,17 @@ soulbound:
 backpack:
   enabled: true
 
+music_disc:
+  enabled: true
+
 
 # GAMEPLAY
+
+# Specify if custom block sounds should be enabled for the below mechanics
+# If both mechanics are disabled, this will force the sound system for those off
+custom_block_sounds:
+  noteblock_and_block: true
+  stringblock_and_furniture: true
 
 # legacy blocks using mushroom stems, prefer to use noteblock
 block:

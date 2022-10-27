@@ -19,11 +19,13 @@ import java.util.*;
 public class ConfigsManager {
 
     private final JavaPlugin plugin;
+    private final YamlConfiguration defaultMechanics;
     private final YamlConfiguration defaultSettings;
     private final YamlConfiguration defaultFont;
     private final YamlConfiguration defaultSound;
     private final YamlConfiguration defaultLanguage;
     private final YamlConfiguration defaultHud;
+    private YamlConfiguration mechanics;
     private YamlConfiguration settings;
     private YamlConfiguration font;
     private YamlConfiguration sound;
@@ -35,11 +37,16 @@ public class ConfigsManager {
 
     public ConfigsManager(JavaPlugin plugin) {
         this.plugin = plugin;
+        defaultMechanics = extractDefault("mechanics.yml");
         defaultSettings = extractDefault("settings.yml");
         defaultFont = extractDefault("font.yml");
         defaultSound = extractDefault("sound.yml");
         defaultLanguage = extractDefault("languages/english.yml");
         defaultHud = extractDefault("hud.yml");
+    }
+
+    public YamlConfiguration getMechanics() {
+        return mechanics != null ? mechanics : defaultMechanics;
     }
 
     public YamlConfiguration getSettings() {
@@ -81,6 +88,7 @@ public class ConfigsManager {
 
     public boolean validatesConfig() {
         ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
+        mechanics = validate(resourcesManager, "mechanics.yml", defaultMechanics);
         settings = validate(resourcesManager, "settings.yml", defaultSettings);
         font = validate(resourcesManager, "font.yml", defaultFont);
         hud = validate(resourcesManager, "hud.yml", defaultHud);
@@ -94,21 +102,25 @@ public class ConfigsManager {
         itemsFolder = new File(plugin.getDataFolder(), "items");
         if (!itemsFolder.exists()) {
             itemsFolder.mkdirs();
-            new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
         }
 
         // check glyphsFolder
         glyphsFolder = new File(plugin.getDataFolder(), "glyphs");
         if (!glyphsFolder.exists()) {
             glyphsFolder.mkdirs();
-            new ResourcesManager(plugin).extractConfigsInFolder("glyphs", "yml");
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("glyphs", "yml");
+            else new ResourcesManager(plugin).extractConfiguration("glyphs/interface.yml");
         }
 
         // check schematicsFolder
         schematicsFolder = new File(plugin.getDataFolder(), "schematics");
         if (!schematicsFolder.exists()) {
             schematicsFolder.mkdirs();
-            new ResourcesManager(plugin).extractConfigsInFolder("schematics", "schem");
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("schematics", "schem");
         }
 
         return true; // todo : return false when an error is detected + prints a detailed error
@@ -118,12 +130,13 @@ public class ConfigsManager {
         File configurationFile = resourcesManager.extractConfiguration(configName);
         YamlConfiguration configuration = YamlConfiguration.loadConfiguration(configurationFile);
         boolean updated = false;
-        for (String key : defaultConfiguration.getKeys(true))
+        for (String key : defaultConfiguration.getKeys(true)) {
+            if (!skippedYamlKeys.stream().filter(key::startsWith).toList().isEmpty()) continue;
             if (configuration.get(key) == null) {
                 updated = true;
                 Message.UPDATING_CONFIG.log(Utils.tagResolver("option", key));
                 configuration.set(key, defaultConfiguration.get(key));
-            }
+            }        }
         if (updated)
             try {
                 configuration.save(configurationFile);
@@ -132,6 +145,13 @@ public class ConfigsManager {
             }
         return configuration;
     }
+
+    // Skip optional keys and subkeys
+    private final List<String> skippedYamlKeys =
+            List.of(
+                    "gui_inventory",
+                    "Misc.armor_equip_event_bypass"
+            );
 
     public Collection<Glyph> parseGlyphConfigs() {
         List<Glyph> output = new ArrayList<>();
@@ -144,6 +164,7 @@ public class ConfigsManager {
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
+                if (glyphSection == null) continue;
                 int code = glyphSection.getInt("code", -1);
                 if (code != -1)
                     codePerGlyph.put(key, code);

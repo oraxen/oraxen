@@ -22,11 +22,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class HarvestingMechanicManager implements Listener {
+public class HarvestingMechanicListener implements Listener {
 
     private final MechanicFactory factory;
 
-    public HarvestingMechanicManager(final MechanicFactory factory) {
+    public HarvestingMechanicListener(final MechanicFactory factory) {
         this.factory = factory;
     }
 

@@ -4,6 +4,7 @@ import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
@@ -30,7 +31,7 @@ public class SaplingTask extends BukkitRunnable {
         for (World world : Bukkit.getWorlds()) {
             for (Chunk chunk : world.getLoadedChunks()) {
                 for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk)) {
-                    PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
+                    PersistentDataContainer pdc = BlockHelpers.getPDC(block);
                     if (pdc.has(SAPLING_KEY, PersistentDataType.INTEGER) && block.getType() == Material.TRIPWIRE) {
                         StringBlockMechanic string = getStringMechanic(block);
                         if (string == null || !string.isSapling()) return;
@@ -42,7 +43,7 @@ public class SaplingTask extends BukkitRunnable {
                         if (sapling.requiresLight() && block.getLightLevel() < sapling.getMinLightLevel()) continue;
                         if (!sapling.replaceBlocks() && !WrappedWorldEdit.getBlocksInSchematic(block.getLocation(), sapling.getSchematic()).isEmpty()) continue;
 
-                        int growthTimeRemains = pdc.get(SAPLING_KEY, PersistentDataType.INTEGER) - delay;
+                        int growthTimeRemains = pdc.getOrDefault(SAPLING_KEY, PersistentDataType.INTEGER, 0) - delay;
                         if (growthTimeRemains <= 0) {
                             block.setType(Material.AIR, false);
                             if (sapling.hasGrowSound())

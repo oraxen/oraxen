@@ -88,7 +88,9 @@ public class OraxenPlugin extends JavaPlugin {
         new BreakerSystem().registerListener();
         new CommandsManager().loadCommands();
         postLoading(configsManager);
-        Message.PLUGIN_LOADED.log(Utils.tagResolver("os", OS.getOs().getPlatformName()));
+        try {
+            Message.PLUGIN_LOADED.log(Utils.tagResolver("os", OS.getOs().getPlatformName()));
+        } catch (Exception ignore) {}
         CompatibilitiesManager.enableNativeCompatibilities();
     }
 
@@ -101,7 +103,6 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
-        //StorageMechanic.forceCloseStorages();
         unregisterListeners();
         CompatibilitiesManager.disableCompatibilities();
         Message.PLUGIN_UNLOADED.log();
@@ -146,7 +147,11 @@ public class OraxenPlugin extends JavaPlugin {
 
     public HudManager getHudManager() { return hudManager; }
 
-    public void setHudManager(final FontManager fontManager) { this.fontManager = fontManager; }
+    public void setHudManager(final HudManager hudManager) {
+        this.hudManager.unregisterEvents();
+        this.hudManager = hudManager;
+        hudManager.registerEvents();
+    }
 
     public SoundManager getSoundManager() {
         return soundManager;

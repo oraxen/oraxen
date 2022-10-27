@@ -170,7 +170,7 @@ public class CommandsManager {
 
                     if (targets.size() == 1)
                         Message.GIVE_PLAYER
-                                .send(sender, Utils.tagResolver("count", targets.iterator().next().getName()),
+                                .send(sender, Utils.tagResolver("player", targets.iterator().next().getName()),
                                         Utils.tagResolver("amount", String.valueOf(1)),
                                         Utils.tagResolver("item", itemID));
                     else

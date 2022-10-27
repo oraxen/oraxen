@@ -1,8 +1,10 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock;
 
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
+import io.th0rgal.oraxen.utils.BlockHelpers;
+import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.type.Farmland;
@@ -13,11 +15,8 @@ import org.bukkit.persistence.PersistentDataType;
 import java.util.ArrayList;
 import java.util.List;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
-
 public class FarmBlockDryout {
-
+    private static final NamespacedKey FARMBLOCK_MOIST = new NamespacedKey(OraxenPlugin.get(), "farmblock_moist");
     private final String farmBlock;
     private final String moistFarmBlock;
     private final int farmBlockDryoutTime;
@@ -38,6 +37,12 @@ public class FarmBlockDryout {
         return (farmBlock != null || moistFarmBlock != null);
     }
 
+    public byte getMoistureLevel(PersistentDataContainer pdc) {
+        return isMoistFarmBlock() && pdc.has(FARMBLOCK_MOIST, PersistentDataType.BYTE) ?
+                pdc.get(FARMBLOCK_MOIST, PersistentDataType.BYTE) :
+                (byte) 0;
+    }
+
     public boolean isMoistFarmBlock() {
         return ((moistFarmBlock == null || moistFarmBlock.equals(id)) && farmBlock != null);
     }
@@ -54,30 +59,35 @@ public class FarmBlockDryout {
         return farmBlockDryoutTime;
     }
 
-    public boolean isConnectedToWaterSource(Block block, PersistentDataContainer customBlockData) {
-        Location blockLoc = block.getLocation();
+    private int getMoisture(Block block) {
+        NoteBlockMechanic temp;
+        return switch (block.getType()) {
+            case WATER -> 5;
+            case FARMLAND -> ((Farmland) block.getBlockData()).getMoisture() > 0 ? 1 : 0;
+            case NOTE_BLOCK -> (temp = NoteBlockMechanicListener.getNoteBlockMechanic(block)).hasDryout() ?
+                    (int) temp.getDryout().getMoistureLevel(BlockHelpers.getPDC(block)) : 0;
+            default -> 0;
+        };
+    }
 
-        if (block.getRelative(BlockFace.DOWN).getType() == Material.WATER) {
-            NoteBlockMechanicFactory.setBlockModel(block, getMoistFarmBlock());
-            customBlockData.set(FARMBLOCK_KEY, PersistentDataType.INTEGER, 0);
-            return true;
+    public boolean isConnectedToWaterSource(Block block, PersistentDataContainer pdc) {
+        List<Block> blocks = new ArrayList<>();
+        blocks.add(block.getRelative(BlockFace.DOWN));
+        for (int x = -1; x < 2; x++)
+            for (int z = -1; z < 2; z++)
+                if (x != 0 || z != 0)
+                    blocks.add(block.getRelative(x, 0, z));
+
+        int maxLevel = 0;
+        for (Block x : blocks) {
+            maxLevel = Math.max(maxLevel, getMoisture(x));
+            if (maxLevel == 5)
+                break;
         }
 
-        final List<Block> blocks = new ArrayList<>();
-        for (int x = blockLoc.getBlockX() - 1; x <= blockLoc.getBlockX()
-                + 1; x++)
-            for (int z = blockLoc.getBlockZ() - 1; z <= blockLoc.getBlockZ()
-                    + 1; z++) {
-                Block b = blockLoc.getWorld().getBlockAt(x, blockLoc.getBlockY(), z);
-                Material type = b.getType();
-
-                boolean isWater = type == Material.WATER;
-                boolean isFarmableLand = type == Material.FARMLAND && ((Farmland) b.getBlockData()).getMoisture() > 0;
-                boolean isMoistFarmBlock = type == Material.NOTE_BLOCK && getNoteBlockMechanic(b).hasDryout() && getNoteBlockMechanic(b).getDryout().isMoistFarmBlock();
-
-                if(isWater || isFarmableLand || isMoistFarmBlock) blocks.add(b);
-            }
-        return !blocks.isEmpty();
+        int moistLevel = Math.max(0, maxLevel - 1);
+        pdc.set(FARMBLOCK_MOIST, PersistentDataType.BYTE, (byte) moistLevel);
+        return moistLevel > 0;
     }
 }
 

@@ -20,7 +20,6 @@ import java.util.List;
 
 
 public class PrintGlyphCommand {
-    private final FontManager fontManager = OraxenPlugin.get().getFontManager();
     public CommandAPICommand getPrintGlyphCommand() {
         List<String> glyphnames = new ArrayList<>();
         glyphnames.add("all");
@@ -29,19 +28,20 @@ public class PrintGlyphCommand {
                 .withPermission("oraxen.command.printglyph")
                 .withArguments(new TextArgument("glyphname").replaceSuggestions(ArgumentSuggestions.strings(glyphnames.toArray(new String[0]))))
                 .executes(((commandSender, args) -> {
+                    FontManager fontManager = OraxenPlugin.get().getFontManager();
                     Audience audience = OraxenPlugin.get().getAudience().sender(commandSender);
                     audience.sendMessage(Utils.MINI_MESSAGE.deserialize("<red><b>Click one of the glyph-ids below to copy the unicode!"));
                     if (fontManager.getGlyphFromName(String.valueOf(args[0])) != null
                             ||
                             String.valueOf(args[0]).equals("all")) {
 
-                        printGlyph(audience, (String) args[0]);
+                        printGlyph(fontManager, audience, (String) args[0]);
 
                     } else printUnicode(audience, (String) args[0]);
                 }));
     }
 
-    private void printGlyph(Audience audience, String glyphName) {
+    private void printGlyph(FontManager fontManager, Audience audience, String glyphName) {
         Component component = Component.text("");
         if (glyphName.equals("all")) {
             int i = 0;
@@ -54,10 +54,12 @@ public class PrintGlyphCommand {
                 i++;
             }
         } else if (glyphName.contains("shift_")) {
-            try {
-                int shift = Integer.parseInt(glyphName.split("_")[1]);
+            try { // Real ugly but its mainly formatting output msg
+                int shift = Integer.parseInt(glyphName.split("shift_")[1]);
+                if (glyphName.startsWith("neg_shift") && shift > 0) shift = -shift;
                 String s = fontManager.getShift(shift);
-                component = printClickableMsg("<white>" + glyphName, s, s);
+                String name = shift < 0 ? "neg_shift_" + -shift : "shift_" + shift;
+                component = printClickableMsg("<white>" + name, s, s);
             } catch (NumberFormatException e) {
                 audience.sendMessage(Utils.MINI_MESSAGE.deserialize("<dark_red><b>Invalid shift number!"));
             }
