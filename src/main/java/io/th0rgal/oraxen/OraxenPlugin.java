@@ -147,7 +147,11 @@ public class OraxenPlugin extends JavaPlugin {
 
     public HudManager getHudManager() { return hudManager; }
 
-    public void setHudManager(final FontManager fontManager) { this.fontManager = fontManager; }
+    public void setHudManager(final HudManager hudManager) {
+        this.hudManager.unregisterEvents();
+        this.hudManager = hudManager;
+        hudManager.registerEvents();
+    }
 
     public SoundManager getSoundManager() {
         return soundManager;
