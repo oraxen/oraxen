@@ -21,8 +21,8 @@ public class Polymath implements HostingProvider {
     private String minecraftPackURL;
     private String sha1;
 
-    public Polymath(String serverAddress) {
-        this.serverAddress = "https://" + serverAddress + "/";
+    public Polymath(String serverAddress, boolean https) {
+        this.serverAddress = (https ? "https" : "http") +"://" + serverAddress + "/";
     }
 
     @Override

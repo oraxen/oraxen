@@ -95,7 +95,7 @@ public class UploadManager {
 
     private HostingProvider createHostingProvider() {
         return switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ENGLISH)) {
-            case "polymath" -> new Polymath(Settings.POLYMATH_SERVER.toString());
+            case "polymath" -> new Polymath(Settings.POLYMATH_SERVER.toString(), Settings.POLYMATH_HTTPS.toBool());
             case "external" -> createExternalProvider();
             default -> throw new ProviderNotFoundException("Unknown provider type: " + Settings.UPLOAD_TYPE);
         };

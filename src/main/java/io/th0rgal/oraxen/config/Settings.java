@@ -38,6 +38,7 @@ public enum Settings {
     UPLOAD_OPTIONS("Pack.upload.options"),
 
     POLYMATH_SERVER("Pack.upload.polymath.server"),
+    POLYMATH_HTTPS("Pack.upload.polymath.https"),
 
     SEND_PACK("Pack.dispatch.send_pack"),
     SEND_PACK_DELAY("Pack.dispatch.delay"),
