@@ -27,6 +27,7 @@ Pack:
      \nplugin and any complete or partial
      \nuse must comply with the terms and
      \nconditions of Oraxen."
+    extra_folders: [ ]
 
   upload:
     enabled: true

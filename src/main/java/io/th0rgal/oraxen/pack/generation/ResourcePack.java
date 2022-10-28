@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
+import io.th0rgal.oraxen.utils.VirtualPack;
 import io.th0rgal.oraxen.utils.ZipUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
@@ -97,20 +98,18 @@ public class ResourcePack {
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)
                 packModifier.accept(packFolder);
-        List<VirtualFile> output = new ArrayList<>(outputFiles.values());
+        VirtualPack output = new VirtualPack(outputFiles.values());
         // zipping resourcepack
         try {
-            getFilesInFolder(packFolder, output,
-                    packFolder.getCanonicalPath(),
-                    packFolder.getName() + ".zip");
+            getFilesInFolder(packFolder, output, "", packFolder.getName() + ".zip");
 
             // needs to be ordered, forEach cannot be used
             File[] files = packFolder.listFiles();
             if (files != null) for (final File folder : files)
                 if (folder.isDirectory() && folder.getName().equalsIgnoreCase("assets"))
-                    getAllFiles(folder, output, "");
+                    getAllFiles(folder, output, "assets/");
                 else if (folder.isDirectory())
-                    getAllFiles(folder, output, "assets/minecraft");
+                    getAllFiles(folder, output, "assets/minecraft/" + folder.getName());
 
             if (customArmorsTextures.hasCustomArmors()) {
                 String armorPath = "assets/minecraft/textures/models/armor";
@@ -119,11 +118,22 @@ public class ResourcePack {
                 if (customArmorsTextures.shouldGenerateOptifineFiles())
                     output.addAll(customArmorsTextures.getOptifineFiles());
             }
-            Collections.sort(output);
+
+            for (String extra : Settings.EXTRA_FOLDERS.toStringList()) {
+                File folder = new File(extra);
+                if (!folder.exists() || !folder.isDirectory()) {
+                    Logs.logWarning("Extra folder does not exists or is not directory! Path = " + folder.getAbsolutePath());
+                    continue;
+                }
+
+                getAllFiles(folder, output, "");
+            }
+
+            output.sort();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        ZipUtils.writeZipFile(pack, packFolder, output);
+        ZipUtils.writeZipFile(pack, packFolder, output.getFiles());
     }
 
     private void extractFolders(boolean extractModels, boolean extractTextures, boolean extractShaders,
@@ -311,29 +321,29 @@ public class ResourcePack {
                 new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
     }
 
-    private void getAllFiles(final File directory, final Collection<VirtualFile> fileList,
-                             String newFolder,
+    private void getAllFiles(final File directory, final VirtualPack fileList,
+                             String virtualParent,
                              final String... blacklisted) {
         final File[] files = directory.listFiles();
         final List<String> blacklist = Arrays.asList(blacklisted);
         if (files != null) for (final File file : files) {
             if (!blacklist.contains(file.getName()) && !file.isDirectory())
-                readFileToVirtuals(fileList, file, newFolder);
+                readFileToVirtuals(fileList, file, virtualParent);
             if (file.isDirectory())
-                getAllFiles(file, fileList, newFolder, blacklisted);
+                getAllFiles(file, fileList, getChild(virtualParent, file.getName()), blacklisted);
         }
     }
 
-    private void getFilesInFolder(final File dir, final Collection<VirtualFile> fileList,
-                                  String newFolder,
+    private void getFilesInFolder(final File dir, final VirtualPack fileList,
+                                  String virtualParent,
                                   final String... blacklisted) {
         final File[] files = dir.listFiles();
         if (files != null) for (final File file : files)
             if (!file.isDirectory() && !Arrays.asList(blacklisted).contains(file.getName()))
-                readFileToVirtuals(fileList, file, newFolder);
+                readFileToVirtuals(fileList, file, virtualParent);
     }
 
-    private void readFileToVirtuals(final Collection<VirtualFile> fileList, File file, String newFolder) {
+    private void readFileToVirtuals(final VirtualPack fileList, File file, String virtualParent) {
         try {
             final InputStream fis;
             if (file.getName().endsWith(".json")) fis = processJsonFile(file);
@@ -341,9 +351,7 @@ public class ResourcePack {
             else if (customArmorsTextures.registerImage(file)) return;
             else fis = new FileInputStream(file);
 
-            fileList.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder),
-                    file.getName(),
-                    fis));
+            fileList.add(new VirtualFile(virtualParent, file.getName(), fis));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -379,13 +387,9 @@ public class ResourcePack {
         return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
     }
 
-    private String getZipFilePath(String path, String newFolder) throws IOException {
-        // we want the zipEntry's path to be a relative path that is relative
-        // to the directory being zipped, so chop off the rest of the path
-        if (newFolder.equals(packFolder.getCanonicalPath()))
-            return "";
-        String prefix = newFolder.isEmpty() ? newFolder : newFolder + "/";
-        return prefix + path.substring(packFolder.getCanonicalPath().length() + 1);
+    private String getChild(String parent, String name) {
+        if (parent.isEmpty() || parent.endsWith("/") || parent.endsWith("\\")) return parent + name;
+        return parent + "/" + name;
     }
 
 }

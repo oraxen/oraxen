@@ -32,6 +32,7 @@ public enum Settings {
     COMPRESSION("Pack.generation.compression"),
     PROTECTION("Pack.generation.protection"),
     COMMENT("Pack.generation.comment"),
+    EXTRA_FOLDERS("Pack.generation.extra_folders"),
 
     UPLOAD_TYPE("Pack.upload.type"),
     UPLOAD("Pack.upload.enabled"),

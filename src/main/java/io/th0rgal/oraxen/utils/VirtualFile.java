@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
+import java.io.IOException;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.InputStream;
@@ -26,6 +28,14 @@ public class VirtualFile implements Comparable<VirtualFile> {
         return parentFolder.isEmpty()
                 ? name
                 : parentFolder + "/" + name;
+    }
+
+    public void close() {
+        try {
+            inputStream.close();
+        } catch (IOException e) {
+			Logs.logWarning("Could not close virtual file! Path = " + getPath());
+        }
     }
 
     @Override
