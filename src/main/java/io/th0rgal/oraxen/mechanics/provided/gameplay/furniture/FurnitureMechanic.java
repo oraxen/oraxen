@@ -111,7 +111,7 @@ public class FurnitureMechanic extends Mechanic {
         farmblockRequired = section.getBoolean("farmblock_required", false);
 
         facing = section.isString("facing")
-                ? BlockFace.valueOf(section.getString("facing", "UP").toUpperCase())
+                ? BlockFace.valueOf(section.getString("facing", "NORTH").toUpperCase())
                 : null;
 
         List<Loot> loots = new ArrayList<>();
@@ -255,6 +255,11 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
+    public ItemFrame place(Location location, @Nullable Player player) {
+        setPlacedItem();
+        return place(getRotation(), getYaw(getRotation()), getFacing(), location, placedItem, player);
+    }
+
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, @Nullable Player player) {
         setPlacedItem();
         return place(rotation, yaw, facing, location, placedItem, player);
@@ -309,6 +314,14 @@ public class FurnitureMechanic extends Mechanic {
             WrappedLightAPI.createBlockLight(location, light);
 
         return output;
+    }
+
+    public boolean removeSolid(Block block) {
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        Float orientation = pdc.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
+        final BlockLocation rootBlock = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
+
+        return removeSolid(block.getWorld(), rootBlock, orientation);
     }
 
     public boolean removeSolid(World world, BlockLocation rootBlockLocation, float orientation) {

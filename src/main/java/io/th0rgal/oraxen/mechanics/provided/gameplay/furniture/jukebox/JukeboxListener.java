@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import net.kyori.adventure.key.Key;
@@ -80,7 +80,7 @@ public class JukeboxListener implements Listener {
 
     private boolean insertAndPlayDisc(Block block, ItemStack disc, @Nullable Player player) {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
-        FurnitureMechanic furnitureMechanic = OraxenBlocks.getFurnitureMechanic(block);
+        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
         Location loc = BlockHelpers.toCenterLocation(block.getLocation());
 
         if (furnitureMechanic == null || !furnitureMechanic.isJukebox()) return false;
@@ -110,7 +110,7 @@ public class JukeboxListener implements Listener {
     private boolean ejectAndStopDisc(Block block, @Nullable Player player) {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         ItemStack item = pdc.get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
-        FurnitureMechanic furnitureMechanic = OraxenBlocks.getFurnitureMechanic(block);
+        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
         Location loc = BlockHelpers.toCenterLocation(block.getLocation());
 
         if (furnitureMechanic == null || !furnitureMechanic.isJukebox()) return false;

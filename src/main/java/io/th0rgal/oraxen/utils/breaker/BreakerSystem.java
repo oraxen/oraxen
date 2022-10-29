@@ -12,6 +12,7 @@ import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.OraxenFurnitureDamageEvent;
 import io.th0rgal.oraxen.api.events.OraxenNoteBlockDamageEvent;
 import io.th0rgal.oraxen.api.events.OraxenStringBlockDamageEvent;
@@ -202,7 +203,7 @@ public class BreakerSystem {
             case BARRIER -> {
                 try {
                     return Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
-                        FurnitureMechanic mechanic = OraxenBlocks.getFurnitureMechanic(block);
+                        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
                         if (mechanic == null) return true;
                         OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, player, block, mechanic.getItemFrame(block));
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(event));
@@ -260,7 +261,7 @@ public class BreakerSystem {
                 else return mechanic.getBlockSounds();
             }
             case BARRIER -> {
-                FurnitureMechanic mechanic = OraxenBlocks.getFurnitureMechanic(block);
+                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
                 if (!soundSection.getBoolean("stringblock_and_furniture")) return null;
                 else return mechanic.getBlockSounds();

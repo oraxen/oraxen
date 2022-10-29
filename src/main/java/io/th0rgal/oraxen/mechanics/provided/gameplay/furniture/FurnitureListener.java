@@ -4,6 +4,7 @@ import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.api.events.OraxenFurnitureInteractEvent;
@@ -250,89 +251,61 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerBreakHanging(final EntityDamageByEntityEvent event) {
-        if (event.getEntity() instanceof ItemFrame frame)
+        if (event.getEntity() instanceof ItemFrame frame) {
             if (event.getDamager() instanceof Player player) {
-                final PersistentDataContainer container = frame.getPersistentDataContainer();
-                if (container.has(FURNITURE_KEY, PersistentDataType.STRING)) {
-                    Block block = frame.getLocation().getBlock();
-                    final String itemID = container.get(FURNITURE_KEY, PersistentDataType.STRING);
-                    if (!OraxenItems.exists(itemID))
-                        return;
-                    final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
-                    event.setCancelled(true);
+                Block block = frame.getLocation().getBlock();
+                final FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
+                event.setCancelled(true);
 
-                    OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, player, block, frame);
-                    OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
-                    if (furnitureBreakEvent.isCancelled()) {
-                        return;
+                OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, player, block, frame);
+                OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
+                if (furnitureBreakEvent.isCancelled()) {
+                    return;
+                }
+
+                mechanic.removeAirFurniture(frame);
+                if (player.getGameMode() != GameMode.CREATIVE) {
+                    ItemStack itemInHand = player.getInventory().getItemInMainHand();
+                    ItemMeta meta = frame.getItem().getItemMeta();
+
+                    if (mechanic.isStorage()) {
+                        mechanic.getStorage().dropStorageContent(mechanic, frame);
+                        if (mechanic.getStorage().isShulker()) return; // drop method handles all relevant drops
                     }
 
-                    mechanic.removeAirFurniture(frame);
-                    if (player.getGameMode() != GameMode.CREATIVE) {
-                        ItemStack itemInHand = player.getInventory().getItemInMainHand();
-                        ItemMeta meta = frame.getItem().getItemMeta();
-
-                        if (mechanic.isStorage()) {
-                            mechanic.getStorage().dropStorageContent(mechanic, frame);
-                            if (mechanic.getStorage().isShulker()) return; // drop method handles all relevant drops
-                        }
-
-                        if (mechanic.hasEvolution())
-                            mechanic.getDrop().spawns(frame.getLocation(), itemInHand);
-                        else if (meta instanceof LeatherArmorMeta || meta instanceof PotionMeta) {
-                            mechanic.getDrop().furnitureSpawns(frame, itemInHand);
-                        } else mechanic.getDrop().spawns(frame.getLocation(), itemInHand);
-                    }
+                    if (mechanic.hasEvolution())
+                        mechanic.getDrop().spawns(frame.getLocation(), itemInHand);
+                    else if (meta instanceof LeatherArmorMeta || meta instanceof PotionMeta) {
+                        mechanic.getDrop().furnitureSpawns(frame, itemInHand);
+                    } else mechanic.getDrop().spawns(frame.getLocation(), itemInHand);
                 }
             }
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onBreakingCustomBlock(final BlockBreakEvent event) {
+    public void onBreakingCustomFurniture(final BlockBreakEvent event) {
         final Block block = event.getBlock();
 
-        NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
         if (mechanic == null || !event.isDropItems()) return;
 
-        if (OraxenBlocks.remove(block.getLocation(), event.getPlayer())) {
+        if (OraxenFurniture.remove(block.getLocation(), event.getPlayer())) {
             event.setCancelled(true);
-            return;
-        }
-        event.setDropItems(false);
+        } else event.setDropItems(false);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onProjectileHitFurniture(final ProjectileHitEvent event) {
-        Block hitBlock = event.getHitBlock();
-        Entity hitEntity = event.getHitEntity();
+        Block block = event.getHitBlock();
+        Entity entity = event.getHitEntity();
+        Location location = block != null && block.getType() == Material.BARRIER
+                ? block.getLocation() : entity instanceof ItemFrame
+                ? entity.getLocation() : null;
 
-        if (hitBlock != null && hitBlock.getType() == Material.BARRIER) {
-            final PersistentDataContainer customBlockData = BlockHelpers.getPDC(hitBlock);
-            if (!customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING)) return;
-            final BlockLocation furnitureLocation = new BlockLocation(Objects.requireNonNull(customBlockData.get(ROOT_KEY, PersistentDataType.STRING)));
-            Float orientation = customBlockData.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
-
-            final String itemID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
-            if (!OraxenItems.exists(itemID)) return;
-            final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
-            ItemFrame frame = mechanic.getItemFrame(hitBlock);
-
-            if (event.getEntity() instanceof Explosive) {
-                mechanic.getDrop().furnitureSpawns(frame, new ItemStack(Material.AIR));
-                mechanic.removeSolid(hitBlock.getWorld(), furnitureLocation, orientation);
-            } else event.setCancelled(true);
-        }
-        if (hitEntity instanceof ItemFrame frame) {
-            final PersistentDataContainer container = frame.getPersistentDataContainer();
-            if (container.has(FURNITURE_KEY, PersistentDataType.STRING)) {
-                final String itemID = container.get(FURNITURE_KEY, PersistentDataType.STRING);
-                if (!OraxenItems.exists(itemID)) return;
-                final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
-                if (hitEntity instanceof Explosive)
-                    mechanic.getDrop().furnitureSpawns(frame, new ItemStack(Material.AIR));
-                else event.setCancelled(true);
-            }
-        }
+        if (location != null && event.getEntity() instanceof Explosive) {
+            OraxenFurniture.remove(location, null);
+        } else event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -340,7 +313,7 @@ public class FurnitureListener implements Listener {
         final Block block = event.getBlock();
         if (block.getType() != Material.BARRIER) return;
 
-        final FurnitureMechanic mechanic = OraxenBlocks.getFurnitureMechanic(block);
+        final FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
         if (mechanic == null) return;
 
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, event.getPlayer(), block, mechanic.getItemFrame(block));
@@ -377,7 +350,7 @@ public class FurnitureListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() != EquipmentSlot.HAND) return;
         if (block == null || block.getType() != Material.BARRIER || player.isSneaking()) return;
 
-        final FurnitureMechanic mechanic = OraxenBlocks.getFurnitureMechanic(block);
+        final FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
 
         Utils.swingHand(player, event.getHand());
 
@@ -433,7 +406,7 @@ public class FurnitureListener implements Listener {
             if (rayTraceResult == null) return;
             final Block block = rayTraceResult.getHitBlock();
             if (block == null) return;
-            FurnitureMechanic furnitureMechanic = OraxenBlocks.getFurnitureMechanic(block);
+            FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
             if (furnitureMechanic == null) return;
 
             ItemStack item = OraxenItems.getItemById(furnitureMechanic.getItemID()).build();

@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils.limitedplacing;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -89,7 +90,7 @@ public class LimitedPlacing {
                 if (stringBlockMechanic != null) yield stringBlockMechanic.getItemID();
                 else yield null;
             case BARRIER:
-                FurnitureMechanic furnitureMechanic = OraxenBlocks.getFurnitureMechanic(block);
+                FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
                 if (furnitureMechanic != null) yield furnitureMechanic.getItemID();
                 else yield null;
             case MUSHROOM_STEM:

@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.api.events.OraxenFurniturePlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -101,7 +101,7 @@ public class FurnitureSoundListener implements Listener {
         if (blockBelow.getType() == Material.WATER || blockBelow.getType() == Material.AIR) return;
         if (soundGroup.getStepSound() != Sound.BLOCK_STONE_STEP) return;
         if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(block.getType()) || block.getType() == Material.TRIPWIRE) return;
-        FurnitureMechanic mechanic = OraxenBlocks.getFurnitureMechanic(blockBelow);
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(blockBelow);
 
         String sound;
         float volume;

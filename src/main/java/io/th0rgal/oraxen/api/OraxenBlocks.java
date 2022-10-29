@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.api;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenNoteBlockBreakEvent;
@@ -9,9 +8,6 @@ import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
@@ -28,16 +24,13 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.block.data.type.Tripwire;
-import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
-import java.util.Objects;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.*;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 import static io.th0rgal.oraxen.utils.storage.StorageMechanic.STORAGE_KEY;
@@ -55,7 +48,6 @@ public class OraxenBlocks {
             case NOTE_BLOCK -> getNoteBlockMechanic(block) != null;
             case TRIPWIRE -> getStringMechanic(block) != null;
             case MUSHROOM_STEM -> getBlockMechanic(block) != null;
-            case BARRIER -> getFurnitureMechanic(block) != null;
             default -> false;
         };
     }
@@ -112,37 +104,13 @@ public class OraxenBlocks {
         return !StringBlockMechanicFactory.getInstance().isNotImplementedIn(itemID);
     }
 
-    /**
-     * Check if a block is an instance of a Furniture
-     *
-     * @param block The block to check
-     * @return true if the block is an instance of a Furniture, otherwise false
-     */
-    public static boolean isOraxenFurniture(Block block) {
-        return block.getType() == Material.BARRIER && getFurnitureMechanic(block) != null;
-    }
-
-    /**
-     * Check if an itemID has a FurnitureMechanic
-     *
-     * @param itemID The itemID to check
-     * @return true if the itemID has a FurnitureMechanic, otherwise false
-     */
-    public static boolean isOraxenFurniture(String itemID) {
-        return !FurnitureFactory.getInstance().isNotImplementedIn(itemID);
-    }
-
-    //TODO This doesn't handle mechanics like light and seat
     public static void place(String itemID, Location location) {
         if (!location.getBlock().getType().isAir()) return;
-        if (!isOraxenBlock(itemID)) return;
 
         if (isOraxenNoteBlock(itemID)) {
             placeNoteBlock(location, itemID);
         } else if (isOraxenStringBlock(itemID)) {
             placeStringBlock(location, itemID);
-        } else if (isOraxenFurniture(itemID)) {
-            //TODO Fix this
         }
     }
 
@@ -188,15 +156,11 @@ public class OraxenBlocks {
      */
     public static boolean remove(Location location, @Nullable Player player) {
         Block block = location.getBlock();
-        if (!isOraxenBlock(block)) return false;
-
         if (isOraxenNoteBlock(block)) {
             removeNoteBlock(block, player);
         } else if (isOraxenStringBlock(block)) {
             removeStringBlock(block, player);
-        } else if (isOraxenFurniture(block)) {
-            removeFurniture(block, player);
-        }
+        } else return false;
         return true;
     }
 
@@ -245,26 +209,6 @@ public class OraxenBlocks {
         }, 1L);
     }
 
-    private static void removeFurniture(Block block, @Nullable Player player) {
-        FurnitureMechanic mechanic = getFurnitureMechanic(block);
-        ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
-        if (mechanic == null) return;
-
-        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
-        Float orientation = pdc.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
-        final BlockLocation rootBlockLocation = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
-        ItemFrame itemFrame = mechanic.getItemFrame(block);
-
-        if (mechanic.removeSolid(block.getWorld(), rootBlockLocation, orientation)) {
-            if (!mechanic.isStorage() || !mechanic.getStorage().isShulker())
-                mechanic.getDrop().furnitureSpawns(itemFrame, itemStack);
-        }
-
-        if (mechanic.hasBarriers())
-            mechanic.removeSolid(itemFrame.getWorld(), new BlockLocation(itemFrame.getLocation()), mechanic.getYaw(itemFrame.getRotation()));
-        else mechanic.removeAirFurniture(itemFrame);
-    }
-
     /**
      * Get the OraxenBlock at a location
      *
@@ -278,7 +222,6 @@ public class OraxenBlocks {
                     case NOTE_BLOCK -> getNoteBlockMechanic(location.getBlock());
                     case TRIPWIRE -> getStringMechanic(location.getBlock());
                     case MUSHROOM_STEM -> getBlockMechanic(location.getBlock());
-                    case BARRIER -> getFurnitureMechanic(location.getBlock());
                     default -> null;
                 };
     }
@@ -302,12 +245,5 @@ public class OraxenBlocks {
         if (block.getType() == Material.MUSHROOM_STEM) {
             return BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(block));
         } else return null;
-    }
-
-    public static FurnitureMechanic getFurnitureMechanic(Block block) {
-        if (block.getType() != Material.BARRIER) return null;
-        final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
-        final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
-        return (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(mechanicID);
     }
 }
