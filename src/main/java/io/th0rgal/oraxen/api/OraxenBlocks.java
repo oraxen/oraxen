@@ -35,8 +35,9 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.FURNITURE_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.*;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 import static io.th0rgal.oraxen.utils.storage.StorageMechanic.STORAGE_KEY;
@@ -194,7 +195,7 @@ public class OraxenBlocks {
         } else if (isOraxenStringBlock(block)) {
             removeStringBlock(block, player);
         } else if (isOraxenFurniture(block)) {
-            removeFurniture(block);
+            removeFurniture(block, player);
         }
         return true;
     }
@@ -244,11 +245,21 @@ public class OraxenBlocks {
         }, 1L);
     }
 
-    private static void removeFurniture(Block block) {
+    private static void removeFurniture(Block block, @Nullable Player player) {
         FurnitureMechanic mechanic = getFurnitureMechanic(block);
+        ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
         if (mechanic == null) return;
 
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        Float orientation = pdc.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
+        final BlockLocation rootBlockLocation = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
         ItemFrame itemFrame = mechanic.getItemFrame(block);
+
+        if (mechanic.removeSolid(block.getWorld(), rootBlockLocation, orientation)) {
+            if (!mechanic.isStorage() || !mechanic.getStorage().isShulker())
+                mechanic.getDrop().furnitureSpawns(itemFrame, itemStack);
+        }
+
         if (mechanic.hasBarriers())
             mechanic.removeSolid(itemFrame.getWorld(), new BlockLocation(itemFrame.getLocation()), mechanic.getYaw(itemFrame.getRotation()));
         else mechanic.removeAirFurniture(itemFrame);

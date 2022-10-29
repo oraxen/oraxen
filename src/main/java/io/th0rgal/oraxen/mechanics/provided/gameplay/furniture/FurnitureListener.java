@@ -71,29 +71,9 @@ public class FurnitureListener implements Listener {
                 return block.getType() == Material.BARRIER;
             }
 
-            @Override //TODO Move this into getting itemframe just from block
+            @Override
             public void breakBlock(final Player player, final Block block, final ItemStack tool) {
-                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
-                    final PersistentDataContainer customBlockData = BlockHelpers.getPDC(block);
-                    if (!customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING)) return;
-
-                    final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
-                    final FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
-                    Float orientation = customBlockData.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
-                    final BlockLocation rootBlockLocation = new BlockLocation(Objects.requireNonNull(customBlockData.get(ROOT_KEY, PersistentDataType.STRING)));
-                    final ItemFrame frame = mechanic.getItemFrame(block);
-
-                    OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, player, block, frame);
-                    OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
-                    if (furnitureBreakEvent.isCancelled()) {
-                        return;
-                    }
-
-                    if (mechanic.removeSolid(block.getWorld(), rootBlockLocation, orientation)) {
-                        if (!mechanic.isStorage() || !mechanic.getStorage().isShulker())
-                            mechanic.getDrop().furnitureSpawns(frame, tool);
-                    }
-                });
+                block.setType(Material.AIR);
             }
 
             @Override
@@ -305,6 +285,20 @@ public class FurnitureListener implements Listener {
                     }
                 }
             }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBreakingCustomBlock(final BlockBreakEvent event) {
+        final Block block = event.getBlock();
+
+        NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
+        if (mechanic == null || !event.isDropItems()) return;
+
+        if (OraxenBlocks.remove(block.getLocation(), event.getPlayer())) {
+            event.setCancelled(true);
+            return;
+        }
+        event.setDropItems(false);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
