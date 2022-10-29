@@ -94,6 +94,8 @@ public class BreakerSystem {
             if (triggeredModifier == null) return;
             final long period = triggeredModifier.getPeriod(player, block, item);
             if (period == 0) return;
+
+
             event.setCancelled(true);
 
             final Location location = block.getLocation();
@@ -121,8 +123,12 @@ public class BreakerSystem {
                 scheduler.runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
                 if (playerInteractEvent.useInteractedBlock().equals(Event.Result.DENY)) return;
 
+                // If the relevant damage event is cancelled, return
+                if (blockDamageEventCancelled(block, player)) return;
+
                 breakerPerLocation.put(location, scheduler);
                 final HardnessModifier modifier = triggeredModifier;
+
                 scheduler.runTaskTimer(OraxenPlugin.get(), new Consumer<>() {
                     int value = 0;
 
@@ -132,9 +138,6 @@ public class BreakerSystem {
                             bukkitTask.cancel();
                             return;
                         }
-
-                        // If the relevant damage event is cancelled, don't increase this
-                        if (!callBlockDamageEvent(block, value, player)) return;
 
                         if (item.getEnchantmentLevel(Enchantment.DIG_SPEED) >= 5)
                             value = 10;
@@ -183,26 +186,33 @@ public class BreakerSystem {
         protocolManager = ProtocolLibrary.getProtocolManager();
     }
 
-    private boolean callBlockDamageEvent(Block block, int newDamageStage, Player player) {
+    private boolean blockDamageEventCancelled(Block block, Player player) {
+
         switch (block.getType()) {
             case NOTE_BLOCK -> {
-                OraxenNoteBlockDamageEvent event = new OraxenNoteBlockDamageEvent(OraxenBlocks.getNoteBlockMechanic(block), block, newDamageStage, player);
-                Bukkit.getPluginManager().callEvent(event);
+                OraxenNoteBlockDamageEvent event = new OraxenNoteBlockDamageEvent(OraxenBlocks.getNoteBlockMechanic(block), block, player);
+                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(event));
                 return event.isCancelled();
             }
             case TRIPWIRE -> {
-                OraxenStringBlockDamageEvent event = new OraxenStringBlockDamageEvent(OraxenBlocks.getStringMechanic(block), block, newDamageStage, player);
-                Bukkit.getPluginManager().callEvent(event);
+                OraxenStringBlockDamageEvent event = new OraxenStringBlockDamageEvent(OraxenBlocks.getStringMechanic(block), block, player);
+                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(event));
                 return event.isCancelled();
             }
             case BARRIER -> {
-                FurnitureMechanic mechanic = OraxenBlocks.getFurnitureMechanic(block);
-                if (mechanic == null) return false;
-                OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, player, block, newDamageStage, mechanic.getItemFrame(block));
-                Bukkit.getPluginManager().callEvent(event);
-                return event.isCancelled();
+                try {
+                    return Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
+                        FurnitureMechanic mechanic = OraxenBlocks.getFurnitureMechanic(block);
+                        if (mechanic == null) return true;
+                        OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, player, block, mechanic.getItemFrame(block));
+                        Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(event));
+                        return event.isCancelled();
+                    }).get();
+                } catch (Exception e) {
+                    return false;
+                }
             }
-            default -> { return false; }
+            default -> { return true; }
         }
     }
 

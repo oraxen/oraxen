@@ -20,7 +20,6 @@ public class OraxenFurnitureDamageEvent extends Event implements Cancellable {
     boolean isCancelled;
     private final Block block;
     private final FurnitureMechanic mechanic;
-    private final int newDamageStage;
     private final Player player;
     private final ItemFrame itemFrame;
     private static final HandlerList HANDLERS = new HandlerList();
@@ -29,14 +28,12 @@ public class OraxenFurnitureDamageEvent extends Event implements Cancellable {
      * @param mechanic The FurnitureMechanic of this block
      * @param player The player who damaged this block
      * @param block The block that was damaged
-     * @param newDamageStage The new damage stage of the block
      * @param itemFrame The item frame for the damaged furniture
      */
-    public OraxenFurnitureDamageEvent(FurnitureMechanic mechanic, Player player, @Nullable Block block, int newDamageStage, ItemFrame itemFrame) {
+    public OraxenFurnitureDamageEvent(FurnitureMechanic mechanic, Player player, @Nullable Block block, ItemFrame itemFrame) {
         this.mechanic = mechanic;
         this.player = player;
         this.block = block;
-        this.newDamageStage = newDamageStage;
         this.itemFrame = itemFrame;
     }
 
@@ -45,20 +42,6 @@ public class OraxenFurnitureDamageEvent extends Event implements Cancellable {
      */
     public FurnitureMechanic getMechanic() {
         return mechanic;
-    }
-
-    /**
-     * @return The current damage stage of the block
-     */
-    public int getCurrentDamageStage() {
-        return Math.max(newDamageStage - 1, 0);
-    }
-
-    /**
-     * @return The new damage stage of the StringBlock
-     */
-    public int getNewDamageState() {
-        return newDamageStage;
     }
 
     /**

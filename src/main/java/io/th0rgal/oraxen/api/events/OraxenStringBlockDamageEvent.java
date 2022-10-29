@@ -18,20 +18,17 @@ public class OraxenStringBlockDamageEvent extends Event implements Cancellable {
     private final StringBlockMechanic mechanic;
     private final Player player;
     private final Block block;
-    private final int newDamageStage;
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
     /**
      * @param mechanic The StringBlockMechanic of this block
      * @param block The block that was damaged
-     * @param newDamageStage The new damage stage of the block
      * @param player The player who damaged this block
      */
-    public OraxenStringBlockDamageEvent(StringBlockMechanic mechanic, Block block, int newDamageStage, Player player) {
+    public OraxenStringBlockDamageEvent(StringBlockMechanic mechanic, Block block, Player player) {
         this.mechanic = mechanic;
         this.block = block;
-        this.newDamageStage = newDamageStage;
         this.player = player;
         this.isCancelled = false;
     }
@@ -55,20 +52,6 @@ public class OraxenStringBlockDamageEvent extends Event implements Cancellable {
      */
     public Block getBlock() {
         return block;
-    }
-
-    /**
-     * @return The current damage stage of the block
-     */
-    public int getCurrentDamageStage() {
-        return Math.max(newDamageStage - 1, 0);
-    }
-
-    /**
-     * @return The new damage stage of the StringBlock
-     */
-    public int getNewDamageState() {
-        return newDamageStage;
     }
 
     @Override
