@@ -7,8 +7,8 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.PacketHelpers;
-import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.Component;
 
@@ -40,7 +40,7 @@ public class TitlePacketListener extends PacketAdapter {
         try {
             String title;
             if (packet.getChatComponents().read(0) == null)
-                title = Utils.MINI_MESSAGE.serialize((Component) packet.getModifier().read(1));
+                title = AdventureUtils.MINI_MESSAGE.serialize((Component) packet.getModifier().read(1));
             else title = PacketHelpers.readJson(packet.getChatComponents().read(0).getJson());
             return WrappedChatComponent.fromJson(PacketHelpers.toJson(title));
         } catch (Exception e) {
