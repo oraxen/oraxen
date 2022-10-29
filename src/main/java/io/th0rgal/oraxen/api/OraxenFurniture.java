@@ -26,25 +26,41 @@ public class OraxenFurniture {
      * @param block The block to check
      * @return true if the block is an instance of a Furniture, otherwise false
      */
-    public static boolean isOraxenFurniture(Block block) {
+    public static boolean isFurniture(Block block) {
         return block.getType() == Material.BARRIER && getFurnitureMechanic(block) != null;
     }
+
     /**
      * Check if an itemID has a FurnitureMechanic
      *
      * @param itemID The itemID to check
      * @return true if the itemID has a FurnitureMechanic, otherwise false
      */
-    public static boolean isOraxenFurniture(String itemID) {
+    public static boolean isFurniture(String itemID) {
         return !FurnitureFactory.getInstance().isNotImplementedIn(itemID);
     }
 
+    /**
+     * Places Furniture from a given ID at a given location, optionally by a player
+     *
+     * @param location The location to place the Furniture
+     * @param itemID   The ID of the Furniture to place
+     * @param player   The player who places the Furniture, can be null
+     * @return true if the Furniture was placed, false otherwise
+     */
     public static boolean place(Location location, String itemID, @Nullable Player player) {
         FurnitureMechanic mechanic = (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
         if (mechanic == null) return false;
         return mechanic.place(location, player) != null;
     }
 
+    /**
+     * Removes Furniture at a given location, optionally by a player
+     *
+     * @param location The location to place the Furniture
+     * @param player   The player who places the Furniture, can be null
+     * @return true if the Furniture was placed, false otherwise
+     */
     public static boolean remove(Location location, @Nullable Player player) {
         Block block = location.getBlock();
         FurnitureMechanic mechanic = getFurnitureMechanic(block);
@@ -63,12 +79,26 @@ public class OraxenFurniture {
         return true;
     }
 
+    /**
+     * Get the FurnitureMechanic from a given block.
+     * This will only return non-null for furniture with a barrier-hitbox
+     *
+     * @param block The block to get the FurnitureMechanic from
+     * @return Instance of this block's FurnitureMechanic, or null if the block is not tied to a Furniture
+     */
     public static FurnitureMechanic getFurnitureMechanic(Block block) {
         if (block.getType() != Material.BARRIER) return null;
         final String mechanicID = BlockHelpers.getPDC(block).get(FURNITURE_KEY, PersistentDataType.STRING);
         return (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(mechanicID);
     }
 
+    /**
+     * Get the FurnitureMechanic from a given block.
+     * This will only return non-null for furniture with a barrier-hitbox
+     *
+     * @param entity The entity to get the FurnitureMechanic from
+     * @return Returns this entity's FurnitureMechanic, or null if the entity is not tied to a Furniture
+     */
     public static FurnitureMechanic getFurnitureMechanic(Entity entity) {
         if (!(entity instanceof ItemFrame)) return null;
         final String itemID = entity.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING);

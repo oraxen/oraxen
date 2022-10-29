@@ -22,6 +22,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.entity.Player;
@@ -44,6 +45,7 @@ public class OraxenBlocks {
      * @return true if the block is an instance of an OraxenBlock, otherwise false
      */
     public static boolean isOraxenBlock(Block block) {
+        if (block == null) return false;
         return switch (block.getType()) {
             case NOTE_BLOCK -> getNoteBlockMechanic(block) != null;
             case TRIPWIRE -> getStringMechanic(block) != null;
@@ -226,12 +228,23 @@ public class OraxenBlocks {
                 };
     }
 
+    public static NoteBlockMechanic getNoteBlockMechanic(BlockData data) {
+        if (!(data instanceof NoteBlock noteBlock)) return null;
+        return NoteBlockMechanicFactory
+                .getBlockMechanic((noteBlock.getInstrument().getType()) * 25
+                        + noteBlock.getNote().getId() + (noteBlock.isPowered() ? 400 : 0) - 26);
+    }
     public static NoteBlockMechanic getNoteBlockMechanic(Block block) {
         if (block.getType() != Material.NOTE_BLOCK) return null;
         final NoteBlock noteblock = (NoteBlock) block.getBlockData();
         return NoteBlockMechanicFactory
                 .getBlockMechanic((noteblock.getInstrument().getType()) * 25
                         + noteblock.getNote().getId() + (noteblock.isPowered() ? 400 : 0) - 26);
+    }
+
+    public static StringBlockMechanic getStringMechanic(BlockData blockData) {
+        if (!(blockData instanceof Tripwire tripwire)) return null;
+        return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
     }
 
     public static StringBlockMechanic getStringMechanic(Block block) {
