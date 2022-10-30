@@ -123,7 +123,7 @@ public class JukeboxListener implements Listener {
         block.getWorld().getNearbyEntities(loc, 32, 32, 32).stream()
                 .filter(entity -> entity instanceof Player)
                 .map(entity -> (Player) entity)
-                .forEach(p -> OraxenPlugin.get().getAudience().player(p).stopSound(Sound.sound(getSongFromDisc(item), Sound.Source.RECORD, 1, 1)));
+                .forEach(p -> OraxenPlugin.get().getAudience().player(p).stopSound(Sound.sound(getSongFromDisc(item), Sound.Source.RECORD, jukebox.getVolume(), jukebox.getPitch())));
         block.getWorld().dropItemNaturally(loc, item);
         pdc.remove(MUSIC_DISC_KEY);
         return true;
