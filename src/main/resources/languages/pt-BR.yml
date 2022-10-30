@@ -75,4 +75,4 @@ command:
 
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Você precisa de mais experiência para fazer isso"
-  backpack_stacked: "<prefix><#fa4943>Cannot open stacked backpack"
+  backpack_stacked: "<prefix><#fa4943>Não é possível abrir backpacks empilhadas!"
