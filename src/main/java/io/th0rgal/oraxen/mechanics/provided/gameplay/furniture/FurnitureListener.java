@@ -9,7 +9,6 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.api.events.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.api.events.OraxenFurniturePlaceEvent;
-import io.th0rgal.oraxen.api.events.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -179,7 +178,7 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        ItemFrame itemframe = mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), item, player);
+        ItemFrame itemframe = mechanic.place(rotation, yaw, event.getBlockFace(), block.getLocation(), item, player);
         Utils.swingHand(player, event.getHand());
 
         final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, block, itemframe, player);

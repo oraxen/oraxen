@@ -4,12 +4,12 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.StorageGui;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
-import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -87,7 +87,7 @@ public class StorageMechanic {
                 ? gui.getInventory().getContents() : pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
 
         if (isShulker()) {
-            NoteBlockMechanic mechanic = NoteBlockMechanicListener.getNoteBlockMechanic(block);
+            NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
             if (mechanic == null) return;
 
             ItemStack shulker = OraxenItems.getItemById(mechanic.getItemID()).build();

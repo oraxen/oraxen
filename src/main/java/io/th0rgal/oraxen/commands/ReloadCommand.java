@@ -8,7 +8,6 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.hud.HudManager;
-import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;

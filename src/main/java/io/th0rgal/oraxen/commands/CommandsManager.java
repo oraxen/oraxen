@@ -130,7 +130,7 @@ public class CommandsManager {
                     final String itemID = (String) args[1];
                     final ItemBuilder itemBuilder = OraxenItems.getItemById(itemID);
                     if (itemBuilder == null) {
-                        Message.ITEM_NOT_FOUND.send(sender, Utils.tagResolver("item", itemID));
+                        Message.ITEM_NOT_FOUND.send(sender, AdventureUtils.tagResolver("item", itemID));
                         return;
                     }
                     int amount = (int) args[2];
@@ -170,7 +170,7 @@ public class CommandsManager {
                     final String itemID = (String) args[1];
                     final ItemBuilder itemBuilder = OraxenItems.getItemById(itemID);
                     if (itemBuilder == null) {
-                        Message.ITEM_NOT_FOUND.send(sender, Utils.tagResolver("item", itemID));
+                        Message.ITEM_NOT_FOUND.send(sender, AdventureUtils.tagResolver("item", itemID));
                         return;
                     }
                     for (final Player target : targets)

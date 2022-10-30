@@ -40,7 +40,7 @@ public class FurnitureSoundListener implements Listener {
 
         if (block.getType() == Material.TRIPWIRE) return;
         if (block.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_STONE_PLACE) return;
-        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), VANILLA_STONE_PLACE, 1.0f, 0.8f);
+        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), VANILLA_STONE_PLACE, VANILLA_PLACE_VOLUME, VANILLA_PLACE_PITCH);
     }
 
     // Play sound due to furniture/barrier custom sound replacing stone
@@ -56,7 +56,7 @@ public class FurnitureSoundListener implements Listener {
         }
 
         if (!event.isCancelled() && ProtectionLib.canBreak(event.getPlayer(), block.getLocation()))
-            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), VANILLA_STONE_BREAK, 1.0f, 0.8f);
+            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), VANILLA_STONE_BREAK, VANILLA_BREAK_VOLUME, VANILLA_BREAK_PITCH);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -69,7 +69,7 @@ public class FurnitureSoundListener implements Listener {
         if (breakerPlaySound.containsKey(block)) return;
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_STONE_HIT, 0.25f, 0.5f), 2L, 4L);
+                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_STONE_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH), 2L, 4L);
         breakerPlaySound.put(block, task);
     }
 
