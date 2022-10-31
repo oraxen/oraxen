@@ -120,8 +120,8 @@ public class StringBlockMechanicListener implements Listener {
         BlockFace blockFace = event.getBlockFace();
         ItemStack item = event.getItem();
 
-        if (item == null || block == null) return;
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block.getType() != Material.NOTE_BLOCK) return;
+        if (item == null || block == null || event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
 
         StringBlockMechanic mechanic = (StringBlockMechanic) factory.getMechanic(OraxenItems.getIdByItem(item));

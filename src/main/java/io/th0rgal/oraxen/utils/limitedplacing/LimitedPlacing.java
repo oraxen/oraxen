@@ -53,7 +53,7 @@ public class LimitedPlacing {
         return !switch (blockFace) {
             case UP -> floor;
             case DOWN -> roof;
-            default -> wall && blockBelow.getType().isSolid();
+            default -> wall || blockBelow.getType().isSolid();
         };
     }
 
