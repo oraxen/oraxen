@@ -181,10 +181,10 @@ public class StringBlockMechanicListener implements Listener {
             if (block.getRelative(face).getType() == Material.TRIPWIRE) {
 //                StringBlockMechanic mechanic = getStringMechanic(block.getRelative(face));
 //                if (mechanic != null)
-                    if (player.getGameMode() != GameMode.CREATIVE)
-                        for (ItemStack item : block.getDrops())
-                            if (item.getType() != Material.AIR)
-                                player.getWorld().dropItemNaturally(block.getLocation(), item);
+                if (player.getGameMode() != GameMode.CREATIVE)
+                    for (ItemStack item : block.getDrops())
+                        if (item.getType() != Material.AIR)
+                            player.getWorld().dropItemNaturally(block.getLocation(), item);
                 block.setType(Material.AIR, false);
                 if (BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) blockAbove.breakNaturally();
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
@@ -208,10 +208,9 @@ public class StringBlockMechanicListener implements Listener {
             if (block.getType() != Material.NOTE_BLOCK)
                 block.breakNaturally(item);
             else {
-                if (mechanic == null)
-                    if (player.getGameMode() != GameMode.CREATIVE)
-                        for (ItemStack drop : block.getDrops())
-                            block.getWorld().dropItemNaturally(block.getLocation(), drop);
+                if (mechanic == null && player.getGameMode() != GameMode.CREATIVE)
+                    for (ItemStack drop : block.getDrops())
+                        block.getWorld().dropItemNaturally(block.getLocation(), drop);
                 block.setType(Material.AIR);
             }
 
@@ -434,34 +433,22 @@ public class StringBlockMechanicListener implements Listener {
         }, 1L);
     }
 
-    private static void fixClientsideUpdate(Location blockLoc) {
-        Block blockBelow = blockLoc.clone().subtract(0, 1, 0).getBlock();
-        Block blockAbove = blockLoc.clone().add(0, 1, 0).getBlock();
-        Location loc = blockLoc.add(5, 0, 5);
+    private static void fixClientsideUpdate(Location loc) {
         List<Entity> players =
-                Objects.requireNonNull(blockLoc.getWorld()).getNearbyEntities(blockLoc, 20, 20, 20)
+                Objects.requireNonNull(loc.getWorld()).getNearbyEntities(loc, 20, 20, 20)
                         .stream().filter(entity -> entity.getType() == EntityType.PLAYER).toList();
 
-        if (players.isEmpty()) return;
-        if (blockBelow.getType() == Material.TRIPWIRE) {
-            for (Entity e : players)
-                ((Player) e).sendBlockChange(blockBelow.getLocation(), blockBelow.getBlockData());
-        }
-
-        if (blockAbove.getType() == Material.TRIPWIRE) {
-            for (Entity e : players)
-                ((Player) e).sendBlockChange(blockAbove.getLocation(), blockAbove.getBlockData());
-        }
-
-        for (int i = 0; i < 9; i++) {
-            for (int j = 0; j < 9; j++) {
-                if (loc.getBlock().getType() == Material.TRIPWIRE) {
-                    for (Entity e : players)
-                        ((Player) e).sendBlockChange(loc, loc.getBlock().getBlockData());
+        for (double x = loc.getX() - 10; x < loc.getX() + 10; x++) {
+            for (double y = loc.getY() - 4; y < loc.getY() + 4; y++) {
+                for (double z = loc.getZ() - 10; z < loc.getZ() + 10; z++) {
+                    if (loc.getBlock().getType() == Material.TRIPWIRE) {
+                        Location newLoc = new Location(loc.getWorld(), x, y, z);
+                        for (Entity e : players) {
+                            ((Player) e).sendBlockChange(newLoc, newLoc.getBlock().getBlockData());
+                        }
+                    }
                 }
-                loc = loc.subtract(0, 0, 1);
             }
-            loc = loc.add(-1, 0, 9);
         }
     }
 }
