@@ -8,8 +8,6 @@ import io.th0rgal.oraxen.events.OraxenStringBlockInteractEvent;
 import io.th0rgal.oraxen.events.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -155,105 +153,6 @@ public class StringBlockMechanicListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onInteract(final PlayerInteractEvent event) {
-        final Block block = event.getClickedBlock();
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK
-                && block != null
-                && block.getType() == Material.TRIPWIRE) {
-            ItemStack clicked = event.getItem();
-            // Call the event
-            StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
-            if (stringBlockMechanic == null) return;
-            OraxenStringBlockInteractEvent wireBlockInteractEvent = new OraxenStringBlockInteractEvent(stringBlockMechanic, block, event.getItem(), event.getPlayer(), event.getBlockFace());
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockInteractEvent);
-            if (wireBlockInteractEvent.isCancelled()) {
-                event.setCancelled(true);
-                return;
-            }
-
-            event.setCancelled(true);
-            if (clicked == null)
-                return;
-            Material type = clicked.getType();
-            if (clicked.getType().isInteractable())
-                return;
-            if (type == Material.LAVA_BUCKET)
-                type = Material.LAVA;
-            if (type == Material.WATER_BUCKET)
-                type = Material.WATER;
-            if (type.isBlock())
-                makePlayerPlaceBlock(event.getPlayer(), event.getHand(), event.getItem(), block, event.getBlockFace(), Bukkit.createBlockData(type));
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onBreakingCustomBlock(final BlockBreakEvent event) {
-        final Block block = event.getBlock();
-        final Block blockAbove = block.getRelative(BlockFace.UP);
-        final Player player = event.getPlayer();
-        for (BlockFace face : BlockFace.values()) {
-            if (face == BlockFace.SELF && !face.isCartesian()) continue;
-            if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
-            if (block.getRelative(face).getType() == Material.TRIPWIRE) {
-//                StringBlockMechanic mechanic = getStringMechanic(block.getRelative(face));
-//                if (mechanic != null)
-                if (player.getGameMode() != GameMode.CREATIVE)
-                    for (ItemStack item : block.getDrops())
-                        if (item.getType() != Material.AIR)
-                            player.getWorld().dropItemNaturally(block.getLocation(), item);
-                block.setType(Material.AIR, false);
-                if (BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) blockAbove.breakNaturally();
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                        fixClientsideUpdate(block.getLocation()), 1);
-            }
-        }
-
-        if (block.getType() == Material.TRIPWIRE) {
-            final StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
-            if (stringBlockMechanic == null) return;
-            event.setCancelled(true);
-            breakStringBlock(block, stringBlockMechanic, player.getInventory().getItemInMainHand(), player);
-            event.setDropItems(false);
-        } else if (blockAbove.getType() == Material.TRIPWIRE) {
-            ItemStack item = player.getInventory().getItemInMainHand();
-            final StringBlockMechanic stringBlockMechanic = getStringMechanic(blockAbove);
-            if (stringBlockMechanic == null) return;
-            event.setCancelled(true);
-
-            NoteBlockMechanic mechanic = NoteBlockMechanicListener.getNoteBlockMechanic(block);
-            if (block.getType() != Material.NOTE_BLOCK)
-                block.breakNaturally(item);
-            else {
-                if (mechanic == null && player.getGameMode() != GameMode.CREATIVE)
-                    for (ItemStack drop : block.getDrops())
-                        block.getWorld().dropItemNaturally(block.getLocation(), drop);
-                block.setType(Material.AIR);
-            }
-
-            breakStringBlock(blockAbove, stringBlockMechanic, item, player);
-            event.setDropItems(false);
-        }
-    }
-
-    @EventHandler
-    public void onExplosionDestroy(EntityExplodeEvent event) {
-        List<Block> blockList = event.blockList().stream().filter(block -> block.getType().equals(Material.TRIPWIRE)).toList();
-        blockList.forEach(block -> {
-            final StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
-            if (stringBlockMechanic == null) return;
-
-            OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(stringBlockMechanic, block, null);
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockBreakEvent);
-            if (wireBlockBreakEvent.isCancelled()) {
-                return;
-            }
-
-            stringBlockMechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
-            block.setType(Material.AIR, false);
-        });
-    }
-
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrePlacingCustomBlock(final PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
@@ -301,9 +200,11 @@ public class StringBlockMechanicListener implements Listener {
         Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
                 placedAgainst, event.getBlockFace(),
                 StringBlockMechanicFactory.createTripwireData(customVariation));
-        if (placedBlock == null)
-            return;
-        if (mechanic.hasLight())
+        if (placedBlock == null) return;
+
+        if (mechanic.isTall())
+            placedBlock.getRelative(BlockFace.UP).setType(Material.TRIPWIRE, false);
+        if (mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
         if (mechanic.isSapling()) {
             SaplingMechanic sapling = mechanic.getSaplingMechanic();
@@ -313,15 +214,130 @@ public class StringBlockMechanicListener implements Listener {
         event.setCancelled(true);
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onInteract(final PlayerInteractEvent event) {
+        final Block block = event.getClickedBlock();
+        if (event.getAction() == Action.RIGHT_CLICK_BLOCK
+                && block != null
+                && block.getType() == Material.TRIPWIRE) {
+            ItemStack clicked = event.getItem();
+            // Call the event
+            StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
+            if (stringBlockMechanic == null) return;
+            OraxenStringBlockInteractEvent wireBlockInteractEvent = new OraxenStringBlockInteractEvent(stringBlockMechanic, block, event.getItem(), event.getPlayer(), event.getBlockFace());
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockInteractEvent);
+            if (wireBlockInteractEvent.isCancelled()) {
+                event.setCancelled(true);
+                return;
+            }
+
+            event.setCancelled(true);
+            if (clicked == null)
+                return;
+            Material type = clicked.getType();
+            if (clicked.getType().isInteractable())
+                return;
+            if (type == Material.LAVA_BUCKET)
+                type = Material.LAVA;
+            if (type == Material.WATER_BUCKET)
+                type = Material.WATER;
+            if (type.isBlock())
+                makePlayerPlaceBlock(event.getPlayer(), event.getHand(), event.getItem(), block, event.getBlockFace(), Bukkit.createBlockData(type));
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBreakingCustomBlock(final BlockBreakEvent event) {
+        final Block block = event.getBlock();
+        final Block blockAbove = block.getRelative(BlockFace.UP);
+        final Block blockBelow = block.getRelative(BlockFace.DOWN);
+        final Player player = event.getPlayer();
+        ItemStack itemStack = player.getInventory().getItemInMainHand();
+
+        for (BlockFace face : BlockFace.values()) {
+            if (face == BlockFace.SELF && !face.isCartesian()) continue;
+            if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
+            if (block.getRelative(face).getType() == Material.TRIPWIRE) {
+                if (player.getGameMode() != GameMode.CREATIVE)
+                    for (ItemStack item : block.getDrops())
+                        if (item.getType() != Material.AIR)
+                            player.getWorld().dropItemNaturally(block.getLocation(), item);
+                block.setType(Material.AIR, false);
+                if (BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) blockAbove.breakNaturally();
+                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                        fixClientsideUpdate(block.getLocation()), 1);
+            }
+        }
+
+        if (block.getType() == Material.TRIPWIRE) {
+            StringBlockMechanic mechanic = getStringMechanic(block);
+            StringBlockMechanic mechanicBelow = getStringMechanic(blockBelow);
+            if (mechanic != null) {
+                event.setCancelled(true);
+                breakStringBlock(block, mechanic, itemStack, player);
+                event.setDropItems(false);
+            } else if (mechanicBelow != null && mechanicBelow.isTall()) {
+                event.setCancelled(true);
+                breakStringBlock(blockBelow, mechanicBelow, itemStack, player);
+                event.setDropItems(false);
+            }
+        } else if (blockAbove.getType() == Material.TRIPWIRE) {
+            final StringBlockMechanic stringBlockMechanic = getStringMechanic(blockAbove);
+            if (stringBlockMechanic == null) return;
+            event.setCancelled(true);
+
+            breakStringBlock(blockAbove, stringBlockMechanic, itemStack, player);
+            block.setType(Material.AIR); // This doesn't affect furniture and noteblock as they are handled by other functions
+            event.setDropItems(false);
+        }
+    }
+
+    @EventHandler
+    public void onExplosionDestroy(EntityExplodeEvent event) {
+        List<Block> blockList = event.blockList().stream().filter(block -> block.getType().equals(Material.TRIPWIRE)).toList();
+        blockList.forEach(block -> {
+            final StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
+            if (stringBlockMechanic == null) return;
+
+            OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(stringBlockMechanic, block, null);
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockBreakEvent);
+            if (wireBlockBreakEvent.isCancelled()) {
+                return;
+            }
+
+            final Block blockAbove = block.getRelative(BlockFace.UP);
+            final Block blockBelow = block.getRelative(BlockFace.DOWN);
+            if (block.getType() == Material.TRIPWIRE) {
+                StringBlockMechanic mechanic = getStringMechanic(block);
+                StringBlockMechanic mechanicBelow = getStringMechanic(blockBelow);
+                if (mechanic != null) {
+                    breakStringBlock(block, mechanic, new ItemStack(Material.AIR), null);
+                } else if (mechanicBelow != null && mechanicBelow.isTall()) {
+                    breakStringBlock(blockBelow, mechanicBelow, new ItemStack(Material.AIR), null);
+                }
+            }  else if (blockAbove.getType() == Material.TRIPWIRE) {
+                final StringBlockMechanic mechanicAbove = getStringMechanic(blockAbove);
+                if (mechanicAbove == null) return;
+                breakStringBlock(blockAbove, stringBlockMechanic, new ItemStack(Material.AIR), null);
+            }
+        });
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onWaterUpdate(final BlockFromToEvent event) {
         if (!event.getBlock().isLiquid()) return;
         for (BlockFace f : BlockFace.values()) {
             if (!f.isCartesian() || f == BlockFace.SELF) continue; // Only take N/S/W/E
             final Block changed = event.getToBlock().getRelative(f);
+            final Block changedBelow = changed.getRelative(BlockFace.DOWN);
             if (changed.getType() == Material.TRIPWIRE) {
-                breakStringBlock(changed, getStringMechanic(changed), new ItemStack(Material.AIR), null);
-                changed.setType(Material.AIR, false);
+                StringBlockMechanic mechanic = getStringMechanic(changed);
+                StringBlockMechanic mechanicBelow = getStringMechanic(changedBelow);
+                if (mechanic != null) {
+                    breakStringBlock(changed, mechanic, new ItemStack(Material.AIR), null);
+                } else if (mechanicBelow != null && mechanicBelow.isTall()) {
+                    breakStringBlock(changedBelow, mechanicBelow, new ItemStack(Material.AIR), null);
+                }
             }
         }
     }
@@ -442,17 +458,21 @@ public class StringBlockMechanicListener implements Listener {
             return;
         }
 
+        // If tall check the block 2 above if it's a stringblock
+        final Block blockAbove = block.getRelative(BlockFace.UP, mechanic.isTall() ? 2 : 1);
 
+        if (mechanic.isTall())
+            block.getRelative(BlockFace.UP).setType(Material.AIR, false);
         if (mechanic.hasLight())
             WrappedLightAPI.removeBlockLight(block.getLocation());
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
             mechanic.getDrop().spawns(block.getLocation(), item);
         block.setType(Material.AIR, false);
-        final Block blockAbove = block.getRelative(BlockFace.UP);
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             fixClientsideUpdate(block.getLocation());
-            if (blockAbove.getType() == Material.TRIPWIRE)
+            if (blockAbove.getType() == Material.TRIPWIRE) {
                 breakStringBlock(blockAbove, getStringMechanic(blockAbove), new ItemStack(Material.AIR), player);
+            }
         }, 1L);
     }
 
