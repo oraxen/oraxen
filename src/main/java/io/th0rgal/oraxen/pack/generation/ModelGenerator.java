@@ -19,17 +19,17 @@ public class ModelGenerator {
 
         if (parentModel.equals("block/cube_all")) {
             textures.addProperty("all", layers.get(0));
-        } else if (parentModel.contains("cross")) {
+        } else if (parentModel.equals("block/cross")) {
             textures.addProperty("cross", layers.get(0));
-        } else if (parentModel.contains("block/orientable")) {
+        } else if (parentModel.startsWith("block/orientable")) {
             textures.addProperty("front", layers.get(0));
             textures.addProperty("side", layers.get(1));
             if (!parentModel.endsWith("vertical"))
                 textures.addProperty("top", layers.get(2));
-        } else if (parentModel.contains("cube_column")) {
+        } else if (parentModel.equals("block/cube_column")) {
             textures.addProperty("end", layers.get(0));
             textures.addProperty("side", layers.get(1));
-        }else {
+        } else {
             for (int i = 0; i < layers.size(); i++)
                 textures.addProperty("layer" + i, layers.get(i));
         }
