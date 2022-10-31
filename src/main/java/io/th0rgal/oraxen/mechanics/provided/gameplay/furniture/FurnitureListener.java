@@ -105,8 +105,8 @@ public class FurnitureListener implements Listener {
         BlockFace blockFace = event.getBlockFace();
         ItemStack item = event.getItem();
 
-        if (item == null || block == null) return;
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block.getType() == Material.NOTE_BLOCK) return;
+        if (item == null || block == null || event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
 
         FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(OraxenItems.getIdByItem(item));
@@ -128,13 +128,15 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onHangingPlaceEvent(final PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
         assert placedAgainst != null;
-        final Block target = getTarget(placedAgainst, event.getBlockFace());
+        final Block block = getTarget(placedAgainst, event.getBlockFace());
         ItemStack item = event.getItem();
+
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (item == null || event.getHand() != EquipmentSlot.HAND) return;
+        if (placedAgainst.getType().isInteractable() && placedAgainst.getType() != Material.NOTE_BLOCK) return;
 
         // Cancel placing when clicking a clickAction furniture
         final PersistentDataContainer customBlockData = BlockHelpers.getPDC(placedAgainst);
@@ -143,21 +145,20 @@ public class FurnitureListener implements Listener {
             if (!OraxenItems.exists(id)) return;
             final FurnitureMechanic fMechanic = (FurnitureMechanic) factory.getMechanic(id);
             if (fMechanic.hasClickActions() && !player.isSneaking()) {
-                if (item != null && item.getType().isBlock()) event.setCancelled(true);
+                if (item.getType().isBlock()) event.setCancelled(true);
                 return;
             }
             if (fMechanic.isStorage() && !player.isSneaking()) {
-                if (item != null && item.getType().isBlock()) event.setCancelled(true);
+                if (item.getType().isBlock()) event.setCancelled(true);
                 return;
             }
         }
 
-        if (target == null) return;
-        final BlockData currentBlockData = target.getBlockData();
-        FurnitureMechanic mechanic = getMechanic(item, player, target);
+        final BlockData currentBlockData = block.getBlockData();
+        FurnitureMechanic mechanic = getMechanic(item, player, block);
         if (mechanic == null) return;
 
-        Block farm = target.getRelative(BlockFace.DOWN);
+        Block farm = block.getRelative(BlockFace.DOWN);
 
         if (mechanic.farmlandRequired && farm.getType() != Material.FARMLAND) return;
 
@@ -168,10 +169,9 @@ public class FurnitureListener implements Listener {
             if (!farmMechanic.getDryout().isFarmBlock()) return;
         }
 
-        Material oldtype = target.getType();
-        target.setType(Material.AIR, false);
-        assert item != null;
-        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst,
+        Material oldtype = block.getType();
+        block.setType(Material.AIR, false);
+        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(block, block.getState(), placedAgainst,
                 item, player,
                 true, Objects.requireNonNull(event.getHand()));
 
@@ -181,7 +181,7 @@ public class FurnitureListener implements Listener {
                 mechanic.hasBarriers() && mechanic.getBarriers().size() > 1);
         final float yaw = mechanic.getYaw(rotation);
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
-        if (mechanic.notEnoughSpace(yaw, target.getLocation())) {
+        if (mechanic.notEnoughSpace(yaw, block.getLocation())) {
             blockPlaceEvent.setCancelled(true);
             Message.NOT_ENOUGH_SPACE.send(player);
         }
@@ -189,20 +189,20 @@ public class FurnitureListener implements Listener {
         //Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
-            target.setBlockData(currentBlockData, false); // false to cancel physic
+            block.setBlockData(currentBlockData, false); // false to cancel physic
             return;
         }
 
-        ItemFrame itemframe = mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), item, player);
+        ItemFrame itemframe = mechanic.place(rotation, yaw, event.getBlockFace(), block.getLocation(), item, player);
         Utils.sendAnimation(player, event.getHand());
 
-        final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, target, itemframe, player);
+        final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, block, itemframe, player);
 
         Bukkit.getPluginManager().callEvent(furniturePlaceEvent);
 
         if (furniturePlaceEvent.isCancelled()) {
             itemframe.remove();
-            target.setType(oldtype, false);
+            block.setType(oldtype, false);
             return;
         }
 
