@@ -102,23 +102,26 @@ public class FurnitureListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onLimitedPlacing(final PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
+        BlockFace blockFace = event.getBlockFace();
         ItemStack item = event.getItem();
 
         if (item == null || block == null) return;
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block.getType() != Material.NOTE_BLOCK) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block.getType() == Material.NOTE_BLOCK) return;
         if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
 
         FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(OraxenItems.getIdByItem(item));
         if (mechanic == null || !mechanic.hasLimitedPlacing()) return;
 
         LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
-        Block placedAgainst = block.getRelative(event.getBlockFace()).getRelative(BlockFace.DOWN);
+        Block belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN);
 
-        if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
-            if (!limitedPlacing.checkLimitedMechanic(placedAgainst))
+        if (limitedPlacing.isNotPlacableOn(belowPlaced, blockFace)) {
+            event.setCancelled(true);
+        } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
+            if (!limitedPlacing.checkLimitedMechanic(belowPlaced))
                 event.setCancelled(true);
         } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.DENY) {
-            if (limitedPlacing.checkLimitedMechanic(placedAgainst))
+            if (limitedPlacing.checkLimitedMechanic(belowPlaced))
                 event.setCancelled(true);
         }
     }
@@ -197,9 +200,9 @@ public class FurnitureListener implements Listener {
 
         Bukkit.getPluginManager().callEvent(furniturePlaceEvent);
 
-        if(furniturePlaceEvent.isCancelled()){
+        if (furniturePlaceEvent.isCancelled()) {
             itemframe.remove();
-            target.setType(oldtype,false);
+            target.setType(oldtype, false);
             return;
         }
 
