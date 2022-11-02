@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.events.OraxenFurnitureBreakEvent;
@@ -34,6 +35,7 @@ import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -43,6 +45,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -474,6 +477,25 @@ public class FurnitureListener implements Listener {
                 player.leaveVehicle();
             }
         }
+    }
+
+    @EventHandler // Set rotation key of old furniture and its barriers
+    public void setMissingPDCKeys(ChunkLoadEvent event) {
+        Arrays.stream(event.getChunk().getEntities()).filter(e -> e instanceof ItemFrame).forEach(entity -> {
+            if (entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING)) {
+                if (entity.getLocation().getBlock().getType() == Material.BARRIER) {
+                    FurnitureMechanic mechanic = FurnitureListener.getFurnitureMechanic(entity.getLocation().getBlock());
+                    if (mechanic != null && BlockHelpers.isLoaded(entity.getLocation())) {
+                        for (BlockLocation blockLoc : mechanic.getBarriers()) {
+                            Block block = blockLoc.toLocation(entity.getWorld()).getBlock();
+                            if (block.getType() == Material.BARRIER) {
+                                BlockHelpers.getPDC(block).set(ROTATION_KEY, DataType.asEnum(Rotation.class), ((ItemFrame) entity).getRotation());
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 
     public static FurnitureMechanic getFurnitureMechanic(Block block) {

@@ -40,6 +40,7 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
     public static final NamespacedKey ROOT_KEY = new NamespacedKey(OraxenPlugin.get(), "root");
     public static final NamespacedKey ORIENTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "orientation");
+    public static final NamespacedKey ROTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "rotation");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
     private final LimitedPlacing limitedPlacing;
     private final StorageMechanic storage;
@@ -292,6 +293,7 @@ public class FurnitureMechanic extends Mechanic {
                 }
                 data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location).toString());
                 data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
+                data.set(ROTATION_KEY, DataType.asEnum(Rotation.class), rotation);
                 block.setType(Material.BARRIER, false);
                 if (light != -1)
                     WrappedLightAPI.createBlockLight(barrierLocation, light);
