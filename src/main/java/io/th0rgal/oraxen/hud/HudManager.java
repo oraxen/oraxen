@@ -110,6 +110,7 @@ public class HudManager {
         if (hudTaskEnabled) return;
         if (hudTask != null) hudTask.cancel();
         if (hudUpdateTime == 0) return;
+        if (huds.isEmpty()) return;
 
         hudTask = new HudTask();
         hudTask.runTaskTimer(OraxenPlugin.get(), 0, hudUpdateTime);
@@ -130,7 +131,7 @@ public class HudManager {
     public void loadHuds(final ConfigurationSection section) {
         for (final String hudName : section.getKeys(false)) {
             final ConfigurationSection hudSection = section.getConfigurationSection(hudName);
-            if (hudSection == null) continue;
+            if (hudSection == null || hudSection.getKeys(false).isEmpty()) continue;
             huds.clear();
             huds.put(hudName, (new Hud(
                     hudSection.getString("display_text"),
