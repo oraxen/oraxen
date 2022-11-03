@@ -129,6 +129,10 @@ public class CommandsManager {
                     final Collection<Player> targets = (Collection<Player>) args[0];
                     final String itemID = (String) args[1];
                     final ItemBuilder itemBuilder = OraxenItems.getItemById(itemID);
+                    if (itemBuilder == null) {
+                        Message.ITEM_NOT_FOUND.send(sender, Utils.tagResolver("item", itemID));
+                        return;
+                    }
                     int amount = (int) args[2];
                     final int max = itemBuilder.getMaxStackSize();
                     final int slots = amount / max + (max % amount > 0 ? 1 : 0);
@@ -165,6 +169,10 @@ public class CommandsManager {
                     final Collection<Player> targets = (Collection<Player>) args[0];
                     final String itemID = (String) args[1];
                     final ItemBuilder itemBuilder = OraxenItems.getItemById(itemID);
+                    if (itemBuilder == null) {
+                        Message.ITEM_NOT_FOUND.send(sender, Utils.tagResolver("item", itemID));
+                        return;
+                    }
                     for (final Player target : targets)
                         target.getInventory().addItem(itemBuilder.build());
 
