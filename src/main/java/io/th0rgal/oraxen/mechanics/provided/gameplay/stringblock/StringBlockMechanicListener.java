@@ -424,9 +424,11 @@ public class StringBlockMechanicListener implements Listener {
             return;
         }
 
+
         if (mechanic.getLight() != -1)
             WrappedLightAPI.removeBlockLight(block.getLocation());
-        mechanic.getDrop().spawns(block.getLocation(), item);
+        if (player != null && player.getGameMode() != GameMode.CREATIVE)
+            mechanic.getDrop().spawns(block.getLocation(), item);
         block.setType(Material.AIR, false);
         final Block blockAbove = block.getRelative(BlockFace.UP);
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
