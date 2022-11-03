@@ -14,6 +14,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
@@ -24,8 +25,14 @@ public class LimitedPlacing {
     private final List<String> blockTypes;
     private final List<String> blockTags;
     private final List<String> oraxenBlocks;
+    private final boolean floor;
+    private final boolean roof;
+    private final boolean wall;
 
     public LimitedPlacing(ConfigurationSection section) {
+        floor = section.getBoolean("floor", true);
+        roof = section.getBoolean("roof", true);
+        wall = section.getBoolean("wall", true);
         type = LimitedPlacingType.valueOf(section.getString("type", "ALLOW"));
         blockTypes = section.getStringList("block_types");
         blockTags = section.getStringList("block_tags");
@@ -40,6 +47,14 @@ public class LimitedPlacing {
             blocks.add(Material.getMaterial(blockType));
         }
         return blocks;
+    }
+
+    public boolean isNotPlacableOn(Block blockBelow, BlockFace blockFace) {
+        return !switch (blockFace) {
+            case UP -> floor;
+            case DOWN -> roof;
+            default -> wall || blockBelow.getType().isSolid();
+        };
     }
 
     public List<String> getLimitedOraxenBlockIds() {

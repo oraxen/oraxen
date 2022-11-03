@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.events.OraxenFurnitureBreakEvent;
@@ -34,6 +35,7 @@ import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -43,6 +45,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
 
+import java.util.Arrays;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -102,36 +105,41 @@ public class FurnitureListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onLimitedPlacing(final PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
+        BlockFace blockFace = event.getBlockFace();
         ItemStack item = event.getItem();
 
-        if (item == null || block == null) return;
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block.getType() != Material.NOTE_BLOCK) return;
+        if (item == null || block == null || event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
 
         FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(OraxenItems.getIdByItem(item));
         if (mechanic == null || !mechanic.hasLimitedPlacing()) return;
 
         LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
-        Block placedAgainst = block.getRelative(event.getBlockFace()).getRelative(BlockFace.DOWN);
+        Block belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN);
 
-        if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
-            if (!limitedPlacing.checkLimitedMechanic(placedAgainst))
+        if (limitedPlacing.isNotPlacableOn(belowPlaced, blockFace)) {
+            event.setCancelled(true);
+        } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
+            if (!limitedPlacing.checkLimitedMechanic(belowPlaced))
                 event.setCancelled(true);
         } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.DENY) {
-            if (limitedPlacing.checkLimitedMechanic(placedAgainst))
+            if (limitedPlacing.checkLimitedMechanic(belowPlaced))
                 event.setCancelled(true);
         }
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGH)
     public void onHangingPlaceEvent(final PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
         assert placedAgainst != null;
-        final Block target = getTarget(placedAgainst, event.getBlockFace());
+        final Block block = getTarget(placedAgainst, event.getBlockFace());
         ItemStack item = event.getItem();
+
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (item == null || event.getHand() != EquipmentSlot.HAND) return;
+        if (placedAgainst.getType().isInteractable() && placedAgainst.getType() != Material.NOTE_BLOCK) return;
 
         // Cancel placing when clicking a clickAction furniture
         final PersistentDataContainer customBlockData = BlockHelpers.getPDC(placedAgainst);
@@ -140,21 +148,20 @@ public class FurnitureListener implements Listener {
             if (!OraxenItems.exists(id)) return;
             final FurnitureMechanic fMechanic = (FurnitureMechanic) factory.getMechanic(id);
             if (fMechanic.hasClickActions() && !player.isSneaking()) {
-                if (item != null && item.getType().isBlock()) event.setCancelled(true);
+                if (item.getType().isBlock()) event.setCancelled(true);
                 return;
             }
             if (fMechanic.isStorage() && !player.isSneaking()) {
-                if (item != null && item.getType().isBlock()) event.setCancelled(true);
+                if (item.getType().isBlock()) event.setCancelled(true);
                 return;
             }
         }
 
-        if (target == null) return;
-        final BlockData currentBlockData = target.getBlockData();
-        FurnitureMechanic mechanic = getMechanic(item, player, target);
+        final BlockData currentBlockData = block.getBlockData();
+        FurnitureMechanic mechanic = getMechanic(item, player, block);
         if (mechanic == null) return;
 
-        Block farm = target.getRelative(BlockFace.DOWN);
+        Block farm = block.getRelative(BlockFace.DOWN);
 
         if (mechanic.farmlandRequired && farm.getType() != Material.FARMLAND) return;
 
@@ -165,10 +172,9 @@ public class FurnitureListener implements Listener {
             if (!farmMechanic.getDryout().isFarmBlock()) return;
         }
 
-        Material oldtype = target.getType();
-        target.setType(Material.AIR, false);
-        assert item != null;
-        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst,
+        Material oldtype = block.getType();
+        block.setType(Material.AIR, false);
+        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(block, block.getState(), placedAgainst,
                 item, player,
                 true, Objects.requireNonNull(event.getHand()));
 
@@ -178,7 +184,7 @@ public class FurnitureListener implements Listener {
                 mechanic.hasBarriers() && mechanic.getBarriers().size() > 1);
         final float yaw = mechanic.getYaw(rotation);
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
-        if (mechanic.notEnoughSpace(yaw, target.getLocation())) {
+        if (mechanic.notEnoughSpace(yaw, block.getLocation())) {
             blockPlaceEvent.setCancelled(true);
             Message.NOT_ENOUGH_SPACE.send(player);
         }
@@ -186,20 +192,20 @@ public class FurnitureListener implements Listener {
         //Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
-            target.setBlockData(currentBlockData, false); // false to cancel physic
+            block.setBlockData(currentBlockData, false); // false to cancel physic
             return;
         }
 
-        ItemFrame itemframe = mechanic.place(rotation, yaw, event.getBlockFace(), target.getLocation(), item, player);
+        ItemFrame itemframe = mechanic.place(rotation, yaw, event.getBlockFace(), block.getLocation(), item, player);
         Utils.sendAnimation(player, event.getHand());
 
-        final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, target, itemframe, player);
+        final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, block, itemframe, player);
 
         Bukkit.getPluginManager().callEvent(furniturePlaceEvent);
 
-        if(furniturePlaceEvent.isCancelled()){
+        if (furniturePlaceEvent.isCancelled()) {
             itemframe.remove();
-            target.setType(oldtype,false);
+            block.setType(oldtype, false);
             return;
         }
 
@@ -471,6 +477,25 @@ public class FurnitureListener implements Listener {
                 player.leaveVehicle();
             }
         }
+    }
+
+    @EventHandler // Set rotation key of old furniture and its barriers
+    public void setMissingPDCKeys(ChunkLoadEvent event) {
+        Arrays.stream(event.getChunk().getEntities()).filter(e -> e instanceof ItemFrame).forEach(entity -> {
+            if (entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING)) {
+                if (entity.getLocation().getBlock().getType() == Material.BARRIER) {
+                    FurnitureMechanic mechanic = FurnitureListener.getFurnitureMechanic(entity.getLocation().getBlock());
+                    if (mechanic != null && BlockHelpers.isLoaded(entity.getLocation())) {
+                        for (BlockLocation blockLoc : mechanic.getBarriers()) {
+                            Block block = blockLoc.toLocation(entity.getWorld()).getBlock();
+                            if (block.getType() == Material.BARRIER) {
+                                BlockHelpers.getPDC(block).set(ROTATION_KEY, DataType.asEnum(Rotation.class), ((ItemFrame) entity).getRotation());
+                            }
+                        }
+                    }
+                }
+            }
+        });
     }
 
     public static FurnitureMechanic getFurnitureMechanic(Block block) {
