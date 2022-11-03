@@ -156,7 +156,7 @@ public class FurnitureListener implements Listener {
                 return;
             }
         }
-
+        if (block == null) return;
         final BlockData currentBlockData = block.getBlockData();
         FurnitureMechanic mechanic = getMechanic(item, player, block);
         if (mechanic == null) return;
