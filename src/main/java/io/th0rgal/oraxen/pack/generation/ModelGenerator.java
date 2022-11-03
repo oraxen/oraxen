@@ -15,11 +15,20 @@ public class ModelGenerator {
 
         JsonObject textures = new JsonObject();
         List<String> layers = oraxenMeta.getLayers();
+        String parentModel = oraxenMeta.getParentModel();
 
-        if (oraxenMeta.getParentModel().equals("block/cube_all")) {
+        if (parentModel.equals("block/cube_all")) {
             textures.addProperty("all", layers.get(0));
-        } else if (oraxenMeta.getParentModel().contains("cross")) {
+        } else if (parentModel.equals("block/cross")) {
             textures.addProperty("cross", layers.get(0));
+        } else if (parentModel.startsWith("block/orientable")) {
+            textures.addProperty("front", layers.get(0));
+            textures.addProperty("side", layers.get(1));
+            if (!parentModel.endsWith("vertical"))
+                textures.addProperty("top", layers.get(2));
+        } else if (parentModel.equals("block/cube_column")) {
+            textures.addProperty("end", layers.get(0));
+            textures.addProperty("side", layers.get(1));
         } else {
             for (int i = 0; i < layers.size(); i++)
                 textures.addProperty("layer" + i, layers.get(i));
