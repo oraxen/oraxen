@@ -424,6 +424,7 @@ public class StringBlockMechanicListener implements Listener {
             return;
         }
 
+
         if (mechanic.getLight() != -1)
             WrappedLightAPI.removeBlockLight(block.getLocation());
         if (player != null && player.getGameMode() != GameMode.CREATIVE)

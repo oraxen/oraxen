@@ -141,21 +141,6 @@ public class FurnitureListener implements Listener {
         if (item == null || event.getHand() != EquipmentSlot.HAND) return;
         if (placedAgainst.getType().isInteractable() && placedAgainst.getType() != Material.NOTE_BLOCK) return;
 
-        // Cancel placing when clicking a clickAction furniture
-        final PersistentDataContainer customBlockData = BlockHelpers.getPDC(placedAgainst);
-        if (customBlockData.has(FURNITURE_KEY, PersistentDataType.STRING)) {
-            String id = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
-            if (!OraxenItems.exists(id)) return;
-            final FurnitureMechanic fMechanic = (FurnitureMechanic) factory.getMechanic(id);
-            if (fMechanic.hasClickActions() && !player.isSneaking()) {
-                if (item.getType().isBlock()) event.setCancelled(true);
-                return;
-            }
-            if (fMechanic.isStorage() && !player.isSneaking()) {
-                if (item.getType().isBlock()) event.setCancelled(true);
-                return;
-            }
-        }
         if (block == null) return;
         final BlockData currentBlockData = block.getBlockData();
         FurnitureMechanic mechanic = getMechanic(item, player, block);
@@ -363,7 +348,7 @@ public class FurnitureListener implements Listener {
         mechanic.removeSolid(block.getWorld(), rootBlockLocation, customBlockData.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f));
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPlayerInteractFurniture(PlayerInteractEntityEvent event) {
         final Entity entity = event.getRightClicked();
         final Player player = event.getPlayer();
@@ -378,11 +363,13 @@ public class FurnitureListener implements Listener {
         if (furnitureInteractEvent.isCancelled()) {
             return;
         }
-        if (mechanic.hasClickActions())
+        if (mechanic.hasClickActions()) {
             mechanic.runClickActions(player);
+            event.setCancelled(true);
+        }
     }
 
-    @EventHandler(ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPlayerClickOnFurniture(final PlayerInteractEvent event) {
         final Block block = event.getClickedBlock();
         final Player player = event.getPlayer();
@@ -408,8 +395,10 @@ public class FurnitureListener implements Listener {
                 return;
             }
 
-            if (mechanic.hasClickActions())
+            if (mechanic.hasClickActions()) {
                 mechanic.runClickActions(player);
+                event.setCancelled(true);
+            }
 
             if (mechanic.isStorage()) {
                 StorageMechanic storage = mechanic.getStorage();
@@ -419,6 +408,7 @@ public class FurnitureListener implements Listener {
                     case DISPOSAL -> storage.openDisposal(player, frame.getLocation());
                     case ENDERCHEST -> player.openInventory(player.getEnderChest());
                 }
+                event.setCancelled(true);
             }
         }
 

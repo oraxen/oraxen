@@ -132,7 +132,7 @@ public class NoteBlockMechanicListener implements Listener {
     }
 
     // TODO Make this function less of a clusterfuck and more readable
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
         Player player = event.getPlayer();
@@ -155,8 +155,10 @@ public class NoteBlockMechanicListener implements Listener {
             return;
         }
 
-        if (noteBlockMechanic.hasClickActions() && !player.isSneaking())
+        if (noteBlockMechanic.hasClickActions() && !player.isSneaking()) {
             noteBlockMechanic.runClickActions(player);
+            event.setCancelled(true);
+        }
 
         if (noteBlockMechanic.isStorage() && !player.isSneaking()) {
             StorageMechanic storageMechanic = noteBlockMechanic.getStorage();
@@ -166,6 +168,7 @@ public class NoteBlockMechanicListener implements Listener {
                 case DISPOSAL -> storageMechanic.openDisposal(player, block.getLocation());
                 case ENDERCHEST -> player.openInventory(player.getEnderChest());
             }
+            event.setCancelled(true);
         }
 
         event.setCancelled(true);
@@ -479,7 +482,8 @@ public class NoteBlockMechanicListener implements Listener {
             else item.setAmount(item.getAmount() - 1);
         }
 
-        if (sound != null) BlockHelpers.playCustomBlockSound(target.getLocation(), sound, SoundCategory.BLOCKS, 0.8f, 0.8f);
+        if (sound != null)
+            BlockHelpers.playCustomBlockSound(target.getLocation(), sound, SoundCategory.BLOCKS, 0.8f, 0.8f);
         Utils.sendAnimation(player, hand);
 
         return target;
@@ -495,6 +499,7 @@ public class NoteBlockMechanicListener implements Listener {
 
     // Used to determine what instrument to use when playing a note depending on below block
     private static Map<Instrument, List<String>> instrumentMap = new HashMap<>();
+
     private static Map<Instrument, List<String>> getInstrumentMap() {
         Map<Instrument, List<String>> map = new HashMap<>();
         map.put(Instrument.BELL, List.of("gold_block"));
