@@ -129,6 +129,7 @@ public class HudManager {
     }
 
     public void loadHuds(final ConfigurationSection section) {
+        if (section == null) return;
         for (final String hudName : section.getKeys(false)) {
             final ConfigurationSection hudSection = section.getConfigurationSection(hudName);
             if (hudSection == null || hudSection.getKeys(false).isEmpty()) continue;
