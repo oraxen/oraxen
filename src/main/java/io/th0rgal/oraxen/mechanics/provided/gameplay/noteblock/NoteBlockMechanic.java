@@ -147,6 +147,10 @@ public class NoteBlockMechanic extends Mechanic {
         return period;
     }
 
+    public boolean hasLight() {
+        return light != -1;
+    }
+
     public int getLight() {
         return light;
     }

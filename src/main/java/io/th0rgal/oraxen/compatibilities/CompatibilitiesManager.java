@@ -24,6 +24,7 @@ public class CompatibilitiesManager {
     public static void enableNativeCompatibilities() {
         WrappedLightAPI.init();
         WrappedWorldEdit.init();
+        WrappedWorldEdit.registerParser();
         new CompatibilityListener();
         addCompatibility("PlaceholderAPI", PlaceholderAPICompatibility.class, true);
         addCompatibility("BossShopPro", BossShopProCompatibility.class, true);
@@ -33,6 +34,7 @@ public class CompatibilitiesManager {
     }
 
     public static void disableCompatibilities() {
+        WrappedWorldEdit.unregister();
         ACTIVE_COMPATIBILITY_PROVIDERS.forEach((pluginName, compatibilityProvider) -> disableCompatibility(pluginName));
     }
 
