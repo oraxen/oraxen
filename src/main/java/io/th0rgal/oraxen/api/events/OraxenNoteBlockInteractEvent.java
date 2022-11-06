@@ -20,7 +20,7 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenNoteBlockInteractEvent(NoteBlockMechanic mechanic, Block block, Player player, ItemStack itemInHand, BlockFace blockFace) {
+    public OraxenNoteBlockInteractEvent(NoteBlockMechanic mechanic, Block block, BlockFace blockFace, Player player, ItemStack itemInHand) {
         this.mechanic = mechanic;
         this.block = block;
         this.player = player;

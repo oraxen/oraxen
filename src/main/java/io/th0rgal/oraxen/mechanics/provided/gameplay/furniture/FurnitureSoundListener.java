@@ -86,20 +86,21 @@ public class FurnitureSoundListener implements Listener {
     public void onStepFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
         if (!(entity instanceof LivingEntity)) return;
-        Location eLoc = entity.getLocation();
-        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
-        GameEvent gameEvent = event.getEvent();
-        EntityDamageEvent cause = entity.getLastDamageCause();
-        if (gameEvent == GameEvent.HIT_GROUND && cause != null && cause.getCause() != EntityDamageEvent.DamageCause.FALL) return;
+        if (!isLoaded(entity.getLocation())) return;
 
+        GameEvent gameEvent = event.getEvent();
         Block block = entity.getLocation().getBlock();
         Block blockBelow = block.getRelative(BlockFace.DOWN);
+        EntityDamageEvent cause = entity.getLastDamageCause();
         SoundGroup soundGroup = blockBelow.getBlockData().getSoundGroup();
+
+
 
         // Apparently water and air use stone sounds
         // Seems stone is the generic one so might be used in alot of places we don't want this to play
         if (blockBelow.getType() == Material.WATER || blockBelow.getType() == Material.AIR) return;
         if (soundGroup.getStepSound() != Sound.BLOCK_STONE_STEP) return;
+        if (gameEvent == GameEvent.HIT_GROUND && cause != null && cause.getCause() != EntityDamageEvent.DamageCause.FALL) return;
         if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(block.getType()) || block.getType() == Material.TRIPWIRE) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(blockBelow);
 

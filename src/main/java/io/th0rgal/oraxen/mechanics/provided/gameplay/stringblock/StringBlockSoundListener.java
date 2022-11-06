@@ -11,10 +11,12 @@ import org.bukkit.Material;
 import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.world.GenericGameEvent;
 
 import java.util.List;
@@ -62,10 +64,15 @@ public class StringBlockSoundListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onStepFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
-        if (entity == null) return;
-        if (!isLoaded(event.getLocation())) return;
+        if (!(entity instanceof LivingEntity)) return;
+        if (!isLoaded(entity.getLocation())) return;
+
         GameEvent gameEvent = event.getEvent();
         Block block = entity.getLocation().getBlock();
+        EntityDamageEvent cause = entity.getLastDamageCause();
+
+        if (gameEvent == GameEvent.HIT_GROUND && cause != null && cause.getCause() != EntityDamageEvent.DamageCause.FALL) return;
+
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
         String sound;
         float volume;

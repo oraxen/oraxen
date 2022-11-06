@@ -11,6 +11,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -18,6 +19,7 @@ import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageAbortEvent;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -85,14 +87,15 @@ public class NoteBlockSoundListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onStepFall(final GenericGameEvent event) {
         Entity entity = event.getEntity();
-        if (entity == null) return;
-        Location eLoc = entity.getLocation();
-        if (!isLoaded(eLoc)) return;
+        if (!(entity instanceof LivingEntity)) return;
+        if (!isLoaded(entity.getLocation())) return;
 
         GameEvent gameEvent = event.getEvent();
         Block block = entity.getLocation().getBlock();
         Block blockBelow = block.getRelative(BlockFace.DOWN);
+        EntityDamageEvent cause = entity.getLastDamageCause();
 
+        if (gameEvent == GameEvent.HIT_GROUND && cause != null && cause.getCause() != EntityDamageEvent.DamageCause.FALL) return;
         if (blockBelow.getBlockData().getSoundGroup().getStepSound() != Sound.BLOCK_WOOD_STEP) return;
         if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(block.getType()) || block.getType() == Material.TRIPWIRE) return;
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(blockBelow);

@@ -8,13 +8,12 @@ import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
-import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -22,8 +21,6 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.type.NoteBlock;
-import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
@@ -47,7 +44,7 @@ public class WorldEditListener implements Listener {
                 //TODO Add more mechanics here
                 switch (blockData.getMaterial()) {
                     case NOTE_BLOCK -> {
-                        NoteBlockMechanic mechanic = NoteBlockMechanicListener.getNoteBlockMechanic((NoteBlock) blockData);
+                        NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(blockData);
                         if (mechanic != null) {
                             if (mechanic.hasLight()) {
                                 WrappedLightAPI.createBlockLight(loc, mechanic.getLight());
@@ -55,7 +52,7 @@ public class WorldEditListener implements Listener {
                         }
                     }
                     case TRIPWIRE -> {
-                        StringBlockMechanic mechanic = StringBlockMechanicListener.getStringMechanic((Tripwire) blockData);
+                        StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(blockData);
                         if (mechanic != null) {
                             if (mechanic.hasLight()) {
                                 WrappedLightAPI.createBlockLight(loc, mechanic.getLight());
@@ -72,7 +69,7 @@ public class WorldEditListener implements Listener {
                         Block oldBlock = world.getBlockAt(loc);
                         switch (oldBlock.getType()) {
                             case NOTE_BLOCK -> {
-                                NoteBlockMechanic mechanic = NoteBlockMechanicListener.getNoteBlockMechanic((NoteBlock) oldBlock.getBlockData());
+                                NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(oldBlock.getBlockData());
                                 if (mechanic != null) {
                                     if (mechanic.hasLight()) {
                                         WrappedLightAPI.removeBlockLight(loc);
@@ -80,7 +77,7 @@ public class WorldEditListener implements Listener {
                                 }
                             }
                             case TRIPWIRE -> {
-                                StringBlockMechanic mechanic = StringBlockMechanicListener.getStringMechanic((Tripwire) oldBlock.getBlockData());
+                                StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(oldBlock.getBlockData());
                                 if (mechanic != null) {
                                     if (mechanic.hasLight()) {
                                         WrappedLightAPI.removeBlockLight(loc);

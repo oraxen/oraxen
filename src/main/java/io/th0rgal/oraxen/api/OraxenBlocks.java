@@ -199,9 +199,12 @@ public class OraxenBlocks {
             return;
         }
 
-        if (mechanic.getLight() != -1)
+        if (mechanic.hasLight())
             WrappedLightAPI.removeBlockLight(block.getLocation());
-        mechanic.getDrop().spawns(block.getLocation(), item);
+        if (mechanic.isTall())
+            block.getRelative(BlockFace.UP).setType(Material.AIR, false);
+        if (player != null && player.getGameMode() != GameMode.CREATIVE)
+            mechanic.getDrop().spawns(block.getLocation(), item);
         block.setType(Material.AIR, false);
         final Block blockAbove = block.getRelative(BlockFace.UP);
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {

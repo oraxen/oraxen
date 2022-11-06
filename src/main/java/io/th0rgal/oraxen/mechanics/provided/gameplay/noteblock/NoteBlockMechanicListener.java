@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
-import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -35,7 +34,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
 
 import java.util.*;
@@ -59,7 +57,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (event.getClickedBlock().getType() != Material.NOTE_BLOCK) return;
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
         if (mechanic == null) return;
-        OraxenNoteBlockInteractEvent oraxenEvent = new OraxenNoteBlockInteractEvent(mechanic, block, event.getItem(), event.getPlayer(), event.getBlockFace());
+        OraxenNoteBlockInteractEvent oraxenEvent = new OraxenNoteBlockInteractEvent(mechanic, block, event.getBlockFace(), event.getPlayer(), event.getItem());
         Bukkit.getPluginManager().callEvent(oraxenEvent);
         if (oraxenEvent.isCancelled()) event.setCancelled(true);
     }
@@ -185,7 +183,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (noteMechanic.isDirectional())
             noteMechanic = noteMechanic.getDirectional().getParentBlockMechanic(noteMechanic);
 
-        OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(noteMechanic, block, event.getPlayer(), event.getItem(), event.getBlockFace());
+        OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(noteMechanic, block, event.getBlockFace(), event.getPlayer(), event.getItem());
         OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockInteractEvent);
         if (noteBlockInteractEvent.isCancelled()) {
             event.setCancelled(true);

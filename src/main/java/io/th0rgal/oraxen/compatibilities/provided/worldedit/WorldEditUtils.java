@@ -16,7 +16,7 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.block.BaseBlock;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;

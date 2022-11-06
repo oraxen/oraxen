@@ -92,9 +92,8 @@ public class FurnitureListener implements Listener {
         if (event.getClickedBlock().getType() != Material.NOTE_BLOCK) return;
         FurnitureMechanic mechanic = getFurnitureMechanic(block);
         if (mechanic == null) return;
-        float orientation = BlockHelpers.getPDC(block).getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
-        BlockLocation blockLoc = new BlockLocation(Objects.requireNonNull(BlockHelpers.getPDC(block).get(ROOT_KEY, PersistentDataType.STRING)));
-        OraxenFurnitureInteractEvent oraxenEvent = new OraxenFurnitureInteractEvent(mechanic, block,event.getPlayer(), mechanic.getItemFrame(block, blockLoc, orientation));
+
+        OraxenFurnitureInteractEvent oraxenEvent = new OraxenFurnitureInteractEvent(mechanic, event.getPlayer(), block, mechanic.getItemFrame(block));
         Bukkit.getPluginManager().callEvent(oraxenEvent);
         if (oraxenEvent.isCancelled()) event.setCancelled(true);
     }
