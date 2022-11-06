@@ -102,6 +102,22 @@ public class FurnitureListener implements Listener {
         };
     }
 
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void callInteract(PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        if (block == null) return;
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getClickedBlock().getType() != Material.NOTE_BLOCK) return;
+        FurnitureMechanic mechanic = getFurnitureMechanic(block);
+        if (mechanic == null) return;
+        float orientation = BlockHelpers.getPDC(block).getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
+        BlockLocation blockLoc = new BlockLocation(Objects.requireNonNull(BlockHelpers.getPDC(block).get(ROOT_KEY, PersistentDataType.STRING)));
+        OraxenFurnitureInteractEvent oraxenEvent = new OraxenFurnitureInteractEvent(mechanic, block,event.getPlayer(), mechanic.getItemFrame(block, blockLoc, orientation));
+        Bukkit.getPluginManager().callEvent(oraxenEvent);
+        if (oraxenEvent.isCancelled()) event.setCancelled(true);
+    }
+
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onLimitedPlacing(final PlayerInteractEvent event) {
         Block block = event.getClickedBlock();

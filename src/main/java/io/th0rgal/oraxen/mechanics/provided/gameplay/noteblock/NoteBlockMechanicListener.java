@@ -54,6 +54,20 @@ public class NoteBlockMechanicListener implements Listener {
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void callInteract(PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        if (block == null) return;
+        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getClickedBlock().getType() != Material.NOTE_BLOCK) return;
+        NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
+        if (mechanic == null) return;
+        OraxenNoteBlockInteractEvent oraxenEvent = new OraxenNoteBlockInteractEvent(mechanic, block, event.getItem(), event.getPlayer(), event.getBlockFace());
+        Bukkit.getPluginManager().callEvent(oraxenEvent);
+        if (oraxenEvent.isCancelled()) event.setCancelled(true);
+    }
+
     // TODO try and fix these and not just cancel them
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPistonPush(BlockPistonExtendEvent event) {
@@ -131,9 +145,36 @@ public class NoteBlockMechanicListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onInteractNoteBlock(OraxenNoteBlockInteractEvent event) {
+        Player player = event.getPlayer();
+        Block block = event.getBlock();
+        NoteBlockMechanic mechanic = event.getNoteBlockMechanic();
+        if (mechanic == null) return;
+
+        if (!player.isSneaking()) {
+            if (mechanic.hasClickActions()) {
+                mechanic.runClickActions(player);
+                event.setCancelled(true);
+            }
+
+            if (mechanic.isStorage()) {
+                StorageMechanic storageMechanic = mechanic.getStorage();
+                switch (storageMechanic.getStorageType()) {
+                    case STORAGE, SHULKER -> storageMechanic.openStorage(block, player);
+                    case PERSONAL -> storageMechanic.openPersonalStorage(player);
+                    case DISPOSAL -> storageMechanic.openDisposal(player, block.getLocation());
+                    case ENDERCHEST -> player.openInventory(player.getEnderChest());
+                }
+                event.setCancelled(true);
+            }
+        }
+
+    }
+
     // TODO Make this function less of a clusterfuck and more readable
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onInteract(PlayerInteractEvent event) {
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlaceAgainstNoteBlock(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
@@ -153,22 +194,6 @@ public class NoteBlockMechanicListener implements Listener {
         if (noteBlockInteractEvent.isCancelled()) {
             event.setCancelled(true);
             return;
-        }
-
-        if (noteBlockMechanic.hasClickActions() && !player.isSneaking()) {
-            noteBlockMechanic.runClickActions(player);
-            event.setCancelled(true);
-        }
-
-        if (noteBlockMechanic.isStorage() && !player.isSneaking()) {
-            StorageMechanic storageMechanic = noteBlockMechanic.getStorage();
-            switch (storageMechanic.getStorageType()) {
-                case STORAGE, SHULKER -> storageMechanic.openStorage(block, player);
-                case PERSONAL -> storageMechanic.openPersonalStorage(player);
-                case DISPOSAL -> storageMechanic.openDisposal(player, block.getLocation());
-                case ENDERCHEST -> player.openInventory(player.getEnderChest());
-            }
-            event.setCancelled(true);
         }
 
         event.setCancelled(true);
