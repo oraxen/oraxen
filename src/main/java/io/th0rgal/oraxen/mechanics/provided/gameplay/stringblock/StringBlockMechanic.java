@@ -27,6 +27,7 @@ public class StringBlockMechanic extends Mechanic {
 
     private final List<String> randomPlaceBlock;
     private final SaplingMechanic saplingMechanic;
+    private final boolean isTall;
 
     @SuppressWarnings("unchecked")
     public StringBlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -39,6 +40,7 @@ public class StringBlockMechanic extends Mechanic {
             model = section.getString("model");
 
         customVariation = section.getInt("custom_variation");
+        isTall = section.getBoolean("is_tall", false);
 
         List<Loot> loots = new ArrayList<>();
         if (section.isConfigurationSection("drop")) {
@@ -111,6 +113,8 @@ public class StringBlockMechanic extends Mechanic {
 
     public boolean isSapling() { return saplingMechanic != null; }
     public SaplingMechanic getSaplingMechanic() { return saplingMechanic; }
+
+    public boolean isTall() { return isTall; }
 
     public int getCustomVariation() {
         return customVariation;
