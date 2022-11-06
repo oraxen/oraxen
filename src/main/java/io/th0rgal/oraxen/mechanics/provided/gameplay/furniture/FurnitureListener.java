@@ -159,18 +159,13 @@ public class FurnitureListener implements Listener {
                 item, player,
                 true, Objects.requireNonNull(event.getHand()));
 
-        final Rotation rotation = mechanic.hasRotation()
-                ? mechanic.getRotation()
-                : getRotation(player.getEyeLocation().getYaw(),
-                mechanic.hasBarriers() && mechanic.getBarriers().size() > 1);
+        final Rotation rotation = getRotation(player.getEyeLocation().getYaw(), mechanic.getBarriers().size() > 1);
         final float yaw = mechanic.getYaw(rotation);
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
         if (mechanic.notEnoughSpace(yaw, block.getLocation())) {
             blockPlaceEvent.setCancelled(true);
             Message.NOT_ENOUGH_SPACE.send(player);
         }
-
-        //Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             block.setBlockData(currentBlockData, false); // false to cancel physic
