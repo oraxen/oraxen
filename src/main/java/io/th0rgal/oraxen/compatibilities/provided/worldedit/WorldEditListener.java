@@ -17,8 +17,10 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.block.data.type.Tripwire;
@@ -46,15 +48,23 @@ public class WorldEditListener implements Listener {
                 switch (blockData.getMaterial()) {
                     case NOTE_BLOCK -> {
                         NoteBlockMechanic mechanic = NoteBlockMechanicListener.getNoteBlockMechanic((NoteBlock) blockData);
-                        if (mechanic != null && mechanic.hasLight()) {
-                            WrappedLightAPI.createBlockLight(loc, mechanic.getLight());
+                        if (mechanic != null) {
+                            if (mechanic.hasLight()) {
+                                WrappedLightAPI.createBlockLight(loc, mechanic.getLight());
+                            }
                         }
                     }
                     case TRIPWIRE -> {
                         StringBlockMechanic mechanic = StringBlockMechanicListener.getStringMechanic((Tripwire) blockData);
-                        if (mechanic != null && mechanic.hasLight()) {
-                            WrappedLightAPI.createBlockLight(loc, mechanic.getLight());
+                        if (mechanic != null) {
+                            if (mechanic.hasLight()) {
+                                WrappedLightAPI.createBlockLight(loc, mechanic.getLight());
+                            }
+                            if (mechanic.isTall()) {
+                                loc.getBlock().getRelative(BlockFace.UP).setType(Material.TRIPWIRE);
+                            }
                         }
+
                     }
                     // Otherwise it is perhaps removing a block so check and remove mechanics
                     default -> {
@@ -63,14 +73,21 @@ public class WorldEditListener implements Listener {
                         switch (oldBlock.getType()) {
                             case NOTE_BLOCK -> {
                                 NoteBlockMechanic mechanic = NoteBlockMechanicListener.getNoteBlockMechanic((NoteBlock) oldBlock.getBlockData());
-                                if (mechanic != null && mechanic.hasLight()) {
-                                    WrappedLightAPI.removeBlockLight(loc);
+                                if (mechanic != null) {
+                                    if (mechanic.hasLight()) {
+                                        WrappedLightAPI.removeBlockLight(loc);
+                                    }
                                 }
                             }
                             case TRIPWIRE -> {
                                 StringBlockMechanic mechanic = StringBlockMechanicListener.getStringMechanic((Tripwire) oldBlock.getBlockData());
-                                if (mechanic != null && mechanic.hasLight()) {
-                                    WrappedLightAPI.removeBlockLight(loc);
+                                if (mechanic != null) {
+                                    if (mechanic.hasLight()) {
+                                        WrappedLightAPI.removeBlockLight(loc);
+                                    }
+                                    if (mechanic.isTall()) {
+                                        loc.getBlock().getRelative(BlockFace.UP).setType(Material.AIR);
+                                    }
                                 }
                             }
                         }
