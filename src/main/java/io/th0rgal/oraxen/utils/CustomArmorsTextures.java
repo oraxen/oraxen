@@ -29,8 +29,10 @@ public class CustomArmorsTextures {
     private final int resolution;
     private BufferedImage layer1;
     private int layer1Width = 0;
+    private int layer1Height = 0;
     private BufferedImage layer2;
     private int layer2Width = 0;
+    private int layer2Height = 0;
 
     public CustomArmorsTextures() {
         this(DEFAULT_RESOLUTION);
@@ -77,18 +79,16 @@ public class CustomArmorsTextures {
         if (original.getWidth() == resolution * WIDTH_RATIO && original.getHeight() == getLayerHeight()) {
             return original;
         }
+
         Image scaled = original.getScaledInstance(
-                resolution * WIDTH_RATIO, getLayerHeight(), Image.SCALE_DEFAULT);
+                resolution * WIDTH_RATIO, original.getHeight(), Image.SCALE_DEFAULT);
         BufferedImage output = new BufferedImage(
-                resolution * WIDTH_RATIO, getLayerHeight(), BufferedImage.TYPE_INT_ARGB);
+                resolution * WIDTH_RATIO, original.getHeight(), BufferedImage.TYPE_INT_ARGB);
         output.getGraphics().drawImage(scaled, 0, 0, null);
         return output;
     }
 
     private boolean handleArmorLayer(String name, File file) {
-        if (name.endsWith("_e.png"))
-            return true;
-
         String prefix = name.split("armor_layer_")[0];
         ItemBuilder builder = null;
         for (String suffix : new String[]{"helmet", "chestplate", "leggings", "boots"}) {
@@ -109,11 +109,10 @@ public class CustomArmorsTextures {
             return false;
         }
         BufferedImage image = initLayer(original);
-        File emissiveFile = new File(file.getPath().replace(".png", "_e.png"));
-        if (emissiveFile.exists()) {
+        if (name.endsWith("_e.png")) {
             BufferedImage emissive;
             try {
-                emissive = ImageIO.read(emissiveFile);
+                emissive = ImageIO.read(file);
             } catch (IOException e) {
                 OraxenPlugin.get().getLogger().warning("Error while reading " + name + ": " + e.getMessage());
                 return false;
@@ -123,6 +122,21 @@ public class CustomArmorsTextures {
                     image.getHeight(),
                     image, emissiveImage);
             setPixel(image.getRaster(), 2, 0, Color.fromRGB(1, 0, 0));
+        }
+
+        if (name.endsWith("_a.png")) {
+            BufferedImage animated;
+            try {
+                animated = ImageIO.read(file);
+            } catch (IOException e) {
+                OraxenPlugin.get().getLogger().warning("Error while reading " + name + ": " + e.getMessage());
+                return false;
+            }
+            BufferedImage animatedImage = initLayer(animated);
+            image = mergeImages(image.getWidth() + animatedImage.getWidth(),
+                    animatedImage.getHeight(),
+                    image, animatedImage);
+            setPixel(image.getRaster(), 1, 0, Color.fromRGB(animatedImage.getHeight() / (int) Settings.ARMOR_RESOLUTION.getValue(), 24, 1));
         }
         addPixel(image, builder, name, prefix);
 
@@ -143,9 +157,16 @@ public class CustomArmorsTextures {
         if (name.contains("armor_layer_1")) {
             layers1.add(image);
             layer1Width += image.getWidth();
+            layer1Height = Math.max(layer1Height, image.getHeight());
         } else {
             layers2.add(image);
             layer2Width += image.getWidth();
+            layer2Height = Math.max(layer2Height, image.getHeight());
+        }
+
+        if (!name.endsWith("_a.png") && image.getHeight() > getLayerHeight()) {
+            Logs.logError("The height of " + name + " is greater than " + getLayerHeight()+ "px.");
+            Logs.logWarning("Since it is not an animated armor-file, this will potentially break other armor sets.");
         }
     }
 
@@ -154,11 +175,11 @@ public class CustomArmorsTextures {
     }
 
     public InputStream getLayerOne() throws IOException {
-        return getInputStream(layer1Width, getLayerHeight(), layer1, layers1);
+        return getInputStream(layer1Width, layer1Height, layer1, layers1);
     }
 
     public InputStream getLayerTwo() throws IOException {
-        return getInputStream(layer2Width, getLayerHeight(), layer2, layers2);
+        return getInputStream(layer2Width, layer2Height, layer2, layers2);
     }
 
     private final String OPTIFINE_ARMOR_PATH = "assets/minecraft/optifine/cit/armors/";
