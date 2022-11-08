@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
 
@@ -183,6 +184,7 @@ public class CustomArmorsTextures {
     }
 
     private final String OPTIFINE_ARMOR_PATH = "assets/minecraft/optifine/cit/armors/";
+    private final String OPTIFINE_ARMOR_ANIMATION_PATH = "assets/minecraft/optifine/anim/";
 
     public boolean shouldGenerateOptifineFiles() {
         return Settings.AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool();
@@ -210,11 +212,55 @@ public class CustomArmorsTextures {
             ).map(s -> s.getValue().getOraxenMeta().getCustomModelData()).findFirst().orElse(0);
 
             String propContent = getArmorPropertyFile(fileName, cmdProperty, 1);
+
             ByteArrayInputStream inputStream = new ByteArrayInputStream(propContent.getBytes(StandardCharsets.UTF_8));
             optifineFiles.add(new VirtualFile(path, parentFolder + ".properties", inputStream));
+
+            if (fileName.endsWith("_a.png")) {
+                optifineFiles.addAll(getOptifineAnimFiles(armorFile.getValue(), fileName, path, parentFolder));
+            }
         }
 
         return optifineFiles;
+    }
+
+    private List<VirtualFile> getOptifineAnimFiles(InputStream armorFile, String fileName, String path, String parentFolder) {
+        List<VirtualFile> optifineFiles = new ArrayList<>();
+        int height;
+        int width;
+        try {
+            BufferedImage image = ImageIO.read(armorFile);
+            height = image.getHeight();
+            width = image.getWidth();
+        } catch (IOException e) {
+            Logs.logError("Error while reading " + fileName + ": " + e.getMessage());
+            return optifineFiles;
+        }
+        String animPropContent = getArmorAnimPropertyFile(parentFolder, fileName, width, height, height / getLayerHeight());
+        ByteArrayInputStream animInputStream = new ByteArrayInputStream(animPropContent.getBytes(StandardCharsets.UTF_8));
+        optifineFiles.add(new VirtualFile(OPTIFINE_ARMOR_ANIMATION_PATH + parentFolder, parentFolder + "_anim.properties", animInputStream));
+        //TODO Copy the actual anim image aswell
+        return optifineFiles;
+    }
+
+    private String getArmorAnimPropertyFile(String parentFolder, String fileName, int width, int height, int frames) {
+        Logs.logInfo(OPTIFINE_ARMOR_PATH + parentFolder + "/" + fileName);
+        StringBuilder string = new StringBuilder("""
+                from=~/anim/""" + fileName + """
+                to=""" + OPTIFINE_ARMOR_PATH + parentFolder + "/" + fileName + """
+                y=0""" + """
+                x=0""" + """
+                h=""" + height + """
+                w=""" + width);
+
+        for (int i = 0; i < frames; i++) {
+            string.append("""
+                    """ + """
+                    tile.=""").append(i).append("=").append(i).append("""
+                     duration="""
+            ).append(i).append("=").append(i*20);
+        }
+        return string.toString();
     }
 
     private List<VirtualFile> generateLeatherArmors() {
@@ -309,7 +355,20 @@ public class CustomArmorsTextures {
                     String absolutePath = OraxenPlugin.get().getDataFolder().getAbsolutePath() + "/pack/textures/";
                     String fileFolder = absolutePath + StringUtils.substringBeforeLast(file, itemId) + fileName;
                     File armorFile = new File(fileFolder);
-                    if (!armorFile.exists()) continue;
+                    Logs.logInfo(entry.getKey());
+
+                    if (!armorFile.exists()) {
+                        fileName = fileName.replace(".png", "_e.png");
+                        armorFile = new File(fileFolder.replace(".png", "_e.png"));
+                        if (!armorFile.exists()) {
+                            fileName = fileName.replace("_e.png", "_a.png");
+                            armorFile = new File(fileFolder.replace(".png", "_a.png"));
+                            //TODO Animated might wanna strip away everything except the first frame for base
+                            if (!armorFile.exists()) {
+                                continue;
+                            }
+                        }
+                    }
 
                     try {
                         BufferedImage armorLayer = ImageIO.read(armorFile);
