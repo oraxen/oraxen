@@ -2,7 +2,7 @@ package io.th0rgal.oraxen.pack.receive;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
@@ -44,7 +44,7 @@ public class PackReceiver implements Listener {
     private void sendMessage(Player receiver, String action, Component message) {
         @NotNull Audience audience = OraxenPlugin.get().getAudience().sender(receiver);
         switch (action) {
-            case "KICK" -> receiver.kickPlayer(Utils.LEGACY_COMPONENT_SERIALIZER.serialize(message));
+            case "KICK" -> receiver.kickPlayer(AdventureUtils.LEGACY_SERIALIZER.serialize(message));
             case "CHAT" -> audience.sendMessage(message);
             case "ACTION_BAR" -> audience.sendActionBar(message);
             case "TITLE" -> audience.showTitle(Title.title(Component.empty(), message, Title.Times.times(Duration.ofMillis(250), Duration.ofMillis(3500), Duration.ofMillis(250))));

@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.events;
+package io.th0rgal.oraxen.api.events;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.block.Block;
@@ -13,17 +13,47 @@ import org.jetbrains.annotations.Nullable;
 public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
 
     boolean isCancelled;
+    private final FurnitureMechanic mechanic;
     private final Block block;
-    private final FurnitureMechanic furnitureMechanic;
     private final Player player;
     private final ItemFrame itemFrame;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurnitureBreakEvent(FurnitureMechanic furnitureMechanic, Player player, @Nullable Block block, ItemFrame itemFrame) {
+    public OraxenFurnitureBreakEvent(FurnitureMechanic mechanic, Player player, @Nullable Block block, ItemFrame itemFrame) {
         this.block = block;
-        this.furnitureMechanic = furnitureMechanic;
+        this.mechanic = mechanic;
         this.player = player;
         this.itemFrame = itemFrame;
+    }
+
+    /**
+     * @return The FurnitureMechanic of this Furniture
+     */
+    public FurnitureMechanic getMechanic() {
+        return mechanic;
+    }
+
+    /**
+     * @return The player that broke the furniture
+     */
+    public Player getPlayer() {
+        return player;
+    }
+
+    /**
+     * Returns the block that was broken.
+     * @return block that was broken or null if it was an entity
+     */
+    @Nullable
+    public Block getBlock() {
+        return block;
+    }
+
+    /**
+     * @return The ItemFrame the furniture is inmechanic
+     */
+    public ItemFrame getItemFrame() {
+        return itemFrame;
     }
 
     @Override
@@ -36,28 +66,6 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
         isCancelled = cancel;
     }
 
-
-    public FurnitureMechanic getFurnitureMechanic() {
-        return furnitureMechanic;
-    }
-
-    /**
-     * @return player that broke the furniture
-     */
-    public Player getPlayer() {
-        return player;
-    }
-
-    /**
-     * Returns the block that was broken.
-     * In case of breaking a farming block this will be null, since it utilizes ItemFrames (entity)
-     * @return block that was broken or null if it was an entity
-     */
-    @Nullable
-    public Block getBlock() {
-        return block;
-    }
-
     @NotNull
     @Override
     public HandlerList getHandlers() {
@@ -66,13 +74,6 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
 
     public static HandlerList getHandlerList() {
         return HANDLERS;
-    }
-
-    /**
-     * @return furniture entity
-     */
-    public ItemFrame getItemFrame() {
-        return itemFrame;
     }
 
 }

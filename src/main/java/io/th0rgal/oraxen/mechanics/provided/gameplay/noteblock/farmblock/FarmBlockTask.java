@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -14,7 +15,6 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 
 public class FarmBlockTask extends BukkitRunnable {
     private final int delay;
@@ -36,7 +36,7 @@ public class FarmBlockTask extends BukkitRunnable {
 
     private void updateBlock(Block block, PersistentDataContainer pdc) {
         if (pdc.getKeys().contains(FARMBLOCK_KEY)) {
-            NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
+            NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
             if (mechanic != null && mechanic.hasDryout()) {
                 FarmBlockDryout farmMechanic = mechanic.getDryout();
 

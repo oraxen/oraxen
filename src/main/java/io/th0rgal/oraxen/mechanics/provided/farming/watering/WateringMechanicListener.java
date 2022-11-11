@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.farming.watering;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
@@ -21,6 +22,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
@@ -70,14 +72,11 @@ public class WateringMechanicListener implements Listener {
 
         if (item.getType() == Material.AIR || factory.isNotImplementedIn(itemId) || !mechanic.isFilled()) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null) return;
-
-        if (block.getType() == Material.NOTE_BLOCK) {
-            NoteBlockMechanic noteMechanic = NoteBlockMechanicListener.getNoteBlockMechanic(block);
-            if (noteMechanic != null && noteMechanic.hasDryout() && !noteMechanic.getDryout().isMoistFarmBlock()) {
-                FarmBlockDryout farmMechanic = noteMechanic.getDryout();
-                NoteBlockMechanicFactory.setBlockModel(block, farmMechanic.getMoistFarmBlock());
-                BlockHelpers.getPDC(block).set(FARMBLOCK_KEY, PersistentDataType.INTEGER, farmMechanic.getDryoutTime());
-            }
+        NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(block);
+        if (noteMechanic != null && noteMechanic.hasDryout() && !noteMechanic.getDryout().isMoistFarmBlock()) {
+            FarmBlockDryout farmMechanic = noteMechanic.getDryout();
+            NoteBlockMechanicFactory.setBlockModel(block, farmMechanic.getMoistFarmBlock());
+            BlockHelpers.getPDC(block).set(FARMBLOCK_KEY, PersistentDataType.INTEGER, farmMechanic.getDryoutTime());
         } else if (block.getType() == Material.FARMLAND) {
             Farmland data = ((Farmland) block.getBlockData());
             if (data.getMoisture() == data.getMaximumMoisture()) return;

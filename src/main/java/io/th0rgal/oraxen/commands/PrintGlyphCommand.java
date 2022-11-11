@@ -6,7 +6,7 @@ import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.ClickEvent;
@@ -30,7 +30,7 @@ public class PrintGlyphCommand {
                 .executes(((commandSender, args) -> {
                     FontManager fontManager = OraxenPlugin.get().getFontManager();
                     Audience audience = OraxenPlugin.get().getAudience().sender(commandSender);
-                    audience.sendMessage(Utils.MINI_MESSAGE.deserialize("<red><b>Click one of the glyph-ids below to copy the unicode!"));
+                    audience.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red><b>Click one of the glyph-ids below to copy the unicode!"));
                     if (fontManager.getGlyphFromName(String.valueOf(args[0])) != null
                             ||
                             String.valueOf(args[0]).equals("all")) {
@@ -61,7 +61,7 @@ public class PrintGlyphCommand {
                 String name = shift < 0 ? "neg_shift_" + -shift : "shift_" + shift;
                 component = printClickableMsg("<white>" + name, s, s);
             } catch (NumberFormatException e) {
-                audience.sendMessage(Utils.MINI_MESSAGE.deserialize("<dark_red><b>Invalid shift number!"));
+                audience.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_red><b>Invalid shift number!"));
             }
         }
         else {
@@ -107,8 +107,8 @@ public class PrintGlyphCommand {
     }
 
     private Component printClickableMsg(String text, String unicode, String hoverText) {
-        return Utils.MINI_MESSAGE.deserialize(text)
-                .hoverEvent(HoverEvent.showText(Utils.MINI_MESSAGE.deserialize(hoverText)))
+        return AdventureUtils.MINI_MESSAGE.deserialize(text)
+                .hoverEvent(HoverEvent.showText(AdventureUtils.MINI_MESSAGE.deserialize(hoverText)))
                 .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.COPY_TO_CLIPBOARD, unicode));
 
     }

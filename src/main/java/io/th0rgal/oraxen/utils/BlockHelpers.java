@@ -58,6 +58,7 @@ public class BlockHelpers {
     }
 
     public static boolean isStandingInside(final Player player, final Block block) {
+        if (player == null) return false;
         final Location playerLoc = player.getLocation();
         final Location blockLoc = BlockHelpers.toCenterLocation(block.getLocation());
         return Range.between(0.5, 1.5).contains(blockLoc.getY() - playerLoc.getY()) &&

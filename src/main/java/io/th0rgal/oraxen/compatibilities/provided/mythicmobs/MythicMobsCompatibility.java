@@ -4,8 +4,8 @@ import io.lumine.mythic.bukkit.MythicBukkit;
 import io.lumine.mythic.bukkit.adapters.BukkitItemStack;
 import io.lumine.mythic.bukkit.events.MythicDropLoadEvent;
 import io.lumine.mythic.core.drops.droppables.ItemDrop;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.CompatibilityProvider;
-import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 

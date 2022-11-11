@@ -5,11 +5,11 @@ import com.hazebyte.crate.api.CratePlugin;
 import com.hazebyte.crate.api.crate.Crate;
 import com.hazebyte.crate.api.crate.reward.Reward;
 import com.hazebyte.crate.api.event.PluginReadyEvent;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.CompatibilityProvider;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.event.EventHandler;
 import org.bukkit.inventory.ItemStack;
 
@@ -64,7 +64,7 @@ public class CrateReloadedCompatibility extends CompatibilityProvider<CratePlugi
             rewardString = rewardString.substring(rewardString.indexOf(")") + 1);
             String itemID = value.split(" ")[0];
             if (!OraxenItems.exists(itemID)) {
-                Message.ITEM_NOT_FOUND.log(Utils.tagResolver("item", itemID));
+                Message.ITEM_NOT_FOUND.log(AdventureUtils.tagResolver("item", itemID));
                 continue;
             }
             ItemBuilder itemBuilder = OraxenItems.getItemById(itemID);

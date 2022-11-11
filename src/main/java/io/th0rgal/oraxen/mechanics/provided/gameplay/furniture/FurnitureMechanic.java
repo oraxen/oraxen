@@ -3,9 +3,9 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
-import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
@@ -111,7 +111,7 @@ public class FurnitureMechanic extends Mechanic {
         farmblockRequired = section.getBoolean("farmblock_required", false);
 
         facing = section.isString("facing")
-                ? BlockFace.valueOf(section.getString("facing", "UP").toUpperCase())
+                ? BlockFace.valueOf(section.getString("facing", "NORTH").toUpperCase())
                 : null;
 
         List<Loot> loots = new ArrayList<>();
@@ -169,6 +169,7 @@ public class FurnitureMechanic extends Mechanic {
     public boolean hasLimitedPlacing() {
         return limitedPlacing != null;
     }
+
     public LimitedPlacing getLimitedPlacing() {
         return limitedPlacing;
     }
@@ -176,6 +177,7 @@ public class FurnitureMechanic extends Mechanic {
     public boolean isStorage() {
         return storage != null;
     }
+
     public StorageMechanic getStorage() {
         return storage;
     }
@@ -188,8 +190,13 @@ public class FurnitureMechanic extends Mechanic {
         return blockSounds;
     }
 
-    public boolean isJukebox() { return jukebox != null; }
-    public JukeboxBlock getJukebox() { return jukebox; }
+    public boolean isJukebox() {
+        return jukebox != null;
+    }
+
+    public JukeboxBlock getJukebox() {
+        return jukebox;
+    }
 
     public boolean hasBarriers() {
         return !barriers.isEmpty();
@@ -248,6 +255,11 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
+    public ItemFrame place(Location location, @Nullable Player player) {
+        setPlacedItem();
+        return place(getRotation(), getYaw(getRotation()), getFacing(), location, placedItem, player);
+    }
+
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, @Nullable Player player) {
         setPlacedItem();
         return place(rotation, yaw, facing, location, placedItem, player);
@@ -256,7 +268,7 @@ public class FurnitureMechanic extends Mechanic {
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item, @Nullable Player player) {
         if (this.notEnoughSpace(yaw, location)) return null;
         if (!location.isWorldLoaded()) return null;
-
+        assert location.getWorld() != null;
         setPlacedItem();
         assert location.getWorld() != null;
         ItemFrame output = location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) -> {
@@ -304,6 +316,14 @@ public class FurnitureMechanic extends Mechanic {
         return output;
     }
 
+    public boolean removeSolid(Block block) {
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        Float orientation = pdc.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
+        final BlockLocation rootBlock = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
+
+        return removeSolid(block.getWorld(), rootBlock, orientation);
+    }
+
     public boolean removeSolid(World world, BlockLocation rootBlockLocation, float orientation) {
         Location rootLocation = rootBlockLocation.toLocation(world);
 
@@ -319,7 +339,7 @@ public class FurnitureMechanic extends Mechanic {
             }
             StorageMechanic storageMechanic = getStorage();
             if (storageMechanic != null && (storageMechanic.isStorage() || storageMechanic.isShulker())) {
-                storageMechanic.dropStorageContent(this, getItemFrame(rootLocation.getBlock(), rootBlockLocation, orientation));
+                storageMechanic.dropStorageContent(this, getItemFrame(rootLocation.getBlock()));
             }
             location.getBlock().setType(Material.AIR);
             new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
@@ -368,14 +388,6 @@ public class FurnitureMechanic extends Mechanic {
             WrappedLightAPI.removeBlockLight(location);
         }
         frame.remove();
-    }
-
-    public void remove(ItemFrame frame) {
-        if (this.hasBarriers())
-            this.removeSolid(frame.getWorld(), new BlockLocation(frame.getLocation()),
-                    this.getYaw(frame.getRotation()));
-        else
-            this.removeAirFurniture(frame);
     }
 
     public List<Location> getLocations(float rotation, Location center, List<BlockLocation> relativeCoordinates) {
@@ -436,9 +448,13 @@ public class FurnitureMechanic extends Mechanic {
         return null;
     }
 
-    public ItemFrame getItemFrame(Block block, BlockLocation blockLocation, Float orientation) {
+    public ItemFrame getItemFrame(Block block) {
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        float orientation = pdc.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
+        final BlockLocation blockLoc = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
+
         if (hasBarriers()) {
-            for (Location sideLocation : getLocations(orientation, blockLocation.toLocation(block.getWorld()), getBarriers())) {
+            for (Location sideLocation : getLocations(orientation, blockLoc.toLocation(block.getWorld()), getBarriers())) {
                 for (Entity entity : block.getWorld().getNearbyEntities(sideLocation, 1, 1, 1))
                     if (entity instanceof ItemFrame frame
                             && entity.getLocation().getBlockX() == sideLocation.getBlockX()

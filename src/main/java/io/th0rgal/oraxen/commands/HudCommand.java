@@ -7,7 +7,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.hud.Hud;
 import io.th0rgal.oraxen.hud.HudManager;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.entity.Player;
 
 public class HudCommand {
@@ -31,7 +31,7 @@ public class HudCommand {
                         String hudId = (String) args[0];
                         Hud hud = manager.getHudFromID(hudId);
                         if (hud == null) {
-                            Message.HUD_NO_HUD.send(player, Utils.tagResolver("hud_id", hudId));
+                            Message.HUD_NO_HUD.send(player, AdventureUtils.tagResolver("hud_id", hudId));
                             return;
                         }
 
@@ -39,11 +39,11 @@ public class HudCommand {
                         manager.setHudStateForPlayer(player, toggle);
                         manager.setActiveHudForPlayer(player, hud);
                         if (toggle) {
-                            Message.HUD_TOGGLE_ON.send(player, Utils.tagResolver("hud_id", hudId));
+                            Message.HUD_TOGGLE_ON.send(player, AdventureUtils.tagResolver("hud_id", hudId));
                             manager.enableHud(player, hud);
                         }
                         else {
-                            Message.HUD_TOGGLE_OFF.send(player, Utils.tagResolver("hud_id", hudId));
+                            Message.HUD_TOGGLE_OFF.send(player, AdventureUtils.tagResolver("hud_id", hudId));
                             manager.disableHud(player);
                         }
                     }

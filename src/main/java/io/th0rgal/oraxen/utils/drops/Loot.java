@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.utils.drops;
 
 import io.lumine.mythiccrucible.MythicCrucible;
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
@@ -58,9 +58,10 @@ public class Loot {
     }
 
     private void dropItems(Location location, int amountMultiplier) {
+        if (getItemStack() == null) return;
         ItemStack stack = getItemStack().clone();
         stack.setAmount(stack.getAmount() * amountMultiplier);
-        for (int i = 0; i < maxAmount; i++)
+        if (location.getWorld() != null) for (int i = 0; i < maxAmount; i++)
             location.getWorld().dropItemNaturally(location, stack);
     }
 }

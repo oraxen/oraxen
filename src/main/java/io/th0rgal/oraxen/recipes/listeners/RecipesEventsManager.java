@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.recipes.listeners;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;

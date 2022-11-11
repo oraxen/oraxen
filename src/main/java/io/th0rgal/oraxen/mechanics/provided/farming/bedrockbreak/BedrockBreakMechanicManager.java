@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.farming.bedrockbreak;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import org.bukkit.*;

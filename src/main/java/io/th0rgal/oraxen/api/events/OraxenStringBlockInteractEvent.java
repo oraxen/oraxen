@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.events;
+package io.th0rgal.oraxen.api.events;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import org.bukkit.block.Block;
@@ -12,7 +12,7 @@ import org.jetbrains.annotations.NotNull;
 
 public class OraxenStringBlockInteractEvent extends Event implements Cancellable {
 
-    private final StringBlockMechanic stringBlockMechanic;
+    private final StringBlockMechanic mechanic;
     private final Player player;
     private final Block block;
     private final ItemStack itemInHand;
@@ -21,7 +21,7 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     private static final HandlerList HANDLERS = new HandlerList();
 
     public OraxenStringBlockInteractEvent(StringBlockMechanic mechanic, Block block, ItemStack itemInHand, Player player, BlockFace blockFace) {
-        this.stringBlockMechanic = mechanic;
+        this.mechanic = mechanic;
         this.itemInHand = itemInHand;
         this.block = block;
         this.player = player;
@@ -29,43 +29,22 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
         this.blockFace = blockFace;
     }
 
-    @Override
-    public boolean isCancelled() {
-        return isCancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        isCancelled = cancel;
-    }
-
-
-    @NotNull
-    @Override
-    public HandlerList getHandlers() {
-        return getHandlerList();
-    }
-
-    public static HandlerList getHandlerList() {
-        return HANDLERS;
-    }
-
     /**
-     * @return The string block mechanic
+     * @return The StringBlockMechanic of this block
      */
-    public StringBlockMechanic getStringBlockMechanic() {
-        return stringBlockMechanic;
+    public StringBlockMechanic getMechanic() {
+        return mechanic;
     }
 
     /**
-     * @return The player who interacted with the string block
+     * @return The player who interacted with this StringBlock
      */
     public Player getPlayer() {
         return player;
     }
 
     /**
-     * @return The block that was interacted with
+     * @return The StringBlock that was interacted with
      */
     public Block getBlock() {
         return block;
@@ -84,6 +63,26 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
      */
     public BlockFace getBlockFace() {
         return blockFace;
+    }
+
+    @Override
+    public boolean isCancelled() {
+        return isCancelled;
+    }
+
+    @Override
+    public void setCancelled(boolean cancel) {
+        isCancelled = cancel;
+    }
+
+    @NotNull
+    @Override
+    public HandlerList getHandlers() {
+        return getHandlerList();
+    }
+
+    public static HandlerList getHandlerList() {
+        return HANDLERS;
     }
 
 }

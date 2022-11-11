@@ -3,13 +3,13 @@ package io.th0rgal.oraxen.mechanics.provided.combat.spell;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.oraxen.utils.timers.TimersFactory;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
@@ -61,15 +61,11 @@ public abstract class SpellMechanic extends Mechanic {
     }
 
     public void removeCharge(ItemStack item){
-        ItemMeta itemMeta = item.getItemMeta();
-        if (itemMeta == null)
-            return;
+        Utils.editItemMeta(item, (itemMeta -> {
+            PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
+            if (!pdc.has(NAMESPACED_KEY, PersistentDataType.INTEGER)) return;
 
-        PersistentDataContainer persistentDataContainer = itemMeta.getPersistentDataContainer();
-
-        if (persistentDataContainer.has(NAMESPACED_KEY, PersistentDataType.INTEGER)) {
-            int chargesLeft = persistentDataContainer.get(NAMESPACED_KEY, PersistentDataType.INTEGER);
-
+            int chargesLeft = pdc.getOrDefault(NAMESPACED_KEY, PersistentDataType.INTEGER, -1);
             if (chargesLeft == -1) return;
 
             if (chargesLeft == 1) {
@@ -77,15 +73,12 @@ public abstract class SpellMechanic extends Mechanic {
                 return;
             }
 
-            persistentDataContainer.set(NAMESPACED_KEY, PersistentDataType.INTEGER, chargesLeft - 1);
+            pdc.set(NAMESPACED_KEY, PersistentDataType.INTEGER, chargesLeft - 1);
 
-            if(!item.getItemMeta().hasLore()){
-                return;
-            }
-            List<String> lore = item.getItemMeta().getLore();
+            List<String> lore = itemMeta.getLore();
+            if(lore == null) return;
             lore.set(0, "Charges " + (chargesLeft - 1) + "/" + this.getMaxCharges());
             itemMeta.setLore(lore);
-            item.setItemMeta(itemMeta);
-        }
+        }));
     }
 }

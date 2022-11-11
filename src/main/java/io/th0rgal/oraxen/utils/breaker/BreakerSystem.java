@@ -11,8 +11,12 @@ import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.api.events.OraxenFurnitureDamageEvent;
+import io.th0rgal.oraxen.api.events.OraxenNoteBlockDamageEvent;
+import io.th0rgal.oraxen.api.events.OraxenStringBlockDamageEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
@@ -48,8 +52,6 @@ import java.util.Map;
 import java.util.function.Consumer;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory.getBlockMechanic;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener.getStringMechanic;
 
 public class BreakerSystem {
 
@@ -93,6 +95,8 @@ public class BreakerSystem {
             if (triggeredModifier == null) return;
             final long period = triggeredModifier.getPeriod(player, block, item);
             if (period == 0) return;
+
+
             event.setCancelled(true);
 
             final Location location = block.getLocation();
@@ -120,8 +124,12 @@ public class BreakerSystem {
                 scheduler.runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
                 if (playerInteractEvent.useInteractedBlock().equals(Event.Result.DENY)) return;
 
+                // If the relevant damage event is cancelled, return
+                if (blockDamageEventCancelled(block, player)) return;
+
                 breakerPerLocation.put(location, scheduler);
                 final HardnessModifier modifier = triggeredModifier;
+
                 scheduler.runTaskTimer(OraxenPlugin.get(), new Consumer<>() {
                     int value = 0;
 
@@ -136,8 +144,9 @@ public class BreakerSystem {
                             value = 10;
 
                         for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
-                            if (entity instanceof Player viewer)
+                            if (entity instanceof Player viewer) {
                                 sendBlockBreak(viewer, location, value);
+                            }
 
                         if (value++ < 10) return;
 
@@ -178,11 +187,41 @@ public class BreakerSystem {
         protocolManager = ProtocolLibrary.getProtocolManager();
     }
 
+    private boolean blockDamageEventCancelled(Block block, Player player) {
+
+        switch (block.getType()) {
+            case NOTE_BLOCK -> {
+                OraxenNoteBlockDamageEvent event = new OraxenNoteBlockDamageEvent(OraxenBlocks.getNoteBlockMechanic(block), block, player);
+                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(event));
+                return event.isCancelled();
+            }
+            case TRIPWIRE -> {
+                OraxenStringBlockDamageEvent event = new OraxenStringBlockDamageEvent(OraxenBlocks.getStringMechanic(block), block, player);
+                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(event));
+                return event.isCancelled();
+            }
+            case BARRIER -> {
+                try {
+                    return Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
+                        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+                        if (mechanic == null) return true;
+                        OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, player, block, mechanic.getItemFrame(block));
+                        Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(event));
+                        return event.isCancelled();
+                    }).get();
+                } catch (Exception e) {
+                    return false;
+                }
+            }
+            default -> { return true; }
+        }
+    }
+
     private void sendBlockBreak(final Player player, final Location location, final int stage) {
         Block block = location.getBlock();
-        final PacketContainer fakeAnimation = protocolManager.createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
-        fakeAnimation.getIntegers().write(0, location.hashCode()).write(1, stage);
-        fakeAnimation.getBlockPositionModifier().write(0, new BlockPosition(location.toVector()));
+        final PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
+        packet.getIntegers().write(0, location.hashCode()).write(1, stage);
+        packet.getBlockPositionModifier().write(0, new BlockPosition(location.toVector()));
         if (!breakerPlaySound.contains(block)) {
             breakerPlaySound.add(block);
             BlockSounds blockSounds = getBlockSounds(block);
@@ -192,7 +231,7 @@ public class BreakerSystem {
                     breakerPlaySound.remove(block), 3L);
         }
 
-        protocolManager.sendServerPacket(player, fakeAnimation);
+        protocolManager.sendServerPacket(player, packet);
     }
 
     public void registerListener() {
@@ -204,7 +243,7 @@ public class BreakerSystem {
         if (soundSection == null) return null;
         switch (block.getType()) {
             case NOTE_BLOCK -> {
-                NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
+                NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
                 if (!soundSection.getBoolean("noteblock_and_block")) return null;
                 else return mechanic.getBlockSounds();
@@ -216,13 +255,13 @@ public class BreakerSystem {
                 else return mechanic.getBlockSounds();
             }
             case TRIPWIRE -> {
-                StringBlockMechanic mechanic = getStringMechanic(block);
+                StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
                 if (!soundSection.getBoolean("stringblock_and_furniture")) return null;
                 else return mechanic.getBlockSounds();
             }
             case BARRIER -> {
-                FurnitureMechanic mechanic = FurnitureListener.getFurnitureMechanic(block);
+                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
                 if (!soundSection.getBoolean("stringblock_and_furniture")) return null;
                 else return mechanic.getBlockSounds();

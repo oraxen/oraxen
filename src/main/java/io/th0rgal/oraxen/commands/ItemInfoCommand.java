@@ -4,9 +4,9 @@ import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.StringArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.audience.Audience;
 import org.bukkit.ChatColor;
 
@@ -38,8 +38,8 @@ public class ItemInfoCommand {
     }
 
     private void sendItemInfo(Audience sender, ItemBuilder builder) {
-        sender.sendMessage(Utils.MINI_MESSAGE.deserialize("<dark_aqua>CustomModelData: <aqua>" + builder.getOraxenMeta().getCustomModelData()));
-        sender.sendMessage(Utils.MINI_MESSAGE.deserialize("<dark_green>Material: <green>" + builder.getReferenceClone().getType()));
-        sender.sendMessage(Utils.MINI_MESSAGE.deserialize("<dark_green>Model Name: <green>" + builder.getOraxenMeta().getModelName()));
+        sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>CustomModelData: <aqua>" + builder.getOraxenMeta().getCustomModelData()));
+        sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_green>Material: <green>" + builder.getReferenceClone().getType()));
+        sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_green>Model Name: <green>" + builder.getOraxenMeta().getModelName()));
     }
 }

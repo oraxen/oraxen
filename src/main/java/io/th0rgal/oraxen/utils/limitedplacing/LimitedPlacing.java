@@ -1,14 +1,12 @@
 package io.th0rgal.oraxen.utils.limitedplacing;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicListener;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -84,19 +82,19 @@ public class LimitedPlacing {
     private String checkIfOraxenItem(Block block) {
         return switch (block.getType()) {
             case NOTE_BLOCK:
-                NoteBlockMechanic noteBlockMechanic = NoteBlockMechanicListener.getNoteBlockMechanic(block);
+                NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(block);
                 if (noteBlockMechanic != null) yield noteBlockMechanic.getItemID();
                 else yield null;
             case TRIPWIRE:
-                StringBlockMechanic stringBlockMechanic = StringBlockMechanicListener.getStringMechanic(block);
+                StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
                 if (stringBlockMechanic != null) yield stringBlockMechanic.getItemID();
                 else yield null;
             case BARRIER:
-                FurnitureMechanic furnitureMechanic = FurnitureListener.getFurnitureMechanic(block);
+                FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
                 if (furnitureMechanic != null) yield furnitureMechanic.getItemID();
                 else yield null;
             case MUSHROOM_STEM:
-                BlockMechanic blockMechanic = BlockMechanicListener.getBlockMechanic(block);
+                BlockMechanic blockMechanic = OraxenBlocks.getBlockMechanic(block);
                 if (blockMechanic != null) yield blockMechanic.getItemID();
                 else yield null;
             default: yield null;

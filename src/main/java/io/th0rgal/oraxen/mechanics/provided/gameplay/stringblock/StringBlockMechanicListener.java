@@ -2,11 +2,12 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.api.events.OraxenStringBlockBreakEvent;
+import io.th0rgal.oraxen.api.events.OraxenStringBlockInteractEvent;
+import io.th0rgal.oraxen.api.events.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
-import io.th0rgal.oraxen.events.OraxenStringBlockBreakEvent;
-import io.th0rgal.oraxen.events.OraxenStringBlockInteractEvent;
-import io.th0rgal.oraxen.events.OraxenStringBlockPlaceEvent;
-import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -22,7 +23,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -39,14 +39,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
-import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
-
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 
 public class StringBlockMechanicListener implements Listener {
 
@@ -64,7 +60,7 @@ public class StringBlockMechanicListener implements Listener {
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getClickedBlock().getType() != Material.NOTE_BLOCK) return;
-        StringBlockMechanic mechanic = getStringMechanic(block);
+        StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
         if (mechanic == null) return;
         OraxenStringBlockInteractEvent oraxenEvent = new OraxenStringBlockInteractEvent(mechanic, block, event.getItem(), event.getPlayer(), event.getBlockFace());
         Bukkit.getPluginManager().callEvent(oraxenEvent);
@@ -110,11 +106,10 @@ public class StringBlockMechanicListener implements Listener {
         List<Block> tripwireList = event.getBlocks().stream().filter(block -> block.getType().equals(Material.TRIPWIRE)).toList();
 
         for (Block block : tripwireList) {
-            final StringBlockMechanic mechanic = getStringMechanic(block);
+            final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
+            if (mechanic == null) return;
 
             block.setType(Material.AIR, false);
-
-            if (mechanic == null) return;
 
             OraxenStringBlockBreakEvent stringBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, null);
             OraxenPlugin.get().getServer().getPluginManager().callEvent(stringBlockBreakEvent);
@@ -163,7 +158,8 @@ public class StringBlockMechanicListener implements Listener {
 
         if (placedAgainst == null) return;
         if (placedAgainst.getType().isInteractable() && !player.isSneaking()) {
-            if (placedAgainst.getType() == Material.NOTE_BLOCK && getNoteBlockMechanic(placedAgainst) == null) return;
+            if (placedAgainst.getType() == Material.NOTE_BLOCK && OraxenBlocks.getNoteBlockMechanic(placedAgainst) == null)
+                return;
             else if (placedAgainst.getType() != Material.NOTE_BLOCK) return;
         }
 
@@ -172,9 +168,9 @@ public class StringBlockMechanicListener implements Listener {
                 if (!face.isCartesian() || face.getModZ() != 0) continue;
                 final Block relative = placedAgainst.getRelative(face);
                 if (relative.getType() == Material.NOTE_BLOCK)
-                    if (getNoteBlockMechanic(relative) == null) continue;
+                    if (OraxenBlocks.getNoteBlockMechanic(relative) == null) continue;
                 if (relative.getType() == Material.TRIPWIRE)
-                    if (getStringMechanic(relative) == null) continue;
+                    if (OraxenBlocks.getStringMechanic(relative) == null) continue;
                 if (item.getItemMeta() instanceof BlockStateMeta) continue;
                 if (item.getType().hasGravity()) continue;
                 if (item.getType().toString().endsWith("SLAB")) continue;
@@ -209,7 +205,7 @@ public class StringBlockMechanicListener implements Listener {
         if (mechanic.isSapling()) {
             SaplingMechanic sapling = mechanic.getSaplingMechanic();
             if (mechanic.getSaplingMechanic().canGrowNaturally())
-                BlockHelpers.getPDC(placedBlock).set(SAPLING_KEY, PersistentDataType.INTEGER, sapling.getNaturalGrowthTime());
+                BlockHelpers.getPDC(placedBlock).set(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, sapling.getNaturalGrowthTime());
         }
         event.setCancelled(true);
     }
@@ -222,7 +218,7 @@ public class StringBlockMechanicListener implements Listener {
                 && block.getType() == Material.TRIPWIRE) {
             ItemStack clicked = event.getItem();
             // Call the event
-            StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
+            StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
             if (stringBlockMechanic == null) return;
             OraxenStringBlockInteractEvent wireBlockInteractEvent = new OraxenStringBlockInteractEvent(stringBlockMechanic, block, event.getItem(), event.getPlayer(), event.getBlockFace());
             OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockInteractEvent);
@@ -252,7 +248,6 @@ public class StringBlockMechanicListener implements Listener {
         final Block blockAbove = block.getRelative(BlockFace.UP);
         final Block blockBelow = block.getRelative(BlockFace.DOWN);
         final Player player = event.getPlayer();
-        ItemStack itemStack = player.getInventory().getItemInMainHand();
 
         for (BlockFace face : BlockFace.values()) {
             if (face == BlockFace.SELF && !face.isCartesian()) continue;
@@ -270,23 +265,21 @@ public class StringBlockMechanicListener implements Listener {
         }
 
         if (block.getType() == Material.TRIPWIRE) {
-            StringBlockMechanic mechanic = getStringMechanic(block);
-            StringBlockMechanic mechanicBelow = getStringMechanic(blockBelow);
-            if (mechanic != null) {
+            StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(blockBelow);
+            if (OraxenBlocks.isOraxenStringBlock(block)) {
                 event.setCancelled(true);
-                breakStringBlock(block, mechanic, itemStack, player);
+                OraxenBlocks.remove(block.getLocation(), player);
                 event.setDropItems(false);
             } else if (mechanicBelow != null && mechanicBelow.isTall()) {
                 event.setCancelled(true);
-                breakStringBlock(blockBelow, mechanicBelow, itemStack, player);
+                OraxenBlocks.remove(blockBelow.getLocation(), player);
                 event.setDropItems(false);
             }
         } else if (blockAbove.getType() == Material.TRIPWIRE) {
-            final StringBlockMechanic stringBlockMechanic = getStringMechanic(blockAbove);
-            if (stringBlockMechanic == null) return;
+            if (!OraxenBlocks.isOraxenStringBlock(blockAbove)) return;
             event.setCancelled(true);
 
-            breakStringBlock(blockAbove, stringBlockMechanic, itemStack, player);
+            OraxenBlocks.remove(blockAbove.getLocation(), player);
             block.setType(Material.AIR); // This doesn't affect furniture and noteblock as they are handled by other functions
             event.setDropItems(false);
         }
@@ -296,7 +289,7 @@ public class StringBlockMechanicListener implements Listener {
     public void onExplosionDestroy(EntityExplodeEvent event) {
         List<Block> blockList = event.blockList().stream().filter(block -> block.getType().equals(Material.TRIPWIRE)).toList();
         blockList.forEach(block -> {
-            final StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
+            final StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
             if (stringBlockMechanic == null) return;
 
             OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(stringBlockMechanic, block, null);
@@ -308,17 +301,20 @@ public class StringBlockMechanicListener implements Listener {
             final Block blockAbove = block.getRelative(BlockFace.UP);
             final Block blockBelow = block.getRelative(BlockFace.DOWN);
             if (block.getType() == Material.TRIPWIRE) {
-                StringBlockMechanic mechanic = getStringMechanic(block);
-                StringBlockMechanic mechanicBelow = getStringMechanic(blockBelow);
-                if (mechanic != null) {
-                    breakStringBlock(block, mechanic, new ItemStack(Material.AIR), null);
+                StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(blockBelow);
+                if (OraxenBlocks.isOraxenStringBlock(block)) {
+                    event.setCancelled(true);
+                    OraxenBlocks.remove(block.getLocation(), null);
                 } else if (mechanicBelow != null && mechanicBelow.isTall()) {
-                    breakStringBlock(blockBelow, mechanicBelow, new ItemStack(Material.AIR), null);
+                    event.setCancelled(true);
+                    OraxenBlocks.remove(blockBelow.getLocation(), null);
                 }
-            }  else if (blockAbove.getType() == Material.TRIPWIRE) {
-                final StringBlockMechanic mechanicAbove = getStringMechanic(blockAbove);
-                if (mechanicAbove == null) return;
-                breakStringBlock(blockAbove, stringBlockMechanic, new ItemStack(Material.AIR), null);
+            } else if (blockAbove.getType() == Material.TRIPWIRE) {
+                if (!OraxenBlocks.isOraxenStringBlock(blockAbove)) return;
+                event.setCancelled(true);
+
+                OraxenBlocks.remove(blockAbove.getLocation(), null);
+                block.setType(Material.AIR); // This doesn't affect furniture and noteblock as they are handled by other functions
             }
         });
     }
@@ -330,13 +326,13 @@ public class StringBlockMechanicListener implements Listener {
             if (!f.isCartesian() || f == BlockFace.SELF) continue; // Only take N/S/W/E
             final Block changed = event.getToBlock().getRelative(f);
             final Block changedBelow = changed.getRelative(BlockFace.DOWN);
+
             if (changed.getType() == Material.TRIPWIRE) {
-                StringBlockMechanic mechanic = getStringMechanic(changed);
-                StringBlockMechanic mechanicBelow = getStringMechanic(changedBelow);
-                if (mechanic != null) {
-                    breakStringBlock(changed, mechanic, new ItemStack(Material.AIR), null);
+                StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(changedBelow);
+                if (OraxenBlocks.isOraxenStringBlock(changed)) {
+                    OraxenBlocks.remove(changed.getLocation(), null);
                 } else if (mechanicBelow != null && mechanicBelow.isTall()) {
-                    breakStringBlock(changedBelow, mechanicBelow, new ItemStack(Material.AIR), null);
+                    OraxenBlocks.remove(changedBelow.getLocation(), null);
                 }
             }
         }
@@ -352,12 +348,17 @@ public class StringBlockMechanicListener implements Listener {
             if (rayTraceResult == null) return;
             final Block block = rayTraceResult.getHitBlock();
             if (block == null) return;
-            StringBlockMechanic stringBlockMechanic = getStringMechanic(block);
-            if (stringBlockMechanic == null) return;
-            ItemStack item = OraxenItems.getItemById(stringBlockMechanic.getItemID()).build();
+
+            StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
+            if (mechanic == null) {
+                StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(block.getRelative(BlockFace.DOWN));
+                if (mechanicBelow == null || !mechanicBelow.isTall()) return;
+                mechanic = mechanicBelow;
+            }
+            ItemStack item = OraxenItems.getItemById(mechanic.getItemID()).build();
             for (int i = 0; i <= 8; i++) {
                 if (player.getInventory().getItem(i) == null) continue;
-                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), stringBlockMechanic.getItemID())) {
+                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), mechanic.getItemID())) {
                     player.getInventory().setHeldItemSlot(i);
                     event.setCancelled(true);
                     return;
@@ -367,17 +368,6 @@ public class StringBlockMechanicListener implements Listener {
         }
     }
 
-    public static StringBlockMechanic getStringMechanic(Block block) {
-        if (block.getType() == Material.TRIPWIRE) {
-            final Tripwire tripwire = (Tripwire) block.getBlockData();
-            return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
-        } else return null;
-    }
-
-    public static StringBlockMechanic getStringMechanic(Tripwire tripwire) {
-        return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
-    }
-
     private HardnessModifier getHardnessModifier() {
         return new HardnessModifier() {
 
@@ -385,7 +375,7 @@ public class StringBlockMechanicListener implements Listener {
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
                 if (block.getType() != Material.TRIPWIRE)
                     return false;
-                final StringBlockMechanic tripwireMechanic = getStringMechanic(block);
+                final StringBlockMechanic tripwireMechanic = OraxenBlocks.getStringMechanic(block);
                 return tripwireMechanic != null && tripwireMechanic.hasHardness;
             }
 
@@ -396,7 +386,7 @@ public class StringBlockMechanicListener implements Listener {
 
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
-                final StringBlockMechanic tripwireMechanic = getStringMechanic(block);
+                final StringBlockMechanic tripwireMechanic = OraxenBlocks.getStringMechanic(block);
                 if (tripwireMechanic == null) return 0;
                 final long period = tripwireMechanic.getPeriod();
                 double modifier = 1;
@@ -431,7 +421,7 @@ public class StringBlockMechanicListener implements Listener {
         final BlockState currentBlockState = target.getState();
 
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
-        final OraxenStringBlockPlaceEvent oraxenBlockPlaceEvent = new OraxenStringBlockPlaceEvent(getStringMechanic(target), target, player);
+        final OraxenStringBlockPlaceEvent oraxenBlockPlaceEvent = new OraxenStringBlockPlaceEvent(OraxenBlocks.getStringMechanic(target), target, player);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
         Bukkit.getPluginManager().callEvent(oraxenBlockPlaceEvent);
 
@@ -449,34 +439,7 @@ public class StringBlockMechanicListener implements Listener {
         return target;
     }
 
-    private void breakStringBlock(Block block, StringBlockMechanic mechanic, ItemStack item, @Nullable Player player) {
-        if (mechanic == null) return;
-
-        OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
-        OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockBreakEvent);
-        if (wireBlockBreakEvent.isCancelled()) {
-            return;
-        }
-
-        // If tall check the block 2 above if it's a stringblock
-        final Block blockAbove = block.getRelative(BlockFace.UP, mechanic.isTall() ? 2 : 1);
-
-        if (mechanic.isTall())
-            block.getRelative(BlockFace.UP).setType(Material.AIR, false);
-        if (mechanic.hasLight())
-            WrappedLightAPI.removeBlockLight(block.getLocation());
-        if (player != null && player.getGameMode() != GameMode.CREATIVE)
-            mechanic.getDrop().spawns(block.getLocation(), item);
-        block.setType(Material.AIR, false);
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
-            fixClientsideUpdate(block.getLocation());
-            if (blockAbove.getType() == Material.TRIPWIRE) {
-                breakStringBlock(blockAbove, getStringMechanic(blockAbove), new ItemStack(Material.AIR), player);
-            }
-        }, 1L);
-    }
-
-    private static void fixClientsideUpdate(Location loc) {
+    public static void fixClientsideUpdate(Location loc) {
         List<Entity> players =
                 Objects.requireNonNull(loc.getWorld()).getNearbyEntities(loc, 20, 20, 20)
                         .stream().filter(entity -> entity.getType() == EntityType.PLAYER).toList();

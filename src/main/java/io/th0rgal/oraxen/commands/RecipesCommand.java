@@ -12,7 +12,7 @@ import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
 import io.th0rgal.oraxen.recipes.builders.ShapedBuilder;
 import io.th0rgal.oraxen.recipes.builders.ShapelessBuilder;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bukkit.entity.Player;
 
@@ -127,7 +127,7 @@ public class RecipesCommand {
                         }
                         final String name = (String) args[0];
                         recipe.saveRecipe(name);
-                        Message.RECIPE_SAVE.send(sender, Utils.tagResolver("name", name));
+                        Message.RECIPE_SAVE.send(sender, AdventureUtils.tagResolver("name", name));
                     } else
                         Message.NOT_PLAYER.send(sender);
                 });

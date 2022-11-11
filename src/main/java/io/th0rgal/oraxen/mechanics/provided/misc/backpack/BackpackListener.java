@@ -3,8 +3,8 @@ package io.th0rgal.oraxen.mechanics.provided.misc.backpack;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.StorageGui;
-import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -85,7 +85,7 @@ public class BackpackListener implements Listener {
         ItemMeta backpackMeta = backpack.getItemMeta();
         if (!isBackpack(backpack) || backpackMeta == null) return null;
         PersistentDataContainer pdc = backpackMeta.getPersistentDataContainer();
-        StorageGui gui = Gui.storage().title(Utils.MINI_MESSAGE.deserialize(mechanic.getTitle())).rows(mechanic.getRows()).create();
+        StorageGui gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(mechanic.getTitle())).rows(mechanic.getRows()).create();
 
         gui.disableItemDrop();
         gui.disableItemSwap();

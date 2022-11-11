@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.font;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.Context;
 import net.kyori.adventure.text.minimessage.ParsingException;
@@ -25,7 +25,7 @@ public class ShiftTag {
         } catch (final NumberFormatException ignored) {
         }
         String shift = OraxenPlugin.get().getFontManager().getShift(length);
-        return Tag.inserting(Utils.MINI_MESSAGE.deserialize(shift));
+        return Tag.inserting(AdventureUtils.MINI_MESSAGE.deserialize(shift));
     }
 
     static @Nullable Emitable emit(final Component component) {

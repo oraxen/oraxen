@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.compatibilities.provided.bossshoppro;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import org.black_ixx.bossshop.core.BSBuy;
 import org.black_ixx.bossshop.core.prices.BSPriceType;
 import org.black_ixx.bossshop.managers.ClassManager;

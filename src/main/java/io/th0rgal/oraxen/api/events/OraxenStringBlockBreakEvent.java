@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.events;
+package io.th0rgal.oraxen.api.events;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import org.bukkit.block.Block;
@@ -11,17 +11,39 @@ import org.jetbrains.annotations.Nullable;
 
 public class OraxenStringBlockBreakEvent extends Event implements Cancellable {
 
-    private final StringBlockMechanic stringBlockMechanic;
+    private final StringBlockMechanic mechanic;
     private final Player player;
     private final Block block;
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
     public OraxenStringBlockBreakEvent(StringBlockMechanic mechanic, Block block, @Nullable Player player) {
-        this.stringBlockMechanic = mechanic;
+        this.mechanic = mechanic;
         this.player = player;
         this.block = block;
         this.isCancelled = false;
+    }
+
+    /**
+     * @return The StringBlockMechanic of this block
+     */
+    public StringBlockMechanic getMechanic() {
+        return mechanic;
+    }
+
+    /**
+     * @return The player who broke this block, or null if not triggered by player
+     */
+    @Nullable
+    public Player getPlayer() {
+        return player;
+    }
+
+    /**
+     * @return The block that was broken
+     */
+    public Block getBlock() {
+        return block;
     }
 
     @Override
@@ -42,29 +64,6 @@ public class OraxenStringBlockBreakEvent extends Event implements Cancellable {
 
     public static HandlerList getHandlerList() {
         return HANDLERS;
-    }
-
-    /**
-     * @return The string block mechanic
-     */
-    public StringBlockMechanic getStringBlockMechanic() {
-        return stringBlockMechanic;
-    }
-
-    /**
-     * Null if the event is not triggered by player
-     * @return The player who broke the string block
-     */
-    @Nullable
-    public Player getPlayer() {
-        return player;
-    }
-
-    /**
-     * @return The block that was broken
-     */
-    public Block getBlock() {
-        return block;
     }
 
 }

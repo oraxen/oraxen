@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
@@ -45,7 +46,7 @@ public class BlockMechanicListener implements Listener {
         final Block block = event.getBlock();
         if (block.getType() != Material.MUSHROOM_STEM || !event.isDropItems()) return;
 
-        final BlockMechanic blockMechanic = getBlockMechanic(block);
+        final BlockMechanic blockMechanic = OraxenBlocks.getBlockMechanic(block);
         if (blockMechanic == null) return;
 
         blockMechanic.getDrop().spawns(block.getLocation(), event.getPlayer().getInventory().getItemInMainHand());
@@ -125,7 +126,7 @@ public class BlockMechanicListener implements Listener {
         final BlockMechanic mechanic = ((BlockMechanic) factory.getMechanic(itemID));
         final int customVariation = mechanic.getCustomVariation();
         BlockMechanic.setBlockFacing(newBlockData, customVariation);
-        Utils.sendAnimation(player, event.getHand());
+        Utils.swingHand(player, event.getHand());
 
         // set the new block
         target.setBlockData(newBlockData); // false to cancel physic
@@ -150,7 +151,7 @@ public class BlockMechanicListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getBlockFace() != BlockFace.UP) return;
         if (item == null) return;
 
-        BlockMechanic mechanic = getBlockMechanic(block);
+        BlockMechanic mechanic = OraxenBlocks.getBlockMechanic(block);
         if (mechanic == null || !mechanic.canIgnite()) return;
         if (item.getType() != Material.FLINT_AND_STEEL && item.getType() != Material.FIRE_CHARGE) return;
         BlockIgniteEvent igniteEvent = new BlockIgniteEvent(block, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, event.getPlayer());
@@ -160,17 +161,11 @@ public class BlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCatchFire(final BlockIgniteEvent event) {
         Block block = event.getBlock();
-        BlockMechanic mechanic = getBlockMechanic(block);
+        BlockMechanic mechanic = OraxenBlocks.getBlockMechanic(block);
         if (block.getType() != Material.MUSHROOM_STEM || mechanic == null) return;
         if (!mechanic.canIgnite()) event.setCancelled(true);
 
         block.getWorld().playSound(block.getLocation(), Sound.ITEM_FLINTANDSTEEL_USE, 1, 1);
         block.getRelative(BlockFace.UP).setType(Material.FIRE);
-    }
-
-    public static BlockMechanic getBlockMechanic(Block block) {
-        if (block.getType() == Material.MUSHROOM_STEM) {
-            return BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(block));
-        } else return null;
     }
 }

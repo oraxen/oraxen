@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.hud;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import me.clip.placeholderapi.PlaceholderAPI;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -103,7 +103,7 @@ public class HudManager {
 
         String hudDisplay = parsedHudDisplays.get(hud);
         hudDisplay = translatePlaceholdersForHudDisplay(player, hudDisplay);
-        OraxenPlugin.get().getAudience().player(player).sendActionBar(Utils.MINI_MESSAGE.deserialize(hudDisplay));
+        OraxenPlugin.get().getAudience().player(player).sendActionBar(AdventureUtils.MINI_MESSAGE.deserialize(hudDisplay));
     }
 
     public void registerTask() {
@@ -156,7 +156,7 @@ public class HudManager {
     }
 
     private String translateMiniMessageTagsForHud(Hud hud) {
-        return Utils.MINI_MESSAGE.serialize(Utils.MINI_MESSAGE.deserialize(hud.displayText()));
+        return AdventureUtils.parseMiniMessage(hud.getDisplayText());
     }
 
     private String translatePlaceholdersForHudDisplay(Player player, String message) {

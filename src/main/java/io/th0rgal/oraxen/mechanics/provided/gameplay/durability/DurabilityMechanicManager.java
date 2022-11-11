@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.durability;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -8,9 +9,10 @@ import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.event.player.PlayerItemMendEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class DurabilityMechanicManager implements Listener {
 
@@ -36,34 +38,31 @@ public class DurabilityMechanicManager implements Listener {
 
     public boolean changeDurability(ItemStack item, int amount) {
         String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID))
-            return false;
+        if (factory.isNotImplementedIn(itemID)) return false;
 
         DurabilityMechanic durabilityMechanic = (DurabilityMechanic) factory.getMechanic(itemID);
+        if (durabilityMechanic == null) return false;
+        AtomicBoolean check = new AtomicBoolean(false);
 
-        ItemMeta itemMeta = item.getItemMeta();
-        if (itemMeta == null) return false;
-        PersistentDataContainer persistentDataContainer = itemMeta.getPersistentDataContainer();
-        if (persistentDataContainer.has(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER)) {
-            int realDurabilityLeft = persistentDataContainer
-                    .get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER) + amount;
-            if (realDurabilityLeft > 0) {
-                persistentDataContainer
-                        .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realDurabilityLeft);
+        Utils.editItemMeta(item, (itemMeta) -> {
+            PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
+            check.set(pdc.has(DurabilityMechanic.DURAB_KEY, PersistentDataType.INTEGER));
 
-                if(!(itemMeta instanceof Damageable)) return true;
-                double realMaxDurability = durabilityMechanic.getItemMaxDurability(); // because int rounded values suck
+            if (check.get()) {
+                int realDurabRemain = pdc.get(DurabilityMechanic.DURAB_KEY, PersistentDataType.INTEGER) + amount;
+                if (realDurabRemain > 0) {
+                    pdc.set(DurabilityMechanic.DURAB_KEY, PersistentDataType.INTEGER, realDurabRemain);
 
-                ((Damageable) itemMeta)
-                        .setDamage((int) (item.getType().getMaxDurability()
-                                - realDurabilityLeft / realMaxDurability * item.getType().getMaxDurability()));
-                item.setItemMeta(itemMeta);
-            } else {
-                item.setAmount(0);
+                    if(!(itemMeta instanceof Damageable damageable)) {
+                        check.set(true);
+                        return;
+                    }
+                    double realMaxDurab = durabilityMechanic.getItemMaxDurability(); // because int rounded values suck
+
+                    (damageable).setDamage((int) (item.getType().getMaxDurability() - realDurabRemain / realMaxDurab * item.getType().getMaxDurability()));
+                } else item.setAmount(0);
             }
-            return true;
-        }
-        return false;
+        });
+        return check.get();
     }
-
 }
