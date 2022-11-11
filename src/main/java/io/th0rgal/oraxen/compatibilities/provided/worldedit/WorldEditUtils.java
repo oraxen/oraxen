@@ -17,6 +17,7 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.block.BaseBlock;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -62,9 +63,9 @@ public class WorldEditUtils {
             NoteBlockMechanic noteMechanic = (NoteBlockMechanic) getMechanic(id, "noteblock");
             StringBlockMechanic stringMechanic = (StringBlockMechanic) getMechanic(id, "stringblock");
 
-            if (stringMechanic != null)
+            if (Settings.WORLDEDIT_STRINGBLOCKS.toBool() && stringMechanic != null)
                 blockData = StringBlockMechanicFactory.createTripwireData(stringMechanic.getCustomVariation());
-            else if (noteMechanic != null) {
+            else if (Settings.WORLDEDIT_NOTEBLOCKS.toBool() && noteMechanic != null) {
                 blockData = parseNoteBlock(noteMechanic, input);
             } else return null;
 

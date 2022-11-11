@@ -11,6 +11,7 @@ import com.sk89q.worldedit.world.block.BlockStateHolder;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
@@ -42,49 +43,43 @@ public class WorldEditListener implements Listener {
                 Location loc = new Location(world, pos.getX(), pos.getY(), pos.getZ());
 
                 //TODO Add more mechanics here
-                switch (blockData.getMaterial()) {
-                    case NOTE_BLOCK -> {
-                        NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(blockData);
-                        if (mechanic != null) {
-                            if (mechanic.hasLight()) {
-                                WrappedLightAPI.createBlockLight(loc, mechanic.getLight());
-                            }
+                if (Settings.WORLDEDIT_NOTEBLOCKS.toBool() && blockData.getMaterial() == Material.NOTE_BLOCK) {
+                    NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(blockData);
+                    if (mechanic != null) {
+                        if (mechanic.hasLight()) {
+                            WrappedLightAPI.createBlockLight(loc, mechanic.getLight());
                         }
                     }
-                    case TRIPWIRE -> {
-                        StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(blockData);
-                        if (mechanic != null) {
-                            if (mechanic.hasLight()) {
-                                WrappedLightAPI.createBlockLight(loc, mechanic.getLight());
-                            }
-                            if (mechanic.isTall()) {
-                                loc.getBlock().getRelative(BlockFace.UP).setType(Material.TRIPWIRE);
-                            }
+                } else if (Settings.WORLDEDIT_STRINGBLOCKS.toBool() && blockData.getMaterial() == Material.TRIPWIRE) {
+                    StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(blockData);
+                    if (mechanic != null) {
+                        if (mechanic.hasLight()) {
+                            WrappedLightAPI.createBlockLight(loc, mechanic.getLight());
                         }
-
+                        if (mechanic.isTall()) {
+                            loc.getBlock().getRelative(BlockFace.UP).setType(Material.TRIPWIRE);
+                        }
                     }
-                    // Otherwise it is perhaps removing a block so check and remove mechanics
-                    default -> {
-                        if (world == null) return super.setBlock(pos, block);
-                        Block oldBlock = world.getBlockAt(loc);
-                        switch (oldBlock.getType()) {
-                            case NOTE_BLOCK -> {
-                                NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(oldBlock.getBlockData());
-                                if (mechanic != null) {
-                                    if (mechanic.hasLight()) {
-                                        WrappedLightAPI.removeBlockLight(loc);
-                                    }
+                } else if (blockData.getMaterial() != Material.TRIPWIRE && blockData.getMaterial() != Material.NOTE_BLOCK) {
+                    if (world == null) return super.setBlock(pos, block);
+                    Block oldBlock = world.getBlockAt(loc);
+                    switch (oldBlock.getType()) {
+                        case NOTE_BLOCK -> {
+                            NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(oldBlock.getBlockData());
+                            if (mechanic != null) {
+                                if (mechanic.hasLight()) {
+                                    WrappedLightAPI.removeBlockLight(loc);
                                 }
                             }
-                            case TRIPWIRE -> {
-                                StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(oldBlock.getBlockData());
-                                if (mechanic != null) {
-                                    if (mechanic.hasLight()) {
-                                        WrappedLightAPI.removeBlockLight(loc);
-                                    }
-                                    if (mechanic.isTall()) {
-                                        loc.getBlock().getRelative(BlockFace.UP).setType(Material.AIR);
-                                    }
+                        }
+                        case TRIPWIRE -> {
+                            StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(oldBlock.getBlockData());
+                            if (mechanic != null) {
+                                if (mechanic.hasLight()) {
+                                    WrappedLightAPI.removeBlockLight(loc);
+                                }
+                                if (mechanic.isTall()) {
+                                    loc.getBlock().getRelative(BlockFace.UP).setType(Material.AIR);
                                 }
                             }
                         }

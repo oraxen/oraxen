@@ -8,6 +8,9 @@ Plugin:
   generation:
     default_assets: true
     default_configs: true
+  worldedit:
+    noteblock_mechanic: true
+    stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
 
 Pack:
   generation:

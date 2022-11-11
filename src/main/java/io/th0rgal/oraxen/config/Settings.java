@@ -11,6 +11,8 @@ public enum Settings {
     REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),
     GENERATE_DEFAULT_ASSETS("Plugin.generation.default_assets"),
     GENERATE_DEFAULT_CONFIGS("Plugin.generation.default_configs"),
+    WORLDEDIT_NOTEBLOCKS("Plugin.worldedit.noteblock_mechanic"),
+    WORLDEDIT_STRINGBLOCKS("Plugin.worldedit.stringblock_mechanic"),
 
     CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),
