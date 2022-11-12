@@ -390,6 +390,19 @@ public class FurnitureMechanic extends Mechanic {
         frame.remove();
     }
 
+    /**
+     * Scheduled for removal in a future update. As of 1.147.0 API has been entirely redone.<br>
+     * See {@link io.th0rgal.oraxen.api.OraxenFurniture#remove(Location, Player)} for the new method
+     */
+    @Deprecated(forRemoval = true, since = "1.147.0")
+    public void remove(ItemFrame frame) {
+        if (this.hasBarriers())
+            this.removeSolid(frame.getWorld(), new BlockLocation(frame.getLocation()),
+                    this.getYaw(frame.getRotation()));
+        else
+            this.removeAirFurniture(frame);
+    }
+
     public List<Location> getLocations(float rotation, Location center, List<BlockLocation> relativeCoordinates) {
         List<Location> output = new ArrayList<>();
         for (BlockLocation modifier : relativeCoordinates)
@@ -444,6 +457,27 @@ public class FurnitureMechanic extends Mechanic {
                 stand.getPersistentDataContainer().set(SEAT_KEY, PersistentDataType.STRING, stand.getUniqueId().toString());
             });
             return seat.getUniqueId().toString();
+        }
+        return null;
+    }
+
+
+    /**
+     * Scheduled for removal in a future update. As of 1.147.0 API has been entirely redone.<br>
+     * This method now only takes the block/barrier, see {@link #getItemFrame(Block)} for the new method
+     */
+    @Deprecated(forRemoval = true, since = "1.147.0")
+    public ItemFrame getItemFrame(Block block, BlockLocation blockLocation, Float orientation) {
+        if (hasBarriers()) {
+            for (Location sideLocation : getLocations(orientation, blockLocation.toLocation(block.getWorld()), getBarriers())) {
+                for (Entity entity : block.getWorld().getNearbyEntities(sideLocation, 1, 1, 1))
+                    if (entity instanceof ItemFrame frame
+                            && entity.getLocation().getBlockX() == sideLocation.getBlockX()
+                            && entity.getLocation().getBlockY() == sideLocation.getBlockY()
+                            && entity.getLocation().getBlockZ() == sideLocation.getBlockZ()
+                            && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING))
+                        return frame;
+            }
         }
         return null;
     }

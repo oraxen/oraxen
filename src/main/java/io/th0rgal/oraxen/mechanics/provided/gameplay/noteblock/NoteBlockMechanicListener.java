@@ -438,6 +438,7 @@ public class NoteBlockMechanicListener implements Listener {
         target.setBlockData(newBlock, isFlowing);
         final BlockState currentBlockState = target.getState();
         final NoteBlockMechanic againstMechanic = OraxenBlocks.getNoteBlockMechanic(placedAgainst);
+        getNoteBlockMechanic(placedAgainst);
 
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
@@ -475,6 +476,27 @@ public class NoteBlockMechanicListener implements Listener {
         Utils.swingHand(player, hand);
 
         return target;
+    }
+
+    /**
+     * Scheduled for removal in a future update. As of 1.147.0 API has been entirely redone.<br>
+     * See {@link io.th0rgal.oraxen.api.OraxenBlocks#getNoteBlockMechanic(Block)} for the new method
+     */
+    @Deprecated(forRemoval = true, since = "1.147.0")
+    public static NoteBlockMechanic getNoteBlockMechanic(Block block) {
+        if (block.getType() != Material.NOTE_BLOCK) return null;
+        return getNoteBlockMechanic((NoteBlock) block.getBlockData());
+    }
+
+    /**
+     * Scheduled for removal in a future update. As of 1.147.0 API has been entirely redone.<br>
+     * See {@link io.th0rgal.oraxen.api.OraxenBlocks#getNoteBlockMechanic(BlockData)} for the new method
+     */
+    @Deprecated(forRemoval = true, since = "1.147.0")
+    public static NoteBlockMechanic getNoteBlockMechanic(NoteBlock noteblock) {
+        return NoteBlockMechanicFactory
+                .getBlockMechanic((noteblock.getInstrument().getType()) * 25
+                        + noteblock.getNote().getId() + (noteblock.isPowered() ? 400 : 0) - 26);
     }
 
     // Used to determine what instrument to use when playing a note depending on below block

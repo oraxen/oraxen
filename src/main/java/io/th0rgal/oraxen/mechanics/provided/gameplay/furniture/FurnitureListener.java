@@ -90,7 +90,7 @@ public class FurnitureListener implements Listener {
         if (event.getHand() != EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getClickedBlock().getType() != Material.NOTE_BLOCK) return;
-        FurnitureMechanic mechanic = getFurnitureMechanic(block);
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
         if (mechanic == null) return;
 
         OraxenFurnitureInteractEvent oraxenEvent = new OraxenFurnitureInteractEvent(mechanic, event.getPlayer(), block, mechanic.getItemFrame(block));
@@ -447,13 +447,18 @@ public class FurnitureListener implements Listener {
             if (block.getType() != Material.BARRIER) continue;
             PersistentDataContainer pdc = BlockHelpers.getPDC(block);
             if (pdc.has(ROTATION_KEY, DataType.asEnum(Rotation.class))) continue;
-            FurnitureMechanic mechanic = getFurnitureMechanic(block);
+            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
             if (mechanic == null) continue;
             Rotation rotation = getRotation(pdc.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f), mechanic.hasBarriers() && mechanic.getBarriers().size() > 1);
             pdc.set(ROTATION_KEY, DataType.asEnum(Rotation.class), rotation);
         }
     }
 
+    /**
+     * Scheduled for removal in a future update. As of 1.147.0 API has been entirely redone.<br>
+     * See {@link io.th0rgal.oraxen.api.OraxenFurniture#getFurnitureMechanic(Block)} for the new method
+     */
+    @Deprecated(forRemoval = true, since = "1.147.0")
     public static FurnitureMechanic getFurnitureMechanic(Block block) {
         if (block.getType() != Material.BARRIER) return null;
         final String mechanicID = BlockHelpers.getPDC(block).get(FURNITURE_KEY, PersistentDataType.STRING);
