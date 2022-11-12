@@ -23,10 +23,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
@@ -95,6 +92,9 @@ public class BreakerSystem {
             if (triggeredModifier == null) return;
             final long period = triggeredModifier.getPeriod(player, block, item);
             if (period == 0) return;
+            if (block.getType() == Material.NOTE_BLOCK && !OraxenBlocks.isOraxenNoteBlock(block)) return;
+            if (block.getType() == Material.TRIPWIRE_HOOK && !OraxenBlocks.isOraxenStringBlock(block)) return;
+            if (block.getType() == Material.BARRIER && !OraxenFurniture.isFurniture(block)) return;
 
 
             event.setCancelled(true);
