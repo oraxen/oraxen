@@ -137,7 +137,7 @@ public class CustomArmorsTextures {
             image = mergeImages(image.getWidth() + animatedImage.getWidth(),
                     animatedImage.getHeight(),
                     image, animatedImage);
-            setPixel(image.getRaster(), 1, 0, Color.fromRGB(animatedImage.getHeight() / (int) Settings.ARMOR_RESOLUTION.getValue(), 24, 1));
+            setPixel(image.getRaster(), 1, 0, Color.fromRGB(animatedImage.getHeight() / (int) Settings.ARMOR_RESOLUTION.getValue(), getAnimatedArmorFramerate(), 1));
         }
         addPixel(image, builder, name, prefix);
 
@@ -166,7 +166,7 @@ public class CustomArmorsTextures {
         }
 
         if (!name.endsWith("_a.png") && image.getHeight() > getLayerHeight()) {
-            Logs.logError("The height of " + name + " is greater than " + getLayerHeight()+ "px.");
+            Logs.logError("The height of " + name + " is greater than " + getLayerHeight() + "px.");
             Logs.logWarning("Since it is not an animated armor-file, this will potentially break other armor sets.");
         }
     }
@@ -188,6 +188,14 @@ public class CustomArmorsTextures {
 
     public boolean shouldGenerateOptifineFiles() {
         return Settings.AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool();
+    }
+
+    public int getAnimatedArmorFramerate() {
+        try {
+            return Integer.parseInt(Settings.ANIMATED_ARMOR_FRAMERATE.getValue().toString());
+        } catch (NumberFormatException e) {
+            return 24;
+        }
     }
 
     public Set<VirtualFile> getOptifineFiles() throws FileNotFoundException {
@@ -217,14 +225,14 @@ public class CustomArmorsTextures {
             optifineFiles.add(new VirtualFile(path, parentFolder + ".properties", inputStream));
 
             if (fileName.endsWith("_a.png")) {
-                optifineFiles.addAll(getOptifineAnimFiles(armorFile.getValue(), fileName, path, parentFolder));
+                optifineFiles.addAll(getOptifineAnimFiles(armorFile.getValue(), fileName, parentFolder));
             }
         }
 
         return optifineFiles;
     }
 
-    private List<VirtualFile> getOptifineAnimFiles(InputStream armorFile, String fileName, String path, String parentFolder) {
+    private List<VirtualFile> getOptifineAnimFiles(InputStream armorFile, String fileName, String parentFolder) {
         List<VirtualFile> optifineFiles = new ArrayList<>();
         int height;
         int width;
@@ -236,29 +244,27 @@ public class CustomArmorsTextures {
             Logs.logError("Error while reading " + fileName + ": " + e.getMessage());
             return optifineFiles;
         }
-        String animPropContent = getArmorAnimPropertyFile(parentFolder, fileName, width, height, height / getLayerHeight());
+        String animPropContent = getOptifineArmorAnimPropertyFile(parentFolder, fileName, width, height, height / getLayerHeight());
         ByteArrayInputStream animInputStream = new ByteArrayInputStream(animPropContent.getBytes(StandardCharsets.UTF_8));
         optifineFiles.add(new VirtualFile(OPTIFINE_ARMOR_ANIMATION_PATH + parentFolder, parentFolder + "_anim.properties", animInputStream));
-        //TODO Copy the actual anim image aswell
+        //TODO Adds a corrupted file, probably the armorFile inputstream
+        optifineFiles.add(new VirtualFile(OPTIFINE_ARMOR_ANIMATION_PATH + parentFolder, fileName, armorFile));
         return optifineFiles;
     }
 
-    private String getArmorAnimPropertyFile(String parentFolder, String fileName, int width, int height, int frames) {
-        Logs.logInfo(OPTIFINE_ARMOR_PATH + parentFolder + "/" + fileName);
+    private String getOptifineArmorAnimPropertyFile(String parentFolder, String fileName, int width, int height, int frames) {
         StringBuilder string = new StringBuilder("""
-                from=~/anim/""" + fileName + """
-                to=""" + OPTIFINE_ARMOR_PATH + parentFolder + "/" + fileName + """
-                y=0""" + """
-                x=0""" + """
-                h=""" + height + """
-                w=""" + width);
+                from=~/anim/""" + fileName + "\n" + """
+                to=""" + OPTIFINE_ARMOR_PATH + parentFolder + "/" + fileName + "\n" + """
+                y=0""" + "\n" + """
+                x=0""" + "\n" + """
+                h=""" + height + "\n" + """
+                w=""" + width + "\n");
 
         for (int i = 0; i < frames; i++) {
             string.append("""
-                    """ + """
-                    tile.=""").append(i).append("=").append(i).append("""
-                     duration="""
-            ).append(i).append("=").append(i*20);
+                    tile.""").append(i).append("=").append(i).append("\n").append("""
+                    duration.""").append(i).append("=").append(getAnimatedArmorFramerate() / frames).append("\n");
         }
         return string.toString();
     }
@@ -355,7 +361,6 @@ public class CustomArmorsTextures {
                     String absolutePath = OraxenPlugin.get().getDataFolder().getAbsolutePath() + "/pack/textures/";
                     String fileFolder = absolutePath + StringUtils.substringBeforeLast(file, itemId) + fileName;
                     File armorFile = new File(fileFolder);
-                    Logs.logInfo(entry.getKey());
 
                     if (!armorFile.exists()) {
                         fileName = fileName.replace(".png", "_e.png");

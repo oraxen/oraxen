@@ -33,6 +33,7 @@ public enum Settings {
 
     GENERATE("Pack.generation.generate"),
     ARMOR_RESOLUTION("Pack.generation.armor_resolution"),
+    ANIMATED_ARMOR_FRAMERATE("Pack.generation.animated_armor_framerate"),
     AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR("Pack.generation.automatically_generate_shader_compatible_armor"),
     COMPRESSION("Pack.generation.compression"),
     PROTECTION("Pack.generation.protection"),
