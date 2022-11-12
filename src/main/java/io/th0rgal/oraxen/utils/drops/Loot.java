@@ -34,7 +34,7 @@ public class Loot {
         this.maxAmount = maxAmount;
     }
 
-    private ItemStack getItemStack() {
+    public ItemStack getItemStack() {
         if (itemStack != null) return itemStack;
 
         if (config.containsKey("oraxen_item")) {
@@ -50,6 +50,14 @@ public class Loot {
             itemStack = new ItemStack(material);
         } else itemStack = (ItemStack) config.get("minecraft_item");
         return itemStack;
+    }
+
+    public int getProbability() {
+        return probability;
+    }
+
+    public int getMaxAmount() {
+        return maxAmount;
     }
 
     public void dropNaturally(Location location, int amountMultiplier) {

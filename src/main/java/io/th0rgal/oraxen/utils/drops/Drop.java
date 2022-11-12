@@ -91,6 +91,10 @@ public class Drop {
         return (minimalType == null) ? 0 : hierarchy.indexOf(getItemType(item)) - hierarchy.indexOf(minimalType);
     }
 
+    public List<Loot> getLoots() {
+        return loots;
+    }
+
     public void spawns(Location location, ItemStack itemInHand) {
         if (!canDrop(itemInHand)) return;
         if (!location.isWorldLoaded()) return;
