@@ -133,6 +133,16 @@ public class OraxenBlocks {
         if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             pdc.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
         }
+        checkNoteBlockAbove(location);
+    }
+
+    private static void checkNoteBlockAbove(final Location loc) {
+        final Block block = loc.getBlock().getRelative(BlockFace.UP);
+        if (block.getType() == Material.NOTE_BLOCK)
+            block.getState().update(true, true);
+        final Block nextBlock = loc.getBlock().getRelative(BlockFace.UP, 2);
+        if (nextBlock.getType() == Material.NOTE_BLOCK)
+            checkNoteBlockAbove(block.getLocation());
     }
 
     private static void placeStringBlock(Location location, String itemID) {
@@ -147,6 +157,9 @@ public class OraxenBlocks {
             SaplingMechanic sapling = mechanic.getSaplingMechanic();
             if (sapling != null && sapling.canGrowNaturally())
                 BlockHelpers.getPDC(block).set(SAPLING_KEY, PersistentDataType.INTEGER, sapling.getNaturalGrowthTime());
+        }
+        if (mechanic.isTall()) { //TODO Should this check the block above to verify it can be replaced, or always replace?
+            location.getBlock().getRelative(BlockFace.UP).setType(Material.TRIPWIRE);
         }
     }
 
@@ -186,6 +199,7 @@ public class OraxenBlocks {
             mechanic.getStorage().dropStorageContent(block);
         }
         block.setType(Material.AIR, false);
+        checkNoteBlockAbove(block.getLocation());
     }
 
     private static void removeStringBlock(Block block, @Nullable Player player) {
@@ -229,6 +243,14 @@ public class OraxenBlocks {
                     case MUSHROOM_STEM -> getBlockMechanic(location.getBlock());
                     default -> null;
                 };
+    }
+
+    public static Mechanic getOraxenBlock(BlockData blockData) {
+        return switch (blockData.getMaterial()) {
+            case NOTE_BLOCK -> getNoteBlockMechanic(blockData);
+            case TRIPWIRE -> getStringMechanic(blockData);
+            default -> null;
+        };
     }
 
     public static NoteBlockMechanic getNoteBlockMechanic(BlockData data) {
