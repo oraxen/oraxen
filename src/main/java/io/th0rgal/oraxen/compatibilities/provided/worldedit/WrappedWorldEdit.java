@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.compatibilities.provided.worldedit;
 
 import com.sk89q.worldedit.WorldEdit;
-import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -12,23 +11,19 @@ import java.util.List;
 
 public class WrappedWorldEdit {
 
-    private static boolean loaded;
+    private WrappedWorldEdit() {
+    }
+
+    public static boolean loaded;
 
     public static void init() {
-        loaded = Bukkit.getPluginManager().isPluginEnabled("WorldEdit");
+        loaded = Bukkit.getPluginManager().isPluginEnabled("WorldEdit") || Bukkit.getPluginManager().isPluginEnabled("FastAsyncWorldEdit");
     }
 
     public static void registerParser() {
         if (loaded) {
-            WorldEdit.getInstance().getBlockFactory().register(new WorldEditUtils.OraxenBlockInputParser());
-            WorldEdit.getInstance().getEventBus().register(new WorldEditListener());
-            try {
-                // Try and load class, if it fails it is not Paper server so don't register event
-                Class.forName("com.destroystokyo.paper.event.server.AsyncTabCompleteEvent");
-                Bukkit.getPluginManager().registerEvents(new WorldEditListener(), OraxenPlugin.get());
-            }
-            catch (ClassNotFoundException ignored) {
-            }
+            new WorldEditUtils.OraxenBlockInputParser();
+            new WorldEditListener();
         }
     }
 

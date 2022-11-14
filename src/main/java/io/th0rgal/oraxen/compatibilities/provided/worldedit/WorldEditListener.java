@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.compatibilities.provided.worldedit;
 
 import com.destroystokyo.paper.event.server.AsyncTabCompleteEvent;
+import com.sk89q.worldedit.WorldEdit;
 import com.sk89q.worldedit.WorldEditException;
 import com.sk89q.worldedit.bukkit.BukkitAdapter;
 import com.sk89q.worldedit.event.extent.EditSessionEvent;
@@ -8,6 +9,7 @@ import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
@@ -28,6 +30,17 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class WorldEditListener implements Listener {
+
+    public WorldEditListener() {
+        WorldEdit.getInstance().getEventBus().register(this);
+        try {
+            // Try and load class, if it fails it is not Paper server so don't register event
+            Class.forName("com.destroystokyo.paper.event.server.AsyncTabCompleteEvent");
+            Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
+        }
+        catch (ClassNotFoundException ignored) {
+        }
+    }
 
     @Subscribe
     public void onEditSession(EditSessionEvent event) {

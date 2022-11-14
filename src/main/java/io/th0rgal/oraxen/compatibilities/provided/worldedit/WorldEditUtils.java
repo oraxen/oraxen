@@ -41,10 +41,15 @@ import java.util.List;
 
 public class WorldEditUtils {
 
-    public static class OraxenBlockInputParser extends InputParser<BaseBlock> {
+    private WorldEditUtils() {}
 
-        protected OraxenBlockInputParser() {
+    protected static class OraxenBlockInputParser extends InputParser<BaseBlock> {
+
+        public OraxenBlockInputParser() {
             super(WorldEdit.getInstance());
+            if (WrappedWorldEdit.loaded) {
+                WorldEdit.getInstance().getBlockFactory().register(this);
+            }
         }
 
         @Override
