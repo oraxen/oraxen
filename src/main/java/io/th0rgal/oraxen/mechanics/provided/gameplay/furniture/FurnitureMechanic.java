@@ -2,6 +2,9 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
+import com.ticxo.modelengine.api.ModelEngineAPI;
+import com.ticxo.modelengine.api.model.ActiveModel;
+import com.ticxo.modelengine.api.model.ModeledEntity;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
@@ -56,7 +59,8 @@ public class FurnitureMechanic extends Mechanic {
     private final Drop drop;
     private final EvolvingFurniture evolvingFurniture;
     private final int light;
-    private String placedItemId;
+    private final String modelEngineID;
+    private final String placedItemId;
     private ItemStack placedItem;
     private Rotation rotation;
     private float seatHeight;
@@ -68,8 +72,9 @@ public class FurnitureMechanic extends Mechanic {
         super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY,
                 PersistentDataType.BYTE, (byte) 1));
 
-        if (section.isString("item"))
-            placedItemId = section.getString("item");
+        placedItemId = section.getString("item", null);
+
+        modelEngineID = section.getString("modelengine_id", null);
 
         barriers = new ArrayList<>();
         if (CompatibilitiesManager.hasPlugin("ProtocolLib")) {
@@ -150,6 +155,13 @@ public class FurnitureMechanic extends Mechanic {
         } else jukebox = null;
 
         clickActions = ClickAction.parseList(section);
+    }
+
+    public boolean isModelEngine() {
+        return modelEngineID != null;
+    }
+    public String getModelEngineID() {
+        return modelEngineID;
     }
 
     public static ArmorStand getSeat(Location location) {
@@ -312,6 +324,14 @@ public class FurnitureMechanic extends Mechanic {
             }
         else if (light != -1)
             WrappedLightAPI.createBlockLight(location, light);
+
+        if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
+            ModeledEntity modelEntity = ModelEngineAPI.getOrCreateModeledEntity(output);
+            ActiveModel activeModel = ModelEngineAPI.createActiveModel(ModelEngineAPI.getBlueprint(getModelEngineID()));
+
+            modelEntity.addModel(activeModel, false);
+            modelEntity.setBaseEntityVisible(false);
+        }
 
         return output;
     }
