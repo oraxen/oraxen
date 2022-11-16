@@ -21,6 +21,7 @@ import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
+import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -92,6 +93,8 @@ public class OraxenPlugin extends JavaPlugin {
             Message.PLUGIN_LOADED.log(AdventureUtils.tagResolver("os", OS.getOs().getPlatformName()));
         } catch (Exception ignore) {}
         CompatibilitiesManager.enableNativeCompatibilities();
+        if (Settings.DISABLE_LEATHER_REPAIR_CUSTOM.toBool())
+            pluginManager.registerEvents(new CustomArmorListener(), this);
     }
 
     private void postLoading(final ConfigsManager configsManager) {
