@@ -251,15 +251,13 @@ public class FurnitureListener implements Listener {
     public void onPlayerBreakHanging(final EntityDamageByEntityEvent event) {
         if (event.getEntity() instanceof ItemFrame frame) {
             if (event.getDamager() instanceof Player player) {
-                Block block = frame.getLocation().getBlock();
-                final FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
+                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
+                if (mechanic == null) return;
                 event.setCancelled(true);
 
-                OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, player, block, frame);
+                OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, player, frame.getLocation().getBlock(), frame);
                 OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
-                if (furnitureBreakEvent.isCancelled()) {
-                    return;
-                }
+                if (furnitureBreakEvent.isCancelled()) return;
 
                 mechanic.removeAirFurniture(frame);
                 if (player.getGameMode() != GameMode.CREATIVE) {

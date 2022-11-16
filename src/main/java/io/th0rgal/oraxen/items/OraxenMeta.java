@@ -46,7 +46,7 @@ public class OraxenMeta {
                 layers.set(i, layer.substring(0, layer.length() - 4));
         }
         this.generate_model = configurationSection.getBoolean("generate_model");
-        this.parentModel = configurationSection.getString("parent_model");
+        this.parentModel = configurationSection.getString("parent_model", "item/generated");
     }
 
     // this might not be a really good function name
