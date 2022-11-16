@@ -58,10 +58,10 @@ public class FontEvents implements Listener {
                 String unicode = String.valueOf(entry.getValue().getCharacter());
                 if (entry.getValue().hasPermission(event.getPlayer()))
                     page = (manager.permsChatcolor == null)
-                            ? page.replace(entry.getKey(), ChatColor.WHITE + unicode)
-                            .replace(unicode, ChatColor.WHITE + unicode)
+                            ? page.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
+                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK)
                             : page.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(event.getPlayer(), manager.permsChatcolor))
-                            .replace(unicode, ChatColor.WHITE + unicode);
+                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK);
                 meta.setPage(i, AdventureUtils.parseLegacy(page));
             }
         }
@@ -95,10 +95,10 @@ public class FontEvents implements Listener {
                 String unicode = String.valueOf(entry.getValue().getCharacter());
                 if (entry.getValue().hasPermission(event.getPlayer()))
                     line = (manager.permsChatcolor == null)
-                            ? line.replace(entry.getKey(), ChatColor.WHITE + unicode)
-                            .replace(unicode, ChatColor.WHITE + unicode)
+                            ? line.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
+                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK)
                             : line.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(event.getPlayer(), manager.permsChatcolor))
-                            .replace(unicode, ChatColor.WHITE + unicode);
+                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK);
             }
             event.setLine(i, AdventureUtils.parseLegacy(line));
         }
