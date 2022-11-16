@@ -31,14 +31,18 @@ import java.util.stream.Collectors;
 
 public class WorldEditListener implements Listener {
 
-    public WorldEditListener() {
-        WorldEdit.getInstance().getEventBus().register(this);
-        try {
-            // Try and load class, if it fails it is not Paper server so don't register event
-            Class.forName("com.destroystokyo.paper.event.server.AsyncTabCompleteEvent");
-            Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
-        }
-        catch (ClassNotFoundException ignored) {
+    public WorldEditListener(boolean register) {
+        if (register) {
+            WorldEdit.getInstance().getEventBus().register(this);
+            try {
+                // Try and load class, if it fails it is not Paper server so don't register event
+                Class.forName("com.destroystokyo.paper.event.server.AsyncTabCompleteEvent");
+                Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
+            }
+            catch (ClassNotFoundException ignored) {
+            }
+        } else {
+            WorldEdit.getInstance().getEventBus().unregister(this);
         }
     }
 
