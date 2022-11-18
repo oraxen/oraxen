@@ -44,7 +44,7 @@ public class SmeltingMechanicListener implements Listener {
         if (loot == null) return; // not recipe
 
         ItemMeta itemMeta = item.getItemMeta();
-        if (item.hasItemMeta()) return;
+        if (!item.hasItemMeta()) return;
         assert itemMeta != null;
         if (block.getType().toString().contains("ORE") && itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
             loot.setAmount(1 + ThreadLocalRandom.current().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));

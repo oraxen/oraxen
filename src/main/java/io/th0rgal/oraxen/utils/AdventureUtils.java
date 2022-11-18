@@ -67,7 +67,7 @@ public class AdventureUtils {
      * @return The parsed string
      */
     public static String parseLegacyThroughMiniMessage(String message) {
-        return LEGACY_AMPERSAND.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(LEGACY_AMPERSAND.deserialize(message.replace("§", "&"))).replace("\\", "")));
+        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message.replace("&", "§"))).replace("\\", "")));
     }
 
     /**

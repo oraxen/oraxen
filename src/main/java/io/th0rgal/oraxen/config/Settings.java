@@ -21,6 +21,8 @@ public enum Settings {
     SKIPPED_MODEL_DATA_NUMBERS("ConfigsTools.skipped_model_data_numbers"),
     ERROR_ITEM("ConfigsTools.error_item"),
 
+    DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
+
     RESET_RECIPES("Misc.reset_recipes"),
     ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass"),
     SHIELD_DISPLAY("Misc.shield_display"),
