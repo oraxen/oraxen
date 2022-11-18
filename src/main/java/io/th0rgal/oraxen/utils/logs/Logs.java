@@ -1,6 +1,9 @@
 package io.th0rgal.oraxen.utils.logs;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -21,6 +24,13 @@ public class Logs {
 
     public static void logInfo(String message) {
         Bukkit.getConsoleSender().sendMessage(message);
+    }
+    public static void logInfo(Component message) {
+        OraxenPlugin.get().getAudience().console().sendMessage(message);
+    }
+
+    public static void logAsComponent(String message) {
+        OraxenPlugin.get().getAudience().console().sendMessage(AdventureUtils.MINI_MESSAGE.deserialize(message, AdventureUtils.tagResolver("prefix", Message.PREFIX.toString())));
     }
 
     public static void logError(String message) {

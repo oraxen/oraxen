@@ -15,6 +15,9 @@ Plugin:
 Pack:
   generation:
     generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
+    # If you have a duplicate json file due to importing a resourcepack,
+    # have Oraxen attempt to merge it into config files to generate a working resourcepack
+    attempt_to_merge_duplicates: true
     # 64x32 layer is default size and corresponds to 16. If you need higher
     # resolution, e.g. 128x64, you should set this parameter to 32 and so on.
     armor_resolution: 16
