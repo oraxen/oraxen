@@ -78,12 +78,18 @@ public class ResourcePack {
         if (!Settings.GENERATE.toBool())
             return;
 
-        if (pack.exists()) {
-            try {
-                Files.delete(pack.toPath());
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) {
+            plugin.saveResource("pack/shaders/core/rendertype_text.json", true);
+            plugin.saveResource("pack/shaders/core/rendertype_text.vsh", true);
+        } else try {
+            Files.deleteIfExists(new File(shaderFolder, "core/rendertype_text.json").toPath());
+            Files.deleteIfExists(new File(shaderFolder, "core/rendertype_text.vsh").toPath());
+        } catch (IOException ignored) {}
+
+        try {
+            Files.deleteIfExists(pack.toPath());
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         extractInPackIfNotExists(plugin, new File(packFolder, "pack.mcmeta"));
@@ -128,8 +134,9 @@ public class ResourcePack {
 
     private void extractFolders(boolean extractModels, boolean extractTextures, boolean extractShaders,
                                 boolean extractLang, boolean extractFonts, boolean extractSounds, boolean extractAssets, boolean extractOptifine) {
-        if (!extractModels && !extractTextures && !extractShaders && !extractLang && !extractAssets && !extractOptifine)
+        if (!extractModels && !extractTextures && !extractShaders && !extractLang && !extractAssets && !extractOptifine && !extractFonts && !extractSounds)
             return;
+
         final ZipInputStream zip = ResourcesManager.browse();
         try {
             ZipEntry entry = zip.getNextEntry();

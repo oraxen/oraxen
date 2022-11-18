@@ -135,6 +135,9 @@ Misc:
   # but this makes the things easier if you want to try your oraxen recipes.
   reset_recipes: true
 
+  # This will hide the red numbers on the side of scoreboards
+  hide_scoreboard_numbers: false
+
   # Update the items in player inventory to the latest in config when player joins
   auto_update_items: false
 
