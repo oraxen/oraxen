@@ -53,7 +53,8 @@ public class CustomArmorListener implements Listener {
     private void closeTasks(Player player) {
         if (taskMap.containsKey(player)) {
             Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
-                taskMap.get(player).cancel();
+                BukkitTask task = taskMap.get(player);
+                if (task != null) task.cancel();
                 taskMap.remove(player);
             }, 1L);
         }
