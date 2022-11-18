@@ -59,7 +59,6 @@ public class FurnitureMechanic extends Mechanic {
     private final String modelEngineID;
     private final String placedItemId;
     private ItemStack placedItem;
-    private Rotation rotation;
     private float seatHeight;
     private float seatYaw;
     private final List<ClickAction> clickActions;
@@ -202,28 +201,12 @@ public class FurnitureMechanic extends Mechanic {
         return barriers;
     }
 
-    public Rotation getRotation() {
-        return rotation;
-    }
-
     public boolean hasSeat() {
         return hasSeat;
     }
 
     public float getSeatHeight() {
         return seatHeight;
-    }
-
-    public float getSeatYaw() {
-        return seatYaw;
-    }
-
-    public boolean hasFacing() {
-        return facing != null;
-    }
-
-    public BlockFace getFacing() {
-        return facing;
     }
 
     public Drop getDrop() {
@@ -249,7 +232,7 @@ public class FurnitureMechanic extends Mechanic {
 
     public ItemFrame place(Location location, @Nullable Player player) {
         setPlacedItem();
-        return place(getRotation(), getYaw(getRotation()), getFacing(), location, placedItem, player);
+        return place(Rotation.NONE, getYaw(Rotation.NONE), BlockFace.NORTH, location, placedItem, player);
     }
 
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, @Nullable Player player) {
@@ -294,7 +277,7 @@ public class FurnitureMechanic extends Mechanic {
             frame.setItem(clone, false);
         } else frame.setItem(placedItem, false);
         frame.setRotation(rotation);
-        frame.setFacingDirection(hasFacing() ? getFacing() : facing, true);
+        frame.setFacingDirection(facing, true);
 
         PersistentDataContainer pdc = frame.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
