@@ -135,7 +135,6 @@ table:
   material: PAPER
   Mechanics:
     furniture:
-      facing: UP
       barrier: true
       light: 5
       drop: # useless if you are not using a barrier
@@ -151,7 +150,6 @@ cart:
   material: PAPER
   Mechanics:
     furniture:
-      facing: UP
       barrier: true
       drop: # useless if you are not using a barrier
         silktouch: false
@@ -166,7 +164,6 @@ chair:
   material: PAPER
   Mechanics:
     furniture:
-      facing: UP
       barrier: true
       # this option requires barrier: true
       seat: { height: 0, yaw: 0 }
@@ -184,7 +181,6 @@ coach:
   material: PAPER
   Mechanics:
     furniture:
-      facing: UP
       barriers:
         - { x: 0, y: 0, z: 0 }
         - { x: 0, y: 0, z: 1 }
@@ -205,7 +201,6 @@ shelf:
   material: PAPER
   Mechanics:
     furniture:
-      rotation: NONE
       barrier: false
       drop: # useless if you are not using a barrier
         silktouch: false
@@ -220,7 +215,6 @@ example_click_action:
   material: PAPER
   Mechanics:
     furniture:
-      facing: UP
       barrier: true
       drop:
         silktouch: false

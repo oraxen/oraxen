@@ -46,7 +46,6 @@ weed_seed:
   Mechanics:
     furniture:
       item: weed_plant_stage0
-      facing: UP
       barrier: false
       farmland_required: true
       evolution:
@@ -76,7 +75,6 @@ weed_plant_stage1:
   excludeFromInventory: true
   Mechanics:
     furniture:
-      facing: UP
       barrier: false
       farmland_required: true
       evolution:
@@ -97,7 +95,6 @@ weed_plant_stage2:
   excludeFromInventory: true
   Mechanics:
     furniture:
-      facing: UP
       barrier: false
       farmland_required: true
       evolution:
@@ -118,7 +115,6 @@ weed_plant_stage3:
   excludeFromInventory: true
   Mechanics:
     furniture:
-      facing: UP
       barrier: false
       farmland_required: true
       evolution:
@@ -149,7 +145,6 @@ grape_seeds:
   Mechanics:
     furniture:
       item: grape_stage0
-      facing: UP
       barrier: false
       farmblock_required: true
       evolution:
@@ -179,7 +174,6 @@ grape_stage1:
   excludeFromInventory: true
   Mechanics:
     furniture:
-      facing: UP
       barrier: false
       farmblock_required: true
       evolution:
@@ -200,7 +194,6 @@ grape_stage2:
   excludeFromInventory: true
   Mechanics:
     furniture:
-      facing: UP
       barrier: false
       farmblock_required: true
       evolution:
@@ -221,7 +214,6 @@ grape_stage3:
   excludeFromInventory: true
   Mechanics:
     furniture:
-      facing: UP
       barrier: false
       farmblock_required: true
       evolution:
@@ -242,7 +234,6 @@ grape_stage4:
   excludeFromInventory: true
   Mechanics:
     furniture:
-      facing: UP
       barrier: false
       farmblock_required: true
       evolution:
