@@ -60,6 +60,13 @@ public class StorageMechanic {
         storageGui.open(player);
     }
 
+    // Does not make sure that it is personal as it is used for a command
+    public void openPersonalStorage(Player player, Player viewer) {
+        if (player == null || !player.isOnline()) return;
+        StorageGui storageGui = createPersonalGui(player);
+        storageGui.open(viewer);
+    }
+
     public void openDisposal(Player player, Location location) {
         if (type != StorageType.DISPOSAL) return;
         StorageGui storageGui = createDisposalGui(location);
@@ -221,7 +228,7 @@ public class StorageMechanic {
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
+                        storagePDC.set(PERSONAL_STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
             }
         });
 
