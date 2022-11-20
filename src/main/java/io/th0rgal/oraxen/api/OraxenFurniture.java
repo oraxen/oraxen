@@ -57,9 +57,9 @@ public class OraxenFurniture {
     /**
      * Removes Furniture at a given location, optionally by a player
      *
-     * @param location The location to place the Furniture
-     * @param player   The player who places the Furniture, can be null
-     * @return true if the Furniture was placed, false otherwise
+     * @param location The location to remove the Furniture
+     * @param player   The player who removed the Furniture, can be null
+     * @return true if the Furniture was removed, false otherwise
      */
     public static boolean remove(Location location, @Nullable Player player) {
         Block block = location.getBlock();
@@ -73,6 +73,27 @@ public class OraxenFurniture {
             if (player != null && player.getGameMode() != GameMode.CREATIVE)
                 mechanic.getDrop().furnitureSpawns(itemFrame, itemStack);
         }
+        if (mechanic.hasBarriers())
+            mechanic.removeSolid(itemFrame.getWorld(), new BlockLocation(itemFrame.getLocation()), mechanic.getYaw(itemFrame.getRotation()));
+        else mechanic.removeAirFurniture(itemFrame);
+        return true;
+    }
+
+    /**
+     * Removes Furniture at a given Entity, optionally by a player
+     *
+     * @param entity The entity at which the Furniture should be removed
+     * @param player The player who removed the Furniture, can be null
+     * @return true if the Furniture was removed, false otherwise
+     */
+    public static boolean remove(Entity entity, @Nullable Player player) {
+        FurnitureMechanic mechanic = getFurnitureMechanic(entity);
+        if (mechanic == null || !(entity instanceof ItemFrame itemFrame)) return false;
+        ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
+
+        if (player != null && player.getGameMode() != GameMode.CREATIVE)
+            mechanic.getDrop().furnitureSpawns(itemFrame, itemStack);
+
         if (mechanic.hasBarriers())
             mechanic.removeSolid(itemFrame.getWorld(), new BlockLocation(itemFrame.getLocation()), mechanic.getYaw(itemFrame.getRotation()));
         else mechanic.removeAirFurniture(itemFrame);

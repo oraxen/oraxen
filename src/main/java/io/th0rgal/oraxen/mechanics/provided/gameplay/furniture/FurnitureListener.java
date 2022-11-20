@@ -294,14 +294,22 @@ public class FurnitureListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onProjectileHitFurniture(final ProjectileHitEvent event) {
         Block block = event.getHitBlock();
-        Entity entity = event.getHitEntity();
+        Entity hitEntity = event.getHitEntity();
+        Projectile projectile = event.getEntity();
         Location location = block != null && block.getType() == Material.BARRIER
-                ? block.getLocation() : entity instanceof ItemFrame
-                ? entity.getLocation() : null;
-
-        if (location != null && event.getEntity() instanceof Explosive) {
+                ? block.getLocation() : hitEntity instanceof ItemFrame
+                ? hitEntity.getLocation() : null;
+        if (location != null && projectile instanceof Explosive) {
             OraxenFurniture.remove(location, null);
-        } else event.setCancelled(true);
+        }
+
+        // Do not break furniture with a hitbox
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(hitEntity);
+        if (mechanic != null && !mechanic.hasBarriers()) {
+            Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
+            OraxenFurniture.remove(hitEntity, player);
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

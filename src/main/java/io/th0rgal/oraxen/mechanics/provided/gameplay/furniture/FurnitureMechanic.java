@@ -432,7 +432,7 @@ public class FurnitureMechanic extends Mechanic {
         return removed;
     }
 
-    public void removeAirFurniture(ItemFrame frame) {
+    public void removeAirFurniture(Entity frame) {
         PersistentDataContainer framePDC = frame.getPersistentDataContainer();
         if (framePDC.has(SEAT_KEY, PersistentDataType.STRING)) {
             String uuid = framePDC.get(SEAT_KEY, PersistentDataType.STRING);
