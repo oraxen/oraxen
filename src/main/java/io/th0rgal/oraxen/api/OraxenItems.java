@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.Material;
@@ -103,7 +104,8 @@ public class OraxenItems {
     }
 
     public static boolean hasMechanic(String itemID, String mechanicID) {
-        return MechanicsManager.getMechanicFactory(mechanicID).getMechanic(itemID) != null;
+        MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
+        return factory != null && factory.getMechanic(itemID) != null;
     }
 
     public static Map<File, Map<String, ItemBuilder>> getMap() {

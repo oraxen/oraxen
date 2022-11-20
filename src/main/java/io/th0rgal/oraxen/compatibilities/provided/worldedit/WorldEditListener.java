@@ -14,9 +14,6 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
-import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -87,12 +84,6 @@ public class WorldEditListener implements Listener {
         event.setCompletions(ids);
     }
 
-    private final List<String> oraxenBlockIDs = OraxenItems.getEntries().stream()
-            .map(entry -> entry.getKey().toLowerCase()).filter(this::isOraxenBlock).toList();
-
-    private boolean isOraxenBlock(String id) {
-        NoteBlockMechanic nMechanic = (NoteBlockMechanic) MechanicsManager.getMechanicFactory("noteblock").getMechanic(id);
-        StringBlockMechanic sMechanic = (StringBlockMechanic) MechanicsManager.getMechanicFactory("stringblock").getMechanic(id);
-        return nMechanic != null || sMechanic != null;
-    }
+    private static final List<String> oraxenBlockIDs = OraxenItems.getEntries().stream()
+            .map(entry -> entry.getKey().toLowerCase()).filter(OraxenBlocks::isOraxenBlock).toList();
 }

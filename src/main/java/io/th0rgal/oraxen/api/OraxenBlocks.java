@@ -49,7 +49,6 @@ public class OraxenBlocks {
         return switch (block.getType()) {
             case NOTE_BLOCK -> getNoteBlockMechanic(block) != null;
             case TRIPWIRE -> getStringMechanic(block) != null;
-            case MUSHROOM_STEM -> getBlockMechanic(block) != null;
             default -> false;
         };
     }
@@ -62,8 +61,7 @@ public class OraxenBlocks {
      */
     public static boolean isOraxenBlock(String itemId) {
         return OraxenItems.hasMechanic(itemId, "noteblock")
-                || OraxenItems.hasMechanic(itemId, "stringblock")
-                || OraxenItems.hasMechanic(itemId, "furniture");
+                || OraxenItems.hasMechanic(itemId, "stringblock");
     }
 
     /**
