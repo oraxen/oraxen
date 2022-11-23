@@ -30,8 +30,8 @@ repositories {
     maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
     // JitPack
     maven { url 'https://jitpack.io' }
-    // ProtocolLib
-    maven { url 'https://repo.mineinabyss.com/releases'}
+    // ProtocolLib && ModelEngine
+    maven { url 'https://repo.mineinabyss.com/releases' }
     //maven { url 'https://repo.dmulloy2.net/repository/public/' }
     // Minecraft repo (commodore)
     maven { url 'https://libraries.minecraft.net/' }
@@ -75,7 +75,7 @@ dependencies {
     compileOnly group: 'io.lumine', name: 'MythicCrucible', version: '1.5.0-SNAPSHOT'
     compileOnly group: 'com.sk89q.worldedit', name: 'worldedit-bukkit', version: '7.2.0'
     compileOnly group: 'commons-io', name: 'commons-io', version: '2.7'
-    compileOnly group: 'com.ticxo.modelengine', name: 'api', version: 'R3.0.0'
+    compileOnly group: 'com.ticxo', name: 'modelengine', version: 'R3.0.1'
     compileOnly fileTree(dir: 'libs/compile', include: ['*.jar'])
     implementation fileTree(dir: 'libs/implement', include: ['*.jar'])
     implementation group: 'dev.triumphteam', name: 'triumph-gui', version: '3.1.2'
