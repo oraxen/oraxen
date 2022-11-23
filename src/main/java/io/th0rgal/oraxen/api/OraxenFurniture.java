@@ -68,6 +68,7 @@ public class OraxenFurniture {
         if (mechanic == null) return false;
 
         ItemFrame itemFrame = mechanic.getItemFrame(block);
+        if (itemFrame == null) return false;
 
         if (mechanic.removeSolid(block) && (!mechanic.isStorage() || !mechanic.getStorage().isShulker())) {
             if (player != null && player.getGameMode() != GameMode.CREATIVE)
