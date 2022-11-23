@@ -91,21 +91,23 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
         if (Objects.equals(parent.getYBlock(), itemId))
             return content;
-        else if (Objects.equals(parent.getXBlock(), itemId))
+        else if (Objects.equals(parent.getXBlock(), itemId)) {
             content.addProperty("x", 90);
-        else if (Objects.equals(parent.getZBlock(), itemId)) {
+            content.addProperty("z", 90);
+        } else if (Objects.equals(parent.getZBlock(), itemId)) {
             content.addProperty("y", 90);
             content.addProperty("x", 90);
         } else if (Objects.equals(parent.getNorthBlock(), itemId))
             return content;
-        else if (Objects.equals(parent.getEastBlock(), itemId))
-            content.addProperty("x", 90);
-        else if (Objects.equals(parent.getSouthBlock(), itemId))
+        else if (Objects.equals(parent.getEastBlock(), itemId)) {
+            content.addProperty("y", 90);
+        } else if (Objects.equals(parent.getSouthBlock(), itemId))
             content.addProperty("y", 180);
-        else if (Objects.equals(parent.getWestBlock(), itemId))
+        else if (Objects.equals(parent.getWestBlock(), itemId)) {
+            content.addProperty("z", 90);
             content.addProperty("y", 270);
-        else if (Objects.equals(parent.getUpBlock(), itemId))
-            return content;
+        } else if (Objects.equals(parent.getUpBlock(), itemId))
+            content.addProperty("y", 270);
         else if (Objects.equals(parent.getDownBlock(), itemId))
             content.addProperty("x", 180);
 
