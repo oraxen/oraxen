@@ -135,6 +135,10 @@ table:
   material: PAPER
   Mechanics:
     furniture:
+      limited_placing:
+        roof: false
+        floor: true
+        wall: false
       barrier: true
       light: 5
       drop: # useless if you are not using a barrier
@@ -150,6 +154,10 @@ cart:
   material: PAPER
   Mechanics:
     furniture:
+      limited_placing:
+        roof: false
+        floor: true
+        wall: false
       barrier: true
       drop: # useless if you are not using a barrier
         silktouch: false
@@ -164,6 +172,10 @@ chair:
   material: PAPER
   Mechanics:
     furniture:
+      limited_placing:
+        roof: false
+        floor: true
+        wall: false
       barrier: true
       # this option requires barrier: true
       seat: { height: 0, yaw: 0 }
@@ -181,6 +193,10 @@ coach:
   material: PAPER
   Mechanics:
     furniture:
+      limited_placing:
+        roof: false
+        floor: true
+        wall: false
       barriers:
         - { x: 0, y: 0, z: 0 }
         - { x: 0, y: 0, z: 1 }
@@ -201,6 +217,14 @@ shelf:
   material: PAPER
   Mechanics:
     furniture:
+      limited_placing:
+        roof: false
+        floor: false
+        wall: true
+        type: DENY
+        block_types: []
+        block_tags: []
+        oraxen_blocks: []
       barrier: false
       drop: # useless if you are not using a barrier
         silktouch: false
@@ -209,40 +233,3 @@ shelf:
   Pack:
     generate_model: false
     model: default/shelf
-
-example_click_action:
-  displayname: "<gray>Recycle Bin"
-  material: PAPER
-  Mechanics:
-    furniture:
-      barrier: true
-      drop:
-        silktouch: false
-        loots:
-          - { oraxen_item: recycle_bin, probability: 1.0 }
-      clickActions:
-          #
-          # Conditions are powered by SpEL (https://docs.spring.io/spring-framework/docs/3.0.x/reference/expressions.html)
-          # Variables for conditions: #player, #server
-          #
-          # Examples:
-          # - Player has permission: #player.hasPermission('permission node')
-          # - Player is in creative gamemode: #player.gamemode.name() == 'ADVENTURE'
-          # - Player is at world 'spawn': #player.world.name == 'spawn'
-          #
-        - conditions:
-            - '#player.hasPermission("permission.to.use.the.disposal.command")'
-          #
-          # Actions:
-          # [console] <command> - execute a command as the console
-          # [player] <command> - make the player execute a command
-          # [message] <message> - send a message to the player
-          # [actionbar] <message> - send an action bar to the player
-          # [sound] <sound:name> - play a sound to the player (custom sounds are supported)
-          #
-          # Placeholders:
-          # - <player> - player's name
-          # - all PlaceholderAPI placeholders if the plugin is installed
-          #
-          actions:
-            - '[player] disposal'

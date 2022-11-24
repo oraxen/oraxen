@@ -3,10 +3,9 @@ package io.th0rgal.oraxen.utils.limitedplacing;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -17,6 +16,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class LimitedPlacing {
     private final LimitedPlacingType type;
@@ -31,7 +31,7 @@ public class LimitedPlacing {
         floor = section.getBoolean("floor", true);
         roof = section.getBoolean("roof", true);
         wall = section.getBoolean("wall", true);
-        type = LimitedPlacingType.valueOf(section.getString("type", "ALLOW"));
+        type = LimitedPlacingType.valueOf(section.getString("type", "DENY"));
         blockTypes = section.getStringList("block_types");
         blockTags = section.getStringList("block_tags");
         oraxenBlocks = section.getStringList("oraxen_blocks");
@@ -44,7 +44,7 @@ public class LimitedPlacing {
         for (String blockType : blockTypes) {
             blocks.add(Material.getMaterial(blockType));
         }
-        return blocks;
+        return blocks.stream().filter(Objects::nonNull).toList();
     }
 
     public boolean isNotPlacableOn(Block blockBelow, BlockFace blockFace) {
@@ -76,19 +76,17 @@ public class LimitedPlacing {
                 }
             }
         }
-        return (oraxenId != null && getLimitedOraxenBlockIds().contains(oraxenId));
+        List<String> limitedOraxenBlockIds = getLimitedOraxenBlockIds();
+        return (oraxenId != null && !limitedOraxenBlockIds.isEmpty() && limitedOraxenBlockIds.contains(oraxenId));
     }
 
     private String checkIfOraxenItem(Block block) {
+
         return switch (block.getType()) {
-            case NOTE_BLOCK:
-                NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(block);
-                if (noteBlockMechanic != null) yield noteBlockMechanic.getItemID();
-                else yield null;
-            case TRIPWIRE:
-                StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
-                if (stringBlockMechanic != null) yield stringBlockMechanic.getItemID();
-                else yield null;
+            case NOTE_BLOCK, TRIPWIRE:
+                Mechanic mechanic = OraxenBlocks.getOraxenBlock(block.getBlockData());
+                if (mechanic == null) yield null;
+                else yield mechanic.getItemID();
             case BARRIER:
                 FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
                 if (furnitureMechanic != null) yield furnitureMechanic.getItemID();
