@@ -81,10 +81,10 @@ public class ResourcePack {
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) {
             plugin.saveResource("pack/shaders/core/rendertype_text.json", true);
             plugin.saveResource("pack/shaders/core/rendertype_text.vsh", true);
-        } else try {
-            Files.deleteIfExists(new File(shaderFolder, "core/rendertype_text.json").toPath());
-            Files.deleteIfExists(new File(shaderFolder, "core/rendertype_text.vsh").toPath());
-        } catch (IOException ignored) {}
+        } else {
+            checkShaderFiles(new File(shaderFolder, "core/rendertype_text.json"));
+            checkShaderFiles(new File(shaderFolder, "core/rendertype_text.vsh"));
+        }
 
         try {
             Files.deleteIfExists(pack.toPath());
@@ -130,6 +130,24 @@ public class ResourcePack {
             e.printStackTrace();
         }
         ZipUtils.writeZipFile(pack, packFolder, output);
+    }
+
+    // Fast check to avoid issues if RP already has these files from another plugin
+    // But also delete them if setting is false and they existed
+    private void checkShaderFiles(File file) {
+        try {
+            File renamed = new File(file.getAbsolutePath() + ".bak");
+            Files.deleteIfExists(renamed.toPath());
+            if (file.exists()) {
+                file.renameTo(renamed);
+                plugin.saveResource("pack/shaders/core/" + file.getName(), true);
+                if (!Files.readString(file.toPath()).equals(Files.readString(renamed.toPath()))) {
+                    file.delete();
+                    renamed.renameTo(file);
+                } else renamed.delete();
+            }
+        } catch (IOException ignored) {
+        }
     }
 
     private void extractFolders(boolean extractModels, boolean extractTextures, boolean extractShaders,
