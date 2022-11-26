@@ -302,10 +302,11 @@ public class FurnitureListener implements Listener {
                 ? hitEntity.getLocation() : null;
 
         // Do not break furniture with a hitbox unless its explosive
-        if (!ProtectionLib.canBreak(player, location)) event.setCancelled(true);
-        else if (location != null) {
+        if (location != null) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(hitEntity);
-            if (hitEntity != null && mechanic != null && !mechanic.hasBarriers()) {
+            if (!ProtectionLib.canBreak(player, location))
+                event.setCancelled(true);
+            else if (hitEntity != null && mechanic != null && !mechanic.hasBarriers()) {
                 event.setCancelled(true);
                 OraxenFurniture.remove(hitEntity, player);
             } else if (projectile instanceof Explosive) {
@@ -313,20 +314,6 @@ public class FurnitureListener implements Listener {
                 OraxenFurniture.remove(location, player);
             }
         }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onFurnitureBreak(final BlockBreakEvent event) {
-        final Block block = event.getBlock();
-        if (block.getType() != Material.BARRIER) return;
-
-        final FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
-        if (mechanic == null) return;
-
-        OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, event.getPlayer(), block, mechanic.getItemFrame(block));
-        OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
-        if (furnitureBreakEvent.isCancelled()) event.setCancelled(true);
-        else OraxenBlocks.remove(block.getLocation(), event.getPlayer());
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
