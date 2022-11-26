@@ -304,7 +304,7 @@ public class FurnitureListener implements Listener {
         // Do not break furniture with a hitbox unless its explosive
         if (location != null) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(hitEntity);
-            if (!ProtectionLib.canBreak(player, location))
+            if (player != null && !ProtectionLib.canBreak(player, location))
                 event.setCancelled(true);
             else if (hitEntity != null && mechanic != null && !mechanic.hasBarriers()) {
                 event.setCancelled(true);
