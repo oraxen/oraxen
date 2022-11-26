@@ -45,6 +45,8 @@ public class DirectionalBlock {
     public boolean isLog() { return directionalType == DirectionalType.LOG; }
     public boolean isFurnace() { return directionalType == DirectionalType.FURNACE; }
     public boolean isDropper() { return directionalType == DirectionalType.DROPPER; }
+    public boolean isLantern() { return directionalType == DirectionalType.LANTERN; }
+
 
     public String getYBlock() { return yBlock; }
     public String getXBlock() { return xBlock; }
@@ -59,7 +61,7 @@ public class DirectionalBlock {
     public String getDownBlock() { return downBlock; }
 
     public enum DirectionalType {
-        LOG, FURNACE, DROPPER
+        LOG, FURNACE, DROPPER, LANTERN
     }
 
     public int getDirectionVariation(BlockFace face, Player player) {
@@ -97,6 +99,7 @@ public class DirectionalBlock {
                 face = BlockFace.WEST;
 
             if (isDropper()) face = (pitch <= -45.0) ? BlockFace.DOWN : (pitch >= 45.0) ? BlockFace.UP : face;
+            if (isLantern()) face = (pitch < 0) ? BlockFace.DOWN : BlockFace.UP;
         }
         return face;
     }
