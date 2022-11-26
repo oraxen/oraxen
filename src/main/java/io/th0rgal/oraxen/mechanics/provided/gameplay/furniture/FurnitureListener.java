@@ -296,19 +296,22 @@ public class FurnitureListener implements Listener {
         Block block = event.getHitBlock();
         Entity hitEntity = event.getHitEntity();
         Projectile projectile = event.getEntity();
+        Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
         Location location = block != null && block.getType() == Material.BARRIER
                 ? block.getLocation() : hitEntity instanceof ItemFrame
                 ? hitEntity.getLocation() : null;
-        if (location != null && projectile instanceof Explosive) {
-            OraxenFurniture.remove(location, null);
-        }
 
-        // Do not break furniture with a hitbox
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(hitEntity);
-        if (mechanic != null && !mechanic.hasBarriers()) {
-            Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
-            OraxenFurniture.remove(hitEntity, player);
-            event.setCancelled(true);
+        // Do not break furniture with a hitbox unless its explosive
+        if (!ProtectionLib.canBreak(player, location)) event.setCancelled(true);
+        else if (location != null) {
+            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(hitEntity);
+            if (hitEntity != null && mechanic != null && !mechanic.hasBarriers()) {
+                event.setCancelled(true);
+                OraxenFurniture.remove(hitEntity, player);
+            } else if (projectile instanceof Explosive) {
+                event.setCancelled(true);
+                OraxenFurniture.remove(location, player);
+            }
         }
     }
 
