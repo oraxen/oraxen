@@ -25,11 +25,11 @@ public class ReloadCommand {
 
     private static void reloadPack(OraxenPlugin plugin, CommandSender sender) {
         Message.PACK_REGENERATED.send(sender);
-        OraxenPlugin.get().setFontManager(new FontManager(OraxenPlugin.get().getConfigsManager()));
-        OraxenPlugin.get().setSoundManager(new SoundManager(OraxenPlugin.get().getConfigsManager().getSound()));
-        OraxenPlugin.get().getResourcePack().generate(OraxenPlugin.get().getFontManager(),
-                OraxenPlugin.get().getSoundManager());
-        plugin.getUploadManager().uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true);
+        plugin.setFontManager(new FontManager(plugin.getConfigsManager()));
+        plugin.setSoundManager(new SoundManager(plugin.getConfigsManager().getSound()));
+        plugin.getResourcePack().generate(plugin.getFontManager(),
+                plugin.getSoundManager());
+        plugin.getUploadManager().uploadAsyncAndSendToPlayers(plugin.getResourcePack(), true, true);
     }
 
     private static void reloadHud(CommandSender sender) {
