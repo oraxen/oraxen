@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -18,6 +19,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.FileTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.Deflater;
 import java.util.zip.ZipEntry;
@@ -96,8 +98,8 @@ public class ZipUtils {
         try {
             Material.valueOf(itemMaterial);
         } catch (IllegalArgumentException e) {
-            attemptToMergeDuplicateNonItem(name);
-            Logs.logWarning("Failed to merge duplicate file-entry, could not find material");
+            if (!attemptToMergeDuplicateNonItem(name))
+                Logs.logWarning("Failed to merge duplicate file-entry, could not find material");
             return false;
         }
 
@@ -120,7 +122,7 @@ public class ZipUtils {
         }
 
         JsonObject json = JsonParser.parseString(fileContent).getAsJsonObject();
-        for (JsonElement s : json.getAsJsonArray("overrides").getAsJsonArray()) {
+        if (json.getAsJsonArray("overrides") != null) for (JsonElement s : json.getAsJsonArray("overrides")) {
             JsonObject predicate = s.getAsJsonObject().get("predicate").getAsJsonObject();
             String modelPath = s.getAsJsonObject().get("model").getAsString().replace("\\", "/");
             String id = "merged_" + Utils.getLastStringInSplit(modelPath.split(":")[1], "/");
@@ -151,7 +153,7 @@ public class ZipUtils {
     }
 
     private static boolean attemptToMergeDuplicateNonItem(String name) {
-        if (name.startsWith(" assets/minecraft/shaders")) {
+        if (name.startsWith("assets/minecraft/shaders")) {
             Logs.logWarning("Failed to merge duplicate file-entry, file is a shader file");
             Logs.logWarning("Merging this is too advanced and should be done manually.");
             return false;
@@ -179,11 +181,41 @@ public class ZipUtils {
         try {
             String content = Files.readString(path);
             JsonObject sounds = JsonParser.parseString(content).getAsJsonObject();
+            YamlConfiguration soundYaml = YamlConfiguration.loadConfiguration(new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/sound.yml"));
+            for (String id : sounds.keySet()) {
+                Logs.logInfo("Found sound: " + id);
+                if (soundYaml.contains("sounds." + id)) {
+                    Logs.logWarning("Sound already exists in sound.yml, skipping");
+                    continue;
+                }
+                JsonObject sound = sounds.get(id).getAsJsonObject();
+                boolean replace = sound.get("replace") != null && sound.get("replace").getAsBoolean();
+                String category = sound.get("category").getAsString();
+                String subtitle = sound.get("subtitle") != null ? sound.get("subtitle").getAsString() : null;
+                JsonArray soundArray = sound.getAsJsonArray("sounds") != null ? sound.getAsJsonArray("sounds") : null;
+                List<String> soundList = new ArrayList<>();
+                if (soundArray != null) for (JsonElement s : soundArray) soundList.add(s.getAsString());
+
+                soundYaml.set("sounds." + id + ".replace", replace);
+                soundYaml.set("sounds." + id + ".category", category != null ? category : "master");
+                if (subtitle != null) soundYaml.set("sounds." + id + ".subtitle", subtitle);
+                soundYaml.set("sounds." + id + ".sounds", soundList);
+
+                try {
+                    soundYaml.save(new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/sound.yml"));
+                    Logs.logAsComponent("<prefix><#55ffa4>Successfully merged sound " + id + " into sound.yml");
+                } catch (IOException e) {
+                    Logs.logWarning("Failed to merge duplicate file-entry, could not save " + id + " to sound.yml");
+                    return false;
+                }
+            }
+
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
+            return false;
         }
 
-        return false;
+        return true;
     }
 
     private static YamlConfiguration loadMergedYaml() {
