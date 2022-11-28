@@ -25,13 +25,14 @@ import java.util.zip.ZipOutputStream;
 
 public class ZipUtils {
 
-    private ZipUtils() {}
+    private ZipUtils() {
+    }
 
     public static void writeZipFile(final File outputFile, final File directoryToZip,
                                     final List<VirtualFile> fileList) {
 
-        try(final FileOutputStream fos = new FileOutputStream(outputFile);
-            final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {
+        try (final FileOutputStream fos = new FileOutputStream(outputFile);
+             final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {
             final int compressionLevel = Deflater.class.getDeclaredField(Settings.COMPRESSION.toString()).getInt(null);
             zos.setLevel(compressionLevel);
             zos.setComment(Settings.COMMENT.toString());
@@ -40,7 +41,7 @@ public class ZipUtils {
                         file.getInputStream(),
                         zos);
 
-        } catch(final IOException | NoSuchFieldException | IllegalAccessException ex) {
+        } catch (final IOException | NoSuchFieldException | IllegalAccessException ex) {
             ex.printStackTrace();
         }
     }
@@ -56,7 +57,7 @@ public class ZipUtils {
             while ((length = fis.read(bytes)) >= 0)
                 zos.write(bytes, 0, length);
         } catch (IOException ignored) {
-        }finally {
+        } finally {
             zos.closeEntry();
             if (Settings.PROTECTION.toBool()) {
                 zipEntry.setCrc(bytes.length);
@@ -80,9 +81,9 @@ public class ZipUtils {
             }
             if (attemptToMergeDuplicate(name)) {
                 Logs.logAsComponent("<prefix><#55ffa4>Duplicate file fixed: " + name);
-                Logs.logAsComponent("<prefix><#55ffa4>Deleted the imported " + name.split("/")[name.split("/").length - 1] + "and migrated it over to config entries in merged.yml");
+                Logs.logAsComponent("<prefix><#55ffa4>Deleted the imported " + Utils.getLastStringInSplit(name, "/") + "and migrated it over to config entries in merged.yml");
                 Logs.logAsComponent("<prefix><#55ffa4>Might need to restart your server ones before the resourcepack works fully");
-                OraxenPlugin.get().getDataFolder().toPath().resolve("pack/"+ name).toFile().delete();
+                OraxenPlugin.get().getDataFolder().toPath().resolve("pack/" + name).toFile().delete();
             } else {
                 Logs.logError("Failed to merge duplicate file: " + name + ", to configs");
                 Logs.logError("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
@@ -91,10 +92,11 @@ public class ZipUtils {
     }
 
     private static boolean attemptToMergeDuplicate(String name) {
-        String itemMaterial = name.split("/")[name.split("/").length - 1].split(".json")[0].toUpperCase();
+        String itemMaterial = Utils.getLastStringInSplit(name, "/").split(".json")[0].toUpperCase();
         try {
             Material.valueOf(itemMaterial);
         } catch (IllegalArgumentException e) {
+            attemptToMergeDuplicateNonItem(name);
             Logs.logWarning("Failed to merge duplicate file-entry, could not find material");
             return false;
         }
@@ -108,7 +110,7 @@ public class ZipUtils {
             Logs.logWarning("Failed to merge duplicate file-entry, failed to load merged_duplicates.yml");
             return false;
         }
-        Path path = Path.of(OraxenPlugin.get ().getDataFolder().getAbsolutePath(), "\\pack\\", name);
+        Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "\\pack\\", name);
         String fileContent;
         try {
             fileContent = Files.readString(path);
@@ -120,8 +122,8 @@ public class ZipUtils {
         JsonObject json = JsonParser.parseString(fileContent).getAsJsonObject();
         for (JsonElement s : json.getAsJsonArray("overrides").getAsJsonArray()) {
             JsonObject predicate = s.getAsJsonObject().get("predicate").getAsJsonObject();
-            String modelPath = s.getAsJsonObject().get("model").getAsString();
-            String id = "merged_" + modelPath.replace("\\", "/").split(":")[1].split("/")[modelPath.split("/").length - 1];
+            String modelPath = s.getAsJsonObject().get("model").getAsString().replace("\\", "/");
+            String id = "merged_" + Utils.getLastStringInSplit(modelPath.split(":")[1], "/");
             int cmd;
             try {
                 cmd = predicate.get("custom_model_data").getAsInt();
@@ -146,6 +148,42 @@ public class ZipUtils {
         }
 
         return true;
+    }
+
+    private static boolean attemptToMergeDuplicateNonItem(String name) {
+        if (name.startsWith(" assets/minecraft/shaders")) {
+            Logs.logWarning("Failed to merge duplicate file-entry, file is a shader file");
+            Logs.logWarning("Merging this is too advanced and should be done manually.");
+            return false;
+        } else if (name.startsWith("assets/minecraft/textures/models/armor/leather_layer")) {
+            Logs.logWarning("Failed to merge duplicate file-entry, file is a file for custom armor");
+            Logs.logWarning("You should not import already combined armor layer files, but individual ones for every armor set you want.");
+            Logs.logWarning("Please refer to https://docs.oraxen.com/configuration/custom-armors for more information");
+            return false;
+        } else if (name.startsWith("assets/minecraft/textures")) {
+            Logs.logWarning("Failed to merge duplicate file-entry, file is a texture file");
+            Logs.logWarning("Cannot merge texture files, rename this or the duplicate entry");
+            return false;
+        } else if (name.matches("assets/.*/sounds.json")) {
+            Logs.logWarning("Found a sounds.json duplicate, trying to merge it into Oraxens sound.yml config");
+            return mergeSoundJson(name);
+        } else {
+            Logs.logWarning("Failed to merge duplicate file-entry, file is not a file that Oraxen can merge right now");
+            Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
+            return false;
+        }
+    }
+
+    private static boolean mergeSoundJson(String name) {
+        Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/", name);
+        try {
+            String content = Files.readString(path);
+            JsonObject sounds = JsonParser.parseString(content).getAsJsonObject();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return false;
     }
 
     private static YamlConfiguration loadMergedYaml() {
