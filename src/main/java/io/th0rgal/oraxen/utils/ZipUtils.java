@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.lumine.mythic.utils.logging.Log;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -70,73 +71,76 @@ public class ZipUtils {
 
     /**
      * Check if the file already exists in the zip file
-     * In the future this method will handle and merge files aswell
      */
     private static void checkForDuplicate(ZipOutputStream out, ZipEntry entry) {
         String name = entry.getName();
         try {
             out.putNextEntry(entry);
         } catch (IOException e) {
-            Logs.logWarning("Duplicate file detected: " + name + " - Attempting to merge it");
-            if (!Settings.ATTEMPT_TO_MERGE_DUPLICATES.toBool()) {
-                Logs.logError("Not attempting to merge duplicate file as it is disabled in settings.yml");
+            Logs.logWarning("Duplicate file detected: <blue>" +  name + "</blue> - Attempting to migrate it");
+            if (!Settings.ATTEMPT_TO_MIGRATE_DUPLICATES.toBool()) {
+                Logs.logError("Not attempting to migrate duplicate file as it is disabled in settings.yml");
             }
-            if (attemptToMergeDuplicate(name)) {
-                Logs.logAsComponent("<prefix><#55ffa4>Duplicate file fixed: " + name);
-                Logs.logAsComponent("<prefix><#55ffa4>Deleted the imported " + Utils.getLastStringInSplit(name, "/") + "and migrated it over to config entries in merged.yml");
-                Logs.logAsComponent("<prefix><#55ffa4>Might need to restart your server ones before the resourcepack works fully");
-                OraxenPlugin.get().getDataFolder().toPath().resolve("pack/" + name).toFile().delete();
+            else if (attemptToMigrateDuplicate(name)) {
+                Logs.logSuccess("Duplicate file fixed:<blue> " + name);
+                try {
+                    OraxenPlugin.get().getDataFolder().toPath().resolve("pack/" + name).toFile().delete();
+                    Logs.logSuccess("Deleted the imported <blue>" + Utils.getLastStringInSplit(name, "/") + "</blue> and migrated it to its supported Oraxen config(s)");
+                } catch (Exception ignored) {
+                    Log.error("Failed to delete the imported <blue>" + Utils.getLastStringInSplit(name, "/") + "</blue> after migrating it");
+                }
+                Logs.logSuccess("Might need to restart your server ones before the resourcepack works fully");
             }
-            Logs.logInfo("\n");
+            Logs.newline();
         }
     }
 
-    private static boolean attemptToMergeDuplicate(String name) {
+    private static boolean attemptToMigrateDuplicate(String name) {
         if (name.startsWith("assets/minecraft/models/item/")) {
-            Logs.logWarning("Found a duplicate " + Utils.getLastStringInSplit(name, "/") + ", attempting to merge it into Oraxen item configs");
-            return mergeItemJson(name);
+            Logs.logWarning("Found a duplicate <blue>" + Utils.getLastStringInSplit(name, "/") + "</blue>, attempting to migrate it into Oraxen item configs");
+            return migrateItemJson(name);
         } else if (name.matches("assets/minecraft/font/default.json")) {
-            Logs.logWarning("Found a default.json duplicate, trying to merge it into Oraxens glyph configs");
-            return mergeDefaultFontJson(name);
+            Logs.logWarning("Found a default.json duplicate, trying to migrate it into Oraxens glyph configs");
+            return migrateDefaultFontJson(name);
         } else if (name.matches("assets/.*/sounds.json")) {
-            Logs.logWarning("Found a sounds.json duplicate, trying to merge it into Oraxens sound.yml config");
-            return mergeSoundJson(name);
+            Logs.logWarning("Found a sounds.json duplicate, trying to migrate it into Oraxens sound.yml config");
+            return migrateSoundJson(name);
         } else if (name.startsWith("assets/minecraft/shaders")) {
-            Logs.logWarning("Failed to merge duplicate file-entry, file is a shader file");
-            Logs.logWarning("Merging this is too advanced and should be done manually.");
+            Logs.logWarning("Failed to migrate duplicate file-entry, file is a shader file");
+            Logs.logWarning("Merging this is too advanced and should be migrated manually or deleted.");
             return false;
         } else if (name.startsWith("assets/minecraft/textures/models/armor/leather_layer")) {
-            Logs.logWarning("Failed to merge duplicate file-entry, file is a combined custom armor texture");
+            Logs.logWarning("Failed to migrate duplicate file-entry, file is a combined custom armor texture");
             Logs.logWarning("You should not import already combined armor layer files, but individual ones for every armor set you want.");
             Logs.logWarning("Please refer to https://docs.oraxen.com/configuration/custom-armors for more information");
             return false;
         } else if (name.startsWith("assets/minecraft/textures")) {
-            Logs.logWarning("Failed to merge duplicate file-entry, file is a texture file");
-            Logs.logWarning("Cannot merge texture files, rename this or the duplicate entry");
+            Logs.logWarning("Failed to migrate duplicate file-entry, file is a texture file");
+            Logs.logWarning("Cannot migrate texture files, rename this or the duplicate entry");
             return false;
         } else {
-            Logs.logWarning("Failed to merge duplicate file-entry, file is not a file that Oraxen can merge right now");
+            Logs.logWarning("Failed to migrate duplicate file-entry, file is not a file that Oraxen can migrate right now");
             Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
             return false;
         }
     }
 
-    private static boolean mergeItemJson(String name) {
+    private static boolean migrateItemJson(String name) {
         String itemMaterial = Utils.getLastStringInSplit(name, "/").split(".json")[0].toUpperCase();
         try {
             Material.valueOf(itemMaterial);
         } catch (IllegalArgumentException e) {
-            Logs.logWarning("Failed to merge duplicate file-entry, could not find material");
+            Logs.logWarning("Failed to migrate duplicate file-entry, could not find material");
             return false;
         }
 
         if (!name.endsWith(".json")) {
-            Logs.logWarning("Failed to merge duplicate file-entry, file is not a .json file");
+            Logs.logWarning("Failed to migrate duplicate file-entry, file is not a .json file");
             return false;
         }
-        YamlConfiguration mergedYaml = loadMergedYaml("items");
-        if (mergedYaml == null) {
-            Logs.logWarning("Failed to merge duplicate file-entry, failed to load items/merged_duplicates.yml");
+        YamlConfiguration migratedYaml = loadMigrateYaml("items");
+        if (migratedYaml == null) {
+            Logs.logWarning("Failed to migrate duplicate file-entry, failed to load items/migrated_duplicates.yml");
             return false;
         }
         Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "\\pack\\", name);
@@ -144,7 +148,7 @@ public class ZipUtils {
         try {
             fileContent = Files.readString(path);
         } catch (IOException e) {
-            Logs.logWarning("Failed to merge duplicate file-entry, could not read file");
+            Logs.logWarning("Failed to migrate duplicate file-entry, could not read file");
             return false;
         }
 
@@ -152,41 +156,41 @@ public class ZipUtils {
         if (json.getAsJsonArray("overrides") != null) for (JsonElement element : json.getAsJsonArray("overrides")) {
             JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
             String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
-            String id = "merged_" + Utils.getLastStringInSplit(modelPath.split(":")[1], "/");
+            String id = "migrated_" + Utils.getLastStringInSplit(modelPath.split(":")[1], "/");
             int cmd;
             try {
                 cmd = predicate.get("custom_model_data").getAsInt();
             } catch (NullPointerException e) {
-                Logs.logWarning("Failed to merge duplicate file-entry, could not find custom_model_data");
+                Logs.logWarning("Failed to migrate duplicate file-entry, could not find custom_model_data");
                 return false;
             }
 
-            mergedYaml.set(id + ".material", itemMaterial);
-            mergedYaml.set(id + ".excludeFromInventory", true);
-            mergedYaml.set(id + ".excludeFromCommands", true);
-            mergedYaml.set(id + ".Pack.custom_model_data", cmd);
-            mergedYaml.set(id + ".Pack.model", modelPath);
-            mergedYaml.set(id + ".Pack.generate_model", false);
+            migratedYaml.set(id + ".material", itemMaterial);
+            migratedYaml.set(id + ".excludeFromInventory", true);
+            migratedYaml.set(id + ".excludeFromCommands", true);
+            migratedYaml.set(id + ".Pack.custom_model_data", cmd);
+            migratedYaml.set(id + ".Pack.model", modelPath);
+            migratedYaml.set(id + ".Pack.generate_model", false);
         }
 
         try {
-            mergedYaml.save(new File(OraxenPlugin.get().getDataFolder(), "/items/merged_duplicates.yml"));
+            migratedYaml.save(new File(OraxenPlugin.get().getDataFolder(), "/items/migrated_duplicates.yml"));
         } catch (IOException e) {
-            Logs.logWarning("Failed to merge duplicate file-entry, could not save merged_duplicates.yml");
+            Logs.logWarning("Failed to migrate duplicate file-entry, could not save migrated_duplicates.yml");
             return false;
         }
 
         return true;
     }
 
-    private static boolean mergeSoundJson(String name) {
+    private static boolean migrateSoundJson(String name) {
         Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/", name);
         try {
             String fileContent;
             try {
                 fileContent = Files.readString(path);
             } catch (IOException e) {
-                Logs.logWarning("Failed to merge duplicate file-entry, could not read file");
+                Logs.logWarning("Failed to migrate duplicate file-entry, could not read file");
                 return false;
             }
 
@@ -212,9 +216,9 @@ public class ZipUtils {
 
                 try {
                     soundYaml.save(new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/sound.yml"));
-                    Logs.logAsComponent("<prefix><#55ffa4>Successfully merged sound " + id + " into sound.yml");
+                    Logs.logSuccess("Successfully migrated sound <blue>" + id + "</blue> into sound.yml");
                 } catch (IOException e) {
-                    Logs.logWarning("Failed to merge duplicate file-entry, could not save " + id + " to sound.yml");
+                    Logs.logWarning("Failed to migrate duplicate file-entry, could not save <blue>" + id + "</blue> to sound.yml");
                     return false;
                 }
             }
@@ -226,13 +230,13 @@ public class ZipUtils {
         return true;
     }
 
-    private static boolean mergeDefaultFontJson(String name) {
+    private static boolean migrateDefaultFontJson(String name) {
         Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/", name);
         try {
-            YamlConfiguration glyphYaml = loadMergedYaml("glyphs");
+            YamlConfiguration glyphYaml = loadMigrateYaml("glyphs");
 
             if (glyphYaml == null) {
-                Logs.logWarning("Failed to merge duplicate file-entry, failed to load glyphs/merged_duplicates.yml");
+                Logs.logWarning("Failed to migrate duplicate file-entry, failed to load glyphs/migrated_duplicates.yml");
                 return false;
             }
 
@@ -240,13 +244,13 @@ public class ZipUtils {
             try {
                 fileContent = Files.readString(path);
             } catch (IOException e) {
-                Logs.logWarning("Failed to merge duplicate file-entry, could not read file");
+                Logs.logWarning("Failed to migrate duplicate file-entry, could not read file");
                 return false;
             }
 
             JsonObject json = JsonParser.parseString(fileContent).getAsJsonObject();
             if (json.getAsJsonArray("providers") == null) {
-                Logs.logWarning("Failed to merge duplicate file-entry, file is not a valid font file");
+                Logs.logWarning("Failed to migrate duplicate file-entry, file is not a valid font file");
                 return false;
             }
 
@@ -271,6 +275,13 @@ public class ZipUtils {
                 glyphYaml.set("glyphs." + file + ".ascent", ascent);
                 glyphYaml.set("glyphs." + file + ".height", height);
 
+                try {
+                    glyphYaml.save(new File(OraxenPlugin.get().getDataFolder(), "/glyphs/migrated_duplicates.yml"));
+                } catch (IOException e) {
+                    Logs.logWarning("Failed to migrate duplicate file-entry, could not save migrated_duplicates.yml");
+                    return false;
+                }
+
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -280,8 +291,8 @@ public class ZipUtils {
         return true;
     }
 
-    private static YamlConfiguration loadMergedYaml(String folder) {
-        File file = new File(OraxenPlugin.get().getDataFolder(), "\\" + folder + "\\" + "merged_duplicates.yml");
+    private static YamlConfiguration loadMigrateYaml(String folder) {
+        File file = new File(OraxenPlugin.get().getDataFolder(), "\\" + folder + "\\" + "migrated_duplicates.yml");
         if (!file.exists()) {
             try {
                 file.createNewFile();
