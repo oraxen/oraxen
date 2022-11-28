@@ -86,20 +86,47 @@ public class ZipUtils {
                 Logs.logAsComponent("<prefix><#55ffa4>Deleted the imported " + Utils.getLastStringInSplit(name, "/") + "and migrated it over to config entries in merged.yml");
                 Logs.logAsComponent("<prefix><#55ffa4>Might need to restart your server ones before the resourcepack works fully");
                 OraxenPlugin.get().getDataFolder().toPath().resolve("pack/" + name).toFile().delete();
-            } else {
-                Logs.logError("Failed to merge duplicate file: " + name + ", to configs");
-                Logs.logError("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
             }
+            Logs.logInfo("\n");
         }
     }
 
     private static boolean attemptToMergeDuplicate(String name) {
+        if (name.startsWith("assets/minecraft/models/item/")) {
+            Logs.logWarning("Found a duplicate " + Utils.getLastStringInSplit(name, "/") + ", attempting to merge it into Oraxen item configs");
+            return mergeItemJson(name);
+        } else if (name.matches("assets/minecraft/font/default.json")) {
+            Logs.logWarning("Found a default.json duplicate, trying to merge it into Oraxens glyph configs");
+            return mergeDefaultFontJson(name);
+        } else if (name.matches("assets/.*/sounds.json")) {
+            Logs.logWarning("Found a sounds.json duplicate, trying to merge it into Oraxens sound.yml config");
+            return mergeSoundJson(name);
+        } else if (name.startsWith("assets/minecraft/shaders")) {
+            Logs.logWarning("Failed to merge duplicate file-entry, file is a shader file");
+            Logs.logWarning("Merging this is too advanced and should be done manually.");
+            return false;
+        } else if (name.startsWith("assets/minecraft/textures/models/armor/leather_layer")) {
+            Logs.logWarning("Failed to merge duplicate file-entry, file is a combined custom armor texture");
+            Logs.logWarning("You should not import already combined armor layer files, but individual ones for every armor set you want.");
+            Logs.logWarning("Please refer to https://docs.oraxen.com/configuration/custom-armors for more information");
+            return false;
+        } else if (name.startsWith("assets/minecraft/textures")) {
+            Logs.logWarning("Failed to merge duplicate file-entry, file is a texture file");
+            Logs.logWarning("Cannot merge texture files, rename this or the duplicate entry");
+            return false;
+        } else {
+            Logs.logWarning("Failed to merge duplicate file-entry, file is not a file that Oraxen can merge right now");
+            Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
+            return false;
+        }
+    }
+
+    private static boolean mergeItemJson(String name) {
         String itemMaterial = Utils.getLastStringInSplit(name, "/").split(".json")[0].toUpperCase();
         try {
             Material.valueOf(itemMaterial);
         } catch (IllegalArgumentException e) {
-            if (!attemptToMergeDuplicateNonItem(name))
-                Logs.logWarning("Failed to merge duplicate file-entry, could not find material");
+            Logs.logWarning("Failed to merge duplicate file-entry, could not find material");
             return false;
         }
 
@@ -107,9 +134,9 @@ public class ZipUtils {
             Logs.logWarning("Failed to merge duplicate file-entry, file is not a .json file");
             return false;
         }
-        YamlConfiguration mergedYaml = loadMergedYaml();
+        YamlConfiguration mergedYaml = loadMergedYaml("items");
         if (mergedYaml == null) {
-            Logs.logWarning("Failed to merge duplicate file-entry, failed to load merged_duplicates.yml");
+            Logs.logWarning("Failed to merge duplicate file-entry, failed to load items/merged_duplicates.yml");
             return false;
         }
         Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "\\pack\\", name);
@@ -122,9 +149,9 @@ public class ZipUtils {
         }
 
         JsonObject json = JsonParser.parseString(fileContent).getAsJsonObject();
-        if (json.getAsJsonArray("overrides") != null) for (JsonElement s : json.getAsJsonArray("overrides")) {
-            JsonObject predicate = s.getAsJsonObject().get("predicate").getAsJsonObject();
-            String modelPath = s.getAsJsonObject().get("model").getAsString().replace("\\", "/");
+        if (json.getAsJsonArray("overrides") != null) for (JsonElement element : json.getAsJsonArray("overrides")) {
+            JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
+            String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
             String id = "merged_" + Utils.getLastStringInSplit(modelPath.split(":")[1], "/");
             int cmd;
             try {
@@ -152,47 +179,29 @@ public class ZipUtils {
         return true;
     }
 
-    private static boolean attemptToMergeDuplicateNonItem(String name) {
-        if (name.startsWith("assets/minecraft/shaders")) {
-            Logs.logWarning("Failed to merge duplicate file-entry, file is a shader file");
-            Logs.logWarning("Merging this is too advanced and should be done manually.");
-            return false;
-        } else if (name.startsWith("assets/minecraft/textures/models/armor/leather_layer")) {
-            Logs.logWarning("Failed to merge duplicate file-entry, file is a file for custom armor");
-            Logs.logWarning("You should not import already combined armor layer files, but individual ones for every armor set you want.");
-            Logs.logWarning("Please refer to https://docs.oraxen.com/configuration/custom-armors for more information");
-            return false;
-        } else if (name.startsWith("assets/minecraft/textures")) {
-            Logs.logWarning("Failed to merge duplicate file-entry, file is a texture file");
-            Logs.logWarning("Cannot merge texture files, rename this or the duplicate entry");
-            return false;
-        } else if (name.matches("assets/.*/sounds.json")) {
-            Logs.logWarning("Found a sounds.json duplicate, trying to merge it into Oraxens sound.yml config");
-            return mergeSoundJson(name);
-        } else {
-            Logs.logWarning("Failed to merge duplicate file-entry, file is not a file that Oraxen can merge right now");
-            Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
-            return false;
-        }
-    }
-
     private static boolean mergeSoundJson(String name) {
         Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/", name);
         try {
-            String content = Files.readString(path);
-            JsonObject sounds = JsonParser.parseString(content).getAsJsonObject();
+            String fileContent;
+            try {
+                fileContent = Files.readString(path);
+            } catch (IOException e) {
+                Logs.logWarning("Failed to merge duplicate file-entry, could not read file");
+                return false;
+            }
+
+            JsonObject sounds = JsonParser.parseString(fileContent).getAsJsonObject();
             YamlConfiguration soundYaml = YamlConfiguration.loadConfiguration(new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/sound.yml"));
             for (String id : sounds.keySet()) {
-                Logs.logInfo("Found sound: " + id);
                 if (soundYaml.contains("sounds." + id)) {
-                    Logs.logWarning("Sound already exists in sound.yml, skipping");
+                    Logs.logWarning("Sound " + id + " is already defined in sound.yml, skipping");
                     continue;
                 }
                 JsonObject sound = sounds.get(id).getAsJsonObject();
                 boolean replace = sound.get("replace") != null && sound.get("replace").getAsBoolean();
                 String category = sound.get("category").getAsString();
                 String subtitle = sound.get("subtitle") != null ? sound.get("subtitle").getAsString() : null;
-                JsonArray soundArray = sound.getAsJsonArray("sounds") != null ? sound.getAsJsonArray("sounds") : null;
+                JsonArray soundArray = sound.getAsJsonArray("sounds");
                 List<String> soundList = new ArrayList<>();
                 if (soundArray != null) for (JsonElement s : soundArray) soundList.add(s.getAsString());
 
@@ -209,8 +218,7 @@ public class ZipUtils {
                     return false;
                 }
             }
-
-        } catch (IOException e) {
+        } catch (Exception e) {
             e.printStackTrace();
             return false;
         }
@@ -218,8 +226,62 @@ public class ZipUtils {
         return true;
     }
 
-    private static YamlConfiguration loadMergedYaml() {
-        File file = new File(OraxenPlugin.get().getDataFolder(), "\\items\\" + "merged_duplicates.yml");
+    private static boolean mergeDefaultFontJson(String name) {
+        Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/", name);
+        try {
+            YamlConfiguration glyphYaml = loadMergedYaml("glyphs");
+
+            if (glyphYaml == null) {
+                Logs.logWarning("Failed to merge duplicate file-entry, failed to load glyphs/merged_duplicates.yml");
+                return false;
+            }
+
+            String fileContent;
+            try {
+                fileContent = Files.readString(path);
+            } catch (IOException e) {
+                Logs.logWarning("Failed to merge duplicate file-entry, could not read file");
+                return false;
+            }
+
+            JsonObject json = JsonParser.parseString(fileContent).getAsJsonObject();
+            if (json.getAsJsonArray("providers") == null) {
+                Logs.logWarning("Failed to merge duplicate file-entry, file is not a valid font file");
+                return false;
+            }
+
+            for (JsonElement element : json.getAsJsonArray("providers")) {
+                JsonObject provider = element.getAsJsonObject();
+                String file = provider.get("file").getAsString();
+                JsonArray charsArray = provider.getAsJsonArray("chars");
+                List<String> charList = new ArrayList<>();
+                if (charsArray != null) for (JsonElement c : charsArray) charList.add(c.getAsString());
+                int ascent, height;
+
+                try {
+                    ascent = provider.get("ascent").getAsInt();
+                    height = provider.get("height").getAsInt();
+                } catch (IllegalStateException e) {
+                    ascent = 8;
+                    height = 8;
+                }
+
+                glyphYaml.set("glyphs." + file + ".file", file != null ? file : "required/exit_icon.png");
+                glyphYaml.set("glyphs." + file + ".chars", charList);
+                glyphYaml.set("glyphs." + file + ".ascent", ascent);
+                glyphYaml.set("glyphs." + file + ".height", height);
+
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
+    }
+
+    private static YamlConfiguration loadMergedYaml(String folder) {
+        File file = new File(OraxenPlugin.get().getDataFolder(), "\\" + folder + "\\" + "merged_duplicates.yml");
         if (!file.exists()) {
             try {
                 file.createNewFile();
