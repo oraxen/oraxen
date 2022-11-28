@@ -79,7 +79,7 @@ public class ZipUtils {
         } catch (IOException e) {
             Logs.logWarning("Duplicate file detected: <blue>" +  name + "</blue> - Attempting to migrate it");
             if (!Settings.ATTEMPT_TO_MIGRATE_DUPLICATES.toBool()) {
-                Logs.logError("Not attempting to migrate duplicate file as it is disabled in settings.yml");
+                Logs.logError("Not attempting to migrate duplicate file as <#22b14c>attempt_to_migrate_duplicates</#22b14c> is disabled in settings.yml");
             }
             else if (attemptToMigrateDuplicate(name)) {
                 Logs.logSuccess("Duplicate file fixed:<blue> " + name);
@@ -156,7 +156,7 @@ public class ZipUtils {
         if (json.getAsJsonArray("overrides") != null) for (JsonElement element : json.getAsJsonArray("overrides")) {
             JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
             String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
-            String id = "migrated_" + Utils.getLastStringInSplit(modelPath.split(":")[1], "/");
+            String id = "migrated_" + Utils.getLastStringInSplit(modelPath, "/");
             int cmd;
             try {
                 cmd = predicate.get("custom_model_data").getAsInt();
@@ -203,8 +203,8 @@ public class ZipUtils {
                 }
                 JsonObject sound = sounds.get(id).getAsJsonObject();
                 boolean replace = sound.get("replace") != null && sound.get("replace").getAsBoolean();
-                String category = sound.get("category").getAsString();
-                String subtitle = sound.get("subtitle") != null ? sound.get("subtitle").getAsString() : null;
+                String category = sound.get("category") != null && sound.get("category").getAsString() != null ? sound.get("category").getAsString() : null;
+                String subtitle = sound.get("subtitle").getAsString() != null ? sound.get("subtitle").getAsString() : null;
                 JsonArray soundArray = sound.getAsJsonArray("sounds");
                 List<String> soundList = new ArrayList<>();
                 if (soundArray != null) for (JsonElement s : soundArray) soundList.add(s.getAsString());
@@ -219,7 +219,6 @@ public class ZipUtils {
                     Logs.logSuccess("Successfully migrated sound <blue>" + id + "</blue> into sound.yml");
                 } catch (IOException e) {
                     Logs.logWarning("Failed to migrate duplicate file-entry, could not save <blue>" + id + "</blue> to sound.yml");
-                    return false;
                 }
             }
         } catch (Exception e) {
