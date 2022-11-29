@@ -306,12 +306,14 @@ public class FurnitureListener implements Listener {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(hitEntity);
             if (player != null && !ProtectionLib.canBreak(player, location))
                 event.setCancelled(true);
-            else if (hitEntity != null && mechanic != null && !mechanic.hasBarriers()) {
-                event.setCancelled(true);
-                OraxenFurniture.remove(hitEntity, player);
-            } else if (projectile instanceof Explosive) {
+            else if (projectile instanceof Explosive) {
                 event.setCancelled(true);
                 OraxenFurniture.remove(location, player);
+            }
+            else if (hitEntity != null && mechanic != null) {
+                event.setCancelled(true);
+                if (!mechanic.hasBarriers())
+                    OraxenFurniture.remove(hitEntity, player);
             }
         }
     }
