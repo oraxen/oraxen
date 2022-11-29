@@ -76,6 +76,7 @@ public class OraxenPlugin extends JavaPlugin {
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
         OraxenItems.loadItems(configsManager);
+        io.th0rgal.oraxen.items.OraxenItems.loadItems(configsManager);
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there
         hudManager.registerEvents();
