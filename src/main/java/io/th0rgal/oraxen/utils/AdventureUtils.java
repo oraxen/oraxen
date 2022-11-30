@@ -67,7 +67,7 @@ public class AdventureUtils {
      * @return The parsed string
      */
     public static String parseLegacyThroughMiniMessage(String message) {
-        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message.replace("&", "§"))).replace("\\", "")));
+        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message.replace("&", "§"))).replaceAll("\\\\(?!u)", "")));
     }
 
     /**
@@ -75,7 +75,7 @@ public class AdventureUtils {
      * @return The original string, parsed with GsonComponentSerializer
      */
     public static String parseJson(String message) {
-        return GSON_SERIALIZER.serialize(GSON_SERIALIZER.deserialize(message)).replace("\\", "");
+        return GSON_SERIALIZER.serialize(GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)", "");
     }
 
     /**
@@ -83,7 +83,7 @@ public class AdventureUtils {
      * @return The original component, parsed with GsonSerializer
      */
     public static Component parseJson(Component message) {
-        return GSON_SERIALIZER.deserialize(GSON_SERIALIZER.serialize(message).replace("\\", ""));
+        return GSON_SERIALIZER.deserialize(GSON_SERIALIZER.serialize(message).replaceAll("\\\\(?!u)", ""));
     }
 
 
