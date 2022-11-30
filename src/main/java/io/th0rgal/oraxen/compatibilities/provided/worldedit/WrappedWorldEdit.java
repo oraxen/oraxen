@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.compatibilities.provided.worldedit;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -22,13 +23,14 @@ public class WrappedWorldEdit {
     public static void registerParser() {
         if (loaded) {
             new WorldEditUtils.OraxenBlockInputParser();
-            new WorldEditListener(true);
+            new WorldEditHandlers(true);
+            Bukkit.getPluginManager().registerEvents(new WorldEditListener(), OraxenPlugin.get());
         }
     }
 
     public static void unregister() {
         if (loaded) {
-            new WorldEditListener(false);
+            new WorldEditHandlers(false);
         }
     }
 
