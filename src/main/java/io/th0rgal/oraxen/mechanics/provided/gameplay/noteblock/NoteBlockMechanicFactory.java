@@ -83,29 +83,34 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         return content;
     }
 
-    public static JsonObject getDirectionalModelJson(String modelName, String itemId, NoteBlockMechanic mechanic, NoteBlockMechanic parentMechanic) {
+    public static JsonObject getDirectionalModelJson(String modelName, NoteBlockMechanic mechanic, NoteBlockMechanic parentMechanic) {
+        String itemId = mechanic.getItemID();
         JsonObject content = new JsonObject();
         DirectionalBlock parent = parentMechanic.getDirectional();
         String subBlockModel = mechanic.getDirectional().getDirectionalModel(mechanic);
-        content.addProperty("model", subBlockModel == null ? modelName : subBlockModel);
+        content.addProperty("model", subBlockModel != null ? subBlockModel : modelName);
+        // If subModel is specified and is different from parent we don't want to rotate it
+        if (subBlockModel != null && !Objects.equals(subBlockModel, modelName)) return content;
 
         if (Objects.equals(parent.getYBlock(), itemId))
             return content;
-        else if (Objects.equals(parent.getXBlock(), itemId))
+        else if (Objects.equals(parent.getXBlock(), itemId)) {
             content.addProperty("x", 90);
-        else if (Objects.equals(parent.getZBlock(), itemId)) {
+            content.addProperty("z", 90);
+        } else if (Objects.equals(parent.getZBlock(), itemId)) {
             content.addProperty("y", 90);
             content.addProperty("x", 90);
         } else if (Objects.equals(parent.getNorthBlock(), itemId))
             return content;
-        else if (Objects.equals(parent.getEastBlock(), itemId))
-            content.addProperty("x", 90);
-        else if (Objects.equals(parent.getSouthBlock(), itemId))
+        else if (Objects.equals(parent.getEastBlock(), itemId)) {
+            content.addProperty("y", 90);
+        } else if (Objects.equals(parent.getSouthBlock(), itemId))
             content.addProperty("y", 180);
-        else if (Objects.equals(parent.getWestBlock(), itemId))
+        else if (Objects.equals(parent.getWestBlock(), itemId)) {
+            content.addProperty("z", 90);
             content.addProperty("y", 270);
-        else if (Objects.equals(parent.getUpBlock(), itemId))
-            return content;
+        } else if (Objects.equals(parent.getUpBlock(), itemId))
+            content.addProperty("y", 270);
         else if (Objects.equals(parent.getDownBlock(), itemId))
             content.addProperty("x", 180);
 
@@ -158,7 +163,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
             NoteBlockMechanic parentMechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
             modelName = (parentMechanic.getModel(itemMechanicConfiguration.getParent().getParent()));
             variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
-                    getDirectionalModelJson(modelName, mechanic.getItemID(), mechanic, parentMechanic));
+                    getDirectionalModelJson(modelName, mechanic, parentMechanic));
         } else {
             variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
                     getModelJson(modelName));
