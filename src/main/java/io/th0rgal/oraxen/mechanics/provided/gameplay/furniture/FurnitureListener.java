@@ -310,12 +310,25 @@ public class FurnitureListener implements Listener {
                 event.setCancelled(true);
                 OraxenFurniture.remove(location, player);
             }
-            else if (hitEntity != null && mechanic != null) {
-                event.setCancelled(true);
-                if (!mechanic.hasBarriers())
-                    OraxenFurniture.remove(hitEntity, player);
-            }
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onProjectileDamageFurniture(final EntityDamageByEntityEvent event) {
+        Entity furniture = event.getEntity();
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(furniture);
+        if (mechanic == null || !(event.getDamager() instanceof Projectile projectile)) return;
+        Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
+
+        event.setCancelled(true);
+        if (mechanic.hasBarriers() || !isDamadgingProjectile(projectile)) return;
+        if (player != null && !ProtectionLib.canBreak(player, furniture.getLocation())) return;
+
+        OraxenFurniture.remove(furniture, player);
+    }
+
+    private static boolean isDamadgingProjectile(Projectile projectile) {
+        return projectile instanceof AbstractArrow || projectile instanceof Fireball;
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
