@@ -1,11 +1,13 @@
 package io.th0rgal.oraxen.utils.logs;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.lang.reflect.Field;
-import java.util.logging.Level;
 
 public class Logs {
 
@@ -20,15 +22,27 @@ public class Logs {
     }
 
     public static void logInfo(String message) {
-        Bukkit.getConsoleSender().sendMessage(message);
+        Component info = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><white>" + message, AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
+        OraxenPlugin.get().getAudience().console().sendMessage(info);
+    }
+
+    public static void logSuccess(String message) {
+        Component success = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><#55ffa4>" + message, AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
+        OraxenPlugin.get().getAudience().console().sendMessage(success);
     }
 
     public static void logError(String message) {
-        LOGGER.newLog(Level.SEVERE, message);
+        Component error = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><#e73f34>" + message, AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
+        OraxenPlugin.get().getAudience().console().sendMessage(error);
     }
 
     public static void logWarning(String message) {
-        LOGGER.newLog(Level.WARNING, message);
+        Component warning = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><#f9f178>" + message, AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
+        OraxenPlugin.get().getAudience().console().sendMessage(warning);
+    }
+
+    public static void newline() {
+        OraxenPlugin.get().getAudience().console().sendMessage(Component.empty());
     }
 
     public static void broadcast(Object object) { Bukkit.broadcastMessage(String.valueOf(object)); }

@@ -15,6 +15,11 @@ Plugin:
 Pack:
   generation:
     generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
+    # If you have a duplicate json file due to importing a resourcepack,
+    # have Oraxen attempt to migrate it into config files to generate a working resourcepack
+    # Keep in mind this is still experimental, and you should not enable it before
+    # you have a backup of the resourcepack you are importing.
+    attempt_to_migrate_duplicates: false
     # 64x32 layer is default size and corresponds to 16. If you need higher
     # resolution, e.g. 128x64, you should set this parameter to 32 and so on.
     armor_resolution: 16
@@ -23,7 +28,7 @@ Pack:
     # protection will use several methods to make your pack impossible to extract
     # with usual tools (native windows unzip, 7zip, winrar, etc) without altering
     # its integrity. Be careful if you activate this option to not try to extract
-    # the pack or you might fill your disk.
+    # the pack, or you might fill your disk.
     protection: true
     comment: "The content of this texture pack
      \nbelongs to the owner of the Oraxen

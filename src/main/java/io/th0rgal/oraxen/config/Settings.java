@@ -32,6 +32,7 @@ public enum Settings {
     HIDE_SCOREBOARD_NUMBERS("Misc.hide_scoreboard_numbers"),
 
     GENERATE("Pack.generation.generate"),
+    ATTEMPT_TO_MIGRATE_DUPLICATES("Pack.generation.attempt_to_migrate_duplicates"),
     ARMOR_RESOLUTION("Pack.generation.armor_resolution"),
     AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR("Pack.generation.automatically_generate_shader_compatible_armor"),
     COMPRESSION("Pack.generation.compression"),
