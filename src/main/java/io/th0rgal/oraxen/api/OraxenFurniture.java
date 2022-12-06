@@ -7,7 +7,9 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Rotation;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -38,6 +40,22 @@ public class OraxenFurniture {
      */
     public static boolean isFurniture(String itemID) {
         return !FurnitureFactory.getInstance().isNotImplementedIn(itemID);
+    }
+
+    /**
+     * Places Furniture from a given ID at a given location, optionally by a player
+     *
+     * @param location The location to place the Furniture
+     * @param itemID   The ID of the Furniture to place
+     * @param rotation The rotation of the Furniture
+     * @param blockFace The blockFace to place the Furniture against
+     * @param player   The player who places the Furniture, can be null
+     * @return true if the Furniture was placed, false otherwise
+     */
+    public static boolean place(Location location, String itemID, Rotation rotation, BlockFace blockFace, @Nullable Player player) {
+        FurnitureMechanic mechanic = (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
+        if (mechanic == null) return false;
+        return mechanic.place(rotation, mechanic.getYaw(rotation), blockFace, location, player) != null;
     }
 
     /**

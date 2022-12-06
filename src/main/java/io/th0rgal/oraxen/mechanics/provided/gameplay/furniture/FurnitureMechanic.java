@@ -24,10 +24,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemFrame;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -53,17 +50,15 @@ public class FurnitureMechanic extends Mechanic {
     public final boolean farmlandRequired;
     public final boolean farmblockRequired;
     private final List<BlockLocation> barriers;
-    private final boolean hasRotation;
     private final boolean hasSeat;
     private boolean hasSeatYaw;
-    private final BlockFace facing;
     private final Drop drop;
     private final EvolvingFurniture evolvingFurniture;
     private final int light;
+    private final boolean glowing;
     private final String modelEngineID;
     private final String placedItemId;
     private ItemStack placedItem;
-    private Rotation rotation;
     private float seatHeight;
     private float seatYaw;
     private final List<ClickAction> clickActions;
@@ -105,20 +100,11 @@ public class FurnitureMechanic extends Mechanic {
             ((FurnitureFactory) getFactory()).registerEvolution();
         } else evolvingFurniture = null;
 
-        if (section.isString("rotation")) {
-            rotation = Rotation.valueOf(section.getString("rotation", "NONE").toUpperCase());
-            hasRotation = true;
-        } else
-            hasRotation = false;
-
         light = section.getInt("light", -1);
+        glowing = section.getBoolean("glowing", false);
 
         farmlandRequired = section.getBoolean("farmland_required", false);
         farmblockRequired = section.getBoolean("farmblock_required", false);
-
-        facing = section.isString("facing")
-                ? BlockFace.valueOf(section.getString("facing", "NORTH").toUpperCase())
-                : null;
 
         List<Loot> loots = new ArrayList<>();
         if (section.isConfigurationSection("drop")) {
@@ -204,13 +190,8 @@ public class FurnitureMechanic extends Mechanic {
         return blockSounds;
     }
 
-    public boolean isJukebox() {
-        return jukebox != null;
-    }
-
-    public JukeboxBlock getJukebox() {
-        return jukebox;
-    }
+    public boolean isJukebox() { return jukebox != null; }
+    public JukeboxBlock getJukebox() { return jukebox; }
 
     public boolean hasBarriers() {
         return !barriers.isEmpty();
@@ -220,32 +201,12 @@ public class FurnitureMechanic extends Mechanic {
         return barriers;
     }
 
-    public boolean hasRotation() {
-        return hasRotation;
-    }
-
-    public Rotation getRotation() {
-        return rotation;
-    }
-
     public boolean hasSeat() {
         return hasSeat;
     }
 
     public float getSeatHeight() {
         return seatHeight;
-    }
-
-    public float getSeatYaw() {
-        return seatYaw;
-    }
-
-    public boolean hasFacing() {
-        return facing != null;
-    }
-
-    public BlockFace getFacing() {
-        return facing;
     }
 
     public Drop getDrop() {
@@ -271,7 +232,7 @@ public class FurnitureMechanic extends Mechanic {
 
     public ItemFrame place(Location location, @Nullable Player player) {
         setPlacedItem();
-        return place(getRotation(), getYaw(getRotation()), getFacing(), location, placedItem, player);
+        return place(Rotation.NONE, getYaw(Rotation.NONE), BlockFace.NORTH, location, placedItem, player);
     }
 
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, @Nullable Player player) {
@@ -285,22 +246,25 @@ public class FurnitureMechanic extends Mechanic {
         assert location.getWorld() != null;
         setPlacedItem();
         assert location.getWorld() != null;
-        ItemFrame itemFrame = location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) ->
-                handleFrameData(frame, item, rotation, facing));
+        ItemFrame itemFrame = glowing
+                ? location.getWorld().spawn(location, GlowItemFrame.class, (GlowItemFrame frame) ->
+                setFrameData(frame, item, rotation, facing))
+                : location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) ->
+                setFrameData(frame, item, rotation, facing));
 
         if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
             spawnModelEngineFurniture(itemFrame, yaw);
         }
 
         if (hasBarriers())
-            handleBarriers(location, yaw, rotation);
+            setBarrierHitbox(location, yaw, rotation);
         else if (light != -1)
             WrappedLightAPI.createBlockLight(location, light);
 
         return itemFrame;
     }
 
-    private void handleFrameData(ItemFrame frame, ItemStack item, Rotation rotation, BlockFace facing) {
+    private void setFrameData(ItemFrame frame, ItemStack item, Rotation rotation, BlockFace facing) {
         frame.setVisible(false);
         frame.setFixed(false);
         frame.setPersistent(true);
@@ -313,7 +277,7 @@ public class FurnitureMechanic extends Mechanic {
             frame.setItem(clone, false);
         } else frame.setItem(placedItem, false);
         frame.setRotation(rotation);
-        frame.setFacingDirection(hasFacing() ? getFacing() : facing, true);
+        frame.setFacingDirection(facing, true);
 
         PersistentDataContainer pdc = frame.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
@@ -323,7 +287,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void handleBarriers(Location location, float yaw, Rotation rotation) {
+    private void setBarrierHitbox(Location location, float yaw, Rotation rotation) {
         for (Location barrierLocation : getLocations(yaw, location, getBarriers())) {
             Block block = barrierLocation.getBlock();
             PersistentDataContainer data = BlockHelpers.getPDC(block);
