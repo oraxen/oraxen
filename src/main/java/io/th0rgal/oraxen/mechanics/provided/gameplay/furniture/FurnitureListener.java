@@ -170,8 +170,6 @@ public class FurnitureListener implements Listener {
             Message.NOT_ENOUGH_SPACE.send(player);
         }
 
-        //Bukkit.getPluginManager().callEvent(blockPlaceEvent);
-
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
             block.setBlockData(currentBlockData, false); // false to cancel physic
             return;
@@ -185,8 +183,7 @@ public class FurnitureListener implements Listener {
         Bukkit.getPluginManager().callEvent(furniturePlaceEvent);
 
         if (furniturePlaceEvent.isCancelled()) {
-            itemframe.remove();
-            block.setType(oldtype, false);
+            OraxenFurniture.remove(itemframe, null);
             return;
         }
 
