@@ -11,10 +11,10 @@ plugins {
 apply plugin: 'maven-publish'
 
 group 'io.th0rgal'
-def pluginVersion = '1.150.1'
-version = pluginVersion
+def pluginVersion = '1.149.1'
 ext.jitpackGroup = group + '.oraxen'
-ext.jitpackVersion = version
+ext.jitpackVersion = 'main-' + pluginVersion
+version = pluginVersion
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
@@ -78,8 +78,8 @@ dependencies {
     implementation fileTree(dir: 'libs/implement', include: ['*.jar'])
     implementation group: 'dev.triumphteam', name: 'triumph-gui', version: '3.1.2'
     implementation group: 'org.bstats', name: 'bstats-bukkit', version: '2.2.1'
-    implementation group: 'com.oraxen', name: 'protectionlib', version: '1.1.3'
-    implementation group: 'net.kyori', name: 'adventure-text-minimessage', version: '4.12.0'
+    implementation group: 'com.github.oraxen', name: 'protectionlib', version: '1.1.2'
+    implementation group: 'net.kyori', name: 'adventure-text-minimessage', version: '4.11.0'
     implementation group: 'net.kyori', name: 'adventure-platform-bukkit', version: '4.1.2'
     implementation group: 'com.github.stefvanschie.inventoryframework', name: 'IF', version: '0.10.0'
     implementation "dev.jorel:commandapi-shade:8.7.0"
