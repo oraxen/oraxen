@@ -21,6 +21,11 @@ public class Utils {
     private Utils() {
     }
 
+    public static String getLastStringInSplit(String string, String split) {
+        String[] splitString = string.split(split);
+        return splitString[splitString.length - 1];
+    }
+
     public static List<String> toLowercaseList(final String... values) {
         final ArrayList<String> list = new ArrayList<>();
         for (final String value : values)
