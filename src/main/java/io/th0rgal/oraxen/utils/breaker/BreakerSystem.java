@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.utils.breaker;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
@@ -184,7 +183,7 @@ public class BreakerSystem {
     };
 
     public BreakerSystem() {
-        protocolManager = ProtocolLibrary.getProtocolManager();
+        protocolManager = OraxenPlugin.get().getProtocolManager();
     }
 
     private boolean blockDamageEventCancelled(Block block, Player player) {

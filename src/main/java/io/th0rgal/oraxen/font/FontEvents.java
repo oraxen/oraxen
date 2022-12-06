@@ -1,19 +1,23 @@
 package io.th0rgal.oraxen.font;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import net.kyori.adventure.inventory.Book;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerEditBookEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
@@ -31,9 +35,11 @@ public class FontEvents implements Listener {
         this.manager = manager;
     }
 
-    @EventHandler
-    public void onBookGlyph(final PlayerEditBookEvent event) {
-        BookMeta meta = event.getNewBookMeta();
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBookGlyph(final PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getItem() == null || !(event.getItem().getItemMeta() instanceof BookMeta meta)) return;
+
         for (String page : meta.getPages()) {
             int i = meta.getPages().indexOf(page) + 1;
             if (i == 0) continue;
@@ -52,14 +58,22 @@ public class FontEvents implements Listener {
                 String unicode = String.valueOf(entry.getValue().getCharacter());
                 if (entry.getValue().hasPermission(event.getPlayer()))
                     page = (manager.permsChatcolor == null)
-                            ? page.replace(entry.getKey(), ChatColor.WHITE + unicode)
-                            .replace(unicode, ChatColor.WHITE + unicode)
+                            ? page.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
+                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK)
                             : page.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(event.getPlayer(), manager.permsChatcolor))
-                            .replace(unicode, ChatColor.WHITE + unicode);
-                meta.setPage(i, AdventureUtils.parseLegacyThroughMiniMessage(page));
+                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK);
+                meta.setPage(i, AdventureUtils.parseLegacy(page));
             }
         }
-        event.setNewBookMeta(meta);
+
+        Book book = Book.builder()
+                .title(AdventureUtils.MINI_MESSAGE.deserialize(meta.getTitle() != null ? meta.getTitle() : ""))
+                .pages(meta.getPages().stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList())
+                .author(AdventureUtils.MINI_MESSAGE.deserialize(meta.getAuthor() != null ? meta.getAuthor() : ""))
+                .build();
+        // Open fake book and cancel event to prevent normal book opening
+        OraxenPlugin.get().getAudience().player(event.getPlayer()).openBook(book);
+        event.setCancelled(true);
     }
 
     @EventHandler
@@ -81,12 +95,12 @@ public class FontEvents implements Listener {
                 String unicode = String.valueOf(entry.getValue().getCharacter());
                 if (entry.getValue().hasPermission(event.getPlayer()))
                     line = (manager.permsChatcolor == null)
-                            ? line.replace(entry.getKey(), ChatColor.WHITE + unicode)
-                            .replace(unicode, ChatColor.WHITE + unicode)
+                            ? line.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
+                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK)
                             : line.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(event.getPlayer(), manager.permsChatcolor))
-                            .replace(unicode, ChatColor.WHITE + unicode);
+                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK);
             }
-            event.setLine(i, AdventureUtils.parseLegacyThroughMiniMessage(line));
+            event.setLine(i, AdventureUtils.parseLegacy(line));
         }
     }
 
@@ -119,7 +133,6 @@ public class FontEvents implements Listener {
         if (!(event.getClickedInventory() instanceof AnvilInventory clickedInv)) return;
         Player player = (Player) event.getWhoClicked();
         String displayName = clickedInv.getRenameText();
-        final ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
 
         switch (event.getSlot()) {
             case 0 -> { // Clicking first item
@@ -127,7 +140,7 @@ public class FontEvents implements Listener {
                 ItemStack current = event.getCurrentItem();
 
                 // Adding item to first slot
-                if (cursor != null && cursor.getType() != Material.AIR) {
+                if (cursor != null && cursor.getType() != Material.AIR && OraxenItems.exists(cursor)) {
                     ItemMeta meta = cursor.getItemMeta();
                     if (meta == null || !meta.hasDisplayName()) return;
                     String name = meta.getDisplayName();
@@ -136,7 +149,7 @@ public class FontEvents implements Listener {
                     cursor.setItemMeta(meta);
                 }
                 // Taking item from first slot
-                else if (current != null && current.getType() != Material.AIR) {
+                else if (current != null && current.getType() != Material.AIR && OraxenItems.exists(current)) {
                     ItemMeta meta = current.getItemMeta();
                     if (meta == null || !meta.hasDisplayName()) return;
                     String name = meta.getDisplayName();
@@ -148,6 +161,8 @@ public class FontEvents implements Listener {
                 ItemStack clickedItem = clickedInv.getItem(2);
                 if (clickedItem == null) return;
                 if (displayName == null || displayName.isBlank()) return;
+                if (!OraxenItems.exists(clickedItem)) return;
+
                 for (Character character : manager.getReverseMap().keySet()) {
                     if (!displayName.contains(String.valueOf(character))) continue;
                     Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
@@ -171,7 +186,8 @@ public class FontEvents implements Listener {
 
                 ItemMeta meta = clickedItem.getItemMeta();
                 if (meta == null) return;
-                meta.setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage(displayName));
+                if (Settings.FORMAT_ANVIL.toBool())
+                    meta.setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage(displayName));
                 clickedItem.setItemMeta(meta);
             }
         }

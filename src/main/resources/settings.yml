@@ -8,6 +8,12 @@ Plugin:
   generation:
     default_assets: true
     default_configs: true
+  formatting: # This uses MiniMessage formatting, so legacy colors like §c or &c will not work
+    inventory_titles: true # Formats all inventory titles made by any plugin
+    titles: true # Formats all titles made by any plugin
+    subtitles: true # Formats all subtitles made by any plugin
+    action_bar: true # Formats all action bars made by any plugin
+    anvil: true # Formats the result item based on the Anvil Text made by any plugin
   worldedit: # Please note these are both experimental still and should be used with caution
     noteblock_mechanic: false
     stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
