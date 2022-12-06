@@ -47,6 +47,7 @@ public enum Settings {
     POLYMATH_SERVER("Pack.upload.polymath.server"),
 
     SEND_PACK("Pack.dispatch.send_pack"),
+    SEND_ON_RELOAD("Pack.dispatch.send_on_reload"),
     SEND_PACK_DELAY("Pack.dispatch.delay"),
     SEND_PACK_ADVANCED("Pack.dispatch.send_pack_advanced.enabled"),
     SEND_PACK_ADVANCED_MANDATORY("Pack.dispatch.send_pack_advanced.mandatory"),
