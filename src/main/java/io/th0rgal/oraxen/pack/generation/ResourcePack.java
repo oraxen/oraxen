@@ -129,11 +129,14 @@ public class ResourcePack {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        new PackConvertor().handlePackConversionFor_1_19_3(output);
+
         ZipUtils.writeZipFile(pack, packFolder, output);
     }
 
     // Fast check to avoid issues if RP already has these files from another plugin
-    // But also delete them if setting is false and they existed
+    // But also delete them if setting is false, and they existed
     private void checkShaderFiles(File file) {
         try {
             File renamed = new File(file.getAbsolutePath() + ".bak");
