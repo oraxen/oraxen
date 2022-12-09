@@ -130,7 +130,8 @@ public class ResourcePack {
             e.printStackTrace();
         }
 
-        new PackConvertor().handlePackConversionFor_1_19_3(output);
+        if (Settings.CONVERT_PACK_FOR_1_19_3.toBool())
+            new PackConvertor().handlePackConversionFor_1_19_3(output);
 
         ZipUtils.writeZipFile(pack, packFolder, output);
     }

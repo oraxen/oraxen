@@ -13,6 +13,7 @@ public enum Settings {
     GENERATE_DEFAULT_CONFIGS("Plugin.generation.default_configs"),
     WORLDEDIT_NOTEBLOCKS("Plugin.worldedit.noteblock_mechanic"),
     WORLDEDIT_STRINGBLOCKS("Plugin.worldedit.stringblock_mechanic"),
+    CONVERT_PACK_FOR_1_19_3("Plugin.experimental.convert_pack_for_1_19_3"),
 
     CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),
