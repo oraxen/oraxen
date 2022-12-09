@@ -83,13 +83,16 @@ public class PackConvertor {
         String model = object.get("model").getAsString();
         String namespace = model.split(":").length > 1 ? model.split(":")[0] : "minecraft";
         String path = model.split(":").length > 1 ? model.split(":")[1] : model;
-        Optional<VirtualFile> virtualFile = output.stream().filter(v1 -> v1.getPath().endsWith("assets/" + namespace + "/models/" + path + ".json")).findFirst();
+        String fileName = path.split("/")[path.split("/").length - 1];
+        Optional<VirtualFile> virtualFile = output.stream().filter(v1 ->
+                v1.getPath().endsWith("assets/" + namespace + "/models/" + path + ".json") ||
+                v1.getPath().startsWith("assets/oraxen_converted/models/oraxen/" + fileName + ".json")).findFirst();
 
         if (virtualFile.isEmpty()) return false;
         if (!models.contains(virtualFile.get())) models.add(virtualFile.get());
 
         object.remove("model");
-        object.addProperty("model", "oraxen_converted:oraxen/" + path.split("/")[path.split("/").length - 1]);
+        object.addProperty("model", "oraxen_converted:oraxen/" + fileName);
         return true;
     }
 
