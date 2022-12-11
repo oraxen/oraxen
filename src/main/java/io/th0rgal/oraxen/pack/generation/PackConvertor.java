@@ -92,7 +92,8 @@ public class PackConvertor {
         if (!models.contains(virtualFile.get())) models.add(virtualFile.get());
 
         object.remove("model");
-        object.addProperty("model", "oraxen_converted:oraxen/" + fileName);
+        String modelPath = path.startsWith("oraxen/") ? path : "oraxen/" + path;
+        object.addProperty("model", "oraxen_converted:" + modelPath);
         return true;
     }
 
@@ -114,15 +115,19 @@ public class PackConvertor {
 
                 object.get("textures").getAsJsonObject().entrySet().forEach(e -> {
                     String texture = e.getValue().getAsString();
-                    e.setValue(new JsonPrimitive("oraxen_converted:oraxen/" + texture.split("/")[texture.split("/").length - 1]));
+                    String path = texture.split(":").length > 1 ? texture.split(":")[1] : texture;
+                    e.setValue(new JsonPrimitive(path.startsWith("oraxen/") ? "oraxen_converted:" + path : "oraxen_converted:oraxen/" + path));
                 });
-                virtual.setPath("assets/oraxen_converted/models/oraxen/" + virtual.getPath().split("/")[virtual.getPath().split("/").length - 1]);
+
+                String modelPath = virtual.getPath().split("assets/.*/models/")[1];
+                virtual.setPath((modelPath.startsWith("oraxen/") ? "assets/oraxen_converted/models/" : "assets/oraxen_converted/models/oraxen/") + modelPath);
                 virtual.setInputStream(new ByteArrayInputStream(object.toString().getBytes(StandardCharsets.UTF_8)));
                 output.set(output.indexOf(virtual), virtual);
             }
 
             for (VirtualFile file : textures) {
-                file.setPath("assets/oraxen_converted/textures/oraxen/" + file.getPath().split("/")[file.getPath().split("/").length - 1]);
+                String texturePath = file.getPath().split("assets/.*/textures/")[1];
+                file.setPath((texturePath.startsWith("oraxen/") ? "assets/oraxen_converted/textures/" : "assets/oraxen_converted/textures/oraxen/") + texturePath);
                 output.set(output.indexOf(file), file);
             }
         } catch (IOException e) {
