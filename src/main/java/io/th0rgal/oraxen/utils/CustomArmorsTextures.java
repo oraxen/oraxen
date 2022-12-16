@@ -7,6 +7,9 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -93,7 +96,8 @@ public class CustomArmorsTextures {
         ItemBuilder builder = null;
         for (String suffix : new String[]{"helmet", "chestplate", "leggings", "boots"}) {
             builder = OraxenItems.getItemById(prefix + suffix);
-            if (builder != null)
+            ItemMeta meta = builder != null ? builder.build().getItemMeta() : null;
+            if (builder != null && (meta instanceof LeatherArmorMeta || meta instanceof PotionMeta))
                 break;
         }
         if (builder == null) {
@@ -131,6 +135,7 @@ public class CustomArmorsTextures {
 
     private void addPixel(BufferedImage image, ItemBuilder builder, String name, String prefix) {
         Color stuffColor = builder.getColor();
+        if (stuffColor == null) return;
         if (usedColors.containsKey(stuffColor.asRGB())) {
             String detectedPrefix = usedColors.get(stuffColor.asRGB());
             if (!detectedPrefix.equals(prefix))

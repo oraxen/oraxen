@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.pack.generation;
 
 import com.google.gson.*;
 import io.th0rgal.oraxen.utils.VirtualFile;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
 import org.bukkit.Material;
 
@@ -17,6 +18,7 @@ public class PackConvertor {
     }
 
     public void handlePackConversionFor_1_19_3(List<VirtualFile> output) {
+        Logs.logSuccess("Starting pack conversion for 1.19.3");
         convertBlocksPack_1_19_3(output);
         convertItemsPack_1_19_3(output);
         generateAtlasFile(output);
@@ -83,16 +85,15 @@ public class PackConvertor {
         String model = object.get("model").getAsString();
         String namespace = model.split(":").length > 1 ? model.split(":")[0] : "minecraft";
         String path = model.split(":").length > 1 ? model.split(":")[1] : model;
-        String fileName = path.split("/")[path.split("/").length - 1];
         Optional<VirtualFile> virtualFile = output.stream().filter(v1 ->
-                v1.getPath().endsWith("assets/" + namespace + "/models/" + path + ".json") ||
-                v1.getPath().startsWith("assets/oraxen_converted/models/oraxen/" + fileName + ".json")).findFirst();
+                v1.getPath().startsWith("assets/" + namespace + "/models/" + path + ".json") ||
+                v1.getPath().startsWith("assets/oraxen_converted/models/oraxen/" + path + ".json")).findFirst();
 
         if (virtualFile.isEmpty()) return false;
         if (!models.contains(virtualFile.get())) models.add(virtualFile.get());
 
         object.remove("model");
-        object.addProperty("model", "oraxen_converted:oraxen/" + fileName);
+        object.addProperty("model", "oraxen_converted:" + (!path.startsWith("oraxen/") ? "oraxen/" : "") + path);
         return true;
     }
 
@@ -114,15 +115,19 @@ public class PackConvertor {
 
                 object.get("textures").getAsJsonObject().entrySet().forEach(e -> {
                     String texture = e.getValue().getAsString();
-                    e.setValue(new JsonPrimitive("oraxen_converted:oraxen/" + texture.split("/")[texture.split("/").length - 1]));
+                    String path = texture.split(":").length > 1 ? texture.split(":")[1] : texture;
+                    e.setValue(new JsonPrimitive("oraxen_converted:" + (path.startsWith("oraxen/") ? path : "oraxen/" + path)));
                 });
-                virtual.setPath("assets/oraxen_converted/models/oraxen/" + virtual.getPath().split("/")[virtual.getPath().split("/").length - 1]);
+
+                String modelPath = virtual.getPath().split("assets/.*/models/")[1];
+                virtual.setPath("assets/oraxen_converted/models/" + (!modelPath.startsWith("oraxen/") ? "oraxen/" : "") + modelPath);
                 virtual.setInputStream(new ByteArrayInputStream(object.toString().getBytes(StandardCharsets.UTF_8)));
                 output.set(output.indexOf(virtual), virtual);
             }
 
             for (VirtualFile file : textures) {
-                file.setPath("assets/oraxen_converted/textures/oraxen/" + file.getPath().split("/")[file.getPath().split("/").length - 1]);
+                String texturePath = file.getPath().split("assets/.*/textures/")[1];
+                file.setPath("assets/oraxen_converted/textures/" + (!texturePath.startsWith("oraxen/") ? "oraxen/" : "") + texturePath);
                 output.set(output.indexOf(file), file);
             }
         } catch (IOException e) {
