@@ -49,9 +49,7 @@ repositories {
     maven { url 'https://mvn.lumine.io/repository/maven-public/' }
     // commandAPI snapshots
     maven { url = 'https://s01.oss.sonatype.org/content/repositories/snapshots' }
-    // Thriumph Gui
-    maven { url = 'https://repo.mattstudios.me/artifactory/public/' }
-    // WorldEdit
+	// WorldEdit
     maven { url 'https://maven.enginehub.org/repo/' }
 }
 
@@ -84,7 +82,7 @@ dependencies {
     implementation group: 'net.kyori', name: 'adventure-text-minimessage', version: '4.11.0'
     implementation group: 'net.kyori', name: 'adventure-platform-bukkit', version: '4.1.2'
     implementation group: 'com.github.stefvanschie.inventoryframework', name: 'IF', version: '0.10.0'
-    implementation group: 'dev.jorel', name: 'commandapi-shade', version: '8.5.1-SNAPSHOT'
+    implementation "dev.jorel:commandapi-shade:8.7.0"
     implementation "com.jeff_media:CustomBlockData:2.0.0"
     implementation "com.jeff_media:MorePersistentDataTypes:2.3.1"
 
