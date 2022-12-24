@@ -47,10 +47,10 @@ public class UploadManager {
     }
 
     public void uploadAsyncAndSendToPlayers(final ResourcePack resourcePack) {
-        uploadAsyncAndSendToPlayers(resourcePack, false);
+        uploadAsyncAndSendToPlayers(resourcePack, false, false);
     }
 
-    public void uploadAsyncAndSendToPlayers(final ResourcePack resourcePack, final boolean updatePackSender) {
+    public void uploadAsyncAndSendToPlayers(final ResourcePack resourcePack, final boolean updatePackSender, final boolean isReload) {
         if (!enabled)
             return;
 
@@ -79,7 +79,10 @@ public class UploadManager {
                         ? new AdvancedPackSender(hostingProvider) : new BukkitPackSender(hostingProvider);
             }
 
-            if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
+            if (isReload && !Settings.SEND_ON_RELOAD.toBool()) {
+                if (packSender != null) packSender.unregister();
+            }
+            else if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
                 packSender.register();
                 if (!hostingProvider.getPackURL().equals(url))
                     for (Player player : Bukkit.getOnlinePlayers())

@@ -21,7 +21,21 @@ public class PackConvertor {
         Logs.logSuccess("Starting pack conversion for 1.19.3");
         convertBlocksPack_1_19_3(output);
         convertItemsPack_1_19_3(output);
+        convertAnimPack_1_19_3(output);
         generateAtlasFile(output);
+        Logs.logSuccess("Finished converting the resourcepack to 1.19.3 format");
+    }
+
+    private void convertAnimPack_1_19_3(List<VirtualFile> output) {
+        try {
+            Set<VirtualFile> anims = output.stream().filter(v -> v.getPath().endsWith(".png.mcmeta")).collect(Collectors.toSet());
+            for (VirtualFile virtualFile : anims) {
+                String metaPath = virtualFile.getPath().split("assets/.*/textures/")[1];
+                virtualFile.setPath("assets/oraxen_converted/textures/" + (!metaPath.startsWith("oraxen/") ? "oraxen/" : "") + metaPath);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     //TODO This will probably not get pulling bow models etc, check ModelGenerator for this
@@ -29,7 +43,13 @@ public class PackConvertor {
         try {
             Set<VirtualFile> items = output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/models/item") && v.getPath().endsWith(".json")).collect(Collectors.toSet());
             for (VirtualFile virtualFile : items.stream().filter(v -> {
-                Material.valueOf(v.getPath().split("/")[v.getPath().split("/").length - 1].replace(".json", "").toUpperCase());
+                try {
+                    Material.valueOf(v.getPath().split("/")[v.getPath().split("/").length - 1].replace(".json", "").toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    // If someone has their model inside item folder, but it isn't
+                    // a material this should return false to exclude it
+                    return false;
+                }
                 return true;
             }).collect(Collectors.toSet())) {
                 String itemModelContent = IOUtils.toString(virtualFile.getInputStream(), String.valueOf(StandardCharsets.UTF_8));
@@ -128,7 +148,6 @@ public class PackConvertor {
             for (VirtualFile file : textures) {
                 String texturePath = file.getPath().split("assets/.*/textures/")[1];
                 file.setPath("assets/oraxen_converted/textures/" + (!texturePath.startsWith("oraxen/") ? "oraxen/" : "") + texturePath);
-                output.set(output.indexOf(file), file);
             }
         } catch (IOException e) {
             e.printStackTrace();

@@ -35,6 +35,7 @@ public enum Settings {
     GENERATE("Pack.generation.generate"),
     ATTEMPT_TO_MIGRATE_DUPLICATES("Pack.generation.attempt_to_migrate_duplicates"),
     ARMOR_RESOLUTION("Pack.generation.armor_resolution"),
+    ANIMATED_ARMOR_FRAMERATE("Pack.generation.animated_armor_framerate"),
     AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR("Pack.generation.automatically_generate_shader_compatible_armor"),
     COMPRESSION("Pack.generation.compression"),
     PROTECTION("Pack.generation.protection"),
@@ -47,6 +48,7 @@ public enum Settings {
     POLYMATH_SERVER("Pack.upload.polymath.server"),
 
     SEND_PACK("Pack.dispatch.send_pack"),
+    SEND_ON_RELOAD("Pack.dispatch.send_on_reload"),
     SEND_PACK_DELAY("Pack.dispatch.delay"),
     SEND_PACK_ADVANCED("Pack.dispatch.send_pack_advanced.enabled"),
     SEND_PACK_ADVANCED_MANDATORY("Pack.dispatch.send_pack_advanced.mandatory"),
