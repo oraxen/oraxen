@@ -22,6 +22,7 @@ public class PackConvertor {
         convertBlocksPack_1_19_3(output);
         convertItemsPack_1_19_3(output);
         generateAtlasFile(output);
+        Logs.logSuccess("Finished converting the resourcepack to 1.19.3 format");
     }
 
     //TODO This will probably not get pulling bow models etc, check ModelGenerator for this
@@ -29,7 +30,13 @@ public class PackConvertor {
         try {
             Set<VirtualFile> items = output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/models/item") && v.getPath().endsWith(".json")).collect(Collectors.toSet());
             for (VirtualFile virtualFile : items.stream().filter(v -> {
-                Material.valueOf(v.getPath().split("/")[v.getPath().split("/").length - 1].replace(".json", "").toUpperCase());
+                try {
+                    Material.valueOf(v.getPath().split("/")[v.getPath().split("/").length - 1].replace(".json", "").toUpperCase());
+                } catch (IllegalArgumentException e) {
+                    // If someone has their model inside item folder, but it isn't
+                    // a material this should return false to exclude it
+                    return false;
+                }
                 return true;
             }).collect(Collectors.toSet())) {
                 String itemModelContent = IOUtils.toString(virtualFile.getInputStream(), String.valueOf(StandardCharsets.UTF_8));
