@@ -55,7 +55,7 @@ public class BlockSoundListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onPlacing(final BlockBreakEvent event) {
+    public void onPlacing(final BlockPlaceEvent event) {
         BlockMechanic mechanic = OraxenBlocks.getBlockMechanic(event.getBlock());
         if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.getBlockSounds().hasPlaceSound()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
@@ -64,7 +64,7 @@ public class BlockSoundListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onBreaking(final BlockPlaceEvent event) {
+    public void onBreaking(final BlockBreakEvent event) {
         BlockMechanic mechanic = OraxenBlocks.getBlockMechanic(event.getBlock());
         if (mechanic == null || !mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
