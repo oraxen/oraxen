@@ -7,6 +7,7 @@ public enum CustomEventType {
 
     BREAK(BreakListener::new),
     CLICK(ClickListener::new),
+    INV_CLICK(InvClickListener::new),
     DROP(DropListener::new),
     PICKUP(PickupListener::new),
     EQUIP(EquipListener::new),
