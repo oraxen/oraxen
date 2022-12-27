@@ -26,6 +26,11 @@ public class Utils {
         return splitString[splitString.length - 1];
     }
 
+    public static String geStringBeforeLastInSplit(String string, String split) {
+        String[] splitString = string.split(split);
+        return string.replace(splitString[splitString.length - 1], "");
+    }
+
     public static List<String> toLowercaseList(final String... values) {
         final ArrayList<String> list = new ArrayList<>();
         for (final String value : values)

@@ -10,13 +10,11 @@ public class ModelGenerator {
     private final JsonObject json = new JsonObject();
 
     public ModelGenerator(OraxenMeta oraxenMeta) {
-
-        json.addProperty("parent", oraxenMeta.getParentModel());
-
         JsonObject textures = new JsonObject();
         List<String> layers = oraxenMeta.getLayers();
         String parentModel = oraxenMeta.getParentModel();
 
+        json.addProperty("parent", parentModel);
         if (parentModel.equals("block/cube_all")) {
             textures.addProperty("all", layers.get(0));
         } else if (parentModel.equals("block/cross")) {
