@@ -61,7 +61,7 @@ public class PackConvertor {
                 List<VirtualFile> models = new ArrayList<>();
                 List<VirtualFile> textures = new ArrayList<>();
 
-                for (int index = 0; index < overrides.size(); index++) {
+                if (overrides != null) for (int index = 0; index < overrides.size(); index++) {
                     JsonObject override = overrides.get(index).getAsJsonObject();
                     if (scanAndRepathModels(output, models, override))
                         overrides.set(index, override);
