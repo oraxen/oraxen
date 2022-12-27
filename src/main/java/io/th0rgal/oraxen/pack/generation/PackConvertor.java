@@ -20,7 +20,7 @@ public class PackConvertor {
     public PackConvertor() {
     }
 
-    public void handlePackConversionFor_1_19_3(List<VirtualFile> output) {
+    public static void handlePackConversionFor_1_19_3(List<VirtualFile> output) {
         Logs.logSuccess("Starting pack conversion for 1.19.3");
         convertBlocksPack_1_19_3(output);
         convertItemsPack_1_19_3(output);
@@ -29,7 +29,7 @@ public class PackConvertor {
         Logs.logSuccess("Finished converting the resourcepack to 1.19.3 format");
     }
 
-    private void convertAnimPack_1_19_3(List<VirtualFile> output) {
+    private static void convertAnimPack_1_19_3(List<VirtualFile> output) {
         try {
             Set<VirtualFile> anims = output.stream().filter(v -> v.getPath().endsWith(".png.mcmeta")).collect(Collectors.toSet());
             for (VirtualFile virtualFile : anims) {
@@ -42,7 +42,7 @@ public class PackConvertor {
     }
 
     //TODO This will probably not get pulling bow models etc, check ModelGenerator for this
-    private void convertItemsPack_1_19_3(List<VirtualFile> output) {
+    private static void convertItemsPack_1_19_3(List<VirtualFile> output) {
         try {
             Set<VirtualFile> items = output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/models/item") && v.getPath().endsWith(".json")).collect(Collectors.toSet());
             for (VirtualFile virtualFile : items.stream().filter(v -> {
@@ -61,7 +61,7 @@ public class PackConvertor {
                 List<VirtualFile> models = new ArrayList<>();
                 List<VirtualFile> textures = new ArrayList<>();
 
-                if (overrides != null) for (int index = 0; index < overrides.size(); index++) {
+                for (int index = 0; index < overrides.size(); index++) {
                     JsonObject override = overrides.get(index).getAsJsonObject();
                     if (scanAndRepathModels(output, models, override))
                         overrides.set(index, override);
@@ -77,7 +77,7 @@ public class PackConvertor {
         }
     }
 
-    private void convertBlocksPack_1_19_3(List<VirtualFile> output) {
+    private static void convertBlocksPack_1_19_3(List<VirtualFile> output) {
         try {
             for (String blockType : List.of("note_block", "tripwire")) {
                 Optional<VirtualFile> virtualState = output.stream().filter(f -> Objects.equals(f.getPath(), "assets/minecraft/blockstates/" + blockType + ".json")).findFirst();
@@ -103,14 +103,14 @@ public class PackConvertor {
         }
     }
 
-    private boolean scanAndRepathModels(List<VirtualFile> output, List<VirtualFile> models, JsonObject object) {
+    private static boolean scanAndRepathModels(List<VirtualFile> output, List<VirtualFile> models, JsonObject object) {
         if (!object.has("model")) return false;
         String model = object.get("model").getAsString();
         String namespace = model.split(":").length > 1 ? model.split(":")[0] : "minecraft";
         String path = model.split(":").length > 1 ? model.split(":")[1] : model;
         Optional<VirtualFile> virtualFile = output.stream().filter(v1 ->
                 v1.getPath().startsWith("assets/" + namespace + "/models/" + path + ".json") ||
-                v1.getPath().startsWith("assets/oraxen_converted/models/oraxen/" + path + ".json")).findFirst();
+                        v1.getPath().startsWith("assets/oraxen_converted/models/oraxen/" + path + ".json")).findFirst();
 
         if (virtualFile.isEmpty()) return false;
         if (!models.contains(virtualFile.get()))
@@ -119,7 +119,7 @@ public class PackConvertor {
         return true;
     }
 
-    private void scanTexturesInModels(List<VirtualFile> output, List<VirtualFile> models, List<VirtualFile> textures) {
+    private static void scanTexturesInModels(List<VirtualFile> output, List<VirtualFile> models, List<VirtualFile> textures) {
         try {
             for (VirtualFile virtual : models) {
                 JsonElement element = JsonParser.parseString(IOUtils.toString(virtual.getInputStream(), StandardCharsets.UTF_8));
@@ -167,7 +167,7 @@ public class PackConvertor {
         }
     }
 
-    private void generateAtlasFile(List<VirtualFile> output) {
+    private static void generateAtlasFile(List<VirtualFile> output) {
         JsonObject atlas = new JsonObject();
         JsonArray atlasContent = new JsonArray();
         JsonObject atlasBlock = new JsonObject();
