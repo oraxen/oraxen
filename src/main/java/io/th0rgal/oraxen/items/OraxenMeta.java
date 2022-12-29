@@ -56,7 +56,10 @@ public class OraxenMeta {
     // this might not be a very good function name
     private String readModelName(ConfigurationSection configSection, String configString) {
         String modelName = configSection.getString(configString);
+        List<String> textures = configSection.getStringList("textures");
         ConfigurationSection parent = configSection.getParent();
+        modelName = modelName != null ? modelName : Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.toBool() && !textures.isEmpty() && parent != null
+                ? Utils.geStringBeforeLastInSplit(textures.stream().findFirst().get(), "/") + parent.getName() : null;
 
         List<String> textures = configSection.getStringList("textures");
         ConfigurationSection parent = configSection.getParent();
