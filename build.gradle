@@ -85,6 +85,7 @@ dependencies {
     implementation "dev.jorel:commandapi-shade:8.7.0"
     implementation "com.jeff_media:CustomBlockData:2.0.0"
     implementation "com.jeff_media:MorePersistentDataTypes:2.3.1"
+    implementation "gs.mclo:mclogs:2.1.1"
 
     implementation(group: 'me.gabytm.util', name: 'actions-spigot', version: actionsVersion) { exclude group: 'com.google.guava' }
 }
