@@ -17,7 +17,7 @@ brunnera:
       break_sound: block.grass.break
       place_sound: block.grass.place
       custom_variation: 1
-      model: default/flowers/brunnera
+      model: brunnera
       hardness: 2
       drop:
         silktouch: false
@@ -37,7 +37,7 @@ daffodil:
       break_sound: block.grass.break
       place_sound: block.grass.place
       custom_variation: 2
-      model: default/flowers/daffodil
+      model: daffodil
       hardness: 2
       drop:
         silktouch: false
@@ -57,7 +57,7 @@ dailily:
       break_sound: block.grass.break
       place_sound: block.grass.place
       custom_variation: 3
-      model: default/flowers/dailily
+      model: dailily
       hardness: 2
       drop:
         silktouch: false
