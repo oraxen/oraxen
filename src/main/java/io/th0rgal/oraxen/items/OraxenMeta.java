@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.items;
 
+import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.List;
@@ -54,7 +56,10 @@ public class OraxenMeta {
     // this might not be a very good function name
     private String readModelName(ConfigurationSection configSection, String configString) {
         String modelName = configSection.getString(configString);
+        List<String> textures = configSection.getStringList("textures");
         ConfigurationSection parent = configSection.getParent();
+        modelName = modelName != null ? modelName : Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.toBool() && !textures.isEmpty() && parent != null
+                ? Utils.geStringBeforeLastInSplit(textures.stream().findFirst().get(), "/") + parent.getName() : null;
 
         if (modelName == null && configString.equals("model") && parent != null)
             return parent.getName();
@@ -79,7 +84,7 @@ public class OraxenMeta {
         this.modelName = modelName;
     }
 
-    public void setNoUpdate(boolean noUpdate){
+    public void setNoUpdate(boolean noUpdate) {
         this.noUpdate = noUpdate;
     }
 
@@ -143,7 +148,7 @@ public class OraxenMeta {
         return generate_model;
     }
 
-    public boolean isNoUpdate(){
+    public boolean isNoUpdate() {
         return noUpdate;
     }
 

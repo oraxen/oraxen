@@ -28,6 +28,7 @@ Pack:
     # Keep in mind this is still experimental, and you should not enable it before
     # you have a backup of the resourcepack you are importing.
     attempt_to_migrate_duplicates: false
+    auto_generated_models_follow_texture_path: false
     # 64x32 layer is default size and corresponds to 16. If you need higher
     # resolution, e.g. 128x64, you should set this parameter to 32 and so on.
     armor_resolution: 16

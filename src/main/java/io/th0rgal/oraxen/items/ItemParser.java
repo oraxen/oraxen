@@ -51,11 +51,10 @@ public class ItemParser {
         if (section.isConfigurationSection("Pack")) {
             ConfigurationSection packSection = section.getConfigurationSection("Pack");
             oraxenMeta.setPackInfos(packSection);
+            assert packSection != null;
             if (packSection.isInt("custom_model_data"))
-                MODEL_DATAS_BY_ID
-                        .put(section.getName(),
-                                new ModelData(type, oraxenMeta.getModelName(),
-                                        packSection.getInt("custom_model_data")));
+                MODEL_DATAS_BY_ID.put(section.getName(), new ModelData(type, oraxenMeta.getModelName(),
+                        packSection.getInt("custom_model_data")));
         }
     }
 
@@ -187,9 +186,9 @@ public class ItemParser {
 
         if (section.contains("Enchantments")) {
             ConfigurationSection enchantSection = section.getConfigurationSection("Enchantments");
-            if (enchantSection != null )for (String enchant : enchantSection.getKeys(false))
+            if (enchantSection != null) for (String enchant : enchantSection.getKeys(false))
                 item.addEnchant(EnchantmentWrapper.getByKey(NamespacedKey.minecraft(enchant)),
-                                enchantSection.getInt(enchant));
+                        enchantSection.getInt(enchant));
         }
     }
 

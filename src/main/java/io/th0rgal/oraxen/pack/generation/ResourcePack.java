@@ -13,7 +13,10 @@ import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.CustomArmorsTextures;
+import io.th0rgal.oraxen.utils.VirtualFile;
+import io.th0rgal.oraxen.utils.ZipUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
 import org.bukkit.Material;
@@ -211,11 +214,10 @@ public class ResourcePack {
         for (final Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
             final ItemBuilder item = entry.getValue();
             if (item.getOraxenMeta().hasPackInfos()) {
-                String modelPath = (item.getOraxenMeta().hasLayers() ? Utils.geStringBeforeLastInSplit(item.getOraxenMeta().getLayers().stream().findFirst().get(), "/") : "") + item.getOraxenMeta().getModelName() + ".json";
-                if (item.getOraxenMeta().shouldGenerateModel()) {
-                    writeStringToVirtual("assets/minecraft/models", modelPath,
+                if (item.getOraxenMeta().shouldGenerateModel())
+                    writeStringToVirtual("assets/minecraft/models",
+                            item.getOraxenMeta().getModelName() + ".json",
                             new ModelGenerator(item.getOraxenMeta()).getJson().toString());
-                }
                 final List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
                 // todo: could be improved by using
                 // items.get(i).getOraxenMeta().getCustomModelData() when
