@@ -39,7 +39,7 @@ amethyst_ore:
         break_sound: block.stone.break
         place_sound: block.stone.place
       custom_variation: 1
-      model: amethyst_ore
+      model: default/amethyst_ore
       hardness: 6
       drop:
         silktouch: true
@@ -65,7 +65,7 @@ ruby_ore:
         break_sound: block.stone.break
         place_sound: block.stone.place
       custom_variation: 2
-      model: ruby_ore
+      model: default/ruby_ore
       hardness: 7
       drop:
         silktouch: true
@@ -92,7 +92,7 @@ onyx_ore:
         break_sound: block.stone.break
         place_sound: block.stone.place
       custom_variation: 3
-      model: onyx_ore
+      model: default/onyx_ore
       hardness: 8
       drop:
         silktouch: true
@@ -118,7 +118,7 @@ orax_ore:
         break_sound: block.stone.break
         place_sound: block.stone.place
       custom_variation: 4
-      model: orax_ore
+      model: default/orax_ore
       hardness: 8
       drop:
         silktouch: true
