@@ -1,6 +1,9 @@
 package io.th0rgal.oraxen.pack.generation;
 
 import com.google.gson.*;
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
@@ -110,10 +113,9 @@ public class PackConvertor {
                 v1.getPath().startsWith("assets/oraxen_converted/models/oraxen/" + path + ".json")).findFirst();
 
         if (virtualFile.isEmpty()) return false;
-        if (!models.contains(virtualFile.get())) models.add(virtualFile.get());
+        if (!models.contains(virtualFile.get()))
+            models.add(virtualFile.get());
 
-        object.remove("model");
-        object.addProperty("model", "oraxen_converted:" + (!path.startsWith("oraxen/") ? "oraxen/" : "") + path);
         return true;
     }
 
@@ -139,15 +141,26 @@ public class PackConvertor {
                     e.setValue(new JsonPrimitive("oraxen_converted:" + (path.startsWith("oraxen/") ? path : "oraxen/" + path)));
                 });
 
-                String modelPath = virtual.getPath().split("assets/.*/models/")[1];
-                virtual.setPath("assets/oraxen_converted/models/" + (!modelPath.startsWith("oraxen/") ? "oraxen/" : "") + modelPath);
                 virtual.setInputStream(new ByteArrayInputStream(object.toString().getBytes(StandardCharsets.UTF_8)));
                 output.set(output.indexOf(virtual), virtual);
             }
 
             for (VirtualFile file : textures) {
+                final String oldPath = file.getPath();
                 String texturePath = file.getPath().split("assets/.*/textures/")[1];
-                file.setPath("assets/oraxen_converted/textures/" + (!texturePath.startsWith("oraxen/") ? "oraxen/" : "") + texturePath);
+                String finalTexturePath = texturePath;
+                List<Glyph> glyphsWithTexture = OraxenPlugin.get().getFontManager().getGlyphs().stream().filter(g -> Objects.equals(g.getTexture(), finalTexturePath)).toList();
+
+                if (!texturePath.startsWith("block/") && !texturePath.startsWith("item/")) {
+                    // If an item icon is used for a glyph aswell ("required/exit_icon.png" from default ones), add a copy in the original path aswell
+                    //TODO Make this not so hacky
+                    if (!glyphsWithTexture.isEmpty()) {
+                        final VirtualFile glyphTexture = new VirtualFile(Utils.replaceLast(Utils.getStringBeforeLastInSplit(oldPath, "/"), "/", ""), Utils.getLastStringInSplit(oldPath, "/"), file.getInputStream());
+                        output.add(glyphTexture);
+                    }
+                    texturePath = "assets/oraxen_converted/textures/" + (!texturePath.startsWith("oraxen/") ? "oraxen/" : "") + texturePath;
+                    file.setPath(texturePath);
+                }
             }
         } catch (IOException e) {
             e.printStackTrace();
