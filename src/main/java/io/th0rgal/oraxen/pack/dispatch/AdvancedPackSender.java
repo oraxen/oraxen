@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
@@ -25,7 +24,7 @@ public class AdvancedPackSender extends PackSender implements Listener {
 
     public AdvancedPackSender(HostingProvider hostingProvider) {
         super(hostingProvider);
-        protocolManager = ProtocolLibrary.getProtocolManager();
+        protocolManager = OraxenPlugin.get().getProtocolManager();
         component = WrappedChatComponent.fromJson(GsonComponentSerializer.gson()
                 .serialize(AdventureUtils.MINI_MESSAGE.deserialize(Settings.SEND_PACK_ADVANCED_MESSAGE.toString())));
     }

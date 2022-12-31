@@ -26,6 +26,22 @@ public class Utils {
         return splitString[splitString.length - 1];
     }
 
+    public static String getStringBeforeLastInSplit(String string, String split) {
+        String[] splitString = string.split(split);
+        return string.replace(splitString[splitString.length - 1], "");
+    }
+
+    public static String replaceLast(String string, String toReplace, String replacement) {
+        int pos = string.lastIndexOf(toReplace);
+        if (pos > -1) {
+            return string.substring(0, pos)
+                    + replacement
+                    + string.substring(pos + toReplace.length());
+        } else {
+            return string;
+        }
+    }
+
     public static List<String> toLowercaseList(final String... values) {
         final ArrayList<String> list = new ArrayList<>();
         for (final String value : values)

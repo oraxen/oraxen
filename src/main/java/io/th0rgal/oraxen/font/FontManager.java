@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.font;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.*;
@@ -32,6 +31,7 @@ public class FontManager {
     private final Map<Character, String> reverse;
     private final FontEvents fontEvents;
     private final Set<Font> fonts;
+    private final ProtocolManager protocolManager = OraxenPlugin.get().getProtocolManager();
 
     public FontManager(final ConfigsManager configsManager) {
         final Configuration fontConfiguration = configsManager.getFont();
@@ -166,7 +166,6 @@ public class FontManager {
     public void sendGlyphTabCompletion(Player player, Boolean addPlayers) {
         for (Map.Entry<String, Glyph> entry : getGlyphByPlaceholderMap().entrySet()) {
             if (entry.getValue().hasTabCompletion()) {
-                ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
                 PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
 
                 if (addPlayers) packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);

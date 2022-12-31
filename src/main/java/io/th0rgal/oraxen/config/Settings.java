@@ -13,6 +13,11 @@ public enum Settings {
     GENERATE_DEFAULT_CONFIGS("Plugin.generation.default_configs"),
     WORLDEDIT_NOTEBLOCKS("Plugin.worldedit.noteblock_mechanic"),
     WORLDEDIT_STRINGBLOCKS("Plugin.worldedit.stringblock_mechanic"),
+    FORMAT_INVENTORY_TITLES("Plugin.formatting.inventory_titles"),
+    FORMAT_TITLES("Plugin.formatting.titles"),
+    FORMAT_SUBTITLES("Plugin.formatting.subtitles"),
+    FORMAT_ACTION_BAR("Plugin.formatting.action_bar"),
+    FORMAT_ANVIL("Plugin.formatting.anvil"),
     CONVERT_PACK_FOR_1_19_3("Plugin.experimental.convert_pack_for_1_19_3"),
 
     CONFIGS_VERSION("configs_version"),
@@ -34,6 +39,7 @@ public enum Settings {
 
     GENERATE("Pack.generation.generate"),
     ATTEMPT_TO_MIGRATE_DUPLICATES("Pack.generation.attempt_to_migrate_duplicates"),
+    GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
     ARMOR_RESOLUTION("Pack.generation.armor_resolution"),
     ANIMATED_ARMOR_FRAMERATE("Pack.generation.animated_armor_framerate"),
     AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR("Pack.generation.automatically_generate_shader_compatible_armor"),

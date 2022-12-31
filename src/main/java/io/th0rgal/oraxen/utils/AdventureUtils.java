@@ -60,6 +60,14 @@ public class AdventureUtils {
         return MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message));
     }
 
+    public static Component parseLegacy(Component message) {
+        return MINI_MESSAGE.deserialize(LEGACY_SERIALIZER.serialize(message));
+    }
+
+    public static String parseLegacyToString(Component message) {
+        return MINI_MESSAGE.serialize(parseLegacy(message));
+    }
+
     /**
      * Parses a string through both legacy and minimessage serializers.
      * This is useful for parsing strings that may contain legacy formatting codes and modern adventure-tags.
@@ -67,7 +75,15 @@ public class AdventureUtils {
      * @return The parsed string
      */
     public static String parseLegacyThroughMiniMessage(String message) {
-        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message.replace("&", "§"))).replaceAll("\\\\(?!u)", "")));
+        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)", "")));
+    }
+
+    public static String parseLegacyThroughMiniMessage(Component message) {
+        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(LEGACY_SERIALIZER.serialize(message).replaceAll("\\\\(?!u)", "")));
+    }
+
+    public static String parseMiniMessageThroughLegacy(Component message) {
+        return MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(MINI_MESSAGE.serialize(message).replace('&', '§'))).replaceAll("\\\\(?!u)", "");
     }
 
     /**

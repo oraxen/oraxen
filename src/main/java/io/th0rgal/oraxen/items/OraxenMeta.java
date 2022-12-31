@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.items;
 
+import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.List;
@@ -45,19 +47,25 @@ public class OraxenMeta {
             if (layer.endsWith(".png"))
                 layers.set(i, layer.substring(0, layer.length() - 4));
         }
-        this.generate_model = configurationSection.getBoolean("generate_model");
+
+        // If not specified, check if a model or texture is set
+        this.generate_model = configurationSection.getBoolean("generate_model", getModelName().isEmpty());
         this.parentModel = configurationSection.getString("parent_model", "item/generated");
     }
 
-    // this might not be a really good function name
-    private String readModelName(ConfigurationSection configurationSection, String configString) {
-        String modelName = configurationSection.getString(configString);
-        if (modelName == null && configString.equals("model"))
-            return configurationSection.getParent().getName();
-        if (modelName != null && modelName.endsWith(".json"))
-            return modelName.substring(0, modelName.length() - 5);
+    // this might not be a very good function name
+    private String readModelName(ConfigurationSection configSection, String configString) {
+        String modelName = configSection.getString(configString);
+        List<String> textures = configSection.getStringList("textures");
+        ConfigurationSection parent = configSection.getParent();
+        modelName = modelName != null ? modelName : Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.toBool() && !textures.isEmpty() && parent != null
+                ? Utils.getStringBeforeLastInSplit(textures.stream().findFirst().get(), "/") + parent.getName() : null;
 
-        return modelName;
+        if (modelName == null && configString.equals("model") && parent != null)
+            return parent.getName();
+        else if (modelName != null && modelName.endsWith(".json"))
+            return modelName.substring(0, modelName.length() - 5);
+        else return modelName;
     }
 
     public boolean hasPackInfos() {
@@ -76,7 +84,7 @@ public class OraxenMeta {
         this.modelName = modelName;
     }
 
-    public void setNoUpdate(boolean noUpdate){
+    public void setNoUpdate(boolean noUpdate) {
         this.noUpdate = noUpdate;
     }
 
@@ -140,7 +148,7 @@ public class OraxenMeta {
         return generate_model;
     }
 
-    public boolean isNoUpdate(){
+    public boolean isNoUpdate() {
         return noUpdate;
     }
 
