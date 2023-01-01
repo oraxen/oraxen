@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -40,19 +41,18 @@ public class EvolutionListener implements Listener {
             if (itemInteracted.getType() != Material.BONE_MEAL) return;
 
             Block blockBelow = crop.getLocation().getBlock().getRelative(BlockFace.DOWN);
-            String itemID = crop.getPersistentDataContainer().get(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING);
-            FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(itemID);
+            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(crop);
             if (mechanic == null) return;
 
             if (mechanic.farmlandRequired && blockBelow.getType() != Material.FARMLAND) {
-                OraxenBlocks.remove(crop.getLocation(), event.getPlayer());
+                OraxenFurniture.remove(crop.getLocation(), event.getPlayer());
             } else if (mechanic.farmblockRequired) {
                 NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(blockBelow);
                 if (noteMechanic == null) {
-                    OraxenBlocks.remove(crop.getLocation(), event.getPlayer());
+                    OraxenFurniture.remove(crop.getLocation(), event.getPlayer());
                 } else if (noteMechanic.hasDryout()) {
                     if (!noteMechanic.getDryout().isFarmBlock()) {
-                        OraxenBlocks.remove(crop.getLocation(), event.getPlayer());
+                        OraxenFurniture.remove(crop.getLocation(), event.getPlayer());
                         return;
                     } else if (!noteMechanic.getDryout().isMoistFarmBlock()) {
                         crop.getPersistentDataContainer().set(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
@@ -67,9 +67,8 @@ public class EvolutionListener implements Listener {
             itemInteracted.setAmount(itemInteracted.getAmount() - 1);
             crop.getWorld().playEffect(crop.getLocation(), Effect.BONE_MEAL_USE, 3);
             if (randomChance(mechanic.getEvolution().getBoneMealChance())) {
-                OraxenBlocks.remove(crop.getLocation(), event.getPlayer());
-                FurnitureMechanic nextMechanic = (FurnitureMechanic) factory.getMechanic(mechanic.getEvolution().getNextStage());
-                nextMechanic.place(crop.getRotation(), mechanic.getYaw(crop.getRotation()), crop.getFacing(), crop.getLocation(), null);
+                OraxenFurniture.remove(crop.getLocation(), event.getPlayer());
+                OraxenFurniture.place(crop.getLocation(), mechanic.getEvolution().getNextStage(), crop.getRotation(), crop.getFacing(), null);
             }
         }
     }

@@ -61,11 +61,6 @@ public class OraxenMeta {
         modelName = modelName != null ? modelName : Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.toBool() && !textures.isEmpty() && parent != null
                 ? Utils.getStringBeforeLastInSplit(textures.stream().findFirst().get(), "/") + parent.getName() : null;
 
-        List<String> textures = configSection.getStringList("textures");
-        ConfigurationSection parent = configSection.getParent();
-        modelName = modelName != null ? modelName : Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.toBool() && !textures.isEmpty() && parent != null
-                ? Utils.getStringBeforeLastInSplit(textures.stream().findFirst().get(), "/") + parent.getName() : null;
-
         if (modelName == null && configString.equals("model") && parent != null)
             return parent.getName();
         else if (modelName != null && modelName.endsWith(".json"))
