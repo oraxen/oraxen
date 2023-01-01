@@ -23,12 +23,12 @@ public class Utils {
 
     public static String getLastStringInSplit(String string, String split) {
         String[] splitString = string.split(split);
-        return splitString[splitString.length - 1];
+        return splitString.length > 0 ? splitString[splitString.length - 1] : "";
     }
 
     public static String getStringBeforeLastInSplit(String string, String split) {
         String[] splitString = string.split(split);
-        return string.replace(splitString[splitString.length - 1], "");
+        return string.replace(splitString[splitString.length > 0 ? splitString.length - 1 : splitString.length], "");
     }
 
     public static String replaceLast(String string, String toReplace, String replacement) {

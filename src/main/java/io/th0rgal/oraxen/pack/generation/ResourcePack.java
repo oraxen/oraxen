@@ -13,10 +13,7 @@ import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.CustomArmorsTextures;
-import io.th0rgal.oraxen.utils.VirtualFile;
-import io.th0rgal.oraxen.utils.ZipUtils;
+import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
 import org.bukkit.Material;
@@ -132,6 +129,16 @@ public class ResourcePack {
 
         if (Settings.CONVERT_PACK_FOR_1_19_3.toBool())
             PackConvertor.handlePackConversionFor_1_19_3(output);
+
+        List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
+        if (!excludedExtensions.isEmpty() && !output.isEmpty()) {
+            List<VirtualFile> newOutput = new ArrayList<>();
+            for (VirtualFile virtual : output) {
+                if (excludedExtensions.contains(Utils.getLastStringInSplit(virtual.getPath(), "\\.")))
+                    newOutput.add(virtual);
+            }
+            output.removeAll(newOutput);
+        }
 
         ZipUtils.writeZipFile(pack, output);
     }
