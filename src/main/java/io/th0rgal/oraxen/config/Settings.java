@@ -45,7 +45,6 @@ public enum Settings {
     GENERATE("Pack.generation.generate"),
     ATTEMPT_TO_MIGRATE_DUPLICATES("Pack.generation.attempt_to_migrate_duplicates"),
     EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions"),
-    GENERATE_ATLAS_FILE("Pack.generation.generate_atlas_file"),
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
     ARMOR_RESOLUTION("Pack.generation.armor_resolution"),
     ANIMATED_ARMOR_FRAMERATE("Pack.generation.animated_armor_framerate"),
