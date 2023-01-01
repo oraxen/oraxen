@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'maven-publish'
 
 group 'io.th0rgal'
-def pluginVersion = '1.150.1'
+def pluginVersion = '1.150.2'
 version = pluginVersion
 ext.jitpackGroup = group + '.oraxen'
 ext.jitpackVersion = version
@@ -69,8 +69,8 @@ dependencies {
     compileOnly group: 'com.github.BeYkeRYkt', name: 'LightAPI', version: '5.3.0-Bukkit'
     compileOnly group: 'me.gabytm.util', name: 'actions-core', version: actionsVersion
     compileOnly group: 'org.springframework', name: 'spring-expression', version: '5.3.17'
-    compileOnly group: 'io.lumine', name: 'Mythic-Dist', version: '5.1.2-SNAPSHOT'
-    compileOnly group: 'io.lumine', name: 'MythicCrucible', version: '1.5.0-SNAPSHOT'
+    compileOnly group: 'io.lumine', name: 'Mythic-Dist', version: '5.2.0-SNAPSHOT'
+    compileOnly group: 'io.lumine', name: 'MythicCrucible', version: '1.6.0-SNAPSHOT'
     compileOnly group: 'com.sk89q.worldedit', name: 'worldedit-bukkit', version: '7.2.0'
     compileOnly group: 'commons-io', name: 'commons-io', version: '2.7'
     compileOnly group: 'com.ticxo', name: 'modelengine', version: 'R3.0.1'
