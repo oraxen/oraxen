@@ -241,6 +241,54 @@ public class CustomArmorsTextures {
         Logs.logSuccess("Finished rescaling and adding vanilla armor files!");
     }
 
+    public void rescaleVanillaArmorFiles(List<VirtualFile> output) {
+        List<VirtualFile> armorFiles = new ArrayList<>(output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/textures/models/armor/")
+                && (v.getPath().endsWith("_layer_1.png") || v.getPath().endsWith("_layer_2.png") || v.getPath().endsWith("_layer_1_overlay.png") || v.getPath().endsWith("_layer_2_overlay.png"))).toList());
+
+        // If there is no need to rescale, do not include the vanilla armor files
+        if (resolution == DEFAULT_RESOLUTION) {
+            armorFiles.removeIf(v -> v.getPath().endsWith("_layer_1.png") || v.getPath().endsWith("_layer_2.png"));
+            output.removeAll(armorFiles);
+        } else {
+            Logs.logSuccess("Starting rescaling of vanilla armor due to armor_resolution and use of higher resolution custom armor...");
+            // Remove all non-leather, diamond, gold, iron and chainmail sets
+            armorFiles.removeIf(v -> {
+                String mat = Utils.getLastStringInSplit(v.getPath(), "/").split("\\.")[0].toUpperCase();
+                return Arrays.stream(Material.values()).anyMatch(m -> m.toString().equals(mat)) && !mat.equals("CHAINMAIL");
+            });
+
+            for (VirtualFile file : armorFiles) {
+                BufferedImage original;
+                try {
+                    original = ImageIO.read(file.getInputStream());
+                } catch (IOException e) {
+                    Logs.logWarning("Error while upscaling " + file.getPath());
+                    return;
+                }
+                //TODO Figure out how to handle custom armor and leather_layer files
+                // Ideally we resize leather armor before those are generated so that leather fits
+                int width = resolution * WIDTH_RATIO;
+                int height = resolution * HEIGHT_RATIO;
+                if (original.getWidth() == width && original.getHeight() == height) return;
+
+                Image resizedImage = original.getScaledInstance(width, height, Image.SCALE_DEFAULT);
+                BufferedImage outputImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+                outputImage.getGraphics().drawImage(resizedImage, 0, 0, null);
+
+                try {
+                    ByteArrayOutputStream os = new ByteArrayOutputStream();
+                    ImageIO.write(outputImage,"png", os);
+                    InputStream fis = new ByteArrayInputStream(os.toByteArray());
+                    file.setInputStream(fis);
+                } catch (IOException e) {
+                    Logs.logWarning("Error while upscaling " + file.getPath());
+                    return;
+                }
+            }
+        }
+        Logs.logSuccess("Finished rescaling and adding vanilla armor files!");
+    }
+
     public int getAnimatedArmorFramerate() {
         try {
             return Integer.parseInt(Settings.ANIMATED_ARMOR_FRAMERATE.getValue().toString());
