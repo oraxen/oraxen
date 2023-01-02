@@ -241,6 +241,10 @@ public class CustomArmorsTextures {
         Logs.logSuccess("Finished rescaling and adding vanilla armor files!");
     }
 
+    public boolean shouldGenerateOptifineFiles() {
+        return Settings.AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool();
+    }
+
     public int getAnimatedArmorFramerate() {
         try {
             return Integer.parseInt(Settings.ANIMATED_ARMOR_FRAMERATE.getValue().toString());
