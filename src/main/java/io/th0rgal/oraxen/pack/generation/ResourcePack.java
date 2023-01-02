@@ -123,19 +123,22 @@ public class ResourcePack {
 
             // needs to be ordered, forEach cannot be used
             File[] files = packFolder.listFiles();
-            if (files != null) for (final File folder : files)
+            if (files != null) for (final File folder : files) {
                 if (folder.isDirectory() && folder.getName().equalsIgnoreCase("assets"))
                     getAllFiles(folder, output, "");
                 else if (folder.isDirectory())
                     getAllFiles(folder, output, "assets/minecraft");
+            }
 
             if (customArmorsTextures.hasCustomArmors()) {
+                customArmorsTextures.rescaleVanillaArmorFiles(output);
                 String armorPath = "assets/minecraft/textures/models/armor";
                 output.add(new VirtualFile(armorPath, "leather_layer_1.png", customArmorsTextures.getLayerOne()));
                 output.add(new VirtualFile(armorPath, "leather_layer_2.png", customArmorsTextures.getLayerTwo()));
                 if (customArmorsTextures.shouldGenerateOptifineFiles())
                     output.addAll(customArmorsTextures.getOptifineFiles());
             }
+
             Collections.sort(output);
         } catch (IOException e) {
             e.printStackTrace();
@@ -391,9 +394,7 @@ public class ResourcePack {
             else if (customArmorsTextures.registerImage(file)) return;
             else fis = new FileInputStream(file);
 
-            fileList.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder),
-                    file.getName(),
-                    fis));
+            fileList.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder), file.getName(), fis));
         } catch (IOException e) {
             e.printStackTrace();
         }
