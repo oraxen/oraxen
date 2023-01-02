@@ -40,7 +40,38 @@ public class ItemUpdater implements Listener {
             if (oldItem == null || oldItem.equals(newItem))
                 continue;
             inventory.setItem(i, newItem);
+            Logs.broadcast("Updated " + newItem.getItemMeta().getDisplayName());
         }
+    }
+
+    @EventHandler
+    public void onAnvilRename(InventoryClickEvent event) {
+        if (!(event.getClickedInventory() instanceof AnvilInventory inventory)) return;
+        if (event.getSlot() != 2) return;
+
+        ItemStack firstItem = inventory.getItem(0);
+        ItemStack resultItem = inventory.getItem(2);
+        String resultId = OraxenItems.getIdByItem(resultItem);
+        ItemStack oraxenItem = OraxenItems.getItemById(resultId).build();
+        if (firstItem == null || resultItem == null || resultId == null || oraxenItem == null) return;
+        ItemMeta firstMeta = firstItem.getItemMeta();
+        ItemMeta resultMeta = resultItem.getItemMeta();
+        ItemMeta oraxenMeta = oraxenItem.getItemMeta();
+        if (firstMeta == null || !firstMeta.hasDisplayName()) return;
+        if (resultMeta == null || !resultMeta.hasDisplayName()) return;
+        if (resultMeta.getDisplayName().equals(firstMeta.getDisplayName())) return;
+
+        //TODO Figure out how to only get the text of a component and check it
+        Logs.broadcast(AdventureUtils.PLAIN_TEXT.deserialize(resultMeta.getDisplayName()));
+        Logs.broadcast(AdventureUtils.PLAIN_TEXT.deserialize(oraxenMeta.getDisplayName()));
+        if (oraxenMeta != null && oraxenMeta.hasDisplayName()) {
+            if (AdventureUtils.PLAIN_TEXT.deserialize(resultMeta.getDisplayName()).content().equals(
+                    AdventureUtils.PLAIN_TEXT.deserialize(oraxenMeta.getDisplayName()).content())) {
+                resultMeta.setDisplayName(oraxenMeta.getDisplayName());
+            }
+        }
+        else Utils.editItemMeta(resultItem, itemMeta ->
+                itemMeta.getPersistentDataContainer().set(ANVIL_RENAMED, DataType.STRING, resultMeta.getDisplayName()));
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
