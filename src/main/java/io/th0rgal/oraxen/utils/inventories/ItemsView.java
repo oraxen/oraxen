@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.ChatColor;
@@ -69,7 +70,7 @@ public class ItemsView {
             for (int itemIndex = 0; itemIndex < itemStackList.size(); itemIndex++) {
                 final ItemStack oraxenItem = itemStackList.get(itemIndex);
                 staticPane.addItem(new GuiItem(oraxenItem,
-                                event -> event.getWhoClicked().getInventory().addItem(oraxenItem)),
+                                event -> event.getWhoClicked().getInventory().addItem(ItemUpdater.updateItem(oraxenItem))),
                         itemIndex % 9, itemIndex / 9);
             }
             pane.addPane(i, staticPane);
