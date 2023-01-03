@@ -30,11 +30,11 @@ public class PackConvertor {
         for (VirtualFile v : output) textureSubFolders.put(v, v.getPath().replaceFirst("assets/.*/textures/", "").split("/")[0]);
         textureSubFolders.forEach((virtual, path) -> {
             JsonObject atlasEntry = new JsonObject();
-            if (path.contains(".png")) {
+            if (path.endsWith(".png")) {
                 String namespace = virtual.getPath().replaceFirst("assets/", "").split("/")[0];
-                String sprite = Utils.getLastStringInSplit(virtual.getPath(), "/").split("\\.")[0];
+                String sprite = Utils.removeParentDirs(Utils.removeExtension(virtual.getPath()));
                 atlasEntry.addProperty("type", "single");
-                atlasEntry.addProperty("resource", namespace + ":" + path.split("\\.")[0]);
+                atlasEntry.addProperty("resource", namespace + ":" + Utils.removeExtension(path));
                 atlasEntry.addProperty("sprite", sprite);
             } else {
                 atlasEntry.addProperty("type", "directory");

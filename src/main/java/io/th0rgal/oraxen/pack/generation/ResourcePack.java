@@ -134,7 +134,7 @@ public class ResourcePack {
         if (!excludedExtensions.isEmpty() && !output.isEmpty()) {
             List<VirtualFile> newOutput = new ArrayList<>();
             for (VirtualFile virtual : output) {
-                if (excludedExtensions.contains(Utils.getLastStringInSplit(virtual.getPath(), "\\.")))
+                if (excludedExtensions.contains(Utils.removeExtension(virtual.getPath())))
                     newOutput.add(virtual);
             }
             output.removeAll(newOutput);
