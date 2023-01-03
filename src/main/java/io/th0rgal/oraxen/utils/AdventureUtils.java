@@ -57,7 +57,7 @@ public class AdventureUtils {
      * @return The parsed string
      */
     public static String parseLegacy(String message) {
-        return MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message));
+        return MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message)).replace("\\<", "<");
     }
 
     public static Component parseLegacy(Component message) {
