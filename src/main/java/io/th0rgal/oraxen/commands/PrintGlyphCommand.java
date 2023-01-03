@@ -17,13 +17,14 @@ import org.apache.commons.codec.binary.Hex;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class PrintGlyphCommand {
     public CommandAPICommand getPrintGlyphCommand() {
-        List<String> glyphnames = new ArrayList<>();
+        final List<String> glyphnames = new ArrayList<>();
         glyphnames.add("all");
-        OraxenPlugin.get().getFontManager().getGlyphs().stream().map(Glyph::getName);
+        glyphnames.addAll(OraxenPlugin.get().getFontManager().getGlyphs().stream().map(Glyph::getName).collect(Collectors.toList()));
         return new CommandAPICommand("printglyph")
                 .withPermission("oraxen.command.printglyph")
                 .withArguments(new TextArgument("glyphname").replaceSuggestions(ArgumentSuggestions.strings(glyphnames.toArray(new String[0]))))
