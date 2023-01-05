@@ -31,7 +31,7 @@ public class FurnitureFactory extends MechanicFactory {
         );
         evolvingFurnitures = false;
         instance = this;
-        customSounds = section.getBoolean("custom_sounds", true);
+        customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("stringblock_and_furniture", true);
 
         MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureListener(this));
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureSoundListener());
