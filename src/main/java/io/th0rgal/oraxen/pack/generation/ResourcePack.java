@@ -131,9 +131,9 @@ public class ResourcePack {
         }
 
         if (Settings.CONVERT_PACK_FOR_1_19_3.toBool())
-            new PackConvertor().handlePackConversionFor_1_19_3(output);
+            PackConvertor.handlePackConversionFor_1_19_3(output);
 
-        ZipUtils.writeZipFile(pack, packFolder, output);
+        ZipUtils.writeZipFile(pack, output);
     }
 
     // Fast check to avoid issues if RP already has these files from another plugin

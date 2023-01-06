@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -42,25 +43,25 @@ public class EvolutionTask extends BukkitRunnable {
                 if (furnitureMechanic == null) continue;
 
                 if (furnitureMechanic.farmlandRequired && blockBelow.getType() != Material.FARMLAND) {
-                    OraxenBlocks.remove(frameLoc, null);
+                    OraxenFurniture.remove(frameLoc, null);
                     continue;
                 }
 
                 if (furnitureMechanic.farmblockRequired) {
                     if (blockBelow.getType() != Material.NOTE_BLOCK) {
-                        OraxenBlocks.remove(frameLoc, null);
+                        OraxenFurniture.remove(frameLoc, null);
                         continue;
                     }
 
                     NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(blockBelow);
                     if (noteMechanic == null || !noteMechanic.hasDryout()) {
-                        OraxenBlocks.remove(frameLoc, null);
+                        OraxenFurniture.remove(frameLoc, null);
                         continue;
                     }
                     FarmBlockDryout dryoutMechanic = noteMechanic.getDryout();
                     if (noteMechanic.hasDryout()) {
                         if (!dryoutMechanic.isFarmBlock()) {
-                            OraxenBlocks.remove(frameLoc, null);
+                            OraxenFurniture.remove(frameLoc, null);
                             continue;
                         } else if (!dryoutMechanic.isMoistFarmBlock()) {
                             framePDC.set(FurnitureMechanic.EVOLUTION_KEY,
@@ -88,7 +89,7 @@ public class EvolutionTask extends BukkitRunnable {
                     if (evolution.getNextStage() == null) continue;
                     if (!evolution.bernoulliTest()) continue;
 
-                    OraxenBlocks.remove(frameLoc, null);
+                    OraxenFurniture.remove(frameLoc, null);
                     FurnitureMechanic nextMechanic = (FurnitureMechanic) furnitureFactory.getMechanic(evolution.getNextStage());
                     nextMechanic.place(frame.getRotation(),
                             furnitureMechanic.getYaw(frame.getRotation()),
