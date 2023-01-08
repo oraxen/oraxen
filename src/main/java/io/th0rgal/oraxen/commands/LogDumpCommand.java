@@ -69,20 +69,19 @@ public class LogDumpCommand {
         String response = null;
         DataOutputStream wr = null;
         InputStreamReader inputReader = null;
+        BufferedReader reader = null;
         try {
             wr = new DataOutputStream(conn.getOutputStream());
             wr.write(postData);
             inputReader = new InputStreamReader(conn.getInputStream());
-            BufferedReader reader = new BufferedReader(inputReader);
+            reader = new BufferedReader(inputReader);
             response = reader.readLine();
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            if (inputReader != null)
-                inputReader.close();
-            if (wr != null)
-                wr.close();
-
+            if (inputReader != null) inputReader.close();
+            if (wr != null) wr.close();
+            if (reader != null) reader.close();
         }
 
         if (response != null && response.contains("key")) {
