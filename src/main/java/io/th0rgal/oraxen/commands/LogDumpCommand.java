@@ -67,17 +67,25 @@ public class LogDumpCommand {
         conn.setUseCaches(false);
 
         String response = null;
-        DataOutputStream wr;
+        DataOutputStream wr = null;
+        InputStreamReader inputReader = null;
         try {
             wr = new DataOutputStream(conn.getOutputStream());
             wr.write(postData);
-            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            inputReader = new InputStreamReader(conn.getInputStream());
+            BufferedReader reader = new BufferedReader(inputReader);
             response = reader.readLine();
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            if (inputReader != null)
+                inputReader.close();
+            if (wr != null)
+                wr.close();
+
         }
 
-        if (response.contains("\"key\"")) {
+        if (response != null && response.contains("key")) {
             response = response.substring(response.indexOf(":") + 2, response.length() - 2);
 
             String postURL = raw ? "https://hastebin.com/raw/" : "https://hastebin.com/";

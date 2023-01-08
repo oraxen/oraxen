@@ -82,7 +82,7 @@ public class Utils {
 
     public static String getStringBeforeLastInSplit(String string, String split) {
         String[] splitString = string.split(split);
-        return string.replace(splitString[splitString.length > 0 ? splitString.length - 1 : splitString.length], "");
+        return string.replace(splitString[splitString.length > 1 ? splitString.length - 1 : splitString.length], "");
     }
 
     public static void writeStringToFile(final File file, final String content) {
