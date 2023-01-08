@@ -1,7 +1,9 @@
 package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.List;
 
@@ -83,6 +85,15 @@ public enum Settings {
 
     public Object getValue() {
         return OraxenPlugin.get().getConfigsManager().getSettings().get(path);
+    }
+    public void setValue(Object value) {
+        YamlConfiguration settingFile = OraxenPlugin.get().getConfigsManager().getSettings();
+        settingFile.set(path, value);
+        try {
+            settingFile.save(OraxenPlugin.get().getDataFolder().getAbsoluteFile().toPath().resolve("settings.yml").toFile());
+        } catch (Exception e) {
+            Logs.logError("Failed to apply changes to settings.yml");
+        }
     }
 
     @Override

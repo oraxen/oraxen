@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -76,8 +77,21 @@ public class ResourcePack {
             return;
 
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) {
-            plugin.saveResource("pack/shaders/core/rendertype_text.json", true);
-            plugin.saveResource("pack/shaders/core/rendertype_text.vsh", true);
+            if (Bukkit.getPluginManager().isPluginEnabled("HappyHUD")) {
+                Logs.logError("HappyHUD detected!");
+                Logs.logWarning("Recommend following this guide for compatibility: https://docs.oraxen.com/compatibility/happyhud");
+                /*
+                Settings.HIDE_SCOREBOARD_NUMBERS.setValue(false);
+                try {
+                    Path pluginDir = OraxenPlugin.get().getDataFolder().getAbsoluteFile().toPath();
+                    Files.deleteIfExists(pluginDir.resolve("pack/shaders/core/rendertype_text.json"));
+                    Files.deleteIfExists(pluginDir.resolve("pack/shaders/core/rendertype_text.vsh"));
+                } catch (Exception ignored) {
+                }*/
+            } else {
+                plugin.saveResource("pack/shaders/core/rendertype_text.json", true);
+                plugin.saveResource("pack/shaders/core/rendertype_text.vsh", true);
+            }
         } else {
             checkShaderFiles(new File(shaderFolder, "core/rendertype_text.json"));
             checkShaderFiles(new File(shaderFolder, "core/rendertype_text.vsh"));
