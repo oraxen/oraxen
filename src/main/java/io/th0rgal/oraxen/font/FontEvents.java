@@ -88,6 +88,8 @@ public class FontEvents implements Listener {
 
     @EventHandler
     public void onSignGlyph(final SignChangeEvent event) {
+        if (!Settings.FORMAT_SIGNS.toBool()) return;
+
         for (String line : event.getLines()) {
             int i = Arrays.stream(event.getLines()).toList().indexOf(line);
             if (i == -1) continue;

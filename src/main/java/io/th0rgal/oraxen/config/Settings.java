@@ -18,6 +18,7 @@ public enum Settings {
     FORMAT_SUBTITLES("Plugin.formatting.subtitles"),
     FORMAT_ACTION_BAR("Plugin.formatting.action_bar"),
     FORMAT_ANVIL("Plugin.formatting.anvil"),
+    FORMAT_SIGNS("Plugin.formatting.signs"),
     CONVERT_PACK_FOR_1_19_3("Plugin.experimental.convert_pack_for_1_19_3"),
 
     CONFIGS_VERSION("configs_version"),

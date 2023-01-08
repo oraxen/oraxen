@@ -14,6 +14,7 @@ Plugin:
     subtitles: true # Formats all subtitles made by any plugin
     action_bar: true # Formats all action bars made by any plugin
     anvil: true # Formats the result item based on the Anvil Text made by any plugin
+    signs: true # Formats text on signs when placed or edited
   worldedit: # Please note these are both experimental still and should be used with caution
     noteblock_mechanic: false
     stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
