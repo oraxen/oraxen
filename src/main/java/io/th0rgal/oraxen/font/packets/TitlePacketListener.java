@@ -44,8 +44,12 @@ public class TitlePacketListener extends PacketAdapter {
             else title = PacketHelpers.readJson(packet.getChatComponents().read(0).getJson());
             return WrappedChatComponent.fromJson(PacketHelpers.toJson(title));
         } catch (Exception e) {
-            Logs.logWarning("Error whilst reading title/subtitle packet");
-            e.printStackTrace();
+            String type;
+            if (packet.getType() == SET_TITLE_TEXT) type = "title";
+            else if (packet.getType() == SET_SUBTITLE_TEXT) type = "subtitle";
+            else type = "actionbar";
+            Logs.logWarning("Error whilst reading " + type + " packet");
+            //e.printStackTrace();
         }
         return null;
     }
