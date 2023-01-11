@@ -42,6 +42,7 @@ public class CommandsManager {
                 .withSubcommand((new GlyphCommand()).getGlyphCommand(commandsSection))
                 .withSubcommand((new PrintGlyphCommand()).getPrintGlyphCommand())
                 .withSubcommand((new ItemInfoCommand()).getItemInfoCommand())
+                .withSubcommand((new BlockInfoCommand()).getBlockInfoCommand())
                 .withSubcommand((new HudCommand()).getHudCommand())
                 .withSubcommand((new LogDumpCommand().getLogDumpCommand()))
                 .executes((sender, args) -> {
