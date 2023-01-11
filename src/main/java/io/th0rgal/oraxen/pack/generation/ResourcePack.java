@@ -147,7 +147,7 @@ public class ResourcePack {
         }
 
         if (Settings.GENERATE_ATLAS_FILE.toBool())
-            PackConvertor.handlePackConversionFor_1_19_3(output);
+            PackConvertor.generateAtlasFile(output);
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         if (!excludedExtensions.isEmpty() && !output.isEmpty()) {
