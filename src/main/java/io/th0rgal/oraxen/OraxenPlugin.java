@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.config.SettingsUpdater;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
 import io.th0rgal.oraxen.font.packets.TitlePacketListener;
@@ -71,6 +72,8 @@ public class OraxenPlugin extends JavaPlugin {
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
         reloadConfigs();
+        if (Settings.KEEP_UP_TO_DATE.toBool())
+            new SettingsUpdater().updateKeys();
         fontManager = new FontManager(configsManager);
         hudManager = new HudManager(configsManager);
         new CommandsManager().loadCommands();

@@ -10,6 +10,7 @@ import java.util.List;
 public enum Settings {
 
     PLUGIN_LANGUAGE("Plugin.language"),
+    KEEP_UP_TO_DATE("Plugin.keep_this_up_to_date"),
     REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),
     GENERATE_DEFAULT_ASSETS("Plugin.generation.default_assets"),
     GENERATE_DEFAULT_CONFIGS("Plugin.generation.default_configs"),
@@ -21,7 +22,6 @@ public enum Settings {
     FORMAT_ACTION_BAR("Plugin.formatting.action_bar"),
     FORMAT_ANVIL("Plugin.formatting.anvil"),
     FORMAT_SIGNS("Plugin.formatting.signs"),
-    CONVERT_PACK_FOR_1_19_3("Plugin.experimental.convert_pack_for_1_19_3"),
 
     CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),
@@ -43,6 +43,7 @@ public enum Settings {
     GENERATE("Pack.generation.generate"),
     ATTEMPT_TO_MIGRATE_DUPLICATES("Pack.generation.attempt_to_migrate_duplicates"),
     EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions"),
+    GENERATE_ATLAS_FILE("Pack.generation.generate_atlas_file"),
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
     ARMOR_RESOLUTION("Pack.generation.armor_resolution"),
     ANIMATED_ARMOR_FRAMERATE("Pack.generation.animated_armor_framerate"),

@@ -1,4 +1,5 @@
 Plugin:
+  keep_this_up_to_date: true #Oraxen will delete old settings
   language: "english"
   commands:
     repair:
@@ -18,8 +19,6 @@ Plugin:
   worldedit: # Please note these are both experimental still and should be used with caution
     noteblock_mechanic: false
     stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
-  experimental:
-    convert_pack_for_1_19_3: true # Temporary automatic conversion for new 1.19.3 pack format
 
 Pack:
   generation:
