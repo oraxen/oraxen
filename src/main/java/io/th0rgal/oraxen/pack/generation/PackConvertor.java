@@ -11,23 +11,22 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class PackConvertor {
 
     public PackConvertor() {
     }
 
-    public static void handlePackConversionFor_1_19_3(List<VirtualFile> output) {
+    public static void generateAtlasFile(List<VirtualFile> output) {
         Logs.logSuccess("Generating atlas-file for 1.19.3 Resource Pack format");
-        generateAtlasFile(output);
-    }
 
-    private static void generateAtlasFile(List<VirtualFile> output) {
         JsonObject atlas = new JsonObject();
         JsonArray atlasContent = new JsonArray();
         Map<VirtualFile, String> textureSubFolders = new HashMap<>();
+        for (VirtualFile v : output.stream().filter(v -> v.getPath().split("/").length > 3 && v.getPath().endsWith(".png")).collect(Collectors.toSet()))
+            textureSubFolders.put(v, v.getPath().replaceFirst("assets/.*/textures/", "").split("/")[0]);
 
-        for (VirtualFile v : output) textureSubFolders.put(v, v.getPath().replaceFirst("assets/.*/textures/", "").split("/")[0]);
         textureSubFolders.forEach((virtual, path) -> {
             JsonObject atlasEntry = new JsonObject();
             if (path.endsWith(".png")) {
