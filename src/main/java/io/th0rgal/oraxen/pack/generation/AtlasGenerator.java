@@ -13,9 +13,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class PackConvertor {
+public class AtlasGenerator {
 
-    public PackConvertor() {
+    public AtlasGenerator() {
     }
 
     public static void generateAtlasFile(List<VirtualFile> output) {
