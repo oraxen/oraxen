@@ -8,22 +8,109 @@ import io.lumine.mythic.utils.logging.Log;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.io.IOUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class DuplicationHandler {
 
     public DuplicationHandler() {
+    }
+
+    //Experimental way of combining 2 fonts instead of making glyphconfigs later
+    public static void mergeFontFiles(List<VirtualFile> output) {
+        Logs.logSuccess("Attempting to merge imported font files");
+        //output.stream().filter(v -> v.getPath().split("/").length > 3 && v.getPath().replaceFirst("assets/.*/font/", "").split("/").length == 1 && v.getPath().endsWith(".json")).collect(Collectors.toSet());
+        Map<String, List<VirtualFile>> fontsToMerge = new HashMap<>();
+
+        // Generate a map of all duplicate fonts
+        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().split("/").length > 3 && v.getPath().replaceFirst("assets/.*/font/", "").split("/").length == 1 && v.getPath().endsWith(".json")).toList()) {
+            if (fontsToMerge.containsKey(virtual.getPath())) {
+                List<VirtualFile> newList = new ArrayList<>(fontsToMerge.get(virtual.getPath()).stream().toList());
+                newList.add(virtual);
+                fontsToMerge.put(virtual.getPath(), newList);
+            } else {
+                fontsToMerge.put(virtual.getPath(), List.of(virtual));
+            }
+        }
+
+
+        for (List<VirtualFile> duplicates : fontsToMerge.values()) {
+            if (duplicates.isEmpty()) continue;
+            JsonObject mainFont = new JsonObject();
+            JsonArray mainFontArray = getFontProviders(duplicates);
+            mainFont.add("providers", mainFontArray);
+
+            // Generate the template new font file
+            VirtualFile first = duplicates.stream().findFirst().get();
+            InputStream newInput = new ByteArrayInputStream(mainFont.toString().getBytes(StandardCharsets.UTF_8));
+            VirtualFile newFont = new VirtualFile(Utils.getParentDirs(first.getPath()), Utils.removeParentDirs(first.getPath()), newInput);
+            newFont.setPath(newFont.getPath().replace("//", "/"));
+            newFont.setInputStream(newInput);
+
+            // Remove all the old fonts from output
+            output.removeAll(duplicates);
+            output.add(newFont);
+        }
+    }
+
+    private static JsonArray getFontProviders(List<VirtualFile> duplicates) {
+        JsonArray newProviders = new JsonArray();
+        for (VirtualFile font : duplicates) {
+            InputStream fontInput = font.getInputStream();
+            String fontContent;
+            try {
+                fontContent = IOUtils.toString(fontInput, StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                Logs.logError("Fontcontent was null");
+                continue;
+            }
+            JsonElement fontelement = JsonParser.parseString(fontContent);
+            if (!fontelement.isJsonObject()) {
+                Logs.logError("Fontjson not object");
+                continue;
+            }
+
+            JsonObject fontJson = fontelement.getAsJsonObject();
+            JsonArray providers = fontJson.getAsJsonArray("providers");
+            List<String> newProviderChars = getNewProviderCharSet(newProviders);
+            for (JsonElement providerElement : providers) {
+                if (!providerElement.isJsonObject()) continue;
+                if (newProviders.contains(providerElement)) continue;
+                if (!providerElement.getAsJsonObject().has("chars")) continue;
+                String chars = providerElement.getAsJsonObject().getAsJsonArray("chars").toString();
+                if (!newProviderChars.contains(chars))
+                    newProviders.add(providerElement);
+            }
+        }
+        return newProviders;
+    }
+
+    private static List<String> getNewProviderCharSet(JsonArray newProvider) {
+        List<String> charList = new ArrayList<>();
+        for (JsonElement element : newProvider) {
+            if (!element.isJsonObject()) continue;
+            if (!element.getAsJsonObject().has("chars")) continue;
+            JsonArray chars = element.getAsJsonObject().get("chars").getAsJsonArray();
+            charList.add(chars.getAsString());
+        }
+        return charList;
     }
 
     /**
@@ -34,11 +121,10 @@ public class DuplicationHandler {
         try {
             out.putNextEntry(entry);
         } catch (IOException e) {
-            Logs.logWarning("Duplicate file detected: <blue>" +  name + "</blue> - Attempting to migrate it");
+            Logs.logWarning("Duplicate file detected: <blue>" + name + "</blue> - Attempting to migrate it");
             if (!Settings.ATTEMPT_TO_MIGRATE_DUPLICATES.toBool()) {
                 Logs.logError("Not attempting to migrate duplicate file as <#22b14c>attempt_to_migrate_duplicates</#22b14c> is disabled in settings.yml");
-            }
-            else if (attemptToMigrateDuplicate(name)) {
+            } else if (attemptToMigrateDuplicate(name)) {
                 Logs.logSuccess("Duplicate file fixed:<blue> " + name);
                 try {
                     OraxenPlugin.get().getDataFolder().toPath().resolve("pack/" + name).toFile().delete();
@@ -56,9 +142,11 @@ public class DuplicationHandler {
         if (name.startsWith("assets/minecraft/models/item/")) {
             Logs.logWarning("Found a duplicate <blue>" + Utils.removeParentDirs(name) + "</blue>, attempting to migrate it into Oraxen item configs");
             return migrateItemJson(name);
-        } else if (name.matches("assets/minecraft/font/default.json")) {
-            Logs.logWarning("Found a default.json duplicate, trying to migrate it into Oraxens glyph configs");
-            return migrateDefaultFontJson(name);
+        } else if (name.matches("assets/.*/font/.*.json")) {
+            //Logs.logWarning("Found a duplicated font file, trying to migrate it into Oraxens glyph configs");
+            //return migrateDefaultFontJson(name);
+            Logs.logWarning("Found a duplicated font file, trying to migrate it into Oraxens generated copy");
+            return mergeDuplicateFontJson(name);
         } else if (name.matches("assets/.*/sounds.json")) {
             Logs.logWarning("Found a sounds.json duplicate, trying to migrate it into Oraxens sound.yml config");
             return migrateSoundJson(name);
@@ -182,6 +270,15 @@ public class DuplicationHandler {
             e.printStackTrace();
             return false;
         }
+
+        return true;
+    }
+
+    private static boolean mergeDuplicateFontJson(String name) {
+        Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/", name);
+        Logs.broadcast(name);
+        Logs.broadcast(path);
+        Logs.broadcast("\n");
 
         return true;
     }
