@@ -8,6 +8,7 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.md_5.bungee.chat.ScoreComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 public class AdventureUtils {
@@ -29,6 +30,8 @@ public class AdventureUtils {
     public static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
 
     public static final PlainTextComponentSerializer PLAIN_TEXT = PlainTextComponentSerializer.plainText();
+
+    public static final ScoreComponentSerializer SCORE_SERIALIZER = new ScoreComponentSerializer();
 
     /**
      * @param message The string to parse
