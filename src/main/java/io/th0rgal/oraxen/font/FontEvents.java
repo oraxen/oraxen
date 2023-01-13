@@ -17,6 +17,7 @@ import org.bukkit.event.block.Action;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.player.PlayerEditBookEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.AnvilInventory;
@@ -36,14 +37,11 @@ public class FontEvents implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void onBookGlyph(final PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getItem() == null || !(event.getItem().getItemMeta() instanceof BookMeta meta)) return;
-
+    public void onBookGlyph(final PlayerEditBookEvent event) {
+        BookMeta meta = event.getNewBookMeta();
         for (String page : meta.getPages()) {
             int i = meta.getPages().indexOf(page) + 1;
             if (i == 0) continue;
-
             for (Character character : manager.getReverseMap().keySet()) {
                 if (!page.contains(String.valueOf(character))) continue;
 
@@ -53,6 +51,18 @@ public class FontEvents implements Listener {
                     event.setCancelled(true);
                 }
             }
+        }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onBookGlyph(final PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getItem() == null || !(event.getItem().getItemMeta() instanceof BookMeta meta)) return;
+        if (event.getItem().getType() != Material.WRITTEN_BOOK) return;
+
+        for (String page : meta.getPages()) {
+            int i = meta.getPages().indexOf(page) + 1;
+            if (i == 0) continue;
 
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
                 String unicode = String.valueOf(entry.getValue().getCharacter());
@@ -68,8 +78,8 @@ public class FontEvents implements Listener {
 
         Book book = Book.builder()
                 .title(AdventureUtils.MINI_MESSAGE.deserialize(meta.getTitle() != null ? meta.getTitle() : ""))
-                .pages(meta.getPages().stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList())
                 .author(AdventureUtils.MINI_MESSAGE.deserialize(meta.getAuthor() != null ? meta.getAuthor() : ""))
+                .pages(meta.getPages().stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList())
                 .build();
         // Open fake book and cancel event to prevent normal book opening
         OraxenPlugin.get().getAudience().player(event.getPlayer()).openBook(book);
@@ -78,6 +88,8 @@ public class FontEvents implements Listener {
 
     @EventHandler
     public void onSignGlyph(final SignChangeEvent event) {
+        if (!Settings.FORMAT_SIGNS.toBool()) return;
+
         for (String line : event.getLines()) {
             int i = Arrays.stream(event.getLines()).toList().indexOf(line);
             if (i == -1) continue;

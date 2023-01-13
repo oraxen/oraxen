@@ -8,6 +8,6 @@ public class PacketHelpers {
     }
 
     public static String toJson(String text) {
-        return AdventureUtils.GSON_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE.deserialize(text)).replaceAll("\\\\(?!u)", "");
+        return AdventureUtils.GSON_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE.deserialize(text)).replaceAll("\\\\(?!u)(?!\")", "");
     }
 }

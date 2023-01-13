@@ -43,6 +43,7 @@ public class CommandsManager {
                 .withSubcommand((new PrintGlyphCommand()).getPrintGlyphCommand())
                 .withSubcommand((new ItemInfoCommand()).getItemInfoCommand())
                 .withSubcommand((new HudCommand()).getHudCommand())
+                .withSubcommand((new LogDumpCommand().getLogDumpCommand()))
                 .executes((sender, args) -> {
                     Message.COMMAND_HELP.send(sender);
                 })

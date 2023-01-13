@@ -42,9 +42,9 @@ public class DuplicationHandler {
                 Logs.logSuccess("Duplicate file fixed:<blue> " + name);
                 try {
                     OraxenPlugin.get().getDataFolder().toPath().resolve("pack/" + name).toFile().delete();
-                    Logs.logSuccess("Deleted the imported <blue>" + Utils.getLastStringInSplit(name, "/") + "</blue> and migrated it to its supported Oraxen config(s)");
+                    Logs.logSuccess("Deleted the imported <blue>" + Utils.removeParentDirs(name) + "</blue> and migrated it to its supported Oraxen config(s)");
                 } catch (Exception ignored) {
-                    Log.error("Failed to delete the imported <blue>" + Utils.getLastStringInSplit(name, "/") + "</blue> after migrating it");
+                    Log.error("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");
                 }
                 Logs.logSuccess("Might need to restart your server ones before the resourcepack works fully");
             }
@@ -54,7 +54,7 @@ public class DuplicationHandler {
 
     private static boolean attemptToMigrateDuplicate(String name) {
         if (name.startsWith("assets/minecraft/models/item/")) {
-            Logs.logWarning("Found a duplicate <blue>" + Utils.getLastStringInSplit(name, "/") + "</blue>, attempting to migrate it into Oraxen item configs");
+            Logs.logWarning("Found a duplicate <blue>" + Utils.removeParentDirs(name) + "</blue>, attempting to migrate it into Oraxen item configs");
             return migrateItemJson(name);
         } else if (name.matches("assets/minecraft/font/default.json")) {
             Logs.logWarning("Found a default.json duplicate, trying to migrate it into Oraxens glyph configs");
@@ -83,7 +83,7 @@ public class DuplicationHandler {
     }
 
     private static boolean migrateItemJson(String name) {
-        String itemMaterial = Utils.getLastStringInSplit(name, "/").split(".json")[0].toUpperCase();
+        String itemMaterial = Utils.removeParentDirs(name).split(".json")[0].toUpperCase();
         try {
             Material.valueOf(itemMaterial);
         } catch (IllegalArgumentException e) {
@@ -113,7 +113,7 @@ public class DuplicationHandler {
         if (json.getAsJsonArray("overrides") != null) for (JsonElement element : json.getAsJsonArray("overrides")) {
             JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
             String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
-            String id = "migrated_" + Utils.getLastStringInSplit(modelPath, "/");
+            String id = "migrated_" + Utils.removeParentDirs(modelPath);
             int cmd;
             try {
                 cmd = predicate.get("custom_model_data").getAsInt();

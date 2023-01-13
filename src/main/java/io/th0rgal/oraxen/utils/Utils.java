@@ -21,16 +21,6 @@ public class Utils {
     private Utils() {
     }
 
-    public static String getLastStringInSplit(String string, String split) {
-        String[] splitString = string.split(split);
-        return splitString[splitString.length - 1];
-    }
-
-    public static String getStringBeforeLastInSplit(String string, String split) {
-        String[] splitString = string.split(split);
-        return string.replace(splitString[splitString.length - 1], "");
-    }
-
     public static String replaceLast(String string, String toReplace, String replacement) {
         int pos = string.lastIndexOf(toReplace);
         if (pos > -1) {
@@ -59,6 +49,14 @@ public class Utils {
         return Long.parseLong(OffsetDateTime.now().format(DateTimeFormatter.ofPattern(format)));
     }
 
+    public static String getParentDirs(String string) {
+        return Utils.getStringBeforeLastInSplit(string, "/");
+    }
+
+    public static String removeParentDirs(String s) {
+        return Utils.getLastStringInSplit(s, "/");
+    }
+
     public static String removeExtension(String s) {
 
         String separator = System.getProperty("file.separator");
@@ -75,6 +73,17 @@ public class Utils {
             return filename;
 
         return filename.substring(0, extensionIndex);
+    }
+
+    public static String getLastStringInSplit(String string, String split) {
+        String[] splitString = string.split(split);
+        return splitString.length > 0 ? splitString[splitString.length - 1] : "";
+    }
+
+    public static String getStringBeforeLastInSplit(String string, String split) {
+        String[] splitString = string.split(split);
+        if (splitString.length == 0) return string;
+        else return string.replace(splitString[splitString.length - 1], "");
     }
 
     public static void writeStringToFile(final File file, final String content) {

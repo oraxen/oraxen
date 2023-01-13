@@ -8,6 +8,7 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
+import net.md_5.bungee.chat.ScoreComponentSerializer;
 
 public class AdventureUtils {
 
@@ -26,6 +27,8 @@ public class AdventureUtils {
     public static final MiniMessage MINI_MESSAGE = MiniMessage.builder().tags(OraxenTagResolver).build();
 
     public static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
+
+    public static final ScoreComponentSerializer SCORE_SERIALIZER = new ScoreComponentSerializer();
 
     /**
      * @param message The string to parse
@@ -57,7 +60,7 @@ public class AdventureUtils {
      * @return The parsed string
      */
     public static String parseLegacy(String message) {
-        return MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message));
+        return MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!\")", "");
     }
 
     public static Component parseLegacy(Component message) {
@@ -75,15 +78,15 @@ public class AdventureUtils {
      * @return The parsed string
      */
     public static String parseLegacyThroughMiniMessage(String message) {
-        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)", "")));
+        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!\")", "")));
     }
 
     public static String parseLegacyThroughMiniMessage(Component message) {
-        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(LEGACY_SERIALIZER.serialize(message).replaceAll("\\\\(?!u)", "")));
+        return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(LEGACY_SERIALIZER.serialize(message).replaceAll("\\\\(?!u)(?!\")", "")));
     }
 
     public static String parseMiniMessageThroughLegacy(Component message) {
-        return MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(MINI_MESSAGE.serialize(message).replace('&', '§'))).replaceAll("\\\\(?!u)", "");
+        return MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(MINI_MESSAGE.serialize(message).replace('&', '§'))).replaceAll("\\\\(?!u)(?!\")", "");
     }
 
     /**
@@ -91,7 +94,7 @@ public class AdventureUtils {
      * @return The original string, parsed with GsonComponentSerializer
      */
     public static String parseJson(String message) {
-        return GSON_SERIALIZER.serialize(GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)", "");
+        return GSON_SERIALIZER.serialize(GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!\")", "");
     }
 
     /**
@@ -99,7 +102,7 @@ public class AdventureUtils {
      * @return The original component, parsed with GsonSerializer
      */
     public static Component parseJson(Component message) {
-        return GSON_SERIALIZER.deserialize(GSON_SERIALIZER.serialize(message).replaceAll("\\\\(?!u)", ""));
+        return GSON_SERIALIZER.deserialize(GSON_SERIALIZER.serialize(message).replaceAll("\\\\(?!u)(?!\")", ""));
     }
 
 

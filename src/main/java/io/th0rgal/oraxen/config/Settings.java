@@ -1,7 +1,9 @@
 package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.List;
 
@@ -18,6 +20,7 @@ public enum Settings {
     FORMAT_SUBTITLES("Plugin.formatting.subtitles"),
     FORMAT_ACTION_BAR("Plugin.formatting.action_bar"),
     FORMAT_ANVIL("Plugin.formatting.anvil"),
+    FORMAT_SIGNS("Plugin.formatting.signs"),
     CONVERT_PACK_FOR_1_19_3("Plugin.experimental.convert_pack_for_1_19_3"),
 
     CONFIGS_VERSION("configs_version"),
@@ -39,6 +42,7 @@ public enum Settings {
 
     GENERATE("Pack.generation.generate"),
     ATTEMPT_TO_MIGRATE_DUPLICATES("Pack.generation.attempt_to_migrate_duplicates"),
+    EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions"),
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
     ARMOR_RESOLUTION("Pack.generation.armor_resolution"),
     ANIMATED_ARMOR_FRAMERATE("Pack.generation.animated_armor_framerate"),
@@ -81,6 +85,15 @@ public enum Settings {
 
     public Object getValue() {
         return OraxenPlugin.get().getConfigsManager().getSettings().get(path);
+    }
+    public void setValue(Object value) {
+        YamlConfiguration settingFile = OraxenPlugin.get().getConfigsManager().getSettings();
+        settingFile.set(path, value);
+        try {
+            settingFile.save(OraxenPlugin.get().getDataFolder().getAbsoluteFile().toPath().resolve("settings.yml").toFile());
+        } catch (Exception e) {
+            Logs.logError("Failed to apply changes to settings.yml");
+        }
     }
 
     @Override

@@ -13,12 +13,10 @@ import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.CustomArmorsTextures;
-import io.th0rgal.oraxen.utils.VirtualFile;
-import io.th0rgal.oraxen.utils.ZipUtils;
+import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -79,8 +77,21 @@ public class ResourcePack {
             return;
 
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) {
-            plugin.saveResource("pack/shaders/core/rendertype_text.json", true);
-            plugin.saveResource("pack/shaders/core/rendertype_text.vsh", true);
+            if (Bukkit.getPluginManager().isPluginEnabled("HappyHUD")) {
+                Logs.logError("HappyHUD detected!");
+                Logs.logWarning("Recommend following this guide for compatibility: https://docs.oraxen.com/compatibility/happyhud");
+                /*
+                Settings.HIDE_SCOREBOARD_NUMBERS.setValue(false);
+                try {
+                    Path pluginDir = OraxenPlugin.get().getDataFolder().getAbsoluteFile().toPath();
+                    Files.deleteIfExists(pluginDir.resolve("pack/shaders/core/rendertype_text.json"));
+                    Files.deleteIfExists(pluginDir.resolve("pack/shaders/core/rendertype_text.vsh"));
+                } catch (Exception ignored) {
+                }*/
+            } else {
+                plugin.saveResource("pack/shaders/core/rendertype_text.json", true);
+                plugin.saveResource("pack/shaders/core/rendertype_text.vsh", true);
+            }
         } else {
             checkShaderFiles(new File(shaderFolder, "core/rendertype_text.json"));
             checkShaderFiles(new File(shaderFolder, "core/rendertype_text.vsh"));
@@ -132,6 +143,16 @@ public class ResourcePack {
 
         if (Settings.CONVERT_PACK_FOR_1_19_3.toBool())
             PackConvertor.handlePackConversionFor_1_19_3(output);
+
+        List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
+        if (!excludedExtensions.isEmpty() && !output.isEmpty()) {
+            List<VirtualFile> newOutput = new ArrayList<>();
+            for (VirtualFile virtual : output) {
+                if (excludedExtensions.contains(Utils.removeExtension(virtual.getPath())))
+                    newOutput.add(virtual);
+            }
+            output.removeAll(newOutput);
+        }
 
         ZipUtils.writeZipFile(pack, output);
     }
