@@ -57,15 +57,15 @@ public class ItemUpdater implements Listener {
         if (resultMeta.getDisplayName().equals(firstMeta.getDisplayName())) return;
 
         //TODO Figure out how to only get the text of a component and check it
-        Logs.broadcast(AdventureUtils.PLAIN_TEXT.deserialize(resultMeta.getDisplayName()));
-        Logs.broadcast(AdventureUtils.PLAIN_TEXT.deserialize(oraxenMeta.getDisplayName()));
+        String d1 = AdventureUtils.PLAIN_TEXT.deserialize(resultMeta.getDisplayName()).content();
+        String d2 = AdventureUtils.PLAIN_TEXT.deserialize(oraxenMeta.getDisplayName()).content();
+
         if (oraxenMeta != null && oraxenMeta.hasDisplayName()) {
-            if (AdventureUtils.PLAIN_TEXT.deserialize(resultMeta.getDisplayName()).content().equals(
-                    AdventureUtils.PLAIN_TEXT.deserialize(oraxenMeta.getDisplayName()).content())) {
+            if (d1.equals(d2)) {
                 resultMeta.setDisplayName(oraxenMeta.getDisplayName());
+                resultItem.setItemMeta(resultMeta);
             }
-        }
-        else Utils.editItemMeta(resultItem, itemMeta ->
+        } else Utils.editItemMeta(resultItem, itemMeta ->
                 itemMeta.getPersistentDataContainer().set(ANVIL_RENAMED, DataType.STRING, resultMeta.getDisplayName()));
     }
 
