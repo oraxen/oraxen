@@ -55,13 +55,12 @@ public class ItemUpdater implements Listener {
         if (firstMeta == null || !firstMeta.hasDisplayName()) return;
         if (resultMeta == null || !resultMeta.hasDisplayName()) return;
         if (resultMeta.getDisplayName().equals(firstMeta.getDisplayName())) return;
-
-        //TODO Figure out how to only get the text of a component and check it
-        String d1 = AdventureUtils.PLAIN_TEXT.deserialize(resultMeta.getDisplayName()).content();
-        String d2 = AdventureUtils.PLAIN_TEXT.deserialize(oraxenMeta.getDisplayName()).content();
+        if (oraxenMeta != null && !oraxenMeta.hasDisplayName()) return;
 
         if (oraxenMeta != null && oraxenMeta.hasDisplayName()) {
-            if (d1.equals(d2)) {
+            String resultDisplay = AdventureUtils.PLAIN_TEXT.deserialize(resultMeta.getDisplayName()).content();
+            String baseDisplay = AdventureUtils.PLAIN_TEXT.deserialize(oraxenMeta.getDisplayName()).content();
+            if (resultDisplay.equals(baseDisplay)) {
                 resultMeta.setDisplayName(oraxenMeta.getDisplayName());
                 resultItem.setItemMeta(resultMeta);
             }
