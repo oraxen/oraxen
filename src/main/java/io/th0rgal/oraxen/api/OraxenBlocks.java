@@ -15,7 +15,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.storage.StorageMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -114,14 +113,28 @@ public class OraxenBlocks {
         }
     }
 
+    /**
+     * Get the BlockData assosiated with
+     *
+     * @param itemID The ItemID of the OraxenBlock
+     * @return The BlockData assosiated with the ItemID, can be null
+     */
+    public static BlockData getOraxenBlockData(String itemID) {
+        if (isOraxenNoteBlock(itemID)) {
+            return NoteBlockMechanicFactory.getInstance().createNoteBlockData(itemID);
+        } else if (isOraxenStringBlock(itemID)) {
+            return StringBlockMechanicFactory.getInstance().createTripwireData(itemID);
+        } else return null;
+    }
+
     private static void placeNoteBlock(Location location, String itemID) {
         NoteBlockMechanicFactory.setBlockModel(location.getBlock(), itemID);
         Block block = location.getBlock();
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
         if (mechanic == null) return;
-        Logs.broadcast(mechanic.getLight());
-        if (mechanic.getLight() != -1)
+
+        if (mechanic.hasLight())
             WrappedLightAPI.createBlockLight(block.getLocation(), mechanic.getLight());
 
         if (mechanic.hasDryout() && mechanic.getDryout().isFarmBlock()) {
@@ -189,7 +202,7 @@ public class OraxenBlocks {
             return;
         }
 
-        if (mechanic.getLight() != -1)
+        if (mechanic.hasLight())
             WrappedLightAPI.removeBlockLight(block.getLocation());
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
             mechanic.getDrop().spawns(block.getLocation(), player.getInventory().getItemInMainHand());
@@ -257,6 +270,7 @@ public class OraxenBlocks {
                 .getBlockMechanic((noteBlock.getInstrument().getType()) * 25
                         + noteBlock.getNote().getId() + (noteBlock.isPowered() ? 400 : 0) - 26);
     }
+
     public static NoteBlockMechanic getNoteBlockMechanic(Block block) {
         if (block.getType() != Material.NOTE_BLOCK) return null;
         final NoteBlock noteblock = (NoteBlock) block.getBlockData();
