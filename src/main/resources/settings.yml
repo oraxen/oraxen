@@ -30,6 +30,7 @@ Pack:
     attempt_to_migrate_duplicates: false
     # List of file extensions that will not be included in the final zipped ResourcePack
     excluded_file_extensions: []
+    generate_atlas_file: true
     auto_generated_models_follow_texture_path: false
     # 64x32 layer is default size and corresponds to 16. If you need higher
     # resolution, e.g. 128x64, you should set this parameter to 32 and so on.
