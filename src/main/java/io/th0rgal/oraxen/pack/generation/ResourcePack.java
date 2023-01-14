@@ -13,7 +13,10 @@ import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.CustomArmorsTextures;
+import io.th0rgal.oraxen.utils.VirtualFile;
+import io.th0rgal.oraxen.utils.ZipUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Bukkit;
@@ -148,10 +151,10 @@ public class ResourcePack {
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         if (!excludedExtensions.isEmpty() && !output.isEmpty()) {
             List<VirtualFile> newOutput = new ArrayList<>();
-            for (VirtualFile virtual : output) {
-                if (excludedExtensions.contains(Utils.removeExtension(virtual.getPath())))
-                    newOutput.add(virtual);
-            }
+            for (VirtualFile virtual : output)
+                for (String extension : excludedExtensions)
+                    if (virtual.getPath().endsWith(extension))
+                        newOutput.add(virtual);
             output.removeAll(newOutput);
         }
 
