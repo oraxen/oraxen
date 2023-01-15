@@ -148,6 +148,7 @@ public class ResourcePack {
             AtlasGenerator.generateAtlasFile(output);
 
         DuplicationHandler.mergeFontFiles(output);
+        DuplicationHandler.mergeBaseItemFiles(output);
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         if (!excludedExtensions.isEmpty() && !output.isEmpty()) {
