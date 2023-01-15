@@ -18,7 +18,6 @@ import io.th0rgal.oraxen.utils.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.ZipUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.apache.commons.io.IOUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -404,6 +403,7 @@ public class ResourcePack {
     }
 
     private InputStream processJsonFile(File file) throws IOException {
+        InputStream newStream;
         String content;
         if (!file.exists())
             return new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
@@ -412,16 +412,23 @@ public class ResourcePack {
         } catch (IOException | NullPointerException e) {
             Logs.logError("Error while reading file " + file.getPath());
             Logs.logError("It seems to be malformed!");
-            return new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
-        } finally {
-            IOUtils.closeQuietly();
+            newStream = new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
+            newStream.close();
+            return newStream;
+        }
+
+        // If the json file is a font file, do not format it through MiniMessage
+        if (file.getPath().replace("\\", "/").split("assets/.*/font/").length > 1) {
+            return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         }
 
         // Deserialize said component to a string to handle other tags like glyphs
         content = AdventureUtils.parseMiniMessage(AdventureUtils.parseLegacy(content), AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
         // Deserialize adventure component to legacy format due to resourcepacks not supporting adventure components
         content = AdventureUtils.parseLegacyThroughMiniMessage(content);
-        return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+        newStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+        newStream.close();
+        return newStream;
     }
 
     private InputStream processShaderFile(File file) throws IOException {
