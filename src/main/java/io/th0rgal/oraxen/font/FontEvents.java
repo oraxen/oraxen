@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.inventory.Book;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -59,6 +60,7 @@ public class FontEvents implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getItem() == null || !(event.getItem().getItemMeta() instanceof BookMeta meta)) return;
         if (event.getItem().getType() != Material.WRITTEN_BOOK) return;
+        Block block = event.getClickedBlock();
 
         for (String page : meta.getPages()) {
             int i = meta.getPages().indexOf(page) + 1;
@@ -76,14 +78,16 @@ public class FontEvents implements Listener {
             }
         }
 
-        Book book = Book.builder()
-                .title(AdventureUtils.MINI_MESSAGE.deserialize(meta.getTitle() != null ? meta.getTitle() : ""))
-                .author(AdventureUtils.MINI_MESSAGE.deserialize(meta.getAuthor() != null ? meta.getAuthor() : ""))
-                .pages(meta.getPages().stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList())
-                .build();
-        // Open fake book and cancel event to prevent normal book opening
-        OraxenPlugin.get().getAudience().player(event.getPlayer()).openBook(book);
-        event.setCancelled(true);
+        if (block == null || block.getType() != Material.LECTERN) {
+            Book book = Book.builder()
+                    .title(AdventureUtils.MINI_MESSAGE.deserialize(meta.getTitle() != null ? meta.getTitle() : ""))
+                    .author(AdventureUtils.MINI_MESSAGE.deserialize(meta.getAuthor() != null ? meta.getAuthor() : ""))
+                    .pages(meta.getPages().stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList())
+                    .build();
+            // Open fake book and cancel event to prevent normal book opening
+            OraxenPlugin.get().getAudience().player(event.getPlayer()).openBook(book);
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler
