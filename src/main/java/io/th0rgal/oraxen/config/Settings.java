@@ -22,6 +22,8 @@ public enum Settings {
     FORMAT_ACTION_BAR("Plugin.formatting.action_bar"),
     FORMAT_ANVIL("Plugin.formatting.anvil"),
     FORMAT_SIGNS("Plugin.formatting.signs"),
+    MERGE_ITEM_MODELS("Plugin.experimental.merge_item_base_models"),
+    MERGE_FONTS("Plugin.experimental.merge_font_files"),
 
     CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),

@@ -19,6 +19,12 @@ Plugin:
   worldedit: # Please note these are both experimental still and should be used with caution
     noteblock_mechanic: false
     stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
+  experimental:
+    # Unlike duplication handler, this will simply attempt to merge the Jsons for the final pack
+    # This will not be flawless and still will cause issues, but they are there
+    # [merge_item,_base_models] can be used to merge paper.json etc from imported packs
+    merge_font_files: false
+    merge_item_base_models: false
 
 Pack:
   generation:
