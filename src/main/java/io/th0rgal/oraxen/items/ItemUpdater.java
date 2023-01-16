@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.items;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.NamespacedKey;
@@ -15,8 +16,10 @@ import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataContainer;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 public class ItemUpdater implements Listener {
@@ -82,6 +85,7 @@ public class ItemUpdater implements Listener {
             ItemMeta oldMeta = oldItem.getItemMeta();
             ItemMeta newMeta = newItem.getItemMeta();
             if (oldMeta == null || newMeta == null) return;
+            PersistentDataContainer oldPdc = oldMeta.getPersistentDataContainer();
 
             // Add all enchantments from oldItem and add all from newItem aslong as it is not the same Enchantments
             for (Map.Entry<Enchantment, Integer> entry : oldMeta.getEnchants().entrySet())
@@ -98,9 +102,16 @@ public class ItemUpdater implements Listener {
             itemMeta.setAttributeModifiers(newMeta.getAttributeModifiers());
 
             // Renaming items should be kept, so check old against new and add it if its from ANVIL_RENAMED
-            if (oldMeta.hasDisplayName() && oldMeta.getPersistentDataContainer().has(ANVIL_RENAMED, DataType.STRING))
+            if (oldMeta.hasDisplayName() && oldPdc.has(ANVIL_RENAMED, DataType.STRING))
                 itemMeta.setDisplayName(oldMeta.getDisplayName());
             else itemMeta.setDisplayName(newMeta.getDisplayName());
+
+            if (OraxenItems.hasMechanic(id, "backpack") && oldPdc.has(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY)) {
+                itemMeta.getPersistentDataContainer().set(
+                        BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY, Objects.requireNonNull(
+                                oldPdc.get(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY)
+                        ));
+            }
         });
         return newItem;
     }
