@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
@@ -35,7 +34,6 @@ public class ItemUpdater implements Listener {
             if (oldItem == null || oldItem.equals(newItem))
                 continue;
             inventory.setItem(i, newItem);
-            Logs.broadcast("Updated " + newItem.getItemMeta().getDisplayName());
         }
     }
 
