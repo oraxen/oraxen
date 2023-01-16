@@ -40,7 +40,6 @@ public class ItemUpdater implements Listener {
             if (oldItem == null || oldItem.equals(newItem))
                 continue;
             inventory.setItem(i, newItem);
-            Logs.broadcast("Updated " + newItem.getItemMeta().getDisplayName());
         }
     }
 
