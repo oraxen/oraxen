@@ -56,8 +56,8 @@ dependencies {
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
     compileOnly("commons-io:commons-io:2.11.0")
     compileOnly("com.ticxo:modelengine:R3.0.1")
+    compileOnly(fileTree(mapOf("dir" to "libs/compile", "include" to listOf("*.jar"))))
 
-    implementation(fileTree(mapOf("dir" to "libs/compile", "include" to listOf("*.jar"))))
     implementation("dev.triumphteam:triumph-gui:3.1.2")
     implementation("org.bstats:bstats-bukkit:3.0.0")
     implementation("com.oraxen:protectionlib:1.1.3")
@@ -75,12 +75,6 @@ dependencies {
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
 }
 
-//processResources {
-//    filesNotMatching(['**/*.png', '**/*.ogg', '**/models/**', '**/textures/**', '**/font/**.json']) {
-//        expand projectVersion : pluginVersion
-//    }
-//}
-
 tasks {
 
     compileJava {
@@ -93,6 +87,9 @@ tasks {
     }
 
     processResources {
+        filesNotMatching(listOf("**/*.png", "**/*.ogg", "**/models/**", "**/textures/**", "**/font/**.json", "**/plugin.yml")) {
+            expand(mapOf(project.version.toString() to pluginVersion))
+        }
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         filteringCharset = Charsets.UTF_8.name()
     }
@@ -127,6 +124,7 @@ tasks {
                 )
             )
         }
+        archiveFileName.set("oraxen-${pluginVersion}.jar")
     }
 
     compileJava.get().dependsOn(clean)
