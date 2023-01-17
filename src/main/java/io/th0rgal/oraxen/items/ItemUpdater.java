@@ -89,7 +89,7 @@ public class ItemUpdater implements Listener {
             for (Map.Entry<Enchantment, Integer> entry : newMeta.getEnchants().entrySet().stream().filter(e -> !oldMeta.getEnchants().containsKey(e.getKey())).toList())
                 itemMeta.addEnchant(entry.getKey(), entry.getValue(), true);
 
-            itemMeta.setCustomModelData(newMeta.hasCustomModelData() ? newMeta.getCustomModelData() : oldMeta.getCustomModelData());
+            itemMeta.setCustomModelData(newMeta.hasCustomModelData() ? newMeta.getCustomModelData() : oldMeta.hasCustomModelData() ? oldMeta.getCustomModelData() : 0);
 
             // Lore might be changable ingame, but I think it is safe to just set it to new
             itemMeta.setLore(newMeta.getLore());
