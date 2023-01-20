@@ -27,23 +27,23 @@ public class PredicatesGenerator {
         // parent
         json.addProperty("parent", getParent(material));
 
+        String vanillaTextureName = getVanillaTextureName(material, false);
+
         // textures
         final ItemMeta exampleMeta = new ItemStack(material).getItemMeta();
         final JsonObject textures = new JsonObject();
 
         // potions use the overlay as the base layer
         if (exampleMeta instanceof PotionMeta) {
-            textures.addProperty("layer0", getVanillaTextureName(material, false) + "_overlay");
-        } else
-            textures.addProperty("layer0", getVanillaTextureName(material, false));
-
-        // to support colored leather armor
-        if (exampleMeta instanceof LeatherArmorMeta)
-            textures.addProperty("layer1", getVanillaTextureName(material, false) + "_overlay");
-        // to support colored potions
-        if (exampleMeta instanceof PotionMeta) {
-            textures.addProperty("layer1", getVanillaTextureName(material, false));
+            textures.addProperty("layer0", vanillaTextureName + "_overlay");
+            textures.addProperty("layer1", vanillaTextureName);
         }
+        // to support colored leather armor
+        else if (exampleMeta instanceof LeatherArmorMeta && material != Material.LEATHER_HORSE_ARMOR) {
+            textures.addProperty("layer0", vanillaTextureName);
+            textures.addProperty("layer1", vanillaTextureName + "_overlay");
+        }
+        else textures.addProperty("layer0", vanillaTextureName);
 
         json.add("textures", textures);
 

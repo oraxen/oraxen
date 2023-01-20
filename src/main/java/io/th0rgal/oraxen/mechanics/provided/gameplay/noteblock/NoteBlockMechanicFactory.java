@@ -40,7 +40,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         toolTypes = section.getStringList("tool_types");
         farmBlockCheckDelay = section.getInt("farmblock_check_delay");
         farmBlock = false;
-        customSounds = section.getBoolean("custom_sounds", true);
+        customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("noteblock_and_block", true);
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack

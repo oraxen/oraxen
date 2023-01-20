@@ -1,11 +1,13 @@
 package io.th0rgal.oraxen.mechanics.provided.farming.harvesting;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.SoundGroup;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Ageable;
 import org.bukkit.entity.Player;
@@ -14,8 +16,10 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.Damageable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,14 +65,17 @@ public class HarvestingMechanicListener implements Listener {
         }
 
         playerTimer.reset();
-
-        for (final Block block : getNearbyBlocks(clickedBlock.getLocation(), mechanic.getRadius(), mechanic.getHeight()))
+        int durabilityDamage = 0;
+        List<Block> nearbyBlocks = getNearbyBlocks(clickedBlock.getLocation(), mechanic.getRadius(), mechanic.getHeight());
+        for (final Block block : nearbyBlocks) {
             if (block.getBlockData() instanceof Ageable ageable
                     && ageable.getAge() == ageable.getMaximumAge()
                     && ProtectionLib.canBreak(player, block.getLocation())
                     && ProtectionLib.canBuild(player, block.getLocation())) {
                 ageable.setAge(0);
                 block.setBlockData(ageable);
+                SoundGroup soundGroup = block.getBlockData().getSoundGroup();
+                block.getWorld().playSound(block.getLocation(), soundGroup.getBreakSound(), soundGroup.getVolume(), soundGroup.getPitch());
                 final List<ItemStack> drops = new ArrayList<>();
                 switch (block.getType()) {
                     case WHEAT -> {
@@ -83,15 +90,20 @@ public class HarvestingMechanicListener implements Listener {
                 }
                 for (final ItemStack itemStack : drops)
                     giveItem(player, itemStack, clickedBlock.getLocation());
+                durabilityDamage++;
             }
+        }
 
+        if (mechanic.shouldLowerItemDurability() && item.getItemMeta() instanceof Damageable && durabilityDamage > 0) {
+            PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item, durabilityDamage);
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(playerItemDamageEvent);
+        }
     }
 
     private void giveItem(final Player player, final ItemStack item, final Location location) {
         if (player.getInventory().firstEmpty() != -1) {
             for (Map.Entry<Integer, ItemStack> itemStack : player.getInventory().addItem(item).entrySet())
                 player.getWorld().dropItem(player.getLocation(), itemStack.getValue());
-        }
-        else player.getWorld().dropItemNaturally(location, item);
+        } else player.getWorld().dropItemNaturally(location, item);
     }
 }

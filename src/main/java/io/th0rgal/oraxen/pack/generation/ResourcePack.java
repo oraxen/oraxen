@@ -13,9 +13,11 @@ import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.CustomArmorsTextures;
+import io.th0rgal.oraxen.utils.VirtualFile;
+import io.th0rgal.oraxen.utils.ZipUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.apache.commons.io.IOUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -123,19 +125,22 @@ public class ResourcePack {
 
             // needs to be ordered, forEach cannot be used
             File[] files = packFolder.listFiles();
-            if (files != null) for (final File folder : files)
+            if (files != null) for (final File folder : files) {
                 if (folder.isDirectory() && folder.getName().equalsIgnoreCase("assets"))
                     getAllFiles(folder, output, "");
                 else if (folder.isDirectory())
                     getAllFiles(folder, output, "assets/minecraft");
+            }
 
             if (customArmorsTextures.hasCustomArmors()) {
+                customArmorsTextures.rescaleVanillaArmorFiles(output);
                 String armorPath = "assets/minecraft/textures/models/armor";
                 output.add(new VirtualFile(armorPath, "leather_layer_1.png", customArmorsTextures.getLayerOne()));
                 output.add(new VirtualFile(armorPath, "leather_layer_2.png", customArmorsTextures.getLayerTwo()));
                 if (customArmorsTextures.shouldGenerateOptifineFiles())
                     output.addAll(customArmorsTextures.getOptifineFiles());
             }
+
             Collections.sort(output);
         } catch (IOException e) {
             e.printStackTrace();
@@ -147,10 +152,10 @@ public class ResourcePack {
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         if (!excludedExtensions.isEmpty() && !output.isEmpty()) {
             List<VirtualFile> newOutput = new ArrayList<>();
-            for (VirtualFile virtual : output) {
-                if (excludedExtensions.contains(Utils.removeExtension(virtual.getPath())))
-                    newOutput.add(virtual);
-            }
+            for (VirtualFile virtual : output)
+                for (String extension : excludedExtensions)
+                    if (virtual.getPath().endsWith(extension))
+                        newOutput.add(virtual);
             output.removeAll(newOutput);
         }
 
@@ -391,15 +396,14 @@ public class ResourcePack {
             else if (customArmorsTextures.registerImage(file)) return;
             else fis = new FileInputStream(file);
 
-            fileList.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder),
-                    file.getName(),
-                    fis));
+            fileList.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder), file.getName(), fis));
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private InputStream processJsonFile(File file) throws IOException {
+        InputStream newStream;
         String content;
         if (!file.exists())
             return new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
@@ -408,16 +412,23 @@ public class ResourcePack {
         } catch (IOException | NullPointerException e) {
             Logs.logError("Error while reading file " + file.getPath());
             Logs.logError("It seems to be malformed!");
-            return new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
-        } finally {
-            IOUtils.closeQuietly();
+            newStream = new ByteArrayInputStream("".getBytes(StandardCharsets.UTF_8));
+            newStream.close();
+            return newStream;
+        }
+
+        // If the json file is a font file, do not format it through MiniMessage
+        if (file.getPath().replace("\\", "/").split("assets/.*/font/").length > 1) {
+            return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         }
 
         // Deserialize said component to a string to handle other tags like glyphs
         content = AdventureUtils.parseMiniMessage(AdventureUtils.parseLegacy(content), AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
         // Deserialize adventure component to legacy format due to resourcepacks not supporting adventure components
         content = AdventureUtils.parseLegacyThroughMiniMessage(content);
-        return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+        newStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+        newStream.close();
+        return newStream;
     }
 
     private InputStream processShaderFile(File file) throws IOException {

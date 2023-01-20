@@ -9,6 +9,7 @@ import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.md_5.bungee.chat.ScoreComponentSerializer;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 
 public class AdventureUtils {
 
@@ -27,6 +28,8 @@ public class AdventureUtils {
     public static final MiniMessage MINI_MESSAGE = MiniMessage.builder().tags(OraxenTagResolver).build();
 
     public static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
+
+    public static final PlainTextComponentSerializer PLAIN_TEXT = PlainTextComponentSerializer.plainText();
 
     public static final ScoreComponentSerializer SCORE_SERIALIZER = new ScoreComponentSerializer();
 
@@ -103,6 +106,22 @@ public class AdventureUtils {
      */
     public static Component parseJson(Component message) {
         return GSON_SERIALIZER.deserialize(GSON_SERIALIZER.serialize(message).replaceAll("\\\\(?!u)(?!\")", ""));
+    }
+
+    /**
+     * @param message The string to parse
+     * @return The original string, parsed with PlainTextComponentSerializer
+     */
+    public static String parsePlainText(String message) {
+        return PLAIN_TEXT.serialize(PLAIN_TEXT.deserialize(message));
+    }
+
+    /**
+     * @param message The component to parse
+     * @return The original component, parsed with PlainTextComponentSerializer
+     */
+    public static Component parsePlainText(Component message) {
+        return PLAIN_TEXT.deserialize(PLAIN_TEXT.serialize(message));
     }
 
 
