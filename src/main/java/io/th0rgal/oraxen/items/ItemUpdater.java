@@ -43,6 +43,32 @@ public class ItemUpdater implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onItemEnchant(PrepareItemEnchantEvent event) {
+        String id = OraxenItems.getIdByItem(event.getItem());
+        ItemBuilder builder = OraxenItems.getItemById(id);
+        if (builder == null || !builder.hasOraxenMeta()) return;
+
+        if (builder.getOraxenMeta().isDisableEnchanting()) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onItemEnchant(PrepareAnvilEvent event) {
+        ItemStack item = event.getInventory().getItem(0);
+        ItemStack result = event.getResult();
+        String id = OraxenItems.getIdByItem(item);
+        ItemBuilder builder = OraxenItems.getItemById(id);
+        if (builder == null || !builder.hasOraxenMeta()) return;
+
+        if (builder.getOraxenMeta().isDisableEnchanting()) {
+            if (result == null || item == null) return;
+            if (!result.getEnchantments().equals(item.getEnchantments()))
+                event.setResult(null);
+        }
+    }
+
     @EventHandler
     public void onAnvilRename(InventoryClickEvent event) {
         if (!(event.getClickedInventory() instanceof AnvilInventory inventory)) return;
