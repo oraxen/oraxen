@@ -13,8 +13,11 @@ import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
@@ -43,6 +46,32 @@ public class ItemUpdater implements Listener {
             if (oldItem == null || oldItem.equals(newItem))
                 continue;
             inventory.setItem(i, newItem);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onItemEnchant(PrepareItemEnchantEvent event) {
+        String id = OraxenItems.getIdByItem(event.getItem());
+        ItemBuilder builder = OraxenItems.getItemById(id);
+        if (builder == null || !builder.hasOraxenMeta()) return;
+
+        if (builder.getOraxenMeta().isDisableEnchanting()) {
+            event.setCancelled(true);
+        }
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onItemEnchant(PrepareAnvilEvent event) {
+        ItemStack item = event.getInventory().getItem(0);
+        ItemStack result = event.getResult();
+        String id = OraxenItems.getIdByItem(item);
+        ItemBuilder builder = OraxenItems.getItemById(id);
+        if (builder == null || !builder.hasOraxenMeta()) return;
+
+        if (builder.getOraxenMeta().isDisableEnchanting()) {
+            if (result == null || item == null) return;
+            if (!result.getEnchantments().equals(item.getEnchantments()))
+                event.setResult(null);
         }
     }
 

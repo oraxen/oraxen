@@ -118,16 +118,12 @@ public class ItemParser {
     }
 
     private void parseMiscOptions(ItemBuilder item) {
-        if (section.contains("no_auto_update"))
-            oraxenMeta.setNoUpdate(section.getBoolean("no_auto_update"));
-
-        if (section.contains("excludeFromInventory") && section.getBoolean("excludeFromInventory"))
-            oraxenMeta.setExcludedFromInventory();
+        oraxenMeta.setNoUpdate(section.getBoolean("no_auto_update", false));
+        oraxenMeta.setDisableEnchanting(section.getBoolean("disable_enchanting", false));
+        oraxenMeta.setExcludedFromInventory(section.getBoolean("excludeFromInventory", false));
 
         if (!section.contains("injectID") || section.getBoolean("injectId"))
-            item
-                    .setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING,
-                            section.getName());
+            item.setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING, section.getName());
     }
 
     @SuppressWarnings({"unchecked", "deprecation"})
