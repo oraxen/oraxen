@@ -70,11 +70,15 @@ public enum Settings {
     JOIN_MESSAGE_DELAY("Pack.dispatch.join_message.delay"),
 
     RECEIVE_ENABLED("Pack.receive.enabled"),
-
     RECEIVE_ALLOWED_ACTIONS("Pack.receive.accepted.actions"),
     RECEIVE_LOADED_ACTIONS("Pack.receive.loaded.actions"),
     RECEIVE_FAILED_ACTIONS("Pack.receive.failed_download.actions"),
-    RECEIVE_DENIED_ACTIONS("Pack.receive.denied.actions");
+    RECEIVE_DENIED_ACTIONS("Pack.receive.denied.actions"),
+
+    ORAXEN_INV_LAYOUT("oraxen_inventory.menu_layout"),
+    ORAXEN_INV_ROWS("oraxen_inventory.menu_rows"),
+    ORAXEN_INV_TEXTURE("oraxen_inventory.menu_glyph"),
+    ORAXEN_INV_TEXTURE_OVERLAY("oraxen_inventory.menu_overlay_glyph");
 
     private final String path;
 

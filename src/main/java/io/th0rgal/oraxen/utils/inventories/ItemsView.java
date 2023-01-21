@@ -7,6 +7,7 @@ import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.ResourcesManager;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
@@ -30,7 +31,7 @@ public class ItemsView {
     private final FontManager fontManager = OraxenPlugin.get().getFontManager();
     private final String baseMenuTexture = ChatColor.WHITE +
             fontManager.getShift(-18) +
-            fontManager.getGlyphFromName("menu_items").getCharacter() +
+            fontManager.getGlyphFromName(Settings.ORAXEN_INV_TEXTURE.toString()).getCharacter() +
             fontManager.getShift(-193);
     ChestGui mainGui;
 
@@ -42,7 +43,7 @@ public class ItemsView {
                 files.put(file, createSubGUI(file.getName(), unexcludedItems));
         }
         final int rows = (files.size() - 1) / 9 + 1;
-        mainGui = new ChestGui(6, getMenuTexture("<#84CBFF>"));
+        mainGui = new ChestGui((int) Settings.ORAXEN_INV_ROWS.getValue(), getMenuTexture("<#84CBFF>"));
         final StaticPane filesPane = new StaticPane(0, 0, 9, rows);
         int i = 0;
         for (final var entry : files.entrySet()) {
@@ -60,7 +61,7 @@ public class ItemsView {
     private ChestGui createSubGUI(final String fileName, final List<ItemBuilder> items) {
         final int rows = Math.min((items.size() - 1) / 9 + 2, 6);
         final ChestGui gui = new ChestGui(6,
-                getMenuTexture(settings.getString(String.format("gui_inventory.%s.color",
+                getMenuTexture(settings.getString(String.format("oraxen_inventory.menu_layout.%s.color",
                         Utils.removeExtension(fileName)))));
         final PaginatedPane pane = new PaginatedPane(9, rows);
 
@@ -160,6 +161,6 @@ public class ItemsView {
 
     private String getMenuTexture(final String color) {
         return baseMenuTexture + AdventureUtils.LEGACY_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE
-                .deserialize(color + fontManager.getGlyphFromName("menu_items_overlay").getCharacter()));
+                .deserialize(color + fontManager.getGlyphFromName(Settings.ORAXEN_INV_TEXTURE_OVERLAY.toString()).getCharacter()));
     }
 }

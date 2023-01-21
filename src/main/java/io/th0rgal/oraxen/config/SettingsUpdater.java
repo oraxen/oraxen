@@ -7,12 +7,14 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.util.List;
+import java.util.Map;
 
 public class SettingsUpdater {
 
-    public void updateKeys() {
+    public void handleSettingsUpdate() {
         YamlConfiguration settings = OraxenPlugin.get().getConfigsManager().getSettings();
 
+        settings = updateKeys(settings, UpdatedSettings.toStringMap());
         settings = removeKeys(settings, RemovedSettings.toStringList());
 
         try {
@@ -21,6 +23,18 @@ public class SettingsUpdater {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public YamlConfiguration updateKeys(YamlConfiguration settings, Map<String, String> newKeyPaths) {
+        for (Map.Entry<String, String> entry : newKeyPaths.entrySet()) {
+            String key = entry.getKey();
+            if (settings.contains(key)) {
+                Logs.logWarning("Found outdated setting-path " + key + ". This will be updated.");settings.set(entry.getValue(), settings.get(key));
+                settings.set(key, null);
+
+            }
+        }
+        return settings;
     }
 
     public YamlConfiguration removeKeys(YamlConfiguration settings, List<String> keys) {
