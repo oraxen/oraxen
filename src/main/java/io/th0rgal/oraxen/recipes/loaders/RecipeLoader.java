@@ -106,7 +106,7 @@ public abstract class RecipeLoader {
     }
 
     protected void addToWhitelistedRecipes(Recipe recipe) {
-        //RecipesEventsManager.get().whitelistRecipe(CustomRecipe.fromRecipe(recipe));
+        RecipesEventsManager.get().whitelistRecipe(CustomRecipe.fromRecipe(recipe));
     }
 
 }
