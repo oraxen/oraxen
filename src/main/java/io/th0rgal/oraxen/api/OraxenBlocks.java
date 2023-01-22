@@ -15,7 +15,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.storage.StorageMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -120,8 +119,7 @@ public class OraxenBlocks {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
         if (mechanic == null) return;
-        Logs.broadcast(mechanic.getLight());
-        if (mechanic.getLight() != -1)
+        if (mechanic.hasLight())
             WrappedLightAPI.createBlockLight(block.getLocation(), mechanic.getLight());
 
         if (mechanic.hasDryout() && mechanic.getDryout().isFarmBlock()) {
@@ -189,7 +187,7 @@ public class OraxenBlocks {
             return;
         }
 
-        if (mechanic.getLight() != -1)
+        if (mechanic.hasLight())
             WrappedLightAPI.removeBlockLight(block.getLocation());
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
             mechanic.getDrop().spawns(block.getLocation(), player.getInventory().getItemInMainHand());

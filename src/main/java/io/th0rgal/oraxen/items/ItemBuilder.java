@@ -156,6 +156,7 @@ public class ItemBuilder {
     public boolean isUnstackable() {
         return unstackable;
     }
+
     public ItemBuilder setUnstackable(final boolean unstackable) {
         this.unstackable = unstackable;
         return this;
@@ -319,8 +320,11 @@ public class ItemBuilder {
             itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
 
         if (enchantments.size() > 0)
-            for (final Map.Entry<Enchantment, Integer> enchant : enchantments.entrySet())
-                itemMeta.addEnchant(enchant.getKey(), enchant.getValue(), true);
+            for (final Map.Entry<Enchantment, Integer> enchant : enchantments.entrySet()) {
+                if (enchant.getKey() == null) continue;
+                int lvl = enchant.getValue() != null ? enchant.getValue() : 1;
+                itemMeta.addEnchant(enchant.getKey(), lvl, true);
+            }
 
         if (hasAttributeModifiers)
             itemMeta.setAttributeModifiers(attributeModifiers);
