@@ -1,3 +1,4 @@
+debug: false
 Plugin:
   keep_this_up_to_date: true #Oraxen will delete old settings
   language: "english"

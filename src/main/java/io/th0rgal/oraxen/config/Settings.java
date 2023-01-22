@@ -8,7 +8,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.util.List;
 
 public enum Settings {
-
+    DEBUG("debug"),
     PLUGIN_LANGUAGE("Plugin.language"),
     KEEP_UP_TO_DATE("Plugin.keep_this_up_to_date"),
     REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),

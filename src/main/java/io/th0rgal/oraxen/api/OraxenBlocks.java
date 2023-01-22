@@ -15,7 +15,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.storage.StorageMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -134,7 +133,6 @@ public class OraxenBlocks {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
         if (mechanic == null) return;
-        Logs.broadcast(mechanic.getLight());
         if (mechanic.hasLight())
             WrappedLightAPI.createBlockLight(block.getLocation(), mechanic.getLight());
 

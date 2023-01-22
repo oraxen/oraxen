@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.utils.logs;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -46,5 +47,7 @@ public class Logs {
     }
 
     public static void broadcast(Object object) { Bukkit.broadcastMessage(String.valueOf(object)); }
+    public static void debug(Object object) { if ( Settings.DEBUG.toBool()) Bukkit.broadcastMessage(String.valueOf(object)); }
+    public static void debug(Component component) { if ( Settings.DEBUG.toBool()) OraxenPlugin.get().getAudience().console().sendMessage(component); }
 
 }
