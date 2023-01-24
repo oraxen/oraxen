@@ -1,3 +1,4 @@
+debug: false
 Plugin:
   language: "english"
   commands:
@@ -5,19 +6,43 @@ Plugin:
       oraxen_durability_only: false # will not repair vanilla items if set to true
     emoji_list:
       only_show_emojis_with_permission: true # will only show emojis player has permission to use if set to true
+  generation:
+    default_assets: true
+    default_configs: true
+  formatting: # This uses MiniMessage formatting, so legacy colors like §c or &c will not work
+    inventory_titles: true # Formats all inventory titles made by any plugin
+    titles: true # Formats all titles made by any plugin
+    subtitles: true # Formats all subtitles made by any plugin
+    action_bar: true # Formats all action bars made by any plugin
+    anvil: true # Formats the result item based on the Anvil Text made by any plugin
+    signs: true # Formats text on signs when placed or edited
+  worldedit: # Please note these are both experimental still and should be used with caution
+    noteblock_mechanic: false
+    stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
+  experimental:
+    convert_pack_for_1_19_3: true # Temporary automatic conversion for new 1.19.3 pack format
 
 Pack:
   generation:
-    generate: true
+    generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
+    # If you have a duplicate json file due to importing a resourcepack,
+    # have Oraxen attempt to migrate it into config files to generate a working resourcepack
+    # Keep in mind this is still experimental, and you should not enable it before
+    # you have a backup of the resourcepack you are importing.
+    attempt_to_migrate_duplicates: false
+    # List of file extensions that will not be included in the final zipped ResourcePack
+    excluded_file_extensions: []
+    auto_generated_models_follow_texture_path: false
     # 64x32 layer is default size and corresponds to 16. If you need higher
     # resolution, e.g. 128x64, you should set this parameter to 32 and so on.
     armor_resolution: 16
+    animated_armor_framerate: 24
     automatically_generate_shader_compatible_armor: true
     compression: BEST_COMPRESSION # see Deflater.class
     # protection will use several methods to make your pack impossible to extract
     # with usual tools (native windows unzip, 7zip, winrar, etc) without altering
     # its integrity. Be careful if you activate this option to not try to extract
-    # the pack or you might fill your disk.
+    # the pack, or you might fill your disk.
     protection: true
     comment: "The content of this texture pack
      \nbelongs to the owner of the Oraxen
@@ -33,6 +58,7 @@ Pack:
 
   dispatch:
     send_pack: true
+    send_on_reload: true
     delay: -1
     # this option requires ProtocolLib and will make the pack loading more fluid
     send_pack_advanced:
@@ -88,7 +114,7 @@ Pack:
           # KICK / CHAT / ACTION_BAR / TITLE
           type: CHAT
           # Click and Hover elements are only available by using the CHAT type
-          content: "<red>You refused the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:/oraxen pack send @p><hover:show_text:\"<green>Display more informations\"><green><bold>CLICK HERE</bold></hover></click> <red>or type <bold>/o pack send @p"
+          content: "<red>You refused the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:'/oraxen pack send @p'><hover:show_text:'<green>Display more informations'><green><bold>CLICK HERE</bold></hover></click> <red>or type <bold>/oraxen pack send @p"
         # If you need to send commands
         commands:
           console: [ ]
@@ -102,7 +128,7 @@ Pack:
           # KICK / CHAT / ACTION_BAR / TITLE
           type: CHAT
           # Click and Hover elements are only available by using the CHAT type
-          content: "<red>You failed to download the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:/oraxen pack send @p><hover:show_text:\"<red>/!\\ loading the resourcepack from the game can cause lags\"><red><bold>CLICK HERE</bold></hover></click> <red>to retry or type <bold>/o pack send @p</bold>"
+          content: "<red>You failed to download the ResourcePack, but you need it in order to see the new items. Please </red><click:run_command:'/oraxen pack send @p'><hover:show_text:'<red>! loading the resourcepack from the game can cause lags'><red><bold>CLICK HERE</bold></hover></click> <red>to retry or type <bold>/oraxen pack send @p</bold>"
         # If you need to send commands
         commands:
           console: [ ]
@@ -124,10 +150,16 @@ ConfigsTools:
     excludeFromInventory: false # set to true if you don't want to display it inside inventory
     injectID: false
 
+CustomArmor:
+  disable_leather_repair: true # Makes custom armor not repairable with leather, only with copies of said custom armor
+
 Misc:
   # If this is set to true, Oraxen will reset recipes on reload. This might create conflicts with other plugins
   # but this makes the things easier if you want to try your oraxen recipes.
   reset_recipes: true
+
+  # This will hide the red numbers on the side of scoreboards
+  hide_scoreboard_numbers: false
 
   # Update the items in player inventory to the latest in config when player joins
   auto_update_items: false

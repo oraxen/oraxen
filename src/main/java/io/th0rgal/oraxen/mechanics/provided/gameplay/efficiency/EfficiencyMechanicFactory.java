@@ -20,4 +20,8 @@ public class EfficiencyMechanicFactory extends MechanicFactory {
         return mechanic;
     }
 
+    public EfficiencyMechanicFactory getInstance() {
+        return this;
+    }
+
 }

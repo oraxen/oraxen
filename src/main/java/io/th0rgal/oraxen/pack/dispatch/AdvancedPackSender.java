@@ -1,14 +1,13 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -25,9 +24,9 @@ public class AdvancedPackSender extends PackSender implements Listener {
 
     public AdvancedPackSender(HostingProvider hostingProvider) {
         super(hostingProvider);
-        protocolManager = ProtocolLibrary.getProtocolManager();
+        protocolManager = OraxenPlugin.get().getProtocolManager();
         component = WrappedChatComponent.fromJson(GsonComponentSerializer.gson()
-                .serialize(Utils.MINI_MESSAGE.parse(Settings.SEND_PACK_ADVANCED_MESSAGE.toString())));
+                .serialize(AdventureUtils.MINI_MESSAGE.deserialize(Settings.SEND_PACK_ADVANCED_MESSAGE.toString())));
     }
 
     @Override

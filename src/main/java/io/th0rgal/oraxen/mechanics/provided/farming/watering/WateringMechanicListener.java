@@ -1,11 +1,13 @@
 package io.th0rgal.oraxen.mechanics.provided.farming.watering;
 
-import com.jeff_media.customblockdata.CustomBlockData;
-import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.FluidCollisionMode;
 import org.bukkit.Material;
 import org.bukkit.Particle;
@@ -24,7 +26,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
 
 public class WateringMechanicListener implements Listener {
 
@@ -41,11 +42,12 @@ public class WateringMechanicListener implements Listener {
         ItemStack item = player.getInventory().getItemInMainHand();
         String itemId = OraxenItems.getIdByItem(item);
         WateringMechanic mechanic = (WateringMechanic) factory.getMechanic(itemId);
+        Block targetBlock = player.getTargetBlockExact(5, FluidCollisionMode.SOURCE_ONLY);
 
         if (item.getType() == Material.AIR || factory.isNotImplementedIn(itemId) || !mechanic.isEmpty()) return;
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null) return;
 
-        if (player.getTargetBlockExact(5, FluidCollisionMode.SOURCE_ONLY).getType() == Material.WATER) {
+        if (targetBlock != null && targetBlock.getType() == Material.WATER) {
             player.getInventory().setItemInMainHand(OraxenItems.getItemById(mechanic.getFilledCanItem()).build());
             player.getWorld().playSound(player.getLocation(), Sound.ITEM_BUCKET_FILL, 1.0f, 1.0f);
         }
@@ -69,14 +71,12 @@ public class WateringMechanicListener implements Listener {
         WateringMechanic mechanic = (WateringMechanic) factory.getMechanic(itemId);
 
         if (item.getType() == Material.AIR || factory.isNotImplementedIn(itemId) || !mechanic.isFilled()) return;
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-
-        if (block.getType() == Material.NOTE_BLOCK && getNoteBlockMechanic(block).hasDryout() && !getNoteBlockMechanic(block).getDryout().isMoistFarmBlock()) {
-            FarmBlockDryout farmMechanic = getNoteBlockMechanic(block).getDryout();
-            PersistentDataContainer farmBlockData = new CustomBlockData(block, OraxenPlugin.get());
-
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null) return;
+        NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(block);
+        if (noteMechanic != null && noteMechanic.hasDryout() && !noteMechanic.getDryout().isMoistFarmBlock()) {
+            FarmBlockDryout farmMechanic = noteMechanic.getDryout();
             NoteBlockMechanicFactory.setBlockModel(block, farmMechanic.getMoistFarmBlock());
-            farmBlockData.set(FARMBLOCK_KEY, PersistentDataType.INTEGER, farmMechanic.getDryoutTime());
+            BlockHelpers.getPDC(block).set(FARMBLOCK_KEY, PersistentDataType.INTEGER, farmMechanic.getDryoutTime());
         } else if (block.getType() == Material.FARMLAND) {
             Farmland data = ((Farmland) block.getBlockData());
             if (data.getMoisture() == data.getMaximumMoisture()) return;

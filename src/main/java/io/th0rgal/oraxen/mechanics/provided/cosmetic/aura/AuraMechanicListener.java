@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.cosmetic.aura;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -31,8 +31,7 @@ public class AuraMechanicListener implements Listener {
 
     public void disable(Player player) {
         AuraMechanic aura = registeredPlayers.remove(player);
-        if (aura != null)
-            aura.remove(player);
+        if (aura != null) aura.remove(player);
     }
 
     @EventHandler(priority = EventPriority.LOW)
@@ -46,10 +45,9 @@ public class AuraMechanicListener implements Listener {
         Inventory inventory = player.getInventory();
         ItemStack item = inventory.getItem(event.getNewSlot());
         String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID))
-            disable(player);
-        else
-            enable(player, (AuraMechanic) factory.getMechanic(itemID));
+
+        if (factory.isNotImplementedIn(itemID)) disable(player);
+        else enable(player, (AuraMechanic) factory.getMechanic(itemID));
 
     }
 

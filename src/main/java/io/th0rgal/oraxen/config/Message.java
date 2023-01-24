@@ -1,10 +1,11 @@
 package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.font.GlyphTag;
+import io.th0rgal.oraxen.font.ShiftTag;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.Template;
-import net.kyori.adventure.text.minimessage.template.TemplateResolver;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.jetbrains.annotations.NotNull;
@@ -65,6 +66,10 @@ public enum Message {
     DYE_WRONG_COLOR("command.dye.wrong_color"),
     DYE_FAILED("command.dye.failed"),
 
+    HUD_NO_HUD("command.hud.no_hud"),
+    HUD_TOGGLE_ON("command.hud.toggle_on"),
+    HUD_TOGGLE_OFF("command.hud.toggle_off"),
+
     // mechanics
     MECHANICS_NOT_ENOUGH_EXP("mechanics.not_enough_exp"),
     MECHANICS_BACKPACK_STACKED("mechanics.backpack_stacked");
@@ -85,28 +90,28 @@ public enum Message {
         return OraxenPlugin.get().getConfigsManager().getLanguage().getString(path);
     }
 
-    public void send(final CommandSender sender, final Template... placeholders) {
+    public void send(final CommandSender sender, final TagResolver... placeholders) {
         String lang = OraxenPlugin.get().getConfigsManager().getLanguage().getString(path);
-        ArrayList<Template> templates = new ArrayList<>(List.of(placeholders));
-        templates.add(Template.template("prefix", Message.PREFIX.toComponent()));
+        ArrayList<TagResolver> tagResolvers = new ArrayList<>(List.of(placeholders));
+        tagResolvers.add(AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
+        tagResolvers.add(TagResolver.resolver(GlyphTag.RESOLVER, ShiftTag.RESOLVER));
         if (lang == null) return;
         OraxenPlugin.get().getAudience().sender(sender).sendMessage(
-                Utils.MINI_MESSAGE.deserialize(lang, TemplateResolver.templates(templates))
+                AdventureUtils.MINI_MESSAGE.deserialize(lang, TagResolver.resolver(tagResolvers))
         );
     }
 
     @NotNull
     public final Component toComponent() {
-        return Utils.MINI_MESSAGE
-                .parse(toString());
+        return AdventureUtils.MINI_MESSAGE.deserialize(toString());
     }
 
     @NotNull
     public String toSerializedString() {
-        return Utils.LEGACY_COMPONENT_SERIALIZER.serialize(toComponent());
+        return AdventureUtils.LEGACY_SERIALIZER.serialize(toComponent());
     }
 
-    public void log(final Template... placeholders) {
+    public void log(final TagResolver... placeholders) {
         send(Bukkit.getConsoleSender(), placeholders);
     }
 

@@ -1,17 +1,9 @@
 package io.th0rgal.oraxen.utils;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
-import io.th0rgal.oraxen.font.GlyphTransformation;
-import io.th0rgal.oraxen.font.ShiftTransformation;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import net.kyori.adventure.text.minimessage.transformation.TransformationRegistry;
-import net.kyori.adventure.text.minimessage.transformation.TransformationType;
-import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -22,26 +14,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.Consumer;
 
 public class Utils {
 
-    private Utils() {}
+    private Utils() {
+    }
 
-    public static final LegacyComponentSerializer LEGACY_COMPONENT_SERIALIZER = LegacyComponentSerializer.builder()
-            .hexColors()
-            .useUnusualXRepeatedCharacterHexFormat()
-            .build();
-
-    public static final MiniMessage MINI_MESSAGE = MiniMessage.builder()
-            .transformations(TransformationRegistry.builder()
-                    .add(new TransformationType<>(
-                            GlyphTransformation::canParse, new GlyphTransformation.Parser()
-                    ))
-                    .add(new TransformationType<>(
-                            ShiftTransformation::canParse, new ShiftTransformation.Parser()
-                    )).build()
-            )
-            .build();
+    public static String replaceLast(String string, String toReplace, String replacement) {
+        int pos = string.lastIndexOf(toReplace);
+        if (pos > -1) {
+            return string.substring(0, pos)
+                    + replacement
+                    + string.substring(pos + toReplace.length());
+        } else {
+            return string;
+        }
+    }
 
     public static List<String> toLowercaseList(final String... values) {
         final ArrayList<String> list = new ArrayList<>();
@@ -58,6 +47,14 @@ public class Utils {
 
     public static long getVersion(final String format) {
         return Long.parseLong(OffsetDateTime.now().format(DateTimeFormatter.ofPattern(format)));
+    }
+
+    public static String getParentDirs(String string) {
+        return Utils.getStringBeforeLastInSplit(string, "/");
+    }
+
+    public static String removeParentDirs(String s) {
+        return Utils.getLastStringInSplit(s, "/");
     }
 
     public static String removeExtension(String s) {
@@ -78,11 +75,22 @@ public class Utils {
         return filename.substring(0, extensionIndex);
     }
 
+    public static String getLastStringInSplit(String string, String split) {
+        String[] splitString = string.split(split);
+        return splitString.length > 0 ? splitString[splitString.length - 1] : "";
+    }
+
+    public static String getStringBeforeLastInSplit(String string, String split) {
+        String[] splitString = string.split(split);
+        if (splitString.length == 0) return string;
+        else return string.replace(splitString[splitString.length - 1], "");
+    }
+
     public static void writeStringToFile(final File file, final String content) {
         file.getParentFile().mkdirs();
-        try(final FileWriter writer = new FileWriter(file)) {
+        try (final FileWriter writer = new FileWriter(file)) {
             writer.write(content);
-        } catch(IOException ex) {
+        } catch (IOException ex) {
             ex.printStackTrace();
         }
     }
@@ -93,12 +101,21 @@ public class Utils {
         return min;
     }
 
-    public static void sendAnimation(Player player, EquipmentSlot hand) {
-        final ProtocolManager protocolManager = ProtocolLibrary.getProtocolManager();
-        final PacketContainer animation = protocolManager.createPacket(PacketType.Play.Server.ANIMATION);
-        animation.getIntegers().write(0, player.getEntityId());
-        animation.getIntegers().write(1, (hand == EquipmentSlot.HAND) ? 0 : 3);
-        protocolManager.sendServerPacket(player, animation);
+    public static void swingHand(Player player, EquipmentSlot hand) {
+        if (hand == EquipmentSlot.HAND) player.swingMainHand();
+        else player.swingOffHand();
+    }
+
+    /**
+     * @param itemStack The ItemStack to edit the ItemMeta of
+     * @param function  The function-block to edit the ItemMeta in
+     * @return The original ItemStack with the new ItemMeta
+     */
+    public static ItemStack editItemMeta(ItemStack itemStack, Consumer<ItemMeta> function) {
+        ItemMeta meta = itemStack.getItemMeta();
+        function.accept(meta);
+        itemStack.setItemMeta(meta);
+        return itemStack;
     }
 
 }

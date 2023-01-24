@@ -9,14 +9,15 @@ import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.recipes.loaders.FurnaceLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapedLoader;
 import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Objects;
 
 public class RecipesManager {
@@ -30,7 +31,15 @@ public class RecipesManager {
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {
             recipesFolder.mkdirs();
-            new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
+            else try {
+                new File(recipesFolder, "furnace.yml").createNewFile();
+                new File(recipesFolder, "shaped.yml").createNewFile();
+                new File(recipesFolder, "shapeless.yml").createNewFile();
+            } catch (IOException e) {
+                Logs.logError("Error while creating recipes files: " + e.getMessage());
+            }
         }
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();
@@ -43,7 +52,8 @@ public class RecipesManager {
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {
             recipesFolder.mkdirs();
-            new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
         }
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();
@@ -67,21 +77,13 @@ public class RecipesManager {
     private static void registerRecipeByType(File configFile, ConfigurationSection recipeSection) {
         try {
             switch (configFile.getName()) {
-                case "shaped.yml":
-                    new ShapedLoader(recipeSection).registerRecipe();
-                    break;
-                case "shapeless.yml":
-                    new ShapelessLoader(recipeSection).registerRecipe();
-                    break;
-                case "furnace.yml":
-                    new FurnaceLoader(recipeSection).registerRecipe();
-                    break;
-                default:
-                    Logs.logError(configFile.getName());
-                    break;
+                case "shaped.yml" -> new ShapedLoader(recipeSection).registerRecipe();
+                case "shapeless.yml" -> new ShapelessLoader(recipeSection).registerRecipe();
+                case "furnace.yml" -> new FurnaceLoader(recipeSection).registerRecipe();
+                default -> Logs.logError(configFile.getName());
             }
         } catch (NullPointerException exception) {
-            Message.BAD_RECIPE.log(Template.template("recipe", recipeSection.getName()));
+            Message.BAD_RECIPE.log(AdventureUtils.tagResolver("recipe", recipeSection.getName()));
         }
     }
 }

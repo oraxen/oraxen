@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.pack.receive;
 
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.commands.CommandsParser;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
@@ -39,7 +39,7 @@ public class PackAction {
             assert messageSection != null;
             messageType = messageSection.getString("type");
             if (messageSection.getBoolean("enabled", true))
-                messageContent = Utils.MINI_MESSAGE.parse(Objects.requireNonNull(messageSection.getString("content")));
+                messageContent = AdventureUtils.MINI_MESSAGE.deserialize(Objects.requireNonNull(messageSection.getString("content")));
         }
 
         commandsParser = new CommandsParser(configurationSection.getConfigurationSection("commands"));

@@ -3,7 +3,8 @@ package io.th0rgal.oraxen.items;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Message;
-import net.kyori.adventure.text.minimessage.Template;
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -15,6 +16,11 @@ import java.util.Map.Entry;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Scheduled for removal in a future update. As of 1.147.0 API has been entirely redone.<br>
+ * See {@link io.th0rgal.oraxen.api.OraxenItems} for the new API.
+ */
+@Deprecated(forRemoval = true, since = "1.147.0")
 public class OraxenItems {
 
     private OraxenItems() {}
@@ -43,7 +49,7 @@ public class OraxenItems {
     }
 
     public static String getIdByItem(final ItemStack item) {
-        return (item == null || !item.hasItemMeta() || item.getItemMeta().getPersistentDataContainer().isEmpty()) ? null
+        return (item == null || item.getItemMeta() == null|| item.getItemMeta().getPersistentDataContainer().isEmpty()) ? null
                 : item.getItemMeta().getPersistentDataContainer().get(ITEM_ID, PersistentDataType.STRING);
     }
 
@@ -87,7 +93,7 @@ public class OraxenItems {
                         if (exists(param[1]))
                             itemStack[0] = getItemById(param[1]).build().clone();
                         else
-                            Message.ITEM_NOT_FOUND.log(Template.template("item", param[1]));
+                            Message.ITEM_NOT_FOUND.log(AdventureUtils.tagResolver("item", param[1]));
                         break;
                     case "amount":
                         itemStack[0].setAmount(Integer.parseInt(param[1]));
@@ -98,6 +104,10 @@ public class OraxenItems {
             });
             return Stream.of(itemStack[0]);
         }).toList();
+    }
+
+    public static boolean hasMechanic(String itemID, String mechanicID) {
+        return MechanicsManager.getMechanicFactory(mechanicID).getMechanic(itemID) != null;
     }
 
     public static Map<File, Map<String, ItemBuilder>> getMap() {

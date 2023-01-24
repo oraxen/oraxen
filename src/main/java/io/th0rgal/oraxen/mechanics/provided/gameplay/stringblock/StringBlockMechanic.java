@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
+import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
@@ -18,19 +19,15 @@ public class StringBlockMechanic extends Mechanic {
     protected final boolean hasHardness;
     private final int customVariation;
     private final Drop drop;
+    private final BlockSounds blockSounds;
     private final LimitedPlacing limitedPlacing;
-    private final String breakSound;
-    private final String placeSound;
-    private final String stepSound;
-    private final String hitSound;
-    private final String fallSound;
     private String model;
     private int period;
     private final int light;
 
-    private final boolean hasRandomPlace;
-    private List<String> randomPlaceBlock;
+    private final List<String> randomPlaceBlock;
     private final SaplingMechanic saplingMechanic;
+    private final boolean isTall;
 
     @SuppressWarnings("unchecked")
     public StringBlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -43,11 +40,7 @@ public class StringBlockMechanic extends Mechanic {
             model = section.getString("model");
 
         customVariation = section.getInt("custom_variation");
-        placeSound = section.getString("place_sound", null);
-        breakSound = section.getString("break_sound", null);
-        stepSound = section.getString("step_sound", null);
-        hitSound = section.getString("hit_sound", null);
-        fallSound = section.getString("fall_sound", null);
+        isTall = section.getBoolean("is_tall", false);
 
         List<Loot> loots = new ArrayList<>();
         if (section.isConfigurationSection("drop")) {
@@ -79,20 +72,26 @@ public class StringBlockMechanic extends Mechanic {
 
         light = section.getInt("light", -1);
 
-        if (section.isConfigurationSection("random_place")) {
-            ConfigurationSection randomPlace = section.getConfigurationSection("random_place");
-            hasRandomPlace = true;
-            randomPlaceBlock = randomPlace.getStringList("block");
-        } else hasRandomPlace = false;
+        ConfigurationSection randomPlaceSection = section.getConfigurationSection("random_place");
+        if (randomPlaceSection != null) {
+            randomPlaceBlock = randomPlaceSection.getStringList("block");
+        } else randomPlaceBlock = new ArrayList<>();
 
-        if (section.isConfigurationSection("sapling")) {
-            saplingMechanic = new SaplingMechanic(getItemID(), section.getConfigurationSection("sapling"));
+        ConfigurationSection saplingSection = section.getConfigurationSection("sapling");
+        if (saplingSection != null) {
+            saplingMechanic = new SaplingMechanic(getItemID(), saplingSection);
             ((StringBlockMechanicFactory) getFactory()).registerSaplingMechanic();
         } else saplingMechanic = null;
 
-        if (section.isConfigurationSection("limited_placing")) {
-            limitedPlacing = new LimitedPlacing(section.getConfigurationSection("limited_placing"));
+        ConfigurationSection limitedSection = section.getConfigurationSection("limited_placing");
+        if (limitedSection != null) {
+            limitedPlacing = new LimitedPlacing(limitedSection);
         } else limitedPlacing = null;
+
+        ConfigurationSection blockSoundsSection = section.getConfigurationSection("block_sounds");
+        if (blockSoundsSection != null) {
+            blockSounds = new BlockSounds(blockSoundsSection);
+        } else blockSounds = null;
     }
 
     public String getModel(ConfigurationSection section) {
@@ -102,11 +101,20 @@ public class StringBlockMechanic extends Mechanic {
         return section.getString("Pack.model");
     }
 
+    public boolean hasBlockSounds() {
+        return blockSounds != null;
+    }
+    public BlockSounds getBlockSounds() {
+        return blockSounds;
+    }
+
     public boolean hasLimitedPlacing() { return limitedPlacing != null; }
     public LimitedPlacing getLimitedPlacing() { return limitedPlacing; }
 
     public boolean isSapling() { return saplingMechanic != null; }
     public SaplingMechanic getSaplingMechanic() { return saplingMechanic; }
+
+    public boolean isTall() { return isTall; }
 
     public int getCustomVariation() {
         return customVariation;
@@ -116,38 +124,12 @@ public class StringBlockMechanic extends Mechanic {
         return drop;
     }
 
-    public boolean hasBreakSound() {
-        return breakSound != null;
-    }
-    public String getBreakSound() {
-        return validateReplacedSounds(breakSound);
-    }
-
-    public boolean hasPlaceSound() {
-        return placeSound != null;
-    }
-    public String getPlaceSound() {
-        return validateReplacedSounds(placeSound);
-    }
-
-    public boolean hasStepSound() { return stepSound != null; }
-    public String getStepSound() { return validateReplacedSounds(stepSound); }
-
-    public boolean hasHitSound() { return hitSound != null; }
-    public String getHitSound() { return validateReplacedSounds(hitSound); }
-
-    public boolean hasFallSound() { return fallSound != null; }
-    public String getFallSound() { return validateReplacedSounds(fallSound); }
-    private String validateReplacedSounds(String sound) {
-        if (sound.startsWith("block.wood"))
-            return sound.replace("block.wood", "required.wood.");
-        else if (sound.startsWith("block.stone"))
-            return sound.replace("block.stone", "required.stone.");
-        else return sound;
-    }
-
     public int getPeriod() {
         return period;
+    }
+
+    public boolean hasLight() {
+        return light <= -1;
     }
 
     public int getLight() {
@@ -155,7 +137,7 @@ public class StringBlockMechanic extends Mechanic {
     }
 
     public boolean hasRandomPlace() {
-        return hasRandomPlace;
+        return !randomPlaceBlock.isEmpty();
     }
 
     public List<String> getRandomPlaceBlock() {

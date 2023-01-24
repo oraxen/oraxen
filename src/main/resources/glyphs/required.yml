@@ -1,0 +1,8 @@
+# This file cannot be deleted, as it contains the required glyphs for the plugin to work.
+# It will simply be regenerated if any attempt is made to modify it.
+required:
+  texture: required/exit_icon
+  ascent: 8
+  height: 8
+  chat:
+    permission: "oraxen.emoji.required"

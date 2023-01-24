@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.farming.bottledexp;
 
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
-import io.th0rgal.oraxen.items.OraxenItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -23,33 +23,25 @@ public class BottledExpMechanicListener implements Listener {
     @EventHandler
     public void onRightClick(PlayerInteractEvent event) {
         Action action = event.getAction();
-        if (action != Action.LEFT_CLICK_AIR && action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK)
-            return;
-
         ItemStack item = event.getItem();
-        if (item == null)
-            return;
-
         String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID))
-            return;
+        Player player = event.getPlayer();
+
+        if (action != Action.LEFT_CLICK_AIR && action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
+        if (item == null || factory.isNotImplementedIn(itemID)) return;
 
         BottledExpMechanic mechanic = (BottledExpMechanic) factory.getMechanic(itemID);
-        Player player = event.getPlayer();
+        if (mechanic == null) return;
         ItemStack bottlesStack = new ItemStack(Material.EXPERIENCE_BOTTLE,
                 mechanic.getBottleEquivalent(player.getLevel(), player.getExp()));
-        if (bottlesStack.getAmount() <= 0) {
-            Message.NOT_ENOUGH_EXP.send(player);
-            return;
+        if (bottlesStack.getAmount() > 0) {
+            player.getWorld().dropItem(player.getLocation(), bottlesStack);
+            player.setLevel(0);
+            player.setExp(0);
+
+            PlayerItemDamageEvent itemDamageEvent = new PlayerItemDamageEvent(player, item, factory.getDurabilityCost());
+            Bukkit.getPluginManager().callEvent(itemDamageEvent);
         }
-
-        player.getWorld().dropItem(player.getLocation(), bottlesStack);
-        player.setLevel(0);
-        player.setExp(0);
-
-        PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item,
-                factory.getDurabilityCost());
-        Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
+        else Message.NOT_ENOUGH_EXP.send(player);
     }
-
 }

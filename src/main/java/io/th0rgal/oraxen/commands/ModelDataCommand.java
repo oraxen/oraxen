@@ -1,10 +1,10 @@
 package io.th0rgal.oraxen.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.items.OraxenItems;
-import net.md_5.bungee.api.chat.BaseComponent;
-import net.md_5.bungee.api.chat.ComponentBuilder;
+import net.kyori.adventure.text.Component;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 
@@ -27,12 +27,12 @@ public class ModelDataCommand {
                             itemMap.put(type, currentModelData);
                         }
                     }
-                    BaseComponent[] report = new ComponentBuilder("").create();
+                    Component report = Component.empty();
                     for (Map.Entry<Material, Integer> entry : itemMap.entrySet()) {
                         String message = (ChatColor.DARK_AQUA + entry.getKey().name() + ": " + ChatColor.DARK_GREEN + entry.getValue().toString() + "\n");
-                        report = new ComponentBuilder(message).append(report.clone()).create();
+                        report = report.append(Component.text(message));
                     }
-                    sender.spigot().sendMessage(report);
+                    OraxenPlugin.get().getAudience().sender(sender).sendMessage(report);
                 });
     }
 }

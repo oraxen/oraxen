@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.combat.lifeleech;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;

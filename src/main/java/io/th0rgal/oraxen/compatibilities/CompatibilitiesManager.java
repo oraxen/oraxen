@@ -8,7 +8,7 @@ import io.th0rgal.oraxen.compatibilities.provided.mythicmobs.MythicMobsCompatibi
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PlaceholderAPICompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.config.Message;
-import net.kyori.adventure.text.minimessage.Template;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.Bukkit;
 
 import java.lang.reflect.InvocationTargetException;
@@ -24,6 +24,7 @@ public class CompatibilitiesManager {
     public static void enableNativeCompatibilities() {
         WrappedLightAPI.init();
         WrappedWorldEdit.init();
+        WrappedWorldEdit.registerParser();
         new CompatibilityListener();
         addCompatibility("PlaceholderAPI", PlaceholderAPICompatibility.class, true);
         addCompatibility("BossShopPro", BossShopProCompatibility.class, true);
@@ -33,6 +34,7 @@ public class CompatibilitiesManager {
     }
 
     public static void disableCompatibilities() {
+        WrappedWorldEdit.unregister();
         ACTIVE_COMPATIBILITY_PROVIDERS.forEach((pluginName, compatibilityProvider) -> disableCompatibility(pluginName));
     }
 
@@ -45,7 +47,7 @@ public class CompatibilitiesManager {
                         get(pluginName).getConstructor().newInstance();
                 compatibilityProvider.enable(pluginName);
                 ACTIVE_COMPATIBILITY_PROVIDERS.put(pluginName, compatibilityProvider);
-                Message.PLUGIN_HOOKS.log(Template.template("plugin", pluginName));
+                Message.PLUGIN_HOOKS.log(AdventureUtils.tagResolver("plugin", pluginName));
                 return true;
             }
         } catch (final InstantiationException | IllegalAccessException | NoSuchMethodException | InvocationTargetException e) {
@@ -62,7 +64,7 @@ public class CompatibilitiesManager {
             if (ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).isEnabled())
                 ACTIVE_COMPATIBILITY_PROVIDERS.get(pluginName).disable();
             ACTIVE_COMPATIBILITY_PROVIDERS.remove(pluginName);
-            Message.PLUGIN_UNHOOKS.log(Template.template("plugin", pluginName));
+            Message.PLUGIN_UNHOOKS.log(AdventureUtils.tagResolver("plugin", pluginName));
             return true;
         } catch (final Exception e) {
             e.printStackTrace();

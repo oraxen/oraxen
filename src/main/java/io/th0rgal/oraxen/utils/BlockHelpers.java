@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
+import com.jeff_media.customblockdata.CustomBlockData;
+import io.th0rgal.oraxen.OraxenPlugin;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
 import org.bukkit.block.Sign;
@@ -9,11 +11,14 @@ import org.bukkit.block.data.type.Bed;
 import org.bukkit.block.data.type.Chest;
 import org.bukkit.block.data.type.Lectern;
 import org.bukkit.block.data.type.*;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.RayTraceResult;
 
 import java.util.Arrays;
@@ -25,25 +30,23 @@ import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
 
 public class BlockHelpers {
 
-    public static String VANILLA_STONE_PLACE = "minecraft:required.stone.place";
-    public static String VANILLA_STONE_BREAK = "minecraft:required.stone.break";
-    public static String VANILLA_STONE_HIT = "minecraft:required.stone.hit";
-    public static String VANILLA_STONE_STEP = "minecraft:required.stone.step";
-    public static String VANILLA_STONE_FALL = "minecraft:required.stone.fall";
-
-    public static String VANILLA_WOOD_PLACE = "minecraft:required.wood.place";
-    public static String VANILLA_WOOD_BREAK = "minecraft:required.wood.break";
-    public static String VANILLA_WOOD_HIT = "minecraft:required.wood.hit";
-    public static String VANILLA_WOOD_STEP = "minecraft:required.wood.step";
-    public static String VANILLA_WOOD_FALL = "minecraft:required.wood.fall";
-
-    public static void playCustomBlockSound(Location location, String sound) {
-        playCustomBlockSound(toCenterLocation(location), sound, SoundCategory.BLOCKS);
+    public static void playCustomBlockSound(Location location, String sound, float volume, float pitch) {
+        playCustomBlockSound(toCenterLocation(location), sound, SoundCategory.BLOCKS, volume, pitch);
     }
 
-    public static void playCustomBlockSound(Location location, String sound, SoundCategory category) {
+    public static void playCustomBlockSound(Location location, String sound, SoundCategory category, float volume, float pitch) {
         if (sound == null || location == null || location.getWorld() == null || category == null) return;
-        location.getWorld().playSound(location, sound, category, 1f, 0.8f);
+        location.getWorld().playSound(location, sound, category, volume, pitch);
+    }
+
+    public static String validateReplacedSounds(String sound) {
+        ConfigurationSection mechanics = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds");
+        if (mechanics == null) return sound;
+        else if (sound.startsWith("block.wood") && mechanics.getBoolean("noteblock_and_block")) {
+            return sound.replace("block.wood", "required.wood");
+        } else if (sound.startsWith("block.stone") && mechanics.getBoolean("stringblock_and_furniture")) {
+                return sound.replace("block.stone", "required.stone");
+        }else return sound;
     }
 
     public static Location toBlockLocation(Location location) {
@@ -52,6 +55,30 @@ public class BlockHelpers {
 
     public static Location toCenterLocation(Location location) {
         return toBlockLocation(location).clone().add(0.5, 0.5, 0.5);
+    }
+
+    public static boolean isStandingInside(final Player player, final Block block) {
+        if (player == null) return false;
+        final Location playerLoc = player.getLocation();
+        final Location blockLoc = BlockHelpers.toCenterLocation(block.getLocation());
+        return Range.between(0.5, 1.5).contains(blockLoc.getY() - playerLoc.getY()) &&
+                Range.between(-0.80, 0.80).contains(blockLoc.getX() - playerLoc.getX())
+                && Range.between(-0.80, 0.80).contains(blockLoc.getZ() - playerLoc.getZ());
+    }
+
+    /** Returns the PersistentDataContainer from CustomBlockData
+     * @param block The block to get the PersistentDataContainer for
+     * */
+    public static PersistentDataContainer getPDC(Block block) {
+        return getPDC(block, OraxenPlugin.get());
+    }
+
+    /** Returns the PersistentDataContainer from CustomBlockData
+     * @param block The block to get the PersistentDataContainer for
+     * @param plugin The plugin to get the CustomBlockData from
+     * */
+    public static PersistentDataContainer getPDC(Block block, JavaPlugin plugin) {
+        return new CustomBlockData(block, plugin);
     }
 
     public static final List<Material> REPLACEABLE_BLOCKS = Arrays
@@ -299,7 +326,7 @@ public class BlockHelpers {
         };
         boolean isChest =
                 rightBlock.getBlockData() instanceof Chest chest &&
-                (chest.getFacing() != playerFacing.getOppositeFace());
+                        (chest.getFacing() != playerFacing.getOppositeFace());
         return isChest ? block : rightBlock;
     }
 
@@ -333,9 +360,9 @@ public class BlockHelpers {
     }
 
     /*
-    * Calling loc.getChunk() will crash a Paper 1.19 build 62-66 (possibly more) Server if the Chunk does not exist.
-    * Instead, get Chunk location and check with World.isChunkLoaded() if the Chunk is loaded.
-    */
+     * Calling loc.getChunk() will crash a Paper 1.19 build 62-66 (possibly more) Server if the Chunk does not exist.
+     * Instead, get Chunk location and check with World.isChunkLoaded() if the Chunk is loaded.
+     */
     public static boolean isLoaded(World world, Location loc) {
         return world.isChunkLoaded(loc.getBlockX() >> 4, loc.getBlockZ() >> 4);
     }

@@ -1,9 +1,9 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.commands;
 
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.timers.Timer;
-import net.kyori.adventure.text.minimessage.Template;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -39,7 +39,7 @@ public class CommandsMechanicListener implements Listener {
         Player player = event.getPlayer();
 
         if (!mechanic.hasPermission(player)) {
-            Message.NO_PERMISSION.send(player, Template.template("permission", mechanic.getPermission()));
+            Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", mechanic.getPermission()));
             return;
         }
 

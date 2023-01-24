@@ -5,6 +5,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.items.OraxenMeta;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -26,23 +27,23 @@ public class PredicatesGenerator {
         // parent
         json.addProperty("parent", getParent(material));
 
+        String vanillaTextureName = getVanillaTextureName(material, false);
+
         // textures
         final ItemMeta exampleMeta = new ItemStack(material).getItemMeta();
         final JsonObject textures = new JsonObject();
 
         // potions use the overlay as the base layer
         if (exampleMeta instanceof PotionMeta) {
-            textures.addProperty("layer0", getVanillaTextureName(material, false) + "_overlay");
-        } else
-            textures.addProperty("layer0", getVanillaTextureName(material, false));
-
-        // to support colored leather armor
-        if (exampleMeta instanceof LeatherArmorMeta)
-            textures.addProperty("layer1", getVanillaTextureName(material, false) + "_overlay");
-        // to support colored potions
-        if (exampleMeta instanceof PotionMeta) {
-            textures.addProperty("layer1", getVanillaTextureName(material, false));
+            textures.addProperty("layer0", vanillaTextureName + "_overlay");
+            textures.addProperty("layer1", vanillaTextureName);
         }
+        // to support colored leather armor
+        else if (exampleMeta instanceof LeatherArmorMeta && material != Material.LEATHER_HORSE_ARMOR) {
+            textures.addProperty("layer0", vanillaTextureName);
+            textures.addProperty("layer1", vanillaTextureName + "_overlay");
+        }
+        else textures.addProperty("layer0", vanillaTextureName);
 
         json.add("textures", textures);
 
@@ -97,42 +98,43 @@ public class PredicatesGenerator {
 
         // custom items
         for (final ItemBuilder item : items) {
-            overrides
-                    .add(getOverride("custom_model_data", item.getOraxenMeta().getCustomModelData(),
-                            item.getOraxenMeta().getModelName()));
-            if (item.getOraxenMeta().hasBlockingModel()) {
+            OraxenMeta oraxenMeta = item.getOraxenMeta();
+            int customModelData = oraxenMeta.getCustomModelData();
+
+            // Skip duplicate
+            if (overrides.contains(getOverride("custom_model_data", customModelData, oraxenMeta.getModelName()))) continue;
+
+            overrides.add(getOverride("custom_model_data", customModelData, oraxenMeta.getModelName()));
+            if (oraxenMeta.hasBlockingModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("blocking", 1);
-                overrides
-                        .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(),
-                                item.getOraxenMeta().getBlockingModelName()));
+                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getBlockingModelName()));
             }
-            if (item.getOraxenMeta().hasChargedModel()) {
+            if (oraxenMeta.hasChargedModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("charged", 1);
-                overrides
-                        .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(),
-                                item.getOraxenMeta().getChargedModelName()));
+                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getChargedModelName()));
             }
-            if (item.getOraxenMeta().hasFireworkModel()) {
+            if (oraxenMeta.hasFireworkModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("charged", 1);
                 predicate.addProperty("firework", 1);
-                overrides
-                        .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(),
-                                item.getOraxenMeta().getFireworkModelName()));
+                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getFireworkModelName()));
             }
-            if (item.getOraxenMeta().hasPullingModels()) {
-                final List<String> pullingModels = item.getOraxenMeta().getPullingModels();
+            if (oraxenMeta.hasPullingModels()) {
+                final List<String> pullingModels = oraxenMeta.getPullingModels();
                 for (float i = 0; i < pullingModels.size(); i++) {
                     final JsonObject predicate = new JsonObject();
                     predicate.addProperty("pulling", 1);
                     if (i != 0)
                         predicate.addProperty("pull", i / pullingModels.size());
-                    overrides
-                            .add(getOverride(predicate, "custom_model_data", item.getOraxenMeta().getCustomModelData(),
-                                    pullingModels.get((int) i)));
+                    overrides.add(getOverride(predicate, "custom_model_data", customModelData, pullingModels.get((int) i)));
                 }
+            }
+            if (oraxenMeta.hasCastModel()) {
+                final JsonObject predicate = new JsonObject();
+                predicate.addProperty("cast", 1);
+                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getCastModelName()));
             }
 
         }

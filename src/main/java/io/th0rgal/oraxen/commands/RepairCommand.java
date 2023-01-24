@@ -3,12 +3,12 @@ package io.th0rgal.oraxen.commands;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.TextArgument;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
-import net.kyori.adventure.text.minimessage.Template;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -28,7 +28,7 @@ public class RepairCommand {
 
                     if (sender instanceof Player player) if ((args[0]).equals("hand")) {
                         ItemStack item = player.getInventory().getItemInMainHand();
-                        if (item == null || item.getType() == Material.AIR) {
+                        if (item.getType() == Material.AIR) {
                             Message.CANNOT_BE_REPAIRED_INVALID.send(sender);
                             return;
                         }
@@ -36,7 +36,7 @@ public class RepairCommand {
                             Message.CANNOT_BE_REPAIRED.send(sender);
 
                     } else if (player.hasPermission("oraxen.command.repair.all")) {
-                        ItemStack[] items = (ItemStack[]) ArrayUtils.addAll(player.getInventory().getStorageContents(),
+                        ItemStack[] items = ArrayUtils.addAll(player.getInventory().getStorageContents(),
                                 player.getInventory().getArmorContents());
                         int failed = 0;
                         for (ItemStack item : items) {
@@ -48,10 +48,10 @@ public class RepairCommand {
                             }
                         }
                         Message.REPAIRED_ITEMS.send(sender,
-                                Template.template("amount", String.valueOf(items.length - failed)));
+                                AdventureUtils.tagResolver("amount", String.valueOf(items.length - failed)));
                     } else
                         Message.NO_PERMISSION.send(sender,
-                                Template.template("permission", "oraxen.command.repair.all"));
+                                AdventureUtils.tagResolver("permission", "oraxen.command.repair.all"));
                     else
                         Message.NOT_PLAYER.send(sender);
                 });
@@ -71,14 +71,12 @@ public class RepairCommand {
                 return true;
         } else {
             DurabilityMechanic durabilityMechanic = (DurabilityMechanic) durabilityFactory.getMechanic(itemId);
-            PersistentDataContainer persistentDataContainer = itemMeta.getPersistentDataContainer();
+            PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
             int realMaxDurability = durabilityMechanic.getItemMaxDurability();
-            int damage = realMaxDurability
-                    - persistentDataContainer.get(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER);
-            if (damage == 0) // full durability
-                return true;
-            persistentDataContainer
-                    .set(DurabilityMechanic.NAMESPACED_KEY, PersistentDataType.INTEGER, realMaxDurability);
+            int damage = realMaxDurability - pdc.get(DurabilityMechanic.DURAB_KEY, PersistentDataType.INTEGER);
+            if (damage == 0)
+                return true; // full durability
+            pdc.set(DurabilityMechanic.DURAB_KEY, PersistentDataType.INTEGER, realMaxDurability);
         }
         damageable.setDamage(0);
         itemStack.setItemMeta(damageable);

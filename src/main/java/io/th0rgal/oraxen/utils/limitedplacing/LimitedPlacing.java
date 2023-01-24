@@ -1,35 +1,37 @@
 package io.th0rgal.oraxen.utils.limitedplacing;
 
-import com.jeff_media.customblockdata.CustomBlockData;
-import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.items.OraxenItems;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.mechanics.Mechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicListener.getBlockMechanic;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.FURNITURE_KEY;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener.getNoteBlockMechanic;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener.getStringMechanic;
+import java.util.Objects;
 
 public class LimitedPlacing {
     private final LimitedPlacingType type;
     private final List<String> blockTypes;
     private final List<String> blockTags;
     private final List<String> oraxenBlocks;
+    private final boolean floor;
+    private final boolean roof;
+    private final boolean wall;
 
     public LimitedPlacing(ConfigurationSection section) {
-        type = LimitedPlacingType.valueOf(section.getString("type", "ALLOW"));
+        floor = section.getBoolean("floor", true);
+        roof = section.getBoolean("roof", true);
+        wall = section.getBoolean("wall", true);
+        type = LimitedPlacingType.valueOf(section.getString("type", "DENY"));
         blockTypes = section.getStringList("block_types");
         blockTags = section.getStringList("block_tags");
         oraxenBlocks = section.getStringList("oraxen_blocks");
@@ -42,7 +44,15 @@ public class LimitedPlacing {
         for (String blockType : blockTypes) {
             blocks.add(Material.getMaterial(blockType));
         }
-        return blocks;
+        return blocks.stream().filter(Objects::nonNull).toList();
+    }
+
+    public boolean isNotPlacableOn(Block blockBelow, BlockFace blockFace) {
+        return !switch (blockFace) {
+            case UP -> floor;
+            case DOWN -> roof;
+            default -> wall || blockBelow.getType().isSolid();
+        };
     }
 
     public List<String> getLimitedOraxenBlockIds() {
@@ -66,24 +76,27 @@ public class LimitedPlacing {
                 }
             }
         }
-        return (oraxenId != null && getLimitedOraxenBlockIds().contains(oraxenId));
+        List<String> limitedOraxenBlockIds = getLimitedOraxenBlockIds();
+        return (oraxenId != null && !limitedOraxenBlockIds.isEmpty() && limitedOraxenBlockIds.contains(oraxenId));
     }
 
     private String checkIfOraxenItem(Block block) {
-        return switch (block.getType()) {
-            case NOTE_BLOCK -> getNoteBlockMechanic(block) != null ? getNoteBlockMechanic(block).getItemID() : null;
-            case TRIPWIRE -> getStringMechanic(block) != null ? getStringMechanic(block).getItemID() : null;
-            case BARRIER -> getFurnitureMechanic(block) != null ? getFurnitureMechanic(block).getItemID() : null;
-            case MUSHROOM_STEM -> getBlockMechanic(block) != null ? getBlockMechanic(block).getItemID() : null;
-            default -> null;
-        };
-    }
 
-    public FurnitureMechanic getFurnitureMechanic(Block block) {
-        if (block.getType() != Material.BARRIER) return null;
-        final PersistentDataContainer customBlockData = new CustomBlockData(block, OraxenPlugin.get());
-        final String mechanicID = customBlockData.get(FURNITURE_KEY, PersistentDataType.STRING);
-        return (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(mechanicID);
+        return switch (block.getType()) {
+            case NOTE_BLOCK, TRIPWIRE:
+                Mechanic mechanic = OraxenBlocks.getOraxenBlock(block.getBlockData());
+                if (mechanic == null) yield null;
+                else yield mechanic.getItemID();
+            case BARRIER:
+                FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
+                if (furnitureMechanic != null) yield furnitureMechanic.getItemID();
+                else yield null;
+            case MUSHROOM_STEM:
+                BlockMechanic blockMechanic = OraxenBlocks.getBlockMechanic(block);
+                if (blockMechanic != null) yield blockMechanic.getItemID();
+                else yield null;
+            default: yield null;
+        };
     }
 
     public List<Tag<Material>> getLimitedTags() {

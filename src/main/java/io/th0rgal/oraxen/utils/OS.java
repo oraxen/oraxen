@@ -77,8 +77,7 @@ public class OS {
         macOs.put("10.14", "Mojave");
         macOs.put("10.15", "Catalina");
         macOs.put("11.1", "Big Sur");
-        macOs.put("12.1", "Monterey");
-        macOs.put("12.5.1", "Monterey");
+        macOs.put("12", "Monterey");
 
         darwin.put(5, "Puma");
         darwin.put(6, "Jaguar");
@@ -101,8 +100,9 @@ public class OS {
         double numericVersion = Double.parseDouble(versions[0] + "." + versions[1]);
         if (numericVersion < 10)
             this.osInfo = new OsInfo(name, version, arch, "Mac OS " + version);
-        else
-            this.osInfo = new OsInfo(name, version, arch, "macOS " + macOs.get(version) + " (" + version + ")");
+        else {
+            this.osInfo = new OsInfo(name, version, arch, "macOS " + ((Integer.parseInt(versions[0]) >= 12) ? macOs.get(versions[0]) : macOs.get(version)) + " (" + version + ")");
+        }
     }
 
     private void initDarwinOsInfo(final String name, final String version, final String arch) {

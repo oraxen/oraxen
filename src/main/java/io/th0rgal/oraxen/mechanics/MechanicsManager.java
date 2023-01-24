@@ -33,6 +33,7 @@ import io.th0rgal.oraxen.mechanics.provided.misc.consumablepotioneffects.Consuma
 import io.th0rgal.oraxen.mechanics.provided.misc.custom.CustomMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.food.FoodMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.soulbound.SoulBoundMechanicFactory;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -64,6 +65,7 @@ public class MechanicsManager {
         registerMechanicFactory("custom", CustomMechanicFactory::new);
         registerMechanicFactory("commands", CommandsMechanicFactory::new);
         registerMechanicFactory("backpack", BackpackMechanicFactory::new);
+        registerMechanicFactory("music_disc", MusicDiscMechanicFactory::new);
 
         // gameplay
         registerMechanicFactory("food", FoodMechanicFactory::new);

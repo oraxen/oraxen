@@ -1,28 +1,28 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.block;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.MultipleFacing;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.ItemStack;
-
-import static io.th0rgal.oraxen.utils.BlockHelpers.*;
 
 public class BlockMechanicListener implements Listener {
 
@@ -46,10 +46,9 @@ public class BlockMechanicListener implements Listener {
         final Block block = event.getBlock();
         if (block.getType() != Material.MUSHROOM_STEM || !event.isDropItems()) return;
 
-        final BlockMechanic blockMechanic = getBlockMechanic(block);
+        final BlockMechanic blockMechanic = OraxenBlocks.getBlockMechanic(block);
         if (blockMechanic == null) return;
 
-        BlockHelpers.playCustomBlockSound(block.getLocation(), blockMechanic.hasBreakSound() ? blockMechanic.getBreakSound() : VANILLA_WOOD_BREAK);
         blockMechanic.getDrop().spawns(block.getLocation(), event.getPlayer().getInventory().getItemInMainHand());
         event.setDropItems(false);
     }
@@ -69,8 +68,8 @@ public class BlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onLimitedPlacing(final PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
+        BlockFace blockFace = event.getBlockFace();
         ItemStack item = event.getItem();
-
 
         if (item == null || block == null) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block.getType() != Material.NOTE_BLOCK) return;
@@ -80,13 +79,15 @@ public class BlockMechanicListener implements Listener {
         if (mechanic == null || !mechanic.hasLimitedPlacing()) return;
 
         LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
-        Block placedAgainst = block.getRelative(event.getBlockFace()).getRelative(BlockFace.DOWN);
+        Block belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN);
 
-        if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
-            if (!limitedPlacing.checkLimitedMechanic(placedAgainst))
+        if (limitedPlacing.isNotPlacableOn(belowPlaced, blockFace)) {
+            event.setCancelled(true);
+        } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
+            if (!limitedPlacing.checkLimitedMechanic(belowPlaced))
                 event.setCancelled(true);
         } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.DENY) {
-            if (limitedPlacing.checkLimitedMechanic(placedAgainst))
+            if (limitedPlacing.checkLimitedMechanic(belowPlaced))
                 event.setCancelled(true);
         }
     }
@@ -113,7 +114,7 @@ public class BlockMechanicListener implements Listener {
                     && target.getType() != Material.CAVE_AIR)
                 return;
         }
-        if (isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
+        if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
             return;
 
         // determines the old information of the block
@@ -125,7 +126,7 @@ public class BlockMechanicListener implements Listener {
         final BlockMechanic mechanic = ((BlockMechanic) factory.getMechanic(itemID));
         final int customVariation = mechanic.getCustomVariation();
         BlockMechanic.setBlockFacing(newBlockData, customVariation);
-        Utils.sendAnimation(player, event.getHand());
+        Utils.swingHand(player, event.getHand());
 
         // set the new block
         target.setBlockData(newBlockData); // false to cancel physic
@@ -137,7 +138,6 @@ public class BlockMechanicListener implements Listener {
             return;
         }
 
-        BlockHelpers.playCustomBlockSound(target.getLocation(), mechanic.hasPlaceSound() ? mechanic.getPlaceSound() : VANILLA_WOOD_PLACE);
         event.setCancelled(true);
         if (player.getGameMode() != GameMode.CREATIVE)
             item.setAmount(item.getAmount() - 1);
@@ -151,7 +151,7 @@ public class BlockMechanicListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getBlockFace() != BlockFace.UP) return;
         if (item == null) return;
 
-        BlockMechanic mechanic = getBlockMechanic(block);
+        BlockMechanic mechanic = OraxenBlocks.getBlockMechanic(block);
         if (mechanic == null || !mechanic.canIgnite()) return;
         if (item.getType() != Material.FLINT_AND_STEEL && item.getType() != Material.FIRE_CHARGE) return;
         BlockIgniteEvent igniteEvent = new BlockIgniteEvent(block, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, event.getPlayer());
@@ -161,51 +161,11 @@ public class BlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCatchFire(final BlockIgniteEvent event) {
         Block block = event.getBlock();
-        BlockMechanic mechanic = getBlockMechanic(block);
+        BlockMechanic mechanic = OraxenBlocks.getBlockMechanic(block);
         if (block.getType() != Material.MUSHROOM_STEM || mechanic == null) return;
         if (!mechanic.canIgnite()) event.setCancelled(true);
 
         block.getWorld().playSound(block.getLocation(), Sound.ITEM_FLINTANDSTEEL_USE, 1, 1);
         block.getRelative(BlockFace.UP).setType(Material.FIRE);
     }
-
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onStepFall(final GenericGameEvent event) {
-        Entity entity = event.getEntity();
-        if (entity == null) return;
-        Location eLoc = entity.getLocation();
-        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
-
-        GameEvent gameEvent = event.getEvent();
-        Block currentBlock = entity.getLocation().getBlock();
-        Block blockBelow = currentBlock.getRelative(BlockFace.DOWN);
-        String sound;
-
-        if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(currentBlock.getType()) || currentBlock.getType() == Material.TRIPWIRE) return;
-        if (blockBelow.getType() != Material.MUSHROOM_STEM) return;
-        final BlockMechanic mechanic = getBlockMechanic(blockBelow);
-        if (mechanic == null) return;
-
-        if (gameEvent == GameEvent.STEP) sound = mechanic.hasStepSound() ? mechanic.getStepSound() : VANILLA_WOOD_STEP;
-        else if (gameEvent == GameEvent.HIT_GROUND) sound = mechanic.hasFallSound() ? mechanic.getFallSound() : VANILLA_WOOD_FALL;
-        else return;
-
-        BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS);
-    }
-
-    public static BlockMechanic getBlockMechanic(Block block) {
-        if (block.getType() == Material.MUSHROOM_STEM) {
-            return BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(block));
-        } else return null;
-    }
-
-    private boolean isStandingInside(final Player player, final Block block) {
-        final Location playerLocation = player.getLocation();
-        final Location blockLocation = block.getLocation();
-        return playerLocation.getBlockX() == blockLocation.getBlockX()
-                && (playerLocation.getBlockY() == blockLocation.getBlockY()
-                || playerLocation.getBlockY() + 1 == blockLocation.getBlockY())
-                && playerLocation.getBlockZ() == blockLocation.getBlockZ();
-    }
-
 }

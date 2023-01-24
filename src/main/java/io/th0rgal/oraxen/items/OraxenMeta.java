@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.items;
 
+import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.List;
@@ -12,6 +14,7 @@ public class OraxenMeta {
     private List<String> pullingModels;
     private String chargedModel;
     private String fireworkModel;
+    private String castModel;
     private List<String> layers;
     private String parentModel;
     private boolean generate_model;
@@ -31,11 +34,11 @@ public class OraxenMeta {
         this.hasPackInfos = true;
         this.modelName = readModelName(configurationSection, "model");
         this.blockingModel = readModelName(configurationSection, "blocking_model");
+        this.castModel = readModelName(configurationSection, "cast_model");
         this.chargedModel = readModelName(configurationSection, "charged_model");
         this.fireworkModel = readModelName(configurationSection, "firework_model");
         this.pullingModels = configurationSection.isList("pulling_models")
-                ? configurationSection.getStringList("pulling_models")
-                : null;
+                ? configurationSection.getStringList("pulling_models") : null;
         this.layers = configurationSection.getStringList("textures");
         // can't be refactored with for each or stream because it'll throw
         // ConcurrentModificationException
@@ -44,19 +47,25 @@ public class OraxenMeta {
             if (layer.endsWith(".png"))
                 layers.set(i, layer.substring(0, layer.length() - 4));
         }
-        this.generate_model = configurationSection.getBoolean("generate_model");
-        this.parentModel = configurationSection.getString("parent_model");
+
+        // If not specified, check if a model or texture is set
+        this.generate_model = configurationSection.getBoolean("generate_model", getModelName().isEmpty());
+        this.parentModel = configurationSection.getString("parent_model", "item/generated");
     }
 
-    // this might not be a really good function name
-    private String readModelName(ConfigurationSection configurationSection, String configString) {
-        String modelName = configurationSection.getString(configString);
-        if (modelName == null && configString.equals("model"))
-            return configurationSection.getParent().getName();
-        if (modelName != null && modelName.endsWith(".json"))
-            return modelName.substring(0, modelName.length() - 5);
+    // this might not be a very good function name
+    private String readModelName(ConfigurationSection configSection, String configString) {
+        String modelName = configSection.getString(configString);
+        List<String> textures = configSection.getStringList("textures");
+        ConfigurationSection parent = configSection.getParent();
+        modelName = modelName != null ? modelName : Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.toBool() && !textures.isEmpty() && parent != null
+                ? Utils.getParentDirs(textures.stream().findFirst().get()) + parent.getName() : null;
 
-        return modelName;
+        if (modelName == null && configString.equals("model") && parent != null)
+            return parent.getName();
+        else if (modelName != null && modelName.endsWith(".json"))
+            return modelName.substring(0, modelName.length() - 5);
+        else return modelName;
     }
 
     public boolean hasPackInfos() {
@@ -75,7 +84,7 @@ public class OraxenMeta {
         this.modelName = modelName;
     }
 
-    public void setNoUpdate(boolean noUpdate){
+    public void setNoUpdate(boolean noUpdate) {
         this.noUpdate = noUpdate;
     }
 
@@ -89,6 +98,14 @@ public class OraxenMeta {
 
     public String getBlockingModelName() {
         return blockingModel;
+    }
+
+    public boolean hasCastModel() {
+        return castModel != null;
+    }
+
+    public String getCastModelName() {
+        return castModel;
     }
 
     public boolean hasChargedModel() {
@@ -131,7 +148,7 @@ public class OraxenMeta {
         return generate_model;
     }
 
-    public boolean isNoUpdate(){
+    public boolean isNoUpdate() {
         return noUpdate;
     }
 

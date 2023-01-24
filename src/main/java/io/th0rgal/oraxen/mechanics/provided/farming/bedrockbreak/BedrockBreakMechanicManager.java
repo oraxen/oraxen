@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.farming.bedrockbreak;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import org.bukkit.*;
@@ -22,8 +22,7 @@ public class BedrockBreakMechanicManager {
 
             @Override
             public boolean isTriggered(Player player, Block block, ItemStack tool) {
-                if (block.getType() != Material.BEDROCK)
-                    return false;
+                if (block.getType() != Material.BEDROCK) return false;
 
                 String itemID = OraxenItems.getIdByItem(tool);
                 return !factory.isNotImplementedIn(itemID) && (!factory.isDisabledOnFirstLayer() || block.getY() != 0);
@@ -35,12 +34,15 @@ public class BedrockBreakMechanicManager {
                 String itemID = OraxenItems.getIdByItem(tool);
                 BedrockBreakMechanic mechanic = (BedrockBreakMechanic) factory.getMechanic(itemID);
                 World world = block.getWorld();
-                Location location = block.getLocation();
+                Location loc = block.getLocation();
+
+                if (mechanic == null) return;
                 if (mechanic.bernouilliTest())
-                    world.dropItemNaturally(location, new ItemStack(Material.BEDROCK));
-                world.playSound(location, Sound.ENTITY_WITHER_BREAK_BLOCK, 1F, 0.05F);
+                    world.dropItemNaturally(loc, new ItemStack(Material.BEDROCK));
+
+                world.playSound(loc, Sound.ENTITY_WITHER_BREAK_BLOCK, 1F, 0.05F);
                 world.spawnParticle(Particle.BLOCK_CRACK,
-                        location, 25, 0.5D, 0.5D, 0.5D,
+                        loc, 25, 0.5D, 0.5D, 0.5D,
                         block.getBlockData());
                 block.breakNaturally();
             }

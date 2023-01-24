@@ -2,8 +2,10 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -17,7 +19,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener.getStringMechanic;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 
 public class SaplingListener implements Listener {
@@ -33,7 +34,7 @@ public class SaplingListener implements Listener {
         if (item == null || item.getType() != Material.BONE_MEAL) return;
 
         Location loc = block.getLocation();
-        StringBlockMechanic mechanic = getStringMechanic(block);
+        StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
         if (mechanic == null || !mechanic.isSapling()) return;
 
         SaplingMechanic sapling = mechanic.getSaplingMechanic();
@@ -47,8 +48,8 @@ public class SaplingListener implements Listener {
         if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
         block.getWorld().playEffect(loc, Effect.BONE_MEAL_USE, 3);
 
-        PersistentDataContainer pdc = new CustomBlockData(block, OraxenPlugin.get());
-        int growthTimeRemains = pdc.get(SAPLING_KEY, PersistentDataType.INTEGER) - sapling.getBoneMealGrowthSpeedup();
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        int growthTimeRemains = pdc.getOrDefault(SAPLING_KEY, PersistentDataType.INTEGER, 0) - sapling.getBoneMealGrowthSpeedup();
         if (growthTimeRemains <= 0) {
             block.setType(Material.AIR, false);
             if (sapling.hasGrowSound())

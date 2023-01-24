@@ -13,6 +13,8 @@ body:
           required: true
         - label: "I am using the latest version of any dependencies"
           required: true
+        - label: "I am using ProtocolLib 5.0"
+          required: true
         - label: "I have checked if any similar bug reports exist"
           required: true
   - type: textarea
@@ -30,14 +32,14 @@ body:
     validations:
       required: true
   - type: textarea
-    id: hmcc-version
+    id: oraxen-version
     attributes:
       label: Plugin Version
       description: "Run `version Oraxen` in your console and paste the output."
     validations:
       required: true
   - type: textarea
-    id: meg-version
+    id: prtlib-version
     attributes:
       label: ProtocolLib Version
       description: "Run `version ProtocolLib` in your console and paste the output."
@@ -46,7 +48,7 @@ body:
   - type: textarea
     id: server-version
     attributes:
-      label: Server Version
+      label: Server Software & Version
       description: "Run `version` in your console and paste the output."
     validations:
       required: true

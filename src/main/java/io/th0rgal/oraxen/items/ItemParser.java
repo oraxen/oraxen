@@ -7,7 +7,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -39,21 +39,22 @@ public class ItemParser {
     public ItemParser(ConfigurationSection section) {
         this.section = section;
 
-        if (section.isConfigurationSection("crucible"))
-            crucibleItem = new WrappedCrucibleItem(section.getConfigurationSection("crucible"));
-        else if (section.isConfigurationSection("mmoitem"))
-            mmoItem = new WrappedMMOItem(section.getConfigurationSection("mmoitem"));
-        else type = Material.getMaterial(section.getString("material"));
+        ConfigurationSection crucibleSection = section.getConfigurationSection("crucible");
+        ConfigurationSection mmoSection = section.getConfigurationSection("mmoitem");
+        if (crucibleSection != null)
+            crucibleItem = new WrappedCrucibleItem(crucibleSection);
+        else if (mmoSection != null)
+            mmoItem = new WrappedMMOItem(mmoSection);
+        else type = Material.getMaterial(section.getString("material", "PAPER"));
 
         oraxenMeta = new OraxenMeta();
         if (section.isConfigurationSection("Pack")) {
             ConfigurationSection packSection = section.getConfigurationSection("Pack");
             oraxenMeta.setPackInfos(packSection);
+            assert packSection != null;
             if (packSection.isInt("custom_model_data"))
-                MODEL_DATAS_BY_ID
-                        .put(section.getName(),
-                                new ModelData(type, oraxenMeta.getModelName(),
-                                        packSection.getInt("custom_model_data")));
+                MODEL_DATAS_BY_ID.put(section.getName(), new ModelData(type, oraxenMeta.getModelName(),
+                        packSection.getInt("custom_model_data")));
         }
     }
 
@@ -66,7 +67,7 @@ public class ItemParser {
     }
 
     private String parseComponentString(String miniString) {
-        return Utils.LEGACY_COMPONENT_SERIALIZER.serialize(Utils.MINI_MESSAGE.parse(miniString));
+        return AdventureUtils.LEGACY_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE.deserialize(miniString));
     }
 
     public ItemBuilder buildItem() {
@@ -91,21 +92,22 @@ public class ItemParser {
 
         if (section.contains("lore")) {
             List<String> lore = section.getStringList("lore");
-            for (int i = 0; i < lore.size(); i++)
-                lore.set(i, parseComponentString(lore.get(i)));
+            lore.replaceAll(this::parseComponentString);
             item.setLore(lore);
         }
 
         if (section.contains("unbreakable"))
-            item.setUnbreakable(section.getBoolean("unbreakable"));
+            item.setUnbreakable(section.getBoolean("unbreakable", false));
+
+        if (section.contains("unstackable"))
+            item.setUnstackable(section.getBoolean("unstackable", false));
 
         if (section.contains("color")) {
             String[] colors = section.getString("color").split(", ");
-            item
-                    .setColor(org.bukkit.Color
-                            .fromRGB(Integer.parseInt(colors[0]),
-                                    Integer.parseInt(colors[1]),
-                                    Integer.parseInt(colors[2])));
+            item.setColor(org.bukkit.Color.fromRGB(
+                    Integer.parseInt(colors[0]),
+                    Integer.parseInt(colors[1]),
+                    Integer.parseInt(colors[2])));
         }
 
         parseMiscOptions(item);
@@ -141,8 +143,10 @@ public class ItemParser {
             @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
             List<LinkedHashMap<String, Object>> potionEffects = (List<LinkedHashMap<String, Object>>) section
                     .getList("PotionEffects");
+            if (potionEffects == null) return;
             for (Map<String, Object> serializedPotionEffect : potionEffects) {
                 PotionEffectType effect = PotionEffectType.getByName((String) serializedPotionEffect.get("type"));
+                if (effect == null) return;
                 int duration = (int) serializedPotionEffect.get("duration");
                 int amplifier = (int) serializedPotionEffect.get("amplifier");
                 boolean ambient = (boolean) serializedPotionEffect.get("ambient");
@@ -182,10 +186,9 @@ public class ItemParser {
 
         if (section.contains("Enchantments")) {
             ConfigurationSection enchantSection = section.getConfigurationSection("Enchantments");
-            for (String enchant : enchantSection.getKeys(false))
-                item
-                        .addEnchant(EnchantmentWrapper.getByKey(NamespacedKey.minecraft(enchant)),
-                                enchantSection.getInt(enchant));
+            if (enchantSection != null) for (String enchant : enchantSection.getKeys(false))
+                item.addEnchant(EnchantmentWrapper.getByKey(NamespacedKey.minecraft(enchant)),
+                        enchantSection.getInt(enchant));
         }
     }
 
@@ -193,7 +196,7 @@ public class ItemParser {
 
         if (section.isConfigurationSection("Mechanics")) {
             ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
-            for (String mechanicID : mechanicsSection.getKeys(false)) {
+            if (mechanicsSection != null) for (String mechanicID : mechanicsSection.getKeys(false)) {
                 MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
                 if (factory != null) {
                     Mechanic mechanic = factory.parse(mechanicsSection.getConfigurationSection(mechanicID));

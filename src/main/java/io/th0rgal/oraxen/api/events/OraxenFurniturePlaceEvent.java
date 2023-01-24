@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.events;
+package io.th0rgal.oraxen.api.events;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.block.Block;
@@ -11,26 +11,48 @@ import org.jetbrains.annotations.NotNull;
 
 public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
 
-    FurnitureMechanic furnitureMechanic;
-
-    Player player;
-
-    Block block;
-
-    ItemFrame itemFrame;
-
-    boolean isCancelled;
-
+    private final FurnitureMechanic mechanic;
+    private final Player player;
+    private final Block block;
+    private final ItemFrame itemFrame;
+    private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurniturePlaceEvent(FurnitureMechanic mechanic, Block block, ItemFrame itemFrame,  Player player){
-        this.furnitureMechanic = mechanic;
+    public OraxenFurniturePlaceEvent(FurnitureMechanic mechanic, Block block, ItemFrame itemFrame, Player player){
+        this.mechanic = mechanic;
         this.player = player;
         this.block = block;
         this.isCancelled = false;
         this.itemFrame = itemFrame;
     }
 
+    /**
+     * @return The FurnitureMechanic of this furniture
+     */
+    public FurnitureMechanic getMechanic() {
+        return mechanic;
+    }
+
+    /**
+     * @return The player who placed this furniture
+     */
+    public Player getPlayer() {
+        return player;
+    }
+
+    /**
+     * @return The block this furniture was placed at
+     */
+    public Block getBlock() {
+        return block;
+    }
+
+    /**
+     * @return The item frame for this furniture
+     */
+    public ItemFrame getItemFrame() {
+        return itemFrame;
+    }
 
     @Override
     public boolean isCancelled() {
@@ -48,19 +70,4 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
         return HANDLERS;
     }
 
-    public FurnitureMechanic getFurnitureMechanic() {
-        return furnitureMechanic;
-    }
-
-    public Player getPlayer() {
-        return player;
-    }
-
-    public Block getBlock() {
-        return block;
-    }
-
-    public ItemFrame getItemFrame() {
-        return itemFrame;
-    }
 }

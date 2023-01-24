@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.items;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
+import com.jeff_media.morepersistentdatatypes.DataType;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import org.bukkit.*;
@@ -19,7 +21,10 @@ import org.bukkit.potion.PotionEffect;
 
 import java.util.*;
 
+@SuppressWarnings("ALL")
 public class ItemBuilder {
+
+    public final NamespacedKey UNSTACKABLE_KEY = new NamespacedKey(OraxenPlugin.get(), "unstackable");
 
     private final ItemStack itemStack;
     private final Map<PersistentDataSpace, Object> persistentDataMap = new HashMap<>();
@@ -38,6 +43,7 @@ public class ItemBuilder {
     private DyeColor patternColor;
     private String displayName;
     private boolean unbreakable;
+    private boolean unstackable;
     private Set<ItemFlag> itemFlags;
     private boolean hasAttributeModifiers;
     private Multimap<Attribute, AttributeModifier> attributeModifiers;
@@ -67,6 +73,7 @@ public class ItemBuilder {
         amount = itemStack.getAmount();
 
         final ItemMeta itemMeta = itemStack.getItemMeta();
+        assert itemMeta != null;
 
         if (itemMeta instanceof Damageable damageable)
             durability = damageable.getDamage();
@@ -93,6 +100,7 @@ public class ItemBuilder {
             displayName = itemMeta.getDisplayName();
 
         unbreakable = itemMeta.isUnbreakable();
+        unstackable = itemMeta.getPersistentDataContainer().has(UNSTACKABLE_KEY, DataType.UUID);
 
         if (!itemMeta.getItemFlags().isEmpty())
             itemFlags = itemMeta.getItemFlags();
@@ -142,6 +150,15 @@ public class ItemBuilder {
 
     public ItemBuilder setUnbreakable(final boolean unbreakable) {
         this.unbreakable = unbreakable;
+        return this;
+    }
+
+    public boolean isUnstackable() {
+        return unstackable;
+    }
+
+    public ItemBuilder setUnstackable(final boolean unstackable) {
+        this.unstackable = unstackable;
         return this;
     }
 
@@ -287,17 +304,27 @@ public class ItemBuilder {
          * CHANGING ItemBuilder META
          */
         ItemMeta itemMeta = handleVariousMeta(itemStack.getItemMeta());
-
+        assert itemMeta != null;
         if (displayName != null)
             itemMeta.setDisplayName(displayName);
 
         itemMeta.setUnbreakable(unbreakable);
+
+        /*if (isUnstackable()) {
+            // This needs to be set in the final build() and buildArray() methods
+            // Otherwise it will set the tag for the entire stack and you can have stacks
+            // This should prevent that
+        }*/
+
         if (itemFlags != null)
             itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
 
         if (enchantments.size() > 0)
-            for (final Map.Entry<Enchantment, Integer> enchant : enchantments.entrySet())
-                itemMeta.addEnchant(enchant.getKey(), enchant.getValue(), true);
+            for (final Map.Entry<Enchantment, Integer> enchant : enchantments.entrySet()) {
+                if (enchant.getKey() == null) continue;
+                int lvl = enchant.getValue() != null ? enchant.getValue() : 1;
+                itemMeta.addEnchant(enchant.getKey(), lvl, true);
+            }
 
         if (hasAttributeModifiers)
             itemMeta.setAttributeModifiers(attributeModifiers);
@@ -381,7 +408,7 @@ public class ItemBuilder {
     }
 
     public int getMaxStackSize() {
-        return type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
+        return unstackable ? 1 : type != null ? type.getMaxStackSize() : itemStack.getType().getMaxStackSize();
     }
 
     public ItemStack[] buildArray(final int amount) {
@@ -393,20 +420,31 @@ public class ItemBuilder {
         for (int index = 0; index < iterations; index++) {
             final ItemStack clone = built.clone();
             clone.setAmount(max);
+            if (unstackable) handleUnstackable(clone);
             output[index] = clone;
         }
         if (rest != 0) {
-            final ItemStack clone = built.clone();
+            ItemStack clone = built.clone();
             clone.setAmount(rest);
+            if (unstackable) handleUnstackable(clone);
             output[iterations] = clone;
         }
         return output;
     }
 
     public ItemStack build() {
-        if (finalItemStack == null)
-            regen();
-        return finalItemStack.clone();
+        if (finalItemStack == null) regen();
+        if (unstackable) return handleUnstackable(finalItemStack);
+        else return finalItemStack.clone();
+    }
+
+    private ItemStack handleUnstackable(ItemStack item) {
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return item;
+        meta.getPersistentDataContainer().set(UNSTACKABLE_KEY, DataType.UUID, UUID.randomUUID());
+        item.setItemMeta(meta);
+        item.setAmount(1);
+        return item;
     }
 
     @Override

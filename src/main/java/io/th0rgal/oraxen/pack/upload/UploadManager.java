@@ -11,7 +11,7 @@ import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
-import net.kyori.adventure.text.minimessage.Template;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -47,10 +47,10 @@ public class UploadManager {
     }
 
     public void uploadAsyncAndSendToPlayers(final ResourcePack resourcePack) {
-        uploadAsyncAndSendToPlayers(resourcePack, false);
+        uploadAsyncAndSendToPlayers(resourcePack, false, false);
     }
 
-    public void uploadAsyncAndSendToPlayers(final ResourcePack resourcePack, final boolean updatePackSender) {
+    public void uploadAsyncAndSendToPlayers(final ResourcePack resourcePack, final boolean updatePackSender, final boolean isReload) {
         if (!enabled)
             return;
 
@@ -67,8 +67,8 @@ public class UploadManager {
                 return;
             }
             Message.PACK_UPLOADED.log(
-                    Template.template("url", hostingProvider.getPackURL()),
-                    Template.template("delay", String.valueOf(System.currentTimeMillis() - time)));
+                    AdventureUtils.tagResolver("url", hostingProvider.getPackURL()),
+                    AdventureUtils.tagResolver("delay", String.valueOf(System.currentTimeMillis() - time)));
 
             if (packSender == null) {
                 packSender = (CompatibilitiesManager.hasPlugin("ProtocolLib") && Settings.SEND_PACK_ADVANCED.toBool())
@@ -79,7 +79,10 @@ public class UploadManager {
                         ? new AdvancedPackSender(hostingProvider) : new BukkitPackSender(hostingProvider);
             }
 
-            if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
+            if (isReload && !Settings.SEND_ON_RELOAD.toBool()) {
+                if (packSender != null) packSender.unregister();
+            }
+            else if (Settings.SEND_PACK.toBool() || Settings.SEND_JOIN_MESSAGE.toBool()) {
                 packSender.register();
                 if (!hostingProvider.getPackURL().equals(url))
                     for (Player player : Bukkit.getOnlinePlayers())

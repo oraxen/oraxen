@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.farming.bigmining;
 
-import io.th0rgal.oraxen.items.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Constants;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -29,7 +29,6 @@ public class BigMiningMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onBlockBreak(final BlockBreakEvent event) {
-
         final Player player = event.getPlayer();
 
         if (blocksToProcess > 0) {
@@ -37,16 +36,14 @@ public class BigMiningMechanicListener implements Listener {
             return;
         }
 
-        final ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
-
+        final ItemStack item = player.getInventory().getItemInMainHand();
         final String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID))
-            return;
+        if (factory.isNotImplementedIn(itemID)) return;
 
-        final BigMiningMechanic mechanic = (BigMiningMechanic) factory.getMechanic(itemID);
         final List<Block> lastTwoTargetBlocks = player.getLastTwoTargetBlocks(null, 5);
-        if (lastTwoTargetBlocks.size() < 2)
-            return;
+        final BigMiningMechanic mechanic = (BigMiningMechanic) factory.getMechanic(itemID);
+        if (mechanic == null || lastTwoTargetBlocks.size() < 2) return;
+
         final Block nearestBlock = lastTwoTargetBlocks.get(0);
         final Block secondBlock = lastTwoTargetBlocks.get(1);
         final BlockFace blockFace = secondBlock.getFace(nearestBlock);
@@ -87,15 +84,13 @@ public class BigMiningMechanicListener implements Listener {
      * It converts a relative location in 2d into another location in 3d on a
      * certain axis
      */
-    private Location transpose(Location location, final BlockFace blockFace, final double relativeX, final double relativeY,
+    private Location transpose(Location loc, final BlockFace face, final double relX, final double relY,
                                final double relativeDepth) {
-        location = location.clone();
-        if (blockFace == BlockFace.WEST || blockFace == BlockFace.EAST) // WEST_EAST axis != X
-            location.add(relativeDepth, relativeX, relativeY);
-        else if (blockFace == BlockFace.DOWN || blockFace == BlockFace.UP) // DOWN_UP axis != Y
-            location.add(relativeX, relativeDepth, relativeY);
-        else // NORTH_SOUTH axis != Z
-            location.add(relativeX, relativeY, relativeDepth);
-        return location;
+        loc = loc.clone();
+        return switch (face) {
+            case WEST, EAST ->  loc.add(relativeDepth, relX, relY);
+            case UP, DOWN -> loc.add(relX, relativeDepth, relY);
+            default -> loc.add(relX, relY, relativeDepth);
+        };
     }
 }

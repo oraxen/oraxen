@@ -22,10 +22,12 @@ public class BlockMechanicFactory extends MechanicFactory {
     private static final List<JsonObject> MUSHROOM_STEM_BLOCKSTATE_OVERRIDES = new ArrayList<>();
     private static final Map<Integer, BlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
     public final List<String> toolTypes;
+    public final boolean customSounds;
 
     public BlockMechanicFactory(ConfigurationSection section) {
         super(section);
         toolTypes = section.getStringList("tool_types");
+        customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("noteblock_and_block", true);
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
@@ -34,6 +36,7 @@ public class BlockMechanicFactory extends MechanicFactory {
                         .writeStringToVirtual("assets/minecraft/blockstates",
                                 "mushroom_stem.json", getBlockstateContent()));
         MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicListener(this));
+        if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockSoundListener());
     }
 
     private String getBlockstateContent() {

@@ -4,10 +4,10 @@ import com.github.stefvanschie.inventoryframework.gui.GuiItem;
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
 import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.items.OraxenItems;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -19,7 +19,7 @@ public class RecipesView {
 
     private final FontManager fontManager = OraxenPlugin.get().getFontManager();
     final String menuTexture = ChatColor.WHITE +
-            fontManager.getShift(7) +
+            fontManager.getShift(-7) +
             fontManager.getGlyphFromName("menu_recipe").getCharacter();
 
     public ChestGui create(final int page, final List<CustomRecipe> filteredRecipes) {
