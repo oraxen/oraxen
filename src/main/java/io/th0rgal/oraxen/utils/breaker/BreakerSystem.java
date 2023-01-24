@@ -120,7 +120,7 @@ public class BreakerSystem {
                         blockFace,
                         EquipmentSlot.HAND
                 );
-                scheduler.runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
+                //scheduler.runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
                 if (playerInteractEvent.useInteractedBlock().equals(Event.Result.DENY)) return;
 
                 // If the relevant damage event is cancelled, return
