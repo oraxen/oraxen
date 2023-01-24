@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -87,28 +88,22 @@ public class ItemParser {
 
     private ItemBuilder applyConfig(ItemBuilder item) {
 
-        if (section.contains("durability"))
-            item.setDurability((short) section.getInt("durability"));
-
         if (section.contains("lore")) {
             List<String> lore = section.getStringList("lore");
             lore.replaceAll(this::parseComponentString);
             item.setLore(lore);
         }
 
+        if (section.contains("durability"))
+            item.setDurability((short) section.getInt("durability"));
         if (section.contains("unbreakable"))
             item.setUnbreakable(section.getBoolean("unbreakable", false));
-
         if (section.contains("unstackable"))
             item.setUnstackable(section.getBoolean("unstackable", false));
-
-        if (section.contains("color")) {
-            String[] colors = section.getString("color").split(", ");
-            item.setColor(org.bukkit.Color.fromRGB(
-                    Integer.parseInt(colors[0]),
-                    Integer.parseInt(colors[1]),
-                    Integer.parseInt(colors[2])));
-        }
+        if (section.contains("color"))
+            item.setColor(Utils.toColor(section.getString("color", "FFFFFF")));
+        if (section.contains("color2"))
+            item.setColor2(Utils.toColor(section.getString("color2", "FFFFFF")));
 
         parseMiscOptions(item);
         parseVanillaSections(item);
