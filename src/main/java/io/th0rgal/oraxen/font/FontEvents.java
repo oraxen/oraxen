@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.inventory.Book;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -149,7 +150,7 @@ public class FontEvents implements Listener {
         if (!(event.getClickedInventory() instanceof AnvilInventory clickedInv)) return;
         Player player = (Player) event.getWhoClicked();
         String displayName = clickedInv.getRenameText();
-
+        Logs.debug(event.getSlot());
         switch (event.getSlot()) {
             case 0 -> { // Clicking first item
                 ItemStack cursor = event.getCursor();
@@ -177,7 +178,9 @@ public class FontEvents implements Listener {
                 ItemStack clickedItem = clickedInv.getItem(2);
                 if (clickedItem == null) return;
                 if (displayName == null || displayName.isBlank()) return;
-                if (!OraxenItems.exists(clickedItem)) return;
+
+                if (Settings.FORMAT_ANVIL.toBool())
+                    displayName = AdventureUtils.parseLegacyThroughMiniMessage(displayName);
 
                 for (Character character : manager.getReverseMap().keySet()) {
                     if (!displayName.contains(String.valueOf(character))) continue;
@@ -202,8 +205,7 @@ public class FontEvents implements Listener {
 
                 ItemMeta meta = clickedItem.getItemMeta();
                 if (meta == null) return;
-                if (Settings.FORMAT_ANVIL.toBool())
-                    meta.setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage(displayName));
+                meta.setDisplayName(displayName);
                 clickedItem.setItemMeta(meta);
             }
         }
