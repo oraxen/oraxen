@@ -78,25 +78,9 @@ public class ResourcePack {
         if (!Settings.GENERATE.toBool())
             return;
 
-        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) {
-            if (Bukkit.getPluginManager().isPluginEnabled("HappyHUD")) {
-                Logs.logError("HappyHUD detected!");
-                Logs.logWarning("Recommend following this guide for compatibility: https://docs.oraxen.com/compatibility/happyhud");
-                /*
-                Settings.HIDE_SCOREBOARD_NUMBERS.setValue(false);
-                try {
-                    Path pluginDir = OraxenPlugin.get().getDataFolder().getAbsoluteFile().toPath();
-                    Files.deleteIfExists(pluginDir.resolve("pack/shaders/core/rendertype_text.json"));
-                    Files.deleteIfExists(pluginDir.resolve("pack/shaders/core/rendertype_text.vsh"));
-                } catch (Exception ignored) {
-                }*/
-            } else {
-                plugin.saveResource("pack/shaders/core/rendertype_text.json", true);
-                plugin.saveResource("pack/shaders/core/rendertype_text.vsh", true);
-            }
-        } else {
-            checkShaderFiles(new File(shaderFolder, "core/rendertype_text.json"));
-            checkShaderFiles(new File(shaderFolder, "core/rendertype_text.vsh"));
+        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool() && Bukkit.getPluginManager().isPluginEnabled("HappyHUD")) {
+            Logs.logError("HappyHUD detected with hide_scoreboard_numbers enabled!");
+            Logs.logWarning("Recommend following this guide for compatibility: https://docs.oraxen.com/compatibility/happyhud");
         }
 
         try {
@@ -132,12 +116,12 @@ public class ResourcePack {
                     getAllFiles(folder, output, "assets/minecraft");
             }
 
-            if (customArmorsTextures.hasCustomArmors()) {
+            if (Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.toBool() && customArmorsTextures.hasCustomArmors()) {
                 customArmorsTextures.rescaleVanillaArmorFiles(output);
                 String armorPath = "assets/minecraft/textures/models/armor";
                 output.add(new VirtualFile(armorPath, "leather_layer_1.png", customArmorsTextures.getLayerOne()));
                 output.add(new VirtualFile(armorPath, "leather_layer_2.png", customArmorsTextures.getLayerTwo()));
-                if (customArmorsTextures.shouldGenerateOptifineFiles())
+                if (Settings.AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool())
                     output.addAll(customArmorsTextures.getOptifineFiles());
             }
 
@@ -194,7 +178,7 @@ public class ResourcePack {
             ZipEntry entry = zip.getNextEntry();
             final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
             while (entry != null) {
-                extract(entry, extractModels, extractTextures,
+                extract(entry, extractModels, extractTextures, extractShaders,
                         extractLang, extractFonts, extractSounds, extractAssets, extractOptifine, resourcesManager);
                 entry = zip.getNextEntry();
             }
@@ -223,14 +207,14 @@ public class ResourcePack {
         }
     }
 
-    private void extract(ZipEntry entry, boolean extractModels,
-                         boolean extractTextures, boolean extractLang, boolean extractFonts,
+    private void extract(ZipEntry entry, boolean extractModels, boolean extractTextures,
+                         boolean extractShaders, boolean extractLang, boolean extractFonts,
                          boolean extractSounds, boolean extractAssets,
                          boolean extractOptifine, ResourcesManager resourcesManager) {
         final String name = entry.getName();
         final boolean isSuitable = (extractModels && name.startsWith("pack/models"))
                 || (extractTextures && name.startsWith("pack/textures"))
-                || (extractTextures && name.startsWith("pack/shaders"))
+                || (extractShaders && name.startsWith("pack/shaders"))
                 || (extractLang && name.startsWith("pack/lang"))
                 || (extractFonts && name.startsWith("pack/font"))
                 || (extractSounds && name.startsWith("pack/sounds"))

@@ -49,6 +49,8 @@ public enum Settings {
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
     ARMOR_RESOLUTION("Pack.generation.armor_resolution"),
     ANIMATED_ARMOR_FRAMERATE("Pack.generation.animated_armor_framerate"),
+    GENERATE_ARMOR_SHADER_FILES("Pack.generation.generate_armor_shader_files"),
+    GENERATE_CUSTOM_ARMOR_TEXTURES("Pack.generation.generate_custom_armor_textures"),
     AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR("Pack.generation.automatically_generate_shader_compatible_armor"),
     COMPRESSION("Pack.generation.compression"),
     PROTECTION("Pack.generation.protection"),

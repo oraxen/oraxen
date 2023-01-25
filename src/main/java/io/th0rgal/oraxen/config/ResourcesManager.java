@@ -73,8 +73,19 @@ public class ResourcesManager {
     public void extractFileIfTrue(ZipEntry entry, String name, boolean isSuitable) {
         if (entry.isDirectory())
             return;
-        if (isSuitable)
+        if (isSuitable) {
+            if (!Settings.GENERATE_ARMOR_SHADER_FILES.toBool() && name.startsWith("pack/shaders/core/rendertype_armor_cutout_no_cull")) {
+                return;
+            }
+            if (!Settings.HIDE_SCOREBOARD_NUMBERS.toBool() && name.startsWith("pack/shaders/core/rendertype_text")) {
+                return;
+            }
+            if (!Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.toBool() && name.startsWith("pack/textures/models/armor/leather_layer")) {
+                return;
+            }
+
             plugin.saveResource(name, true);
+        }
     }
 
     private void extractFileAccordingToExtension(ZipEntry entry, String folder, String fileExtension) {
