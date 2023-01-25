@@ -15,7 +15,7 @@ public class ModelGenerator {
         String parentModel = oraxenMeta.getParentModel();
 
         json.addProperty("parent", parentModel);
-        if (parentModel.equals("block/cube") || parentModel.equals("block/cube_directional")) {
+        if (parentModel.equals("block/cube") || parentModel.equals("block/cube_directional") || parentModel.equals("block/cube_mirrored")) {
             textures.addProperty("down", layers.get(0));
             textures.addProperty("up", layers.get(1));
             textures.addProperty("north", layers.get(2));
