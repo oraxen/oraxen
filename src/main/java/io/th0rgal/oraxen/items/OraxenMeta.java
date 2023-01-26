@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.configuration.ConfigurationSection;
 
+import java.util.Arrays;
 import java.util.List;
 
 public class OraxenMeta {
@@ -17,10 +18,12 @@ public class OraxenMeta {
     private String castModel;
     private List<String> layers;
     private String parentModel;
+    private String modelDirectory;
     private boolean generate_model;
     private boolean hasPackInfos = false;
     private boolean excludedFromInventory = false;
     private boolean noUpdate = false;
+    private boolean hasCustomModelDirectory = false;
 
     public void setExcludedFromInventory() {
         this.excludedFromInventory = true;
@@ -51,6 +54,12 @@ public class OraxenMeta {
         // If not specified, check if a model or texture is set
         this.generate_model = configurationSection.getBoolean("generate_model", getModelName().isEmpty());
         this.parentModel = configurationSection.getString("parent_model", "item/generated");
+        String modelDirectory = configurationSection.getString("model_directory");
+        if (modelDirectory != null) {
+            this.modelDirectory = modelDirectory;
+            this.hasCustomModelDirectory = true;
+        } else
+            this.modelDirectory = "minecraft/models";
     }
 
     // this might not be a very good function name
@@ -89,6 +98,16 @@ public class OraxenMeta {
     }
 
     public String getModelName() {
+        return modelName;
+    }
+
+    public String getModelPath() {
+        if (hasCustomModelDirectory()) {
+            String[] modelDirElements = modelDirectory.split("/");
+            String path = String.join("/", Arrays.copyOfRange(modelDirElements, 2, modelDirElements.length));
+            String fixedPath = !path.isEmpty() ? path + "/" : "";
+            return modelDirElements[0] + ":" + fixedPath + modelName;
+        }
         return modelName;
     }
 
@@ -144,6 +163,10 @@ public class OraxenMeta {
         return parentModel;
     }
 
+    public String getModelDirectory() {
+        return modelDirectory;
+    }
+
     public boolean shouldGenerateModel() {
         return generate_model;
     }
@@ -152,4 +175,7 @@ public class OraxenMeta {
         return noUpdate;
     }
 
+    public boolean hasCustomModelDirectory() {
+        return hasCustomModelDirectory;
+    }
 }

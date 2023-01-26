@@ -102,9 +102,9 @@ public class PredicatesGenerator {
             int customModelData = oraxenMeta.getCustomModelData();
 
             // Skip duplicate
-            if (overrides.contains(getOverride("custom_model_data", customModelData, oraxenMeta.getModelName()))) continue;
+            if (overrides.contains(getOverride("custom_model_data", customModelData, oraxenMeta.getModelPath()))) continue;
 
-            overrides.add(getOverride("custom_model_data", customModelData, oraxenMeta.getModelName()));
+            overrides.add(getOverride("custom_model_data", customModelData, oraxenMeta.getModelPath()));
             if (oraxenMeta.hasBlockingModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("blocking", 1);
