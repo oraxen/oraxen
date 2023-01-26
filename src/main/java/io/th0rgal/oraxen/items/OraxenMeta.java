@@ -102,13 +102,12 @@ public class OraxenMeta {
     }
 
     public String getModelPath() {
-        if (hasCustomModelDirectory()) {
-            String[] modelDirElements = modelDirectory.split("/");
-            String path = String.join("/", Arrays.copyOfRange(modelDirElements, 2, modelDirElements.length));
-            String fixedPath = !path.isEmpty() ? path + "/" : "";
-            return modelDirElements[0] + ":" + fixedPath + modelName;
-        }
-        return modelName;
+        String[] modelDirElements = modelDirectory.split("/");
+        String path = String.join("/", Arrays.copyOfRange(modelDirElements, 2, modelDirElements.length));
+        if (!path.isEmpty()) path += "/";
+        if (!modelDirElements[0].equals("minecraft"))
+            path = modelDirElements[0] + ":" + path;
+        return path + modelName;
     }
 
     public boolean hasBlockingModel() {
