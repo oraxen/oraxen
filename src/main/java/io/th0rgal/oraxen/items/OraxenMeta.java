@@ -71,6 +71,15 @@ public class OraxenMeta {
         else return modelName;
     }
 
+    private String getFixedModelDirectory() {
+        String[] modelDirElements = modelDirectory.split("/");
+        String path = String.join("/", Arrays.copyOfRange(modelDirElements, 2, modelDirElements.length));
+        if (!path.isEmpty()) path += "/";
+        if (!modelDirElements[0].equals("minecraft"))
+            path = modelDirElements[0] + ":" + path;
+        return path;
+    }
+
     public boolean hasPackInfos() {
         return hasPackInfos;
     }
@@ -96,12 +105,7 @@ public class OraxenMeta {
     }
 
     public String getModelPath() {
-        String[] modelDirElements = modelDirectory.split("/");
-        String path = String.join("/", Arrays.copyOfRange(modelDirElements, 2, modelDirElements.length));
-        if (!path.isEmpty()) path += "/";
-        if (!modelDirElements[0].equals("minecraft"))
-            path = modelDirElements[0] + ":" + path;
-        return path + modelName;
+        return getFixedModelDirectory() + modelName;
     }
 
     public boolean hasBlockingModel() {
@@ -112,12 +116,20 @@ public class OraxenMeta {
         return blockingModel;
     }
 
+    public String getBlockingModelPath() {
+        return getFixedModelDirectory() + blockingModel;
+    }
+
     public boolean hasCastModel() {
         return castModel != null;
     }
 
     public String getCastModelName() {
         return castModel;
+    }
+
+    public String getCastModelPath() {
+        return getFixedModelDirectory() + castModel;
     }
 
     public boolean hasChargedModel() {
@@ -128,6 +140,10 @@ public class OraxenMeta {
         return chargedModel;
     }
 
+    public String getChargedModelPath() {
+        return getFixedModelDirectory() + chargedModel;
+    }
+
     public boolean hasFireworkModel() {
         return fireworkModel != null;
     }
@@ -136,12 +152,20 @@ public class OraxenMeta {
         return fireworkModel;
     }
 
+    public String getFireworkModelPath() {
+        return getFixedModelDirectory() + fireworkModel;
+    }
+
     public boolean hasPullingModels() {
         return pullingModels != null && !pullingModels.isEmpty();
     }
 
     public List<String> getPullingModels() {
         return pullingModels;
+    }
+
+    public List<String> getPullingModelsPaths() {
+        return pullingModels.stream().map(model -> getFixedModelDirectory() + model).toList();
     }
 
     public boolean hasLayers() {
