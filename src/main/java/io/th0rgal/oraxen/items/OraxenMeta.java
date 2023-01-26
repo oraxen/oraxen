@@ -23,7 +23,6 @@ public class OraxenMeta {
     private boolean hasPackInfos = false;
     private boolean excludedFromInventory = false;
     private boolean noUpdate = false;
-    private boolean hasCustomModelDirectory = false;
 
     public void setExcludedFromInventory() {
         this.excludedFromInventory = true;
@@ -54,12 +53,7 @@ public class OraxenMeta {
         // If not specified, check if a model or texture is set
         this.generate_model = configurationSection.getBoolean("generate_model", getModelName().isEmpty());
         this.parentModel = configurationSection.getString("parent_model", "item/generated");
-        String modelDirectory = configurationSection.getString("model_directory");
-        if (modelDirectory != null) {
-            this.modelDirectory = modelDirectory;
-            this.hasCustomModelDirectory = true;
-        } else
-            this.modelDirectory = "minecraft/models";
+        this.modelDirectory = configurationSection.getString("model_directory", "minecraft/models");
     }
 
     // this might not be a very good function name
@@ -172,9 +166,5 @@ public class OraxenMeta {
 
     public boolean isNoUpdate() {
         return noUpdate;
-    }
-
-    public boolean hasCustomModelDirectory() {
-        return hasCustomModelDirectory;
     }
 }
