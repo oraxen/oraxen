@@ -18,7 +18,7 @@ public class OraxenMeta {
     private String castModel;
     private List<String> layers;
     private String parentModel;
-    private String modelDirectory;
+    private String generatedModelPath;
     private boolean generate_model;
     private boolean hasPackInfos = false;
     private boolean excludedFromInventory = false;
@@ -52,8 +52,8 @@ public class OraxenMeta {
 
         // If not specified, check if a model or texture is set
         this.generate_model = configurationSection.getBoolean("generate_model", getModelName().isEmpty());
+        this.generatedModelPath = configurationSection.getString("generated_model_path", "minecraft/models");
         this.parentModel = configurationSection.getString("parent_model", "item/generated");
-        this.modelDirectory = configurationSection.getString("model_directory", "minecraft/models");
     }
 
     // this might not be a very good function name
@@ -96,7 +96,7 @@ public class OraxenMeta {
     }
 
     public String getModelPath() {
-        String[] modelDirElements = modelDirectory.split("/");
+        String[] modelDirElements = generatedModelPath.split("/");
         String path = String.join("/", Arrays.copyOfRange(modelDirElements, 2, modelDirElements.length));
         if (!path.isEmpty()) path += "/";
         if (!modelDirElements[0].equals("minecraft"))
@@ -156,8 +156,8 @@ public class OraxenMeta {
         return parentModel;
     }
 
-    public String getModelDirectory() {
-        return modelDirectory;
+    public String getGeneratedModelPath() {
+        return generatedModelPath;
     }
 
     public boolean shouldGenerateModel() {
