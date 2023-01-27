@@ -39,10 +39,8 @@ public class RecipesCommand {
                         List<CustomRecipe> recipes = RecipesEventsManager.get().getPermittedRecipes(player);
                         final String param = (String) args[0];
                         if (!"all".equals(param))
-                            recipes = recipes
-                                    .stream()
-                                    .filter(customRecipe -> customRecipe.getName().equals(param))
-                                    .toList();
+                            recipes = recipes.stream().filter(customRecipe ->
+                                    customRecipe.getName().equals(param)).toList();
                         if (recipes.isEmpty()) {
                             Message.RECIPE_NO_RECIPE.send(sender);
                             return;

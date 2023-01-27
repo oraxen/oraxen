@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 
@@ -100,15 +101,20 @@ public class Drop {
         if (!location.isWorldLoaded()) return;
 
         int fortuneMultiplier = 1;
-        if (itemInHand != null && itemInHand.hasItemMeta()) {
-            if (silktouch && itemInHand.getItemMeta() != null && itemInHand.getItemMeta().hasEnchant(Enchantment.SILK_TOUCH)) {
-                if (location.getWorld() != null) location.getWorld().dropItemNaturally(location, OraxenItems.getItemById(sourceID).build());
-                return;
+        if (itemInHand != null) {
+            ItemMeta itemMeta = itemInHand.getItemMeta();
+            if (itemMeta != null) {
+                if (silktouch && itemMeta.hasEnchant(Enchantment.SILK_TOUCH)) {
+                    if (location.getWorld() != null)
+                        location.getWorld().dropItemNaturally(location, OraxenItems.getItemById(sourceID).build());
+                    return;
+                }
+
+                if (fortune && itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS))
+                    fortuneMultiplier += ThreadLocalRandom.current()
+                            .nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS));
             }
 
-            if (fortune && itemInHand.hasItemMeta() && itemInHand.getItemMeta().hasEnchant(Enchantment.LOOT_BONUS_BLOCKS))
-                fortuneMultiplier += ThreadLocalRandom.current()
-                        .nextInt(itemInHand.getItemMeta().getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS));
         }
 
         for (Loot loot : loots) {
@@ -118,18 +124,19 @@ public class Drop {
 
     public void furnitureSpawns(ItemFrame frame, ItemStack itemInHand) {
         ItemStack drop = OraxenItems.getItemById(sourceID).build();
+        ItemMeta dropMeta = drop.getItemMeta();
         if (!canDrop(itemInHand)) return;
-        if (!drop.hasItemMeta()) return;
+        if (dropMeta == null) return;
         if (!frame.getLocation().isWorldLoaded()) return;
 
         if (frame.getItem().getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta) {
-            LeatherArmorMeta clone = (LeatherArmorMeta) drop.getItemMeta().clone();
+            LeatherArmorMeta clone = (LeatherArmorMeta) dropMeta.clone();
             clone.setColor(leatherArmorMeta.getColor());
             drop.setItemMeta(clone);
         }
 
         if (frame.getItem().getItemMeta() instanceof PotionMeta potionMeta) {
-            PotionMeta clone = (PotionMeta) drop.getItemMeta().clone();
+            PotionMeta clone = (PotionMeta) dropMeta.clone();
             clone.setColor(potionMeta.getColor());
             drop.setItemMeta(clone);
         }
