@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Tag;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
@@ -65,6 +66,17 @@ public abstract class RecipeLoader {
             if (material == null || material.isAir()) return null;
             return new RecipeChoice.MaterialChoice(material);
         }
+
+        if (ingredientSection.isString("tag")) {
+            String tagString = ingredientSection.getString("tag", "");
+            NamespacedKey tagId = tagString.contains(":") ? NamespacedKey.fromString(tagString) : NamespacedKey.minecraft(tagString);
+            tagId = tagId != null ? tagId : NamespacedKey.minecraft("oak_logs");
+            Tag<Material> tag = Bukkit.getTag(Tag.REGISTRY_BLOCKS, tagId, Material.class);
+            if (tag == null) tag = Bukkit.getTag(Tag.REGISTRY_ITEMS, tagId, Material.class);
+            if (tag == null) return null;
+            return new RecipeChoice.MaterialChoice(tag);
+        }
+
         ItemStack itemStack = ingredientSection.getItemStack("minecraft_item");
         if (itemStack == null) return null;
         return new RecipeChoice.ExactChoice(itemStack);
