@@ -35,6 +35,7 @@ public class ItemBuilder {
     private int amount;
     private int durability; // Damageable
     private Color color; // LeatherArmorMeta & PotionMeta
+    private Color color2;
     private PotionData potionData;
     private List<PotionEffect> potionEffects;
     private OfflinePlayer owningPlayer; // SkullMeta
@@ -85,6 +86,14 @@ public class ItemBuilder {
             color = potionMeta.getColor();
             potionData = potionMeta.getBasePotionData();
             potionEffects = new ArrayList<>(potionMeta.getCustomEffects());
+        }
+
+        if (itemMeta instanceof MapMeta mapMeta)
+            color = mapMeta.getColor();
+
+        if (itemMeta instanceof FireworkEffectMeta effectMeta) {
+            color = effectMeta.hasEffect() ? effectMeta.getEffect().getColors().get(0) : Color.WHITE;
+            color2 = effectMeta.hasEffect() ? effectMeta.getEffect().getColors().get(1) : Color.WHITE;
         }
 
         if (itemMeta instanceof SkullMeta skullMeta)
@@ -173,6 +182,15 @@ public class ItemBuilder {
 
     public ItemBuilder setColor(final Color color) {
         this.color = color;
+        return this;
+    }
+
+    public Color getColor2() {
+        return color2;
+    }
+
+    public ItemBuilder setColor2(final Color color) {
+        this.color2 = color;
         return this;
     }
 
@@ -361,6 +379,25 @@ public class ItemBuilder {
 
         if (itemMeta instanceof PotionMeta potionMeta)
             return handlePotionMeta(potionMeta);
+
+        if (itemMeta instanceof MapMeta mapMeta && color != null && !color.equals(mapMeta.getColor())) {
+            mapMeta.setColor(color);
+            return mapMeta;
+        }
+
+        if (itemMeta instanceof FireworkEffectMeta effectMeta) {
+            FireworkEffect.Builder fireWorkBuilder = effectMeta.clone().hasEffect() ? effectMeta.getEffect().builder() : FireworkEffect.builder();
+            if (color != null) fireWorkBuilder.withColor(color);
+            if (color2 != null) fireWorkBuilder.withColor(color2);
+
+            // If both above fail, the below will throw an exception as builder needs atleast one color
+            // If so return the base meta
+            try {
+                effectMeta.setEffect(fireWorkBuilder.build());
+            } catch (IllegalStateException ignored) {
+            }
+            return effectMeta;
+        }
 
         if (itemMeta instanceof SkullMeta skullMeta) {
             final OfflinePlayer defaultOwningPlayer = skullMeta.getOwningPlayer();

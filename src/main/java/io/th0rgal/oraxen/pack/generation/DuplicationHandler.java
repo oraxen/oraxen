@@ -236,7 +236,7 @@ public class DuplicationHandler {
             //Logs.logWarning("Found a duplicated font file, trying to migrate it into Oraxens glyph configs");
             //return migrateDefaultFontJson(name);
             Logs.logWarning("Found a duplicated font file, trying to migrate it into Oraxens generated copy");
-            return migrateDefaultFontJson(name);
+            return mergeDuplicateFontJson(name);
         } else if (name.matches("assets/.*/sounds.json")) {
             Logs.logWarning("Found a sounds.json duplicate, trying to migrate it into Oraxens sound.yml config");
             return migrateSoundJson(name);

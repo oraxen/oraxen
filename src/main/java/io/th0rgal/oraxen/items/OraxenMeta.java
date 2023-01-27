@@ -23,9 +23,10 @@ public class OraxenMeta {
     private boolean hasPackInfos = false;
     private boolean excludedFromInventory = false;
     private boolean noUpdate = false;
+    private boolean disableEnchanting = false;
 
-    public void setExcludedFromInventory() {
-        this.excludedFromInventory = true;
+    public void setExcludedFromInventory(boolean excluded) {
+        this.excludedFromInventory = excluded;
     }
 
     public boolean isExcludedFromInventory() {
@@ -90,6 +91,8 @@ public class OraxenMeta {
     public void setNoUpdate(boolean noUpdate) {
         this.noUpdate = noUpdate;
     }
+
+    public void setDisableEnchanting(boolean disableEnchanting) { this.disableEnchanting = disableEnchanting; }
 
     public String getModelName() {
         return modelName;
@@ -171,4 +174,7 @@ public class OraxenMeta {
     public boolean isNoUpdate() {
         return noUpdate;
     }
+
+    public boolean isDisableEnchanting() { return disableEnchanting; }
+
 }

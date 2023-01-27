@@ -208,7 +208,7 @@ public class OraxenBlocks {
         if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             mechanic.getStorage().dropStorageContent(block);
         }
-        block.setType(Material.AIR, false);
+        block.setType(Material.AIR);
         checkNoteBlockAbove(block.getLocation());
     }
 

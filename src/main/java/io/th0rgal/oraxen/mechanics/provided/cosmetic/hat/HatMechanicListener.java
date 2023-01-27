@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.utils.armorequipevent.ArmorType;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -14,10 +15,10 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
+import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.*;
 
 public class HatMechanicListener implements Listener {
 
@@ -25,6 +26,38 @@ public class HatMechanicListener implements Listener {
 
     public HatMechanicListener(final MechanicFactory factory) {
         this.factory = factory;
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onClickArmorStand(PlayerInteractAtEntityEvent event) {
+        Player player = event.getPlayer();
+        ItemStack item = player.getInventory().getItemInMainHand();
+        if (!(event.getRightClicked() instanceof ArmorStand armorStand)) return;
+        EntityEquipment equipment = armorStand.getEquipment();
+        if (equipment == null || equipment.getHelmet() == null) return;
+        PlayerArmorStandManipulateEvent armorStandEvent = new PlayerArmorStandManipulateEvent(player, armorStand, item, equipment.getHelmet(), EquipmentSlot.HEAD, EquipmentSlot.HAND);
+        Bukkit.getPluginManager().callEvent(armorStandEvent);
+        if (armorStandEvent.isCancelled()) return;
+
+        if (item.getType() == Material.AIR) {
+            if (event.getClickedPosition().getY() < 1.55) return; // Did not click head
+            if (!OraxenItems.exists(equipment.getHelmet())) return;
+            if (!OraxenItems.hasMechanic(OraxenItems.getIdByItem(equipment.getHelmet()), "hat")) return;
+            if (player.getInventory().firstEmpty() == -1) return;
+
+            player.getInventory().addItem(equipment.getHelmet());
+            equipment.setHelmet(null);
+        } else {
+            String itemID = OraxenItems.getIdByItem(item);
+            if (equipment.getHelmet().getType() != Material.AIR) return;
+            if (!OraxenItems.hasMechanic(itemID, "hat")) return;
+
+            ItemStack helm = item.clone();
+            helm.setAmount(1);
+            equipment.setHelmet(helm);
+            item.setAmount(item.getAmount() - 1);
+        }
+
     }
 
     @EventHandler(priority = EventPriority.NORMAL)

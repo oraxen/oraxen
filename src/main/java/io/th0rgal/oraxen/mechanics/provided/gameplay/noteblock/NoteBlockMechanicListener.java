@@ -313,7 +313,7 @@ public class NoteBlockMechanicListener implements Listener {
                 placedBlock.setType(Material.AIR, false);
                 Location spawnLoc = BlockHelpers.toCenterBlockLocation(placedAgainst.getRelative(face).getLocation());
                 player.getWorld().spawnFallingBlock(spawnLoc, data);
-            } else OraxenBlocks.place(mechanic.getItemID(), placedBlock.getLocation());
+            } //else OraxenBlocks.place(mechanic.getItemID(), placedBlock.getLocation());
         }
     }
 
@@ -466,7 +466,6 @@ public class NoteBlockMechanicListener implements Listener {
 
         if (BlockHelpers.REPLACEABLE_BLOCKS.contains(type))
             target = placedAgainst;
-
         else {
             target = placedAgainst.getRelative(face);
             if (!target.getType().isAir() && !target.isLiquid() && target.getType() != Material.LIGHT) return null;
@@ -477,7 +476,6 @@ public class NoteBlockMechanicListener implements Listener {
         target.setBlockData(newBlock, isFlowing);
         final BlockState currentBlockState = target.getState();
         final NoteBlockMechanic againstMechanic = OraxenBlocks.getNoteBlockMechanic(placedAgainst);
-        getNoteBlockMechanic(placedAgainst);
 
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
@@ -489,14 +487,14 @@ public class NoteBlockMechanicListener implements Listener {
         if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
             blockPlaceEvent.setCancelled(true);
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
-            target.setBlockData(curentBlockData, false); // false to cancel physic
+            target.setBlockData(curentBlockData);
             return null;
         }
 
         final OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(OraxenBlocks.getNoteBlockMechanic(target), target, player);
         Bukkit.getPluginManager().callEvent(oraxenPlaceEvent);
         if (oraxenPlaceEvent.isCancelled()) {
-            target.setBlockData(curentBlockData, false); // false to cancel physic
+            target.setBlockData(curentBlockData); // false to cancel physic
             return null;
         }
 

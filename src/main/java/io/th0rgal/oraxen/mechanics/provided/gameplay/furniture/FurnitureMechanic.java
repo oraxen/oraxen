@@ -241,8 +241,8 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item, @Nullable Player player) {
-        if (this.notEnoughSpace(yaw, location)) return null;
         if (!location.isWorldLoaded()) return null;
+        if (this.notEnoughSpace(yaw, location)) return null;
         assert location.getWorld() != null;
         setPlacedItem();
         assert location.getWorld() != null;
@@ -288,7 +288,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private void setBarrierHitbox(Location location, float yaw, Rotation rotation) {
-        for (Location barrierLocation : getLocations(yaw, location, getBarriers())) {
+        for (Location barrierLocation : getLocations(yaw, location.clone(), getBarriers())) {
             Block block = barrierLocation.getBlock();
             PersistentDataContainer data = BlockHelpers.getPDC(block);
             data.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
@@ -296,10 +296,10 @@ public class FurnitureMechanic extends Mechanic {
                 String entityId = spawnSeat(this, block, hasSeatYaw ? seatYaw : yaw);
                 if (entityId != null) data.set(SEAT_KEY, PersistentDataType.STRING, entityId);
             }
-            data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location).toString());
+            data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location.clone()).toString());
             data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
             data.set(ROTATION_KEY, DataType.asEnum(Rotation.class), rotation);
-            block.setType(Material.BARRIER, false);
+            block.setType(Material.BARRIER);
             if (light != -1)
                 WrappedLightAPI.createBlockLight(barrierLocation, light);
         }
@@ -444,8 +444,8 @@ public class FurnitureMechanic extends Mechanic {
 
     public boolean notEnoughSpace(float yaw, Location rootLocation) {
         if (!hasBarriers()) return false;
-        return !getLocations(yaw, rootLocation, getBarriers()).stream()
-                .allMatch(sideLocation -> sideLocation.getBlock().getType().isAir());
+        return !getLocations(yaw, rootLocation, getBarriers()).stream().map(l -> l.getBlock().getType())
+                .allMatch(BlockHelpers.REPLACEABLE_BLOCKS::contains);
     }
 
     public float getYaw(Rotation rotation) {
