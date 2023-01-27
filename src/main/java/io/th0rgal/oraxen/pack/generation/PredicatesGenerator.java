@@ -108,21 +108,21 @@ public class PredicatesGenerator {
             if (oraxenMeta.hasBlockingModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("blocking", 1);
-                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getBlockingModelPath()));
+                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getBlockingModelName()));
             }
             if (oraxenMeta.hasChargedModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("charged", 1);
-                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getChargedModelPath()));
+                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getChargedModelName()));
             }
             if (oraxenMeta.hasFireworkModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("charged", 1);
                 predicate.addProperty("firework", 1);
-                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getFireworkModelPath()));
+                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getFireworkModelName()));
             }
             if (oraxenMeta.hasPullingModels()) {
-                final List<String> pullingModels = oraxenMeta.getPullingModelsPaths();
+                final List<String> pullingModels = oraxenMeta.getPullingModels();
                 for (float i = 0; i < pullingModels.size(); i++) {
                     final JsonObject predicate = new JsonObject();
                     predicate.addProperty("pulling", 1);
@@ -134,7 +134,7 @@ public class PredicatesGenerator {
             if (oraxenMeta.hasCastModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("cast", 1);
-                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getCastModelPath()));
+                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getCastModelName()));
             }
 
         }
