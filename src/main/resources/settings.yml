@@ -1,5 +1,6 @@
 debug: false
 Plugin:
+  keep_this_up_to_date: true #Oraxen will delete old settings
   language: "english"
   commands:
     repair:
@@ -20,7 +21,11 @@ Plugin:
     noteblock_mechanic: false
     stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
   experimental:
-    convert_pack_for_1_19_3: true # Temporary automatic conversion for new 1.19.3 pack format
+    # Unlike duplication handler, this will simply attempt to merge the Jsons for the final pack
+    # This will not be flawless and still will cause issues, but they are there
+    # [merge_item,_base_models] can be used to merge paper.json etc from imported packs
+    merge_font_files: false
+    merge_item_base_models: false
 
 Pack:
   generation:
@@ -32,12 +37,15 @@ Pack:
     attempt_to_migrate_duplicates: false
     # List of file extensions that will not be included in the final zipped ResourcePack
     excluded_file_extensions: []
+    generate_atlas_file: true
     auto_generated_models_follow_texture_path: false
     # 64x32 layer is default size and corresponds to 16. If you need higher
     # resolution, e.g. 128x64, you should set this parameter to 32 and so on.
     armor_resolution: 16
     animated_armor_framerate: 24
     automatically_generate_shader_compatible_armor: true
+    generate_armor_shader_files: true
+    generate_custom_armor_textures: true
     compression: BEST_COMPRESSION # see Deflater.class
     # protection will use several methods to make your pack impossible to extract
     # with usual tools (native windows unzip, 7zip, winrar, etc) without altering
