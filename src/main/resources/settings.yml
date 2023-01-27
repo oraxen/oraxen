@@ -44,6 +44,8 @@ Pack:
     armor_resolution: 16
     animated_armor_framerate: 24
     automatically_generate_shader_compatible_armor: true
+    generate_armor_shader_files: true
+    generate_custom_armor_textures: true
     compression: BEST_COMPRESSION # see Deflater.class
     # protection will use several methods to make your pack impossible to extract
     # with usual tools (native windows unzip, 7zip, winrar, etc) without altering
