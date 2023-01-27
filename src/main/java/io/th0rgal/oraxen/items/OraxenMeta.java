@@ -52,7 +52,7 @@ public class OraxenMeta {
 
         // If not specified, check if a model or texture is set
         this.generate_model = configurationSection.getBoolean("generate_model", getModelName().isEmpty());
-        this.generatedModelPath = configurationSection.getString("generated_model_path", "minecraft/models");
+        this.generatedModelPath = configurationSection.getString("generated_model_path", "");
         this.parentModel = configurationSection.getString("parent_model", "item/generated");
     }
 
@@ -96,12 +96,14 @@ public class OraxenMeta {
     }
 
     public String getModelPath() {
-        String[] modelDirElements = generatedModelPath.split("/");
-        String path = String.join("/", Arrays.copyOfRange(modelDirElements, 2, modelDirElements.length));
-        if (!path.isEmpty()) path += "/";
-        if (!modelDirElements[0].equals("minecraft"))
-            path = modelDirElements[0] + ":" + path;
-        return path + modelName;
+        String[] pathElements = generatedModelPath.split(":");
+        String path;
+        if (pathElements.length > 1)
+            path = "assets/" + pathElements[0] + "/models/" + pathElements[1];
+        else
+            path = "assets/minecraft/models/" + pathElements[0];
+        if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
+        return path;
     }
 
     public boolean hasBlockingModel() {
@@ -157,7 +159,9 @@ public class OraxenMeta {
     }
 
     public String getGeneratedModelPath() {
-        return generatedModelPath;
+        if (generatedModelPath.isEmpty())
+            return generatedModelPath;
+        return generatedModelPath + (generatedModelPath.endsWith("/") ? "" : "/");
     }
 
     public boolean shouldGenerateModel() {

@@ -241,7 +241,7 @@ public class ResourcePack {
             final ItemBuilder item = entry.getValue();
             if (item.getOraxenMeta().hasPackInfos()) {
                 if (item.getOraxenMeta().shouldGenerateModel())
-                    writeStringToVirtual("assets/" + item.getOraxenMeta().getGeneratedModelPath(),
+                    writeStringToVirtual(item.getOraxenMeta().getModelPath(),
                             item.getOraxenMeta().getModelName() + ".json",
                             new ModelGenerator(item.getOraxenMeta()).getJson().toString());
                 final List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
