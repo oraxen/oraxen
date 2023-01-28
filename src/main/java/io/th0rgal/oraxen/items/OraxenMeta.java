@@ -4,7 +4,9 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.configuration.ConfigurationSection;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class OraxenMeta {
 
@@ -16,6 +18,7 @@ public class OraxenMeta {
     private String fireworkModel;
     private String castModel;
     private List<String> layers;
+    private Map<String, String> layersMap;
     private String parentModel;
     private boolean generate_model;
     private boolean hasPackInfos = false;
@@ -41,6 +44,12 @@ public class OraxenMeta {
         this.pullingModels = configurationSection.isList("pulling_models")
                 ? configurationSection.getStringList("pulling_models") : null;
         this.layers = configurationSection.getStringList("textures");
+        ConfigurationSection texturesSection = configurationSection.getConfigurationSection("textures");
+        if (texturesSection != null) {
+            Map<String, String> layersMap = new HashMap<>();
+            texturesSection.getKeys(false).forEach(key -> layersMap.put(key, texturesSection.getString(key)));
+            this.layersMap = layersMap;
+        }
         // can't be refactored with for each or stream because it'll throw
         // ConcurrentModificationException
         for (int i = 0; i < layers.size(); i++) {
@@ -141,6 +150,14 @@ public class OraxenMeta {
 
     public List<String> getLayers() {
         return layers;
+    }
+
+    public boolean hasLayersMap() {
+        return layersMap != null && !layersMap.isEmpty();
+    }
+
+    public Map<String, String> getLayersMap() {
+        return layersMap;
     }
 
     public String getParentModel() {
