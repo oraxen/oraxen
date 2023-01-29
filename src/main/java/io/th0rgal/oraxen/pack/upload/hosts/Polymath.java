@@ -55,6 +55,7 @@ public class Polymath implements HostingProvider {
             return false;
         } catch(IllegalStateException | IOException ex) {
             Logs.logError("The resource pack has not been uploaded to the server. Usually this is due to an excessive size.");
+            ex.printStackTrace();
             return false;
         }
     }
