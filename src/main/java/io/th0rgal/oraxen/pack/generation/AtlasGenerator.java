@@ -34,7 +34,7 @@ public class AtlasGenerator {
                 String sprite = Utils.removeParentDirs(Utils.removeExtension(virtual.getPath()));
                 atlasEntry.addProperty("type", "single");
                 atlasEntry.addProperty("resource", namespace + ":" + Utils.removeExtension(path));
-                atlasEntry.addProperty("sprite", sprite);
+                atlasEntry.addProperty("sprite", namespace + ":" + sprite);
             } else {
                 atlasEntry.addProperty("type", "directory");
                 atlasEntry.addProperty("source", path);
