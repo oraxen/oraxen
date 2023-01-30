@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -87,28 +88,20 @@ public class ItemParser {
 
     private ItemBuilder applyConfig(ItemBuilder item) {
 
-        if (section.contains("durability"))
-            item.setDurability((short) section.getInt("durability"));
-
         if (section.contains("lore")) {
             List<String> lore = section.getStringList("lore");
             lore.replaceAll(this::parseComponentString);
             item.setLore(lore);
         }
 
+        if (section.contains("durability"))
+            item.setDurability((short) section.getInt("durability"));
         if (section.contains("unbreakable"))
             item.setUnbreakable(section.getBoolean("unbreakable", false));
-
         if (section.contains("unstackable"))
             item.setUnstackable(section.getBoolean("unstackable", false));
-
-        if (section.contains("color")) {
-            String[] colors = section.getString("color").split(", ");
-            item.setColor(org.bukkit.Color.fromRGB(
-                    Integer.parseInt(colors[0]),
-                    Integer.parseInt(colors[1]),
-                    Integer.parseInt(colors[2])));
-        }
+        if (section.contains("color"))
+            item.setColor(Utils.toColor(section.getString("color", "FFFFFF")));
 
         parseMiscOptions(item);
         parseVanillaSections(item);
@@ -118,16 +111,12 @@ public class ItemParser {
     }
 
     private void parseMiscOptions(ItemBuilder item) {
-        if (section.contains("no_auto_update"))
-            oraxenMeta.setNoUpdate(section.getBoolean("no_auto_update"));
-
-        if (section.contains("excludeFromInventory") && section.getBoolean("excludeFromInventory"))
-            oraxenMeta.setExcludedFromInventory();
+        oraxenMeta.setNoUpdate(section.getBoolean("no_auto_update", false));
+        oraxenMeta.setDisableEnchanting(section.getBoolean("disable_enchanting", false));
+        oraxenMeta.setExcludedFromInventory(section.getBoolean("excludeFromInventory", false));
 
         if (!section.contains("injectID") || section.getBoolean("injectId"))
-            item
-                    .setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING,
-                            section.getName());
+            item.setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING, section.getName());
     }
 
     @SuppressWarnings({"unchecked", "deprecation"})
