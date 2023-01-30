@@ -21,6 +21,7 @@ public class OraxenMeta {
     private List<String> layers;
     private Map<String, String> layersMap;
     private String parentModel;
+    private String generatedModelPath;
     private boolean generate_model;
     private boolean hasPackInfos = false;
     private boolean excludedFromInventory = false;
@@ -61,6 +62,7 @@ public class OraxenMeta {
 
         // If not specified, check if a model or texture is set
         this.generate_model = configurationSection.getBoolean("generate_model", getModelName().isEmpty());
+        this.generatedModelPath = configurationSection.getString("generated_model_path", "");
         this.parentModel = configurationSection.getString("parent_model", "item/generated");
     }
 
@@ -74,9 +76,9 @@ public class OraxenMeta {
 
         if (modelName == null && configString.equals("model") && parent != null)
             return parent.getName();
-        else if (modelName != null && modelName.endsWith(".json"))
-            return modelName.substring(0, modelName.length() - 5);
-        else return modelName;
+        else if (modelName != null)
+            return modelName.replace(".json", "");
+        else return null;
     }
 
     public boolean hasPackInfos() {
@@ -103,6 +105,17 @@ public class OraxenMeta {
 
     public String getModelName() {
         return modelName;
+    }
+
+    public String getModelPath() {
+        String[] pathElements = generatedModelPath.split(":");
+        String path;
+        if (pathElements.length > 1)
+            path = "assets/" + pathElements[0] + "/models/" + pathElements[1];
+        else
+            path = "assets/minecraft/models/" + pathElements[0];
+        if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
+        return path;
     }
 
     public boolean hasBlockingModel() {
@@ -163,6 +176,12 @@ public class OraxenMeta {
 
     public String getParentModel() {
         return parentModel;
+    }
+
+    public String getGeneratedModelPath() {
+        if (generatedModelPath.isEmpty())
+            return generatedModelPath;
+        return generatedModelPath + (generatedModelPath.endsWith("/") ? "" : "/");
     }
 
     public boolean shouldGenerateModel() {
