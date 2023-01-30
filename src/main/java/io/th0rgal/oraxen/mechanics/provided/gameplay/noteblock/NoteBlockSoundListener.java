@@ -99,8 +99,8 @@ public class NoteBlockSoundListener implements Listener {
         if (blockBelow.getBlockData().getSoundGroup().getStepSound() != Sound.BLOCK_WOOD_STEP) return;
         if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(block.getType()) || block.getType() == Material.TRIPWIRE) return;
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(blockBelow);
-        if (mechanic != null && mechanic.isDirectional())
-            mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
+        if (mechanic != null && mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
+            mechanic = mechanic.getDirectional().getParentMechanic();
 
         String sound;
         float volume;
@@ -124,7 +124,7 @@ public class NoteBlockSoundListener implements Listener {
     public void onPlacing(final OraxenNoteBlockPlaceEvent event) {
         NoteBlockMechanic mechanic = event.getMechanic();
         if (mechanic != null && mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
-            mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
+            mechanic = mechanic.getDirectional().getParentMechanic();
         if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.getBlockSounds().hasPlaceSound()) return;
 
         BlockSounds blockSounds = mechanic.getBlockSounds();
@@ -135,7 +135,7 @@ public class NoteBlockSoundListener implements Listener {
     public void onBreaking(final OraxenNoteBlockBreakEvent event) {
         NoteBlockMechanic mechanic = event.getMechanic();
         if (mechanic != null && mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
-            mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
+            mechanic = mechanic.getDirectional().getParentMechanic();
         if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.getBlockSounds().hasBreakSound()) return;
 
         BlockSounds blockSounds = mechanic.getBlockSounds();

@@ -102,8 +102,6 @@ public class ItemParser {
             item.setUnstackable(section.getBoolean("unstackable", false));
         if (section.contains("color"))
             item.setColor(Utils.toColor(section.getString("color", "FFFFFF")));
-        if (section.contains("color2"))
-            item.setColor2(Utils.toColor(section.getString("color2", "FFFFFF")));
 
         parseMiscOptions(item);
         parseVanillaSections(item);
