@@ -70,6 +70,10 @@ public enum Message {
     HUD_TOGGLE_ON("command.hud.toggle_on"),
     HUD_TOGGLE_OFF("command.hud.toggle_off"),
 
+    GESTURE_CONSOLE("command.gesture.console"),
+    GESTURE_NO_GESTURE("command.gesture.no_gesture"),
+    GESTURE_OTHERS_DENIED("command.gesture.others_denied"),
+
     // mechanics
     MECHANICS_NOT_ENOUGH_EXP("mechanics.not_enough_exp"),
     MECHANICS_BACKPACK_STACKED("mechanics.backpack_stacked"),

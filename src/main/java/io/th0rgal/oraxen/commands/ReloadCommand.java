@@ -43,6 +43,11 @@ public class ReloadCommand {
         hudManager.restartTask();
     }
 
+    private static void reloadGestures(CommandSender sender) {
+        Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "gestures"));
+        OraxenPlugin.get().getGesturesManager().reload();
+    }
+
     public CommandAPICommand getReloadCommand() {
         return new CommandAPICommand("reload")
                 .withAliases("rl")

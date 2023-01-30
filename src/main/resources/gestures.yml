@@ -1,0 +1,8 @@
+######
+###### All bbmodel files must be put inside Oraxen/gestures to be recognized
+#Example:
+automatically_add_gestures: true
+gestures:
+  bbmodel-filename:
+    - animation_name
+    - animation_name2
