@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.configuration.ConfigurationSection;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,19 +44,19 @@ public class OraxenMeta {
         this.fireworkModel = readModelName(configurationSection, "firework_model");
         this.pullingModels = configurationSection.isList("pulling_models")
                 ? configurationSection.getStringList("pulling_models") : null;
-        this.layers = configurationSection.getStringList("textures");
-        ConfigurationSection texturesSection = configurationSection.getConfigurationSection("textures");
-        if (texturesSection != null) {
-            Map<String, String> layersMap = new HashMap<>();
-            texturesSection.getKeys(false).forEach(key -> layersMap.put(key, texturesSection.getString(key)));
-            this.layersMap = layersMap;
+
+        if (configurationSection.isList("textures")) {
+            this.layers = configurationSection.getStringList("textures");
+            List<String> layers = new ArrayList<>();
+            this.layers.forEach(layer -> layers.add(this.layers.indexOf(layer), layer.replace(".png", "")));
+            this.layers = layers;
         }
-        // can't be refactored with for each or stream because it'll throw
-        // ConcurrentModificationException
-        for (int i = 0; i < layers.size(); i++) {
-            String layer = layers.get(i);
-            if (layer.endsWith(".png"))
-                layers.set(i, layer.substring(0, layer.length() - 4));
+        else if (configurationSection.isConfigurationSection("textures")) {
+            ConfigurationSection texturesSection = configurationSection.getConfigurationSection("textures");
+            assert texturesSection != null;
+            Map<String, String> layersMap = new HashMap<>();
+            texturesSection.getKeys(false).forEach(key -> layersMap.put(key, texturesSection.getString(key).replace(".png", "")));
+            this.layersMap = layersMap;
         }
 
         // If not specified, check if a model or texture is set

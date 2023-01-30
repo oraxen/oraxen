@@ -16,7 +16,7 @@ public class ModelGenerator {
         json.addProperty("parent", parentModel);
         if (oraxenMeta.hasLayersMap()) { //Check if oraxen meta uses new texture system
             oraxenMeta.getLayersMap().forEach(textures::addProperty);
-        } else { //Use old texture system
+        } else if (oraxenMeta.hasLayers()) { //Use old texture system
             List<String> layers = oraxenMeta.getLayers();
             if (parentModel.equals("block/cube_all")) {
                 textures.addProperty("all", layers.get(0));
@@ -35,6 +35,7 @@ public class ModelGenerator {
                     textures.addProperty("layer" + i, layers.get(i));
             }
         }
+
         json.add("textures", textures);
 
     }
