@@ -19,8 +19,10 @@ import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class CustomArmorsTextures {
 
@@ -97,6 +99,11 @@ public class CustomArmorsTextures {
     private boolean handleArmorLayer(String name, File file) {
         String prefix = name.split("armor_layer_")[0];
         ItemBuilder builder = null;
+
+        // Skip actually editing the emissive image,
+        // should check for file with same name + e to properly apply everything
+        if (name.endsWith("_e.png")) return false;
+
         for (String suffix : new String[]{"helmet", "chestplate", "leggings", "boots"}) {
             builder = OraxenItems.getItemById(prefix + suffix);
             ItemMeta meta = builder != null ? builder.build().getItemMeta() : null;
@@ -116,41 +123,35 @@ public class CustomArmorsTextures {
             return false;
         }
         BufferedImage image = initLayer(original);
-        if (name.endsWith("_e.png")) {
+
+        boolean isAnimated = name.endsWith("_a.png");
+        // if a file exists with same name + _e it should be emissive
+        // This should not be edited, simply added to the width and pixel should be edited
+        // on the original image
+        File emissiveFile = file.getParentFile().toPath().toAbsolutePath().resolve(name.replace(".png", "_e.png")).toFile();
+        boolean isEmissive = Files.exists(emissiveFile.toPath());
+        if (isEmissive) {
             BufferedImage emissive;
             try {
-                emissive = ImageIO.read(file);
+                emissive = ImageIO.read(emissiveFile);
             } catch (IOException e) {
                 OraxenPlugin.get().getLogger().warning("Error while reading " + name + ": " + e.getMessage());
                 return false;
             }
             BufferedImage emissiveImage = initLayer(emissive);
             image = mergeImages(image.getWidth() + emissiveImage.getWidth(),
-                    image.getHeight(),
+                    emissiveImage.getHeight(),
                     image, emissiveImage);
+
             setPixel(image.getRaster(), 2, 0, Color.fromRGB(1, 0, 0));
         }
 
-        if (name.endsWith("_a.png")) {
-            BufferedImage animated;
-            try {
-                animated = ImageIO.read(file);
-            } catch (IOException e) {
-                OraxenPlugin.get().getLogger().warning("Error while reading " + name + ": " + e.getMessage());
-                return false;
-            }
-            BufferedImage animatedImage = initLayer(animated);
-            image = mergeImages(image.getWidth() + animatedImage.getWidth(),
-                    animatedImage.getHeight(),
-                    image, animatedImage);
-            setPixel(image.getRaster(), 1, 0, Color.fromRGB(animatedImage.getHeight() / (int) Settings.ARMOR_RESOLUTION.getValue(), getAnimatedArmorFramerate(), 1));
-        }
-        addPixel(image, builder, name, prefix);
+        addPixel(image, builder, file, name, prefix, isEmissive, isAnimated);
 
         return true;
     }
 
-    private void addPixel(BufferedImage image, ItemBuilder builder, String name, String prefix) {
+    private void addPixel(BufferedImage image, ItemBuilder builder, File file, String name, String prefix, boolean isEmissive, boolean isAnimated) {
         Color stuffColor = builder.getColor();
         if (stuffColor == null) return;
         if (usedColors.containsKey(stuffColor.asRGB())) {
@@ -162,6 +163,7 @@ public class CustomArmorsTextures {
         } else usedColors.put(stuffColor.asRGB(), prefix);
 
         setPixel(image.getRaster(), 0, 0, stuffColor);
+        if (isAnimated) setPixel(image.getRaster(), 1, 0, Color.fromRGB(image.getHeight() / (int) Settings.ARMOR_RESOLUTION.getValue(), getAnimatedArmorFramerate(), 1));
         if (name.contains("armor_layer_1")) {
             layers1.add(image);
             layer1Width += image.getWidth();
@@ -172,7 +174,8 @@ public class CustomArmorsTextures {
             layer2Height = Math.max(layer2Height, image.getHeight());
         }
 
-        if (!name.endsWith("_a.png") && image.getHeight() > getLayerHeight()) {
+
+        if (!isAnimated && image.getHeight() > getLayerHeight()) {
             Logs.logError("The height of " + name + " is greater than " + getLayerHeight() + "px.");
             Logs.logWarning("Since it is not an animated armor-file, this will potentially break other armor sets.");
         }
@@ -229,7 +232,7 @@ public class CustomArmorsTextures {
 
                 try {
                     ByteArrayOutputStream os = new ByteArrayOutputStream();
-                    ImageIO.write(outputImage,"png", os);
+                    ImageIO.write(outputImage, "png", os);
                     InputStream fis = new ByteArrayInputStream(os.toByteArray());
                     file.setInputStream(fis);
                 } catch (IOException e) {
@@ -267,13 +270,12 @@ public class CustomArmorsTextures {
                     p -> Objects.equals(p, path + "/" + parentFolder + ".properties"))) continue;
 
             // Queries all items and finds custom armors custommodeldata
-            String cmdProperty = "nbt.CustomModelData=" + OraxenItems.getEntries().stream().filter(e ->
-                    e.getValue().build().getType().toString().startsWith("LEATHER_") &&
-                            e.getValue().hasOraxenMeta() && e.getValue().getOraxenMeta().getLayers() != null &&
-                            !e.getValue().getOraxenMeta().getLayers().isEmpty() &&
-                            e.getValue().getOraxenMeta().getLayers().get(0).contains(parentFolder)
-            ).map(s -> s.getValue().getOraxenMeta().getCustomModelData()).findFirst().orElse(0);
-
+            Set<Integer> cmds = armorCustomModelDatas(parentFolder);
+            for (int i = 0; i < 4; i++)
+                Logs.debug(cmds);
+            //TODO Change this to using color property of nbt over cmd
+            String cmdProperty = "nbt.CustomModelData=" + armorCustomModelDatas(parentFolder).stream();
+            Logs.debug(cmdProperty);
             String propContent = getArmorPropertyFile(fileName, cmdProperty, 1);
 
             ByteArrayInputStream inputStream = new ByteArrayInputStream(propContent.getBytes(StandardCharsets.UTF_8));
@@ -285,6 +287,15 @@ public class CustomArmorsTextures {
         }
 
         return optifineFiles;
+    }
+
+    private Set<Integer> armorCustomModelDatas(String parentFolder) {
+        return OraxenItems.getEntries().stream().filter(e ->
+                e.getValue().build().getType().toString().startsWith("LEATHER_") &&
+                        e.getValue().hasOraxenMeta() && e.getValue().getOraxenMeta().getLayers() != null &&
+                        !e.getValue().getOraxenMeta().getLayers().isEmpty() &&
+                        e.getValue().getOraxenMeta().getLayers().get(0).contains(parentFolder)
+        ).map(s -> s.getValue().getOraxenMeta().getCustomModelData()).collect(Collectors.toSet());
     }
 
     private List<VirtualFile> getOptifineAnimFiles(InputStream armorFile, String fileName, String parentFolder) {
