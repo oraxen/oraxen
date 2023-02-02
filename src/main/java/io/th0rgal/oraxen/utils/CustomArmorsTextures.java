@@ -22,7 +22,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.List;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class CustomArmorsTextures {
 
@@ -269,33 +268,26 @@ public class CustomArmorsTextures {
             if (optifineFiles.stream().map(VirtualFile::getPath).anyMatch(
                     p -> Objects.equals(p, path + "/" + parentFolder + ".properties"))) continue;
 
-            // Queries all items and finds custom armors custommodeldata
-            Set<Integer> cmds = armorCustomModelDatas(parentFolder);
-            for (int i = 0; i < 4; i++)
-                Logs.debug(cmds);
-            //TODO Change this to using color property of nbt over cmd
-            String cmdProperty = "nbt.CustomModelData=" + armorCustomModelDatas(parentFolder).stream();
-            Logs.debug(cmdProperty);
-            String propContent = getArmorPropertyFile(fileName, cmdProperty, 1);
+            String colorProperty = "nbt.display.color=" + getArmorColor(parentFolder);
+            String propContent = getArmorPropertyFile(fileName, colorProperty, 1);
 
             ByteArrayInputStream inputStream = new ByteArrayInputStream(propContent.getBytes(StandardCharsets.UTF_8));
             optifineFiles.add(new VirtualFile(path, parentFolder + ".properties", inputStream));
 
-            if (fileName.endsWith("_a.png")) {
+            if (fileName.endsWith("_a.png"))
                 optifineFiles.addAll(getOptifineAnimFiles(armorFile.getValue(), fileName, parentFolder));
-            }
         }
 
         return optifineFiles;
     }
 
-    private Set<Integer> armorCustomModelDatas(String parentFolder) {
+    private int getArmorColor(String parentFolder) {
         return OraxenItems.getEntries().stream().filter(e ->
                 e.getValue().build().getType().toString().startsWith("LEATHER_") &&
                         e.getValue().hasOraxenMeta() && e.getValue().getOraxenMeta().getLayers() != null &&
                         !e.getValue().getOraxenMeta().getLayers().isEmpty() &&
                         e.getValue().getOraxenMeta().getLayers().get(0).contains(parentFolder)
-        ).map(s -> s.getValue().getOraxenMeta().getCustomModelData()).collect(Collectors.toSet());
+        ).map(s -> s.getValue().getColor()).findFirst().orElse(Color.WHITE).asRGB();
     }
 
     private List<VirtualFile> getOptifineAnimFiles(InputStream armorFile, String fileName, String parentFolder) {
