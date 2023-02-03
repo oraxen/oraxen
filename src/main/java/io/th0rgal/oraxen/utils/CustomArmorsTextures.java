@@ -65,12 +65,16 @@ public class CustomArmorsTextures {
 
         if (name.equals("leather_layer_1.png")) {
             img = rescaleArmorImage(img);
-            layer1 = initLayer(img);
+            img = initLayer(img);
+            setPixel(img.getRaster(), 0,1,Color.WHITE);
+            layer1 = img;
             layer1Width += layer1.getWidth();
             return true;
         } else if (name.equals("leather_layer_2.png")) {
             img = rescaleArmorImage(img);
-            layer2 = initLayer(img);
+            img = initLayer(img);
+            setPixel(img.getRaster(), 0,1,Color.WHITE);
+            layer2 = img;
             layer2Width += layer2.getWidth();
             return true;
         }
