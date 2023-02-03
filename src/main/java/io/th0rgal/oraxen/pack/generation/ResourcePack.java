@@ -19,8 +19,6 @@ import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.ZipUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
-import org.apache.commons.io.IOUtils;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -142,16 +140,6 @@ public class ResourcePack {
             DuplicationHandler.mergeFontFiles(output);
         if (Settings.MERGE_ITEM_MODELS.toBool())
             DuplicationHandler.mergeBaseItemFiles(output);
-
-        List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
-        if (!excludedExtensions.isEmpty() && !output.isEmpty()) {
-            List<VirtualFile> newOutput = new ArrayList<>();
-            for (VirtualFile virtual : output)
-                for (String extension : excludedExtensions)
-                    if (virtual.getPath().endsWith(extension))
-                        newOutput.add(virtual);
-            output.removeAll(newOutput);
-        }
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         if (!excludedExtensions.isEmpty() && !output.isEmpty()) {

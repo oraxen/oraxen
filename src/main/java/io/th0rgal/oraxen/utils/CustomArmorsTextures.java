@@ -181,6 +181,7 @@ public class CustomArmorsTextures {
         if (!isAnimated && image.getHeight() > getLayerHeight()) {
             Logs.logError("The height of " + name + " is greater than " + getLayerHeight() + "px.");
             Logs.logWarning("Since it is not an animated armor-file, this will potentially break other armor sets.");
+            Logs.logWarning("If it is meant to be an animated armor-file, make sure it ends with _a.png or _a_e.png if emissive");
         }
     }
 
