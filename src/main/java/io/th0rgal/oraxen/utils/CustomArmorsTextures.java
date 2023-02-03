@@ -8,7 +8,6 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
-import org.bukkit.Material;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
@@ -64,12 +63,14 @@ public class CustomArmorsTextures {
         }
 
         if (name.equals("leather_layer_1.png")) {
+           img = rescaleVanillaArmor(img);
             layer1 = initLayer(img);
             layer1Width += layer1.getWidth();
             return true;
         }
 
         if (name.equals("leather_layer_2.png")) {
+            img = rescaleVanillaArmor(img);
             layer2 = initLayer(img);
             layer2Width += layer2.getWidth();
             return true;
@@ -83,9 +84,8 @@ public class CustomArmorsTextures {
     }
 
     private BufferedImage initLayer(BufferedImage original) {
-        if (original.getWidth() == resolution * WIDTH_RATIO && original.getHeight() == getLayerHeight()) {
+        if (original.getWidth() == resolution * WIDTH_RATIO && original.getHeight() == getLayerHeight())
             return original;
-        }
 
         Image scaled = original.getScaledInstance(
                 resolution * WIDTH_RATIO, original.getHeight(), Image.SCALE_DEFAULT);
@@ -162,7 +162,8 @@ public class CustomArmorsTextures {
         } else usedColors.put(stuffColor.asRGB(), prefix);
 
         setPixel(image.getRaster(), 0, 0, stuffColor);
-        if (isAnimated) setPixel(image.getRaster(), 1, 0, Color.fromRGB(image.getHeight() / (int) Settings.ARMOR_RESOLUTION.getValue(), getAnimatedArmorFramerate(), 1));
+        if (isAnimated)
+            setPixel(image.getRaster(), 1, 0, Color.fromRGB(image.getHeight() / (int) Settings.ARMOR_RESOLUTION.getValue(), getAnimatedArmorFramerate(), 1));
         if (name.contains("armor_layer_1")) {
             layers1.add(image);
             layer1Width += image.getWidth();
@@ -195,7 +196,7 @@ public class CustomArmorsTextures {
     private final String OPTIFINE_ARMOR_PATH = "assets/minecraft/optifine/cit/armors/";
     private final String OPTIFINE_ARMOR_ANIMATION_PATH = "assets/minecraft/optifine/anim/";
 
-    public void rescaleVanillaArmorFiles(List<VirtualFile> output) {
+    /*public void rescaleVanillaArmorFiles(List<VirtualFile> output) {
         List<VirtualFile> armorFiles = new ArrayList<>(output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/textures/models/armor/")
                 && (v.getPath().endsWith("_layer_1.png") || v.getPath().endsWith("_layer_2.png") || v.getPath().endsWith("_layer_1_overlay.png") || v.getPath().endsWith("_layer_2_overlay.png"))).toList());
 
@@ -206,10 +207,10 @@ public class CustomArmorsTextures {
         } else {
             Logs.logSuccess("Starting rescaling of vanilla armor due to armor_resolution and use of higher resolution custom armor...");
             // Remove all non-leather, diamond, gold, iron and chainmail sets
-            armorFiles.removeIf(v -> {
+            Logs.debug("Removed any vanilla file: " + armorFiles.removeIf(v -> {
                 String mat = Utils.getLastStringInSplit(v.getPath(), "/").split("\\.")[0].toUpperCase();
                 return Arrays.stream(Material.values()).anyMatch(m -> m.toString().equals(mat)) && !mat.equals("CHAINMAIL");
-            });
+            }));
 
             for (VirtualFile file : armorFiles) {
                 BufferedImage original;
@@ -241,6 +242,17 @@ public class CustomArmorsTextures {
             }
         }
         Logs.logSuccess("Finished rescaling and adding vanilla armor files!");
+    }*/
+
+    public BufferedImage rescaleVanillaArmor(BufferedImage original) {
+        Logs.logSuccess("Starting rescaling of vanilla armor due to armor_resolution and use of higher resolution custom armor...");
+        int width = resolution * WIDTH_RATIO;
+        int height = resolution * HEIGHT_RATIO;
+        Image resizedImage = original.getScaledInstance(width, height, Image.SCALE_DEFAULT);
+        BufferedImage outputImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+        outputImage.getGraphics().drawImage(resizedImage, 0, 0, null);
+        Logs.logSuccess("Finished rescaling and adding vanilla armor files!");
+        return outputImage;
     }
 
     public boolean shouldGenerateOptifineFiles() {
@@ -263,6 +275,7 @@ public class CustomArmorsTextures {
             String parentFolder = StringUtils.substringBefore(fileName, "_");
             String path = OPTIFINE_ARMOR_PATH + parentFolder;
             optifineFiles.add(new VirtualFile(path, fileName, armorFile.getValue()));
+            if (fileName.endsWith("_e.png")) continue;
 
             // Avoid duplicate properties files as this is called for both layers, but only needs 1 property file
             if (optifineFiles.stream().map(VirtualFile::getPath).anyMatch(
@@ -271,11 +284,21 @@ public class CustomArmorsTextures {
             String colorProperty = "nbt.display.color=" + getArmorColor(parentFolder);
             String propContent = getArmorPropertyFile(fileName, colorProperty, 1);
 
-            ByteArrayInputStream inputStream = new ByteArrayInputStream(propContent.getBytes(StandardCharsets.UTF_8));
-            optifineFiles.add(new VirtualFile(path, parentFolder + ".properties", inputStream));
+            try {
+                ByteArrayInputStream inputStream = new ByteArrayInputStream(propContent.getBytes(StandardCharsets.UTF_8));
+                optifineFiles.add(new VirtualFile(path, parentFolder + ".properties", inputStream));
+                inputStream.close();
+            } catch (IOException ignored) {}
 
             if (fileName.endsWith("_a.png"))
                 optifineFiles.addAll(getOptifineAnimFiles(armorFile.getValue(), fileName, parentFolder));
+        }
+
+        try {
+            InputStream inputStream = new ByteArrayInputStream("suffix.emissive=_e".getBytes(StandardCharsets.UTF_8));
+            optifineFiles.add(new VirtualFile("assets/minecraft/optifine", "emissive.properties", inputStream));
+            inputStream.close();
+        } catch (IOException ignored) {
         }
 
         return optifineFiles;
@@ -421,15 +444,11 @@ public class CustomArmorsTextures {
                     File armorFile = new File(fileFolder);
 
                     if (!armorFile.exists()) {
-                        fileName = fileName.replace(".png", "_e.png");
-                        armorFile = new File(fileFolder.replace(".png", "_e.png"));
+                        fileName = fileName.replace(".png", "_a.png");
+                        armorFile = new File(fileFolder.replace(".png", "_a.png"));
+                        //TODO Animated might wanna strip away everything except the first frame for base
                         if (!armorFile.exists()) {
-                            fileName = fileName.replace("_e.png", "_a.png");
-                            armorFile = new File(fileFolder.replace(".png", "_a.png"));
-                            //TODO Animated might wanna strip away everything except the first frame for base
-                            if (!armorFile.exists()) {
-                                continue;
-                            }
+                            continue;
                         }
                     }
 
@@ -443,6 +462,21 @@ public class CustomArmorsTextures {
                         is.close();
                     } catch (IOException ignored) {
                     }
+
+                    File emissiveFile = new File(fileFolder.replace(".png", "_e.png"));
+                    if (emissiveFile.exists()) {
+                        try {
+                            BufferedImage armorLayer = ImageIO.read(emissiveFile);
+                            ByteArrayOutputStream os = new ByteArrayOutputStream();
+                            ImageIO.write(armorLayer, "png", os);
+                            InputStream is = new ByteArrayInputStream(os.toByteArray());
+                            layers.put(fileName.replace(".png", "_e.png"), is);
+                            os.close();
+                            is.close();
+                        } catch (IOException ignored) {
+                        }
+                    }
+
                 }
             }
         }
