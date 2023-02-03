@@ -122,7 +122,7 @@ public class ResourcePack {
                 String armorPath = "assets/minecraft/textures/models/armor";
                 // Rescale default armor if resolution isnt 64x32
                 if ((int) Settings.ARMOR_RESOLUTION.getValue() != 16) {
-                    customArmorsTextures.rescaleVanillaNonLeatherArmor(output);
+                    customArmorsTextures.rescaleArmorImage(output);
                 }
                 //customArmorsTextures.rescaleVanillaArmorFiles(output);
                 output.add(new VirtualFile(armorPath, "leather_layer_1.png", customArmorsTextures.getLayerOne()));

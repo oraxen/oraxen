@@ -195,7 +195,7 @@ public class CustomArmorsTextures {
     private final String OPTIFINE_ARMOR_PATH = "assets/minecraft/optifine/cit/armors/";
     private final String OPTIFINE_ARMOR_ANIMATION_PATH = "assets/minecraft/optifine/anim/";
 
-    public void rescaleVanillaNonLeatherArmor(List<VirtualFile> output) {
+    public void rescaleArmorImage(List<VirtualFile> output) {
         Set<String> materials = Set.of("chainmail", "diamond", "gold", "iron", "netherite", "turtle");
         Path absolute = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().resolve("pack/textures/models/armor/").toAbsolutePath();
         String armorPath = "assets/minecraft/textures/models/armor";
@@ -213,8 +213,8 @@ public class CustomArmorsTextures {
             VirtualFile virtualOne = new VirtualFile(armorPath, material + "_layer_1.png", layerOneInput);
             VirtualFile virtualTwo = new VirtualFile(armorPath, material + "_layer_2.png", layerTwoInput);
 
-            rescaleVanillaNonLeatherArmor(virtualOne);
-            rescaleVanillaNonLeatherArmor(virtualTwo);
+            rescaleArmorImage(virtualOne);
+            rescaleArmorImage(virtualTwo);
             output.removeIf(v -> v.getPath().equals(virtualOne.getPath()) || v.getPath().equals(virtualTwo.getPath()));
 
             output.add(virtualOne);
@@ -222,13 +222,25 @@ public class CustomArmorsTextures {
         }
     }
 
-    private void rescaleVanillaNonLeatherArmor(VirtualFile original) {
+    private void rescaleArmorImage(VirtualFile original) {
+        original.setInputStream(rescaleArmorImage(original.getInputStream()));
+    }
+
+    private InputStream rescaleArmorImage(File original) {
+        try {
+            return rescaleArmorImage(Files.newInputStream(original.toPath().toAbsolutePath()));
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
+    private InputStream rescaleArmorImage(InputStream original) {
         BufferedImage img;
         try {
-            img = ImageIO.read(original.getInputStream());
+            img = ImageIO.read(original);
         } catch (IOException e) {
             OraxenPlugin.get().getLogger().warning("Error while reading InputStream: " + e.getMessage());
-            return;
+            return original;
         }
 
         try {
@@ -236,10 +248,12 @@ public class CustomArmorsTextures {
             ByteArrayOutputStream os = new ByteArrayOutputStream();
             ImageIO.write(img, "png", os);
             InputStream is = new ByteArrayInputStream(os.toByteArray());
-            original.setInputStream(is);
             is.close();
             os.close();
-        } catch (IOException ignored) {}
+            return is;
+        } catch (IOException ignored) {
+            return original;
+        }
     }
 
     private BufferedImage rescaleArmorImage(BufferedImage original) {
@@ -356,42 +370,11 @@ public class CustomArmorsTextures {
         String leatherPath = OPTIFINE_ARMOR_PATH + "leather";
 
         // If someone deletes required or compiles, don't fail simply break leather shader armor
-        if (!leatherFile1.exists() || !leatherFile2.exists()) return leatherArmors;
+        if (!leatherFile1.exists() || !leatherFile2.exists() || !leatherFileOverlay.exists()) return leatherArmors;
 
-        BufferedImage armorLayer1;
-        BufferedImage armorLayer2;
-        BufferedImage leatherOverlay;
-        ByteArrayOutputStream os = new ByteArrayOutputStream();
-        ByteArrayOutputStream os2 = new ByteArrayOutputStream();
-        ByteArrayOutputStream osOverlay = new ByteArrayOutputStream();
-
-        try {
-            armorLayer1 = rescaleArmorImage(ImageIO.read(leatherFile1));
-            armorLayer2 = rescaleArmorImage(ImageIO.read(leatherFile2));
-            leatherOverlay = rescaleArmorImage(ImageIO.read(leatherFileOverlay));
-
-            ImageIO.write(armorLayer1, "png", os);
-            ImageIO.write(armorLayer2, "png", os2);
-            ImageIO.write(leatherOverlay, "png", osOverlay);
-
-            InputStream is = new ByteArrayInputStream(os.toByteArray());
-            InputStream is2 = new ByteArrayInputStream(os2.toByteArray());
-            InputStream isOverlay = new ByteArrayInputStream(osOverlay.toByteArray());
-
-            leatherArmors.add(new VirtualFile(leatherPath, "leather_armor_layer_1.png", is));
-            leatherArmors.add(new VirtualFile(leatherPath, "leather_armor_layer_2.png", is2));
-            leatherArmors.add(new VirtualFile(leatherPath, "leather_armor_overlay.png", isOverlay));
-
-            is.close();
-            is2.close();
-            isOverlay.close();
-
-            os.close();
-            os2.close();
-            osOverlay.close();
-        } catch (IOException e) {
-            return leatherArmors;
-        }
+        leatherArmors.add(new VirtualFile(leatherPath, "leather_armor_layer_1.png", rescaleArmorImage(leatherFile1)));
+        leatherArmors.add(new VirtualFile(leatherPath, "leather_armor_layer_2.png", rescaleArmorImage(leatherFile2)));
+        leatherArmors.add(new VirtualFile(leatherPath, "leather_armor_overlay.png", rescaleArmorImage(leatherFileOverlay)));
 
         String content = correctLeatherPropertyFile(getArmorPropertyFile("leather_armor_layer_1.png", "", 0));
         ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
