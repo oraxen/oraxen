@@ -369,9 +369,9 @@ public class CustomArmorsTextures {
         ByteArrayOutputStream osOverlay = new ByteArrayOutputStream();
 
         try {
-            leatherLayer1 = ImageIO.read(leatherFile1);
-            leatherLayer2 = ImageIO.read(leatherFile2);
-            leatherOverlay = ImageIO.read(leatherFileOverlay);
+            leatherLayer1 = rescaleVanillaArmor(ImageIO.read(leatherFile1));
+            leatherLayer2 = rescaleVanillaArmor(ImageIO.read(leatherFile2));
+            leatherOverlay = rescaleVanillaArmor(ImageIO.read(leatherFileOverlay));
 
             ImageIO.write(leatherLayer1, "png", os);
             ImageIO.write(leatherLayer2, "png", os2);
