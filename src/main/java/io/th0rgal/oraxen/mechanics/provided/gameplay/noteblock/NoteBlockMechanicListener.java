@@ -179,10 +179,10 @@ public class NoteBlockMechanicListener implements Listener {
 
         if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
 
-        NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(block);
-        if (noteMechanic == null) return;
-        if (noteMechanic.isDirectional())
-            noteMechanic = noteMechanic.getDirectional().getParentBlockMechanic(noteMechanic);
+        NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
+        if (mechanic == null) return;
+        if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
+            mechanic = mechanic.getDirectional().getParentMechanic();
 
         OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(noteMechanic, block, event.getBlockFace(), event.getPlayer(), event.getItem(), event.getHand());
         OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockInteractEvent);
@@ -298,7 +298,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (mechanic.isDirectional()) {
             DirectionalBlock directional = mechanic.getDirectional();
             if (!directional.isParentBlock()) {
-                directional = directional.getParentBlockMechanic(mechanic).getDirectional();
+                directional = directional.getParentMechanic().getDirectional();
             }
 
             customVariation = directional.getDirectionVariation(face, player);
@@ -381,14 +381,14 @@ public class NoteBlockMechanicListener implements Listener {
             if (rayTraceResult == null) return;
             final Block block = rayTraceResult.getHitBlock();
             if (block == null) return;
-            NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(block);
-            if (noteBlockMechanic == null) return;
+            NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
+            if (mechanic == null) return;
 
             ItemStack item;
-            if (noteBlockMechanic.isDirectional())
-                item = OraxenItems.getItemById(noteBlockMechanic.getDirectional().getParentBlock()).build();
+            if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
+                item = OraxenItems.getItemById(mechanic.getDirectional().getParentBlock()).build();
             else
-                item = OraxenItems.getItemById(noteBlockMechanic.getItemID()).build();
+                item = OraxenItems.getItemById(mechanic.getItemID()).build();
             for (int i = 0; i <= 8; i++) {
                 if (player.getInventory().getItem(i) == null) continue;
                 if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), OraxenItems.getIdByItem(item))) {
@@ -423,13 +423,13 @@ public class NoteBlockMechanicListener implements Listener {
                 if (block.getType() != Material.NOTE_BLOCK)
                     return false;
 
-                NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(block);
-                if (noteBlockMechanic == null) return false;
+                NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
+                if (mechanic == null) return false;
 
-                if (noteBlockMechanic.isDirectional())
-                    noteBlockMechanic = noteBlockMechanic.getDirectional().getParentBlockMechanic(noteBlockMechanic);
+                if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
+                    mechanic = mechanic.getDirectional().getParentMechanic();
 
-                return noteBlockMechanic.hasHardness;
+                return mechanic.hasHardness;
             }
 
             @Override
@@ -439,16 +439,16 @@ public class NoteBlockMechanicListener implements Listener {
 
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
-                NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(block);
-                if (noteBlockMechanic == null) return 0;
-                if (noteBlockMechanic.isDirectional())
-                    noteBlockMechanic = noteBlockMechanic.getDirectional().getParentBlockMechanic(noteBlockMechanic);
+                NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
+                if (mechanic == null) return 0;
+                if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
+                    mechanic = mechanic.getDirectional().getParentMechanic();
 
-                final long period = noteBlockMechanic.getPeriod();
+                final long period = mechanic.getPeriod();
                 double modifier = 1;
-                if (noteBlockMechanic.getDrop().canDrop(tool)) {
+                if (mechanic.getDrop().canDrop(tool)) {
                     modifier *= 0.4;
-                    final int diff = noteBlockMechanic.getDrop().getDiff(tool);
+                    final int diff = mechanic.getDrop().getDiff(tool);
                     if (diff >= 1)
                         modifier *= Math.pow(0.9, diff);
                 }

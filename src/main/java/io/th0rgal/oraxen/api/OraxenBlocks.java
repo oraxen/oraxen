@@ -192,8 +192,8 @@ public class OraxenBlocks {
     private static void removeNoteBlock(Block block, @Nullable Player player) {
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
         if (mechanic == null) return;
-        if (mechanic.isDirectional())
-            mechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
+        if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
+            mechanic = mechanic.getDirectional().getParentMechanic();
 
         OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockBreakEvent);
@@ -208,7 +208,7 @@ public class OraxenBlocks {
         if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             mechanic.getStorage().dropStorageContent(block);
         }
-        block.setType(Material.AIR, false);
+        block.setType(Material.AIR);
         checkNoteBlockAbove(block.getLocation());
     }
 
