@@ -119,8 +119,12 @@ public class ResourcePack {
             }
 
             if (Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.toBool() && customArmorsTextures.hasCustomArmors()) {
-                //customArmorsTextures.rescaleVanillaArmorFiles(output);
                 String armorPath = "assets/minecraft/textures/models/armor";
+                // Rescale default armor if resolution isnt 64x32
+                if ((int) Settings.ARMOR_RESOLUTION.getValue() != 16) {
+                    customArmorsTextures.rescaleVanillaNonLeatherArmor(output);
+                }
+                //customArmorsTextures.rescaleVanillaArmorFiles(output);
                 output.add(new VirtualFile(armorPath, "leather_layer_1.png", customArmorsTextures.getLayerOne()));
                 output.add(new VirtualFile(armorPath, "leather_layer_2.png", customArmorsTextures.getLayerTwo()));
                 if (Settings.AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool())

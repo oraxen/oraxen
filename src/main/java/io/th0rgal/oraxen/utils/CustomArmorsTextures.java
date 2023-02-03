@@ -19,6 +19,7 @@ import java.awt.image.WritableRaster;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.*;
 
@@ -63,14 +64,12 @@ public class CustomArmorsTextures {
         }
 
         if (name.equals("leather_layer_1.png")) {
-           img = rescaleVanillaArmor(img);
+            img = rescaleArmorImage(img);
             layer1 = initLayer(img);
             layer1Width += layer1.getWidth();
             return true;
-        }
-
-        if (name.equals("leather_layer_2.png")) {
-            img = rescaleVanillaArmor(img);
+        } else if (name.equals("leather_layer_2.png")) {
+            img = rescaleArmorImage(img);
             layer2 = initLayer(img);
             layer2Width += layer2.getWidth();
             return true;
@@ -196,62 +195,59 @@ public class CustomArmorsTextures {
     private final String OPTIFINE_ARMOR_PATH = "assets/minecraft/optifine/cit/armors/";
     private final String OPTIFINE_ARMOR_ANIMATION_PATH = "assets/minecraft/optifine/anim/";
 
-    /*public void rescaleVanillaArmorFiles(List<VirtualFile> output) {
-        List<VirtualFile> armorFiles = new ArrayList<>(output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/textures/models/armor/")
-                && (v.getPath().endsWith("_layer_1.png") || v.getPath().endsWith("_layer_2.png") || v.getPath().endsWith("_layer_1_overlay.png") || v.getPath().endsWith("_layer_2_overlay.png"))).toList());
+    public void rescaleVanillaNonLeatherArmor(List<VirtualFile> output) {
+        Set<String> materials = Set.of("chainmail", "diamond", "gold", "iron", "netherite", "turtle");
+        Path absolute = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().resolve("pack/textures/models/armor/").toAbsolutePath();
+        String armorPath = "assets/minecraft/textures/models/armor";
+        for (String material : materials) {
+            InputStream layerOneInput;
+            InputStream layerTwoInput;
 
-        // If there is no need to rescale, do not include the vanilla armor files
-        if (resolution == DEFAULT_RESOLUTION) {
-            armorFiles.removeIf(v -> v.getPath().endsWith("_layer_1.png") || v.getPath().endsWith("_layer_2.png"));
-            output.removeAll(armorFiles);
-        } else {
-            Logs.logSuccess("Starting rescaling of vanilla armor due to armor_resolution and use of higher resolution custom armor...");
-            // Remove all non-leather, diamond, gold, iron and chainmail sets
-            Logs.debug("Removed any vanilla file: " + armorFiles.removeIf(v -> {
-                String mat = Utils.getLastStringInSplit(v.getPath(), "/").split("\\.")[0].toUpperCase();
-                return Arrays.stream(Material.values()).anyMatch(m -> m.toString().equals(mat)) && !mat.equals("CHAINMAIL");
-            }));
-
-            for (VirtualFile file : armorFiles) {
-                BufferedImage original;
-                try {
-                    original = ImageIO.read(file.getInputStream());
-                } catch (IOException e) {
-                    Logs.logWarning("Error while upscaling " + file.getPath());
-                    return;
-                }
-                //TODO Figure out how to handle custom armor and leather_layer files
-                // Ideally we resize leather armor before those are generated so that leather fits
-                int width = resolution * WIDTH_RATIO;
-                int height = resolution * HEIGHT_RATIO;
-                if (original.getWidth() == width && original.getHeight() == height) return;
-
-                Image resizedImage = original.getScaledInstance(width, height, Image.SCALE_DEFAULT);
-                BufferedImage outputImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
-                outputImage.getGraphics().drawImage(resizedImage, 0, 0, null);
-
-                try {
-                    ByteArrayOutputStream os = new ByteArrayOutputStream();
-                    ImageIO.write(outputImage, "png", os);
-                    InputStream fis = new ByteArrayInputStream(os.toByteArray());
-                    file.setInputStream(fis);
-                } catch (IOException e) {
-                    Logs.logWarning("Error while upscaling " + file.getPath());
-                    return;
-                }
+            try {
+                layerOneInput = Files.newInputStream(absolute.resolve(material + "_layer_1.png"));
+                layerTwoInput = Files.newInputStream(absolute.resolve(material + "_layer_2.png"));
+            } catch (IOException e) {
+                continue;
             }
-        }
-        Logs.logSuccess("Finished rescaling and adding vanilla armor files!");
-    }*/
 
-    public BufferedImage rescaleVanillaArmor(BufferedImage original) {
-        Logs.logSuccess("Starting rescaling of vanilla armor due to armor_resolution and use of higher resolution custom armor...");
+            VirtualFile virtualOne = new VirtualFile(armorPath, material + "_layer_1.png", layerOneInput);
+            VirtualFile virtualTwo = new VirtualFile(armorPath, material + "_layer_2.png", layerTwoInput);
+
+            rescaleVanillaNonLeatherArmor(virtualOne);
+            rescaleVanillaNonLeatherArmor(virtualTwo);
+            output.removeIf(v -> v.getPath().equals(virtualOne.getPath()) || v.getPath().equals(virtualTwo.getPath()));
+
+            output.add(virtualOne);
+            output.add(virtualTwo);
+        }
+    }
+
+    private void rescaleVanillaNonLeatherArmor(VirtualFile original) {
+        BufferedImage img;
+        try {
+            img = ImageIO.read(original.getInputStream());
+        } catch (IOException e) {
+            OraxenPlugin.get().getLogger().warning("Error while reading InputStream: " + e.getMessage());
+            return;
+        }
+
+        try {
+            img = rescaleArmorImage(img);
+            ByteArrayOutputStream os = new ByteArrayOutputStream();
+            ImageIO.write(img, "png", os);
+            InputStream is = new ByteArrayInputStream(os.toByteArray());
+            original.setInputStream(is);
+            is.close();
+            os.close();
+        } catch (IOException ignored) {}
+    }
+
+    private BufferedImage rescaleArmorImage(BufferedImage original) {
         int width = resolution * WIDTH_RATIO;
         int height = resolution * HEIGHT_RATIO;
         Image resizedImage = original.getScaledInstance(width, height, Image.SCALE_DEFAULT);
         BufferedImage outputImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         outputImage.getGraphics().drawImage(resizedImage, 0, 0, null);
-        Logs.logSuccess("Finished rescaling and adding vanilla armor files!");
         return outputImage;
     }
 
@@ -288,7 +284,8 @@ public class CustomArmorsTextures {
                 ByteArrayInputStream inputStream = new ByteArrayInputStream(propContent.getBytes(StandardCharsets.UTF_8));
                 optifineFiles.add(new VirtualFile(path, parentFolder + ".properties", inputStream));
                 inputStream.close();
-            } catch (IOException ignored) {}
+            } catch (IOException ignored) {
+            }
 
             if (fileName.endsWith("_a.png"))
                 optifineFiles.addAll(getOptifineAnimFiles(armorFile.getValue(), fileName, parentFolder));
@@ -359,22 +356,22 @@ public class CustomArmorsTextures {
         String leatherPath = OPTIFINE_ARMOR_PATH + "leather";
 
         // If someone deletes required or compiles, don't fail simply break leather shader armor
-        if (!leatherFile1.exists() || !leatherFile2.exists() || !leatherFileOverlay.exists()) return leatherArmors;
+        if (!leatherFile1.exists() || !leatherFile2.exists()) return leatherArmors;
 
-        BufferedImage leatherLayer1;
-        BufferedImage leatherLayer2;
+        BufferedImage armorLayer1;
+        BufferedImage armorLayer2;
         BufferedImage leatherOverlay;
         ByteArrayOutputStream os = new ByteArrayOutputStream();
         ByteArrayOutputStream os2 = new ByteArrayOutputStream();
         ByteArrayOutputStream osOverlay = new ByteArrayOutputStream();
 
         try {
-            leatherLayer1 = rescaleVanillaArmor(ImageIO.read(leatherFile1));
-            leatherLayer2 = rescaleVanillaArmor(ImageIO.read(leatherFile2));
-            leatherOverlay = rescaleVanillaArmor(ImageIO.read(leatherFileOverlay));
+            armorLayer1 = rescaleArmorImage(ImageIO.read(leatherFile1));
+            armorLayer2 = rescaleArmorImage(ImageIO.read(leatherFile2));
+            leatherOverlay = rescaleArmorImage(ImageIO.read(leatherFileOverlay));
 
-            ImageIO.write(leatherLayer1, "png", os);
-            ImageIO.write(leatherLayer2, "png", os2);
+            ImageIO.write(armorLayer1, "png", os);
+            ImageIO.write(armorLayer2, "png", os2);
             ImageIO.write(leatherOverlay, "png", osOverlay);
 
             InputStream is = new ByteArrayInputStream(os.toByteArray());
@@ -399,25 +396,26 @@ public class CustomArmorsTextures {
         String content = correctLeatherPropertyFile(getArmorPropertyFile("leather_armor_layer_1.png", "", 0));
         ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         leatherArmors.add(new VirtualFile(leatherPath, "leather.properties", inputStream));
+
         return leatherArmors;
     }
 
     private String correctLeatherPropertyFile(String content) {
         return content
-                .replace("texture.leather_layer_1_overlay=leather_armor_layer_1.png",
-                        "texture.leather_layer_1_overlay=leather_armor_overlay.png")
-                .replace("texture.leather_layer_2_overlay=leather_armor_layer_2.png",
-                        "texture.leather_layer_2_overlay=leather_armor_overlay.png");
+                .replace("texture." + "leather_layer_1_overlay=" + "leather_armor_layer_1.png",
+                        "texture." + "leather_layer_1_overlay=" + "leather_armor_overlay.png")
+                .replace("texture." + "leather_layer_2_overlay=" + "leather_armor_layer_2.png",
+                        "texture." + "leather_layer_2_overlay=" + "leather_armor_overlay.png");
     }
 
     private String getArmorPropertyFile(String fileName, String cmdProperty, int weight) {
         return """
                 type=armor
                 items=minecraft:leather_helmet minecraft:leather_chestplate minecraft:leather_leggings minecraft:leather_boots
-                texture.leather_layer_1=""" + fileName.replace("_2.png", "_1.png") + "\n" + """
-                texture.leather_layer_1_overlay=""" + fileName.replace("_2.png", "_1.png") + "\n" + """
-                texture.leather_layer_2=""" + fileName.replace("_1.png", "_2.png") + "\n" + """
-                texture.leather_layer_2_overlay=""" + fileName.replace("_1.png", "_2.png") + "\n" +
+                texture.""" + "leather_layer_1=" + fileName.replace("_2.png", "_1.png") + "\n" + """
+                texture.""" + "leather_layer_1_overlay=" + fileName.replace("_2.png", "_1.png") + "\n" + """
+                texture.""" + "leather_layer_2=" + fileName.replace("_1.png", "_2.png") + "\n" + """
+                texture.""" + "leather_layer_2_overlay=" + fileName.replace("_1.png", "_2.png") + "\n" +
                 cmdProperty + "\n" + """
                 weight=""" + weight;
     }
