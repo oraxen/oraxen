@@ -78,61 +78,6 @@ public class ItemUpdater implements Listener {
         ItemStack resultItem = inventory.getItem(2);
         String resultId = OraxenItems.getIdByItem(resultItem);
         ItemBuilder oraxenItem = OraxenItems.getItemById(resultId);
-        if (firstItem == null || resultItem == null || resultId == null || oraxenItem == null) return;
-        ItemMeta firstMeta = firstItem.getItemMeta();
-        ItemMeta resultMeta = resultItem.getItemMeta();
-        ItemMeta oraxenMeta = oraxenItem.build().getItemMeta();
-        if (firstMeta == null || !firstMeta.hasDisplayName()) return;
-        if (resultMeta == null || !resultMeta.hasDisplayName()) return;
-        if (resultMeta.getDisplayName().equals(firstMeta.getDisplayName())) return;
-        if (oraxenMeta != null && !oraxenMeta.hasDisplayName()) return;
-
-        if (oraxenMeta != null && oraxenMeta.hasDisplayName()) {
-            String resultDisplay = AdventureUtils.PLAIN_TEXT.deserialize(resultMeta.getDisplayName()).content();
-            String baseDisplay = AdventureUtils.PLAIN_TEXT.deserialize(oraxenMeta.getDisplayName()).content();
-            if (resultDisplay.equals(baseDisplay)) {
-                resultMeta.setDisplayName(oraxenMeta.getDisplayName());
-                resultItem.setItemMeta(resultMeta);
-            }
-        } else Utils.editItemMeta(resultItem, itemMeta ->
-                itemMeta.getPersistentDataContainer().set(ANVIL_RENAMED, DataType.STRING, resultMeta.getDisplayName()));
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onItemEnchant(PrepareItemEnchantEvent event) {
-        String id = OraxenItems.getIdByItem(event.getItem());
-        ItemBuilder builder = OraxenItems.getItemById(id);
-        if (builder == null || !builder.hasOraxenMeta()) return;
-
-        if (builder.getOraxenMeta().isDisableEnchanting()) {
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.MONITOR)
-    public void onItemEnchant(PrepareAnvilEvent event) {
-        ItemStack item = event.getInventory().getItem(0);
-        ItemStack result = event.getResult();
-        String id = OraxenItems.getIdByItem(item);
-        ItemBuilder builder = OraxenItems.getItemById(id);
-        if (builder == null || !builder.hasOraxenMeta()) return;
-
-        if (builder.getOraxenMeta().isDisableEnchanting()) {
-            if (result == null || item == null) return;
-            if (!result.getEnchantments().equals(item.getEnchantments()))
-                event.setResult(null);
-        }
-    }
-
-    @EventHandler
-    public void onAnvilRename(InventoryClickEvent event) {
-        if (!(event.getClickedInventory() instanceof AnvilInventory inventory)) return;
-        if (event.getSlot() != 2) return;
-
-        ItemStack firstItem = inventory.getItem(0);
-        ItemStack resultItem = inventory.getItem(2);
-        String resultId = OraxenItems.getIdByItem(resultItem);
-        ItemBuilder oraxenItem = OraxenItems.getItemById(resultId);
         if (firstItem == null || resultItem == null || oraxenItem == null) return;
 
         ItemMeta firstMeta = firstItem.getItemMeta();
