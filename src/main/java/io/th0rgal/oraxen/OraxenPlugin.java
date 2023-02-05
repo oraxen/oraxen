@@ -74,7 +74,7 @@ public class OraxenPlugin extends JavaPlugin {
         clickActionManager = new ClickActionManager(this);
         reloadConfigs();
         if (Settings.KEEP_UP_TO_DATE.toBool())
-            new SettingsUpdater().updateKeys();
+            new SettingsUpdater().handleSettingsUpdate();
         fontManager = new FontManager(configsManager);
         hudManager = new HudManager(configsManager);
         new CommandsManager().loadCommands();

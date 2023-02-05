@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.pack.upload.hosts;
 
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -40,7 +41,14 @@ public class Polymath implements HostingProvider {
             CloseableHttpResponse response = httpClient.execute(request);
             HttpEntity responseEntity = response.getEntity();
             String responseString = EntityUtils.toString(responseEntity);
-            JsonObject jsonOutput = JsonParser.parseString(responseString).getAsJsonObject();
+            JsonObject jsonOutput;
+            try {
+                jsonOutput = JsonParser.parseString(responseString).getAsJsonObject();
+            } catch (JsonSyntaxException e) {
+                Logs.logError("The resource pack could not be uploaded due to a malformed response.");
+                Logs.logWarning("This is usually due to the resourcepack server being down.");
+                return false;
+            }
             if (jsonOutput.has("url") && jsonOutput.has("sha1")) {
                 packUrl = jsonOutput.get("url").getAsString();
                 minecraftPackURL = packUrl.replace("https://", "http://");
@@ -55,6 +63,7 @@ public class Polymath implements HostingProvider {
             return false;
         } catch(IllegalStateException | IOException ex) {
             Logs.logError("The resource pack has not been uploaded to the server. Usually this is due to an excessive size.");
+            ex.printStackTrace();
             return false;
         }
     }

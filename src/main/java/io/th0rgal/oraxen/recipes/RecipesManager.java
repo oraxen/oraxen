@@ -12,12 +12,16 @@ import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
+import org.bukkit.Keyed;
+import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.inventory.Recipe;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.Objects;
 
 public class RecipesManager {
@@ -25,8 +29,16 @@ public class RecipesManager {
     private RecipesManager() {}
 
     public static void load(JavaPlugin plugin) {
-        if (Settings.RESET_RECIPES.toBool())
-            Bukkit.resetRecipes();
+        if (Settings.RESET_RECIPES.toBool()) {
+            Iterator<Recipe> recipeIterator = Bukkit.recipeIterator();
+            while (recipeIterator.hasNext()) {
+                NamespacedKey recipeID = ((Keyed) recipeIterator.next()).getKey();
+                if (recipeID.getNamespace().equals("oraxen")) {
+                    Bukkit.removeRecipe(recipeID);
+                }
+            }
+        }
+
         Bukkit.getPluginManager().registerEvents(new RecipesBuilderEvents(), plugin);
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {

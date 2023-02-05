@@ -125,15 +125,15 @@ public class NoteBlockMechanic extends Mechanic {
     public FarmBlockDryout getDryout() { return farmBlockDryout; }
 
     public boolean isLog() {
-        if (isDirectional() && !directionalBlock.isParentBlock()) {
-            return logStripping != null || directionalBlock.getParentBlockMechanic(this).isLog();
+        if (isDirectional() && !getDirectional().isParentBlock()) {
+            return logStripping != null || directionalBlock.getParentMechanic().isLog();
         } else return logStripping != null;
     }
     public LogStripping getLog() { return logStripping; }
 
     public boolean isFalling() {
         if (isDirectional() && !directionalBlock.isParentBlock()) {
-            return isFalling || directionalBlock.getParentBlockMechanic(this).isFalling();
+            return isFalling || directionalBlock.getParentMechanic().isFalling();
         } else return isFalling;
     }
 
@@ -160,8 +160,8 @@ public class NoteBlockMechanic extends Mechanic {
     }
 
     public boolean hasLight() {
-        if (isDirectional() && !directionalBlock.isParentBlock()) {
-            return light != -1 || directionalBlock.getParentBlockMechanic(this).hasLight();
+        if (isDirectional() && !getDirectional().isParentBlock()) {
+            return light != -1 || directionalBlock.getParentMechanic().hasLight();
         } else return light != -1;
     }
 
@@ -170,8 +170,8 @@ public class NoteBlockMechanic extends Mechanic {
     }
 
     public boolean canIgnite() {
-        if (isDirectional() && !directionalBlock.isParentBlock()) {
-            return canIgnite || directionalBlock.getParentBlockMechanic(this).canIgnite();
+        if (isDirectional() && !getDirectional().isParentBlock()) {
+            return canIgnite || directionalBlock.getParentMechanic().canIgnite();
         } else return canIgnite;
     }
 

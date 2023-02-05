@@ -4,16 +4,19 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class RecipesEventsManager implements Listener {
 
@@ -51,6 +54,12 @@ public class RecipesEventsManager implements Listener {
         }
 
         event.getInventory().setResult(null);
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
+        player.discoverRecipes(getPermittedRecipes(player).stream().map(r -> NamespacedKey.fromString(r.getName(), OraxenPlugin.get())).collect(Collectors.toSet()));
     }
 
     public void resetRecipes() {

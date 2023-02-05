@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,14 +19,16 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     private final ItemStack itemInHand;
     private boolean isCancelled;
     private final BlockFace blockFace;
+    private final EquipmentSlot hand;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenStringBlockInteractEvent(StringBlockMechanic mechanic, Block block, ItemStack itemInHand, Player player, BlockFace blockFace) {
+    public OraxenStringBlockInteractEvent(StringBlockMechanic mechanic, Block block, ItemStack itemInHand, Player player, BlockFace blockFace, EquipmentSlot hand) {
         this.mechanic = mechanic;
         this.itemInHand = itemInHand;
         this.block = block;
         this.player = player;
         this.isCancelled = false;
+        this.hand = hand;
         this.blockFace = blockFace;
     }
 
@@ -57,12 +60,18 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
         return itemInHand;
     }
 
-
     /**
      * @return Clicked block face
      */
     public BlockFace getBlockFace() {
         return blockFace;
+    }
+
+    /**
+     * @return The hand used to perform interaction
+     */
+    public EquipmentSlot getHand() {
+        return hand;
     }
 
     @Override
