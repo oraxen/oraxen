@@ -15,8 +15,8 @@ public class CustomArmorListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onCustomArmorRepair(PrepareAnvilEvent event) {
         AnvilInventory inventory = event.getInventory();
-        Player player = (Player) inventory.getViewers().stream().filter(p -> p.getOpenInventory().getTopInventory() == inventory).findFirst().get();
-
+        Player player = (Player) inventory.getViewers().stream().filter(p -> p.getOpenInventory().getTopInventory() == inventory).findFirst().orElse(null);
+        if (player == null) return;
         ItemStack first = inventory.getItem(0);
         ItemStack second = inventory.getItem(1);
         String firstID = OraxenItems.getIdByItem(first);

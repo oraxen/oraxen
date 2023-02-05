@@ -78,7 +78,7 @@ public class ItemUpdater implements Listener {
         ItemStack resultItem = inventory.getItem(2);
         String resultId = OraxenItems.getIdByItem(resultItem);
         ItemBuilder oraxenItem = OraxenItems.getItemById(resultId);
-        if (firstItem == null || resultItem == null || resultId == null || oraxenItem == null) return;
+        if (firstItem == null || resultItem == null || oraxenItem == null) return;
         ItemMeta firstMeta = firstItem.getItemMeta();
         ItemMeta resultMeta = resultItem.getItemMeta();
         ItemMeta oraxenMeta = oraxenItem.build().getItemMeta();
