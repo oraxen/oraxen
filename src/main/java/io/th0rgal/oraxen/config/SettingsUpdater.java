@@ -29,7 +29,8 @@ public class SettingsUpdater {
         for (Map.Entry<String, String> entry : newKeyPaths.entrySet()) {
             String key = entry.getKey();
             if (settings.contains(key)) {
-                Logs.logWarning("Found outdated setting-path " + key + ". This will be updated.");settings.set(entry.getValue(), settings.get(key));
+                Logs.logWarning("Found outdated setting-path " + key + ". This will be updated.");
+                settings.set(entry.getValue(), settings.get(key));
                 settings.set(key, null);
 
             }
