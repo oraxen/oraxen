@@ -128,21 +128,20 @@ tasks {
 
     compileJava.get().dependsOn(clean)
     build.get().dependsOn(shadowJar)
+}
 
-    publishing {
-        publications {
-            register<MavenPublication>("maven") {
-                groupId = groupID
-                artifactId = "oraxen"
-                version = pluginVersion
+publishing {
+    publications {
+        register<MavenPublication>("maven") {
+            groupId = groupID
+            artifactId = "oraxen"
+            version = pluginVersion
 
-                afterEvaluate {
-                    from(components["java"])
-                }
+            afterEvaluate {
+                from(components["java"])
             }
         }
     }
-
 }
 
 val pluginPath = project.findProperty("oraxen_plugin_path")
