@@ -12,7 +12,8 @@ plugins {
 }
 
 val pluginVersion = "1.151.1"
-val groupID = "io.th0rgal"
+group = "io.th0rgal"
+version = pluginVersion
 
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
@@ -128,20 +129,6 @@ tasks {
 
     compileJava.get().dependsOn(clean)
     build.get().dependsOn(shadowJar)
-}
-
-publishing {
-    publications {
-        register<MavenPublication>("maven") {
-            groupId = groupID
-            artifactId = "oraxen"
-            version = pluginVersion
-
-            afterEvaluate {
-                from(components["java"])
-            }
-        }
-    }
 }
 
 val pluginPath = project.findProperty("oraxen_plugin_path")
