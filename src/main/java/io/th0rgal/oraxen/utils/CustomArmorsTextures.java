@@ -19,7 +19,6 @@ import java.awt.image.WritableRaster;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.*;
 
@@ -46,6 +45,7 @@ public class CustomArmorsTextures {
 
     public CustomArmorsTextures(int resolution) {
         this.resolution = resolution;
+        //this.layer1Height = resolution * HEIGHT_RATIO;
     }
 
     public boolean registerImage(File file) {
@@ -87,13 +87,15 @@ public class CustomArmorsTextures {
     }
 
     private BufferedImage initLayer(BufferedImage original) {
-        if (original.getWidth() == resolution * WIDTH_RATIO && original.getHeight() == getLayerHeight())
-            return original;
+        int newWidth = resolution * WIDTH_RATIO;
+        int width = original.getWidth();
+        int height = original.getHeight();
+        Logs.debug("origianlHeight: " + original.getHeight());
+        Logs.debug("layerHeight: " + getLayerHeight());
+        if (width == newWidth && height == getLayerHeight()) return original;
 
-        Image scaled = original.getScaledInstance(
-                resolution * WIDTH_RATIO, original.getHeight(), Image.SCALE_DEFAULT);
-        BufferedImage output = new BufferedImage(
-                resolution * WIDTH_RATIO, original.getHeight(), BufferedImage.TYPE_INT_ARGB);
+        Image scaled = original.getScaledInstance(newWidth, height, Image.SCALE_DEFAULT);
+        BufferedImage output = new BufferedImage(newWidth, height, BufferedImage.TYPE_INT_ARGB);
         output.getGraphics().drawImage(scaled, 0, 0, null);
         return output;
     }
@@ -170,6 +172,8 @@ public class CustomArmorsTextures {
         if (name.contains("armor_layer_1")) {
             layers1.add(image);
             layer1Width += image.getWidth();
+            Logs.debug(layer1Height);
+            Logs.debug(image.getHeight());
             layer1Height = Math.max(layer1Height, image.getHeight());
         } else {
             layers2.add(image);
@@ -199,37 +203,6 @@ public class CustomArmorsTextures {
 
     private final String OPTIFINE_ARMOR_PATH = "assets/minecraft/optifine/cit/armors/";
     private final String OPTIFINE_ARMOR_ANIMATION_PATH = "assets/minecraft/optifine/anim/";
-
-    public void rescaleArmorImage(List<VirtualFile> output) {
-        Set<String> materials = Set.of("chainmail", "diamond", "gold", "iron", "netherite", "turtle");
-        Path absolute = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().resolve("pack/textures/models/armor/").toAbsolutePath();
-        String armorPath = "assets/minecraft/textures/models/armor";
-        for (String material : materials) {
-            InputStream layerOneInput;
-            InputStream layerTwoInput;
-
-            try {
-                layerOneInput = Files.newInputStream(absolute.resolve(material + "_layer_1.png"));
-                layerTwoInput = Files.newInputStream(absolute.resolve(material + "_layer_2.png"));
-            } catch (IOException e) {
-                continue;
-            }
-
-            VirtualFile virtualOne = new VirtualFile(armorPath, material + "_layer_1.png", layerOneInput);
-            VirtualFile virtualTwo = new VirtualFile(armorPath, material + "_layer_2.png", layerTwoInput);
-
-            rescaleArmorImage(virtualOne);
-            rescaleArmorImage(virtualTwo);
-            output.removeIf(v -> v.getPath().equals(virtualOne.getPath()) || v.getPath().equals(virtualTwo.getPath()));
-
-            output.add(virtualOne);
-            output.add(virtualTwo);
-        }
-    }
-
-    private void rescaleArmorImage(VirtualFile original) {
-        original.setInputStream(rescaleArmorImage(original.getInputStream()));
-    }
 
     private InputStream rescaleArmorImage(File original) {
         try {
@@ -268,10 +241,6 @@ public class CustomArmorsTextures {
         BufferedImage outputImage = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         outputImage.getGraphics().drawImage(resizedImage, 0, 0, null);
         return outputImage;
-    }
-
-    public boolean shouldGenerateOptifineFiles() {
-        return Settings.AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool();
     }
 
     public int getAnimatedArmorFramerate() {
