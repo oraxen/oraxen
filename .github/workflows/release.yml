@@ -2,8 +2,12 @@
 
 # Step 1: Trigger the workflow on a pull request merge event
 on:
-  push:
-    branches: [release_workflow]
+  pull_request:
+    types:
+      - opened
+      - edited
+    # This checks if the pull request has been merged and not just closed
+    branches: [master]
 
 # Step 2: Define the steps of the workflow
 jobs:
@@ -14,14 +18,15 @@ jobs:
     steps:
       - name: Check Label
         id: check_label
-        # Check if the pull request has the label 'release'
-        uses: actions/label-filter@v1
-        with:
-          args: label release
+        run: |
+          echo "::set-env name=HAS_LABEL::false"
+          if echo "${{ github.event.pull_request.labels }}" | grep -q "release"; then
+              echo "::set-env name=HAS_LABEL::true"
+          fi
 
       # Step 2.2: Get the plugin version from gradle.properties
       - name: Get Plugin Version
-        if: steps.check_label.outputs.result == 'true'
+        if: env.HAS_LABEL == 'true'
         # Use the actions/download-artifact action to download the gradle.properties file
         uses: actions/download-artifact@v1
         with:
@@ -30,13 +35,13 @@ jobs:
 
       # Step 2.3: Extract the plugin version
       - name: Extract Plugin Version
-        if: steps.check_label.outputs.result == 'true'
+        if: env.HAS_LABEL == 'true'
         run: |
           echo "::set-env name=PLUGIN_VERSION::$(grep '^pluginVersion=' gradle.properties | cut -d '=' -f2)"
 
       # Step 2.4: Create a new release tag
       - name: Create Release
-        if: steps.check_label.outputs.result == 'true'
+        if: env.HAS_LABEL == 'true'
         # Use the actions/create-release action to create a new release tag
         uses: actions/create-release@v1
         with:
