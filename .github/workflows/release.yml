@@ -4,8 +4,7 @@
 on:
   pull_request:
     types:
-      - opened
-      - edited
+      - synchronize
     # This checks if the pull request has been merged and not just closed
     branches: [master]
 
