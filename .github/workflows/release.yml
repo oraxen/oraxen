@@ -1,36 +1,47 @@
-name: Release Tag
+# Start of Github Workflow script
 
+# Step 1: Trigger the workflow on a pull request merge event
 on:
-  pull_request:
-    types: [closed]
+  push:
+    branches: [release_workflow]
 
-env:
-  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+# Step 2: Define the steps of the workflow
 jobs:
-  release:
+  create_release:
     runs-on: ubuntu-latest
 
+    # Step 2.1: Check if the pull request has the specific label
     steps:
-      - name: Check if pull request was tagged
-        run: |
-          if [ "$(echo "${{ github.event.pull_request.labels.*.name }}" | grep -E "^TAG_[A-Z0-9]+$")" ]; then
-            echo "::set-env name=TAG_NAME::$(echo "${{ github.event.pull_request.labels.*.name }}" | grep -E "^TAG_[A-Z0-9]+$")"
-          fi
-        id: check_tag
-
-      - name: Get plugin version
-        if: env.TAG_NAME
-        run: echo "::set-env name=PLUGIN_VERSION::$(grep "^pluginVersion" gradle.properties | awk -F '=' '{ print $2 }')"
-        id: get_version
-
-      - name: Create Release Tag
-        if: env.TAG_NAME
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+      - name: Check Label
+        id: check_label
+        # Check if the pull request has the label 'release'
+        uses: actions/bin/filter@v1
         with:
-          tag_name: ${{ env.PLUGIN_VERSION }}
-          release_name: ${{ env.PLUGIN_VERSION }}
+          args: label release
+
+      # Step 2.2: Get the plugin version from gradle.properties
+      - name: Get Plugin Version
+        if: steps.check_label.outputs.result == 'false'
+        # Use the actions/download-artifact action to download the gradle.properties file
+        uses: actions/download-artifact@v1
+        with:
+          name: gradle-properties
+          path: gradle.properties
+
+      # Step 2.3: Extract the plugin version
+      - name: Extract Plugin Version
+        if: steps.check_label.outputs.result == 'false'
+        run: |
+          echo "::set-env name=PLUGIN_VERSION::$(grep '^pluginVersion=' gradle.properties | cut -d '=' -f2)"
+
+      # Step 2.4: Create a new release tag
+      - name: Create Release
+        if: steps.check_label.outputs.result == 'false'
+        # Use the actions/create-release action to create a new release tag
+        uses: actions/create-release@v1
+        with:
+          tag_name: "v${{ env.PLUGIN_VERSION }}"
+          release_name: "Release v${{ env.PLUGIN_VERSION }}"
+          body: "This is an empty release for version ${{ env.PLUGIN_VERSION }}"
           draft: false
           prerelease: false
