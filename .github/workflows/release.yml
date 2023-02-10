@@ -14,27 +14,24 @@ jobs:
 
     steps:
       - name: Check if pull request was tagged
-        uses: actions/bin/filter@v1
-        with:
-          args: tag $(echo "${{ github.event.pull_request.labels.*.name }}" | grep -oE "^TAG_[A-Z0-9]+$")
+        run: |
+          if [ "$(echo "${{ github.event.pull_request.labels.*.name }}" | grep -E "^TAG_[A-Z0-9]+$")" ]; then
+            echo "::set-env name=TAG_NAME::$(echo "${{ github.event.pull_request.labels.*.name }}" | grep -E "^TAG_[A-Z0-9]+$")"
+          fi
         id: check_tag
 
       - name: Get plugin version
-        if: steps.check_tag.outputs.matched == 'true'
-        uses: actions/cat@v2
-        with:
-          path: gradle.properties
+        if: env.TAG_NAME
+        run: echo "::set-env name=PLUGIN_VERSION::$(grep "^pluginVersion" gradle.properties | awk -F '=' '{ print $2 }')"
         id: get_version
-        env:
-          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
 
       - name: Create Release Tag
-        if: steps.check_tag.outputs.matched == 'true'
+        if: env.TAG_NAME
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
         with:
-          tag_name: $(echo "${{ steps.get_version.outputs.content }}" | grep "^pluginVersion" | awk -F '=' '{ print $2 }')
-          release_name: $(echo "${{ steps.get_version.outputs.content }}" | grep "^pluginVersion" | awk -F '=' '{ print $2 }')
+          tag_name: ${{ env.PLUGIN_VERSION }}
+          release_name: ${{ env.PLUGIN_VERSION }}
           draft: false
           prerelease: false
