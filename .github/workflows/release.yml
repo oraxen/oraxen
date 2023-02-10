@@ -1,16 +1,11 @@
-# Start of Github Workflow script
-
-# Step 1: Trigger the workflow on a pull request merge event
 on:
   pull_request:
     types:
       - synchronize
-    # This checks if the pull request has been merged and not just closed
     branches: [master]
 
 jobs:
-  # Check if pull request has label
-  check-label:
+  create-release:
     runs-on: ubuntu-latest
     if: >-
       (contains(github.event.pull_request.labels.*.name, 'release'))
@@ -33,7 +28,7 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
-          automatic_release_tag: v${{ steps.extract_version.version }}
-          title: ${{ steps.extract_version.version }}
+          automatic_release_tag: ${{ steps.plugin_version.version }}
+          title: ${{ steps.plugin_version.version }}
 
 
