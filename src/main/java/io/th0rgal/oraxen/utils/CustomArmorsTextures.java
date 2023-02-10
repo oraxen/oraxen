@@ -150,12 +150,12 @@ public class CustomArmorsTextures {
             setPixel(image.getRaster(), 2, 0, Color.fromRGB(1, 0, 0));
         }
 
-        addPixel(image, builder, file, name, prefix, isEmissive, isAnimated);
+        addPixel(image, builder, name, prefix, isAnimated);
 
         return true;
     }
 
-    private void addPixel(BufferedImage image, ItemBuilder builder, File file, String name, String prefix, boolean isEmissive, boolean isAnimated) {
+    private void addPixel(BufferedImage image, ItemBuilder builder, String name, String prefix, boolean isAnimated) {
         Color stuffColor = builder.getColor();
         if (stuffColor == null) return;
         if (usedColors.containsKey(stuffColor.asRGB())) {
