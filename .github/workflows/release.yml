@@ -26,24 +26,16 @@ jobs:
         run: |
           version=$(grep "^pluginVersion=" gradle.properties | cut -d'=' -f2)
           echo "::set-output name=version::$version"
-      - name: Upload release version artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: version
-          path: version.txt
 
   # Create new release
   create-release:
     runs-on: ubuntu-latest
     needs: [check-label]
     steps:
-      - name: Echo release tag
-        run: |
-          echo "Release tag: ${{ steps.check-label.outputs.version }}"
       - name: Create GitHub Release
         uses: marvinpinto/action-automatic-releases@latest
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           automatic_release_tag: ${{ steps.check-label.outputs.version }}
-          title: ${{ steps.check-label.outputs.version }}
+          release_name: ${{ steps.check-label.outputs.version }}
