@@ -47,6 +47,5 @@ jobs:
           automatic_release_tag: ${{ steps.check-label.outputs.version }}
           release_name: ${{ steps.check-label.outputs.version }}
       - name: Echo release tag
-        run:
+        run: |
           echo "Release tag: ${{ steps.check-label.outputs.version }}"
-
