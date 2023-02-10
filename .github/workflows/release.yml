@@ -19,9 +19,10 @@ jobs:
       - name: Check Label
         id: check_label
         run: |
-          echo "::set-env name=HAS_LABEL::false"
           if echo "${{ github.event.pull_request.labels }}" | grep -q "release"; then
-              echo "::set-env name=HAS_LABEL::true"
+              echo "HAS_LABEL=true" >> $GITHUB_ENV
+          else
+              echo "HAS_LABEL=false" >> $GITHUB_ENV
           fi
 
       # Step 2.2: Get the plugin version from gradle.properties
@@ -37,7 +38,8 @@ jobs:
       - name: Extract Plugin Version
         if: env.HAS_LABEL == 'true'
         run: |
-          echo "::set-env name=PLUGIN_VERSION::$(grep '^pluginVersion=' gradle.properties | cut -d '=' -f2)"
+          PLUGIN_VERSION=$(grep '^pluginVersion=' gradle.properties | cut -d '=' -f2)
+          echo "PLUGIN_VERSION=$PLUGIN_VERSION" >> $GITHUB_ENV
 
       # Step 2.4: Create a new release tag
       - name: Create Release
