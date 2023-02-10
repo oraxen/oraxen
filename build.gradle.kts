@@ -11,7 +11,7 @@ plugins {
     id("xyz.jpenilla.run-paper") version "2.0.1"
 }
 
-val pluginVersion = "1.151.1"
+val pluginVersion: String by project
 group = "io.th0rgal"
 version = pluginVersion
 
