@@ -45,7 +45,7 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           automatic_release_tag: ${{ steps.check-label.outputs.version }}
-          release_name: ${{ steps.check-label.outputs.version }}
+          title: ${{ steps.check-label.outputs.version }}
       - name: Echo release tag
         run: |
           echo "Release tag: ${{ steps.check-label.outputs.version }}"
