@@ -20,7 +20,7 @@ jobs:
       - name: Fetch version from gradle.properties
         shell: bash
         run: |
-          version=$(grep pluginVersion gradle.properties | awk -F= '{print $2}')
+          version=$(grep "^pluginVersion=" gradle.properties | cut -d'=' -f2)
           echo "::set-output name=version::$version"
 
   # Create new release
