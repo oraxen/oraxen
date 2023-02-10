@@ -28,7 +28,7 @@ jobs:
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
-          automatic_release_tag: ${{ steps.plugin_version.version }}
-          title: ${{ steps.plugin_version.version }}
+          automatic_release_tag: ${{ steps.plugin_version.outputs.version }}
+          title: ${{ steps.plugin_version.outputs.version }}
 
 
