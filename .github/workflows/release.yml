@@ -21,7 +21,7 @@ jobs:
 
       # Step 2.2: Get the plugin version from gradle.properties
       - name: Get Plugin Version
-        if: steps.check_label.outputs.result == 'false'
+        if: steps.check_label.outputs.result == 'true'
         # Use the actions/download-artifact action to download the gradle.properties file
         uses: actions/download-artifact@v1
         with:
@@ -30,13 +30,13 @@ jobs:
 
       # Step 2.3: Extract the plugin version
       - name: Extract Plugin Version
-        if: steps.check_label.outputs.result == 'false'
+        if: steps.check_label.outputs.result == 'true'
         run: |
           echo "::set-env name=PLUGIN_VERSION::$(grep '^pluginVersion=' gradle.properties | cut -d '=' -f2)"
 
       # Step 2.4: Create a new release tag
       - name: Create Release
-        if: steps.check_label.outputs.result == 'false'
+        if: steps.check_label.outputs.result == 'true'
         # Use the actions/create-release action to create a new release tag
         uses: actions/create-release@v1
         with:
@@ -45,3 +45,5 @@ jobs:
           body: "This is an empty release for version ${{ env.PLUGIN_VERSION }}"
           draft: false
           prerelease: false
+
+# End of Github Workflow script
