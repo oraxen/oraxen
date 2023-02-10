@@ -30,8 +30,7 @@ jobs:
         uses: actions/upload-artifact@v2
         with:
           name: version
-          path: plugin_version.txt
-          artifact: plugin_version
+          path: version.txt
 
   # Create new release
   create-release:
