@@ -1,26 +1,40 @@
-name: Publish Release
+name: Release Tag
 
 on:
   push:
     branches:
       - release_workflow
 
+env:
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 jobs:
-  # Determine what version this release is and upload as an artifact
-  determine-release-version:
+  release:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Get version from gradle
-        shell: bash
-        id: extract_version
-        run: |
-          version=`gradle properties --no-daemon --console=plain -q | grep "^pluginVersion:" | awk '{printf $2}'`
-          echo "::set-output name=pluginVersion::pluginVersion"
-
-      - name: Create GitHub Release
-        uses: marvinpinto/action-automatic-releases@latest
+      - name: Check if pull request was tagged
+        uses: actions/bin/filter@v1
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          args: tag $(echo "${{ github.event.pull_request.labels.*.name }}" | grep -oE "^TAG_[A-Z0-9]+$")
+        id: check_tag
+
+      - name: Get plugin version
+        if: steps.check_tag.outputs.matched == 'true'
+        uses: actions/cat@v2
+        with:
+          path: gradle.properties
+        id: get_version
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+
+      - name: Create Release Tag
+        if: steps.check_tag.outputs.matched == 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
+        with:
+          tag_name: $(echo "${{ steps.get_version.outputs.content }}" | grep "^pluginVersion" | awk -F '=' '{ print $2 }')
+          release_name: $(echo "${{ steps.get_version.outputs.content }}" | grep "^pluginVersion" | awk -F '=' '{ print $2 }')
+          draft: false
           prerelease: false
-          automatic_release_tag: v${{ steps.extract_version.outputs.version }}
