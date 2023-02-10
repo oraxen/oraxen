@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     if: >-
       contains(github.event.pull_request.labels.*.name, 'release')
-      && github.event.pull_request.merged == true
+      && github.event.pull_request.merged == false
     steps:
       - name: Fetch version from gradle.properties
         shell: bash
