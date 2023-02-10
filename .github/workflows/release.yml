@@ -18,7 +18,6 @@ jobs:
       && github.event.pull_request.merged == true
     steps:
       - name: Fetch version from gradle.properties
-        run: echo "Getting plugin version from gradle.properties file"
         shell: bash
         run: |
           version=$(grep pluginVersion gradle.properties | awk -F= '{print $2}')
