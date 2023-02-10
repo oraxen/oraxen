@@ -17,7 +17,7 @@ jobs:
       && github.event.pull_request.merged == false
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           ref: ${{ github.event.pull_request.head.sha }}
 
@@ -28,11 +28,9 @@ jobs:
           version=$(grep "^pluginVersion=" gradle.properties | cut -d'=' -f2)
           echo "::set-output name=version::$version"
 
-      - name: Create GitHub Release
-        uses: marvinpinto/action-automatic-releases@latest
-        with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
-          automatic_release_tag: "${{ steps.check-label.outputs.version }}"
-          release_name: ${{ steps.plugin_version.outputs.version }}
+      - name: Echo release tag
+        run: |
+          echo "Release tag: ${{ steps.plugin_version.version }}"
+          echo "Release tag2: ${{ steps.plugin_version.outputs.version }}"
+      
 
