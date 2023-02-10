@@ -9,40 +9,30 @@ on:
     # This checks if the pull request has been merged and not just closed
     branches: [master]
 
-# Step 2: Define the steps of the workflow
 jobs:
-  create_release:
+  # Check if pull request has label
+  check-label:
     runs-on: ubuntu-latest
     if: >-
-      (contains(github.event.pull_request.labels.*.name, 'release'))
+      contains(github.event.pull_request.labels.*.name, 'release')
       && github.event.pull_request.merged == true
-
-    # Step 2.1: Check if the pull request has the specific label
     steps:
-
-      # Step 2.2: Get the plugin version from gradle.properties
-      - name: Get Plugin Version
-        # Use the actions/download-artifact action to download the gradle.properties file
-        uses: actions/download-artifact@v1
-        with:
-          name: gradle-properties
-          path: gradle.properties
-
-      # Step 2.3: Extract the plugin version
-      - name: Extract Plugin Version
+      - name: Fetch version from gradle.properties
+        run: echo "Getting plugin version from gradle.properties file"
+        shell: bash
         run: |
-          PLUGIN_VERSION=$(grep '^pluginVersion=' gradle.properties | cut -d '=' -f2)
-          echo "PLUGIN_VERSION=$PLUGIN_VERSION" >> $GITHUB_ENV
+          version=$(grep pluginVersion gradle.properties | awk -F= '{print $2}')
+          echo "::set-output name=version::$version"
 
-      # Step 2.4: Create a new release tag
-      - name: Create Release
-        # Use the actions/create-release action to create a new release tag
-        uses: actions/create-release@v1
+  # Create new release
+  create-release:
+    runs-on: ubuntu-latest
+    needs: [check-label]
+    steps:
+      - name: Create GitHub Release
+        uses: marvinpinto/action-automatic-releases@latest
         with:
-          tag_name: "v${{ env.PLUGIN_VERSION }}"
-          release_name: "Release v${{ env.PLUGIN_VERSION }}"
-          body: "This is an empty release for version ${{ env.PLUGIN_VERSION }}"
-          draft: false
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
-
-# End of Github Workflow script
+          automatic_release_tag: ${{ steps.check-label.outputs.version }}
+          release_name: ${{ steps.check-label.outputs.version }}
