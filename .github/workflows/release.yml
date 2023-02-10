@@ -15,7 +15,7 @@ jobs:
       - name: Check Label
         id: check_label
         # Check if the pull request has the label 'release'
-        uses: actions/bin/filter@v1
+        uses: actions/filter@v1
         with:
           args: label release
 
