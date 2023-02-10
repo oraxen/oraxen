@@ -21,12 +21,12 @@ jobs:
         id: check_tag
 
       - name: Get plugin version
-        #if: env.TAG_NAME
+        if: env.TAG_NAME
         run: echo "::set-env name=PLUGIN_VERSION::$(grep "^pluginVersion" gradle.properties | awk -F '=' '{ print $2 }')"
         id: get_version
 
       - name: Create Release Tag
-        #if: env.TAG_NAME
+        if: env.TAG_NAME
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ env.GITHUB_TOKEN }}
