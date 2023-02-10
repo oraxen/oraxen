@@ -11,23 +11,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Run gradle build and publish
-        run: gradle build publish -PmineinabyssMavenUsername=${{ secrets.MAVEN_PUBLISH_USERNAME }} -PmineinabyssMavenPassword=${{ secrets.MAVEN_PUBLISH_PASSWORD }}
       - name: Get version from gradle
         shell: bash
         id: extract_version
         run: |
           version=`gradle properties --no-daemon --console=plain -q | grep "^pluginVersion:" | awk '{printf $2}'`
           echo "::set-output name=pluginVersion::pluginVersion"
-      - name: Create release version artifact
-        shell: bash
-        run: |
-          echo "${{ steps.next_version.outputs.version }}" > version.txt
-      - name: Upload release version artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: version
-          path: version.txt
+
       - name: Create GitHub Release
         uses: marvinpinto/action-automatic-releases@latest
         with:
