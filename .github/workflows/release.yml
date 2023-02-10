@@ -28,9 +28,12 @@ jobs:
           version=$(grep "^pluginVersion=" gradle.properties | cut -d'=' -f2)
           echo "::set-output name=version::$version"
 
-      - name: Echo release tag
-        run: |
-          echo "Release tag: ${{ steps.plugin_version.version }}"
-          echo "Release tag2: ${{ steps.plugin_version.outputs.version }}"
-      
+      - name: Create GitHub Release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          automatic_release_tag: v${{ steps.extract_version.version }}
+          title: ${{ steps.extract_version.version }}
+
 
