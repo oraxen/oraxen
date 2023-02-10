@@ -14,14 +14,25 @@ jobs:
   check-label:
     runs-on: ubuntu-latest
     if: >-
-      contains(github.event.pull_request.labels.*.name, 'release')
-      && github.event.pull_request.merged == false
+      (contains(github.event.pull_request.labels.*.name, 'release'))
+      && github.event.pull_request.merged == true
     steps:
-      - name: Fetch version from gradle.properties
+      - name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - name: Get plugin version
+        id: plugin_version
         shell: bash
         run: |
           version=$(grep "^pluginVersion=" gradle.properties | cut -d'=' -f2)
           echo "::set-output name=version::$version"
+      - name: Upload release version artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: version
+          path: plugin_version.txt
+          artifact: plugin_version
 
   # Create new release
   create-release:
