@@ -274,6 +274,10 @@ public class FurnitureListener implements Listener {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
         if (mechanic == null || !event.isDropItems()) return;
 
+        OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, event.getPlayer(), block, mechanic.getItemFrame(block));
+        OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
+        if (furnitureBreakEvent.isCancelled()) return;
+
         if (OraxenFurniture.remove(block.getLocation(), event.getPlayer())) {
             event.setCancelled(true);
         } else event.setDropItems(false);

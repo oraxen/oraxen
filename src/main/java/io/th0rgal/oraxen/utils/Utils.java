@@ -29,14 +29,13 @@ public class Utils {
         else if (string.contains(",")) {
             String[] newString = string.replace(", ", ",").split(",", 3);
             try {
-                for (String s : newString) Integer.parseInt(s);
+                int r = Integer.parseInt(newString[0]);
+                int g = Integer.parseInt(newString[1]);
+                int b = Integer.parseInt(newString[2]);
+                return Color.fromRGB(r, g, b);
             } catch (NumberFormatException e) {
                 return Color.WHITE;
             }
-            int r = Integer.parseInt(newString[0]);
-            int g = Integer.parseInt(newString[1]);
-            int b = Integer.parseInt(newString[2]);
-            return Color.fromRGB(r, g, b);
         }
         return Color.WHITE;
     }
