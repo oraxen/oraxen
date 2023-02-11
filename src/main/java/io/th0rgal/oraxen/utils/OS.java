@@ -78,6 +78,7 @@ public class OS {
         macOs.put("10.15", "Catalina");
         macOs.put("11.1", "Big Sur");
         macOs.put("12", "Monterey");
+        macOs.put("13", "Ventura");
 
         darwin.put(5, "Puma");
         darwin.put(6, "Jaguar");
