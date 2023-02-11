@@ -24,7 +24,6 @@ import java.util.Objects;
 public class NoteBlockMechanicFactory extends MechanicFactory {
 
     public static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
-    private static Instrument[] instruments = new Instrument[]{Instrument.PIANO, Instrument.BASS_DRUM, Instrument.SNARE_DRUM, Instrument.STICKS, Instrument.BASS_GUITAR, Instrument.FLUTE, Instrument.BELL, Instrument.GUITAR, Instrument.CHIME, Instrument.XYLOPHONE, Instrument.IRON_XYLOPHONE, Instrument.COW_BELL, Instrument.DIDGERIDOO, Instrument.BIT, Instrument.BANJO, Instrument.PLING, Instrument.ZOMBIE, Instrument.SKELETON, Instrument.CREEPER, Instrument.DRAGON, Instrument.WITHER_SKELETON, Instrument.PIGLIN, Instrument.CUSTOM_HEAD};
     private static JsonObject variants;
     private static NoteBlockMechanicFactory instance;
     public final List<String> toolTypes;
@@ -45,14 +44,19 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
-        OraxenPlugin.get().getResourcePack().addModifiers(getMechanicID(), packFolder -> OraxenPlugin.get().getResourcePack().writeStringToVirtual("assets/minecraft/blockstates", "note_block.json", getBlockstateContent()));
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockMechanicListener(), new LogStripListener());
+        OraxenPlugin.get().getResourcePack().addModifiers(getMechanicID(), packFolder ->
+                OraxenPlugin.get().getResourcePack().writeStringToVirtual(
+                        "assets/minecraft/blockstates", "note_block.json", getBlockstateContent())
+        );
+        MechanicsManager.registerListeners(OraxenPlugin.get(),
+                new NoteBlockMechanicListener(),
+                new LogStripListener()
+        );
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockSoundListener());
     }
 
     public static String getInstrumentName(int id) {
-        return switch (id / 25 % instruments.length) {
-            default -> "harp";
+        return switch (id / 25 % 384) {
             case 1 -> "basedrum";
             case 2 -> "snare";
             case 3 -> "hat";
@@ -68,13 +72,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
             case 13 -> "bit";
             case 14 -> "banjo";
             case 15 -> "pling";
-            case 16 -> "zombie";
-            case 17 -> "skeleton";
-            case 18 -> "creeper";
-            case 19 -> "dragon";
-            case 20 -> "wither_skeleton";
-            case 21 -> "piglin";
-            case 22 -> "custom_head";
+            default -> "harp";
         };
     }
 
@@ -94,29 +92,34 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         // If subModel is specified and is different from parent we don't want to rotate it
         if (subBlockModel != null && !Objects.equals(subBlockModel, modelName)) return content;
 
-        if (Objects.equals(parent.getYBlock(), itemId)) return content;
+        if (Objects.equals(parent.getYBlock(), itemId))
+            return content;
         else if (Objects.equals(parent.getXBlock(), itemId)) {
             content.addProperty("x", 90);
             content.addProperty("z", 90);
         } else if (Objects.equals(parent.getZBlock(), itemId)) {
             content.addProperty("y", 90);
             content.addProperty("x", 90);
-        } else if (Objects.equals(parent.getNorthBlock(), itemId)) return content;
+        } else if (Objects.equals(parent.getNorthBlock(), itemId))
+            return content;
         else if (Objects.equals(parent.getEastBlock(), itemId)) {
             content.addProperty("y", 90);
-        } else if (Objects.equals(parent.getSouthBlock(), itemId)) content.addProperty("y", 180);
+        } else if (Objects.equals(parent.getSouthBlock(), itemId))
+            content.addProperty("y", 180);
         else if (Objects.equals(parent.getWestBlock(), itemId)) {
             content.addProperty("z", 90);
             content.addProperty("y", 270);
-        } else if (Objects.equals(parent.getUpBlock(), itemId)) content.addProperty("y", 270);
-        else if (Objects.equals(parent.getDownBlock(), itemId)) content.addProperty("x", 180);
+        } else if (Objects.equals(parent.getUpBlock(), itemId))
+            content.addProperty("y", 270);
+        else if (Objects.equals(parent.getDownBlock(), itemId))
+            content.addProperty("x", 180);
 
         return content;
     }
 
     public static String getBlockstateVariantName(int id) {
         id += 26;
-        return getBlockstateVariantName(getInstrumentName(id), id % 25, id >= 575);
+        return getBlockstateVariantName(getInstrumentName(id), id % 25, id >= 400);
     }
 
     public static String getBlockstateVariantName(String instrument, int note, boolean powered) {
@@ -159,9 +162,11 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         if (mechanic.isDirectional() && !directional.isParentBlock()) {
             NoteBlockMechanic parentMechanic = directional.getParentMechanic();
             modelName = (parentMechanic.getModel(itemMechanicConfiguration.getParent().getParent()));
-            variants.add(getBlockstateVariantName(mechanic.getCustomVariation()), getDirectionalModelJson(modelName, mechanic, parentMechanic));
+            variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
+                    getDirectionalModelJson(modelName, mechanic, parentMechanic));
         } else {
-            variants.add(getBlockstateVariantName(mechanic.getCustomVariation()), getModelJson(modelName));
+            variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
+                    getModelJson(modelName));
         }
 
         BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
@@ -176,16 +181,15 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
      */
     @SuppressWarnings("deprecation")
     public static NoteBlock createNoteBlockData(int id) {
-        /* We have 23 instruments with 25 notes. All of those blocks can be powered.
-         * That's: 23*25*2 = 1150 variations. The first 25 variations of PIANO (not powered)
-         * will be reserved for the vanilla behavior. We still have 1150-25 = 1125 variations
+        /* We have 16 instruments with 25 notes. All of those blocks can be powered.
+         * That's: 16*25*2 = 800 variations. The first 25 variations of PIANO (not powered)
+         * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
          */
         id += 26;
         NoteBlock noteBlock = (NoteBlock) Bukkit.createBlockData(Material.NOTE_BLOCK);
-
-        noteBlock.setInstrument(instruments[id / 25 % instruments.length]);
+        noteBlock.setInstrument(Instrument.getByType((byte) (id / 25 % 400)));
         noteBlock.setNote(new Note(id % 25));
-        noteBlock.setPowered(id >= 575);
+        noteBlock.setPowered(id >= 400);
         return noteBlock;
     }
 
