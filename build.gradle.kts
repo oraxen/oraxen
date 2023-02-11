@@ -11,7 +11,7 @@ plugins {
     id("xyz.jpenilla.run-paper") version "2.0.1"
 }
 
-val pluginVersion = "1.152.0"
+val pluginVersion: String by project
 group = "io.th0rgal"
 version = pluginVersion
 
@@ -68,7 +68,7 @@ dependencies {
     implementation("net.kyori:adventure-platform-bukkit:4.2.0")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.8")
     implementation("dev.jorel:commandapi-shade:8.7.3")
-    implementation("com.jeff_media:CustomBlockData:2.0.0")
+    implementation("com.jeff_media:CustomBlockData:2.2.0")
     implementation("com.jeff_media:MorePersistentDataTypes:2.3.1")
     implementation("gs.mclo:mclogs:2.1.1")
 
@@ -129,6 +129,14 @@ tasks {
 
     compileJava.get().dependsOn(clean)
     build.get().dependsOn(shadowJar)
+}
+
+publishing {
+    publications {
+        register<MavenPublication>("maven") {
+            from(components.getByName("java"))
+        }
+    }
 }
 
 val pluginPath = project.findProperty("oraxen_plugin_path")

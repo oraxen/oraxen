@@ -35,6 +35,7 @@ public enum Settings {
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
 
     RESET_RECIPES("Misc.reset_recipes"),
+    ADD_RECIPES_TO_BOOK("Misc.add_recipes_to_book"),
     ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass"),
     SHIELD_DISPLAY("Misc.shield_display"),
     BOW_DISPLAY("Misc.bow_display"),

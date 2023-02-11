@@ -165,6 +165,8 @@ Misc:
   # If this is set to true, Oraxen will reset recipes on reload. This might create conflicts with other plugins
   # but this makes the things easier if you want to try your oraxen recipes.
   reset_recipes: true
+  # Will add all recipes a player has permission for, to the in-game recipe books
+  add_recipes_to_book: true
 
   # This will hide the red numbers on the side of scoreboards
   hide_scoreboard_numbers: false
