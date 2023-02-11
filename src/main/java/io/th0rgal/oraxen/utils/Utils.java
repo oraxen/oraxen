@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -19,6 +20,24 @@ import java.util.function.Consumer;
 public class Utils {
 
     private Utils() {
+    }
+
+    public static Color toColor(String string) {
+        if (string.startsWith("#") || string.startsWith("0x")) {
+            return Color.fromRGB(Integer.parseInt(string.substring(1), 16));
+        }
+        else if (string.contains(",")) {
+            String[] newString = string.replace(", ", ",").split(",", 3);
+            try {
+                int r = Integer.parseInt(newString[0]);
+                int g = Integer.parseInt(newString[1]);
+                int b = Integer.parseInt(newString[2]);
+                return Color.fromRGB(r, g, b);
+            } catch (NumberFormatException e) {
+                return Color.WHITE;
+            }
+        }
+        return Color.WHITE;
     }
 
     public static String replaceLast(String string, String toReplace, String replacement) {

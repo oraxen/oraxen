@@ -177,7 +177,9 @@ public class FontEvents implements Listener {
                 ItemStack clickedItem = clickedInv.getItem(2);
                 if (clickedItem == null) return;
                 if (displayName == null || displayName.isBlank()) return;
-                if (!OraxenItems.exists(clickedItem)) return;
+
+                if (Settings.FORMAT_ANVIL.toBool())
+                    displayName = AdventureUtils.parseLegacyThroughMiniMessage(displayName);
 
                 for (Character character : manager.getReverseMap().keySet()) {
                     if (!displayName.contains(String.valueOf(character))) continue;
@@ -202,8 +204,7 @@ public class FontEvents implements Listener {
 
                 ItemMeta meta = clickedItem.getItemMeta();
                 if (meta == null) return;
-                if (Settings.FORMAT_ANVIL.toBool())
-                    meta.setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage(displayName));
+                meta.setDisplayName(displayName);
                 clickedItem.setItemMeta(meta);
             }
         }

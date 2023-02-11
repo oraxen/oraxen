@@ -133,6 +133,7 @@ public class OraxenBlocks {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
         if (mechanic == null) return;
+
         if (mechanic.hasLight())
             WrappedLightAPI.createBlockLight(block.getLocation(), mechanic.getLight());
 
