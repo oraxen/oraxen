@@ -68,6 +68,7 @@ stringblock:
       - DIAMOND
       - NETHERITE
     sapling_growth_check_delay: 4000
+    disable_vanilla_strings: false
     enabled: true
 
 # Only 1.16+
