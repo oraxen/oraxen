@@ -27,6 +27,9 @@ backpack:
 music_disc:
   enabled: true
 
+misc:
+  enabled: true
+
 
 # GAMEPLAY
 
