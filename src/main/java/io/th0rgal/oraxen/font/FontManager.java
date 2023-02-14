@@ -172,39 +172,37 @@ public class FontManager {
 
             packet.getModifier().write(1, getGlyphByPlaceholderMap().values().stream()
                     .filter(Glyph::hasTabCompletion)
-                    .flatMap(glyph -> Arrays.stream(glyph.getPlaceholders()))
+                    .map(glyph -> String.valueOf(glyph.getCharacter()))
                     .toList());
 
             protocolManager.sendServerPacket(player, packet);
             return;
         }
-        for (Map.Entry<String, Glyph> entry : getGlyphByPlaceholderMap().entrySet()) {
-            if (entry.getValue().hasTabCompletion()) {
-                for (String placeholder : entry.getValue().getPlaceholders()) {
-                    PacketContainer packet = new PacketContainer(PacketType.Play.Server.PLAYER_INFO);
+        for (Glyph glyph : getGlyphByPlaceholderMap().values()) {
+            if (glyph.hasTabCompletion()) {
+                PacketContainer packet = new PacketContainer(PacketType.Play.Server.PLAYER_INFO);
 
-                    packet.getPlayerInfoAction().write(0, (add) ? EnumWrappers.PlayerInfoAction.ADD_PLAYER : EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
+                packet.getPlayerInfoAction().write(0, (add) ? EnumWrappers.PlayerInfoAction.ADD_PLAYER : EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
 
-                    final WrappedGameProfile profile = new WrappedGameProfile(
-                            UUID.randomUUID(), placeholder);
+                final WrappedGameProfile profile = new WrappedGameProfile(
+                        UUID.randomUUID(), String.valueOf(glyph.getCharacter()));
 
-                    if (entry.getValue().getTabIconTexture() != null && entry.getValue().getTabIconSignature() != null)
-                        profile.getProperties().put("textures",
-                                new WrappedSignedProperty(
-                                        "textures",
-                                        entry.getValue().getTabIconTexture(),
-                                        entry.getValue().getTabIconSignature()));
+                if (glyph.getTabIconTexture() != null && glyph.getTabIconSignature() != null)
+                    profile.getProperties().put("textures",
+                            new WrappedSignedProperty(
+                                    "textures",
+                                    glyph.getTabIconTexture(),
+                                    glyph.getTabIconSignature()));
 
-                    PlayerInfoData data = new PlayerInfoData(profile,
-                            0, EnumWrappers.NativeGameMode.SPECTATOR,
-                            WrappedChatComponent.fromText(""));
+                PlayerInfoData data = new PlayerInfoData(profile,
+                        0, EnumWrappers.NativeGameMode.SPECTATOR,
+                        WrappedChatComponent.fromText(""));
 
-                    List<PlayerInfoData> dataList = new ArrayList<>();
-                    dataList.add(data);
-                    packet.getPlayerInfoDataLists().write(0, dataList);
+                List<PlayerInfoData> dataList = new ArrayList<>();
+                dataList.add(data);
+                packet.getPlayerInfoDataLists().write(0, dataList);
 
-                    protocolManager.sendServerPacket(player, packet);
-                }
+                protocolManager.sendServerPacket(player, packet);
             }
         }
     }
