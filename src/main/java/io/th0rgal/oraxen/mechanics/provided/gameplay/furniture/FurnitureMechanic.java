@@ -539,19 +539,16 @@ public class FurnitureMechanic extends Mechanic {
     public ItemFrame getItemFrame(Block block) {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         if (pdc.isEmpty()) return null;
-        float orientation = pdc.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
         final BlockLocation blockLoc = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
+        Location originLoc = blockLoc.toLocation(block.getWorld());
 
-        if (hasBarriers()) {
-            for (Location sideLocation : getLocations(orientation, blockLoc.toLocation(block.getWorld()), getBarriers())) {
-                for (Entity entity : block.getWorld().getNearbyEntities(sideLocation, 1, 1, 1))
-                    if (entity instanceof ItemFrame frame
-                            && entity.getLocation().getBlockX() == sideLocation.getBlockX()
-                            && entity.getLocation().getBlockY() == sideLocation.getBlockY()
-                            && entity.getLocation().getBlockZ() == sideLocation.getBlockZ()
-                            && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING))
-                        return frame;
-            }
+        if (hasBarriers()) for (Entity entity : block.getWorld().getNearbyEntities(originLoc, 0.5, 0.5, 0.5)) {
+            if (entity instanceof ItemFrame frame
+                    && entity.getLocation().getBlockX() == originLoc.getBlockX()
+                    && entity.getLocation().getBlockY() == originLoc.getBlockY()
+                    && entity.getLocation().getBlockZ() == originLoc.getBlockZ()
+                    && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING))
+                return frame;
         }
         return null;
     }
