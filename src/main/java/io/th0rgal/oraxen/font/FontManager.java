@@ -163,28 +163,38 @@ public class FontManager {
         return output.toString();
     }
 
-    public void sendGlyphTabCompletion(Player player, Boolean addPlayers) {
-        for (Map.Entry<String, Glyph> entry : getGlyphByPlaceholderMap().entrySet()) {
-            if (entry.getValue().hasTabCompletion()) {
-                PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.PLAYER_INFO);
+    public void sendGlyphTabCompletion(Player player, boolean add) {
+        if (PacketType.Play.Server.CUSTOM_CHAT_COMPLETIONS.isSupported()) {
+            PacketContainer packet = new PacketContainer(PacketType.Play.Server.CUSTOM_CHAT_COMPLETIONS);
 
-                if (addPlayers) packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.ADD_PLAYER);
-                else {
-                    packet.getPlayerInfoAction().write(0, EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
-                }
+            Object[] constants = PacketType.Play.Server.CUSTOM_CHAT_COMPLETIONS.getPacketClass().getDeclaredClasses()[0].getEnumConstants();
+            packet.getModifier().write(0, constants[(add) ? 0 : 1]);
+
+            packet.getModifier().write(1, getGlyphByPlaceholderMap().values().stream()
+                    .filter(Glyph::hasTabCompletion)
+                    .map(glyph -> String.valueOf(glyph.getCharacter()))
+                    .toList());
+
+            protocolManager.sendServerPacket(player, packet);
+        }
+        else for (Glyph glyph : getGlyphByPlaceholderMap().values()) {
+            if (glyph.hasTabCompletion()) {
+                PacketContainer packet = new PacketContainer(PacketType.Play.Server.PLAYER_INFO);
+
+                packet.getPlayerInfoAction().write(0, (add) ? EnumWrappers.PlayerInfoAction.ADD_PLAYER : EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
 
                 final WrappedGameProfile profile = new WrappedGameProfile(
-                        UUID.randomUUID(), " " + entry.getValue().getCharacter());
+                        UUID.randomUUID(), String.valueOf(glyph.getCharacter()));
 
-                if (entry.getValue().getTabIconTexture() != null && entry.getValue().getTabIconSignature() != null)
+                if (glyph.getTabIconTexture() != null && glyph.getTabIconSignature() != null)
                     profile.getProperties().put("textures",
                             new WrappedSignedProperty(
                                     "textures",
-                                    entry.getValue().getTabIconTexture(),
-                                    entry.getValue().getTabIconSignature()));
+                                    glyph.getTabIconTexture(),
+                                    glyph.getTabIconSignature()));
 
-                PlayerInfoData data = new PlayerInfoData(profile
-                        , 0, EnumWrappers.NativeGameMode.SPECTATOR,
+                PlayerInfoData data = new PlayerInfoData(profile,
+                        0, EnumWrappers.NativeGameMode.SPECTATOR,
                         WrappedChatComponent.fromText(""));
 
                 List<PlayerInfoData> dataList = new ArrayList<>();
