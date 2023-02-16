@@ -99,7 +99,7 @@ public class FurnitureListener implements Listener {
         if (oraxenEvent.isCancelled()) event.setCancelled(true);
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onLimitedPlacing(final PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
         BlockFace blockFace = event.getBlockFace();
