@@ -72,7 +72,8 @@ public enum Message {
 
     // mechanics
     MECHANICS_NOT_ENOUGH_EXP("mechanics.not_enough_exp"),
-    MECHANICS_BACKPACK_STACKED("mechanics.backpack_stacked");
+    MECHANICS_BACKPACK_STACKED("mechanics.backpack_stacked"),
+    MECHANICS_JUKEBOX_NOW_PLAYING("mechanics.jukebox_now_playing");
 
     private final String path;
 
