@@ -190,8 +190,13 @@ public class FurnitureMechanic extends Mechanic {
         return blockSounds;
     }
 
-    public boolean isJukebox() { return jukebox != null; }
-    public JukeboxBlock getJukebox() { return jukebox; }
+    public boolean isJukebox() {
+        return jukebox != null;
+    }
+
+    public JukeboxBlock getJukebox() {
+        return jukebox;
+    }
 
     public boolean hasBarriers() {
         return !barriers.isEmpty();
@@ -286,11 +291,17 @@ public class FurnitureMechanic extends Mechanic {
             pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
         }
 
-        // Make sure that if a floor-only furniture is placed on the side of a wall block, it is facing correctly
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
-        if (mechanic.hasLimitedPlacing() && mechanic.limitedPlacing.isFloor() && !mechanic.limitedPlacing.isWall()) {
-            if (frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
+        if (frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
+            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
+
+            // Make sure that if a floor-only furniture is placed on the side of a wall block, it is facing correctly
+            if (mechanic.hasLimitedPlacing() && mechanic.limitedPlacing.isFloor() && !mechanic.limitedPlacing.isWall()) {
                 frame.setFacingDirection(BlockFace.UP, true);
+            }
+
+            // If placed on the side of a block
+            if (Set.of(BlockFace.NORTH, BlockFace.WEST, BlockFace.SOUTH, BlockFace.EAST).contains(facing)) {
+                frame.setRotation(Rotation.NONE);
             }
         }
     }
