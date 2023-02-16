@@ -176,9 +176,8 @@ public class FontManager {
                     .toList());
 
             protocolManager.sendServerPacket(player, packet);
-            return;
         }
-        for (Glyph glyph : getGlyphByPlaceholderMap().values()) {
+        else for (Glyph glyph : getGlyphByPlaceholderMap().values()) {
             if (glyph.hasTabCompletion()) {
                 PacketContainer packet = new PacketContainer(PacketType.Play.Server.PLAYER_INFO);
 
