@@ -196,10 +196,11 @@ public class OraxenBlocks {
         if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentMechanic();
 
-        OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
-        OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockBreakEvent);
-        if (noteBlockBreakEvent.isCancelled()) {
-            return;
+        if (player != null) {
+            OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockBreakEvent);
+            if (noteBlockBreakEvent.isCancelled())
+                return;
         }
 
         if (mechanic.hasLight())
@@ -218,10 +219,12 @@ public class OraxenBlocks {
         ItemStack item = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
         if (mechanic == null) return;
 
-        OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
-        OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockBreakEvent);
-        if (wireBlockBreakEvent.isCancelled()) {
-            return;
+        if (player != null) {
+            OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockBreakEvent);
+            if (wireBlockBreakEvent.isCancelled()) {
+                return;
+            }
         }
 
         if (mechanic.hasLight())

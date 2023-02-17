@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
+import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -323,14 +324,26 @@ public class NoteBlockMechanicListener implements Listener {
             NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(blockData);
             if (mechanic == null) return;
             OraxenBlocks.place(mechanic.getItemID(), event.getBlock().getLocation());
-            event.setCancelled(true);
+            fallingBlock.setDropItem(false);
         }
     }
 
     @EventHandler
+    public void onFallingBlockLandOnCarpet(EntityRemoveFromWorldEvent event) {
+        if (!(event.getEntity() instanceof FallingBlock fallingBlock)) return;
+        NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(fallingBlock.getBlockData());
+        if (mechanic == null || Objects.equals(OraxenBlocks.getOraxenBlock(fallingBlock.getLocation()), mechanic)) return;
+        if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
+            mechanic = mechanic.getDirectional().getParentMechanic();
+
+        ItemStack itemStack = OraxenItems.getItemById(mechanic.getItemID()).build();
+        fallingBlock.setDropItem(false);
+        fallingBlock.getWorld().dropItemNaturally(fallingBlock.getLocation(), itemStack);
+    }
+
+    @EventHandler
     public void onBreakBeneathFallingOraxenBlock(BlockBreakEvent event) {
-        Block block = event.getBlock();
-        handleFallingOraxenBlockAbove(block);
+        handleFallingOraxenBlockAbove(event.getBlock());
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)

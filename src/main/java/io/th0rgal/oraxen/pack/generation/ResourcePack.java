@@ -117,7 +117,6 @@ public class ResourcePack {
             }
 
             if (Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.toBool() && customArmorsTextures.hasCustomArmors()) {
-                customArmorsTextures.rescaleVanillaArmorFiles(output);
                 String armorPath = "assets/minecraft/textures/models/armor";
                 output.add(new VirtualFile(armorPath, "leather_layer_1.png", customArmorsTextures.getLayerOne()));
                 output.add(new VirtualFile(armorPath, "leather_layer_2.png", customArmorsTextures.getLayerTwo()));
@@ -229,7 +228,7 @@ public class ResourcePack {
             final ItemBuilder item = entry.getValue();
             if (item.getOraxenMeta().hasPackInfos()) {
                 if (item.getOraxenMeta().shouldGenerateModel())
-                    writeStringToVirtual("assets/minecraft/models",
+                    writeStringToVirtual(item.getOraxenMeta().getModelPath(),
                             item.getOraxenMeta().getModelName() + ".json",
                             new ModelGenerator(item.getOraxenMeta()).getJson().toString());
                 final List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
