@@ -372,7 +372,10 @@ public class FurnitureMechanic extends Mechanic {
             }
             StorageMechanic storageMechanic = getStorage();
             if (storageMechanic != null && (storageMechanic.isStorage() || storageMechanic.isShulker())) {
-                storageMechanic.dropStorageContent(this, getItemFrame(rootLocation.getBlock()));
+                ItemFrame itemFrame = getItemFrame(rootLocation.getBlock());
+                if (itemFrame != null) {
+                    storageMechanic.dropStorageContent(this, itemFrame);
+                }
             }
             location.getBlock().setType(Material.AIR);
             new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
@@ -535,6 +538,7 @@ public class FurnitureMechanic extends Mechanic {
 
     public ItemFrame getItemFrame(Block block) {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        if (pdc.isEmpty()) return null;
         float orientation = pdc.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
         final BlockLocation blockLoc = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
 

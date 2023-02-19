@@ -379,8 +379,8 @@ public class FurnitureListener implements Listener {
                 StorageMechanic storage = mechanic.getStorage();
                 switch (storage.getStorageType()) {
                     case STORAGE, SHULKER -> storage.openStorage(frame, player);
-                    case PERSONAL -> storage.openPersonalStorage(player);
-                    case DISPOSAL -> storage.openDisposal(player, frame.getLocation());
+                    case PERSONAL -> storage.openPersonalStorage(player, frame.getLocation(), frame);
+                    case DISPOSAL -> storage.openDisposal(player, frame.getLocation(), frame);
                     case ENDERCHEST -> player.openInventory(player.getEnderChest());
                 }
                 event.setCancelled(true);
