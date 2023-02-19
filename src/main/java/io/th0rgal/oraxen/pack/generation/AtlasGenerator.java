@@ -31,7 +31,7 @@ public class AtlasGenerator {
                         && !v.getPath().endsWith("_layer_1.png")
                         && !v.getPath().endsWith("_layer_2.png")
         ).collect(Collectors.toSet())) {
-            textureSubFolders.put(v, Utils.removeExtension(v.getPath().replaceFirst("assets/.*/textures/", "")));
+            textureSubFolders.put(v, Utils.removeExtensionOnly(v.getPath().replaceFirst("assets/.*/textures/", "")));
         }
 
         Set<String> itemTextures = new HashSet<>();
