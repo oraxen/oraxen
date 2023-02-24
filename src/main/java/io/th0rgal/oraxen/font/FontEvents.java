@@ -122,6 +122,8 @@ public class FontEvents implements Listener {
 
     @EventHandler
     public void onPlayerChat(AsyncPlayerChatEvent event) {
+        if (!Settings.FORMAT_CHAT.toBool()) return;
+
         String message = event.getMessage();
         for (Character character : manager.getReverseMap().keySet()) {
             if (!message.contains(String.valueOf(character)))
