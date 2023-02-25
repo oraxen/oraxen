@@ -31,7 +31,6 @@ repositories {
     maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
     maven("https://maven.elmakers.com/repository/") // EffectLib
-    maven("https://repo.codemc.org/repository/maven-public") // CodeMc (bstats)
     maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
     maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
     maven("https://mvn.lumine.io/repository/maven-public/") // MythicMobs

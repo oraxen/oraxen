@@ -131,7 +131,7 @@ public class ItemsView {
 
     private ItemStack getItemStack(final File file) {
         ItemStack itemStack;
-        String material = settings.getString(String.format("gui_inventory.%s.icon", Utils.removeExtension(file.getName())), "PAPER");
+        String material = settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", Utils.removeExtension(file.getName())), "PAPER");
 
         try {
             itemStack = new ItemBuilder(OraxenItems.getItemById(material).build())

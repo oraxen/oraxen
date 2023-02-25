@@ -27,6 +27,7 @@ import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -90,15 +91,21 @@ public class StringBlockMechanicListener implements Listener {
             event.setCancelled(true);
     }
 
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onPlacingString(PlayerInteractEvent event) {
+        if (event.getItem() == null || event.getItem().getType() != Material.STRING) return;
+        if (StringBlockMechanicFactory.getInstance().disableVanillaString) {
+            event.setUseItemInHand(Event.Result.DENY);
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingString(final BlockPlaceEvent event) {
-        if (event.getBlockPlaced().getType() != Material.TRIPWIRE
-                || OraxenItems.exists(OraxenItems.getIdByItem(event.getItemInHand())))
+        Block placedBlock = event.getBlockPlaced();
+        if (placedBlock.getType() != Material.TRIPWIRE || OraxenItems.exists(event.getItemInHand()))
             return;
-
         // Placing string, meant for the first blockstate as invisible string
-        if (event.getBlockPlaced().getType() == Material.TRIPWIRE)
-            event.getBlock().setBlockData(Bukkit.createBlockData(Material.TRIPWIRE), false);
+        placedBlock.setBlockData(Bukkit.createBlockData(Material.TRIPWIRE), false);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
