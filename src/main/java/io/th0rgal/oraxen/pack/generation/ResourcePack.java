@@ -56,7 +56,7 @@ public class ResourcePack {
 
     public void generate(final FontManager fontManager, final SoundManager soundManager) {
         outputFiles.clear();
-        packModifiers.clear();
+        //packModifiers.clear();
 
         customArmorsTextures = new CustomArmorsTextures((int) Settings.ARMOR_RESOLUTION.getValue());
         packFolder = new File(plugin.getDataFolder(), "pack");
