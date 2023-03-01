@@ -32,7 +32,6 @@ repositories {
     maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
     maven("https://maven.elmakers.com/repository/") // EffectLib
-    maven("https://repo.codemc.org/repository/maven-public") // CodeMc (bstats)
     maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
     maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
     maven("https://mvn.lumine.io/repository/maven-public/") // MythicMobs
@@ -61,7 +60,7 @@ dependencies {
 
     implementation("dev.triumphteam:triumph-gui:3.1.2")
     implementation("org.bstats:bstats-bukkit:3.0.0")
-    implementation("com.oraxen:protectionlib:1.1.4")
+    implementation("com.github.oraxen:protectionlib:1.2.1")
     implementation("net.kyori:adventure-text-minimessage:4.13.0-SNAPSHOT")
     implementation("net.kyori:adventure-text-serializer-plain:4.13.0-SNAPSHOT")
     implementation("net.kyori:adventure-text-serializer-legacy:4.13.0-SNAPSHOT")
