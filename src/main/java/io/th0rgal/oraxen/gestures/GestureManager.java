@@ -90,4 +90,22 @@ public class GestureManager {
         }
         loadGestures();
     }
+
+    public String getSkullJson() {
+        return """
+                {
+                   "parent": "minecraft:item/template_skull",
+                   "overrides": [
+                     { "predicate": { "custom_model_data": 1 }, "model": "required/player/head" },
+                     { "predicate": { "custom_model_data": 2 }, "model": "required/player/norm/right_shoulder" },
+                     { "predicate": { "custom_model_data": 3 }, "model": "required/player/norm/left_shoulder" },
+                     { "predicate": { "custom_model_data": 4 }, "model": "required/player/norm/arm" },
+                     { "predicate": { "custom_model_data": 5 }, "model": "required/player/slim/right_shoulder" },
+                     { "predicate": { "custom_model_data": 6 }, "model": "required/player/slim/left_shoulder" },
+                     { "predicate": { "custom_model_data": 7 }, "model": "required/player/slim/arm" },
+                     { "predicate": { "custom_model_data": 8 }, "model": "required/player/body" },
+                     { "predicate": { "custom_model_data": 9 }, "model": "required/player/leg" },
+                   ]
+                 }""";
+    }
 }

@@ -93,9 +93,9 @@ public class OraxenPlugin extends JavaPlugin {
         MechanicsManager.registerNativeMechanics();
         //CustomBlockData.registerListener(this); //Handle this manually
         hudManager = new HudManager(configsManager);
-        gestureManager = new GestureManager(configsManager);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
+        gestureManager = new GestureManager(configsManager);
         OraxenItems.loadItems(configsManager);
         io.th0rgal.oraxen.items.OraxenItems.loadItems(configsManager);
         fontManager.registerEvents();

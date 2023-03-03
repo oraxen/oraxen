@@ -100,6 +100,8 @@ public class ResourcePack {
         generatePredicates(texturedItems);
         generateFont(fontManager);
         generateSound(soundManager);
+        generateGestureFiles();
+
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)
                 packModifier.accept(packFolder);
@@ -317,6 +319,11 @@ public class ResourcePack {
         for (CustomSound sound : handleCustomSoundEntries(soundManager.getCustomSounds()))
             output.add(sound.getName(), sound.toJson());
         writeStringToVirtual("assets/minecraft", "sounds.json", output.toString());
+    }
+
+    //TODO Shader should be included here
+    private void generateGestureFiles() {
+        writeStringToVirtual("assets/minecraft/models/item", "player_head.json", OraxenPlugin.get().getGesturesManager().getSkullJson());
     }
 
     private Collection<CustomSound> handleCustomSoundEntries(Collection<CustomSound> sounds) {
