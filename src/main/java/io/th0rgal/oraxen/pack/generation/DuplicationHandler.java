@@ -366,9 +366,6 @@ public class DuplicationHandler {
 
     private static boolean mergeDuplicateFontJson(String name) {
         Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/", name);
-        Logs.debug(name);
-        Logs.debug(path);
-        Logs.debug("\n");
 
         return true;
     }

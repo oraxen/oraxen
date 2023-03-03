@@ -23,14 +23,14 @@ public class AtlasGenerator {
 
         JsonObject atlas = new JsonObject();
         JsonArray atlasContent = new JsonArray();
-        Map<VirtualFile, String> textureSubFolders = new HashMap<>();
+        LinkedHashMap<VirtualFile, String> textureSubFolders = new LinkedHashMap<>();
         for (VirtualFile v : output.stream().filter(v ->
                 v.getPath().split("/").length > 3
                         && v.getPath().split("/")[2].equals("textures")
                         && v.getPath().endsWith(".png")
                         && !v.getPath().endsWith("_layer_1.png")
                         && !v.getPath().endsWith("_layer_2.png")
-        ).collect(Collectors.toSet())) {
+        ).sorted().collect(Collectors.toCollection(LinkedHashSet::new))) {
             textureSubFolders.put(v, Utils.removeExtensionOnly(v.getPath().replaceFirst("assets/.*/textures/", "")));
         }
 
@@ -38,7 +38,7 @@ public class AtlasGenerator {
         OraxenItems.getItems().stream().filter(builder -> builder.hasOraxenMeta() && builder.getOraxenMeta().hasLayers())
                 .forEach(builder -> itemTextures.addAll(builder.getOraxenMeta().getLayers()));
 
-        Set<String> glyphTextures = new HashSet<>();
+        Set<String> glyphTextures = new LinkedHashSet<>();
         OraxenPlugin.get().getFontManager().getGlyphs()
                 .forEach(glyph -> glyphTextures.add(glyph.getTexture().replace(".png", "")));
 
