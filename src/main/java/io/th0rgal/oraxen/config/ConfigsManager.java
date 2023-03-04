@@ -32,6 +32,7 @@ public class ConfigsManager {
     private YamlConfiguration sound;
     private YamlConfiguration language;
     private YamlConfiguration hud;
+    private YamlConfiguration gestures;
     private File itemsFolder;
     private File glyphsFolder;
     private File schematicsFolder;
