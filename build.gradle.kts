@@ -68,7 +68,7 @@ dependencies {
     implementation("net.kyori:adventure-text-serializer-gson:4.13.0-SNAPSHOT")
     implementation("net.kyori:adventure-platform-bukkit:4.2.0")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.8")
-    implementation("dev.jorel:commandapi-shade:8.7.3")
+    implementation("dev.jorel:commandapi-shade:8.7.6")
     implementation("com.jeff_media:CustomBlockData:2.2.0")
     implementation("com.jeff_media:MorePersistentDataTypes:2.3.1")
     implementation("gs.mclo:mclogs:2.1.1")
