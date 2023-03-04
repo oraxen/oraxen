@@ -158,8 +158,8 @@ public class NoteBlockMechanicListener implements Listener {
                 StorageMechanic storageMechanic = mechanic.getStorage();
                 switch (storageMechanic.getStorageType()) {
                     case STORAGE, SHULKER -> storageMechanic.openStorage(block, player);
-                    case PERSONAL -> storageMechanic.openPersonalStorage(player);
-                    case DISPOSAL -> storageMechanic.openDisposal(player, block.getLocation());
+                    case PERSONAL -> storageMechanic.openPersonalStorage(player, block.getLocation(), null);
+                    case DISPOSAL -> storageMechanic.openDisposal(player, block.getLocation(), null);
                     case ENDERCHEST -> player.openInventory(player.getEnderChest());
                 }
                 event.setCancelled(true);

@@ -45,6 +45,7 @@ public class CommandsManager {
                 .withSubcommand((new BlockInfoCommand()).getBlockInfoCommand())
                 .withSubcommand((new HudCommand()).getHudCommand())
                 .withSubcommand((new LogDumpCommand().getLogDumpCommand()))
+                .withSubcommand((new GestureCommand().getGestureCommand()))
                 .executes((sender, args) -> {
                     Message.COMMAND_HELP.send(sender);
                 })

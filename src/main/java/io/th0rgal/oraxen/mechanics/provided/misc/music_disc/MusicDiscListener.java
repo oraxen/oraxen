@@ -4,10 +4,14 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -40,9 +44,13 @@ public class MusicDiscListener implements Listener {
         if (event.getHand() != EquipmentSlot.HAND) return;
 
         Player player = event.getPlayer();
-        boolean playing = insertAndPlayCustomDisc(event.getClickedBlock(), player.getInventory().getItemInMainHand(), player);
+        ItemStack itemStack = player.getInventory().getItemInMainHand();
+        boolean playing = insertAndPlayCustomDisc(event.getClickedBlock(), itemStack, player);
         if (!playing) return;
         player.swingMainHand();
+        Component message = AdventureUtils.MINI_MESSAGE.deserialize(Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(),
+                TagResolver.builder().resolvers(AdventureUtils.OraxenTagResolver, AdventureUtils.tagResolver("disc", itemStack.getItemMeta().getDisplayName())).build());
+        OraxenPlugin.get().getAudience().player(player).sendActionBar(message);
         event.setCancelled(true);
     }
 

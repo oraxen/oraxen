@@ -35,6 +35,7 @@ repositories {
     maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
     maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
     maven("https://mvn.lumine.io/repository/maven-public/") // MythicMobs
+    maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
     maven("https://maven.enginehub.org/repo/")
 }
@@ -67,10 +68,11 @@ dependencies {
     implementation("net.kyori:adventure-text-serializer-gson:4.13.0-SNAPSHOT")
     implementation("net.kyori:adventure-platform-bukkit:4.2.0")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.8")
-    implementation("dev.jorel:commandapi-shade:8.7.3")
+    implementation("dev.jorel:commandapi-shade:8.7.6")
     implementation("com.jeff_media:CustomBlockData:2.2.0")
     implementation("com.jeff_media:MorePersistentDataTypes:2.3.1")
     implementation("gs.mclo:mclogs:2.1.1")
+    implementation("com.ticxo.playeranimator:PlayerAnimator:R1.2.5")
 
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
 }
@@ -111,6 +113,7 @@ tasks {
         relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
         relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
+        relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
         //mapOf("dir" to "libs/compile", "include" to listOf("*.jar"))
         manifest {
             attributes(
