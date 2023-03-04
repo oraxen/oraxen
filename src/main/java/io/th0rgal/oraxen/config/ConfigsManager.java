@@ -26,7 +26,6 @@ public class ConfigsManager {
     private final YamlConfiguration defaultSound;
     private final YamlConfiguration defaultLanguage;
     private final YamlConfiguration defaultHud;
-    private final YamlConfiguration defaultGestures;
     private YamlConfiguration mechanics;
     private YamlConfiguration settings;
     private YamlConfiguration font;
@@ -46,7 +45,6 @@ public class ConfigsManager {
         defaultSound = extractDefault("sound.yml");
         defaultLanguage = extractDefault("languages/english.yml");
         defaultHud = extractDefault("hud.yml");
-        defaultGestures = extractDefault("gestures.yml");
     }
 
     public YamlConfiguration getMechanics() {
@@ -68,8 +66,6 @@ public class ConfigsManager {
     public YamlConfiguration getHud() {
         return hud != null ? hud : defaultHud;
     }
-
-    public YamlConfiguration getGesture() { return gestures != null ? gestures : defaultGestures; }
 
     public YamlConfiguration getSound() {
         return sound != null ? sound : defaultSound;
