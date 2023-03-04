@@ -110,4 +110,12 @@ public class LimitedPlacing {
     public enum LimitedPlacingType {
         ALLOW, DENY
     }
+
+    public boolean isFloor() { return floor; }
+    public boolean isRoof() {
+        return roof;
+    }
+    public boolean isWall() {
+        return wall;
+    }
 }

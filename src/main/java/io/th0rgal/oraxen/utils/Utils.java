@@ -76,6 +76,11 @@ public class Utils {
         return Utils.getLastStringInSplit(s, "/");
     }
 
+    /**
+     * Removes extension AND parent directories
+     * @param s The path or filename including extension
+     * @return Purely the filename, no extension or path
+     */
     public static String removeExtension(String s) {
 
         String separator = System.getProperty("file.separator");
@@ -92,6 +97,15 @@ public class Utils {
             return filename;
 
         return filename.substring(0, extensionIndex);
+    }
+
+    public static String removeExtensionOnly(String s) {
+        // Remove the extension.
+        int extensionIndex = s.lastIndexOf(".");
+        if (extensionIndex == -1)
+            return s;
+
+        return s.substring(0, extensionIndex);
     }
 
     public static String getLastStringInSplit(String string, String split) {

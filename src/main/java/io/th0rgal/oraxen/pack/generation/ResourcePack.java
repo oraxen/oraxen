@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.font.Font;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -229,10 +230,12 @@ public class ResourcePack {
         for (final Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
             final ItemBuilder item = entry.getValue();
             if (item.getOraxenMeta().hasPackInfos()) {
-                if (item.getOraxenMeta().shouldGenerateModel())
-                    writeStringToVirtual(item.getOraxenMeta().getModelPath(),
+                OraxenMeta oraxenMeta = item.getOraxenMeta();
+                if (oraxenMeta.shouldGenerateModel()) {
+                    writeStringToVirtual(oraxenMeta.getModelPath(),
                             item.getOraxenMeta().getModelName() + ".json",
-                            new ModelGenerator(item.getOraxenMeta()).getJson().toString());
+                            new ModelGenerator(oraxenMeta).getJson().toString());
+                }
                 final List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
                 // todo: could be improved by using
                 // items.get(i).getOraxenMeta().getCustomModelData() when

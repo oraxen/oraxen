@@ -9,6 +9,7 @@ plugins {
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("xyz.jpenilla.run-paper") version "2.0.1"
+    id("net.minecrell.plugin-yml.bukkit") version "0.5.2" // Generates plugin.yml
 }
 
 val pluginVersion: String by project
@@ -130,6 +131,18 @@ tasks {
     build.get().dependsOn(shadowJar)
 }
 
+bukkit {
+    load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.STARTUP
+    main = "io.th0rgal.oraxen.OraxenPlugin"
+    version = pluginVersion
+    apiVersion = "1.18"
+    authors = listOf("th0rgal", "boy0000")
+    softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine")
+    depend = listOf("ProtocolLib")
+    loadBefore = listOf("Realistic_World")
+    libraries = listOf("org.springframework:spring-expression:5.3.16", "org.apache.httpcomponents:httpmime:4.5.13")
+}
+
 publishing {
     publications {
         register<MavenPublication>("maven") {
@@ -145,7 +158,9 @@ if (pluginPath != null) {
             from(findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar"))
             into(pluginPath)
             doLast {
+                println(pluginVersion)
                 println("Copied to plugin directory $pluginPath")
+                println(version)
             }
         }
         named<DefaultTask>("build") {

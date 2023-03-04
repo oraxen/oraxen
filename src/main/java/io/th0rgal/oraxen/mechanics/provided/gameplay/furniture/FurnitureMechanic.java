@@ -6,6 +6,7 @@ import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
@@ -31,7 +32,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
-import javax.annotation.Nullable;
 import java.util.*;
 
 public class FurnitureMechanic extends Mechanic {
@@ -190,8 +190,13 @@ public class FurnitureMechanic extends Mechanic {
         return blockSounds;
     }
 
-    public boolean isJukebox() { return jukebox != null; }
-    public JukeboxBlock getJukebox() { return jukebox; }
+    public boolean isJukebox() {
+        return jukebox != null;
+    }
+
+    public JukeboxBlock getJukebox() {
+        return jukebox;
+    }
 
     public boolean hasBarriers() {
         return !barriers.isEmpty();
@@ -230,17 +235,17 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    public ItemFrame place(Location location, @Nullable Player player) {
+    public ItemFrame place(Location location) {
         setPlacedItem();
-        return place(Rotation.NONE, getYaw(Rotation.NONE), BlockFace.NORTH, location, placedItem, player);
+        return place(Rotation.NONE, getYaw(Rotation.NONE), BlockFace.NORTH, location, placedItem);
     }
 
-    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, @Nullable Player player) {
+    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location) {
         setPlacedItem();
-        return place(rotation, yaw, facing, location, placedItem, player);
+        return place(rotation, yaw, facing, location, placedItem);
     }
 
-    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item, @Nullable Player player) {
+    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item) {
         if (!location.isWorldLoaded()) return null;
         if (this.notEnoughSpace(yaw, location)) return null;
         assert location.getWorld() != null;
@@ -284,6 +289,20 @@ public class FurnitureMechanic extends Mechanic {
         if (hasEvolution()) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
         if (isStorage()) if (getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
+        }
+
+        if (frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
+            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
+
+            // Make sure that if a floor-only furniture is placed on the side of a wall block, it is facing correctly
+            if (mechanic.hasLimitedPlacing() && mechanic.limitedPlacing.isFloor() && !mechanic.limitedPlacing.isWall()) {
+                frame.setFacingDirection(BlockFace.UP, true);
+            }
+
+            // If placed on the side of a block
+            if (Set.of(BlockFace.NORTH, BlockFace.WEST, BlockFace.SOUTH, BlockFace.EAST).contains(facing)) {
+                frame.setRotation(Rotation.NONE);
+            }
         }
     }
 
