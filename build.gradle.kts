@@ -46,8 +46,6 @@ dependencies {
     compileOnly("org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT")
     compileOnly("io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT") { exclude(group = "net.kyori") }
     compileOnly("com.comphenix.protocol:ProtocolLib:5.0.0-SNAPSHOT")
-    compileOnly("com.github.Hazebyte:CrateReloadedAPI:d7ae2a14c6")
-    compileOnly("com.github.jojodmo:ItemBridge:-SNAPSHOT")
     compileOnly("me.clip:placeholderapi:2.11.2")
     compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
     compileOnly("me.gabytm.util:actions-core:$actionsVersion")

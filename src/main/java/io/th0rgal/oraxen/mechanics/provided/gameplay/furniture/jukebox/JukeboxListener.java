@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
-import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -94,11 +93,6 @@ public class JukeboxListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onJukeboxBreak(BlockBurnEvent event) {
-        ejectAndStopDisc(event.getBlock(), null);
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onJukeboxBreak(BlockBreakBlockEvent event) {
         ejectAndStopDisc(event.getBlock(), null);
     }
 
