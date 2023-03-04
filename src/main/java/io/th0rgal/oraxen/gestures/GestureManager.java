@@ -91,6 +91,19 @@ public class GestureManager {
         loadGestures();
     }
 
+    public Map<String, String> getPlayerHeadJsons() {
+        return Map.of(
+                "assets/minecraft/models/required/player/norm/arm.json", "{\"parent\":\"item/player_head\",\"display\":{\"thirdperson_righthand\":{\"rotation\":[90,180,0],\"translation\":[-1,-2,10],\"scale\":[0.46875,0.703125,0.46875]}}}",
+                "assets/minecraft/models/required/player/norm/left_shoulder.json", "{\"parent\":\"item/player_head\",\"display\":{\"thirdperson_righthand\":{\"rotation\":[90,180,0],\"translation\":[-1.625,-2,11.5],\"scale\":[0.46875,0.703125,0.46875]}}}",
+                "assets/minecraft/models/required/player/norm/right_shoulder.json", "{\"parent\":\"item/player_head\",\"display\":{\"thirdperson_righthand\":{\"rotation\":[90,180,0],\"translation\":[-0.375,-2,11.5],\"scale\":[0.46875,0.703125,0.46875]}}}",
+                "assets/minecraft/models/required/player/slim/arm.json", "{\"parent\":\"item/player_head\",\"display\":{\"thirdperson_righthand\":{\"rotation\":[90,180,0],\"translation\":[-1,-2,10],\"scale\":[0.3515625,0.703125,0.46875]}}}",
+                "assets/minecraft/models/required/player/slim/left_shoulder.json", "{\"parent\":\"item/player_head\",\"display\":{\"thirdperson_righthand\":{\"rotation\":[90,180,0],\"translation\":[-1.40625,-2,11.5],\"scale\":[0.3515625,0.703125,0.46875]}}}",
+                "assets/minecraft/models/required/player/slim/right_shoulder.json", "{\"parent\":\"item/player_head\",\"display\":{\"thirdperson_righthand\":{\"rotation\":[90,180,0],\"translation\":[-0.59375,-2,11.5],\"scale\":[0.3515625,0.703125,0.46875]}}}",
+                "assets/minecraft/models/required/player/body.json", "{\"parent\":\"item/player_head\",\"display\":{\"thirdperson_righthand\":{\"rotation\":[90,180,0],\"translation\":[-1,-2,13.75],\"scale\":[0.9375,0.46875,0.46875]}}}",
+                "assets/minecraft/models/required/player/head.json", "{\"parent\":\"item/player_head\",\"display\":{\"thirdperson_righthand\":{\"rotation\":[90,180,0],\"translation\":[-1,-2,17.5],\"scale\":[0.9375,0.9375,0.9375]}}}",
+                "assets/minecraft/models/required/player/leg.json", "{\"parent\":\"item/player_head\",\"display\":{\"thirdperson_righthand\":{\"rotation\":[90,180,0],\"translation\":[-1,-2,10],\"scale\":[0.46875,0.703125,0.46875]}}}"
+        );
+    }
     public String getSkullJson() {
         return """
                 {
@@ -104,11 +117,10 @@ public class GestureManager {
                      { "predicate": { "custom_model_data": 6 }, "model": "required/player/slim/left_shoulder" },
                      { "predicate": { "custom_model_data": 7 }, "model": "required/player/slim/arm" },
                      { "predicate": { "custom_model_data": 8 }, "model": "required/player/body" },
-                     { "predicate": { "custom_model_data": 9 }, "model": "required/player/leg" },
+                     { "predicate": { "custom_model_data": 9 }, "model": "required/player/leg" }
                    ]
                  }""";
     }
-
     public String getShaderFsh() {
         return """
                 #version 150
