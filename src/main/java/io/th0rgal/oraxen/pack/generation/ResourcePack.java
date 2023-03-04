@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.Font;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.gestures.GestureManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.sound.CustomSound;
@@ -321,9 +322,12 @@ public class ResourcePack {
         writeStringToVirtual("assets/minecraft", "sounds.json", output.toString());
     }
 
-    //TODO Shader should be included here
     private void generateGestureFiles() {
-        writeStringToVirtual("assets/minecraft/models/item", "player_head.json", OraxenPlugin.get().getGesturesManager().getSkullJson());
+        GestureManager gestureManager = OraxenPlugin.get().getGesturesManager();
+        writeStringToVirtual("assets/minecraft/models/item", "player_head.json", gestureManager.getSkullJson());
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_entity_translucent.vsh", gestureManager.getShaderVsh());
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_entity_translucent.fsh", gestureManager.getShaderFsh());
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_entity_translucent.json", gestureManager.getShaderJson());
     }
 
     private Collection<CustomSound> handleCustomSoundEntries(Collection<CustomSound> sounds) {
