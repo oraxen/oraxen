@@ -8,8 +8,8 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
-import net.md_5.bungee.chat.ScoreComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.md_5.bungee.chat.ScoreComponentSerializer;
 
 public class AdventureUtils {
 
@@ -126,6 +126,6 @@ public class AdventureUtils {
 
 
     public static TagResolver tagResolver(String string, String tag) {
-        return TagResolver.resolver(string, Tag.inserting(AdventureUtils.MINI_MESSAGE.deserialize(tag)));
+        return TagResolver.resolver(string, Tag.selfClosingInserting(AdventureUtils.MINI_MESSAGE.deserialize(tag)));
     }
 }

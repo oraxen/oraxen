@@ -9,6 +9,7 @@ plugins {
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "7.1.2"
     id("xyz.jpenilla.run-paper") version "2.0.1"
+    id("net.minecrell.plugin-yml.bukkit") version "0.5.2" // Generates plugin.yml
 }
 
 val pluginVersion: String by project
@@ -34,6 +35,7 @@ repositories {
     maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
     maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
     maven("https://mvn.lumine.io/repository/maven-public/") // MythicMobs
+    maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
     maven("https://maven.enginehub.org/repo/")
 }
@@ -66,10 +68,11 @@ dependencies {
     implementation("net.kyori:adventure-text-serializer-gson:4.13.0-SNAPSHOT")
     implementation("net.kyori:adventure-platform-bukkit:4.2.0")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.8")
-    implementation("dev.jorel:commandapi-shade:8.7.3")
+    implementation("dev.jorel:commandapi-shade:8.7.6")
     implementation("com.jeff_media:CustomBlockData:2.2.0")
     implementation("com.jeff_media:MorePersistentDataTypes:2.3.1")
     implementation("gs.mclo:mclogs:2.1.1")
+    implementation("com.ticxo.playeranimator:PlayerAnimator:R1.2.5")
 
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
 }
@@ -110,6 +113,7 @@ tasks {
         relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
         relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
+        relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
         //mapOf("dir" to "libs/compile", "include" to listOf("*.jar"))
         manifest {
             attributes(
@@ -130,6 +134,18 @@ tasks {
     build.get().dependsOn(shadowJar)
 }
 
+bukkit {
+    load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.STARTUP
+    main = "io.th0rgal.oraxen.OraxenPlugin"
+    version = pluginVersion
+    apiVersion = "1.18"
+    authors = listOf("th0rgal", "boy0000")
+    softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine")
+    depend = listOf("ProtocolLib")
+    loadBefore = listOf("Realistic_World")
+    libraries = listOf("org.springframework:spring-expression:5.3.16", "org.apache.httpcomponents:httpmime:4.5.13")
+}
+
 publishing {
     publications {
         register<MavenPublication>("maven") {
@@ -145,7 +161,9 @@ if (pluginPath != null) {
             from(findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar"))
             into(pluginPath)
             doLast {
+                println(pluginVersion)
                 println("Copied to plugin directory $pluginPath")
+                println(version)
             }
         }
         named<DefaultTask>("build") {

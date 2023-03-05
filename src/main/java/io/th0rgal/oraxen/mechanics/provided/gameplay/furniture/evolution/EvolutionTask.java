@@ -94,8 +94,7 @@ public class EvolutionTask extends BukkitRunnable {
                     nextMechanic.place(frame.getRotation(),
                             furnitureMechanic.getYaw(frame.getRotation()),
                             frame.getFacing(),
-                            frameLoc,
-                            null
+                            frameLoc
                     );
                 } else framePDC.set(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER, evolutionStep);
             }

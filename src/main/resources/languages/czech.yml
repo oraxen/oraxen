@@ -79,3 +79,4 @@ command:
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Pro tohle potřebuješ více zkušeností"
   backpack_stacked: "<prefix><#fa4943>Cannot open stacked backpack"
+  jukebox_now_playing: "<dark_purple>Nyní se přehrává <disc>"

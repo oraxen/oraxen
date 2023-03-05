@@ -81,3 +81,4 @@ command:
 mechanics:
   not_enough_exp: "<prefix><#fa4943>You need more experience to do this"
   backpack_stacked: "<prefix><#fa4943>Cannot open stacked backpack"
+  jukebox_now_playing: "<dark_purple>Now Playing <disc>"

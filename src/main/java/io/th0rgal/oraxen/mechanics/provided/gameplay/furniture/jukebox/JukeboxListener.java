@@ -4,10 +4,15 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.SoundCategory;
@@ -37,13 +42,32 @@ public class JukeboxListener implements Listener {
     public void onInsertDisc(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
         Player player = event.getPlayer();
+        ItemStack itemStack = player.getInventory().getItemInMainHand();
 
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
 
-        boolean played = insertAndPlayDisc(block, player.getInventory().getItemInMainHand(), player);
+        boolean played = insertAndPlayDisc(block, itemStack, player);
         if (!played) return;
         player.swingMainHand();
+
+        String displayName = null;
+        if (itemStack.hasItemMeta()) {
+            assert itemStack.getItemMeta() != null;
+            if (itemStack.getItemMeta().hasLore()) {
+                assert itemStack.getItemMeta().getLore() != null;
+                displayName = itemStack.getItemMeta().getLore().get(0);
+            } else if (OraxenItems.exists(itemStack) && itemStack.getItemMeta().hasDisplayName()) {
+                displayName = itemStack.getItemMeta().getDisplayName();
+            }
+        }
+
+        if (displayName != null) {
+            Component message = AdventureUtils.MINI_MESSAGE.deserialize(Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(),
+                    TagResolver.builder().resolvers(AdventureUtils.OraxenTagResolver, AdventureUtils.tagResolver("disc", displayName)).build());
+            OraxenPlugin.get().getAudience().player(player).sendActionBar(message);
+        }
+
         event.setCancelled(true);
     }
 

@@ -149,11 +149,10 @@ public class Glyph {
 
     public void verifyGlyph(List<Glyph> glyphs) {
         // Return on first run as files aren't generated yet
-        if (!Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath() + "/pack").toFile().exists()) return;
-        String namespace = getTexture().contains(":") ? "/pack/" + getTexture().split(":")[0] + "/textures" : "/pack/textures";
+        if (!Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath()).resolve("/pack").toFile().exists()) return;
+        String namespace = getTexture().contains(":") ? "pack/assets/" + getTexture().split(":")[0] + "textures/" : "pack/textures";
         final File texture = new File(OraxenPlugin.get().getDataFolder().getAbsolutePath() + namespace, getTexture());
         Map<Glyph, Boolean> sameCodeMap = glyphs.stream().filter(g -> g != this && g.getCode() == this.getCode()).collect(Collectors.toMap(g -> g, g -> true));
-
         // Check if the texture is a vanilla item texture and therefore not in oraxen, but the vanilla pack
         boolean isMinecraftNamespace = !getTexture().contains(":") || getTexture().split(":")[0].equals("minecraft");
         boolean isVanillaTexture = isMinecraftNamespace && materialNames.stream().anyMatch(name -> texture.getName().split("\\.")[0].toUpperCase().contains(name));
