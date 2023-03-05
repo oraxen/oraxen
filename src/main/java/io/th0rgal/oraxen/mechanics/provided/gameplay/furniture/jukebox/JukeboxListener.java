@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
+import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -12,10 +13,7 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.SoundCategory;
-import org.bukkit.Tag;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -36,6 +34,19 @@ import javax.annotation.Nullable;
 import static io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscListener.MUSIC_DISC_KEY;
 
 public class JukeboxListener implements Listener {
+
+    public JukeboxListener() {
+        if (OraxenPlugin.get().isPaperServer)
+            Bukkit.getPluginManager().registerEvents(new JukeboxPaperListener(), OraxenPlugin.get());
+    }
+
+    public class JukeboxPaperListener implements Listener {
+
+        @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+        public void onJukeboxBreak(BlockBreakBlockEvent event) {
+            ejectAndStopDisc(event.getBlock(), null);
+        }
+    }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onInsertDisc(PlayerInteractEvent event) {

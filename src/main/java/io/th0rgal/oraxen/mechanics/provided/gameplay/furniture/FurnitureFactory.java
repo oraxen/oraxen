@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxListener;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxPaperListener;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.List;
@@ -34,8 +33,6 @@ public class FurnitureFactory extends MechanicFactory {
         instance = this;
         customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("stringblock_and_furniture", true);
 
-        if (OraxenPlugin.get().isPaperServer())
-            MechanicsManager.registerListeners(OraxenPlugin.get(), new JukeboxPaperListener());
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureSoundListener());
     }
 

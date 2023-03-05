@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
+import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -52,6 +53,17 @@ public class StringBlockMechanicListener implements Listener {
     public StringBlockMechanicListener(final StringBlockMechanicFactory factory) {
         this.factory = factory;
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        if (OraxenPlugin.get().isPaperServer)
+            Bukkit.getPluginManager().registerEvents(new StringBlockMechanicPaperListener(), OraxenPlugin.get());
+    }
+
+    public class StringBlockMechanicPaperListener implements Listener {
+
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        public void onEnteringTripwire(EntityInsideBlockEvent event) {
+            if (event.getBlock().getType() == Material.TRIPWIRE)
+                event.setCancelled(true);
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

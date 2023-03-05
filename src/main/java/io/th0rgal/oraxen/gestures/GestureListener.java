@@ -1,5 +1,8 @@
 package io.th0rgal.oraxen.gestures;
 
+import com.destroystokyo.paper.event.player.PlayerJumpEvent;
+import io.th0rgal.oraxen.OraxenPlugin;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -13,6 +16,16 @@ public class GestureListener implements Listener {
 
     public GestureListener(GestureManager gestureManager) {
         this.gestureManager = gestureManager;
+        if (OraxenPlugin.get().isPaperServer)
+            Bukkit.getPluginManager().registerEvents(new GesturePaperListener(), OraxenPlugin.get());
+    }
+
+    public class GesturePaperListener implements Listener {
+
+        @EventHandler
+        public void onJump(PlayerJumpEvent event) {
+            quit(event.getPlayer(), QuitMethod.JUMP);
+        }
     }
 
     @EventHandler

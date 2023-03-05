@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
+import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -48,6 +49,24 @@ public class NoteBlockMechanicListener implements Listener {
 
     public NoteBlockMechanicListener() {
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        if (OraxenPlugin.get().isPaperServer)
+            Bukkit.getPluginManager().registerEvents(new NoteBlockMechanicPaperListener(), OraxenPlugin.get());
+    }
+
+    public static class NoteBlockMechanicPaperListener implements Listener {
+
+        @EventHandler
+        public void onFallingBlockLandOnCarpet(EntityRemoveFromWorldEvent event) {
+            if (!(event.getEntity() instanceof FallingBlock fallingBlock)) return;
+            NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(fallingBlock.getBlockData());
+            if (mechanic == null || Objects.equals(OraxenBlocks.getOraxenBlock(fallingBlock.getLocation()), mechanic)) return;
+            if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
+                mechanic = mechanic.getDirectional().getParentMechanic();
+
+            ItemStack itemStack = OraxenItems.getItemById(mechanic.getItemID()).build();
+            fallingBlock.setDropItem(false);
+            fallingBlock.getWorld().dropItemNaturally(fallingBlock.getLocation(), itemStack);
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

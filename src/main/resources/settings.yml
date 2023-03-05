@@ -18,6 +18,7 @@ Plugin:
     anvil: true # Formats the result item based on the Anvil Text made by any plugin
     signs: true # Formats text on signs when placed or edited
     chat: true # Formats text and glyphs in chat. Disable if using a chat-plugin and you are experiencing issues
+    books: true # Formats glyphs in books.
   worldedit: # Please note these are both experimental still and should be used with caution
     noteblock_mechanic: false
     stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property

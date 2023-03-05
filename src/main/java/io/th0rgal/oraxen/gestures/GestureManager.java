@@ -23,8 +23,6 @@ public class GestureManager {
         gesturingPlayers = new HashMap<>();
 
         Bukkit.getPluginManager().registerEvents(new GestureListener(this), OraxenPlugin.get());
-        if (OraxenPlugin.get().isPaperServer())
-            Bukkit.getPluginManager().registerEvents(new GesturePaperListener(this), OraxenPlugin.get());
     }
 
     public void playGesture(Player player, String gesture) {

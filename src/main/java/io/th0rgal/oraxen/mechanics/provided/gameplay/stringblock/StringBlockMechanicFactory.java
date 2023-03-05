@@ -52,8 +52,6 @@ public class StringBlockMechanicFactory extends MechanicFactory {
                                         "tripwire.json", getBlockstateContent())
         );
         MechanicsManager.registerListeners(OraxenPlugin.get(), new StringBlockMechanicListener(this), new SaplingListener());
-        if (OraxenPlugin.get().isPaperServer())
-            MechanicsManager.registerListeners(OraxenPlugin.get(), new StringBlockMechanicPaperListener());
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new StringBlockSoundListener());
     }
 
