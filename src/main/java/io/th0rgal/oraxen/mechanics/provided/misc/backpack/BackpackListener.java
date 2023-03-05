@@ -11,7 +11,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerSwapHandItemsEvent;
@@ -60,8 +60,8 @@ public class BackpackListener implements Listener {
 
     // Refresh close backpack if open to refresh with picked up items
     @EventHandler
-    public void onPickupItem(final PlayerAttemptPickupItemEvent event) {
-        Player player = event.getPlayer();
+    public void onPickupItem(final EntityPickupItemEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
         if (!(player.getOpenInventory().getTopInventory().getHolder() instanceof Gui)) return;
         closeBackpack(player);
         openBackpack(player);

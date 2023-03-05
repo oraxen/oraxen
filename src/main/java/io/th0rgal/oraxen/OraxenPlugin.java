@@ -60,6 +60,15 @@ public class OraxenPlugin extends JavaPlugin {
         Logs.enableFilter();
     }
 
+    public boolean isPaperServer() {
+        try {
+            Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     public static OraxenPlugin get() {
         return oraxen;
     }

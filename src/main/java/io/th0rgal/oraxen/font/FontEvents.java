@@ -90,7 +90,7 @@ public class FontEvents implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onSignGlyph(final SignChangeEvent event) {
         if (!Settings.FORMAT_SIGNS.toBool()) return;
 
@@ -120,7 +120,7 @@ public class FontEvents implements Listener {
         }
     }
 
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onPlayerChat(AsyncPlayerChatEvent event) {
         if (!Settings.FORMAT_CHAT.toBool()) return;
 
@@ -138,7 +138,7 @@ public class FontEvents implements Listener {
             if (entry.getValue().hasPermission(event.getPlayer()))
                 message = (manager.permsChatcolor == null)
                         ? message.replace(entry.getKey(),
-                        String.valueOf(entry.getValue().getCharacter()))
+                        ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter()))
                         : message.replace(entry.getKey(),
                         ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter())
                                 + PapiAliases.setPlaceholders(event.getPlayer(), manager.permsChatcolor));

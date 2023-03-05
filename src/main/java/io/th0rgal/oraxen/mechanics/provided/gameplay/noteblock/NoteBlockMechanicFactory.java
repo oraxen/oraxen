@@ -52,6 +52,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                 new NoteBlockMechanicListener(),
                 new LogStripListener()
         );
+        if (OraxenPlugin.get().isPaperServer())
+            MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockMechanicPaperListener());
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockSoundListener());
     }
 
