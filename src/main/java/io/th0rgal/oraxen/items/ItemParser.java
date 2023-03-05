@@ -60,11 +60,11 @@ public class ItemParser {
     }
 
     public boolean usesMMOItems() {
-        return type == null && crucibleItem == null;
+        return type == null && crucibleItem == null && mmoItem != null;
     }
 
     public boolean usesCrucibleItems() {
-        return type == null && mmoItem == null;
+        return type == null && mmoItem == null && crucibleItem != null;
     }
 
     private String parseComponentString(String miniString) {
