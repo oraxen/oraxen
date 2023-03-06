@@ -126,6 +126,7 @@ tasks {
             )
         }
         archiveFileName.set("oraxen-${pluginVersion}.jar")
+        minimize()
     }
 
     compileJava.get().dependsOn(clean)
