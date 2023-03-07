@@ -137,6 +137,7 @@ bukkit {
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.STARTUP
     main = "io.th0rgal.oraxen.OraxenPlugin"
     version = pluginVersion
+    name = "Oraxen"
     apiVersion = "1.18"
     authors = listOf("th0rgal", "boy0000")
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine")
