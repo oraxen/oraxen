@@ -61,7 +61,7 @@ dependencies {
 
     implementation("dev.triumphteam:triumph-gui:3.1.2")
     implementation("org.bstats:bstats-bukkit:3.0.0")
-    implementation("com.github.oraxen:protectionlib:1.2.1")
+    implementation("com.github.oraxen:protectionlib:1.2.3")
     implementation("net.kyori:adventure-text-minimessage:4.13.0-SNAPSHOT")
     implementation("net.kyori:adventure-text-serializer-plain:4.13.0-SNAPSHOT")
     implementation("net.kyori:adventure-text-serializer-legacy:4.13.0-SNAPSHOT")
@@ -128,6 +128,7 @@ tasks {
             )
         }
         archiveFileName.set("oraxen-${pluginVersion}.jar")
+        minimize()
     }
 
     compileJava.get().dependsOn(clean)
@@ -138,6 +139,7 @@ bukkit {
     load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.STARTUP
     main = "io.th0rgal.oraxen.OraxenPlugin"
     version = pluginVersion
+    name = "Oraxen"
     apiVersion = "1.18"
     authors = listOf("th0rgal", "boy0000")
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine")
