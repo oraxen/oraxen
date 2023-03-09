@@ -1,7 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.jeff_media.customblockdata.CustomBlockData;
-import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
@@ -39,7 +37,6 @@ import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.event.world.ChunkLoadEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -417,19 +414,6 @@ public class FurnitureListener implements Listener {
             if (armorStand.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
                 player.leaveVehicle();
             }
-        }
-    }
-
-    @EventHandler // Set rotation key of old furniture and its barriers
-    public void setMissingPDCKeys(ChunkLoadEvent event) {
-        for (Block block : CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), event.getChunk())) {
-            if (block.getType() != Material.BARRIER) continue;
-            PersistentDataContainer pdc = BlockHelpers.getPDC(block);
-            if (pdc.has(ROTATION_KEY, DataType.asEnum(Rotation.class))) continue;
-            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
-            if (mechanic == null) continue;
-            Rotation rotation = getRotation(pdc.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f), mechanic.hasBarriers() && mechanic.getBarriers().size() > 1);
-            pdc.set(ROTATION_KEY, DataType.asEnum(Rotation.class), rotation);
         }
     }
 
