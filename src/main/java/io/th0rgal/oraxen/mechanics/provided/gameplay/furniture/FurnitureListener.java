@@ -216,9 +216,11 @@ public class FurnitureListener implements Listener {
         if (event.getCause() == HangingBreakEvent.RemoveCause.ENTITY) return;
 
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
-        if (mechanic == null || mechanic.hasBarriers()) return;
+        if (mechanic == null) return;
 
         event.setCancelled(true);
+        if (mechanic.hasBarriers()) return;
+
         mechanic.removeAirFurniture(frame);
         mechanic.getDrop().spawns(frame.getLocation(), new ItemStack(Material.AIR));
     }
