@@ -18,6 +18,7 @@ Plugin:
     anvil: true # Formats the result item based on the Anvil Text made by any plugin
     signs: true # Formats text on signs when placed or edited
     chat: true # Formats text and glyphs in chat. Disable if using a chat-plugin and you are experiencing issues
+    books: true # Formats glyphs in books.
   worldedit: # Please note these are both experimental still and should be used with caution
     noteblock_mechanic: false
     stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
@@ -68,7 +69,6 @@ Pack:
   dispatch:
     send_pack: true
     send_on_reload: true
-    invulnerable_during_pack_loading: true
     delay: -1
     # this option requires ProtocolLib and will make the pack loading more fluid
     send_pack_advanced:
@@ -162,6 +162,9 @@ ConfigsTools:
 
 CustomArmor:
   disable_leather_repair: true # Makes custom armor not repairable with leather, only with copies of said custom armor
+
+Gestures:
+  enabled: true # Enabled gesture-mechanic and generates needed files
 
 Misc:
   # If this is set to true, Oraxen will reset recipes on reload. This might create conflicts with other plugins

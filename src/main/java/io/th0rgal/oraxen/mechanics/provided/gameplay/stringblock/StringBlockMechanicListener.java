@@ -53,6 +53,17 @@ public class StringBlockMechanicListener implements Listener {
     public StringBlockMechanicListener(final StringBlockMechanicFactory factory) {
         this.factory = factory;
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        if (OraxenPlugin.get().isPaperServer)
+            Bukkit.getPluginManager().registerEvents(new StringBlockMechanicPaperListener(), OraxenPlugin.get());
+    }
+
+    public class StringBlockMechanicPaperListener implements Listener {
+
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        public void onEnteringTripwire(EntityInsideBlockEvent event) {
+            if (event.getBlock().getType() == Material.TRIPWIRE)
+                event.setCancelled(true);
+        }
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -82,13 +93,6 @@ public class StringBlockMechanicListener implements Listener {
             Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
                     changed.setBlockData(data, false), 1L);
         }
-    }
-
-    // Paper Only
-    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-    public void onEnteringTripwire(EntityInsideBlockEvent event) {
-        if (event.getBlock().getType() == Material.TRIPWIRE)
-            event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

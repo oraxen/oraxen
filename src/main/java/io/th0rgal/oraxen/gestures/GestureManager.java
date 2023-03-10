@@ -4,6 +4,7 @@ import com.ticxo.playeranimator.api.PlayerAnimator;
 import com.ticxo.playeranimator.api.animation.pack.AnimationPack;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -19,10 +20,12 @@ public class GestureManager {
 
     public GestureManager(ConfigsManager configsManager) {
         this.configsManager = configsManager;
-        loadGestures();
-        gesturingPlayers = new HashMap<>();
+        if (Settings.GESTURES_ENABLED.toBool()) {
+            loadGestures();
+            gesturingPlayers = new HashMap<>();
 
-        Bukkit.getPluginManager().registerEvents(new GestureListener(this), OraxenPlugin.get());
+            Bukkit.getPluginManager().registerEvents(new GestureListener(this), OraxenPlugin.get());
+        }
     }
 
     public void playGesture(Player player, String gesture) {
@@ -104,6 +107,7 @@ public class GestureManager {
                 "assets/minecraft/models/required/player/leg.json", "{\"parent\":\"item/player_head\",\"display\":{\"thirdperson_righthand\":{\"rotation\":[90,180,0],\"translation\":[-1,-2,10],\"scale\":[0.46875,0.703125,0.46875]}}}"
         );
     }
+
     public String getSkullJson() {
         return """
                 {
@@ -121,6 +125,7 @@ public class GestureManager {
                    ]
                  }""";
     }
+
     public String getShaderFsh() {
         return """
                 #version 150
@@ -173,6 +178,7 @@ public class GestureManager {
                 }
                 """;
     }
+
     public String getShaderVsh() {
         return """
                 #version 150
@@ -385,6 +391,7 @@ public class GestureManager {
                                 
                 """;
     }
+
     public String getShaderJson() {
         return """
                 {
