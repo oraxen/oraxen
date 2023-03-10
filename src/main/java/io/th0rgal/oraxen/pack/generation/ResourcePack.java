@@ -99,7 +99,8 @@ public class ResourcePack {
         generatePredicates(texturedItems);
         generateFont(fontManager);
         generateSound(soundManager);
-        generateGestureFiles();
+        if (Settings.GESTURES_ENABLED.toBool())
+            generateGestureFiles();
 
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)

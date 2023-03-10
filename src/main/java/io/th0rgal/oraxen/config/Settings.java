@@ -35,6 +35,7 @@ public enum Settings {
     ERROR_ITEM("ConfigsTools.error_item"),
 
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
+    GESTURES_ENABLED("Gestures.enabled"),
 
     RESET_RECIPES("Misc.reset_recipes"),
     ADD_RECIPES_TO_BOOK("Misc.add_recipes_to_book"),
