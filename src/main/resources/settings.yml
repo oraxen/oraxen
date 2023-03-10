@@ -163,6 +163,9 @@ ConfigsTools:
 CustomArmor:
   disable_leather_repair: true # Makes custom armor not repairable with leather, only with copies of said custom armor
 
+Gestures:
+  enabled: true # Enabled gesture-mechanic and generates needed files
+
 Misc:
   # If this is set to true, Oraxen will reset recipes on reload. This might create conflicts with other plugins
   # but this makes the things easier if you want to try your oraxen recipes.
