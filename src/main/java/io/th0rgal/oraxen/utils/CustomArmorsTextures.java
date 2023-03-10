@@ -148,6 +148,12 @@ public class CustomArmorsTextures {
             setPixel(image.getRaster(), 2, 0, Color.fromRGB(1, 0, 0));
         }
 
+        if(image.getColorModel().getPixelSize() < 32) {
+            int width = image.getWidth(), height = image.getHeight();
+            Image resizedImage = original.getScaledInstance(width, height, Image.SCALE_DEFAULT);
+            image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+            image.getGraphics().drawImage(resizedImage, 0, 0, null);
+        }
         addPixel(image, builder, name, prefix, isAnimated);
 
         return true;
