@@ -160,6 +160,7 @@ public class FontManager {
     }
 
     public void sendGlyphTabCompletion(Player player, boolean add) {
+        boolean useUnicodeCompletions = Settings.UNICODE_COMPLETIONS.toBool();
         if (PacketType.Play.Server.CUSTOM_CHAT_COMPLETIONS.isSupported()) {
             PacketContainer packet = new PacketContainer(PacketType.Play.Server.CUSTOM_CHAT_COMPLETIONS);
 
@@ -167,7 +168,7 @@ public class FontManager {
             packet.getModifier().write(0, constants[(add) ? 0 : 1]);
             packet.getModifier().write(1, getGlyphByPlaceholderMap().values().stream()
                 .filter(Glyph::hasTabCompletion)
-                .flatMap(glyph -> glyph.hasTabCompletionWithUnicodes()
+                .flatMap(glyph -> useUnicodeCompletions
                     ? Stream.of(String.valueOf(glyph.getCharacter()))
                     : Arrays.stream(glyph.getPlaceholders()))
                 .toList());
@@ -180,7 +181,7 @@ public class FontManager {
 
                 packet.getPlayerInfoAction().write(0, (add) ? EnumWrappers.PlayerInfoAction.ADD_PLAYER : EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
 
-                List<WrappedGameProfile> profiles = glyph.hasTabCompletionWithUnicodes()
+                List<WrappedGameProfile> profiles = useUnicodeCompletions
                     ? Collections.singletonList(getGameProfileForCompletion(String.valueOf(glyph.getCharacter())))
                     : Arrays.stream(glyph.getPlaceholders())
                         .map(this::getGameProfileForCompletion)
