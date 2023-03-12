@@ -103,6 +103,7 @@ public class HudManager {
 
         String hudDisplay = parsedHudDisplays.get(hud);
         hudDisplay = translatePlaceholdersForHudDisplay(player, hudDisplay);
+        hudDisplay = AdventureUtils.parseLegacy(hudDisplay);
         OraxenPlugin.get().getAudience().player(player).sendActionBar(AdventureUtils.MINI_MESSAGE.deserialize(hudDisplay));
     }
 

@@ -54,10 +54,21 @@ public class OraxenPlugin extends JavaPlugin {
     private ResourcePack resourcePack;
     private ClickActionManager clickActionManager;
     private ProtocolManager protocolManager;
+    public final boolean isPaperServer;
 
     public OraxenPlugin() throws NoSuchFieldException, IllegalAccessException {
         oraxen = this;
+        isPaperServer = isPaperServer();
         Logs.enableFilter();
+    }
+
+    private boolean isPaperServer() {
+        try {
+            Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     public static OraxenPlugin get() {
@@ -95,7 +106,7 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
-        gestureManager = new GestureManager(configsManager);
+        gestureManager = new GestureManager();
         OraxenItems.loadItems(configsManager);
         io.th0rgal.oraxen.items.OraxenItems.loadItems(configsManager);
         fontManager.registerEvents();

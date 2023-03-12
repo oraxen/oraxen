@@ -5,6 +5,7 @@ import java.util.List;
 
 public enum RemovedSettings {
     CONVERT_PACK_FOR_1_19_3("Plugin.experimental.convert_pack_for_1_19_3"),
+    INVULNERABLE_DURING_PACK_LOADING("Pack.dispatch.invulnerable_during_pack_loading")
     ;
 
     private final String path;

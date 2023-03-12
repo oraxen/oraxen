@@ -23,6 +23,7 @@ public enum Settings {
     FORMAT_ANVIL("Plugin.formatting.anvil"),
     FORMAT_SIGNS("Plugin.formatting.signs"),
     FORMAT_CHAT("Plugin.formatting.chat"),
+    FORMAT_BOOKS("Plugin.formatting.books"),
     MERGE_ITEM_MODELS("Plugin.experimental.merge_item_base_models"),
     MERGE_FONTS("Plugin.experimental.merge_font_files"),
 
@@ -34,6 +35,7 @@ public enum Settings {
     ERROR_ITEM("ConfigsTools.error_item"),
 
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
+    GESTURES_ENABLED("Gestures.enabled"),
 
     RESET_RECIPES("Misc.reset_recipes"),
     ADD_RECIPES_TO_BOOK("Misc.add_recipes_to_book"),
@@ -66,7 +68,6 @@ public enum Settings {
 
     SEND_PACK("Pack.dispatch.send_pack"),
     SEND_ON_RELOAD("Pack.dispatch.send_on_reload"),
-    INVULNERABLE_DURING_PACK_LOADING("Pack.dispatch.invulnerable_during_pack_loading"),
     SEND_PACK_DELAY("Pack.dispatch.delay"),
     SEND_PACK_ADVANCED("Pack.dispatch.send_pack_advanced.enabled"),
     SEND_PACK_ADVANCED_MANDATORY("Pack.dispatch.send_pack_advanced.mandatory"),
