@@ -81,12 +81,13 @@ public class StringBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR)
     public void tripwireEvent(BlockPhysicsEvent event) {
-        if (event.getChangedType() == Material.TRIPWIRE)
-            event.setCancelled(true);
+        Block block = event.getBlock();
+        if (event.getChangedType() != Material.TRIPWIRE) return;
+        event.setCancelled(true);
 
         for (BlockFace f : BlockFace.values()) {
             if (!f.isCartesian() || f.getModY() != 0 || f == BlockFace.SELF) continue; // Only take N/S/W/E
-            final Block changed = event.getBlock().getRelative(f);
+            final Block changed = block.getRelative(f);
             if (changed.getType() != Material.TRIPWIRE) continue;
 
             final BlockData data = changed.getBlockData().clone();
@@ -109,7 +110,7 @@ public class StringBlockMechanicListener implements Listener {
         if (placedBlock.getType() != Material.TRIPWIRE || OraxenItems.exists(event.getItemInHand()))
             return;
         // Placing string, meant for the first blockstate as invisible string
-        placedBlock.setBlockData(Bukkit.createBlockData(Material.TRIPWIRE), false);
+        placedBlock.setBlockData(Bukkit.createBlockData(Material.TRIPWIRE), true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -162,6 +163,8 @@ public class StringBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPrePlacingCustomBlock(final PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getHand() != EquipmentSlot.HAND) return;
+
         final ItemStack item = event.getItem();
         final String itemID = OraxenItems.getIdByItem(item);
         final Block placedAgainst = event.getClickedBlock();
@@ -178,10 +181,8 @@ public class StringBlockMechanicListener implements Listener {
             for (BlockFace face : BlockFace.values()) {
                 if (!face.isCartesian() || face.getModZ() != 0) continue;
                 final Block relative = placedAgainst.getRelative(face);
-                if (relative.getType() == Material.NOTE_BLOCK)
-                    if (OraxenBlocks.getNoteBlockMechanic(relative) == null) continue;
-                if (relative.getType() == Material.TRIPWIRE)
-                    if (OraxenBlocks.getStringMechanic(relative) == null) continue;
+                if (OraxenBlocks.getNoteBlockMechanic(relative) == null) continue;
+                if (OraxenBlocks.getStringMechanic(relative) == null) continue;
                 if (item.getItemMeta() instanceof BlockStateMeta) continue;
                 if (item.getType().hasGravity()) continue;
                 if (item.getType().toString().endsWith("SLAB")) continue;
@@ -239,15 +240,12 @@ public class StringBlockMechanicListener implements Listener {
             }
 
             event.setCancelled(true);
-            if (clicked == null)
-                return;
+            if (clicked == null || clicked.getType().isInteractable()) return;
+
             Material type = clicked.getType();
-            if (clicked.getType().isInteractable())
-                return;
-            if (type == Material.LAVA_BUCKET)
-                type = Material.LAVA;
-            if (type == Material.WATER_BUCKET)
-                type = Material.WATER;
+            if (type == Material.LAVA_BUCKET) type = Material.LAVA;
+            else if (type == Material.WATER_BUCKET) type = Material.WATER;
+
             if (type.isBlock())
                 makePlayerPlaceBlock(event.getPlayer(), event.getHand(), event.getItem(), block, event.getBlockFace(), Bukkit.createBlockData(type));
         }
@@ -268,7 +266,7 @@ public class StringBlockMechanicListener implements Listener {
                     for (ItemStack item : block.getDrops())
                         if (item.getType() != Material.AIR)
                             player.getWorld().dropItemNaturally(block.getLocation(), item);
-                block.setType(Material.AIR, false);
+                block.setType(Material.AIR, true);
                 if (BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) blockAbove.breakNaturally();
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
                         fixClientsideUpdate(block.getLocation()), 1);
