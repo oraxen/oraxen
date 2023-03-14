@@ -325,7 +325,7 @@ public class FurnitureMechanic extends Mechanic {
             item = clone;
         } else item = placedItem;
 
-        Entity baseEntity = location.getWorld().spawn(location, entityClass, (entity) ->
+        Entity baseEntity = location.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), entityClass, (entity) ->
                 setEntityData(entity, item, rotation, facing));
 
         if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
@@ -369,14 +369,20 @@ public class FurnitureMechanic extends Mechanic {
         if (properties.hasTrackingRotation()) itemDisplay.setBillboard(properties.getTrackingRotation());
         if (properties.hasShadowRadius()) itemDisplay.setShadowRadius(properties.getShadowRadius());
         if (properties.hasShadowStrength()) itemDisplay.setShadowStrength(properties.getShadowStrength());
+        if (properties.hasWidth()) itemDisplay.setDisplayWidth(properties.getWidth());
+        if (properties.hasHeight()) itemDisplay.setDisplayHeight(properties.getHeight());
         if (properties.hasGlowColor()) itemDisplay.setGlowColorOverride(properties.getGlowColor());
-        //TODO Should this be light mechanic or new property?
         if (properties.hasBrightness()) itemDisplay.setBrightness(displayEntityProperties.getBrightness());
         else if (light != -1) itemDisplay.setBrightness(new Display.Brightness(light, 0));
+
         itemDisplay.setItemStack(item);
         itemDisplay.setRotation(rotationToYaw(rotation), 0f);
 
-
+        itemDisplay.getWorld().spawn(itemDisplay.getLocation(), Interaction.class, (Interaction interaction) -> {
+            if (properties.hasWidth()) interaction.setInteractionWidth(properties.getWidth());
+            if (properties.hasHeight()) interaction.setInteractionHeight(properties.getHeight());
+            interaction.setResponsive(properties.isInteractable());
+        });
     }
 
     private void setFrameData(ItemFrame frame, ItemStack item, BlockFace facing, Rotation rotation) {
