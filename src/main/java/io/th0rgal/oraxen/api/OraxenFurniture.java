@@ -17,6 +17,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
+import java.util.stream.Collectors;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.FURNITURE_KEY;
 
@@ -55,7 +56,7 @@ public class OraxenFurniture {
     public static boolean place(Location location, String itemID, Rotation rotation, BlockFace blockFace, @Nullable Player player) {
         FurnitureMechanic mechanic = (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
         if (mechanic == null) return false;
-        return mechanic.place(rotation, mechanic.getYaw(rotation), blockFace, location) != null;
+        return mechanic.place(rotation, mechanic.rotationToYaw(rotation), blockFace, location) != null;
     }
 
     /**
@@ -85,37 +86,38 @@ public class OraxenFurniture {
         ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
         if (mechanic == null) return false;
 
-        ItemFrame itemFrame = mechanic.getBaseEntity(block);
-        if (itemFrame == null) return false;
+        Entity baseEntity = mechanic.getBaseEntity(block);
+        if (baseEntity == null) return false;
 
         if (mechanic.removeSolid(block) && (!mechanic.isStorage() || !mechanic.getStorage().isShulker())) {
             if (player != null && player.getGameMode() != GameMode.CREATIVE)
-                mechanic.getDrop().furnitureSpawns(itemFrame, itemStack);
+                mechanic.getDrop().furnitureSpawns(baseEntity, itemStack);
         }
         if (mechanic.hasBarriers())
-            mechanic.removeSolid(itemFrame.getWorld(), new BlockLocation(itemFrame.getLocation()), mechanic.getYaw(itemFrame.getRotation()));
-        else mechanic.removeAirFurniture(itemFrame);
+            for (Block barrier : mechanic.getBarriers().stream().map(blockLoc -> blockLoc.toLocation(baseEntity.getWorld()).getBlock()).collect(Collectors.toSet()))
+                mechanic.removeSolid(barrier);
+        else mechanic.removeAirFurniture(baseEntity);
         return true;
     }
 
     /**
      * Removes Furniture at a given Entity, optionally by a player
      *
-     * @param entity The entity at which the Furniture should be removed
+     * @param baseEntity The entity at which the Furniture should be removed
      * @param player The player who removed the Furniture, can be null
      * @return true if the Furniture was removed, false otherwise
      */
-    public static boolean remove(Entity entity, @Nullable Player player) {
-        FurnitureMechanic mechanic = getFurnitureMechanic(entity);
-        if (mechanic == null || !(entity instanceof ItemFrame itemFrame)) return false;
+    public static boolean remove(Entity baseEntity, @Nullable Player player) {
+        FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
+        if (mechanic == null || baseEntity.getType() != mechanic.getFurnitureEntityType()) return false;
         ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
 
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
-            mechanic.getDrop().furnitureSpawns(itemFrame, itemStack);
+            mechanic.getDrop().furnitureSpawns(baseEntity, itemStack);
 
         if (mechanic.hasBarriers())
-            mechanic.removeSolid(itemFrame.getWorld(), new BlockLocation(itemFrame.getLocation()), mechanic.getYaw(itemFrame.getRotation()));
-        else mechanic.removeAirFurniture(itemFrame);
+            mechanic.removeSolid(baseEntity.getWorld(), new BlockLocation(baseEntity.getLocation()), mechanic.getFurnitureYaw(baseEntity));
+        else mechanic.removeAirFurniture(baseEntity);
         return true;
     }
 

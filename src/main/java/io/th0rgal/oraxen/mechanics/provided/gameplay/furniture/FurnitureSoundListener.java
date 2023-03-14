@@ -128,12 +128,12 @@ public class FurnitureSoundListener implements Listener {
         if (mechanic == null || !mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
         if (blockSounds.hasPlaceSound())
-            BlockHelpers.playCustomBlockSound(event.getItemFrame().getLocation(), blockSounds.getPlaceSound(), blockSounds.getPlaceVolume(), blockSounds.getPlacePitch());
+            BlockHelpers.playCustomBlockSound(event.getBaseEntity().getLocation(), blockSounds.getPlaceSound(), blockSounds.getPlaceVolume(), blockSounds.getPlacePitch());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreakingFurniture(final OraxenFurnitureBreakEvent event) {
-        Location loc = event.getBlock() != null ? event.getBlock().getLocation() : event.getItemFrame().getLocation();
+        Location loc = event.getBlock() != null ? event.getBlock().getLocation() : event.getBaseEntity().getLocation();
         final FurnitureMechanic mechanic = event.getMechanic();
         if (mechanic == null || !mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
