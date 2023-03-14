@@ -266,9 +266,9 @@ public class FurnitureMechanic extends Mechanic {
         assert location.getWorld() != null;
         ItemFrame itemFrame = furnitureType == FurnitureType.GLOW_ITEM_FRAME
                 ? location.getWorld().spawn(location, GlowItemFrame.class, (GlowItemFrame frame) ->
-                setFrameData(frame, item, rotation, facing))
+                setFrameData(frame, item, facing))
                 : location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) ->
-                setFrameData(frame, item, rotation, facing));
+                setFrameData(frame, item, facing));
 
         if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
             spawnModelEngineFurniture(itemFrame, yaw);
@@ -282,27 +282,62 @@ public class FurnitureMechanic extends Mechanic {
         return itemFrame;
     }
 
-    private void setFrameData(ItemFrame frame, ItemStack item, Rotation rotation, BlockFace facing) {
-        frame.setVisible(false);
-        frame.setFixed(false);
-        frame.setPersistent(true);
-        frame.setItemDropChance(0);
+    public Entity placeBase(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack originalItem) {
+        if (!location.isWorldLoaded()) return null;
+        if (this.notEnoughSpace(yaw, location)) return null;
+        assert location.getWorld() != null;
+        setPlacedItem();
+        assert location.getWorld() != null;
+
+        Class<? extends Entity> entityClass = getFurnitureEntityType().getEntityClass();
+        if (entityClass == null) entityClass = ItemFrame.class;
+
+        Entity baseEntity = location.getWorld().spawn(location, entityClass, (entity) ->
+                setEntityData(entity, getFurnitureItem(originalItem), rotation, facing));
+        return baseEntity;
+    }
+
+    private ItemStack getFurnitureItem(ItemStack originalItem) {
         if (evolvingFurniture == null) {
-            ItemStack clone = item.clone();
+            ItemStack clone = originalItem.clone();
             ItemMeta meta = clone.getItemMeta();
             if (meta != null) meta.setDisplayName("");
             clone.setItemMeta(meta);
-            frame.setItem(clone, false);
-        } else frame.setItem(placedItem, false);
-        frame.setRotation(rotation);
-        frame.setFacingDirection(facing, true);
+            return clone;
+        } else return placedItem;
+    }
 
-        PersistentDataContainer pdc = frame.getPersistentDataContainer();
+    private void setEntityData(Entity entity, ItemStack item, Rotation rotation, BlockFace facing) {
+        setBaseFurnitureData(entity, rotation);
+        if (entity instanceof ItemFrame frame) {
+            setFrameData(frame, item, facing);
+        } else if (entity instanceof ItemDisplay itemDisplay) {
+            setItemDisplayData(itemDisplay, item);
+        }
+    }
+
+    private void setBaseFurnitureData(Entity entity, Rotation rotation) {
+        entity.setRotation(getYaw(rotation), 0);
+        entity.setInvulnerable(true);
+        entity.setPersistent(true);
+        PersistentDataContainer pdc = entity.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
         if (hasEvolution()) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
         if (isStorage()) if (getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
         }
+    }
+
+    private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item) {
+        itemDisplay.setBrightness(new Display.Brightness(light, 0));
+        itemDisplay.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+        itemDisplay.setItemStack(item);
+    }
+
+    private void setFrameData(ItemFrame frame, ItemStack item, BlockFace facing) {
+        frame.setVisible(false);
+        frame.setItemDropChance(0);
+        frame.setFacingDirection(facing, true);
 
         if (frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
