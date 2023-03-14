@@ -63,6 +63,7 @@ public class FurnitureMechanic extends Mechanic {
     private float seatYaw;
     private final List<ClickAction> clickActions;
     private FurnitureType furnitureType;
+    private ItemDisplay.ItemDisplayTransform displayTransform;
 
     public enum FurnitureType {
         ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY//, ARMOR_STAND
@@ -83,6 +84,14 @@ public class FurnitureMechanic extends Mechanic {
             Logs.logError("Use of illegal EntityType in " + getItemID() + " furniture.");
             Logs.logError("Allowed ones are: " + Arrays.stream(FurnitureType.values()).toList().stream().map(Enum::name));
             furnitureType = FurnitureType.ITEM_FRAME;
+        }
+
+        try {
+            displayTransform = ItemDisplay.ItemDisplayTransform.valueOf(section.getString("display_transform", ItemDisplay.ItemDisplayTransform.NONE.name()));
+        } catch (IllegalArgumentException e) {
+            Logs.logError("Use of illegal ItemDisplayTransform in " + getItemID() + " furniture.");
+            Logs.logError("Allowed ones are: " + Arrays.stream(ItemDisplay.ItemDisplayTransform.values()).toList().stream().map(Enum::name));
+            displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
         }
 
         barriers = new ArrayList<>();
