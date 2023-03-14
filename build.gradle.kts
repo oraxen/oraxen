@@ -55,7 +55,7 @@ dependencies {
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
     compileOnly("commons-io:commons-io:2.11.0")
     compileOnly("com.ticxo:modelengine:R3.0.1")
-    compileOnly(fileTree(mapOf("dir" to "libs/compile", "include" to listOf("*.jar"))))
+    compileOnly(fileTree(mapOf("dir" to "libs/compile", "include" to listOf("*.jar").filter { "commandapi" in it.toLowerCase() })))
 
     implementation("dev.triumphteam:triumph-gui:3.1.2")
     implementation("org.bstats:bstats-bukkit:3.0.0")

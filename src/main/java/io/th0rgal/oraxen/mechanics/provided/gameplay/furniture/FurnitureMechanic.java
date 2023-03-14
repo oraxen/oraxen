@@ -265,8 +265,18 @@ public class FurnitureMechanic extends Mechanic {
         return place(Rotation.NONE, rotationToYaw(Rotation.NONE), BlockFace.NORTH, location, placedItem);
     }
 
+    public Entity placeBase(Location location) {
+        setPlacedItem();
+        return place(Rotation.NONE, rotationToYaw(Rotation.NONE), BlockFace.NORTH, location, placedItem);
+    }
+
     @Deprecated(forRemoval = true, since = "1.154.0")
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location) {
+        setPlacedItem();
+        return place(rotation, yaw, facing, location, placedItem);
+    }
+
+    public Entity placeBase(Rotation rotation, float yaw, BlockFace facing, Location location) {
         setPlacedItem();
         return place(rotation, yaw, facing, location, placedItem);
     }
@@ -318,6 +328,10 @@ public class FurnitureMechanic extends Mechanic {
         Entity baseEntity = location.getWorld().spawn(location, entityClass, (entity) ->
                 setEntityData(entity, item, rotation, facing));
 
+        if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
+            spawnModelEngineFurniture(baseEntity, yaw);
+        }
+
         return baseEntity;
     }
 
@@ -332,7 +346,7 @@ public class FurnitureMechanic extends Mechanic {
             else if (light != -1)
                 WrappedLightAPI.createBlockLight(location, light);
         } else if (entity instanceof ItemDisplay itemDisplay) {
-            setItemDisplayData(itemDisplay, item, getDisplayEntityProperties());
+            setItemDisplayData(itemDisplay, item, rotation, getDisplayEntityProperties());
         }
     }
 
@@ -347,7 +361,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, DisplayEntityProperties properties) {
+    private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Rotation rotation, DisplayEntityProperties properties) {
         itemDisplay.setItemDisplayTransform(properties.getTransform());
         if (properties.hasSpecifiedViewRange()) itemDisplay.setViewRange(properties.getViewRange());
         if (properties.hasInterpolationDuration()) itemDisplay.setInterpolationDuration(properties.getInterpolationDuration());
@@ -360,7 +374,7 @@ public class FurnitureMechanic extends Mechanic {
         if (properties.hasBrightness()) itemDisplay.setBrightness(displayEntityProperties.getBrightness());
         else if (light != -1) itemDisplay.setBrightness(new Display.Brightness(light, 0));
         itemDisplay.setItemStack(item);
-        itemDisplay.setRotation(getFurnitureYaw(itemDisplay), 0f);
+        itemDisplay.setRotation(rotationToYaw(rotation), 0f);
 
 
     }
@@ -587,11 +601,11 @@ public class FurnitureMechanic extends Mechanic {
                 .allMatch(BlockHelpers.REPLACEABLE_BLOCKS::contains);
     }
 
-    public float getFurnitureYaw(Entity entity) {
+    public static float getFurnitureYaw(Entity entity) {
         return entity.getLocation().getYaw();
     }
 
-    public float rotationToYaw(Rotation rotation) {
+    public static float rotationToYaw(Rotation rotation) {
         return (Arrays.asList(Rotation.values()).indexOf(rotation) * 360f) / 8f;
     }
 

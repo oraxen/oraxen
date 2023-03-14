@@ -53,10 +53,17 @@ public class OraxenFurniture {
      * @param player   The player who places the Furniture, can be null
      * @return true if the Furniture was placed, false otherwise
      */
+    @Deprecated(forRemoval = true, since = "1.154.0")
     public static boolean place(Location location, String itemID, Rotation rotation, BlockFace blockFace, @Nullable Player player) {
         FurnitureMechanic mechanic = (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
         if (mechanic == null) return false;
-        return mechanic.place(rotation, mechanic.rotationToYaw(rotation), blockFace, location) != null;
+        return mechanic.place(rotation, FurnitureMechanic.rotationToYaw(rotation), blockFace, location) != null;
+    }
+
+    public static boolean place(Location location, String itemID, Rotation rotation, BlockFace blockFace) {
+        FurnitureMechanic mechanic = (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
+        if (mechanic == null) return false;
+        return mechanic.placeBase(rotation, FurnitureMechanic.rotationToYaw(rotation), blockFace, location) != null;
     }
 
     /**
@@ -67,10 +74,17 @@ public class OraxenFurniture {
      * @param player   The player who places the Furniture, can be null
      * @return true if the Furniture was placed, false otherwise
      */
+    @Deprecated(forRemoval = true, since = "1.154.0")
     public static boolean place(Location location, String itemID, @Nullable Player player) {
         FurnitureMechanic mechanic = (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
         if (mechanic == null) return false;
         return mechanic.place(location) != null;
+    }
+
+    public static boolean place(Location location, String itemID) {
+        FurnitureMechanic mechanic = (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
+        if (mechanic == null) return false;
+        return mechanic.placeBase(location) != null;
     }
 
     /**
@@ -95,7 +109,7 @@ public class OraxenFurniture {
         }
         if (mechanic.hasBarriers())
             for (Block barrier : mechanic.getBarriers().stream().map(blockLoc -> blockLoc.toLocation(baseEntity.getWorld()).getBlock()).collect(Collectors.toSet()))
-                mechanic.removeSolid(barrier);
+                if (block.getType() == Material.BARRIER) mechanic.removeSolid(barrier);
         else mechanic.removeAirFurniture(baseEntity);
         return true;
     }
@@ -116,7 +130,7 @@ public class OraxenFurniture {
             mechanic.getDrop().furnitureSpawns(baseEntity, itemStack);
 
         if (mechanic.hasBarriers())
-            mechanic.removeSolid(baseEntity.getWorld(), new BlockLocation(baseEntity.getLocation()), mechanic.getFurnitureYaw(baseEntity));
+            mechanic.removeSolid(baseEntity.getWorld(), new BlockLocation(baseEntity.getLocation()), FurnitureMechanic.getFurnitureYaw(baseEntity));
         else mechanic.removeAirFurniture(baseEntity);
         return true;
     }
