@@ -2,7 +2,7 @@ package io.th0rgal.oraxen.api.events;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.block.Block;
-import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -16,14 +16,14 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
     private final FurnitureMechanic mechanic;
     private final Block block;
     private final Player player;
-    private final ItemFrame itemFrame;
+    private final Entity baseEntity;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurnitureBreakEvent(FurnitureMechanic mechanic, Player player, @Nullable Block block, ItemFrame itemFrame) {
+    public OraxenFurnitureBreakEvent(FurnitureMechanic mechanic, Player player, @Nullable Block block, Entity baseEntity) {
         this.block = block;
         this.mechanic = mechanic;
         this.player = player;
-        this.itemFrame = itemFrame;
+        this.baseEntity = baseEntity;
     }
 
     /**
@@ -52,8 +52,8 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
     /**
      * @return The ItemFrame the furniture is inmechanic
      */
-    public ItemFrame getItemFrame() {
-        return itemFrame;
+    public Entity getBaseEntity() {
+        return baseEntity;
     }
 
     @Override
