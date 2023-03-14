@@ -369,18 +369,18 @@ public class FurnitureMechanic extends Mechanic {
         if (properties.hasTrackingRotation()) itemDisplay.setBillboard(properties.getTrackingRotation());
         if (properties.hasShadowRadius()) itemDisplay.setShadowRadius(properties.getShadowRadius());
         if (properties.hasShadowStrength()) itemDisplay.setShadowStrength(properties.getShadowStrength());
-        if (properties.hasWidth()) itemDisplay.setDisplayWidth(properties.getWidth());
-        if (properties.hasHeight()) itemDisplay.setDisplayHeight(properties.getHeight());
         if (properties.hasGlowColor()) itemDisplay.setGlowColorOverride(properties.getGlowColor());
         if (properties.hasBrightness()) itemDisplay.setBrightness(displayEntityProperties.getBrightness());
         else if (light != -1) itemDisplay.setBrightness(new Display.Brightness(light, 0));
 
+        itemDisplay.setDisplayWidth(properties.getWidth());
+        itemDisplay.setDisplayHeight(properties.getHeight());
         itemDisplay.setItemStack(item);
         itemDisplay.setRotation(rotationToYaw(rotation), 0f);
 
         itemDisplay.getWorld().spawn(itemDisplay.getLocation(), Interaction.class, (Interaction interaction) -> {
-            if (properties.hasWidth()) interaction.setInteractionWidth(properties.getWidth());
-            if (properties.hasHeight()) interaction.setInteractionHeight(properties.getHeight());
+            interaction.setInteractionWidth(properties.getWidth());
+            interaction.setInteractionHeight(properties.getHeight());
             interaction.setResponsive(properties.isInteractable());
         });
     }

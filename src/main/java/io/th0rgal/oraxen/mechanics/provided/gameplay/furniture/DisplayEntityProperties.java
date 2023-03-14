@@ -19,8 +19,8 @@ public class DisplayEntityProperties {
     private Float shadowRadius;
     private Integer interpolationDuration;
     private Integer interpolationDelay;
-    private Float width;
-    private Float height;
+    private final float width;
+    private final float height;
     private final boolean isInteractable;
 
 
@@ -34,16 +34,14 @@ public class DisplayEntityProperties {
         interpolationDelay = configSection.getInt("interpolation_delay");
         shadowStrength = (float) configSection.getDouble("shadow_strength");
         shadowRadius = (float) configSection.getDouble("shadow_radius");
-        width = (float) configSection.getDouble("width");
-        height = (float) configSection.getDouble("height");
+        width = (float) configSection.getDouble("width", 1.0);
+        height = (float) configSection.getDouble("height", 1.0);
 
         if (viewRange == 0) viewRange = null;
         if (interpolationDuration == 0) interpolationDuration = null;
         if (interpolationDelay == 0) interpolationDelay = null;
         if (shadowStrength == 0f) shadowStrength = null;
         if (shadowRadius == 0f) shadowRadius = null;
-        if (width == 0f) width = null;
-        if (height == 0f) height = null;
 
         try {
             transform = ItemDisplay.ItemDisplayTransform.valueOf(configSection.getString("display_transform", ItemDisplay.ItemDisplayTransform.NONE.name()));
@@ -87,9 +85,7 @@ public class DisplayEntityProperties {
     public float getShadowStrength() { return shadowStrength; }
     public boolean hasShadowRadius() { return shadowRadius != null; }
     public float getShadowRadius() { return shadowRadius; }
-    public boolean hasWidth() { return width != null; }
     public float getWidth() { return width; }
-    public boolean hasHeight() { return height != null; }
     public float getHeight() { return height; }
     public boolean isInteractable() { return isInteractable; }
 }
