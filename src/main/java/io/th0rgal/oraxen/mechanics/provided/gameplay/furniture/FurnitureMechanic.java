@@ -63,7 +63,7 @@ public class FurnitureMechanic extends Mechanic {
     private float seatYaw;
     private final List<ClickAction> clickActions;
     private FurnitureType furnitureType;
-    private ItemDisplay.ItemDisplayTransform displayTransform;
+    private final DisplayEntityProperties displayEntityProperties;
 
     public enum FurnitureType {
         ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY//, ARMOR_STAND
@@ -80,19 +80,22 @@ public class FurnitureMechanic extends Mechanic {
 
         try {
             furnitureType = FurnitureType.valueOf(section.getString("type", FurnitureType.ITEM_FRAME.name()));
+            if (furnitureType == FurnitureType.DISPLAY_ENTITY && !OraxenPlugin.get().supportsDisplayEntities()) {
+                Logs.logError("Use of Display Entity on unsupported server version.");
+                Logs.logError("This EntityType is only supported on 1.19.4 and above.");
+                Logs.logError("Setting type to ITEM_FRAME.");
+                furnitureType = FurnitureType.ITEM_FRAME;
+            }
         } catch (IllegalArgumentException e) {
             Logs.logError("Use of illegal EntityType in " + getItemID() + " furniture.");
             Logs.logError("Allowed ones are: " + Arrays.stream(FurnitureType.values()).toList().stream().map(Enum::name));
+            Logs.logError("Setting type to ITEM_FRAME.");
             furnitureType = FurnitureType.ITEM_FRAME;
         }
-
-        try {
-            displayTransform = ItemDisplay.ItemDisplayTransform.valueOf(section.getString("display_transform", ItemDisplay.ItemDisplayTransform.NONE.name()));
-        } catch (IllegalArgumentException e) {
-            Logs.logError("Use of illegal ItemDisplayTransform in " + getItemID() + " furniture.");
-            Logs.logError("Allowed ones are: " + Arrays.stream(ItemDisplay.ItemDisplayTransform.values()).toList().stream().map(Enum::name));
-            displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
-        }
+        ConfigurationSection displayEntitySection = section.getConfigurationSection("display_entity_properties");
+        displayEntityProperties = OraxenPlugin.get().supportsDisplayEntities() && displayEntitySection != null
+                ? new DisplayEntityProperties(displayEntitySection)
+                : null;
 
         barriers = new ArrayList<>();
         if (CompatibilitiesManager.hasPlugin("ProtocolLib")) {
@@ -256,11 +259,13 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
+    @Deprecated(forRemoval = true, since = "1.154.0")
     public ItemFrame place(Location location) {
         setPlacedItem();
         return place(Rotation.NONE, rotationToYaw(Rotation.NONE), BlockFace.NORTH, location, placedItem);
     }
 
+    @Deprecated(forRemoval = true, since = "1.154.0")
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location) {
         setPlacedItem();
         return place(rotation, yaw, facing, location, placedItem);
@@ -327,7 +332,7 @@ public class FurnitureMechanic extends Mechanic {
             else if (light != -1)
                 WrappedLightAPI.createBlockLight(location, light);
         } else if (entity instanceof ItemDisplay itemDisplay) {
-            setItemDisplayData(itemDisplay, item);
+            setItemDisplayData(itemDisplay, item, getDisplayEntityProperties());
         }
     }
 
@@ -342,13 +347,22 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item) {
-        itemDisplay.setItemDisplayTransform(ItemDisplay.ItemDisplayTransform.NONE);
+    private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, DisplayEntityProperties properties) {
+        itemDisplay.setItemDisplayTransform(properties.getTransform());
+        if (properties.hasSpecifiedViewRange()) itemDisplay.setViewRange(properties.getViewRange());
+        if (properties.hasInterpolationDuration()) itemDisplay.setInterpolationDuration(properties.getInterpolationDuration());
+        if (properties.hasInterpolationDelay()) itemDisplay.setInterpolationDelay(properties.getInterpolationDelay());
+        if (properties.hasTrackingRotation()) itemDisplay.setBillboard(properties.getTrackingRotation());
+        if (properties.hasShadowRadius()) itemDisplay.setShadowRadius(properties.getShadowRadius());
+        if (properties.hasShadowStrength()) itemDisplay.setShadowStrength(properties.getShadowStrength());
+        if (properties.hasGlowColor()) itemDisplay.setGlowColorOverride(properties.getGlowColor());
+        //TODO Should this be light mechanic or new property?
+        if (properties.hasBrightness()) itemDisplay.setBrightness(displayEntityProperties.getBrightness());
+        else if (light != -1) itemDisplay.setBrightness(new Display.Brightness(light, 0));
         itemDisplay.setItemStack(item);
         itemDisplay.setRotation(getFurnitureYaw(itemDisplay), 0f);
 
-        if (light != -1)
-            itemDisplay.setBrightness(new Display.Brightness(light, 0));
+
     }
 
     private void setFrameData(ItemFrame frame, ItemStack item, BlockFace facing, Rotation rotation) {
@@ -501,7 +515,7 @@ public class FurnitureMechanic extends Mechanic {
         boolean removed = false;
         for (Entity entity : world.getNearbyEntities(rootLocation, 1, 1, 1)) {
             PersistentDataContainer pdc = entity.getPersistentDataContainer();
-            if (entity.getType() ==  getFurnitureEntityType()
+            if (entity.getType() == getFurnitureEntityType()
                     && entity.getLocation().getBlockX() == rootLocation.getX()
                     && entity.getLocation().getBlockY() == rootLocation.getY()
                     && entity.getLocation().getBlockZ() == rootLocation.getZ()
@@ -666,9 +680,12 @@ public class FurnitureMechanic extends Mechanic {
         return switch (furnitureType) {
             case ITEM_FRAME -> EntityType.ITEM_FRAME;
             case GLOW_ITEM_FRAME -> EntityType.GLOW_ITEM_FRAME;
-            case DISPLAY_ENTITY ->
-                    OraxenPlugin.get().supportsDisplayEntities() ? EntityType.ITEM_DISPLAY : EntityType.ITEM_FRAME;
+            case DISPLAY_ENTITY -> EntityType.ITEM_DISPLAY;
             //case ARMOR_STAND: return EntityType.ARMOR_STAND;
         };
+    }
+
+    public DisplayEntityProperties getDisplayEntityProperties() {
+        return displayEntityProperties;
     }
 }
