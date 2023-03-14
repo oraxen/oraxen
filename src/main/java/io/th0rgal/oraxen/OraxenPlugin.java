@@ -71,6 +71,15 @@ public class OraxenPlugin extends JavaPlugin {
         }
     }
 
+    public boolean supportsDisplayEntities() {
+        try {
+            Class.forName("org.bukkit.entity.ItemDisplay");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     public static OraxenPlugin get() {
         return oraxen;
     }

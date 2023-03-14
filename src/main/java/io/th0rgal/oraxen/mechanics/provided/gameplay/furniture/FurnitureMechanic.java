@@ -20,6 +20,7 @@ import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.storage.StorageMechanic;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -55,13 +56,17 @@ public class FurnitureMechanic extends Mechanic {
     private final Drop drop;
     private final EvolvingFurniture evolvingFurniture;
     private final int light;
-    private final boolean glowing;
     private final String modelEngineID;
     private final String placedItemId;
     private ItemStack placedItem;
     private float seatHeight;
     private float seatYaw;
     private final List<ClickAction> clickActions;
+    private FurnitureType furnitureType;
+
+    public enum FurnitureType {
+        ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY//, ARMOR_STAND
+    }
 
     @SuppressWarnings("unchecked")
     public FurnitureMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
@@ -71,6 +76,14 @@ public class FurnitureMechanic extends Mechanic {
         placedItemId = section.getString("item", null);
 
         modelEngineID = section.getString("modelengine_id", null);
+
+        try {
+            furnitureType = FurnitureType.valueOf(section.getString("type", FurnitureType.ITEM_FRAME.name()));
+        } catch (IllegalArgumentException e) {
+            Logs.logError("Use of illegal EntityType in " + getItemID() + " furniture.");
+            Logs.logError("Allowed ones are: " + Arrays.stream(FurnitureType.values()).toList().stream().map(Enum::name));
+            furnitureType = FurnitureType.ITEM_FRAME;
+        }
 
         barriers = new ArrayList<>();
         if (CompatibilitiesManager.hasPlugin("ProtocolLib")) {
@@ -101,7 +114,6 @@ public class FurnitureMechanic extends Mechanic {
         } else evolvingFurniture = null;
 
         light = section.getInt("light", -1);
-        glowing = section.getBoolean("glowing", false);
 
         farmlandRequired = section.getBoolean("farmland_required", false);
         farmblockRequired = section.getBoolean("farmblock_required", false);
@@ -245,13 +257,14 @@ public class FurnitureMechanic extends Mechanic {
         return place(rotation, yaw, facing, location, placedItem);
     }
 
+    @Deprecated(forRemoval = true, since = "1.154.0")
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item) {
         if (!location.isWorldLoaded()) return null;
         if (this.notEnoughSpace(yaw, location)) return null;
         assert location.getWorld() != null;
         setPlacedItem();
         assert location.getWorld() != null;
-        ItemFrame itemFrame = glowing
+        ItemFrame itemFrame = furnitureType == FurnitureType.GLOW_ITEM_FRAME
                 ? location.getWorld().spawn(location, GlowItemFrame.class, (GlowItemFrame frame) ->
                 setFrameData(frame, item, rotation, facing))
                 : location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) ->
@@ -324,6 +337,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
+    @Deprecated(forRemoval = true, since = "1.154.0")
     private void spawnModelEngineFurniture(ItemFrame itemFrame, float yaw) {
         ArmorStand baseEntity = itemFrame.getWorld().spawn(itemFrame.getLocation(), ArmorStand.class, (ArmorStand stand) -> {
             stand.setVisible(false);
@@ -357,6 +371,7 @@ public class FurnitureMechanic extends Mechanic {
         return removeSolid(block.getWorld(), rootBlock, orientation);
     }
 
+    @Deprecated(forRemoval = true, since = "1.154.0")
     public boolean removeSolid(World world, BlockLocation rootBlockLocation, float orientation) {
         Location rootLocation = rootBlockLocation.toLocation(world);
 
@@ -444,19 +459,6 @@ public class FurnitureMechanic extends Mechanic {
         frame.remove();
     }
 
-    /**
-     * Scheduled for removal in a future update. As of 1.147.0 API has been entirely redone.<br>
-     * See {@link io.th0rgal.oraxen.api.OraxenFurniture#remove(Location, Player)} for the new method
-     */
-    @Deprecated(forRemoval = true, since = "1.147.0")
-    public void remove(ItemFrame frame) {
-        if (this.hasBarriers())
-            this.removeSolid(frame.getWorld(), new BlockLocation(frame.getLocation()),
-                    this.getYaw(frame.getRotation()));
-        else
-            this.removeAirFurniture(frame);
-    }
-
     public List<Location> getLocations(float rotation, Location center, List<BlockLocation> relativeCoordinates) {
         List<Location> output = new ArrayList<>();
         for (BlockLocation modifier : relativeCoordinates)
@@ -515,27 +517,7 @@ public class FurnitureMechanic extends Mechanic {
         return null;
     }
 
-
-    /**
-     * Scheduled for removal in a future update. As of 1.147.0 API has been entirely redone.<br>
-     * This method now only takes the block/barrier, see {@link #getItemFrame(Block)} for the new method
-     */
-    @Deprecated(forRemoval = true, since = "1.147.0")
-    public ItemFrame getItemFrame(Block block, BlockLocation blockLocation, Float orientation) {
-        if (hasBarriers()) {
-            for (Location sideLocation : getLocations(orientation, blockLocation.toLocation(block.getWorld()), getBarriers())) {
-                for (Entity entity : block.getWorld().getNearbyEntities(sideLocation, 1, 1, 1))
-                    if (entity instanceof ItemFrame frame
-                            && entity.getLocation().getBlockX() == sideLocation.getBlockX()
-                            && entity.getLocation().getBlockY() == sideLocation.getBlockY()
-                            && entity.getLocation().getBlockZ() == sideLocation.getBlockZ()
-                            && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING))
-                        return frame;
-            }
-        }
-        return null;
-    }
-
+    @Deprecated(forRemoval = true, since = "1.154.0")
     public ItemFrame getItemFrame(Block block) {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         if (pdc.isEmpty()) return null;
@@ -551,5 +533,36 @@ public class FurnitureMechanic extends Mechanic {
                 return frame;
         }
         return null;
+    }
+
+    public Entity getBaseEntity(Block block) {
+        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+        if (pdc.isEmpty()) return null;
+        final BlockLocation blockLoc = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
+        Location originLoc = blockLoc.toLocation(block.getWorld());
+
+        if (hasBarriers()) for (Entity entity : block.getWorld().getNearbyEntities(originLoc, 0.5, 0.5, 0.5)) {
+            if (entity.getType() == getFurnitureEntityType()
+                    && entity.getLocation().getBlockX() == originLoc.getBlockX()
+                    && entity.getLocation().getBlockY() == originLoc.getBlockY()
+                    && entity.getLocation().getBlockZ() == originLoc.getBlockZ()
+                    && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING))
+                return entity;
+        }
+        return null;
+    }
+
+    public FurnitureType getFurnitureType() {
+        return furnitureType;
+    }
+
+    public EntityType getFurnitureEntityType() {
+
+        return switch (furnitureType) {
+            case ITEM_FRAME -> EntityType.ITEM_FRAME;
+            case GLOW_ITEM_FRAME -> EntityType.GLOW_ITEM_FRAME;
+            case DISPLAY_ENTITY -> OraxenPlugin.get().supportsDisplayEntities() ? EntityType.ITEM_DISPLAY : EntityType.ITEM_FRAME;
+            //case ARMOR_STAND: return EntityType.ARMOR_STAND;
+        } ;
     }
 }

@@ -85,7 +85,7 @@ public class OraxenFurniture {
         ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
         if (mechanic == null) return false;
 
-        ItemFrame itemFrame = mechanic.getItemFrame(block);
+        ItemFrame itemFrame = mechanic.getBaseEntity(block);
         if (itemFrame == null) return false;
 
         if (mechanic.removeSolid(block) && (!mechanic.isStorage() || !mechanic.getStorage().isShulker())) {
