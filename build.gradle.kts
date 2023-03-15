@@ -69,7 +69,7 @@ dependencies {
     implementation("dev.jorel:commandapi-shade:8.8.0")
     implementation("com.jeff_media:CustomBlockData:2.2.0")
     implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
-    implementation("gs.mclo:mclogs:2.1.1")
+    implementation("com.github.aternosorg:mclogs-java:3.0.0")
     implementation("com.ticxo.playeranimator:PlayerAnimator:R1.2.5")
 
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
