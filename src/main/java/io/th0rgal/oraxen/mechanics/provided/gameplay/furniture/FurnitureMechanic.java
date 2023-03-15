@@ -64,6 +64,25 @@ public class FurnitureMechanic extends Mechanic {
     private final List<ClickAction> clickActions;
     private FurnitureType furnitureType;
     private final DisplayEntityProperties displayEntityProperties;
+    private final FurnitureHitbox hitbox;
+
+    public static class FurnitureHitbox {
+        private final float width;
+        private final float height;
+
+        public FurnitureHitbox(float width, float height) {
+            this.width = width;
+            this.height = height;
+        }
+
+        public float getWidth() {
+            return width;
+        }
+
+        public float getHeight() {
+            return height;
+        }
+    }
 
     public enum FurnitureType {
         ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY//, ARMOR_STAND
@@ -105,6 +124,11 @@ public class FurnitureMechanic extends Mechanic {
                 for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
                     barriers.add(new BlockLocation((Map<String, Object>) barrierObject));
         }
+
+        ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
+        hitbox = !hasBarriers() && hitboxSection != null
+                ? new FurnitureHitbox((float) hitboxSection.getDouble("width", 1.0), (float) hitboxSection.getDouble("height", 1.0))
+                : null;
 
         ConfigurationSection seatSection = section.getConfigurationSection("seat");
         if (seatSection != null) {
@@ -230,6 +254,14 @@ public class FurnitureMechanic extends Mechanic {
         return barriers;
     }
 
+    public boolean hasHitbox() {
+        return !hasBarriers() && hitbox != null;
+    }
+
+    public FurnitureHitbox getHitbox() {
+        return hitbox;
+    }
+
     public boolean hasSeat() {
         return hasSeat;
     }
@@ -347,8 +379,9 @@ public class FurnitureMechanic extends Mechanic {
                 WrappedLightAPI.createBlockLight(location, light);
             if (!hasBarriers()) {
                 entity.getWorld().spawn(entity.getLocation(), Interaction.class, (Interaction interaction) -> {
-                    interaction.setInteractionWidth((float) entity.getWidth());
-                    interaction.setInteractionHeight((float) entity.getHeight());
+                    Logs.debug(hasHitbox());
+                    interaction.setInteractionWidth(hasHitbox() ? hitbox.width : (float) entity.getWidth());
+                    interaction.setInteractionHeight(hasHitbox() ? hitbox.height : (float) entity.getHeight());
                     interaction.setResponsive(true);
                     interaction.getPersistentDataContainer().set(FURNITURE_KEY, DataType.STRING, getItemID());
                     interaction.getPersistentDataContainer().set(ROOT_KEY, DataType.LOCATION, entity.getLocation());
@@ -359,8 +392,8 @@ public class FurnitureMechanic extends Mechanic {
             setItemDisplayData(itemDisplay, item, rotation, properties);
 
             itemDisplay.getWorld().spawn(itemDisplay.getLocation(), Interaction.class, (Interaction interaction) -> {
-                interaction.setInteractionWidth(properties.getWidth());
-                interaction.setInteractionHeight(properties.getHeight());
+                interaction.setInteractionWidth(hasHitbox() ? hitbox.width : properties.getWidth());
+                interaction.setInteractionHeight(hasHitbox() ? hitbox.height : properties.getHeight());
                 interaction.setResponsive(properties.isInteractable());
                 interaction.getPersistentDataContainer().set(FURNITURE_KEY, DataType.STRING, getItemID());
                 interaction.getPersistentDataContainer().set(ROOT_KEY, DataType.LOCATION, itemDisplay.getLocation());
