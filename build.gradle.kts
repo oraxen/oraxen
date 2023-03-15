@@ -1,3 +1,4 @@
+import org.gradle.kotlin.dsl.support.gradleApiMetadataFrom
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
@@ -32,9 +33,9 @@ repositories {
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
     maven("https://maven.elmakers.com/repository/") // EffectLib
     maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
-    maven("https://repo.mineinabyss.com/releases") // ModelEngine
+    //maven("https://repo.mineinabyss.com/releases") // ModelEngine
     maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
-    maven("https://mvn.lumine.io/repository/maven-public/") // MythicMobs
+    maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
     maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
     maven("https://maven.enginehub.org/repo/")
@@ -54,7 +55,7 @@ dependencies {
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
     compileOnly("commons-io:commons-io:2.11.0")
-    compileOnly("com.ticxo:modelengine:R3.0.1")
+    compileOnly("com.ticxo.modelengine:api:R3.1.5")
     compileOnly(fileTree(mapOf("dir" to "libs/compile", "include" to listOf("*.jar").filter { "commandapi" in it.toLowerCase() })))
 
     implementation("dev.triumphteam:triumph-gui:3.1.2")
