@@ -1,4 +1,3 @@
-import org.gradle.kotlin.dsl.support.gradleApiMetadataFrom
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
@@ -33,7 +32,6 @@ repositories {
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
     maven("https://maven.elmakers.com/repository/") // EffectLib
     maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
-    //maven("https://repo.mineinabyss.com/releases") // ModelEngine
     maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
     maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
     maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
