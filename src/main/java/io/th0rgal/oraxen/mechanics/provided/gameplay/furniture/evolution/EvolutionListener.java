@@ -68,7 +68,7 @@ public class EvolutionListener implements Listener {
             crop.getWorld().playEffect(crop.getLocation(), Effect.BONE_MEAL_USE, 3);
             if (randomChance(mechanic.getEvolution().getBoneMealChance())) {
                 OraxenFurniture.remove(crop.getLocation(), event.getPlayer());
-                OraxenFurniture.place(crop.getLocation(), mechanic.getEvolution().getNextStage(), crop.getRotation(), crop.getFacing(), null);
+                OraxenFurniture.place(crop.getLocation(), mechanic.getEvolution().getNextStage(), crop.getRotation(), crop.getFacing());
             }
         }
     }
