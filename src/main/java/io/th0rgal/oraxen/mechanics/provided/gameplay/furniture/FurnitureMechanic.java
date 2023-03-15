@@ -299,7 +299,7 @@ public class FurnitureMechanic extends Mechanic {
 
     public Entity placeBase(Location location) {
         setPlacedItem();
-        return place(Rotation.NONE, rotationToYaw(Rotation.NONE), BlockFace.NORTH, location, placedItem);
+        return placeBase(Rotation.NONE, rotationToYaw(Rotation.NONE), BlockFace.NORTH, location, placedItem);
     }
 
     @Deprecated(forRemoval = true, since = "1.154.0")
@@ -380,7 +380,7 @@ public class FurnitureMechanic extends Mechanic {
             if (!hasBarriers()) {
                 float width = hasHitbox() ? hitbox.width : (float) entity.getWidth();
                 float height = hasHitbox() ? hitbox.height : (float) entity.getHeight();
-                spawnInteractionEntity(entity, location, width, height, true);
+                spawnInteractionEntity(entity, BlockHelpers.toCenterBlockLocation(location), width, height, true);
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
             Location location = itemDisplay.getLocation();
@@ -390,7 +390,7 @@ public class FurnitureMechanic extends Mechanic {
             if (hasBarriers()) setBarrierHitbox(location, location.getYaw(), rotation, false);
             float width = hasHitbox() ? hitbox.width : properties.getWidth();
             float height = hasHitbox() ? hitbox.height : properties.getHeight();
-            spawnInteractionEntity(itemDisplay, location, width, height, properties.isInteractable());
+            spawnInteractionEntity(itemDisplay, BlockHelpers.toCenterBlockLocation(location), width, height, properties.isInteractable());
         }
     }
 
