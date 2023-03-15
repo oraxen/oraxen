@@ -11,7 +11,6 @@ import org.bukkit.Rotation;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -156,7 +155,6 @@ public class OraxenFurniture {
      * @return Returns this entity's FurnitureMechanic, or null if the entity is not tied to a Furniture
      */
     public static FurnitureMechanic getFurnitureMechanic(Entity entity) {
-        if (!(entity instanceof ItemFrame)) return null;
         final String itemID = entity.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING);
         if (!OraxenItems.exists(itemID)) return null;
         return (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);

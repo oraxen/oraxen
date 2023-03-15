@@ -23,7 +23,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -377,27 +376,6 @@ public class StringBlockMechanicListener implements Listener {
             }
             event.setCursor(item);
         }
-    }
-
-    /**
-     * Scheduled for removal in a future update. As of 1.147.0 API has been entirely redone.<br>
-     * See {@link io.th0rgal.oraxen.api.OraxenBlocks#getStringMechanic(Block)} for the new method
-     */
-    @Deprecated(forRemoval = true)
-    public static StringBlockMechanic getStringMechanic(Block block) {
-        if (block.getType() == Material.TRIPWIRE) {
-            final Tripwire tripwire = (Tripwire) block.getBlockData();
-            return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
-        } else return null;
-    }
-
-    /**
-     * Scheduled for removal in a future update. As of 1.147.0 API has been entirely redone.<br>
-     * See {@link io.th0rgal.oraxen.api.OraxenBlocks#getStringMechanic(BlockData)} for the new method
-     */
-    @Deprecated(forRemoval = true)
-    public static StringBlockMechanic getStringMechanic(Tripwire tripwire) {
-        return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
     }
 
     private HardnessModifier getHardnessModifier() {

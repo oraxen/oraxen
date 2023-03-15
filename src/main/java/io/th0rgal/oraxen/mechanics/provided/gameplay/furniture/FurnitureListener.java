@@ -153,7 +153,7 @@ public class FurnitureListener implements Listener {
         BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(block, block.getState(), placedAgainst, item, player, true, hand);
 
         final Rotation rotation = getRotation(player.getEyeLocation().getYaw(), mechanic.getBarriers().size() > 1);
-        final float yaw = mechanic.rotationToYaw(rotation);
+        final float yaw = rotationToYaw(rotation);
         if (player.getGameMode() == GameMode.ADVENTURE)
             blockPlaceEvent.setCancelled(true);
         if (mechanic.notEnoughSpace(yaw, block.getLocation())) {
@@ -302,17 +302,14 @@ public class FurnitureListener implements Listener {
     public void onPlayerInteractFurniture(PlayerInteractEntityEvent event) {
         final Entity entity = event.getRightClicked();
         final Player player = event.getPlayer();
-        if (!(entity instanceof ItemFrame itemFrame)) return;
-        String mechanicID = entity.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING);
-        if (mechanicID == null) return;
-        //prevent rotation
+
         event.setCancelled(true);
-        FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(mechanicID);
-        OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, player, null, itemFrame);
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
+        if (mechanic == null) return;
+        OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, player, null, entity);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureInteractEvent);
-        if (furnitureInteractEvent.isCancelled()) {
-            return;
-        }
+        if (furnitureInteractEvent.isCancelled()) return;
+
         if (mechanic.hasClickActions()) {
             mechanic.runClickActions(player);
             event.setCancelled(true);
@@ -395,16 +392,16 @@ public class FurnitureListener implements Listener {
             }
             event.setCursor(item);
         } else if (OraxenItems.getIdByItem(event.getCursor()) != null) {
-            String id = OraxenItems.getIdByItem(event.getCursor());
-            if (!(factory.getMechanic(id) instanceof FurnitureMechanic)) return;
+            String itemID = OraxenItems.getIdByItem(event.getCursor());
+            if (!OraxenFurniture.isFurniture(itemID)) return;
             for (int i = 0; i <= 8; i++) {
-                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), id)) {
+                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), itemID)) {
                     player.getInventory().setHeldItemSlot(i);
                     event.setCancelled(true);
                     return;
                 }
             }
-            event.setCursor(OraxenItems.getItemById(id).build());
+            event.setCursor(OraxenItems.getItemById(itemID).build());
         }
     }
 
@@ -417,16 +414,5 @@ public class FurnitureListener implements Listener {
                 player.leaveVehicle();
             }
         }
-    }
-
-    /**
-     * Scheduled for removal in a future update. As of 1.147.0 API has been entirely redone.<br>
-     * See {@link io.th0rgal.oraxen.api.OraxenFurniture#getFurnitureMechanic(Block)} for the new method
-     */
-    @Deprecated(forRemoval = true, since = "1.147.0")
-    public static FurnitureMechanic getFurnitureMechanic(Block block) {
-        if (block.getType() != Material.BARRIER) return null;
-        final String mechanicID = BlockHelpers.getPDC(block).get(FURNITURE_KEY, PersistentDataType.STRING);
-        return (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(mechanicID);
     }
 }
