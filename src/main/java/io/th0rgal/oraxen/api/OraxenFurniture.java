@@ -42,6 +42,10 @@ public class OraxenFurniture {
         return !FurnitureFactory.getInstance().isNotImplementedIn(itemID);
     }
 
+    public static boolean isFurniture(Entity entity) {
+        return getFurnitureMechanic(entity) != null;
+    }
+
     /**
      * Places Furniture from a given ID at a given location, optionally by a player
      *

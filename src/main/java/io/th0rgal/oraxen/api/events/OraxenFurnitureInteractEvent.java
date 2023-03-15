@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.api.events;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -52,6 +53,8 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     public Entity getBaseEntity() {
         return baseEntity;
     }
+
+    public Interaction getInteractionEntity() { return mechanic.getInteractionEntity(baseEntity); }
 
     @Override
     public boolean isCancelled() {

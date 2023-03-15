@@ -212,33 +212,33 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onHangingBreak(final HangingBreakEvent event) {
-        if (!(event.getEntity() instanceof ItemFrame frame)) return;
+        Entity entity = event.getEntity();
         if (event.getCause() == HangingBreakEvent.RemoveCause.ENTITY) return;
 
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic == null) return;
 
         event.setCancelled(true);
         if (mechanic.hasBarriers()) return;
 
-        mechanic.removeAirFurniture(frame);
-        mechanic.getDrop().spawns(frame.getLocation(), new ItemStack(Material.AIR));
+        mechanic.removeAirFurniture(entity);
+        mechanic.getDrop().spawns(entity.getLocation(), new ItemStack(Material.AIR));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerBreakHanging(final EntityDamageByEntityEvent event) {
-        if (event.getEntity() instanceof ItemFrame frame) {
-            if (event.getDamager() instanceof Player player) {
-                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
-                if (mechanic == null) return;
-                event.setCancelled(true);
+        Entity entity = event.getEntity();
+        if (event.getDamager() instanceof Player player) {
+            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
+            if (mechanic == null) return;
+            event.setCancelled(true);
+            entity = mechanic.getBaseEntity(entity);
 
-                OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, player, frame.getLocation().getBlock(), frame);
-                OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
-                if (furnitureBreakEvent.isCancelled()) return;
+            OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, player, entity.getLocation().getBlock(), entity);
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
+            if (furnitureBreakEvent.isCancelled()) return;
 
-                OraxenFurniture.remove(frame, player);
-            }
+            OraxenFurniture.remove(entity, player);
         }
     }
 
@@ -265,12 +265,11 @@ public class FurnitureListener implements Listener {
         Projectile projectile = event.getEntity();
         Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
         Location location = block != null && block.getType() == Material.BARRIER
-                ? block.getLocation() : hitEntity instanceof ItemFrame
+                ? block.getLocation() : hitEntity instanceof Interaction
                 ? hitEntity.getLocation() : null;
 
         // Do not break furniture with a hitbox unless its explosive
-        if (location != null) {
-            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(hitEntity);
+        if (location != null && OraxenFurniture.isFurniture(hitEntity)) {
             if (player != null && !ProtectionLib.canBreak(player, location))
                 event.setCancelled(true);
             else if (projectile instanceof Explosive) {
@@ -300,13 +299,15 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPlayerInteractFurniture(PlayerInteractEntityEvent event) {
-        final Entity entity = event.getRightClicked();
+        Entity baseEntity = event.getRightClicked();
         final Player player = event.getPlayer();
 
         event.setCancelled(true);
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null) return;
-        OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, player, null, entity);
+        // Swap baseEntity to the baseEntity if interacted with entity is Interaction type
+        if (baseEntity instanceof Interaction interaction) baseEntity = mechanic.getBaseEntity(interaction);
+        OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, player, null, baseEntity);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureInteractEvent);
         if (furnitureInteractEvent.isCancelled()) return;
 

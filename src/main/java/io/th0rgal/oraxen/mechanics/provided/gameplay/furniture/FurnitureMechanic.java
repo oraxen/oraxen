@@ -703,6 +703,36 @@ public class FurnitureMechanic extends Mechanic {
         return null;
     }
 
+    public Entity getBaseEntity(Entity entity) {
+        PersistentDataContainer pdc = entity.getPersistentDataContainer();
+
+        // If the entity is the same type as the base entity, return it
+        // Since ItemDisplay entities have no hitbox it will only be for ITEM_FRAME based ones
+        if (getFurnitureEntityType() == entity.getType()) return entity;
+
+        Location location = pdc.get(ROOT_KEY, DataType.LOCATION);
+        if (location == null || !location.isWorldLoaded()) return null;
+        assert location.getWorld() != null;
+        for (Entity baseEntity : location.getWorld().getNearbyEntities(location, 1, 1, 1)) {
+            if (baseEntity.getType() != getFurnitureEntityType()) continue;
+            if (!OraxenFurniture.isFurniture(baseEntity)) continue;
+            return baseEntity;
+        }
+        return null;
+    }
+
+    public Interaction getInteractionEntity(Entity baseEntity) {
+        for (Entity entity : baseEntity.getNearbyEntities(1, 1, 1)) {
+            if (!(entity instanceof Interaction interaction)) continue;
+            PersistentDataContainer pdc = interaction.getPersistentDataContainer();
+            if (pdc.has(FURNITURE_KEY, DataType.STRING) && pdc.getOrDefault(FURNITURE_KEY, DataType.STRING, "").equals(getItemID())) {
+                if (pdc.has(ROOT_KEY, DataType.LOCATION) && pdc.get(ROOT_KEY, DataType.LOCATION).equals(baseEntity.getLocation()))
+                    return interaction;
+            }
+        }
+        return null;
+    }
+
     public FurnitureType getFurnitureType() {
         return furnitureType;
     }
