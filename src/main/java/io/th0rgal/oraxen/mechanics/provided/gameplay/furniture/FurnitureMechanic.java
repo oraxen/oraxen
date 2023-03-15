@@ -380,22 +380,22 @@ public class FurnitureMechanic extends Mechanic {
             if (!hasBarriers()) {
                 float width = hasHitbox() ? hitbox.width : (float) entity.getWidth();
                 float height = hasHitbox() ? hitbox.height : (float) entity.getHeight();
-                spawnInteractionEntity(entity, BlockHelpers.toCenterBlockLocation(location), width, height, true);
+                spawnInteractionEntity(entity, location, width, height, true);
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
-            Location location = itemDisplay.getLocation();
             DisplayEntityProperties properties = getDisplayEntityProperties();
             setItemDisplayData(itemDisplay, item, rotation, properties);
+            Location location = itemDisplay.getLocation();
 
             if (hasBarriers()) setBarrierHitbox(location, location.getYaw(), rotation, false);
             float width = hasHitbox() ? hitbox.width : properties.getWidth();
             float height = hasHitbox() ? hitbox.height : properties.getHeight();
-            spawnInteractionEntity(itemDisplay, BlockHelpers.toCenterBlockLocation(location), width, height, properties.isInteractable());
+            spawnInteractionEntity(itemDisplay, location, width, height, properties.isInteractable());
         }
     }
 
     private void spawnInteractionEntity(Entity entity, Location location, float width, float height, boolean responsive) {
-        entity.getWorld().spawn(location, Interaction.class, (Interaction interaction) -> {
+        entity.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), Interaction.class, (Interaction interaction) -> {
             interaction.setInteractionWidth(width);
             interaction.setInteractionHeight(height);
             interaction.setResponsive(responsive);
@@ -418,8 +418,7 @@ public class FurnitureMechanic extends Mechanic {
     private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Rotation rotation, DisplayEntityProperties properties) {
         itemDisplay.setItemDisplayTransform(properties.getTransform());
         if (properties.hasSpecifiedViewRange()) itemDisplay.setViewRange(properties.getViewRange());
-        if (properties.hasInterpolationDuration())
-            itemDisplay.setInterpolationDuration(properties.getInterpolationDuration());
+        if (properties.hasInterpolationDuration()) itemDisplay.setInterpolationDuration(properties.getInterpolationDuration());
         if (properties.hasInterpolationDelay()) itemDisplay.setInterpolationDelay(properties.getInterpolationDelay());
         if (properties.hasTrackingRotation()) itemDisplay.setBillboard(properties.getTrackingRotation());
         if (properties.hasShadowRadius()) itemDisplay.setShadowRadius(properties.getShadowRadius());
@@ -556,6 +555,7 @@ public class FurnitureMechanic extends Mechanic {
         return removeSolid(block.getWorld(), rootBlock, orientation);
     }
 
+    //TODO Should be able to simplify this aton
     public boolean removeSolid(World world, BlockLocation rootBlockLocation, float orientation) {
         Location rootLocation = rootBlockLocation.toLocation(world);
 
@@ -569,12 +569,13 @@ public class FurnitureMechanic extends Mechanic {
                     seat.remove();
                 }
             }
+            Entity baseEntity = getBaseEntity(rootLocation.getBlock());
             StorageMechanic storageMechanic = getStorage();
-            if (storageMechanic != null && (storageMechanic.isStorage() || storageMechanic.isShulker())) {
-                Entity baseEntity = getBaseEntity(rootLocation.getBlock());
-                if (baseEntity != null) {
+
+            if (baseEntity != null) {
+                if (storageMechanic != null && (storageMechanic.isStorage() || storageMechanic.isShulker()))
                     storageMechanic.dropStorageContent(this, baseEntity);
-                }
+                removeSubEntitiesOfFurniture(baseEntity);
             }
             location.getBlock().setType(Material.AIR);
             new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
@@ -588,7 +589,6 @@ public class FurnitureMechanic extends Mechanic {
                     && entity.getLocation().getBlockY() == rootLocation.getY()
                     && entity.getLocation().getBlockZ() == rootLocation.getZ()
                     && pdc.has(FURNITURE_KEY, PersistentDataType.STRING)) {
-
                 removeSubEntitiesOfFurniture(entity);
                 entity.remove();
                 if (light != -1)
@@ -626,6 +626,7 @@ public class FurnitureMechanic extends Mechanic {
             if (uuid != null) {
                 ArmorStand stand = (ArmorStand) Bukkit.getEntity(uuid);
                 if (stand != null) {
+                    stand.getPassengers().forEach(stand::removePassenger);
                     stand.remove();
                 }
             }
@@ -727,7 +728,7 @@ public class FurnitureMechanic extends Mechanic {
         final BlockLocation blockLoc = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
         Location originLoc = blockLoc.toLocation(block.getWorld());
 
-        if (hasBarriers()) for (Entity entity : block.getWorld().getNearbyEntities(originLoc, 0.5, 0.5, 0.5)) {
+        if (hasBarriers()) for (Entity entity : block.getWorld().getNearbyEntities(originLoc, 1, 1, 1)) {
             if (entity.getType() == getFurnitureEntityType()
                     && entity.getLocation().getBlockX() == originLoc.getBlockX()
                     && entity.getLocation().getBlockY() == originLoc.getBlockY()

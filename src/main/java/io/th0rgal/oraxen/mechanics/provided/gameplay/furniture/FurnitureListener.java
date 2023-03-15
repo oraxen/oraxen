@@ -248,11 +248,14 @@ public class FurnitureListener implements Listener {
         final Block block = event.getBlock();
 
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
-        if (mechanic == null || !event.isDropItems()) return;
+        if (mechanic == null) return;
 
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, event.getPlayer(), block, mechanic.getBaseEntity(block));
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
-        if (furnitureBreakEvent.isCancelled()) return;
+        if (furnitureBreakEvent.isCancelled()) {
+            event.setCancelled(true);
+            return;
+        }
 
         if (OraxenFurniture.remove(block.getLocation(), event.getPlayer())) {
             event.setCancelled(true);
@@ -373,7 +376,6 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMiddleClick(final InventoryCreativeEvent event) {
-        Logs.debug("hit");
         if (event.getClick() != ClickType.CREATIVE) return;
         final Player player = (Player) event.getInventory().getHolder();
         if (player == null) return;
