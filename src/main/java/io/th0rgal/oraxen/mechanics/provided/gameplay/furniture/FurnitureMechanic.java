@@ -399,7 +399,6 @@ public class FurnitureMechanic extends Mechanic {
             interaction.setInteractionWidth(width);
             interaction.setInteractionHeight(height);
             interaction.setResponsive(responsive);
-            Logs.logWarning(String.valueOf(responsive));
             interaction.getPersistentDataContainer().set(FURNITURE_KEY, DataType.STRING, getItemID());
             interaction.getPersistentDataContainer().set(ROOT_KEY, DataType.LOCATION, location);
         });
