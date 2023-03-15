@@ -310,7 +310,7 @@ public class FurnitureMechanic extends Mechanic {
 
     public Entity placeBase(Rotation rotation, float yaw, BlockFace facing, Location location) {
         setPlacedItem();
-        return place(rotation, yaw, facing, location, placedItem);
+        return placeBase(rotation, yaw, facing, location, placedItem);
     }
 
     @Deprecated(forRemoval = true, since = "1.154.0")
@@ -331,7 +331,7 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         if (hasBarriers())
-            setBarrierHitbox(location, yaw, rotation);
+            setBarrierHitbox(location, yaw, rotation, true);
         else if (light != -1)
             WrappedLightAPI.createBlockLight(location, light);
 
@@ -374,7 +374,7 @@ public class FurnitureMechanic extends Mechanic {
             setFrameData(frame, item, facing, rotation);
 
             if (hasBarriers())
-                setBarrierHitbox(location, location.getYaw(), rotation);
+                setBarrierHitbox(location, location.getYaw(), rotation, true);
             else if (light != -1)
                 WrappedLightAPI.createBlockLight(location, light);
             if (!hasBarriers()) {
@@ -388,15 +388,17 @@ public class FurnitureMechanic extends Mechanic {
                 });
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
+            Location location = itemDisplay.getLocation();
             DisplayEntityProperties properties = getDisplayEntityProperties();
             setItemDisplayData(itemDisplay, item, rotation, properties);
 
-            itemDisplay.getWorld().spawn(itemDisplay.getLocation(), Interaction.class, (Interaction interaction) -> {
+            if (hasBarriers()) setBarrierHitbox(location, location.getYaw(), rotation, false);
+            itemDisplay.getWorld().spawn(location, Interaction.class, (Interaction interaction) -> {
                 interaction.setInteractionWidth(hasHitbox() ? hitbox.width : properties.getWidth());
                 interaction.setInteractionHeight(hasHitbox() ? hitbox.height : properties.getHeight());
                 interaction.setResponsive(properties.isInteractable());
                 interaction.getPersistentDataContainer().set(FURNITURE_KEY, DataType.STRING, getItemID());
-                interaction.getPersistentDataContainer().set(ROOT_KEY, DataType.LOCATION, itemDisplay.getLocation());
+                interaction.getPersistentDataContainer().set(ROOT_KEY, DataType.LOCATION, location);
             });
         }
     }
@@ -491,7 +493,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void setBarrierHitbox(Location location, float yaw, Rotation rotation) {
+    private void setBarrierHitbox(Location location, float yaw, Rotation rotation, boolean handleLight) {
         for (Location barrierLocation : getLocations(yaw, location.clone(), getBarriers())) {
             Block block = barrierLocation.getBlock();
             PersistentDataContainer data = BlockHelpers.getPDC(block);
@@ -504,7 +506,7 @@ public class FurnitureMechanic extends Mechanic {
             data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
             data.set(ROTATION_KEY, DataType.asEnum(Rotation.class), rotation);
             block.setType(Material.BARRIER);
-            if (light != -1)
+            if (handleLight && light != -1)
                 WrappedLightAPI.createBlockLight(barrierLocation, light);
         }
     }
