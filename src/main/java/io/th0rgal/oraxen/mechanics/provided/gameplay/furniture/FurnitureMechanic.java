@@ -512,7 +512,6 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    @Deprecated(forRemoval = true, since = "1.154.0")
     private void spawnModelEngineFurniture(Entity entity, float yaw) {
         ArmorStand baseEntity = entity.getWorld().spawn(entity.getLocation(), ArmorStand.class, (ArmorStand stand) -> {
             stand.setVisible(false);
