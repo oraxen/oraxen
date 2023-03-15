@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
@@ -9,13 +10,13 @@ import io.th0rgal.oraxen.api.events.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.api.events.OraxenFurniturePlaceEvent;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.storage.StorageMechanic;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
@@ -30,19 +31,17 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.entity.*;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
-import org.bukkit.event.player.PlayerInteractEntityEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -57,6 +56,33 @@ public class FurnitureListener implements Listener {
     public FurnitureListener(final MechanicFactory factory) {
         this.factory = factory;
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
+        if (OraxenPlugin.get().supportsDisplayEntities() && OraxenPlugin.get().isPaperServer) {
+            MechanicsManager.registerListeners(OraxenPlugin.get(), new FurniturePaperListener());
+        }
+    }
+
+    private static class FurniturePaperListener implements Listener {
+
+        private FurniturePaperListener() {
+
+        }
+
+        @EventHandler
+        public void onBreakingCustomFurniture(PrePlayerAttackEntityEvent event) {
+            Player player = event.getPlayer();
+            if (!(event.getAttacked() instanceof Interaction interaction)) return;
+            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(interaction);
+            if (mechanic == null) return;
+            Entity baseEntity = mechanic.getBaseEntity(interaction);
+            if (baseEntity == null) return;
+
+            OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, player, null, baseEntity);
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
+            if (furnitureBreakEvent.isCancelled()) return;
+
+            OraxenFurniture.remove(baseEntity, player);
+        }
+
     }
 
     private HardnessModifier getHardnessModifier() {
