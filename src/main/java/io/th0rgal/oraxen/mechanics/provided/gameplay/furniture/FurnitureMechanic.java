@@ -378,14 +378,9 @@ public class FurnitureMechanic extends Mechanic {
             else if (light != -1)
                 WrappedLightAPI.createBlockLight(location, light);
             if (!hasBarriers()) {
-                entity.getWorld().spawn(entity.getLocation(), Interaction.class, (Interaction interaction) -> {
-                    Logs.debug(hasHitbox());
-                    interaction.setInteractionWidth(hasHitbox() ? hitbox.width : (float) entity.getWidth());
-                    interaction.setInteractionHeight(hasHitbox() ? hitbox.height : (float) entity.getHeight());
-                    interaction.setResponsive(true);
-                    interaction.getPersistentDataContainer().set(FURNITURE_KEY, DataType.STRING, getItemID());
-                    interaction.getPersistentDataContainer().set(ROOT_KEY, DataType.LOCATION, entity.getLocation());
-                });
+                float width = hasHitbox() ? hitbox.width : (float) entity.getWidth();
+                float height = hasHitbox() ? hitbox.height : (float) entity.getHeight();
+                spawnInteractionEntity(entity, location, width, height, true);
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
             Location location = itemDisplay.getLocation();
@@ -393,14 +388,20 @@ public class FurnitureMechanic extends Mechanic {
             setItemDisplayData(itemDisplay, item, rotation, properties);
 
             if (hasBarriers()) setBarrierHitbox(location, location.getYaw(), rotation, false);
-            itemDisplay.getWorld().spawn(location, Interaction.class, (Interaction interaction) -> {
-                interaction.setInteractionWidth(hasHitbox() ? hitbox.width : properties.getWidth());
-                interaction.setInteractionHeight(hasHitbox() ? hitbox.height : properties.getHeight());
-                interaction.setResponsive(properties.isInteractable());
-                interaction.getPersistentDataContainer().set(FURNITURE_KEY, DataType.STRING, getItemID());
-                interaction.getPersistentDataContainer().set(ROOT_KEY, DataType.LOCATION, location);
-            });
+            float width = hasHitbox() ? hitbox.width : properties.getWidth();
+            float height = hasHitbox() ? hitbox.height : properties.getHeight();
+            spawnInteractionEntity(itemDisplay, location, width, height, properties.isInteractable());
         }
+    }
+
+    private void spawnInteractionEntity(Entity entity, Location location, float width, float height, boolean responsive) {
+        entity.getWorld().spawn(location, Interaction.class, (Interaction interaction) -> {
+            interaction.setInteractionWidth(width);
+            interaction.setInteractionHeight(height);
+            interaction.setResponsive(responsive);
+            interaction.getPersistentDataContainer().set(FURNITURE_KEY, DataType.STRING, getItemID());
+            interaction.getPersistentDataContainer().set(ROOT_KEY, DataType.LOCATION, location);
+        });
     }
 
     private void setBaseFurnitureData(Entity entity) {
