@@ -27,12 +27,12 @@ repositories {
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
     maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
     maven("https://jitpack.io") // JitPack
-    maven("https://repo.mineinabyss.com/releases") // ModelEngine
     maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
     maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
     maven("https://maven.elmakers.com/repository/") // EffectLib
     maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
+    maven("https://repo.mineinabyss.com/releases") // ModelEngine
     maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
     maven("https://mvn.lumine.io/repository/maven-public/") // MythicMobs
     maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
@@ -68,7 +68,7 @@ dependencies {
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.8")
     implementation("dev.jorel:commandapi-shade:8.8.0")
     implementation("com.jeff_media:CustomBlockData:2.2.0")
-    implementation("com.jeff_media:MorePersistentDataTypes:2.3.1")
+    implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
     implementation("gs.mclo:mclogs:2.1.1")
     implementation("com.ticxo.playeranimator:PlayerAnimator:R1.2.5")
 
