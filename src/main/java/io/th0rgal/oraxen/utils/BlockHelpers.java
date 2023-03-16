@@ -61,6 +61,10 @@ public class BlockHelpers {
         return toCenterLocation(location).subtract(0,0.5,0);
     }
 
+    public static Location toSimpleLocation(Location location) {
+        return new Location(location.getWorld(), location.getX(), location.getY(), location.getZ(), 0f, 0f);
+    }
+
     public static boolean isStandingInside(final Player player, final Block block) {
         if (player == null) return false;
         final Location playerLoc = player.getLocation();

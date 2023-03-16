@@ -132,7 +132,6 @@ public class OraxenFurniture {
 
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
             mechanic.getDrop().furnitureSpawns(baseEntity, itemStack);
-
         if (mechanic.hasBarriers())
             mechanic.removeSolid(baseEntity.getWorld(), new BlockLocation(baseEntity.getLocation()), FurnitureMechanic.getFurnitureYaw(baseEntity));
         else mechanic.removeAirFurniture(baseEntity);
