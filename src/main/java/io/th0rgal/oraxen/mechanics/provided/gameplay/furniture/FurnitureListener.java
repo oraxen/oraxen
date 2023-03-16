@@ -313,33 +313,14 @@ public class FurnitureListener implements Listener {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null) return;
         // Swap baseEntity to the baseEntity if interacted with entity is Interaction type
-        if (baseEntity instanceof Interaction interaction) baseEntity = mechanic.getBaseEntity(interaction);
+        Interaction interaction = null;
+        if (baseEntity instanceof Interaction interactionEntity) {
+            interaction = interactionEntity;
+            baseEntity = mechanic.getBaseEntity(interaction);
+        }
         OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, player, null, baseEntity);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureInteractEvent);
         if (furnitureInteractEvent.isCancelled()) return;
-
-        if (mechanic.hasClickActions()) {
-            mechanic.runClickActions(player);
-            event.setCancelled(true);
-        }
-    }
-
-    @EventHandler
-    public void onPlayerClickOnFurniture(PlayerInteractEntityEvent event) {
-        Player player = event.getPlayer();
-        Entity entity = event.getRightClicked();
-        if (!(entity instanceof Interaction interaction)) return;
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(interaction);
-        if (mechanic == null) return;
-        Entity baseEntity = mechanic.getBaseEntity(interaction);
-
-        final OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, player, null, baseEntity);
-        Bukkit.getPluginManager().callEvent(furnitureInteractEvent);
-
-        if (furnitureInteractEvent.isCancelled()) {
-            event.setCancelled(true);
-            return;
-        }
 
         if (mechanic.hasClickActions()) {
             mechanic.runClickActions(player);
@@ -349,15 +330,20 @@ public class FurnitureListener implements Listener {
         if (mechanic.isStorage()) {
             StorageMechanic storage = mechanic.getStorage();
             switch (storage.getStorageType()) {
-                case STORAGE: case SHULKER: storage.openStorage(baseEntity, player);
-                case PERSONAL: storage.openPersonalStorage(player, baseEntity.getLocation(), baseEntity);
-                case DISPOSAL: storage.openDisposal(player, baseEntity.getLocation(), baseEntity);
-                case ENDERCHEST: player.openInventory(player.getEnderChest());
+                case STORAGE:
+                case SHULKER:
+                    storage.openStorage(baseEntity, player);
+                case PERSONAL:
+                    storage.openPersonalStorage(player, baseEntity.getLocation(), baseEntity);
+                case DISPOSAL:
+                    storage.openDisposal(player, baseEntity.getLocation(), baseEntity);
+                case ENDERCHEST:
+                    player.openInventory(player.getEnderChest());
             }
             event.setCancelled(true);
         }
 
-        if (mechanic.hasSeat()) {
+        if (mechanic.hasSeat() && interaction != null) {
             PersistentDataContainer pdc = interaction.getPersistentDataContainer();
             UUID entityUuid = pdc.get(SEAT_KEY, DataType.UUID);
             //Convert old seats to new, remove in a good while
@@ -375,7 +361,6 @@ public class FurnitureListener implements Listener {
                 event.setCancelled(true);
             }
         }
-
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -409,10 +394,15 @@ public class FurnitureListener implements Listener {
         if (mechanic.isStorage()) {
             StorageMechanic storage = mechanic.getStorage();
             switch (storage.getStorageType()) {
-                case STORAGE: case SHULKER: storage.openStorage(baseEntity, player);
-                case PERSONAL: storage.openPersonalStorage(player, baseEntity.getLocation(), baseEntity);
-                case DISPOSAL: storage.openDisposal(player, baseEntity.getLocation(), baseEntity);
-                case ENDERCHEST: player.openInventory(player.getEnderChest());
+                case STORAGE:
+                case SHULKER:
+                    storage.openStorage(baseEntity, player);
+                case PERSONAL:
+                    storage.openPersonalStorage(player, baseEntity.getLocation(), baseEntity);
+                case DISPOSAL:
+                    storage.openDisposal(player, baseEntity.getLocation(), baseEntity);
+                case ENDERCHEST:
+                    player.openInventory(player.getEnderChest());
             }
             event.setCancelled(true);
         }
