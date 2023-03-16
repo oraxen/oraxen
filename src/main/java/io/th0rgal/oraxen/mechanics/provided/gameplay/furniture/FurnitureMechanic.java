@@ -603,7 +603,6 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void removeAirFurniture(Entity baseEntity) {
-
         if (light != -1)
             WrappedLightAPI.removeBlockLight(baseEntity.getLocation().getBlock().getLocation());
 
@@ -636,7 +635,7 @@ public class FurnitureMechanic extends Mechanic {
         for (Entity entity : interactionEntities) {
             PersistentDataContainer pdc = entity.getPersistentDataContainer();
             if (pdc.has(FURNITURE_KEY, DataType.STRING) && pdc.getOrDefault(FURNITURE_KEY, DataType.STRING, "").equals(getItemID())) {
-                if (pdc.has(ROOT_KEY, DataType.LOCATION) && pdc.get(ROOT_KEY, DataType.LOCATION).equals(baseEntity.getLocation()))
+                if (pdc.has(ROOT_KEY, DataType.LOCATION) && Objects.equals(pdc.get(ROOT_KEY, DataType.LOCATION), baseEntity.getLocation()))
                     entity.remove();
             }
         }
