@@ -292,15 +292,15 @@ public class FurnitureMechanic extends Mechanic {
         return place(Rotation.NONE, rotationToYaw(Rotation.NONE), BlockFace.NORTH, location, placedItem);
     }
 
-    public Entity placeBase(Location location) {
-        setPlacedItem();
-        return placeBase(Rotation.NONE, rotationToYaw(Rotation.NONE), BlockFace.NORTH, location, placedItem);
-    }
-
     @Deprecated(forRemoval = true, since = "1.154.0")
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location) {
         setPlacedItem();
         return place(rotation, yaw, facing, location, placedItem);
+    }
+
+    public Entity placeBase(Location location) {
+        setPlacedItem();
+        return placeBase(Rotation.NONE, rotationToYaw(Rotation.NONE), BlockFace.NORTH, location, placedItem);
     }
 
     public Entity placeBase(Rotation rotation, float yaw, BlockFace facing, Location location) {
