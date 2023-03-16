@@ -349,10 +349,10 @@ public class FurnitureListener implements Listener {
         if (mechanic.isStorage()) {
             StorageMechanic storage = mechanic.getStorage();
             switch (storage.getStorageType()) {
-                case STORAGE, SHULKER -> storage.openStorage(baseEntity, player);
-                case PERSONAL -> storage.openPersonalStorage(player, baseEntity.getLocation(), baseEntity);
-                case DISPOSAL -> storage.openDisposal(player, baseEntity.getLocation(), baseEntity);
-                case ENDERCHEST -> player.openInventory(player.getEnderChest());
+                case STORAGE: case SHULKER: storage.openStorage(baseEntity, player);
+                case PERSONAL: storage.openPersonalStorage(player, baseEntity.getLocation(), baseEntity);
+                case DISPOSAL: storage.openDisposal(player, baseEntity.getLocation(), baseEntity);
+                case ENDERCHEST: player.openInventory(player.getEnderChest());
             }
             event.setCancelled(true);
         }
@@ -409,10 +409,10 @@ public class FurnitureListener implements Listener {
         if (mechanic.isStorage()) {
             StorageMechanic storage = mechanic.getStorage();
             switch (storage.getStorageType()) {
-                case STORAGE, SHULKER -> storage.openStorage(baseEntity, player);
-                case PERSONAL -> storage.openPersonalStorage(player, baseEntity.getLocation(), baseEntity);
-                case DISPOSAL -> storage.openDisposal(player, baseEntity.getLocation(), baseEntity);
-                case ENDERCHEST -> player.openInventory(player.getEnderChest());
+                case STORAGE: case SHULKER: storage.openStorage(baseEntity, player);
+                case PERSONAL: storage.openPersonalStorage(player, baseEntity.getLocation(), baseEntity);
+                case DISPOSAL: storage.openDisposal(player, baseEntity.getLocation(), baseEntity);
+                case ENDERCHEST: player.openInventory(player.getEnderChest());
             }
             event.setCancelled(true);
         }
