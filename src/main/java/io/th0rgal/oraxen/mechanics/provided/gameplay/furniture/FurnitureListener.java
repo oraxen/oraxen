@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import com.jeff_media.morepersistentdatatypes.DataType;
 import gs.mclo.api.Log;
+import io.lumine.mythic.bukkit.utils.lib.jooq.impl.QOM;
 import io.papermc.paper.event.player.PrePlayerAttackEntityEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
@@ -322,6 +324,60 @@ public class FurnitureListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onPlayerClickOnFurniture(PlayerInteractEntityEvent event) {
+        Player player = event.getPlayer();
+        Entity entity = event.getRightClicked();
+        if (!(entity instanceof Interaction interaction)) return;
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(interaction);
+        if (mechanic == null) return;
+        Entity baseEntity = mechanic.getBaseEntity(interaction);
+
+        final OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, player, null, baseEntity);
+        Bukkit.getPluginManager().callEvent(furnitureInteractEvent);
+
+        if (furnitureInteractEvent.isCancelled()) {
+            event.setCancelled(true);
+            return;
+        }
+
+        if (mechanic.hasClickActions()) {
+            mechanic.runClickActions(player);
+            event.setCancelled(true);
+        }
+
+        if (mechanic.isStorage()) {
+            StorageMechanic storage = mechanic.getStorage();
+            switch (storage.getStorageType()) {
+                case STORAGE, SHULKER -> storage.openStorage(baseEntity, player);
+                case PERSONAL -> storage.openPersonalStorage(player, baseEntity.getLocation(), baseEntity);
+                case DISPOSAL -> storage.openDisposal(player, baseEntity.getLocation(), baseEntity);
+                case ENDERCHEST -> player.openInventory(player.getEnderChest());
+            }
+            event.setCancelled(true);
+        }
+
+        if (mechanic.hasSeat()) {
+            PersistentDataContainer pdc = interaction.getPersistentDataContainer();
+            UUID entityUuid = pdc.get(SEAT_KEY, DataType.UUID);
+            //Convert old seats to new, remove in a good while
+            if (entityUuid == null) {
+                String oldUUID = pdc.get(SEAT_KEY, PersistentDataType.STRING);
+                if (oldUUID == null) return;
+                entityUuid = UUID.fromString(oldUUID);
+                pdc.remove(SEAT_KEY);
+                pdc.set(SEAT_KEY, DataType.UUID, entityUuid);
+            }
+            final Entity stand = Bukkit.getEntity(entityUuid);
+
+            if (stand != null && stand.getPassengers().isEmpty()) {
+                stand.addPassenger(event.getPlayer());
+                event.setCancelled(true);
+            }
+        }
+
+    }
+
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
     public void onPlayerClickOnFurniture(final PlayerInteractEvent event) {
         final Block block = event.getClickedBlock();
@@ -333,45 +389,51 @@ public class FurnitureListener implements Listener {
 
         Utils.swingHand(player, event.getHand());
 
-        if (mechanic != null) {
-            // Call the oraxen furniture event
-            final PersistentDataContainer pdc = BlockHelpers.getPDC(block);
-            Float orientation = pdc.get(ORIENTATION_KEY, PersistentDataType.FLOAT);
-            final BlockLocation rootBlockLocation = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
-            final Entity baseEntity = mechanic.getBaseEntity(block);
+        if (mechanic == null) return;
 
-            final OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, player, block, baseEntity);
-            Bukkit.getPluginManager().callEvent(furnitureInteractEvent);
+        final Entity baseEntity = mechanic.getBaseEntity(block);
 
-            if (furnitureInteractEvent.isCancelled()) {
-                event.setCancelled(true);
-                return;
-            }
+        final OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, player, block, baseEntity);
+        Bukkit.getPluginManager().callEvent(furnitureInteractEvent);
 
-            if (mechanic.hasClickActions()) {
-                mechanic.runClickActions(player);
-                event.setCancelled(true);
-            }
-
-            if (mechanic.isStorage()) {
-                StorageMechanic storage = mechanic.getStorage();
-                switch (storage.getStorageType()) {
-                    case STORAGE, SHULKER -> storage.openStorage(baseEntity, player);
-                    case PERSONAL -> storage.openPersonalStorage(player, baseEntity.getLocation(), baseEntity);
-                    case DISPOSAL -> storage.openDisposal(player, baseEntity.getLocation(), baseEntity);
-                    case ENDERCHEST -> player.openInventory(player.getEnderChest());
-                }
-                event.setCancelled(true);
-            }
+        if (furnitureInteractEvent.isCancelled()) {
+            event.setCancelled(true);
+            return;
         }
 
-        final String entityUuid = BlockHelpers.getPDC(block).getOrDefault(SEAT_KEY, PersistentDataType.STRING, "");
-        if (entityUuid.isBlank()) return;
-        final Entity stand = Bukkit.getEntity(UUID.fromString(entityUuid));
-
-        if (stand != null && stand.getPassengers().isEmpty()) {
-            stand.addPassenger(event.getPlayer());
+        if (mechanic.hasClickActions()) {
+            mechanic.runClickActions(player);
             event.setCancelled(true);
+        }
+
+        if (mechanic.isStorage()) {
+            StorageMechanic storage = mechanic.getStorage();
+            switch (storage.getStorageType()) {
+                case STORAGE, SHULKER -> storage.openStorage(baseEntity, player);
+                case PERSONAL -> storage.openPersonalStorage(player, baseEntity.getLocation(), baseEntity);
+                case DISPOSAL -> storage.openDisposal(player, baseEntity.getLocation(), baseEntity);
+                case ENDERCHEST -> player.openInventory(player.getEnderChest());
+            }
+            event.setCancelled(true);
+        }
+
+        if (mechanic.hasSeat()) {
+            PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+            UUID entityUuid = pdc.get(SEAT_KEY, DataType.UUID);
+            //Convert old seats to new, remove in a good while
+            if (entityUuid == null) {
+                String oldUUID = pdc.get(SEAT_KEY, PersistentDataType.STRING);
+                if (oldUUID == null) return;
+                entityUuid = UUID.fromString(oldUUID);
+                pdc.remove(SEAT_KEY);
+                pdc.set(SEAT_KEY, DataType.UUID, entityUuid);
+            }
+            final Entity stand = Bukkit.getEntity(entityUuid);
+
+            if (stand != null && stand.getPassengers().isEmpty()) {
+                stand.addPassenger(event.getPlayer());
+                event.setCancelled(true);
+            }
         }
     }
 

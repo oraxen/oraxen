@@ -376,8 +376,8 @@ public class FurnitureMechanic extends Mechanic {
 
                 Block block = location.getBlock();
                 if (hasSeat()) {
-                    String entityId = spawnSeat(this, block, hasSeatYaw ? seatYaw : location.getYaw());
-                    if (entityId != null) BlockHelpers.getPDC(block).set(SEAT_KEY, PersistentDataType.STRING, entityId);
+                    UUID entityId = spawnSeat(this, block, hasSeatYaw ? seatYaw : location.getYaw());
+                    if (entityId != null) BlockHelpers.getPDC(block).set(SEAT_KEY, DataType.UUID, entityId);
                 }
                 if (light != -1) {
                     WrappedLightAPI.createBlockLight(location, light);
@@ -389,18 +389,18 @@ public class FurnitureMechanic extends Mechanic {
             Location location = itemDisplay.getLocation();
             float width = hasHitbox() ? hitbox.width : properties.getWidth();
             float height = hasHitbox() ? hitbox.height : properties.getHeight();
-            spawnInteractionEntity(itemDisplay, location, width, height, properties.isInteractable());
+            Interaction interaction = spawnInteractionEntity(itemDisplay, location, width, height, properties.isInteractable());
 
             if (hasBarriers()) setBarrierHitbox(location, location.getYaw(), rotation, false);
             else if (hasSeat()) {
-                String entityId = spawnSeat(this, location.getBlock(), hasSeatYaw ? seatYaw : location.getYaw());
-                if (entityId != null) BlockHelpers.getPDC(location.getBlock()).set(SEAT_KEY, PersistentDataType.STRING, entityId);
+                UUID entityId = spawnSeat(this, location.getBlock(), hasSeatYaw ? seatYaw : location.getYaw());
+                if (entityId != null) interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, entityId);
             }
         }
     }
 
-    private void spawnInteractionEntity(Entity entity, Location location, float width, float height, boolean responsive) {
-        entity.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), Interaction.class, (Interaction interaction) -> {
+    private Interaction spawnInteractionEntity(Entity entity, Location location, float width, float height, boolean responsive) {
+        return entity.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), Interaction.class, (Interaction interaction) -> {
             interaction.setInteractionWidth(width);
             interaction.setInteractionHeight(height);
             interaction.setResponsive(responsive);
@@ -487,7 +487,7 @@ public class FurnitureMechanic extends Mechanic {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
 
             // Make sure that if a floor-only furniture is placed on the side of a wall block, it is facing correctly
-            if (mechanic.hasLimitedPlacing() && mechanic.limitedPlacing.isFloor() && !mechanic.limitedPlacing.isWall()) {
+            if (mechanic != null && mechanic.hasLimitedPlacing() && mechanic.limitedPlacing.isFloor() && !mechanic.limitedPlacing.isWall()) {
                 frame.setFacingDirection(BlockFace.UP, true);
             }
 
@@ -504,8 +504,8 @@ public class FurnitureMechanic extends Mechanic {
             PersistentDataContainer data = BlockHelpers.getPDC(block);
             data.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
             if (hasSeat()) {
-                String entityId = spawnSeat(this, block, hasSeatYaw ? seatYaw : yaw);
-                if (entityId != null) data.set(SEAT_KEY, PersistentDataType.STRING, entityId);
+                UUID entityId = spawnSeat(this, block, hasSeatYaw ? seatYaw : yaw);
+                if (entityId != null) data.set(SEAT_KEY, DataType.UUID, entityId);
             }
             data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location.clone()).toString());
             data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
@@ -678,7 +678,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private String spawnSeat(FurnitureMechanic mechanic, Block target, float yaw) {
+    private UUID spawnSeat(FurnitureMechanic mechanic, Block target, float yaw) {
         if (mechanic.hasSeat()) {
             final ArmorStand seat = target.getWorld().spawn(target.getLocation()
                     .add(0.5, mechanic.getSeatHeight() - 1, 0.5), ArmorStand.class, (ArmorStand stand) -> {
@@ -702,7 +702,7 @@ public class FurnitureMechanic extends Mechanic {
                 stand.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, mechanic.getItemID());
                 stand.getPersistentDataContainer().set(SEAT_KEY, PersistentDataType.STRING, stand.getUniqueId().toString());
             });
-            return seat.getUniqueId().toString();
+            return seat.getUniqueId();
         }
         return null;
     }
