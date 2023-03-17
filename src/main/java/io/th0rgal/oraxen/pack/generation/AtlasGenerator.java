@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -52,10 +53,23 @@ public class AtlasGenerator {
 
             JsonObject atlasEntry = new JsonObject();
             String namespace = virtual.getPath().replaceFirst("assets/", "").split("/")[0];
-            String sprite = namespace + ":" + path;
-            atlasEntry.addProperty("type", "single");
-            atlasEntry.addProperty("resource", sprite);
-            atlasEntry.addProperty("sprite", sprite);
+            if (Settings.ATLAS_GENERATION_TYPE.toString().equals("DIRECTORY")) {
+                if (path.endsWith(".png")) {
+                    String sprite = Utils.removeParentDirs(Utils.removeExtension(virtual.getPath()));
+                    atlasEntry.addProperty("type", "single");
+                    atlasEntry.addProperty("resource", namespace + ":" + Utils.removeExtension(path));
+                    atlasEntry.addProperty("sprite", namespace + ":" + sprite);
+                } else {
+                    atlasEntry.addProperty("type", "directory");
+                    atlasEntry.addProperty("source", path);
+                    atlasEntry.addProperty("prefix", path + "/");
+                }
+            } else {
+                String sprite = namespace + ":" + path;
+                atlasEntry.addProperty("type", "single");
+                atlasEntry.addProperty("resource", sprite);
+                atlasEntry.addProperty("sprite", sprite);
+            }
 
             if (!atlasContent.contains(atlasEntry))
                 atlasContent.add(atlasEntry);
