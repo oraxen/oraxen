@@ -258,6 +258,9 @@ public class DuplicationHandler {
         }
     }
 
+    //TODO
+    // Fix importing other aspects of parent-model like shields display
+    // It should use the imported as a base and merge the overrides only
     private static boolean migrateItemJson(String name) {
         String itemMaterial = Utils.removeParentDirs(name).replace(".json", "").toUpperCase();
         try {
