@@ -29,6 +29,7 @@ Pack:
     # List of file extensions that will not be included in the final zipped ResourcePack
     excluded_file_extensions: []
     generate_atlas_file: true
+    atlas_generation_type: SPRITE # Can be SPRITE or DIRECTORY
     auto_generated_models_follow_texture_path: false
     # 64x32 layer is default size and corresponds to 16. If you need higher
     # resolution, e.g. 128x64, you should set this parameter to 32 and so on.
