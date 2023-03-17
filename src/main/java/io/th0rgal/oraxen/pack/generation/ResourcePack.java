@@ -95,12 +95,10 @@ public class ResourcePack {
         extractInPackIfNotExists(plugin, new File(packFolder, "pack.png"));
 
         // Sorting items to keep only one with models (and generate it if needed)
-        final Map<Material, List<ItemBuilder>> texturedItems = extractTexturedItems();
-        generatePredicates(texturedItems);
+        generatePredicates(extractTexturedItems());
         generateFont(fontManager);
         generateSound(soundManager);
-        if (Settings.GESTURES_ENABLED.toBool())
-            generateGestureFiles();
+        if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
 
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)
@@ -136,40 +134,23 @@ public class ResourcePack {
 
         if (Settings.GENERATE_ATLAS_FILE.toBool())
             AtlasGenerator.generateAtlasFile(output);
-        if (Settings.MERGE_FONTS.toBool())
-            DuplicationHandler.mergeFontFiles(output);
-        if (Settings.MERGE_ITEM_MODELS.toBool())
-            DuplicationHandler.mergeBaseItemFiles(output);
+        if (!Settings.MERGE_DUPLICATES.toBool()) {
+            if (Settings.MERGE_FONTS.toBool())
+                DuplicationHandler.mergeFontFiles(output);
+            if (Settings.MERGE_ITEM_MODELS.toBool())
+                DuplicationHandler.mergeBaseItemFiles(output);
+        }
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
+        excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
         if (!excludedExtensions.isEmpty() && !output.isEmpty()) {
             List<VirtualFile> newOutput = new ArrayList<>();
-            for (VirtualFile virtual : output)
-                for (String extension : excludedExtensions)
-                    if (virtual.getPath().endsWith(extension))
-                        newOutput.add(virtual);
+            for (VirtualFile virtual : output) for (String extension : excludedExtensions)
+                if (virtual.getPath().endsWith(extension)) newOutput.add(virtual);
             output.removeAll(newOutput);
         }
 
         ZipUtils.writeZipFile(pack, output);
-    }
-
-    // Fast check to avoid issues if RP already has these files from another plugin
-    // But also delete them if setting is false, and they existed
-    private void checkShaderFiles(File file) {
-        try {
-            File renamed = new File(file.getAbsolutePath() + ".bak");
-            Files.deleteIfExists(renamed.toPath());
-            if (file.exists()) {
-                file.renameTo(renamed);
-                plugin.saveResource("pack/shaders/core/" + file.getName(), true);
-                if (!Files.readString(file.toPath()).equals(Files.readString(renamed.toPath()))) {
-                    file.delete();
-                    renamed.renameTo(file);
-                } else renamed.delete();
-            }
-        } catch (IOException ignored) {
-        }
     }
 
     private void extractFolders(boolean extractModels, boolean extractTextures, boolean extractShaders,

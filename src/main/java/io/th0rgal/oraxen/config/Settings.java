@@ -56,7 +56,7 @@ public enum Settings {
     COMPRESSION("Pack.generation.compression"),
     PROTECTION("Pack.generation.protection"),
     COMMENT("Pack.generation.comment"),
-    MIGRATE_DUPLICATES("Pack.import.migrate_duplicates"),
+    MERGE_DUPLICATES("Pack.import.merge_duplicates"),
     RETAIN_CUSTOM_MODEL_DATA("Pack.import.retain_custom_model_data"),
     MERGE_ITEM_MODELS("Pack.import.merge_item_base_models"),
     MERGE_FONTS("Pack.import.merge_font_files"),
