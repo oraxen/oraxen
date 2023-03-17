@@ -145,7 +145,8 @@ public class ResourcePack {
                 DuplicationHandler.mergeBaseItemFiles(output);
         }
 
-        verifyPackFormatting(output);
+        if (Settings.VERIFY_PACK_FILES.toBool())
+            verifyPackFormatting(output);
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));

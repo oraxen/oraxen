@@ -24,6 +24,7 @@ public enum Settings {
     FORMAT_SIGNS("Plugin.formatting.signs"),
     FORMAT_CHAT("Plugin.formatting.chat"),
     FORMAT_BOOKS("Plugin.formatting.books"),
+    VERIFY_PACK_FILES("Plugin.experimental.verify_pack_files"),
 
     CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),
