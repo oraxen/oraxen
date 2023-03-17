@@ -19,7 +19,6 @@ import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -180,7 +179,6 @@ public class ResourcePack {
         }
 
         if (!models.isEmpty() || !textures.isEmpty()) {
-            //TODO Read modelfile and make sure all textures exist?
             for (VirtualFile model : models) {
                 if (model.getPath().contains(" ") || !model.getPath().toLowerCase().equals(model.getPath())) {
                     Logs.logWarning("Found invalid model at <blue>" + model.getPath() + " </blue>.");
@@ -190,24 +188,27 @@ public class ResourcePack {
                 }
 
                 String content;
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
                 try {
-                    content = IOUtils.toString(model.getInputStream(), StandardCharsets.UTF_8);
+                    model.getInputStream().transferTo(baos);
+                    content = baos.toString(StandardCharsets.UTF_8);
+                    baos.close();
+                    model.getInputStream().reset();
                 } catch (IOException e) {
                     content = "";
                 }
                 if (!content.isEmpty()) {
                     JsonObject jsonModel = JsonParser.parseString(content).getAsJsonObject();
                     if (jsonModel.has("textures")) {
-                        JsonObject jsonTextures = jsonModel.getAsJsonObject("textures");
-                        for (Map.Entry<String, JsonElement> element : jsonTextures.entrySet()) {
-                            String t = element.getValue().getAsString();
-                            if (!texturePaths.contains(modelPathToPackPath(t))) {
-                                if (!t.startsWith("item/") && !t.startsWith("block/")) {
+                        for (JsonElement element : jsonModel.getAsJsonObject("textures").asMap().values()) {
+                            String jsonTexture = element.getAsString();
+                            if (!texturePaths.contains(modelPathToPackPath(jsonTexture))) {
+                                if (!jsonTexture.startsWith("item/") && !jsonTexture.startsWith("block/")) {
                                     try {
-                                        Material.valueOf(Utils.removeParentDirs(Utils.removeExtension(t)).toUpperCase());
+                                        Material.valueOf(Utils.removeParentDirs(Utils.removeExtension(jsonTexture)).toUpperCase());
                                     } catch (IllegalArgumentException e) {
-                                        Logs.logError(t);
-                                        Logs.logError(modelPathToPackPath(t));
+                                        Logs.logError(jsonTexture);
+                                        Logs.logError(modelPathToPackPath(jsonTexture));
                                         Logs.logWarning("Found invalid texture inside <blue>" + model.getPath() + " </blue>.");
                                     }
                                 }
@@ -215,7 +216,6 @@ public class ResourcePack {
                         }
                     }
                 }
-
             }
 
             for (VirtualFile texture : textures) {
@@ -229,10 +229,15 @@ public class ResourcePack {
                     if (mcmeta.contains(texture.getPath() + ".mcmeta")) continue;
                     BufferedImage image;
                     try {
-                        image = ImageIO.read(texture.getInputStream());
+                        image = ImageIO.read(new File("fake_file.png"));
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        texture.getInputStream().transferTo(baos);
+                        ImageIO.write(image, "png", baos);
+                        baos.close();
                     } catch (IOException e) {
                         continue;
                     }
+
                     if (image.getHeight() > 256 || image.getWidth() > 256) {
                         Logs.logWarning("Found invalid texture at <blue>" + texture.getPath() + " </blue>.");
                         Logs.logError("Resolution of textures cannot exceed 256x256");
