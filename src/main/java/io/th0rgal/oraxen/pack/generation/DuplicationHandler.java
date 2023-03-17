@@ -212,12 +212,12 @@ public class DuplicationHandler {
             out.putNextEntry(entry);
         } catch (IOException e) {
             Logs.logWarning("Duplicate file detected: <blue>" + name + "</blue> - Attempting to migrate it");
-            if (!Settings.ATTEMPT_TO_MIGRATE_DUPLICATES.toBool()) {
-                Logs.logError("Not attempting to migrate duplicate file as <#22b14c>attempt_to_migrate_duplicates</#22b14c> is disabled in settings.yml");
+            if (!Settings.MIGRATE_DUPLICATES.toBool()) {
+                Logs.logError("Not attempting to migrate duplicate file as <#22b14c>" + Settings.MIGRATE_DUPLICATES.getPath() + "</#22b14c> is disabled in settings.yml");
             } else if (attemptToMigrateDuplicate(name)) {
                 Logs.logSuccess("Duplicate file fixed:<blue> " + name);
                 try {
-                    OraxenPlugin.get().getDataFolder().toPath().resolve("pack/" + name).toFile().delete();
+                    OraxenPlugin.get().getDataFolder().toPath().resolve("pack").resolve(name).toFile().delete();
                     Logs.logSuccess("Deleted the imported <blue>" + Utils.removeParentDirs(name) + "</blue> and migrated it to its supported Oraxen config(s)");
                 } catch (Exception ignored) {
                     Log.error("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");
@@ -229,12 +229,10 @@ public class DuplicationHandler {
     }
 
     private static boolean attemptToMigrateDuplicate(String name) {
-        if (name.startsWith("assets/minecraft/models/item/")) {
+        if (name.matches("assets/minecraft/models/item/.*.json")) {
             Logs.logWarning("Found a duplicate <blue>" + Utils.removeParentDirs(name) + "</blue>, attempting to migrate it into Oraxen item configs");
             return migrateItemJson(name);
         } else if (name.matches("assets/.*/font/.*.json")) {
-            //Logs.logWarning("Found a duplicated font file, trying to migrate it into Oraxens glyph configs");
-            //return migrateDefaultFontJson(name);
             Logs.logWarning("Found a duplicated font file, trying to migrate it into Oraxens generated copy");
             return mergeDuplicateFontJson(name);
         } else if (name.matches("assets/.*/sounds.json")) {
@@ -261,7 +259,7 @@ public class DuplicationHandler {
     }
 
     private static boolean migrateItemJson(String name) {
-        String itemMaterial = Utils.removeParentDirs(name).split(".json")[0].toUpperCase();
+        String itemMaterial = Utils.removeParentDirs(name).replace(".json", "").toUpperCase();
         try {
             Material.valueOf(itemMaterial);
         } catch (IllegalArgumentException e) {
@@ -303,9 +301,9 @@ public class DuplicationHandler {
             migratedYaml.set(id + ".material", itemMaterial);
             migratedYaml.set(id + ".excludeFromInventory", true);
             migratedYaml.set(id + ".excludeFromCommands", true);
-            migratedYaml.set(id + ".Pack.custom_model_data", cmd);
-            migratedYaml.set(id + ".Pack.model", modelPath);
             migratedYaml.set(id + ".Pack.generate_model", false);
+            migratedYaml.set(id + ".Pack.model", modelPath);
+            if (Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) migratedYaml.set(id + ".Pack.custom_model_data", cmd);
         }
 
         try {
@@ -432,7 +430,8 @@ public class DuplicationHandler {
     }
 
     private static YamlConfiguration loadMigrateYaml(String folder) {
-        File file = new File(OraxenPlugin.get().getDataFolder(), "\\" + folder + "\\" + "migrated_duplicates.yml");
+
+        File file = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().resolve(folder).resolve("migrated_duplicates.yml").toFile();
         if (!file.exists()) {
             try {
                 file.createNewFile();
