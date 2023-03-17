@@ -43,8 +43,8 @@ repositories {
 dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"
 
-    compileOnly("org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT")
-    compileOnly("io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT") { exclude(group = "net.kyori") }
+    compileOnly("org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT") { exclude(group = "net.kyori") }
     compileOnly("com.comphenix.protocol:ProtocolLib:5.0.0-SNAPSHOT")
     compileOnly("me.clip:placeholderapi:2.11.2")
     compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
@@ -60,13 +60,13 @@ dependencies {
     implementation("dev.triumphteam:triumph-gui:3.1.2")
     implementation("org.bstats:bstats-bukkit:3.0.0")
     implementation("com.github.oraxen:protectionlib:1.2.3")
-    implementation("net.kyori:adventure-text-minimessage:4.13.0-SNAPSHOT")
-    implementation("net.kyori:adventure-text-serializer-plain:4.13.0-SNAPSHOT")
-    implementation("net.kyori:adventure-text-serializer-legacy:4.13.0-SNAPSHOT")
-    implementation("net.kyori:adventure-text-serializer-gson:4.13.0-SNAPSHOT")
-    implementation("net.kyori:adventure-platform-bukkit:4.2.0")
+    implementation("net.kyori:adventure-text-minimessage:4.13.0")
+    implementation("net.kyori:adventure-text-serializer-plain:4.13.0")
+    implementation("net.kyori:adventure-text-serializer-legacy:4.13.0")
+    implementation("net.kyori:adventure-text-serializer-gson:4.13.0")
+    implementation("net.kyori:adventure-platform-bukkit:4.3.0")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.8")
-    implementation("dev.jorel:commandapi-shade:8.7.6")
+    implementation("dev.jorel:commandapi-shade:8.8.0")
     implementation("com.jeff_media:CustomBlockData:2.2.0")
     implementation("com.jeff_media:MorePersistentDataTypes:2.3.1")
     implementation("gs.mclo:mclogs:2.1.1")
