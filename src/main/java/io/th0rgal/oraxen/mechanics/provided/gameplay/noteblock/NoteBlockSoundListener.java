@@ -24,42 +24,45 @@ import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.*;
 
 public class NoteBlockSoundListener implements Listener {
-    private final Map<Block, BukkitTask> breakerPlaySound = new HashMap<>();
+    private final Map<Location, BukkitTask> breakerPlaySound = new HashMap<>();
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingWood(final BlockPlaceEvent event) {
         Block placed = event.getBlockPlaced();
         if (placed.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_WOOD_PLACE) return;
-        if (OraxenBlocks.getNoteBlockMechanic(placed) != null || placed.getType() == Material.MUSHROOM_STEM) return;
+        if (OraxenBlocks.isOraxenNoteBlock(placed) || placed.getType() == Material.MUSHROOM_STEM) return;
 
         // Play sound for wood
         BlockHelpers.playCustomBlockSound(placed.getLocation(), VANILLA_WOOD_PLACE, VANILLA_PLACE_VOLUME, VANILLA_PLACE_PITCH);
     }
 
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBreakingWood(final BlockBreakEvent event) {
         final Block block = event.getBlock();
+        Location location = block.getLocation();
         if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
-        if (OraxenBlocks.getNoteBlockMechanic(block) != null || block.getType() == Material.MUSHROOM_STEM) return;
+        if (OraxenBlocks.isOraxenNoteBlock(block) || block.getType() == Material.MUSHROOM_STEM) return;
 
-        if (breakerPlaySound.containsKey(block)) {
-            breakerPlaySound.get(block).cancel();
-            breakerPlaySound.remove(block);
+        if (breakerPlaySound.containsKey(location)) {
+            breakerPlaySound.get(location).cancel();
+            breakerPlaySound.remove(location);
         }
 
-        if (!event.isCancelled() && ProtectionLib.canBreak(event.getPlayer(), block.getLocation()))
-            BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_BREAK, VANILLA_BREAK_VOLUME, VANILLA_BREAK_PITCH);
+        if (!event.isCancelled() && ProtectionLib.canBreak(event.getPlayer(), location))
+            BlockHelpers.playCustomBlockSound(location, VANILLA_WOOD_BREAK, VANILLA_BREAK_VOLUME, VANILLA_BREAK_PITCH);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onHitWood(final BlockDamageEvent event) {
         Block block = event.getBlock();
+        Location location = block.getLocation();
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
 
         if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM) {
@@ -68,19 +71,19 @@ public class NoteBlockSoundListener implements Listener {
             return;
         }
         if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
-        if (breakerPlaySound.containsKey(block)) return;
+        if (breakerPlaySound.containsKey(location)) return;
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_WOOD_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH), 2L, 4L);
-        breakerPlaySound.put(block, task);
+                BlockHelpers.playCustomBlockSound(location, VANILLA_WOOD_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH), 2L, 4L);
+        breakerPlaySound.put(location, task);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onStopHittingWood(final BlockDamageAbortEvent event) {
-        Block block = event.getBlock();
-        if (breakerPlaySound.containsKey(block)) {
-            breakerPlaySound.get(block).cancel();
-            breakerPlaySound.remove(block);
+        Location location = event.getBlock().getLocation();
+        if (breakerPlaySound.containsKey(location)) {
+            breakerPlaySound.get(location).cancel();
+            breakerPlaySound.remove(location);
         }
     }
 
