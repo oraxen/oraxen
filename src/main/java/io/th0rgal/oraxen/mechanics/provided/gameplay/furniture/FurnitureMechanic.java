@@ -421,7 +421,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Rotation rotation, DisplayEntityProperties properties) {
-        itemDisplay.setItemDisplayTransform(properties.getTransform());
+        itemDisplay.setItemDisplayTransform(properties.getDisplayTransform());
         if (properties.hasSpecifiedViewRange()) itemDisplay.setViewRange(properties.getViewRange());
         if (properties.hasInterpolationDuration())
             itemDisplay.setInterpolationDuration(properties.getInterpolationDuration());
@@ -429,7 +429,7 @@ public class FurnitureMechanic extends Mechanic {
         if (properties.hasTrackingRotation()) itemDisplay.setBillboard(properties.getTrackingRotation());
         if (properties.hasShadowRadius()) itemDisplay.setShadowRadius(properties.getShadowRadius());
         if (properties.hasShadowStrength()) itemDisplay.setShadowStrength(properties.getShadowStrength());
-        if (properties.hasGlowColor()) itemDisplay.setGlowColorOverride(properties.getGlowColor());
+        //if (properties.hasGlowColor()) itemDisplay.setGlowColorOverride(properties.getGlowColor());
         if (properties.hasBrightness()) itemDisplay.setBrightness(displayEntityProperties.getBrightness());
         else if (light != -1) itemDisplay.setBrightness(new Display.Brightness(light, 0));
 
