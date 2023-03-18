@@ -70,7 +70,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public enum FurnitureType {
-        ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY//, ARMOR_STAND
+        ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY, ARMOR_STAND
     }
 
     @SuppressWarnings("unchecked")
@@ -272,27 +272,20 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     @Deprecated(forRemoval = true, since = "1.154.0")
-    public ItemFrame place(Location location) {
-        setPlacedItem();
-        return place(Rotation.NONE, rotationToYaw(Rotation.NONE), BlockFace.NORTH, location, placedItem);
-    }
-
-    @Deprecated(forRemoval = true, since = "1.154.0")
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location) {
         setPlacedItem();
         return place(rotation, yaw, facing, location, placedItem);
     }
 
-    public Entity placeBase(Location location) {
-        setPlacedItem();
-        return placeBase(Rotation.NONE, rotationToYaw(Rotation.NONE), BlockFace.NORTH, location, placedItem);
-    }
-
-    public Entity placeBase(Rotation rotation, float yaw, BlockFace facing, Location location) {
-        setPlacedItem();
-        return placeBase(rotation, yaw, facing, location, placedItem);
-    }
-
+    /**
+     *
+     * @param rotation
+     * @param yaw
+     * @param facing
+     * @param location
+     * @param item
+     * @return
+     */
     @Deprecated(forRemoval = true, since = "1.154.0")
     public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item) {
         if (!location.isWorldLoaded()) return null;
@@ -318,7 +311,17 @@ public class FurnitureMechanic extends Mechanic {
         return itemFrame;
     }
 
-    public Entity placeBase(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack originalItem) {
+    public Entity place(Location location) {
+        setPlacedItem();
+        return place(location, placedItem, Rotation.NONE, rotationToYaw(Rotation.NONE), BlockFace.NORTH);
+    }
+
+    public Entity place(Location location, float yaw, Rotation rotation, BlockFace facing) {
+        setPlacedItem();
+        return place(location, placedItem, rotation, yaw, facing);
+    }
+
+    public Entity place(Location location, ItemStack originalItem, Rotation rotation, float yaw, BlockFace facing) {
         if (!location.isWorldLoaded()) return null;
         if (this.notEnoughSpace(yaw, location)) return null;
         assert location.getWorld() != null;
@@ -766,7 +769,7 @@ public class FurnitureMechanic extends Mechanic {
             case ITEM_FRAME -> EntityType.ITEM_FRAME;
             case GLOW_ITEM_FRAME -> EntityType.GLOW_ITEM_FRAME;
             case DISPLAY_ENTITY -> EntityType.ITEM_DISPLAY;
-            //case ARMOR_STAND: return EntityType.ARMOR_STAND;
+            case ARMOR_STAND -> EntityType.ARMOR_STAND;
         };
     }
 
