@@ -66,22 +66,7 @@ public class FurnitureMechanic extends Mechanic {
     private final DisplayEntityProperties displayEntityProperties;
     private final FurnitureHitbox hitbox;
 
-    public static class FurnitureHitbox {
-        private final float width;
-        private final float height;
-
-        public FurnitureHitbox(float width, float height) {
-            this.width = width;
-            this.height = height;
-        }
-
-        public float getWidth() {
-            return width;
-        }
-
-        public float getHeight() {
-            return height;
-        }
+    public record FurnitureHitbox(float width, float height) {
     }
 
     public enum FurnitureType {
