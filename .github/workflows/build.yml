@@ -3,8 +3,10 @@ name: "Build plugin"
 on: push
 
 jobs:
-  build-plugin:
+  build_plugin:
     runs-on: ubuntu-latest
+    outputs:
+      plugin_version: ${{ steps.plugin_version.outputs.plugin_version }}
     steps:
       - uses: actions/checkout@v3
 
@@ -17,9 +19,9 @@ jobs:
 
   create_release:
     runs-on: ubuntu-latest
-    needs: [build-plugin]
+    needs: [build_plugin]
     steps:
       - name: Echo plugin version
         env:
-          PLUGIN_VERSION: ${{ needs.build-plugin.outputs.plugin_version }}
+          PLUGIN_VERSION: ${{ needs.build_plugin.outputs.plugin_version }}
         run: echo "Plugin version $PLUGIN_VERSION"
