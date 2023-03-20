@@ -3,8 +3,10 @@ name: "Build plugin"
 on: push
 
 jobs:
-  build:
+  build_plugin:
     runs-on: ubuntu-latest
+    outputs:
+      plugin_version: ${{ steps.plugin_version.outputs.plugin_version }}
     steps:
       - uses: actions/checkout@v3
 
@@ -44,18 +46,21 @@ jobs:
         with:
           name: oraxen-library
 
-#      - name: Echo plugin version
-#        run: echo "Plugin version ${{ needs.build.outputs.plugin_version }}"
+      - name: Echo plugin version
+        run: echo "Plugin version ${{ needs.build_plugin.outputs.plugin_version }}"
 
       - name: Append current date to filename
+        id: versioning
         run: |
           current_date=$(date +"%d.%b.%Y_%z")
           current_jar_name=$(find oraxen-*.jar)
           new_jar_name=$(echo $current_jar_name | sed 's,.jar,-'"$current_date"'.jar,')
           mv "$current_jar_name" "$new_jar_name"
-          tree
+          
+          echo "current_date=$current_date" >> "$GITHUB_OUTPUT"
 
       - name: Create GH release
         uses: softprops/action-gh-release@v1
         with:
           files: oraxen-*.jar
+          tag_name: ${{ needs.build_plugin.outputs.plugin_version }} - ${{ steps.versioning.outputs.current_date }}
