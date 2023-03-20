@@ -22,4 +22,4 @@ jobs:
       - name: Echo plugin version
         env:
           PLUGIN_VERSION: ${{ needs.build-plugin.outputs.plugin_version }}
-        run: echo "Plugin version:: $PLUGIN_VERSION"
+        run: echo "Plugin version $PLUGIN_VERSION"
