@@ -28,7 +28,7 @@ repositories {
     maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
     maven("https://jitpack.io") // JitPack
     maven("https://repo.mineinabyss.com/releases") // ModelEngine
-    maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
+//    maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
     maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
     maven("https://maven.elmakers.com/repository/") // EffectLib
