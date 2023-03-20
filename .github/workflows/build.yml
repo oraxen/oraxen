@@ -1,6 +1,7 @@
 name: "Build plugin"
 
-on: [push, workflow_dispatch]
+on:
+  workflow_dispatch:
 
 jobs:
   build:
@@ -34,7 +35,6 @@ jobs:
         with:
           name: oraxen-library
           path: build/libs/oraxen-*.jar
-
 
   create_release:
     runs-on: ubuntu-latest
