@@ -63,4 +63,4 @@ jobs:
         uses: softprops/action-gh-release@v1
         with:
           files: oraxen-*.jar
-          tag_name: ${{ needs.build_plugin.outputs.plugin_version }} - ${{ steps.versioning.outputs.current_date }}
+          tag_name: ${{ needs.build_plugin.outputs.plugin_version }}-${{ steps.versioning.outputs.current_date }}
