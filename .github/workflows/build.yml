@@ -49,7 +49,7 @@ jobs:
 
       - name: Append current date to filename
         run: |
-          current_date=$(date +"%d/%b/%Y_%z")
+          current_date=$(date +"%d.%b.%Y_%z")
           current_jar_name=$(find oraxen-*.jar)
           new_jar_name=$(echo $current_jar_name | sed 's,.jar,-'"$current_date"'.jar,')
           mv "$current_jar_name" "$new_jar_name"
