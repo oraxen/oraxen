@@ -5,7 +5,6 @@ on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v3
 
@@ -22,3 +21,41 @@ jobs:
         uses: gradle/gradle-build-action@v2.4.0
         with:
           arguments: build
+
+      - name: Get plugin version
+        id: plugin_version
+        shell: bash
+        run: |
+          version=$(grep "^pluginVersion=" gradle.properties | cut -d'=' -f2)
+          echo "plugin_version=$version" >> "$GITHUB_OUTPUT"
+
+      - name: Create build result artifact
+        uses: actions/upload-artifact@v3.1.2
+        with:
+          name: oraxen-library
+          path: build/libs/oraxen-*.jar
+
+
+  create_release:
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Download build result
+        uses: actions/download-artifact@v3
+        with:
+          name: oraxen-library
+
+      - name: Echo plugin version
+        run: echo "Plugin version:: ${{ needs.build.outputs.plugin_version }}"
+
+      - name: Append current date to filename
+        run: |
+          current_date=$(date +"%d/%b/%Y_%z")
+          current_jar_name=$(find oraxen-*.jar)
+          new_jar_name=$(echo $current_jar_name | sed 's,.jar,-'"$current_date"'.jar,')
+          cp "$current_jar_name" "$new_jar_name"
+
+      - name: Create GH release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: oraxen-*.jar
