@@ -39,7 +39,7 @@ jobs:
 
   create_release:
     runs-on: ubuntu-latest
-    needs: [build]
+    needs: [build_plugin]
     steps:
       - name: Download build result
         uses: actions/download-artifact@v3
