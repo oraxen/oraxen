@@ -1,7 +1,7 @@
 name: "Build plugin"
 
 on:
-  workflow_dispatch:
+  workflow_dispatch
 
 jobs:
   build:
@@ -46,7 +46,7 @@ jobs:
           name: oraxen-library
 
       - name: Echo plugin version
-        run: echo "Plugin version:: ${{ needs.build.outputs.plugin_version }}"
+        run: echo "Plugin version ${{ needs.build.outputs.plugin_version }}"
 
       - name: Append current date to filename
         run: |
