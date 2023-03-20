@@ -49,11 +49,11 @@ jobs:
 
       - name: Append current date to filename
         run: |
-          tree
           current_date=$(date +"%d/%b/%Y_%z")
           current_jar_name=$(find oraxen-*.jar)
           new_jar_name=$(echo $current_jar_name | sed 's,.jar,-'"$current_date"'.jar,')
-          cp "$current_jar_name" "$new_jar_name"
+          mv "$current_jar_name" "$new_jar_name"
+          tree
 
       - name: Create GH release
         uses: softprops/action-gh-release@v1
