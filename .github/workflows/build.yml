@@ -3,7 +3,7 @@ name: "Build plugin"
 on: push
 
 jobs:
-  build:
+  build-plugin:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -20,4 +20,6 @@ jobs:
     needs: [build]
     steps:
       - name: Echo plugin version
-        run: echo "Plugin version ${{ needs.build.outputs.plugin_version }}"
+        env:
+          PLUGIN_VERSION: ${{ needs.build-plugin.outputs.plugin_version }}
+        run: echo "Plugin version:: $PLUGIN_VERSION"
