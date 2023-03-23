@@ -33,8 +33,7 @@ repositories {
     maven("https://maven.elmakers.com/repository/") // EffectLib
     maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
     maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
-    maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
-    maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
+    maven("https://mvn.lumine.io/repository/maven/") { metadataSources { artifact() } }// PlayerAnimator
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
     maven("https://maven.enginehub.org/repo/")
     maven("https://repo.mineinabyss.com/releases")
@@ -49,13 +48,12 @@ dependencies {
     compileOnly("me.clip:placeholderapi:2.11.2")
     compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
     compileOnly("me.gabytm.util:actions-core:$actionsVersion")
-    compileOnly("org.springframework:spring-expression:6.0.3")
+    compileOnly("org.springframework:spring-expression:6.0.6")
     compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
     compileOnly("commons-io:commons-io:2.11.0")
     compileOnly("com.ticxo.modelengine:api:R3.1.5")
-    compileOnly("com.ticxo:modelengine:R3.0.1")
     compileOnly("net.kyori:adventure-text-minimessage:4.13.0")
     compileOnly("net.kyori:adventure-text-serializer-plain:4.13.0")
     compileOnly("net.kyori:adventure-platform-bukkit:4.3.0")
