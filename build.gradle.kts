@@ -54,15 +54,14 @@ dependencies {
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
     compileOnly("commons-io:commons-io:2.11.0")
     compileOnly("com.ticxo.modelengine:api:R3.1.5")
-    compileOnly("com.ticxo:modelengine:R3.0.1")
-    compileOnly("net.kyori:adventure-text-minimessage:4.13.0")
-    compileOnly("net.kyori:adventure-text-serializer-plain:4.13.0")
-    compileOnly("net.kyori:adventure-platform-bukkit:4.3.0")
     compileOnly(fileTree(mapOf("dir" to "libs/compile", "include" to listOf("*.jar"))))
 
     implementation("dev.triumphteam:triumph-gui:3.1.2")
     implementation("org.bstats:bstats-bukkit:3.0.0")
     implementation("com.github.oraxen:protectionlib:1.2.3")
+    implementation("net.kyori:adventure-text-minimessage:4.13.0")
+    implementation("net.kyori:adventure-text-serializer-plain:4.13.0")
+    implementation("net.kyori:adventure-platform-bukkit:4.3.0")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.8")
     implementation("dev.jorel:commandapi-shade:8.8.0")
     implementation("com.jeff_media:CustomBlockData:2.2.0")
@@ -99,6 +98,7 @@ tasks {
     shadowJar {
         //archiveClassifier = null
         relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
+        relocate("net.kyori", "io.th0rgal.oraxen.shaded.kyori")
         relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
         relocate("com.jeff_media.customblockdata", "io.th0rgal.oraxen.shaded.customblockdata")
         relocate("com.jeff_media.morepersistentdatatypes", "io.th0rgal.oraxen.shaded.morepersistentdatatypes")
@@ -140,7 +140,7 @@ bukkit {
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine")
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
-    libraries = listOf("org.springframework:spring-expression:5.3.16", "org.apache.httpcomponents:httpmime:4.5.13", "net.kyori:adventure-text-minimessage:4.13.0", "net.kyori:adventure-text-serializer-plain:4.13.0", "net.kyori:adventure-platform-bukkit:4.3.0")
+    libraries = listOf("org.springframework:spring-expression:5.3.16", "org.apache.httpcomponents:httpmime:4.5.13")
 }
 
 publishing {
