@@ -35,7 +35,6 @@ public class GestureManager {
     public void stopGesture(Player player) {
         OraxenPlayerModel model = getPlayerModel(player);
         if (model == null) return;
-        Logs.debug("Removed");
         removePlayerFromGesturing(player);
         model.despawn();
     }

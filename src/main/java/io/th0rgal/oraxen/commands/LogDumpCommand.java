@@ -1,11 +1,12 @@
 package io.th0rgal.oraxen.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
-import gs.mclo.java.APIResponse;
-import gs.mclo.java.Log;
-import gs.mclo.java.MclogsAPI;
+import gs.mclo.api.Log;
+import gs.mclo.api.MclogsClient;
+import gs.mclo.api.response.UploadLogResponse;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.http.protocol.RequestUserAgent;
 
 import javax.net.ssl.HttpsURLConnection;
 import java.io.BufferedReader;
@@ -36,8 +37,8 @@ public class LogDumpCommand {
                     }
 
                     try {
-                        APIResponse post = MclogsAPI.share(new Log(logfile));
-                        Logs.logSuccess("Logfile has been dumped to: " + post.url);
+                        UploadLogResponse post = new MclogsClient(new RequestUserAgent().toString()).uploadLog(new Log(logfile));
+                        Logs.logSuccess("Logfile has been dumped to: " + post.getUrl());
                     } catch (IOException e) {
                         Logs.logWarning("Failed to upload logfile to mclo.gs, attempting to using pastebin");
                         try {

@@ -19,6 +19,7 @@ import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.HumanEntity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
@@ -33,7 +34,7 @@ public class StorageMechanic {
 
     public static Set<Player> playerStorages = new HashSet<>();
     public static Map<Block, StorageGui> blockStorages = new HashMap<>();
-    public static Map<ItemFrame, StorageGui> frameStorages = new HashMap<>();
+    public static Map<Entity, StorageGui> frameStorages = new HashMap<>();
     public static final NamespacedKey STORAGE_KEY = new NamespacedKey(OraxenPlugin.get(), "storage");
     public static final NamespacedKey PERSONAL_STORAGE_KEY = new NamespacedKey(OraxenPlugin.get(), "personal_storage");
     private final int rows;
@@ -62,23 +63,23 @@ public class StorageMechanic {
         STORAGE, PERSONAL, ENDERCHEST, DISPOSAL, SHULKER
     }
 
-    public void openPersonalStorage(Player player, Location location, @Nullable ItemFrame frame) {
+    public void openPersonalStorage(Player player, Location location, @Nullable Entity baseEntity) {
         if (type != StorageType.PERSONAL) return;
-        StorageGui storageGui = createPersonalGui(player, frame);
+        StorageGui storageGui = createPersonalGui(player, baseEntity);
         storageGui.open(player);
-        if (frame != null) {
-            potentiallyPlayAnimation(frame, openAnimation);
+        if (baseEntity != null) {
+            potentiallyPlayAnimation(baseEntity, openAnimation);
         }
         if (hasOpenSound() && location.isWorldLoaded())
             Objects.requireNonNull(location.getWorld()).playSound(location, openSound, volume, pitch);
     }
 
-    public void openDisposal(Player player, Location location, @Nullable ItemFrame frame) {
+    public void openDisposal(Player player, Location location, @Nullable Entity baseEntity) {
         if (type != StorageType.DISPOSAL) return;
-        StorageGui storageGui = createDisposalGui(location, frame);
+        StorageGui storageGui = createDisposalGui(location, baseEntity);
         storageGui.open(player);
-        if (frame != null) {
-            potentiallyPlayAnimation(frame, openAnimation);
+        if (baseEntity != null) {
+            potentiallyPlayAnimation(baseEntity, openAnimation);
         }
         if (hasOpenSound() && location.isWorldLoaded())
             Objects.requireNonNull(location.getWorld()).playSound(location, openSound, volume, pitch);
@@ -93,20 +94,20 @@ public class StorageMechanic {
             Objects.requireNonNull(block.getWorld()).playSound(block.getLocation(), openSound, volume, pitch);
     }
 
-    public void openStorage(ItemFrame frame, Player player) {
-        StorageGui storageGui = (frameStorages.containsKey(frame) ? frameStorages.get(frame) : createGui(frame));
+    public void openStorage(Entity baseEntity, Player player) {
+        StorageGui storageGui = (frameStorages.containsKey(baseEntity) ? frameStorages.get(baseEntity) : createGui(baseEntity));
         storageGui.open(player);
-        frameStorages.put(frame, storageGui);
-        potentiallyPlayAnimation(frame, openAnimation);
-        if (hasOpenSound() && frame.getLocation().isWorldLoaded())
-            Objects.requireNonNull(frame.getWorld()).playSound(frame.getLocation(), openSound, volume, pitch);
+        frameStorages.put(baseEntity, storageGui);
+        potentiallyPlayAnimation(baseEntity, openAnimation);
+        if (hasOpenSound() && baseEntity.getLocation().isWorldLoaded())
+            Objects.requireNonNull(baseEntity.getWorld()).playSound(baseEntity.getLocation(), openSound, volume, pitch);
     }
 
-    private void potentiallyPlayAnimation(ItemFrame frame, String animation) {
+    private void potentiallyPlayAnimation(Entity baseEntity, String animation) {
         if (animation == null) return;
-        PersistentDataContainer framePDC = frame.getPersistentDataContainer();
-        if (framePDC.has(FurnitureMechanic.MODELENGINE_KEY, DataType.UUID)) {
-            UUID uuid = framePDC.get(FurnitureMechanic.MODELENGINE_KEY, DataType.UUID);
+        PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
+        if (pdc.has(FurnitureMechanic.MODELENGINE_KEY, DataType.UUID)) {
+            UUID uuid = pdc.get(FurnitureMechanic.MODELENGINE_KEY, DataType.UUID);
             if (uuid != null) {
                 ModeledEntity modelEntity = ModelEngineAPI.getModeledEntity(uuid);
                 if (modelEntity != null) {
@@ -150,6 +151,37 @@ public class StorageMechanic {
         blockStorages.remove(block);
     }
 
+    public void dropStorageContent(FurnitureMechanic mechanic, Entity baseEntity) {
+        StorageGui gui = frameStorages.get(baseEntity);
+        PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
+        // If shutdown the gui isn't saved and map is empty, so use pdc storage
+        ItemStack[] items = (frameStorages.containsKey(baseEntity) && gui != null)
+                ? gui.getInventory().getContents() : pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
+        if (isShulker()) {
+            ItemStack defaultItem = OraxenItems.getItemById(mechanic.getItemID()).build();
+            ItemStack shulker = FurnitureMechanic.getFurnitureItem(baseEntity);
+            ItemMeta shulkerMeta = shulker.getItemMeta();
+
+            if (shulkerMeta != null) {
+                shulkerMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
+                shulkerMeta.setDisplayName(defaultItem.getItemMeta() != null ? defaultItem.getItemMeta().getDisplayName() : null);
+                shulker.setItemMeta(shulkerMeta);
+            }
+            baseEntity.getWorld().dropItemNaturally(baseEntity.getLocation(), shulker);
+        } else for (ItemStack item : items) {
+            if (item == null) continue;
+            baseEntity.getWorld().dropItemNaturally(baseEntity.getLocation(), item);
+        }
+
+        if (gui != null) {
+            HumanEntity[] players = gui.getInventory().getViewers().toArray(new HumanEntity[0]);
+            for (HumanEntity player : players) gui.close(player);
+        }
+        pdc.remove(STORAGE_KEY);
+        frameStorages.remove(baseEntity);
+    }
+
+    @Deprecated(forRemoval = true, since = "1.154.0")
     public void dropStorageContent(FurnitureMechanic mechanic, ItemFrame frame) {
         StorageGui gui = frameStorages.get(frame);
         PersistentDataContainer pdc = frame.getPersistentDataContainer();
@@ -236,7 +268,7 @@ public class StorageMechanic {
         return volume;
     }
 
-    private StorageGui createDisposalGui(Location location, @Nullable ItemFrame frame) {
+    private StorageGui createDisposalGui(Location location, @Nullable Entity baseEntity) {
         StorageGui gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
 
         gui.setOpenGuiAction(event -> {
@@ -247,12 +279,12 @@ public class StorageMechanic {
             gui.getInventory().clear();
             if (hasCloseSound() && location.isWorldLoaded())
                 Objects.requireNonNull(location.getWorld()).playSound(location, closeSound, volume, pitch);
-            if (frame != null) potentiallyPlayAnimation(frame, closeAnimation);
+            if (baseEntity != null) potentiallyPlayAnimation(baseEntity, closeAnimation);
         });
         return gui;
     }
 
-    private StorageGui createPersonalGui(Player player, @Nullable ItemFrame frame) {
+    private StorageGui createPersonalGui(Player player, @Nullable Entity baseEntity) {
         PersistentDataContainer storagePDC = player.getPersistentDataContainer();
         StorageGui gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
 
@@ -275,7 +307,7 @@ public class StorageMechanic {
             storagePDC.set(PERSONAL_STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
             if (hasCloseSound() && player.getLocation().isWorldLoaded())
                 Objects.requireNonNull(player.getLocation().getWorld()).playSound(player.getLocation(), closeSound, volume, pitch);
-            if (frame != null) potentiallyPlayAnimation(frame, closeAnimation);
+            if (baseEntity != null) potentiallyPlayAnimation(baseEntity, closeAnimation);
         });
 
         return gui;
@@ -308,11 +340,11 @@ public class StorageMechanic {
         return gui;
     }
 
-    private StorageGui createGui(ItemFrame frame) {
-        Location location = frame.getLocation();
-        PersistentDataContainer storagePDC = frame.getPersistentDataContainer();
+    private StorageGui createGui(Entity baseEntity) {
+        Location location = baseEntity.getLocation();
+        PersistentDataContainer storagePDC = baseEntity.getPersistentDataContainer();
         boolean shulker = isShulker();
-        PersistentDataContainer shulkerPDC = shulker ? Objects.requireNonNull(frame.getItem().getItemMeta()).getPersistentDataContainer() : null;
+        PersistentDataContainer shulkerPDC = shulker ? Objects.requireNonNull(FurnitureMechanic.getFurnitureItem(baseEntity).getItemMeta()).getPersistentDataContainer() : null;
         StorageGui gui = Gui.storage().title(AdventureUtils.MINI_MESSAGE.deserialize(title)).rows(rows).create();
 
         // Slight delay to catch stacks sometimes moving too fast
@@ -339,9 +371,9 @@ public class StorageMechanic {
                     storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
                 }
             }
-            if (hasCloseSound() && location.isWorldLoaded() && frame.getWorld().isChunkLoaded(frame.getLocation().getChunk()))
+            if (hasCloseSound() && location.isWorldLoaded() && baseEntity.getWorld().isChunkLoaded(baseEntity.getLocation().getChunk()))
                 Objects.requireNonNull(location.getWorld()).playSound(location, closeSound, volume, pitch);
-            potentiallyPlayAnimation(frame, closeAnimation);
+            potentiallyPlayAnimation(baseEntity, closeAnimation);
         });
 
         return gui;

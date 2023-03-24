@@ -27,14 +27,13 @@ repositories {
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
     maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
     maven("https://jitpack.io") // JitPack
-    maven("https://repo.mineinabyss.com/releases") // ModelEngine
     maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
     maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
     maven("https://maven.elmakers.com/repository/") // EffectLib
     maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
     maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
-    maven("https://mvn.lumine.io/repository/maven-public/") // MythicMobs
+    maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
     maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
     maven("https://maven.enginehub.org/repo/")
@@ -54,7 +53,7 @@ dependencies {
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
     compileOnly("commons-io:commons-io:2.11.0")
-    compileOnly("com.ticxo:modelengine:R3.0.1")
+    compileOnly("com.ticxo.modelengine:api:R3.1.5")
     compileOnly(fileTree(mapOf("dir" to "libs/compile", "include" to listOf("*.jar"))))
 
     implementation("dev.triumphteam:triumph-gui:3.1.2")
@@ -62,14 +61,12 @@ dependencies {
     implementation("com.github.oraxen:protectionlib:1.2.3")
     implementation("net.kyori:adventure-text-minimessage:4.13.0")
     implementation("net.kyori:adventure-text-serializer-plain:4.13.0")
-    implementation("net.kyori:adventure-text-serializer-legacy:4.13.0")
-    implementation("net.kyori:adventure-text-serializer-gson:4.13.0")
     implementation("net.kyori:adventure-platform-bukkit:4.3.0")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.8")
     implementation("dev.jorel:commandapi-shade:8.8.0")
     implementation("com.jeff_media:CustomBlockData:2.2.0")
-    implementation("com.jeff_media:MorePersistentDataTypes:2.3.1")
-    implementation("gs.mclo:mclogs:2.1.1")
+    implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
+    implementation("com.github.aternosorg:mclogs-java:3.0.0")
     implementation("com.ticxo.playeranimator:PlayerAnimator:R1.2.5")
 
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
