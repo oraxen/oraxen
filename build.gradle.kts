@@ -143,6 +143,10 @@ bukkit {
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
     libraries = listOf("org.springframework:spring-expression:6.0.6", "org.apache.httpcomponents:httpmime:4.5.13", "dev.jorel:commandapi-shade:8.8.0")
+    permissions.create("oraxen.command") {
+        description = "Allows the player to use the /oraxen command"
+        default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE
+    }
 }
 
 publishing {
