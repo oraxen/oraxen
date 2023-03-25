@@ -168,7 +168,7 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        Entity baseEntity = mechanic.placeBase(rotation, yaw, event.getBlockFace(), block.getLocation(), item);
+        Entity baseEntity = mechanic.place(block.getLocation(), item, rotation, yaw, event.getBlockFace());
         Utils.swingHand(player, event.getHand());
 
         final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, block, baseEntity, player);

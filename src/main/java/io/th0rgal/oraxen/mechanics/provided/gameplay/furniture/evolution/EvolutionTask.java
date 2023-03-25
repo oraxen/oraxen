@@ -91,10 +91,7 @@ public class EvolutionTask extends BukkitRunnable {
 
                     OraxenFurniture.remove(frameLoc, null);
                     FurnitureMechanic nextMechanic = (FurnitureMechanic) furnitureFactory.getMechanic(evolution.getNextStage());
-                    nextMechanic.placeBase(frame.getRotation(),
-                            FurnitureMechanic.rotationToYaw(frame.getRotation()),
-                            frame.getFacing(),
-                            frameLoc
+                    nextMechanic.place(frameLoc, FurnitureMechanic.rotationToYaw(frame.getRotation()), frame.getRotation(), frame.getFacing()
                     );
                 } else framePDC.set(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER, evolutionStep);
             }

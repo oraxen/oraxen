@@ -67,7 +67,7 @@ public class OraxenFurniture {
     public static boolean place(Location location, String itemID, Rotation rotation, BlockFace blockFace) {
         FurnitureMechanic mechanic = (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
         if (mechanic == null) return false;
-        return mechanic.placeBase(rotation, FurnitureMechanic.rotationToYaw(rotation), blockFace, location) != null;
+        return mechanic.place(location, FurnitureMechanic.rotationToYaw(rotation), rotation, blockFace) != null;
     }
 
     /**
@@ -88,7 +88,7 @@ public class OraxenFurniture {
     public static boolean place(Location location, String itemID) {
         FurnitureMechanic mechanic = (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
         if (mechanic == null) return false;
-        return mechanic.placeBase(location) != null;
+        return mechanic.place(location) != null;
     }
 
     /**
