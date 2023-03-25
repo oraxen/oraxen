@@ -65,6 +65,8 @@ public class ClickListener extends CustomListener {
             if (!itemID.equals(OraxenItems.getIdByItem(item)))
                 return;
             perform(event.getPlayer(), item);
+            if(this.event.isCancelEvent())
+                event.setCancelled(true);
         }
     }
 

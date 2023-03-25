@@ -28,15 +28,14 @@ public class ClickAction {
         this.actions = actions;
     }
 
-    @SuppressWarnings("unchecked")
     private static ClickAction from(final LinkedHashMap<String, Object> config) {
         final Object conditionsObject = config.get("conditions");
-        final List<String> conditions = (conditionsObject == null) ? Collections.emptyList() : (List<String>) conditionsObject;
+        final List<String> conditions = (conditionsObject == null) ? Collections.emptyList()
+                : (List<String>) conditionsObject;
 
         final Object actionsObject = config.get("actions");
-        final List<Action<Player>> actions = (actionsObject == null) ?
-                Collections.emptyList() :
-                OraxenPlugin.get().getClickActionManager().parse(Player.class, (List<String>) actionsObject);
+        final List<Action<Player>> actions = (actionsObject == null) ? Collections.emptyList()
+                : OraxenPlugin.get().getClickActionManager().parse(Player.class, (List<String>) actionsObject);
 
         // If the action doesn't have any actions, return null
         if (actions.isEmpty()) {
@@ -47,11 +46,15 @@ public class ClickAction {
     }
 
     public static ClickAction from(final ConfigurationSection config) {
+        return from(config, false);
+    }
+    public static ClickAction from(final ConfigurationSection config, boolean allowEmptyActions) {
         final List<String> conditions = config.getStringList("conditions");
-        final List<Action<Player>> actions = OraxenPlugin.get().getClickActionManager().parse(Player.class, config.getStringList("actions"));
+        final List<Action<Player>> actions = OraxenPlugin.get().getClickActionManager().parse(Player.class,
+                config.getStringList("actions"));
 
         // If the action doesn't have any actions, return null
-        if (actions.isEmpty()) {
+        if (actions.isEmpty() && !allowEmptyActions) {
             return null;
         }
 
@@ -65,7 +68,8 @@ public class ClickAction {
             return Collections.emptyList();
         }
 
-        final List<LinkedHashMap<String, Object>> list = (List<LinkedHashMap<String, Object>>) section.getList("clickActions");
+        final List<LinkedHashMap<String, Object>> list = (List<LinkedHashMap<String, Object>>) section
+                .getList("clickActions");
 
         // Return an empty list if the clickActions list is null / empty
         if (list == null || list.isEmpty()) {

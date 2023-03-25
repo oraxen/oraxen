@@ -18,5 +18,7 @@ public class EquipListener extends CustomListener {
         ItemStack newArmor = event.getNewArmorPiece();
         if (newArmor == null || !itemID.equals(OraxenItems.getIdByItem(newArmor))) return;
         perform(event.getPlayer(), newArmor);
+        if(this.event.isCancelEvent())
+            event.setCancelled(true);
     }
 }

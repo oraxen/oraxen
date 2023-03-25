@@ -12,12 +12,14 @@ public class CustomEvent {
     public final CustomEventType type;
     private final List<String> params = new ArrayList<>();
     private final boolean oneUsage;
+    private final boolean cancelEvent;
 
-    public CustomEvent(String action, boolean oneUsage) {
+    public CustomEvent(String action, boolean oneUsage, boolean cancelEvent) {
         String[] actionParams = action.split(":");
         type = CustomEventType.valueOf(actionParams[0]);
         params.addAll(Arrays.asList(actionParams).subList(1, actionParams.length));
         this.oneUsage = oneUsage;
+        this.cancelEvent = cancelEvent;
     }
 
     public List<String> getParams() {
@@ -30,5 +32,9 @@ public class CustomEvent {
 
     public boolean isOneUsage() {
         return oneUsage;
+    }
+
+    public boolean isCancelEvent() {
+        return cancelEvent;
     }
 }

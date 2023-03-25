@@ -18,5 +18,7 @@ public class UnequipListener extends CustomListener {
         ItemStack oldArmor = event.getOldArmorPiece();
         if (oldArmor == null || !itemID.equals(OraxenItems.getIdByItem(oldArmor))) return;
         perform(event.getPlayer(), oldArmor);
+        if(this.event.isCancelEvent())
+            event.setCancelled(true);
     }
 }

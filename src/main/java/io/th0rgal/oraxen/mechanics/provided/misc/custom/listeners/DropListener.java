@@ -19,6 +19,8 @@ public class DropListener extends CustomListener {
         ItemStack item = event.getItemDrop().getItemStack();
         if (!itemID.equals(OraxenItems.getIdByItem(item))) return;
         perform(event.getPlayer(), item);
+        if(this.event.isCancelEvent())
+            event.setCancelled(true);
     }
 
 }

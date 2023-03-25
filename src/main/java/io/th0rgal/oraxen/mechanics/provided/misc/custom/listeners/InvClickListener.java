@@ -20,5 +20,8 @@ public class InvClickListener extends CustomListener {
         ItemStack clicked = event.getCurrentItem();
         if (clicked != null && itemID.equals(OraxenItems.getIdByItem(clicked)))
             perform((Player) event.getWhoClicked(), clicked);
+
+        if(this.event.isCancelEvent())
+            event.setCancelled(true);
     }
 }

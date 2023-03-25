@@ -27,16 +27,17 @@ public class CustomMechanic extends Mechanic {
                 loadedListener.unregister();
             }
 
-            ClickAction clickAction = ClickAction.from(subsection);
+            boolean cancelEvent = subsection.getBoolean("cancel_event", false);
+
+            ClickAction clickAction = ClickAction.from(subsection, cancelEvent);
 
             if (clickAction == null) {
                 continue;
             }
 
-            CustomListener listener = new CustomEvent(
-                    subsection.getString("event"),
-                    subsection.getBoolean("one_usage", false)
-            ).getListener(getItemID(), subsection.getLong("cooldown"), clickAction);
+            CustomListener listener = new CustomEvent(subsection.getString("event"),
+                    subsection.getBoolean("one_usage", false), cancelEvent)
+                    .getListener(getItemID(), subsection.getLong("cooldown"), clickAction);
 
             listener.register();
             LOADED_VARIANTS.put(key, listener);

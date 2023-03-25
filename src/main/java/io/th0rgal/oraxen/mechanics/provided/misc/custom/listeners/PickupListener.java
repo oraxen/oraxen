@@ -22,6 +22,8 @@ public class PickupListener extends CustomListener {
         if (!itemID.equals(OraxenItems.getIdByItem(item)))
             return;
         perform(player, item);
+        if(this.event.isCancelEvent())
+            event.setCancelled(true);
     }
 
 }
