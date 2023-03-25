@@ -23,23 +23,15 @@ Plugin:
     noteblock_mechanic: false
     stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
   experimental:
-    # Unlike duplication handler, this will simply attempt to merge the Jsons for the final pack
-    # This will not be flawless and still will cause issues, but they are there
-    # [merge_item,_base_models] can be used to merge paper.json etc from imported packs
-    merge_font_files: false
-    merge_item_base_models: false
+    verify_pack_files: true # Checks all textures and models to make sure they abide by valid Resourcepack formatting
 
 Pack:
   generation:
     generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
-    # If you have a duplicate json file due to importing a resourcepack,
-    # have Oraxen attempt to migrate it into config files to generate a working resourcepack
-    # Keep in mind this is still experimental, and you should not enable it before
-    # you have a backup of the resourcepack you are importing.
-    attempt_to_migrate_duplicates: false
     # List of file extensions that will not be included in the final zipped ResourcePack
     excluded_file_extensions: []
     generate_atlas_file: true
+    atlas_generation_type: SPRITE # Can be SPRITE or DIRECTORY
     auto_generated_models_follow_texture_path: false
     # 64x32 layer is default size and corresponds to 16. If you need higher
     # resolution, e.g. 128x64, you should set this parameter to 32 and so on.
@@ -59,6 +51,20 @@ Pack:
      \nplugin and any complete or partial
      \nuse must comply with the terms and
      \nconditions of Oraxen."
+
+  import:
+    merge_duplicates: false
+    # Whether the above merger will set the custommodeldata to the same values as in the imported file
+    # To avoid issues, only set this to true if you need them to be these values for another plugin
+    # This might override some of your other OraxenItems if they have they have their custom_model_data set to the same.
+    retain_custom_model_data: false
+    # Unlike duplication handler, this will simply attempt to merge the Jsons for the final pack
+    # This will not be flawless but will not be generating item-configs like above.
+    # The issue of custom-model-data is still here but it will copy it over no matter what [retain_custom_model_data] is set to
+    # [merge_item,_base_models] can be used to merge paper.json etc from imported packs
+    merge_font_files: false
+    merge_item_base_models: false
+
 
   upload:
     enabled: true
@@ -178,6 +184,9 @@ Misc:
 
   # Update the items in player inventory to the latest in config when player joins
   auto_update_items: false
+
+  # Whether Oraxen should register emoji tab completions with unicode characters
+  unicode_completions: true
 
   # All blocks with an inventory or any blocks that when right clicked shouldn't equip armor.
   armor_equip_event_bypass:

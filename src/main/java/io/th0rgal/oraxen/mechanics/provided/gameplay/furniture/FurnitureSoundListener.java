@@ -24,6 +24,7 @@ import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
@@ -31,7 +32,7 @@ import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.*;
 
 public class FurnitureSoundListener implements Listener {
 
-    private final Map<Block, BukkitTask> breakerPlaySound = new HashMap<>();
+    private final Map<Location, BukkitTask> breakerPlaySound = new HashMap<>();
 
     // Play sound due to furniture/barrier custom sound replacing stone
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -47,38 +48,40 @@ public class FurnitureSoundListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onBreakingStone(final BlockBreakEvent event) {
         Block block = event.getBlock();
+        Location location = block.getLocation();
 
         if (block.getType() == Material.TRIPWIRE) return;
         if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_STONE_BREAK) return;
-        if (breakerPlaySound.containsKey(block)) {
-            breakerPlaySound.get(block).cancel();
-            breakerPlaySound.remove(block);
+        if (breakerPlaySound.containsKey(location)) {
+            breakerPlaySound.get(location).cancel();
+            breakerPlaySound.remove(location);
         }
 
-        if (!event.isCancelled() && ProtectionLib.canBreak(event.getPlayer(), block.getLocation()))
-            BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), VANILLA_STONE_BREAK, VANILLA_BREAK_VOLUME, VANILLA_BREAK_PITCH);
+        if (!event.isCancelled() && ProtectionLib.canBreak(event.getPlayer(), location))
+            BlockHelpers.playCustomBlockSound(location, VANILLA_STONE_BREAK, VANILLA_BREAK_VOLUME, VANILLA_BREAK_PITCH);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onHitStone(final BlockDamageEvent event) {
         Block block = event.getBlock();
+        Location location = block.getLocation();
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
 
         if (event.getInstaBreak()) return;
         if (block.getType() == Material.BARRIER || soundGroup.getHitSound() != Sound.BLOCK_STONE_HIT) return;
-        if (breakerPlaySound.containsKey(block)) return;
+        if (breakerPlaySound.containsKey(location)) return;
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                BlockHelpers.playCustomBlockSound(block.getLocation(), VANILLA_STONE_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH), 2L, 4L);
-        breakerPlaySound.put(block, task);
+                BlockHelpers.playCustomBlockSound(location, VANILLA_STONE_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH), 2L, 4L);
+        breakerPlaySound.put(location, task);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onStopHittingStone(final BlockDamageAbortEvent event) {
-        Block block = event.getBlock();
-        if (breakerPlaySound.containsKey(block)) {
-            breakerPlaySound.get(block).cancel();
-            breakerPlaySound.remove(block);
+        Location location = event.getBlock().getLocation();
+        if (breakerPlaySound.containsKey(location)) {
+            breakerPlaySound.get(location).cancel();
+            breakerPlaySound.remove(location);
         }
     }
 
@@ -128,12 +131,12 @@ public class FurnitureSoundListener implements Listener {
         if (mechanic == null || !mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();
         if (blockSounds.hasPlaceSound())
-            BlockHelpers.playCustomBlockSound(event.getItemFrame().getLocation(), blockSounds.getPlaceSound(), blockSounds.getPlaceVolume(), blockSounds.getPlacePitch());
+            BlockHelpers.playCustomBlockSound(event.getBaseEntity().getLocation(), blockSounds.getPlaceSound(), blockSounds.getPlaceVolume(), blockSounds.getPlacePitch());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreakingFurniture(final OraxenFurnitureBreakEvent event) {
-        Location loc = event.getBlock() != null ? event.getBlock().getLocation() : event.getItemFrame().getLocation();
+        Location loc = event.getBlock() != null ? event.getBlock().getLocation() : event.getBaseEntity().getLocation();
         final FurnitureMechanic mechanic = event.getMechanic();
         if (mechanic == null || !mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.getBlockSounds();

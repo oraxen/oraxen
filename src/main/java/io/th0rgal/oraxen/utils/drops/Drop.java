@@ -1,11 +1,12 @@
 package io.th0rgal.oraxen.utils.drops;
 
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
 import org.bukkit.Location;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -122,25 +123,25 @@ public class Drop {
         }
     }
 
-    public void furnitureSpawns(ItemFrame frame, ItemStack itemInHand) {
+    public void furnitureSpawns(Entity baseEntity, ItemStack itemInHand) {
         ItemStack drop = OraxenItems.getItemById(sourceID).build();
         ItemMeta dropMeta = drop.getItemMeta();
         if (!canDrop(itemInHand)) return;
         if (dropMeta == null) return;
-        if (!frame.getLocation().isWorldLoaded()) return;
+        if (!baseEntity.getLocation().isWorldLoaded()) return;
 
-        if (frame.getItem().getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta) {
+        if (FurnitureMechanic.getFurnitureItem(baseEntity).getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta) {
             LeatherArmorMeta clone = (LeatherArmorMeta) dropMeta.clone();
             clone.setColor(leatherArmorMeta.getColor());
             drop.setItemMeta(clone);
         }
 
-        if (frame.getItem().getItemMeta() instanceof PotionMeta potionMeta) {
+        if (FurnitureMechanic.getFurnitureItem(baseEntity).getItemMeta() instanceof PotionMeta potionMeta) {
             PotionMeta clone = (PotionMeta) dropMeta.clone();
             clone.setColor(potionMeta.getColor());
             drop.setItemMeta(clone);
         }
 
-        frame.getLocation().getWorld().dropItemNaturally(frame.getLocation(), drop);
+        baseEntity.getLocation().getWorld().dropItemNaturally(baseEntity.getLocation(), drop);
     }
 }

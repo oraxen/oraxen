@@ -24,8 +24,7 @@ public enum Settings {
     FORMAT_SIGNS("Plugin.formatting.signs"),
     FORMAT_CHAT("Plugin.formatting.chat"),
     FORMAT_BOOKS("Plugin.formatting.books"),
-    MERGE_ITEM_MODELS("Plugin.experimental.merge_item_base_models"),
-    MERGE_FONTS("Plugin.experimental.merge_font_files"),
+    VERIFY_PACK_FILES("Plugin.experimental.verify_pack_files"),
 
     CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),
@@ -39,6 +38,7 @@ public enum Settings {
 
     RESET_RECIPES("Misc.reset_recipes"),
     ADD_RECIPES_TO_BOOK("Misc.add_recipes_to_book"),
+    UNICODE_COMPLETIONS("Misc.unicode_completions"),
     ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass"),
     SHIELD_DISPLAY("Misc.shield_display"),
     BOW_DISPLAY("Misc.bow_display"),
@@ -47,9 +47,9 @@ public enum Settings {
     HIDE_SCOREBOARD_NUMBERS("Misc.hide_scoreboard_numbers"),
 
     GENERATE("Pack.generation.generate"),
-    ATTEMPT_TO_MIGRATE_DUPLICATES("Pack.generation.attempt_to_migrate_duplicates"),
     EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions"),
     GENERATE_ATLAS_FILE("Pack.generation.generate_atlas_file"),
+    ATLAS_GENERATION_TYPE("Pack.generation.atlas_generation_type"),
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
     ARMOR_RESOLUTION("Pack.generation.armor_resolution"),
     ANIMATED_ARMOR_FRAMERATE("Pack.generation.animated_armor_framerate"),
@@ -59,6 +59,10 @@ public enum Settings {
     COMPRESSION("Pack.generation.compression"),
     PROTECTION("Pack.generation.protection"),
     COMMENT("Pack.generation.comment"),
+    MERGE_DUPLICATES("Pack.import.merge_duplicates"),
+    RETAIN_CUSTOM_MODEL_DATA("Pack.import.retain_custom_model_data"),
+    MERGE_ITEM_MODELS("Pack.import.merge_item_base_models"),
+    MERGE_FONTS("Pack.import.merge_font_files"),
 
     UPLOAD_TYPE("Pack.upload.type"),
     UPLOAD("Pack.upload.enabled"),

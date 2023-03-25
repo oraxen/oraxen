@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 
 public enum UpdatedSettings {
     GUI_INVENTORY("gui_inventory", "oraxen_inventory.menu_layout"),
+    MERGE_ITEM_MODELS("Plugin.experimental.merge_item_base_models", "Pack.import.merge_item_base_models"),
+    MERGE_FONTS("Plugin.experimental.merge_font_files", "Pack.import.merge_font_files"),
     ;
 
     private final String path;

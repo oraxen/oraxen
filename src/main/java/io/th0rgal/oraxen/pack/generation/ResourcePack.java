@@ -1,7 +1,9 @@
 package io.th0rgal.oraxen.pack.generation;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
@@ -23,6 +25,8 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -95,12 +99,10 @@ public class ResourcePack {
         extractInPackIfNotExists(plugin, new File(packFolder, "pack.png"));
 
         // Sorting items to keep only one with models (and generate it if needed)
-        final Map<Material, List<ItemBuilder>> texturedItems = extractTexturedItems();
-        generatePredicates(texturedItems);
+        generatePredicates(extractTexturedItems());
         generateFont(fontManager);
         generateSound(soundManager);
-        if (Settings.GESTURES_ENABLED.toBool())
-            generateGestureFiles();
+        if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
 
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)
@@ -136,40 +138,127 @@ public class ResourcePack {
 
         if (Settings.GENERATE_ATLAS_FILE.toBool())
             AtlasGenerator.generateAtlasFile(output);
-        if (Settings.MERGE_FONTS.toBool())
-            DuplicationHandler.mergeFontFiles(output);
-        if (Settings.MERGE_ITEM_MODELS.toBool())
-            DuplicationHandler.mergeBaseItemFiles(output);
+        if (!Settings.MERGE_DUPLICATES.toBool()) {
+            if (Settings.MERGE_FONTS.toBool())
+                DuplicationHandler.mergeFontFiles(output);
+            if (Settings.MERGE_ITEM_MODELS.toBool())
+                DuplicationHandler.mergeBaseItemFiles(output);
+        }
+
+        if (Settings.VERIFY_PACK_FILES.toBool())
+            verifyPackFormatting(output);
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
+        excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
         if (!excludedExtensions.isEmpty() && !output.isEmpty()) {
             List<VirtualFile> newOutput = new ArrayList<>();
             for (VirtualFile virtual : output)
                 for (String extension : excludedExtensions)
-                    if (virtual.getPath().endsWith(extension))
-                        newOutput.add(virtual);
+                    if (virtual.getPath().endsWith(extension)) newOutput.add(virtual);
             output.removeAll(newOutput);
         }
 
         ZipUtils.writeZipFile(pack, output);
     }
 
-    // Fast check to avoid issues if RP already has these files from another plugin
-    // But also delete them if setting is false, and they existed
-    private void checkShaderFiles(File file) {
-        try {
-            File renamed = new File(file.getAbsolutePath() + ".bak");
-            Files.deleteIfExists(renamed.toPath());
-            if (file.exists()) {
-                file.renameTo(renamed);
-                plugin.saveResource("pack/shaders/core/" + file.getName(), true);
-                if (!Files.readString(file.toPath()).equals(Files.readString(renamed.toPath()))) {
-                    file.delete();
-                    renamed.renameTo(file);
-                } else renamed.delete();
+    private static void verifyPackFormatting(List<VirtualFile> output) {
+        Logs.logInfo("Verifying formatting for textures and models...");
+
+        Set<VirtualFile> textures = new HashSet<>();
+        Set<String> texturePaths = new HashSet<>();
+        Set<String> mcmeta = new HashSet<>();
+        Set<VirtualFile> models = new HashSet<>();
+        Set<VirtualFile> malformedTextures = new HashSet<>();
+        Set<VirtualFile> malformedModels = new HashSet<>();
+        for (VirtualFile virtualFile : output) {
+            if (virtualFile.getPath().endsWith(".json")) models.add(virtualFile);
+            else if (virtualFile.getPath().endsWith(".png.mcmeta")) mcmeta.add(virtualFile.getPath());
+            else if (virtualFile.getPath().endsWith(".png")) {
+                textures.add(virtualFile);
+                texturePaths.add(virtualFile.getPath());
             }
-        } catch (IOException ignored) {
         }
+
+        if (!models.isEmpty() || !textures.isEmpty()) {
+            for (VirtualFile model : models) {
+                if (model.getPath().contains(" ") || !model.getPath().toLowerCase().equals(model.getPath())) {
+                    Logs.logWarning("Found invalid model at <blue>" + model.getPath() + " </blue>.");
+                    Logs.logError("Models cannot contain spaces or Capital Letters in the filepath or filename");
+                    Logs.newline();
+                    malformedModels.add(model);
+                }
+
+                String content;
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                try {
+                    model.getInputStream().transferTo(baos);
+                    content = baos.toString(StandardCharsets.UTF_8);
+                    baos.close();
+                    model.getInputStream().reset();
+                } catch (IOException e) {
+                    content = "";
+                }
+                if (!content.isEmpty()) {
+                    JsonObject jsonModel = JsonParser.parseString(content).getAsJsonObject();
+                    if (jsonModel.has("textures")) {
+                        for (JsonElement element : jsonModel.getAsJsonObject("textures").entrySet().stream().map(Map.Entry::getValue).toList()) {
+                            String jsonTexture = element.getAsString();
+                            if (!texturePaths.contains(modelPathToPackPath(jsonTexture))) {
+                                if (!jsonTexture.startsWith("#") && !jsonTexture.startsWith("item/") && !jsonTexture.startsWith("block/")) {
+                                    try {
+                                        Material.valueOf(Utils.removeParentDirs(Utils.removeExtension(jsonTexture)).toUpperCase());
+                                    } catch (IllegalArgumentException e) {
+                                        Logs.logError(jsonTexture);
+                                        Logs.logError(modelPathToPackPath(jsonTexture));
+                                        Logs.logWarning("Found invalid texture inside <blue>" + model.getPath() + " </blue>.");
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            for (VirtualFile texture : textures) {
+                if (texture.getPath().contains(" ") || !texture.getPath().toLowerCase().equals(texture.getPath())) {
+                    Logs.logWarning("Found invalid texture at <blue>" + texture.getPath() + " </blue>.");
+                    Logs.logError("Textures cannot contain spaces or Capital Letters in the filepath or filename");
+                    Logs.newline();
+                    malformedTextures.add(texture);
+                }
+                if (!texture.getPath().matches(".*_layer_.*.png")) {
+                    if (mcmeta.contains(texture.getPath() + ".mcmeta")) continue;
+                    BufferedImage image;
+                    try {
+                        image = ImageIO.read(new File("fake_file.png"));
+                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        texture.getInputStream().transferTo(baos);
+                        ImageIO.write(image, "png", baos);
+                        baos.close();
+                    } catch (IOException e) {
+                        continue;
+                    }
+
+                    if (image.getHeight() > 256 || image.getWidth() > 256) {
+                        Logs.logWarning("Found invalid texture at <blue>" + texture.getPath() + " </blue>.");
+                        Logs.logError("Resolution of textures cannot exceed 256x256");
+                        malformedTextures.add(texture);
+                    }
+                }
+            }
+
+            if (!malformedTextures.isEmpty() || !malformedModels.isEmpty()) {
+                Logs.logError("Pack contains malformed texture(s) and/or model(s)");
+                Logs.logError("These need to be fixed, otherwise the resourcepack will be broken");
+            } else Logs.logSuccess("No broken models or textures were found");
+        }
+    }
+
+    private static String modelPathToPackPath(String modelPath) {
+        String namespace = modelPath.split(":").length == 1 ? "minecraft" : modelPath.split(":")[0];
+        String texturePath = modelPath.split(":").length == 1 ? modelPath : modelPath.split(":")[1];
+        texturePath = texturePath.endsWith(".png") ? texturePath : texturePath + ".png";
+        return "assets/" + namespace + "/textures/" + texturePath;
     }
 
     private void extractFolders(boolean extractModels, boolean extractTextures, boolean extractShaders,
