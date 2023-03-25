@@ -4,7 +4,6 @@
       "type": "bitmap",
       "file": "minecraft:required/ascii_offset.png",
       "ascent": -13,
-      "height": 8,
       "chars": [
         "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",
         "\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000",

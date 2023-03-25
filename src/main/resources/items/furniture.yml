@@ -3,13 +3,14 @@ table:
   material: PAPER
   Mechanics:
     furniture:
+      type: ITEM_FRAME # Valid types are ITEM_FRAME, GLOW_ITEM_FRAME & DISPLAY_ENTITY if server is 1.19.4>
       limited_placing:
         roof: false
         floor: true
         wall: false
       barrier: true
       light: 5
-      drop: # useless if you are not using a barrier
+      drop:
         silktouch: false
         loots:
           - { oraxen_item: table, probability: 1.0 }
@@ -22,12 +23,18 @@ cart:
   material: PAPER
   Mechanics:
     furniture:
+      type: DISPLAY_ENTITY
+      hitbox:
+        width: 1.0
+        height: 1.0
+      display_entity_properties:
+        display_transform: FIXED
+      barrier: true
       limited_placing:
         roof: false
         floor: true
         wall: false
-      barrier: true
-      drop: # useless if you are not using a barrier
+      drop:
         silktouch: false
         loots:
           - { oraxen_item: cart, probability: 1.0 }
@@ -40,11 +47,17 @@ chair:
   material: PAPER
   Mechanics:
     furniture:
+      type: DISPLAY_ENTITY
+      hitbox:
+        width: 1.0
+        height: 2.0
+      display_entity_properties:
+        display_transform: FIXED
+      barrier: true
       limited_placing:
         roof: false
         floor: true
         wall: false
-      barrier: true
       seat:
         height: 0
       drop:
@@ -60,6 +73,10 @@ coach:
   material: PAPER
   Mechanics:
     furniture:
+      type: DISPLAY_ENTITY
+      display_entity_properties:
+        display_transform: FIXED
+      barrier: true
       limited_placing:
         roof: false
         floor: true
@@ -71,7 +88,7 @@ coach:
         - { x: 1, y: 0, z: 0 }
         - { x: 1, y: 0, z: 1 }
         - { x: 1, y: 0, z: 2 }
-      drop: # useless if you are not using a barrier
+      drop:
         silktouch: false
         loots:
           - { oraxen_item: coach, probability: 1.0 }
@@ -84,6 +101,7 @@ shelf:
   material: PAPER
   Mechanics:
     furniture:
+      type: ITEM_FRAME
       limited_placing:
         roof: false
         floor: false
@@ -93,7 +111,7 @@ shelf:
         block_tags: []
         oraxen_blocks: []
       barrier: false
-      drop: # useless if you are not using a barrier
+      drop:
         silktouch: false
         loots:
           - { oraxen_item: shelf, probability: 1.0 }
