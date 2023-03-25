@@ -27,14 +27,13 @@ repositories {
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
     maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
     maven("https://jitpack.io") // JitPack
-    //maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
+    maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
     maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
     maven("https://maven.elmakers.com/repository/") // EffectLib
     maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
     maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
-    maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
-    maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
+    maven("https://mvn.lumine.io/repository/maven/") { metadataSources { artifact() } }// PlayerAnimator
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
     maven("https://maven.enginehub.org/repo/")
     maven("https://repo.mineinabyss.com/releases")
@@ -49,13 +48,12 @@ dependencies {
     compileOnly("me.clip:placeholderapi:2.11.2")
     compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
     compileOnly("me.gabytm.util:actions-core:$actionsVersion")
-    compileOnly("org.springframework:spring-expression:6.0.3")
+    compileOnly("org.springframework:spring-expression:6.0.6")
     compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
     compileOnly("commons-io:commons-io:2.11.0")
     compileOnly("com.ticxo.modelengine:api:R3.1.5")
-    compileOnly("com.ticxo:modelengine:R3.0.1")
     compileOnly("net.kyori:adventure-text-minimessage:4.13.0")
     compileOnly("net.kyori:adventure-text-serializer-plain:4.13.0")
     compileOnly("net.kyori:adventure-platform-bukkit:4.3.0")
@@ -63,7 +61,7 @@ dependencies {
 
     implementation("dev.triumphteam:triumph-gui:3.1.2")
     implementation("org.bstats:bstats-bukkit:3.0.0")
-    implementation("com.github.oraxen:protectionlib:1.2.3")
+    implementation("com.github.oraxen:protectionlib:1.2.7")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.8")
     implementation("dev.jorel:commandapi-shade:8.8.0")
     implementation("com.jeff_media:CustomBlockData:2.2.0")
@@ -138,7 +136,7 @@ bukkit {
     name = "Oraxen"
     apiVersion = "1.18"
     authors = listOf("th0rgal", "boy0000")
-    softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine")
+    softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim")
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
     libraries = listOf("org.springframework:spring-expression:5.3.16", "org.apache.httpcomponents:httpmime:4.5.13", "net.kyori:adventure-text-minimessage:4.13.0", "net.kyori:adventure-text-serializer-plain:4.13.0", "net.kyori:adventure-platform-bukkit:4.3.0")

@@ -201,10 +201,10 @@ public class ResourcePack {
                 if (!content.isEmpty()) {
                     JsonObject jsonModel = JsonParser.parseString(content).getAsJsonObject();
                     if (jsonModel.has("textures")) {
-                        for (JsonElement element : jsonModel.getAsJsonObject("textures").asMap().values()) {
+                        for (JsonElement element : jsonModel.getAsJsonObject("textures").entrySet().stream().map(Map.Entry::getValue).toList()) {
                             String jsonTexture = element.getAsString();
                             if (!texturePaths.contains(modelPathToPackPath(jsonTexture))) {
-                                if (!jsonTexture.startsWith("item/") && !jsonTexture.startsWith("block/")) {
+                                if (!jsonTexture.startsWith("#") && !jsonTexture.startsWith("item/") && !jsonTexture.startsWith("block/")) {
                                     try {
                                         Material.valueOf(Utils.removeParentDirs(Utils.removeExtension(jsonTexture)).toUpperCase());
                                     } catch (IllegalArgumentException e) {
