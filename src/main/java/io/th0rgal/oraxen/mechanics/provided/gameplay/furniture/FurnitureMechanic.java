@@ -84,7 +84,7 @@ public class FurnitureMechanic extends Mechanic {
 
         try {
             furnitureType = FurnitureType.valueOf(section.getString("type", FurnitureType.ITEM_FRAME.name()));
-            if (furnitureType == FurnitureType.DISPLAY_ENTITY && !OraxenPlugin.get().supportsDisplayEntities()) {
+            if (furnitureType == FurnitureType.DISPLAY_ENTITY && !OraxenPlugin.get().supportsDisplayEntities) {
                 Logs.logError("Use of Display Entity on unsupported server version.");
                 Logs.logError("This EntityType is only supported on 1.19.4 and above.");
                 Logs.logError("Setting type to ITEM_FRAME for <i>" + getItemID() + "</i>.");
@@ -97,7 +97,7 @@ public class FurnitureMechanic extends Mechanic {
             furnitureType = FurnitureType.ITEM_FRAME;
         }
         ConfigurationSection displayEntitySection = section.getConfigurationSection("display_entity_properties");
-        displayEntityProperties = OraxenPlugin.get().supportsDisplayEntities() && displayEntitySection != null
+        displayEntityProperties = OraxenPlugin.get().supportsDisplayEntities && displayEntitySection != null
                 ? new DisplayEntityProperties(displayEntitySection)
                 : null;
 
@@ -388,7 +388,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private Interaction spawnInteractionEntity(Entity entity, Location location, float width, float height, boolean responsive) {
-        if (!OraxenPlugin.get().supportsDisplayEntities()) return null;
+        if (!OraxenPlugin.get().supportsDisplayEntities) return null;
         return entity.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), Interaction.class, (Interaction interaction) -> {
             interaction.setInteractionWidth(width);
             interaction.setInteractionHeight(height);
@@ -624,7 +624,7 @@ public class FurnitureMechanic extends Mechanic {
             }
         }
 
-        if (OraxenPlugin.get().supportsDisplayEntities()) {
+        if (OraxenPlugin.get().supportsDisplayEntities) {
             for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
                 if (!(entity instanceof Interaction interaction)) continue;
                 PersistentDataContainer pdc = interaction.getPersistentDataContainer();
@@ -751,7 +751,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public Interaction getInteractionEntity(Entity baseEntity) {
-        if (OraxenPlugin.get().supportsDisplayEntities()) {
+        if (OraxenPlugin.get().supportsDisplayEntities) {
             for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
                 if (!(entity instanceof Interaction interaction)) continue;
                 PersistentDataContainer pdc = interaction.getPersistentDataContainer();

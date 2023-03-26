@@ -311,7 +311,7 @@ public class FurnitureListener implements Listener {
         if (mechanic == null) return;
         // Swap baseEntity to the baseEntity if interacted with entity is Interaction type
         Entity interaction = null;
-        if (OraxenPlugin.get().supportsDisplayEntities() && baseEntity instanceof Interaction interactionEntity) {
+        if (OraxenPlugin.get().supportsDisplayEntities && baseEntity instanceof Interaction interactionEntity) {
             interaction = interactionEntity;
             baseEntity = mechanic.getBaseEntity(interaction);
         }

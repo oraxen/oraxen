@@ -5,6 +5,7 @@ import com.comphenix.protocol.ProtocolManager;
 import com.ticxo.playeranimator.PlayerAnimatorImpl;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIConfig;
+import gs.mclo.java.Log;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.commands.CommandsManager;
@@ -20,6 +21,8 @@ import io.th0rgal.oraxen.gestures.GestureManager;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
@@ -55,14 +58,16 @@ public class OraxenPlugin extends JavaPlugin {
     private ClickActionManager clickActionManager;
     private ProtocolManager protocolManager;
     public final boolean isPaperServer;
+    public boolean supportsDisplayEntities;
 
     public OraxenPlugin() throws NoSuchFieldException, IllegalAccessException {
         oraxen = this;
         isPaperServer = isPaperServer();
+        supportsDisplayEntities = false;
         Logs.enableFilter();
     }
 
-    private boolean isPaperServer() {
+    private static boolean isPaperServer() {
         try {
             Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
             return true;
@@ -71,9 +76,15 @@ public class OraxenPlugin extends JavaPlugin {
         }
     }
 
-    public boolean supportsDisplayEntities() {
+    public static boolean supportsDisplayEntities() {
         try {
             Class.forName("org.bukkit.entity.ItemDisplay");
+            if (Bukkit.getPluginManager().isPluginEnabled("ViaBackwards") && FurnitureFactory.getInstance().detectViabackwards) {
+                Logs.logWarning("ViaBackwards is installed, disabling Display Entity type for Furniture");
+                Logs.logWarning("Display Entity furniture is entirely invisible and uninteractable for players using 1.19.3 or lower");
+                Logs.logWarning("If you still want to use Display Entity type for Furniture, disable detect_viabackwards in the mechanics.yml");
+                return false;
+            }
             return true;
         } catch (ClassNotFoundException e) {
             return false;
