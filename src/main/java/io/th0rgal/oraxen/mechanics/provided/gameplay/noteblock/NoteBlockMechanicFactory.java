@@ -56,7 +56,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     public static String getInstrumentName(int id) {
-        return switch (id / 25 % 384) {
+        return switch ((id % 400) / 25) {
             case 1 -> "basedrum";
             case 2 -> "snare";
             case 3 -> "hat";
@@ -187,7 +187,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
          */
         id += 26;
         NoteBlock noteBlock = (NoteBlock) Bukkit.createBlockData(Material.NOTE_BLOCK);
-        noteBlock.setInstrument(Instrument.getByType((byte) (id / 25 % 400)));
+        noteBlock.setInstrument(Instrument.getByType((byte) ((id % 400) / 25)));
         noteBlock.setNote(new Note(id % 25));
         noteBlock.setPowered(id >= 400);
         return noteBlock;
