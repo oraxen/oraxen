@@ -32,6 +32,10 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.Transformation;
+import org.joml.Quaternionf;
+import org.joml.Quaternionfc;
+import org.joml.Vector3f;
 
 import java.util.*;
 
@@ -425,7 +429,16 @@ public class FurnitureMechanic extends Mechanic {
         itemDisplay.setDisplayWidth(properties.getWidth());
         itemDisplay.setDisplayHeight(properties.getHeight());
         itemDisplay.setItemStack(item);
-        itemDisplay.setRotation(rotationToYaw(rotation), 0f);
+
+        // Set scale to .5 if FIXED aka ItemFrame to fix size. Also flip it 90 degrees on pitch
+        boolean isFixed = properties.getDisplayTransform().equals(ItemDisplay.ItemDisplayTransform.FIXED);
+        Transformation transform = itemDisplay.getTransformation();
+        if (properties.hasScale()) {
+            transform.getScale().set(properties.getScale());
+        } else if (isFixed) transform.getScale().set(new Vector3f(0.5f, 0.5f, 0.5f));
+
+        itemDisplay.setTransformation(transform);
+        itemDisplay.setRotation(rotationToYaw(rotation.rotateClockwise().rotateClockwise().rotateClockwise().rotateClockwise()), isFixed ? 90f : 0f);
     }
 
     private void setFrameData(ItemFrame frame, ItemStack item, BlockFace facing, Rotation rotation) {

@@ -1,11 +1,10 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.bukkit.Color;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.ItemDisplay;
+import org.joml.Vector3f;
 
 import java.util.Arrays;
 
@@ -21,8 +20,8 @@ public class DisplayEntityProperties {
     private Integer interpolationDelay;
     private final float width;
     private final float height;
+    private final Vector3f scale;
     private final boolean isInteractable;
-
 
     public DisplayEntityProperties(ConfigurationSection configSection) {
         String itemID = configSection.getParent().getParent().getParent().getName();
@@ -35,6 +34,11 @@ public class DisplayEntityProperties {
         shadowRadius = (float) configSection.getDouble("shadow_radius");
         width = (float) configSection.getDouble("width", 1.0);
         height = (float) configSection.getDouble("height", 1.0);
+        if (configSection.isConfigurationSection("scale"))
+            scale = new Vector3f((float) configSection.getDouble("scale.x", 1.0),
+                    (float) configSection.getDouble("scale.y", 1.0),
+                    (float) configSection.getDouble("scale.z", 1.0));
+        else scale = null;
 
         if (viewRange == 0) viewRange = null;
         if (interpolationDuration == 0) interpolationDuration = null;
@@ -69,22 +73,83 @@ public class DisplayEntityProperties {
 
     //public boolean hasGlowColor() { return glowColor != null; }
     //public Color getGlowColor() { return glowColor; }
-    public boolean hasSpecifiedViewRange() { return viewRange != null; }
-    public int getViewRange() { return viewRange; }
-    public boolean hasInterpolationDuration() { return interpolationDuration != null; }
-    public int getInterpolationDuration() { return interpolationDuration; }
-    public boolean hasInterpolationDelay() { return interpolationDelay != null; }
-    public int getInterpolationDelay() { return interpolationDelay; }
-    public boolean hasBrightness() { return brightness != null; }
-    public Display.Brightness getBrightness() { return brightness; }
-    public ItemDisplay.ItemDisplayTransform getDisplayTransform() { return displayTransform; }
-    public boolean hasTrackingRotation() { return trackingRotation != null; }
-    public Display.Billboard getTrackingRotation() { return trackingRotation; }
-    public boolean hasShadowStrength() { return shadowStrength != null; }
-    public float getShadowStrength() { return shadowStrength; }
-    public boolean hasShadowRadius() { return shadowRadius != null; }
-    public float getShadowRadius() { return shadowRadius; }
-    public float getWidth() { return width; }
-    public float getHeight() { return height; }
-    public boolean isInteractable() { return isInteractable; }
+    public boolean hasSpecifiedViewRange() {
+        return viewRange != null;
+    }
+
+    public int getViewRange() {
+        return viewRange;
+    }
+
+    public boolean hasInterpolationDuration() {
+        return interpolationDuration != null;
+    }
+
+    public int getInterpolationDuration() {
+        return interpolationDuration;
+    }
+
+    public boolean hasInterpolationDelay() {
+        return interpolationDelay != null;
+    }
+
+    public int getInterpolationDelay() {
+        return interpolationDelay;
+    }
+
+    public boolean hasBrightness() {
+        return brightness != null;
+    }
+
+    public Display.Brightness getBrightness() {
+        return brightness;
+    }
+
+    public ItemDisplay.ItemDisplayTransform getDisplayTransform() {
+        return displayTransform;
+    }
+
+    public boolean hasTrackingRotation() {
+        return trackingRotation != null;
+    }
+
+    public Display.Billboard getTrackingRotation() {
+        return trackingRotation;
+    }
+
+    public boolean hasShadowStrength() {
+        return shadowStrength != null;
+    }
+
+    public float getShadowStrength() {
+        return shadowStrength;
+    }
+
+    public boolean hasShadowRadius() {
+        return shadowRadius != null;
+    }
+
+    public float getShadowRadius() {
+        return shadowRadius;
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+
+    public boolean hasScale() {
+        return scale != null;
+    }
+
+    public Vector3f getScale() {
+        return scale;
+    }
+
+    public boolean isInteractable() {
+        return isInteractable;
+    }
 }
