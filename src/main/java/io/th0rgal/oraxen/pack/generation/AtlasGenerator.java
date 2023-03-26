@@ -19,7 +19,7 @@ public class AtlasGenerator {
     public AtlasGenerator() {
     }
 
-    public static void generateAtlasFile(List<VirtualFile> output) {
+    public static void generateAtlasFile(List<VirtualFile> output, Set<String> malformedTextures) {
         Logs.logSuccess("Generating atlas-file for 1.19.3 Resource Pack format");
 
         JsonObject atlas = new JsonObject();
@@ -65,6 +65,7 @@ public class AtlasGenerator {
                     atlasEntry.addProperty("prefix", path + "/");
                 }
             } else {
+                if (Settings.EXCLUDE_MALFORMED_ATLAS.toBool() && malformedTextures.contains(path)) continue;
                 String sprite = namespace + ":" + path;
                 atlasEntry.addProperty("type", "single");
                 atlasEntry.addProperty("resource", sprite);

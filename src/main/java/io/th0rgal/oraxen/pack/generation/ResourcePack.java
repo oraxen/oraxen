@@ -34,6 +34,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -137,17 +138,18 @@ public class ResourcePack {
             e.printStackTrace();
         }
 
+        Set<String> malformedTextures = new HashSet<>();
+        if (Settings.VERIFY_PACK_FILES.toBool())
+            malformedTextures = verifyPackFormatting(output);
+
         if (Settings.GENERATE_ATLAS_FILE.toBool())
-            AtlasGenerator.generateAtlasFile(output);
+            AtlasGenerator.generateAtlasFile(output, malformedTextures);
         if (!Settings.MERGE_DUPLICATES.toBool()) {
             if (Settings.MERGE_FONTS.toBool())
                 DuplicationHandler.mergeFontFiles(output);
             if (Settings.MERGE_ITEM_MODELS.toBool())
                 DuplicationHandler.mergeBaseItemFiles(output);
         }
-
-        if (Settings.VERIFY_PACK_FILES.toBool())
-            verifyPackFormatting(output);
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
@@ -161,7 +163,7 @@ public class ResourcePack {
         ZipUtils.writeZipFile(pack, output);
     }
 
-    private static void verifyPackFormatting(List<VirtualFile> output) {
+    private static Set<String> verifyPackFormatting(List<VirtualFile> output) {
         Logs.logInfo("Verifying formatting for textures and models...");
         Set<VirtualFile> textures = new HashSet<>();
         Set<String> texturePaths = new HashSet<>();
@@ -251,6 +253,9 @@ public class ResourcePack {
                 Logs.logError("These need to be fixed, otherwise the resourcepack will be broken");
             } else Logs.logSuccess("No broken models or textures were found");
         }
+        Set<String> malformedFiles = malformedTextures.stream().map(VirtualFile::getPath).collect(Collectors.toSet());
+        malformedFiles.addAll(malformedModels.stream().map(VirtualFile::getPath).collect(Collectors.toSet()));
+        return malformedFiles;
     }
 
     private static String modelPathToPackPath(String modelPath) {
