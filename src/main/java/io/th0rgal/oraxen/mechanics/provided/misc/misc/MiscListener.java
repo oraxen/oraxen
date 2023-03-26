@@ -4,9 +4,12 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
 import static org.bukkit.event.entity.EntityDamageEvent.DamageCause.FIRE;
@@ -38,6 +41,14 @@ public class MiscListener implements Listener {
             case CONTACT: if (!mechanic.breaksFromCactus()) event.setCancelled(true);
             case LAVA: if (!mechanic.burnsInLava()) event.setCancelled(true);
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onDisableVanillaInteraction(PlayerInteractEvent event) {
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(OraxenItems.getIdByItem(event.getItem()));
+        if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
+        event.setCancelled(true);
     }
 
     private MiscMechanic getMiscMechanic(Entity entity) {
