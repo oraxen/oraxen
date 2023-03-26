@@ -87,7 +87,7 @@ public class FurnitureMechanic extends Mechanic {
             if (furnitureType == FurnitureType.DISPLAY_ENTITY && !OraxenPlugin.get().supportsDisplayEntities()) {
                 Logs.logError("Use of Display Entity on unsupported server version.");
                 Logs.logError("This EntityType is only supported on 1.19.4 and above.");
-                Logs.logError("Setting type to ITEM_FRAME.");
+                Logs.logError("Setting type to ITEM_FRAME for <i>" + getItemID() + "</i>.");
                 furnitureType = FurnitureType.ITEM_FRAME;
             }
         } catch (IllegalArgumentException e) {
@@ -278,7 +278,6 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     /**
-     *
      * @param rotation
      * @param yaw
      * @param facing
@@ -341,7 +340,7 @@ public class FurnitureMechanic extends Mechanic {
         } else item = placedItem;
 
         Entity baseEntity = location.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), entityClass, (entity) ->
-                setEntityData(entity, item, rotation, facing));
+                setEntityData(entity, yaw, item, rotation, facing));
 
         if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity, yaw);
@@ -350,13 +349,13 @@ public class FurnitureMechanic extends Mechanic {
         return baseEntity;
     }
 
-    private void setEntityData(Entity entity, ItemStack item, Rotation rotation, BlockFace facing) {
+    private void setEntityData(Entity entity, float yaw, ItemStack item, Rotation rotation, BlockFace facing) {
         setBaseFurnitureData(entity);
         if (entity instanceof ItemFrame frame) {
             setFrameData(frame, item, facing, rotation);
             Location location = entity.getLocation();
 
-            if (hasBarriers()) setBarrierHitbox(location, location.getYaw(), rotation, true);
+            if (hasBarriers()) setBarrierHitbox(location, yaw, rotation, true);
             else {
                 float width = hasHitbox() ? hitbox.width : 1f;
                 float height = hasHitbox() ? hitbox.height : 1f;
@@ -379,15 +378,17 @@ public class FurnitureMechanic extends Mechanic {
             float height = hasHitbox() ? hitbox.height : properties.getHeight();
             Interaction interaction = spawnInteractionEntity(itemDisplay, location, width, height, properties.isInteractable());
 
-            if (hasBarriers()) setBarrierHitbox(location, location.getYaw(), rotation, false);
+            if (hasBarriers()) setBarrierHitbox(location, yaw, rotation, false);
             else if (hasSeat()) {
                 UUID entityId = spawnSeat(this, location.getBlock(), hasSeatYaw ? seatYaw : location.getYaw());
-                if (entityId != null) interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, entityId);
+                if (entityId != null && interaction != null)
+                    interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, entityId);
             }
         }
     }
 
     private Interaction spawnInteractionEntity(Entity entity, Location location, float width, float height, boolean responsive) {
+        if (!OraxenPlugin.get().supportsDisplayEntities()) return null;
         return entity.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), Interaction.class, (Interaction interaction) -> {
             interaction.setInteractionWidth(width);
             interaction.setInteractionHeight(height);
@@ -487,7 +488,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private void setBarrierHitbox(Location location, float yaw, Rotation rotation, boolean handleLight) {
-        for (Location barrierLocation : getLocations(yaw, location.clone(), getBarriers())) {
+        for (Location barrierLocation : getLocations(yaw, BlockHelpers.toCenterBlockLocation(location), getBarriers())) {
             Block block = barrierLocation.getBlock();
             PersistentDataContainer data = BlockHelpers.getPDC(block);
             data.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
@@ -623,12 +624,14 @@ public class FurnitureMechanic extends Mechanic {
             }
         }
 
-        for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
-            if (!(entity instanceof Interaction interaction)) continue;
-            PersistentDataContainer pdc = interaction.getPersistentDataContainer();
-            if (pdc.has(FURNITURE_KEY, DataType.STRING) && pdc.getOrDefault(FURNITURE_KEY, DataType.STRING, "").equals(getItemID())) {
-                if (pdc.has(ROOT_KEY, DataType.LOCATION) && Objects.equals(pdc.get(ROOT_KEY, DataType.LOCATION), baseEntity.getLocation()))
-                    interaction.remove();
+        if (OraxenPlugin.get().supportsDisplayEntities()) {
+            for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
+                if (!(entity instanceof Interaction interaction)) continue;
+                PersistentDataContainer pdc = interaction.getPersistentDataContainer();
+                if (pdc.has(FURNITURE_KEY, DataType.STRING) && pdc.getOrDefault(FURNITURE_KEY, DataType.STRING, "").equals(getItemID())) {
+                    if (pdc.has(ROOT_KEY, DataType.LOCATION) && Objects.equals(pdc.get(ROOT_KEY, DataType.LOCATION), baseEntity.getLocation()))
+                        interaction.remove();
+                }
             }
         }
     }
@@ -748,12 +751,14 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public Interaction getInteractionEntity(Entity baseEntity) {
-        for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
-            if (!(entity instanceof Interaction interaction)) continue;
-            PersistentDataContainer pdc = interaction.getPersistentDataContainer();
-            if (pdc.has(FURNITURE_KEY, DataType.STRING) && pdc.getOrDefault(FURNITURE_KEY, DataType.STRING, "").equals(getItemID())) {
-                if (pdc.has(ROOT_KEY, DataType.LOCATION) && Objects.equals(pdc.get(ROOT_KEY, DataType.LOCATION), baseEntity.getLocation()))
-                    return interaction;
+        if (OraxenPlugin.get().supportsDisplayEntities()) {
+            for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
+                if (!(entity instanceof Interaction interaction)) continue;
+                PersistentDataContainer pdc = interaction.getPersistentDataContainer();
+                if (pdc.has(FURNITURE_KEY, DataType.STRING) && pdc.getOrDefault(FURNITURE_KEY, DataType.STRING, "").equals(getItemID())) {
+                    if (pdc.has(ROOT_KEY, DataType.LOCATION) && Objects.equals(pdc.get(ROOT_KEY, DataType.LOCATION), baseEntity.getLocation()))
+                        return interaction;
+                }
             }
         }
         return null;
