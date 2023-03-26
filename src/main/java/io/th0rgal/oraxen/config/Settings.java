@@ -25,6 +25,7 @@ public enum Settings {
     FORMAT_CHAT("Plugin.formatting.chat"),
     FORMAT_BOOKS("Plugin.formatting.books"),
     VERIFY_PACK_FILES("Plugin.experimental.verify_pack_files"),
+    EXCLUDE_MALFORMED_ATLAS("Plugin.experimental.exclude_malformed_from_atlas"),
 
     CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),

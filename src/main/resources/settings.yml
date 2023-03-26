@@ -24,6 +24,7 @@ Plugin:
     stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
   experimental:
     verify_pack_files: true # Checks all textures and models to make sure they abide by valid Resourcepack formatting
+    exclude_malformed_from_atlas: true # If a texture is malformed, it will not be included in the atlas
 
 Pack:
   generation:
