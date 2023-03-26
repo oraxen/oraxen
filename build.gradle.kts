@@ -43,7 +43,7 @@ dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"
 
     compileOnly("org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
-    compileOnly("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT") { exclude(group = "net.kyori") }
+    compileOnly("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT") { exclude("net.kyori") }
     compileOnly("com.comphenix.protocol:ProtocolLib:5.0.0-SNAPSHOT")
     compileOnly("me.clip:placeholderapi:2.11.2")
     compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
@@ -56,6 +56,7 @@ dependencies {
     compileOnly("com.ticxo.modelengine:api:R3.1.5")
     compileOnly(fileTree(mapOf("dir" to "libs/compile", "include" to listOf("*.jar"))))
     compileOnly("dev.jorel:commandapi-shade:8.8.0")
+    compileOnly("org.joml:joml:1.10.5") // Because pre 1.19.4 api does not have this in the server-jar
 
     implementation("dev.triumphteam:triumph-gui:3.1.4")
     implementation("org.bstats:bstats-bukkit:3.0.0")
@@ -103,13 +104,12 @@ tasks {
         relocate("com.jeff_media.customblockdata", "io.th0rgal.oraxen.shaded.customblockdata")
         relocate("com.jeff_media.morepersistentdatatypes", "io.th0rgal.oraxen.shaded.morepersistentdatatypes")
         relocate("com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.if")
-        //relocate("dev.jorel.commandapi", "io.th0rgal.oraxen.shaded.commandapi")
         relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
         relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
         relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
         relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
-        relocate("com.github.aternosorg", "io.th0rgal.oraxen.shaded.aternosorg")
+        //relocate("org.joml", "io.th0rgal.oraxen.shaded.joml")
 
         //mapOf("dir" to "libs/compile", "include" to listOf("*.jar"))
         manifest {
@@ -142,7 +142,7 @@ bukkit {
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine")
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
-    libraries = listOf("org.springframework:spring-expression:6.0.6", "org.apache.httpcomponents:httpmime:4.5.13", "dev.jorel:commandapi-shade:8.8.0")
+    libraries = listOf("org.springframework:spring-expression:6.0.6", "org.apache.httpcomponents:httpmime:4.5.13", "dev.jorel:commandapi-shade:8.8.0", "org.joml:joml:1.10.5")
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE
