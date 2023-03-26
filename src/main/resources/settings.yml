@@ -187,6 +187,9 @@ Misc:
   # Update the items in player inventory to the latest in config when player joins
   auto_update_items: false
 
+  # Whether Oraxen should register emoji tab completions with unicode characters
+  unicode_completions: true
+
   # All blocks with an inventory or any blocks that when right clicked shouldn't equip armor.
   armor_equip_event_bypass:
     - FURNACE

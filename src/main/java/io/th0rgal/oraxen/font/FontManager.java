@@ -20,6 +20,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
+import java.util.stream.Stream;
 
 public class FontManager {
 
@@ -159,15 +160,17 @@ public class FontManager {
     }
 
     public void sendGlyphTabCompletion(Player player, boolean add) {
+        boolean useUnicodeCompletions = Settings.UNICODE_COMPLETIONS.toBool();
         if (PacketType.Play.Server.CUSTOM_CHAT_COMPLETIONS.isSupported()) {
             PacketContainer packet = new PacketContainer(PacketType.Play.Server.CUSTOM_CHAT_COMPLETIONS);
 
             Object[] constants = PacketType.Play.Server.CUSTOM_CHAT_COMPLETIONS.getPacketClass().getDeclaredClasses()[0].getEnumConstants();
             packet.getModifier().write(0, constants[(add) ? 0 : 1]);
-
             packet.getModifier().write(1, getGlyphByPlaceholderMap().values().stream()
                     .filter(Glyph::hasTabCompletion)
-                    .map(glyph -> String.valueOf(glyph.getCharacter()))
+                    .flatMap(glyph -> useUnicodeCompletions
+                            ? Stream.of(String.valueOf(glyph.getCharacter()))
+                            : Arrays.stream(glyph.getPlaceholders()))
                     .toList());
 
             protocolManager.sendServerPacket(player, packet);
@@ -178,26 +181,32 @@ public class FontManager {
 
                 packet.getPlayerInfoAction().write(0, (add) ? EnumWrappers.PlayerInfoAction.ADD_PLAYER : EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
 
-                final WrappedGameProfile profile = new WrappedGameProfile(
-                        UUID.randomUUID(), String.valueOf(glyph.getCharacter()));
+                List<WrappedGameProfile> profiles = useUnicodeCompletions
+                        ? Collections.singletonList(getGameProfileForCompletion(String.valueOf(glyph.getCharacter())))
+                        : Arrays.stream(glyph.getPlaceholders())
+                        .map(this::getGameProfileForCompletion)
+                        .toList();
 
-                if (glyph.getTabIconTexture() != null && glyph.getTabIconSignature() != null)
-                    profile.getProperties().put("textures",
-                            new WrappedSignedProperty(
-                                    "textures",
-                                    glyph.getTabIconTexture(),
-                                    glyph.getTabIconSignature()));
+                if (glyph.getTabIconTexture() != null && glyph.getTabIconSignature() != null) {
+                    for (WrappedGameProfile profile : profiles) {
+                        profile.getProperties().put("textures",
+                                new WrappedSignedProperty(
+                                        "textures",
+                                        glyph.getTabIconTexture(),
+                                        glyph.getTabIconSignature()));
+                    }
+                }
 
-                PlayerInfoData data = new PlayerInfoData(profile,
-                        0, EnumWrappers.NativeGameMode.SPECTATOR,
-                        WrappedChatComponent.fromText(""));
-
-                List<PlayerInfoData> dataList = new ArrayList<>();
-                dataList.add(data);
-                packet.getPlayerInfoDataLists().write(0, dataList);
+                packet.getPlayerInfoDataLists().write(0, profiles.stream()
+                        .map(profile -> new PlayerInfoData(profile, 0, EnumWrappers.NativeGameMode.SPECTATOR, WrappedChatComponent.fromText("")))
+                        .toList());
 
                 protocolManager.sendServerPacket(player, packet);
             }
         }
+    }
+
+    private WrappedGameProfile getGameProfileForCompletion(String completion) {
+        return new WrappedGameProfile(UUID.randomUUID(), completion);
     }
 }
