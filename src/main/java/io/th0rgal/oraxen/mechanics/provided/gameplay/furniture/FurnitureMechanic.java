@@ -340,7 +340,7 @@ public class FurnitureMechanic extends Mechanic {
         } else item = placedItem;
 
         Entity baseEntity = location.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), entityClass, (entity) ->
-                setEntityData(entity, item, rotation, facing));
+                setEntityData(entity, yaw, item, rotation, facing));
 
         if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity, yaw);
@@ -349,13 +349,13 @@ public class FurnitureMechanic extends Mechanic {
         return baseEntity;
     }
 
-    private void setEntityData(Entity entity, ItemStack item, Rotation rotation, BlockFace facing) {
+    private void setEntityData(Entity entity, float yaw, ItemStack item, Rotation rotation, BlockFace facing) {
         setBaseFurnitureData(entity);
         if (entity instanceof ItemFrame frame) {
             setFrameData(frame, item, facing, rotation);
             Location location = entity.getLocation();
 
-            if (hasBarriers()) setBarrierHitbox(location, location.getYaw(), rotation, true);
+            if (hasBarriers()) setBarrierHitbox(location, yaw, rotation, true);
             else {
                 float width = hasHitbox() ? hitbox.width : 1f;
                 float height = hasHitbox() ? hitbox.height : 1f;
@@ -378,7 +378,7 @@ public class FurnitureMechanic extends Mechanic {
             float height = hasHitbox() ? hitbox.height : properties.getHeight();
             Interaction interaction = spawnInteractionEntity(itemDisplay, location, width, height, properties.isInteractable());
 
-            if (hasBarriers()) setBarrierHitbox(location, location.getYaw(), rotation, false);
+            if (hasBarriers()) setBarrierHitbox(location, yaw, rotation, false);
             else if (hasSeat()) {
                 UUID entityId = spawnSeat(this, location.getBlock(), hasSeatYaw ? seatYaw : location.getYaw());
                 if (entityId != null && interaction != null)
@@ -488,7 +488,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private void setBarrierHitbox(Location location, float yaw, Rotation rotation, boolean handleLight) {
-        for (Location barrierLocation : getLocations(yaw, location.clone(), getBarriers())) {
+        for (Location barrierLocation : getLocations(yaw, BlockHelpers.toCenterBlockLocation(location), getBarriers())) {
             Block block = barrierLocation.getBlock();
             PersistentDataContainer data = BlockHelpers.getPDC(block);
             data.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
