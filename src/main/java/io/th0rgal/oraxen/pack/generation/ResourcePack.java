@@ -19,7 +19,6 @@ import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -202,7 +201,7 @@ public class ResourcePack {
                 if (!content.isEmpty()) {
                     JsonObject jsonModel = JsonParser.parseString(content).getAsJsonObject();
                     if (jsonModel.has("textures")) {
-                        for (JsonElement element : jsonModel.getAsJsonObject("textures").asMap().values()) {
+                        for (JsonElement element : jsonModel.getAsJsonObject("textures").entrySet().stream().map(Map.Entry::getValue).toList()) {
                             String jsonTexture = element.getAsString();
                             if (!texturePaths.contains(modelPathToPackPath(jsonTexture))) {
                                 if (!jsonTexture.startsWith("item/") && !jsonTexture.startsWith("block/")) {
