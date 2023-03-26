@@ -7,9 +7,9 @@ plugins {
     id("idea")
     id("eclipse")
     id("maven-publish")
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.0.1"
-    id("net.minecrell.plugin-yml.bukkit") version "0.5.2" // Generates plugin.yml
+    id("net.minecrell.plugin-yml.bukkit") version "0.5.3" // Generates plugin.yml
 }
 
 val pluginVersion: String by project
@@ -161,12 +161,11 @@ val pluginPath = project.findProperty("oraxen_plugin_path")
 if (pluginPath != null) {
     tasks {
         register<Copy>("copyJar") {
+            dependsOn(shadowJar, jar)
             from(findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar"))
             into(pluginPath)
             doLast {
-                println(pluginVersion)
                 println("Copied to plugin directory $pluginPath")
-                println(version)
             }
         }
         named<DefaultTask>("build") {
