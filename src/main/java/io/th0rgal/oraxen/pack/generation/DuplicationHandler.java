@@ -278,7 +278,7 @@ public class DuplicationHandler {
             Logs.logWarning("Failed to migrate duplicate file-entry, failed to load items/migrated_duplicates.yml");
             return false;
         }
-        Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "\\pack\\", name);
+        Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "pack", name);
         String fileContent;
         try {
             fileContent = Files.readString(path);
