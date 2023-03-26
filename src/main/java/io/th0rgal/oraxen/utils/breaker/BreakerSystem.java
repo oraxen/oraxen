@@ -112,10 +112,11 @@ public class BreakerSystem {
                     breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
 
                 final BukkitScheduler scheduler = Bukkit.getScheduler();
+                // Cancellation state is being ignored.
+                // However still needs to be called for plugin support.
                 final PlayerInteractEvent playerInteractEvent =
                         new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK, player.getInventory().getItemInMainHand(), block, blockFace, EquipmentSlot.HAND);
-                //scheduler.runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
-                if (playerInteractEvent.useInteractedBlock().equals(Event.Result.DENY)) return;
+                scheduler.runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
 
                 // If the relevant damage event is cancelled, return
                 if (blockDamageEventCancelled(block, player)) return;
