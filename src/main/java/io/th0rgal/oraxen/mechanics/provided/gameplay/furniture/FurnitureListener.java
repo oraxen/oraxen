@@ -269,9 +269,8 @@ public class FurnitureListener implements Listener {
         Entity hitEntity = event.getHitEntity();
         Projectile projectile = event.getEntity();
         Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
-        Location location = block != null && block.getType() == Material.BARRIER
-                ? block.getLocation() : hitEntity instanceof Interaction
-                ? hitEntity.getLocation() : null;
+        Location location = block != null && block.getType() == Material.BARRIER ? block.getLocation()
+                : hitEntity != null ? hitEntity.getLocation() : null;
 
         // Do not break furniture with a hitbox unless its explosive
         if (location != null && OraxenFurniture.isFurniture(hitEntity)) {
