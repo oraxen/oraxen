@@ -39,14 +39,17 @@ public class EvolutionListener implements Listener {
         Entity entity = event.getRightClicked();
         Player player = event.getPlayer();
 
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
+        if (mechanic == null || !mechanic.hasEvolution()) return;
+        // Swap entity to baseEntity to handle 1.19.4 Interaction entities
+        entity = mechanic.getBaseEntity(entity);
+
         PersistentDataContainer cropPDC = entity.getPersistentDataContainer();
         if (!cropPDC.has(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER)) return;
 
         ItemStack itemInteracted = player.getInventory().getItemInMainHand();
         if (itemInteracted.getType() != Material.BONE_MEAL) return;
 
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
-        if (mechanic == null || !mechanic.hasEvolution()) return;
         event.setCancelled(true);
         EvolvingFurniture evolution = mechanic.getEvolution();
         if (!evolution.isBoneMeal() || evolution.getNextStage() == null) return;
