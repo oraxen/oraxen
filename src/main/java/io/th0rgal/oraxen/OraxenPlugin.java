@@ -5,7 +5,6 @@ import com.comphenix.protocol.ProtocolManager;
 import com.ticxo.playeranimator.PlayerAnimatorImpl;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIConfig;
-import gs.mclo.java.Log;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.commands.CommandsManager;
@@ -22,7 +21,6 @@ import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
@@ -58,16 +56,16 @@ public class OraxenPlugin extends JavaPlugin {
     private ClickActionManager clickActionManager;
     private ProtocolManager protocolManager;
     public final boolean isPaperServer;
-    public boolean supportsDisplayEntities;
+    public static boolean supportsDisplayEntities;
 
     public OraxenPlugin() throws NoSuchFieldException, IllegalAccessException {
         oraxen = this;
-        isPaperServer = isPaperServer();
-        supportsDisplayEntities = false;
+        isPaperServer = checkIfPaperServer();
+        supportsDisplayEntities = checkIfSupportsDisplayEntities();
         Logs.enableFilter();
     }
 
-    private static boolean isPaperServer() {
+    private static boolean checkIfPaperServer() {
         try {
             Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
             return true;
@@ -76,7 +74,7 @@ public class OraxenPlugin extends JavaPlugin {
         }
     }
 
-    public static boolean supportsDisplayEntities() {
+    private static boolean checkIfSupportsDisplayEntities() {
         try {
             Class.forName("org.bukkit.entity.ItemDisplay");
             if (Bukkit.getPluginManager().isPluginEnabled("ViaBackwards") && FurnitureFactory.getInstance().detectViabackwards) {
