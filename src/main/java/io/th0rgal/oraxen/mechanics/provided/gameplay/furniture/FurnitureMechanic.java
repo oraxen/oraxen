@@ -446,15 +446,10 @@ public class FurnitureMechanic extends Mechanic {
         frame.setItem(item);
         frame.setRotation(rotation);
 
-        if (frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
-            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
-            // Make sure that if a floor-only furniture is placed on the side of a wall block, it is facing correctly
-            if (mechanic != null && mechanic.hasLimitedPlacing() && mechanic.limitedPlacing.isFloor() && !mechanic.limitedPlacing.isWall()) {
+        if (hasLimitedPlacing()) {
+            if (limitedPlacing.isFloor() && !limitedPlacing.isWall() && frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
                 frame.setFacingDirection(BlockFace.UP, true);
-            }
-
-            // If placed on the side of a block
-            if (Set.of(BlockFace.NORTH, BlockFace.WEST, BlockFace.SOUTH, BlockFace.EAST).contains(facing)) {
+            } else if (limitedPlacing.isWall()) {
                 frame.setRotation(Rotation.NONE);
             }
         }
