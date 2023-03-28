@@ -33,6 +33,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Transformation;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.*;
@@ -544,6 +546,7 @@ public class FurnitureMechanic extends Mechanic {
             itemFrame.setItem(new ItemStack(Material.AIR), false);
     }
 
+    @Nullable
     public static ItemStack getFurnitureItem(Entity entity) {
         if (entity instanceof ItemDisplay itemDisplay)
             return itemDisplay.getItemStack();
@@ -680,6 +683,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
+    @Nullable
     private UUID spawnSeat(FurnitureMechanic mechanic, Block target, float yaw) {
         if (mechanic.hasSeat()) {
             final ArmorStand seat = target.getWorld().spawn(target.getLocation()
@@ -727,6 +731,7 @@ public class FurnitureMechanic extends Mechanic {
         return null;
     }
 
+    @Nullable
     public Entity getBaseEntity(Block block) {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         if (pdc.isEmpty()) return null;
@@ -744,6 +749,7 @@ public class FurnitureMechanic extends Mechanic {
         return null;
     }
 
+    @Nullable
     public Entity getBaseEntity(Entity entity) {
         // If the entity is the same type as the base entity, return it
         // Since ItemDisplay entities have no hitbox it will only be for ITEM_FRAME based ones
@@ -761,7 +767,8 @@ public class FurnitureMechanic extends Mechanic {
         return null;
     }
 
-    public Interaction getInteractionEntity(Entity baseEntity) {
+    @Nullable
+    public Interaction getInteractionEntity(@NotNull Entity baseEntity) {
         if (OraxenPlugin.get().supportsDisplayEntities) {
             for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
                 if (!(entity instanceof Interaction interaction)) continue;

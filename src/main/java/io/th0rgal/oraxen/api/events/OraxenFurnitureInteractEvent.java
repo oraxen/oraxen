@@ -62,6 +62,7 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
      * This is due to backwards compatibility with old server versions.
      * You can safely cast any entity returned by this method to Interaction.
      */
+    @Nullable
     public Entity getInteractionEntity() { return mechanic.getInteractionEntity(baseEntity); }
 
     @Override

@@ -69,6 +69,7 @@ dependencies {
     implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
     implementation("gs.mclo:java:2.2.1")
     implementation("com.ticxo.playeranimator:PlayerAnimator:R1.2.5")
+    implementation("org.jetbrains:annotations:22.0.0")
 
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
 }
