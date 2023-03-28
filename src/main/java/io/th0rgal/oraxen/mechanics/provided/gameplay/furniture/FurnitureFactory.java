@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import io.lumine.mythic.bukkit.utils.lib.jooq.impl.QOM;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -28,7 +27,7 @@ public class FurnitureFactory extends MechanicFactory {
         evolutionCheckDelay = section.getInt("evolution_check_delay");
         MechanicsManager.registerListeners(OraxenPlugin.get(),
                 new FurnitureListener(this),
-                new EvolutionListener(this),
+                new EvolutionListener(),
                 new JukeboxListener()
         );
         evolvingFurnitures = false;

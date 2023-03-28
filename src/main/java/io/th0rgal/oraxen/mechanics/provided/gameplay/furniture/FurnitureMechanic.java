@@ -72,7 +72,13 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public enum FurnitureType {
-        ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY, ARMOR_STAND
+        ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY, ARMOR_STAND;
+
+        public static List<Class<? extends Entity>> furnitureEntityClasses() {
+            List<Class<? extends Entity>> list = List.of(ItemFrame.class, GlowItemFrame.class, ArmorStand.class);
+            if (OraxenPlugin.get().supportsDisplayEntities) list.add(ItemDisplay.class);
+            return list;
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -663,6 +669,10 @@ public class FurnitureMechanic extends Mechanic {
         return (Arrays.asList(Rotation.values()).indexOf(rotation) * 360f) / 8f;
     }
 
+    public static Rotation yawToRotation(float yaw) {
+        return Rotation.values()[Math.round(yaw / 45f) & 0x7];
+    }
+
     public boolean hasClickActions() {
         return !clickActions.isEmpty();
     }
@@ -779,8 +789,17 @@ public class FurnitureMechanic extends Mechanic {
         return switch (furnitureType) {
             case ITEM_FRAME -> EntityType.ITEM_FRAME;
             case GLOW_ITEM_FRAME -> EntityType.GLOW_ITEM_FRAME;
-            case DISPLAY_ENTITY -> EntityType.ITEM_DISPLAY;
+            case DISPLAY_ENTITY -> OraxenPlugin.supportsDisplayEntities() ? EntityType.ITEM_DISPLAY : EntityType.ITEM_FRAME;
             case ARMOR_STAND -> EntityType.ARMOR_STAND;
+        };
+    }
+
+    public Class<? extends Entity> getFurnitureEntityClass() {
+        return switch (furnitureType) {
+            case ITEM_FRAME -> ItemFrame.class;
+            case GLOW_ITEM_FRAME -> GlowItemFrame.class;
+            case DISPLAY_ENTITY -> OraxenPlugin.supportsDisplayEntities() ? ItemDisplay.class : ItemFrame.class;
+            case ARMOR_STAND -> ArmorStand.class;
         };
     }
 
