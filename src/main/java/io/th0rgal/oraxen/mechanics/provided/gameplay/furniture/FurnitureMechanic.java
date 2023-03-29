@@ -100,15 +100,17 @@ public class FurnitureMechanic extends Mechanic {
             Logs.logError("Setting type to ITEM_FRAME.");
             furnitureType = FurnitureType.ITEM_FRAME;
         }
+
         ConfigurationSection displayEntitySection = section.getConfigurationSection("display_entity_properties");
-        if(furnitureType== FurnitureType.DISPLAY_ENTITY && displayEntitySection == null) {
+        if (displayEntitySection == null) {
             Logs.logError("Use of Display Entity without display_entity_properties in " + getItemID() + " furniture.");
             Logs.logError("Setting type to ITEM_FRAME.");
             furnitureType = FurnitureType.ITEM_FRAME;
-        }
-        displayEntityProperties = OraxenPlugin.supportsDisplayEntities && displayEntitySection != null
-                ? new DisplayEntityProperties(displayEntitySection)
-                : null;
+            displayEntityProperties = null;
+        } else
+            displayEntityProperties = OraxenPlugin.supportsDisplayEntities
+                    ? new DisplayEntityProperties(displayEntitySection)
+                    : null;
 
         barriers = new ArrayList<>();
         if (CompatibilitiesManager.hasPlugin("ProtocolLib")) {
