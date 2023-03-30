@@ -23,6 +23,19 @@ public class DisplayEntityProperties {
     private final Vector3f scale;
     private final boolean isInteractable;
 
+    public DisplayEntityProperties() {
+        this.isInteractable = true;
+        this.width = 1.0f;
+        this.height = 1.0f;
+        this.displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
+        this.scale = new Vector3f(1.0f, 1.0f, 1.0f);
+        this.shadowRadius = null;
+        this.shadowStrength = null;
+        this.brightness = null;
+        this.trackingRotation = null;
+        this.viewRange = null;
+    }
+
     public DisplayEntityProperties(ConfigurationSection configSection) {
         String itemID = configSection.getParent().getParent().getParent().getName();
         isInteractable = configSection.getBoolean("interactable", true);
