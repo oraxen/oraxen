@@ -74,7 +74,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public enum FurnitureType {
-        ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY, ARMOR_STAND
+        ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY//, ARMOR_STAND
     }
 
     @SuppressWarnings("unchecked")
@@ -550,11 +550,12 @@ public class FurnitureMechanic extends Mechanic {
 
     @Nullable
     public static ItemStack getFurnitureItem(Entity entity) {
-        if (entity instanceof ItemDisplay itemDisplay)
-            return itemDisplay.getItemStack();
-        else if (entity instanceof ItemFrame itemFrame)
-            return itemFrame.getItem();
-        else return null;
+        return switch (entity.getType()) {
+            case ITEM_FRAME, GLOW_ITEM_FRAME -> ((ItemFrame) entity).getItem();
+            case ARMOR_STAND -> ((ArmorStand) entity).getEquipment().getHelmet();
+            case ITEM_DISPLAY -> OraxenPlugin.supportsDisplayEntities ? ((ItemDisplay) entity).getItemStack() : null;
+            default -> null;
+        };
     }
 
     public boolean removeSolid(Block block) {
@@ -640,7 +641,7 @@ public class FurnitureMechanic extends Mechanic {
             }
         }
 
-        if (OraxenPlugin.get().supportsDisplayEntities) {
+        if (OraxenPlugin.supportsDisplayEntities) {
             for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
                 if (!(entity instanceof Interaction interaction)) continue;
                 PersistentDataContainer pdc = interaction.getPersistentDataContainer();
@@ -771,7 +772,7 @@ public class FurnitureMechanic extends Mechanic {
 
     @Nullable
     public Interaction getInteractionEntity(@NotNull Entity baseEntity) {
-        if (OraxenPlugin.get().supportsDisplayEntities) {
+        if (OraxenPlugin.supportsDisplayEntities) {
             for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
                 if (!(entity instanceof Interaction interaction)) continue;
                 PersistentDataContainer pdc = interaction.getPersistentDataContainer();
@@ -794,7 +795,7 @@ public class FurnitureMechanic extends Mechanic {
             case ITEM_FRAME -> EntityType.ITEM_FRAME;
             case GLOW_ITEM_FRAME -> EntityType.GLOW_ITEM_FRAME;
             case DISPLAY_ENTITY -> EntityType.ITEM_DISPLAY;
-            case ARMOR_STAND -> EntityType.ARMOR_STAND;
+            //case ARMOR_STAND -> EntityType.ARMOR_STAND;
         };
     }
 
