@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
 public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
@@ -15,15 +16,17 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
     private final Player player;
     private final Block block;
     private final Entity baseEntity;
+    private final ItemStack item;
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurniturePlaceEvent(FurnitureMechanic mechanic, Block block, Entity baseEntity, Player player){
+    public OraxenFurniturePlaceEvent(FurnitureMechanic mechanic, Block block, Entity baseEntity, Player player, ItemStack item){
         this.mechanic = mechanic;
         this.player = player;
         this.block = block;
         this.isCancelled = false;
         this.baseEntity = baseEntity;
+        this.item = item;
     }
 
     /**
@@ -52,6 +55,13 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
      */
     public Entity getBaseEntity() {
         return baseEntity;
+    }
+
+    /**
+     * @return The item used to place the furniture
+     */
+    public ItemStack getItem() {
+        return item;
     }
 
     @Override
