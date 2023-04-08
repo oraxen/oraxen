@@ -112,14 +112,8 @@ public class BreakerSystem {
                     breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
 
                 final BukkitScheduler scheduler = Bukkit.getScheduler();
-                final PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(
-                        player,
-                        Action.LEFT_CLICK_BLOCK,
-                        player.getInventory().getItemInMainHand(),
-                        block,
-                        blockFace,
-                        EquipmentSlot.HAND
-                );
+                final PlayerInteractEvent playerInteractEvent =
+                        new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK, player.getInventory().getItemInMainHand(), block, blockFace, EquipmentSlot.HAND);
                 //scheduler.runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
                 if (playerInteractEvent.useInteractedBlock().equals(Event.Result.DENY)) return;
 
@@ -212,7 +206,9 @@ public class BreakerSystem {
                     return false;
                 }
             }
-            default -> { return true; }
+            default -> {
+                return true;
+            }
         }
     }
 

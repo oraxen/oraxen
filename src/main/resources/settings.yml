@@ -22,13 +22,18 @@ Plugin:
   worldedit: # Please note these are both experimental still and should be used with caution
     noteblock_mechanic: false
     stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
+  experimental:
+    verify_pack_files: true # Checks all textures and models to make sure they abide by valid Resourcepack formatting
+    exclude_malformed_from_atlas: true # If a texture is malformed, it will not be included in the atlas
 
 Pack:
   generation:
     generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
     # List of file extensions that will not be included in the final zipped ResourcePack
     excluded_file_extensions: []
-    generate_atlas_file: true
+    atlas:
+      generate: true
+      type: "SPRITE" # "SPRITE" or "DIRECTORY"
     auto_generated_models_follow_texture_path: false
     # 64x32 layer is default size and corresponds to 16. If you need higher
     # resolution, e.g. 128x64, you should set this parameter to 32 and so on.

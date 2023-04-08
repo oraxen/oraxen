@@ -403,7 +403,6 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private void setBaseFurnitureData(Entity entity) {
-        entity.setInvulnerable(true);
         entity.setPersistent(true);
         PersistentDataContainer pdc = entity.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
