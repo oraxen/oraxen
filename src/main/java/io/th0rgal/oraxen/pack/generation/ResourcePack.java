@@ -224,7 +224,6 @@ public class ResourcePack {
 
         for (VirtualFile texture : textures) {
             if (texture.getPath().contains(" ") || !texture.getPath().toLowerCase().equals(texture.getPath())) {
-                Logs.debug(texture.getPath());
 
                 Logs.logWarning("Found invalid texture at <blue>" + texture.getPath() + " </blue>.");
                 Logs.logError("Textures cannot contain spaces or Capital Letters in the filepath or filename");
