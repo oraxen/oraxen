@@ -2,13 +2,17 @@ package io.th0rgal.oraxen.utils.customarmor;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import org.bukkit.Material;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
+import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 public class CustomArmorListener implements Listener {
 
@@ -32,5 +36,16 @@ public class CustomArmorListener implements Listener {
             event.setResult(null);
             player.updateInventory();
         }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onWashCustomArmor(PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        ItemStack item = event.getItem();
+        if (block == null || block.getType() != Material.WATER_CAULDRON) return;
+        if (item == null || !(item.getItemMeta() instanceof LeatherArmorMeta)) return;
+        if (!OraxenItems.exists(item)) return;
+
+        event.setUseInteractedBlock(Event.Result.DENY);
     }
 }
