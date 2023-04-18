@@ -37,7 +37,6 @@ public class FurnitureFactory extends MechanicFactory {
 
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureSoundListener());
         detectViabackwards = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("furniture").getBoolean("detect_viabackwards", true);
-        OraxenPlugin.get().supportsDisplayEntities = OraxenPlugin.supportsDisplayEntities();
     }
 
     @Override
