@@ -31,6 +31,7 @@ public class CompatibilitiesManager {
 
     public static void disableCompatibilities() {
         WrappedWorldEdit.unregister();
+
         ACTIVE_COMPATIBILITY_PROVIDERS.forEach((pluginName, compatibilityProvider) -> disableCompatibility(pluginName));
     }
 
