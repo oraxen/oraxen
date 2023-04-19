@@ -95,6 +95,13 @@ public class FurnitureListener implements Listener {
         if (oraxenEvent.isCancelled()) event.setCancelled(true);
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onItemFrameRotate(PlayerInteractEntityEvent event) {
+        if (!(event.getRightClicked() instanceof ItemFrame frame)) return;
+        if (!OraxenFurniture.isFurniture(frame)) return;
+        event.setCancelled(true);
+    }
+
     @EventHandler(priority = EventPriority.LOW, ignoreCancelled = true)
     public void onLimitedPlacing(final PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
@@ -269,12 +276,12 @@ public class FurnitureListener implements Listener {
         Entity hitEntity = event.getHitEntity();
         Projectile projectile = event.getEntity();
         Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
-        Location location = block != null && block.getType() == Material.BARRIER
-                ? block.getLocation() : hitEntity instanceof Interaction
-                ? hitEntity.getLocation() : null;
+        Location location = block != null && block.getType() == Material.BARRIER ? block.getLocation()
+                : hitEntity != null ? hitEntity.getLocation() : null;
+        boolean isFurniture = block != null ? OraxenFurniture.isFurniture(block) : hitEntity != null && OraxenFurniture.isFurniture(hitEntity);
 
         // Do not break furniture with a hitbox unless its explosive
-        if (location != null && OraxenFurniture.isFurniture(hitEntity)) {
+        if (location != null && isFurniture) {
             if (player != null && !ProtectionLib.canBreak(player, location))
                 event.setCancelled(true);
             else if (projectile instanceof Explosive) {
@@ -311,9 +318,10 @@ public class FurnitureListener implements Listener {
         if (mechanic == null) return;
         // Swap baseEntity to the baseEntity if interacted with entity is Interaction type
         Entity interaction = null;
-        if (OraxenPlugin.get().supportsDisplayEntities && baseEntity instanceof Interaction interactionEntity) {
+        if (OraxenPlugin.supportsDisplayEntities && baseEntity instanceof Interaction interactionEntity) {
             interaction = interactionEntity;
             baseEntity = mechanic.getBaseEntity(interaction);
+            baseEntity = baseEntity != null ? baseEntity : interaction;
         }
         OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, player, null, baseEntity);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureInteractEvent);

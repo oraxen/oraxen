@@ -44,6 +44,7 @@ public class ZipUtils {
 
         final byte[] bytes = new byte[1024];
         fis.transferTo(zos);
+        fis.close();
         zos.closeEntry();
         if (Settings.PROTECTION.toBool()) {
             zipEntry.setCrc(bytes.length);
