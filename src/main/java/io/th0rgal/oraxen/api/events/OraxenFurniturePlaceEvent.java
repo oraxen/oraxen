@@ -16,17 +16,17 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
     private final Player player;
     private final Block block;
     private final Entity baseEntity;
-    private final ItemStack item;
+    private final ItemStack itemInHand;
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurniturePlaceEvent(FurnitureMechanic mechanic, Block block, Entity baseEntity, Player player, ItemStack item){
+    public OraxenFurniturePlaceEvent(FurnitureMechanic mechanic, Block block, Entity baseEntity, Player player, ItemStack itemInHand){
         this.mechanic = mechanic;
         this.player = player;
         this.block = block;
         this.isCancelled = false;
         this.baseEntity = baseEntity;
-        this.item = item;
+        this.itemInHand = itemInHand;
     }
 
     /**
@@ -58,10 +58,13 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return The item used to place the furniture
+     * Gets the item in the player's hand when they placed the furniture.
+     *
+     * @return The ItemStack for the item in the player's hand when they
+     *     placed the furniture
      */
-    public ItemStack getItem() {
-        return item;
+    public ItemStack getItemInHand() {
+        return itemInHand;
     }
 
     @Override
