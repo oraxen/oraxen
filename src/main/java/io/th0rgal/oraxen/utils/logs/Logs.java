@@ -23,22 +23,22 @@ public class Logs {
     }
 
     public static void logInfo(String message) {
-        Component info = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><white>" + message, AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
+        Component info = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><white>" + message + "</#white>", AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
         OraxenPlugin.get().getAudience().console().sendMessage(info);
     }
 
     public static void logSuccess(String message) {
-        Component success = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><#55ffa4>" + message, AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
+        Component success = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><#55ffa4>" + message + "</#55ffa4>", AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
         OraxenPlugin.get().getAudience().console().sendMessage(success);
     }
 
     public static void logError(String message) {
-        Component error = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><#e73f34>" + message, AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
+        Component error = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><#e73f34>" + message + "</#e73f34>", AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
         OraxenPlugin.get().getAudience().console().sendMessage(error);
     }
 
     public static void logWarning(String message) {
-        Component warning = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><#f9f178>" + message, AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
+        Component warning = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><#f9f178>" + message + "</#f9f178>", AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
         OraxenPlugin.get().getAudience().console().sendMessage(warning);
     }
 
