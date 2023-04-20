@@ -98,6 +98,8 @@ public class BackpackListener implements Listener {
             if (contents != null) gui.getInventory().setContents(contents);
             if (mechanic.hasOpenSound())
                 player.playSound(player.getLocation(), mechanic.getOpenSound(), mechanic.getVolume(), mechanic.getPitch());
+
+            player.getInventory().setItemInMainHand(backpack);
         });
 
         gui.setCloseGuiAction(event -> {
