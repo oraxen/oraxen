@@ -134,7 +134,9 @@ public class FurnitureListener implements Listener {
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
         final EquipmentSlot hand = event.getHand();
-        assert placedAgainst != null;
+
+        if (placedAgainst == null) return;
+
         Block block = getTarget(placedAgainst, event.getBlockFace());
         ItemStack item = event.getItem();
 
