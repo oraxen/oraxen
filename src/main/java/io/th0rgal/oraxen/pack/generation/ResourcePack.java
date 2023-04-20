@@ -1,9 +1,6 @@
 package io.th0rgal.oraxen.pack.generation;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
@@ -171,11 +168,12 @@ public class ResourcePack {
         Set<VirtualFile> malformedTextures = new HashSet<>();
         Set<VirtualFile> malformedModels = new HashSet<>();
         for (VirtualFile virtualFile : output) {
-            if (virtualFile.getPath().endsWith(".json")) models.add(virtualFile);
-            else if (virtualFile.getPath().endsWith(".png.mcmeta")) mcmeta.add(virtualFile.getPath());
-            else if (virtualFile.getPath().endsWith(".png")) {
+            String path = virtualFile.getPath();
+            if (path.matches("assets/.*/models/.*.json")) models.add(virtualFile);
+            else if (path.matches("assets/.*/textures/.*.png.mcmeta")) mcmeta.add(path);
+            else if (path.matches("assets/.*/textures/.*.png")) {
                 textures.add(virtualFile);
-                texturePaths.add(virtualFile.getPath());
+                texturePaths.add(path);
             }
         }
 
@@ -203,16 +201,24 @@ public class ResourcePack {
             }
 
             if (!content.isEmpty()) {
-                JsonObject jsonModel = JsonParser.parseString(content).getAsJsonObject();
+                JsonObject jsonModel;
+                try {
+                    jsonModel = JsonParser.parseString(content).getAsJsonObject();
+                } catch (JsonSyntaxException e) {
+                    Logs.debug(model.getPath());
+                    e.printStackTrace();
+                    continue;
+                }
                 if (jsonModel.has("textures")) {
                     for (JsonElement element : jsonModel.getAsJsonObject("textures").entrySet().stream().map(Map.Entry::getValue).toList()) {
                         String jsonTexture = element.getAsString();
                         if (!texturePaths.contains(modelPathToPackPath(jsonTexture))) {
                             if (!jsonTexture.startsWith("#") && !jsonTexture.startsWith("item/") && !jsonTexture.startsWith("block/")) {
                                 try {
-                                    Material.valueOf(Utils.removeParentDirs(Utils.removeExtension(jsonTexture)).toUpperCase());
+                                    Material.valueOf(Utils.getFileNameOnly(jsonTexture).toUpperCase());
                                 } catch (IllegalArgumentException e) {
                                     Logs.logWarning("Found invalid texture-path inside model-file <blue>" + model.getPath() + " </blue>.");
+                                    Logs.logWarning(jsonTexture);
                                     malformedModels.add(model);
                                 }
                             }
