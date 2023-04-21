@@ -314,7 +314,7 @@ public class ItemBuilder {
         assert itemMeta != null;
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
         if (displayName != null) {
-            pdc.set(PRE_RENAMED_KEY, DataType.STRING, itemMeta.getDisplayName());
+            pdc.set(PRE_RENAMED_KEY, DataType.STRING, displayName);
             itemMeta.setDisplayName(displayName);
         }
 
