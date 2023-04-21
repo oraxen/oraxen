@@ -74,7 +74,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        if (!isFoliaServer) CommandAPI.onEnable();
+        CommandAPI.onEnable();
         ProtectionLib.init(this);
         if (!isFoliaServer) PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
@@ -127,9 +127,11 @@ public class OraxenPlugin extends JavaPlugin {
         uploadManager = new UploadManager(this);
         uploadManager.uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
-        SchedulerUtils.execute(() ->
-            Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent())
-        , this);
+        SchedulerUtils.execute(this, () -> {
+            //TODO Is this needed?
+            //OraxenItems.loadItems(configsManager);
+            Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
+        });
     }
 
     @Override

@@ -64,7 +64,7 @@ public class UploadManager {
 
         final long time = System.currentTimeMillis();
         Message.PACK_UPLOADING.log();
-        SchedulerUtils.executeAsync(() -> {
+        SchedulerUtils.executeAsync(OraxenPlugin.get(), () -> {
             if (!hostingProvider.uploadPack(resourcePack.getFile())) {
                 Message.PACK_NOT_UPLOADED.log();
                 return;
@@ -101,8 +101,7 @@ public class UploadManager {
                     packSender.unregister();
                 }
             }
-        }, OraxenPlugin.get());
-        //Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), );
+        });
     }
 
     private HostingProvider createHostingProvider() {
