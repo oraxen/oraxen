@@ -9,7 +9,8 @@ plugins {
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.0.1"
-    id("net.minecrell.plugin-yml.bukkit") version "0.5.3" // Generates plugin.yml
+    id("net.minecrell.plugin-yml.bukkit") version "0.6.0-SNAPSHOT" // Generates plugin.yml
+    //id("io.papermc.paperweight.userdev") version "1.5.4"
 }
 
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
@@ -25,7 +26,7 @@ java {
 repositories {
     mavenCentral()
 
-    maven("https://papermc.io/repo/repository/maven-public/") // Paper
+    maven("https://repo.papermc.io/repository/maven-public/") // Paper
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
     maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
     maven("https://jitpack.io") // JitPack
@@ -46,6 +47,8 @@ val commandApiVersion = "9.0.3"
 dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"
 
+    //paperweight.foliaDevBundle("1.19.4-R0.1-SNAPSHOT")
+    compileOnly("dev.folia:folia-api:1.19.4-R0.1-SNAPSHOT")
     compileOnly("org.spigotmc:spigot-api:1.20-R0.1-SNAPSHOT")
     compileOnly("io.papermc.paper:paper-api:1.20-R0.1-SNAPSHOT") { exclude("net.kyori") }
     compileOnly("com.comphenix.protocol:ProtocolLib:5.0.0")
@@ -76,7 +79,6 @@ dependencies {
     implementation("gs.mclo:java:2.2.1")
     implementation("com.ticxo:PlayerAnimator:R1.2.7")
     implementation("org.jetbrains:annotations:24.0.1") { isTransitive = false }
-
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
 }
 
@@ -144,6 +146,7 @@ bukkit {
     version = pluginVersion
     name = "Oraxen"
     apiVersion = "1.18"
+    foliaSupported = true
     authors = listOf("th0rgal", "boy0000")
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards")
     depend = listOf("ProtocolLib")
