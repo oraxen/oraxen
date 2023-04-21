@@ -37,8 +37,17 @@ public class LifeLeechMechanicListener implements Listener {
         double health = damager.getHealth() + mechanic.getAmount();
         double maxHealth = damager.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
 
-        damager.setHealth(Math.min(health, maxHealth));
         if (event.getEntity() instanceof LivingEntity damaged) {
+            if(damaged.hasMetadata("NPC")){
+                // Its a NPC so just cancel the event and return
+                event.setCancelled(true);
+                return;
+            }
+
+            // If its not an npc then only give the health to damager
+            damager.setHealth(Math.min(health, maxHealth));
+
+            
             damaged
                     .setHealth(
                             damaged.getHealth() - mechanic.getAmount() <= 0
