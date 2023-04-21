@@ -39,12 +39,11 @@ public class LifeLeechMechanicListener implements Listener {
 
         if (event.getEntity() instanceof LivingEntity damaged) {
             if(damaged.hasMetadata("NPC")){
-                // Its a NPC so just cancel the event and return
-                event.setCancelled(true);
+                // Its a Citizens NPC so just ignore
                 return;
             }
 
-            // If its not an npc then only give the health to damager
+            // If its not a Citizens NPC then only give the health to damager
             damager.setHealth(Math.min(health, maxHealth));
 
             
