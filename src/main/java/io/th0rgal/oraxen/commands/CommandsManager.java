@@ -202,13 +202,11 @@ public class CommandsManager {
                     if ("hand".equals(args[1])) for (final Player player : targets) {
                         player.getInventory().setItemInMainHand(
                                 ItemUpdater.updateItem(player.getInventory().getItemInMainHand()));
-                        player.updateInventory();
                         Message.UPDATED_ITEMS.send(sender, AdventureUtils.tagResolver("amount", String.valueOf(1)),
                                 AdventureUtils.tagResolver("player", player.getDisplayName()));
                     } else if ("offhand".equals(args[1])) for (final Player player : targets) {
                         player.getInventory().setItemInOffHand(
                                 ItemUpdater.updateItem(player.getInventory().getItemInOffHand()));
-                        player.updateInventory();
                         Message.UPDATED_ITEMS.send(sender, AdventureUtils.tagResolver("amount", String.valueOf(1)),
                                 AdventureUtils.tagResolver("player", player.getDisplayName()));
                     } else if (sender.hasPermission("oraxen.command.update.all")) for (final Player player : targets) {

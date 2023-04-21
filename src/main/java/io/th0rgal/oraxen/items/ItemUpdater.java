@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanic;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.event.EventHandler;
@@ -107,15 +108,18 @@ public class ItemUpdater implements Listener {
             if (customDurability > 0)
                 itemPdc.set(DurabilityMechanic.DURABILITY_KEY, DataType.INTEGER, customDurability);
 
-            // If the ORIGINAL_NAME value is equal to newMetas displayname or override is enabled
-            // it should not be updated to prevent removing renaming
-            String originalName = oldPdc.getOrDefault(ORIGINAL_NAME_KEY, DataType.STRING, "");
+            // Parsing with legacy here to fix any inconsistensies caused by server serializers etc
+            String oldDisplayName = AdventureUtils.parseLegacy(oldMeta.getDisplayName());
+            String originalName = AdventureUtils.parseLegacy(oldPdc.getOrDefault(ORIGINAL_NAME_KEY, DataType.STRING, ""));
             if (Settings.OVERRIDE_RENAMED_ITEMS.toBool()) {
                 itemMeta.setDisplayName(newMeta.getDisplayName());
-                itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.getDisplayName());
-            } else if (newMeta.getDisplayName().equals(originalName))
+            } else if (!originalName.equals(oldDisplayName)) {
                 itemMeta.setDisplayName(oldMeta.getDisplayName());
-            else itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.getDisplayName());
+            } else {
+                itemMeta.setDisplayName(newMeta.getDisplayName());
+            }
+            itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.getDisplayName());
+
 
             if (OraxenItems.hasMechanic(id, "backpack") && oldPdc.has(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY)) {
                 itemPdc.set(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY,
