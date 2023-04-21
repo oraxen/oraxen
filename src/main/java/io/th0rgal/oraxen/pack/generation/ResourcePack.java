@@ -448,6 +448,8 @@ public class ResourcePack {
     }
 
     private void generateGestureFiles() {
+        if (OraxenPlugin.isFoliaServer) return;
+
         GestureManager gestureManager = OraxenPlugin.get().getGesturesManager();
         for (Map.Entry<String, String> entry : gestureManager.getPlayerHeadJsons().entrySet())
             writeStringToVirtual(StringUtils.removeEnd(Utils.getParentDirs(entry.getKey()), "/"), Utils.removeParentDirs(entry.getKey()), entry.getValue());

@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxListener;
+import io.th0rgal.oraxen.utils.SchedulerUtils;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.List;
@@ -59,7 +60,8 @@ public class FurnitureFactory extends MechanicFactory {
         if (evolutionTask != null)
             evolutionTask.cancel();
         evolutionTask = new EvolutionTask(this, evolutionCheckDelay);
-        evolutionTask.runTaskTimer(OraxenPlugin.get(), 0, evolutionCheckDelay);
+        SchedulerUtils.scheduleSyncRepeatingTask(OraxenPlugin.get(), 0, evolutionCheckDelay, evolutionTask);
+        //evolutionTask.runTaskTimer(OraxenPlugin.get(), 0, evolutionCheckDelay);
         evolvingFurnitures = true;
     }
 
