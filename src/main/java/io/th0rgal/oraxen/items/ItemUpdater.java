@@ -22,7 +22,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import java.util.Map;
 import java.util.Optional;
 
-import static io.th0rgal.oraxen.items.ItemBuilder.PRE_RENAMED_KEY;
+import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
 
 public class ItemUpdater implements Listener {
 
@@ -107,11 +107,15 @@ public class ItemUpdater implements Listener {
             if (customDurability > 0)
                 itemPdc.set(DurabilityMechanic.DURABILITY_KEY, DataType.INTEGER, customDurability);
 
-            // If the PRE_RENAMED value is equal to newMetas displayname, it should not be updated to prevent removing renaming
-            String preRenamed = oldPdc.getOrDefault(PRE_RENAMED_KEY, DataType.STRING, "");
-            if (preRenamed.equals(newMeta.getDisplayName()))
+            // If the ORIGINAL_NAME value is equal to newMetas displayname or override is enabled
+            // it should not be updated to prevent removing renaming
+            String originalName = oldPdc.getOrDefault(ORIGINAL_NAME_KEY, DataType.STRING, "");
+            if (Settings.OVERRIDE_RENAMED_ITEMS.toBool()) {
+                itemMeta.setDisplayName(newMeta.getDisplayName());
+                itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.getDisplayName());
+            } else if (newMeta.getDisplayName().equals(originalName))
                 itemMeta.setDisplayName(oldMeta.getDisplayName());
-            else itemPdc.set(PRE_RENAMED_KEY, DataType.STRING, newMeta.getDisplayName());
+            else itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.getDisplayName());
 
             if (OraxenItems.hasMechanic(id, "backpack") && oldPdc.has(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY)) {
                 itemPdc.set(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY,

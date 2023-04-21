@@ -25,7 +25,7 @@ import java.util.*;
 public class ItemBuilder {
 
     public static final NamespacedKey UNSTACKABLE_KEY = new NamespacedKey(OraxenPlugin.get(), "unstackable");
-    public static final NamespacedKey PRE_RENAMED_KEY = new NamespacedKey(OraxenPlugin.get(), "pre_renamed");
+    public static final NamespacedKey ORIGINAL_NAME_KEY = new NamespacedKey(OraxenPlugin.get(), "original_name");
 
     private final ItemStack itemStack;
     private final Map<PersistentDataSpace, Object> persistentDataMap = new HashMap<>();
@@ -314,7 +314,7 @@ public class ItemBuilder {
         assert itemMeta != null;
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
         if (displayName != null) {
-            pdc.set(PRE_RENAMED_KEY, DataType.STRING, displayName);
+            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
             itemMeta.setDisplayName(displayName);
         }
 

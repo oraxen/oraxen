@@ -36,6 +36,8 @@ public enum Settings {
 
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
     GESTURES_ENABLED("Gestures.enabled"),
+    AUTO_UPDATE_ITEMS("ItemUpdater.auto_update_items"),
+    OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
 
     RESET_RECIPES("Misc.reset_recipes"),
     ADD_RECIPES_TO_BOOK("Misc.add_recipes_to_book"),
@@ -44,7 +46,6 @@ public enum Settings {
     SHIELD_DISPLAY("Misc.shield_display"),
     BOW_DISPLAY("Misc.bow_display"),
     CROSSBOW_DISPLAY("Misc.crossbow_display"),
-    AUTO_UPDATE_ITEMS("Misc.auto_update_items"),
     HIDE_SCOREBOARD_NUMBERS("Misc.hide_scoreboard_numbers"),
 
     GENERATE("Pack.generation.generate"),
