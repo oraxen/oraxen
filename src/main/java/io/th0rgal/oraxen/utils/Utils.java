@@ -108,6 +108,12 @@ public class Utils {
         return s.substring(0, extensionIndex);
     }
 
+    public static String getFileNameOnly(String s) {
+        s = Utils.removeParentDirs(s);
+        s = Utils.removeExtensionOnly(s);
+        return s;
+    }
+
     public static String getLastStringInSplit(String string, String split) {
         String[] splitString = string.split(split);
         return splitString.length > 0 ? splitString[splitString.length - 1] : "";

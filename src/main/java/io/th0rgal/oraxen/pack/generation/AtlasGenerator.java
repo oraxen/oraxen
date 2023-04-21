@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.generation;
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -8,6 +9,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayInputStream;
 import java.nio.charset.StandardCharsets;
@@ -21,7 +23,7 @@ public class AtlasGenerator {
 
     public static void generateAtlasFile(List<VirtualFile> output, Set<String> malformedTextures) {
         Logs.logSuccess("Generating atlas-file for 1.19.3+ Resource Pack format");
-        if (Settings.EXCLUDE_MALFORMED_ATLAS.toBool())
+        if (Settings.EXCLUDE_MALFORMED_ATLAS.toBool() && !malformedTextures.isEmpty())
             Logs.logWarning("Attempting to exclude malformed textures from atlas-file");
 
         JsonObject atlas = new JsonObject();
@@ -55,19 +57,18 @@ public class AtlasGenerator {
 
             JsonObject atlasEntry = new JsonObject();
             String namespace = virtual.getPath().replaceFirst("assets/", "").split("/")[0];
+            String malformPathCheck = "assets/" + namespace + "/textures/" + path + ".png";
+            if (Settings.EXCLUDE_MALFORMED_ATLAS.toBool() && malformedTextures.stream().anyMatch(malformPathCheck::startsWith)) {
+                Logs.logWarning("Excluding malformed texture from atlas-file: <gold>" + malformPathCheck);
+                continue;
+            }
+
             if (Settings.ATLAS_GENERATION_TYPE.toString().equals("DIRECTORY")) {
-                if (path.endsWith(".png")) {
-                    String sprite = Utils.removeParentDirs(Utils.removeExtension(virtual.getPath()));
-                    atlasEntry.addProperty("type", "single");
-                    atlasEntry.addProperty("resource", namespace + ":" + Utils.removeExtension(path));
-                    atlasEntry.addProperty("sprite", namespace + ":" + sprite);
-                } else {
-                    atlasEntry.addProperty("type", "directory");
-                    atlasEntry.addProperty("source", path);
-                    atlasEntry.addProperty("prefix", path + "/");
-                }
+                path = StringUtils.substringBeforeLast(path, "/");
+                atlasEntry.addProperty("type", "directory");
+                atlasEntry.addProperty("source", path);
+                atlasEntry.addProperty("prefix", path + "/");
             } else {
-                if (Settings.EXCLUDE_MALFORMED_ATLAS.toBool() && malformedTextures.contains("assets/" + namespace + "/textures/" + path)) continue;
                 String sprite = namespace + ":" + path;
                 atlasEntry.addProperty("type", "single");
                 atlasEntry.addProperty("resource", sprite);
@@ -78,9 +79,31 @@ public class AtlasGenerator {
                 atlasContent.add(atlasEntry);
         }
 
+        removeChildEntriesInDirectoryAtlas(atlasContent);
+
         atlas.add("sources", atlasContent);
         VirtualFile atlasFile = new VirtualFile("assets/minecraft/atlases", "blocks.json", new ByteArrayInputStream(atlas.toString().getBytes(StandardCharsets.UTF_8)));
         output.removeIf(v -> v.getPath().equals(atlasFile.getPath()));
         output.add(atlasFile);
+        Logs.newline();
+    }
+
+    // If atlas contains entry for "parent"-source, remove following child-directory-entries like "parent/child"
+    private static void removeChildEntriesInDirectoryAtlas(JsonArray atlasContent) {
+        if (Settings.ATLAS_GENERATION_TYPE.toString().equals("DIRECTORY")) {
+            Set<JsonElement> remove = new HashSet<>();
+            atlasContent.forEach(element -> {
+                String source = element.getAsJsonObject().get("source").getAsString();
+                if (source.contains("/")) {
+                    JsonObject parentObject = new JsonObject();
+                    parentObject.addProperty("type", "directory");
+                    parentObject.addProperty("source", source);
+                    parentObject.addProperty("prefix", source + "/");
+                    if (atlasContent.contains(parentObject))
+                        remove.add(element);
+                }
+            });
+            remove.forEach(atlasContent::remove);
+        }
     }
 }

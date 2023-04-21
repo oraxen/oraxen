@@ -43,11 +43,17 @@ public class ZipUtils {
         DuplicationHandler.checkForDuplicate(zos, zipEntry);
 
         final byte[] bytes = new byte[1024];
-        fis.transferTo(zos);
-        zos.closeEntry();
-        if (Settings.PROTECTION.toBool()) {
-            zipEntry.setCrc(bytes.length);
-            zipEntry.setSize(new BigInteger(bytes).mod(BigInteger.valueOf(Long.MAX_VALUE)).longValue());
+        int length;
+        try (fis) {
+            while ((length = fis.read(bytes)) >= 0)
+                zos.write(bytes, 0, length);
+        } catch (IOException ignored) {
+        } finally {
+            zos.closeEntry();
+            if (Settings.PROTECTION.toBool()) {
+                zipEntry.setCrc(bytes.length);
+                zipEntry.setSize(new BigInteger(bytes).mod(BigInteger.valueOf(Long.MAX_VALUE)).longValue());
+            }
         }
     }
 }
