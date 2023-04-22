@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.mechanics;
 
+import io.th0rgal.oraxen.api.OraxenItems;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +37,10 @@ public abstract class MechanicFactory {
 
     public Mechanic getMechanic(String itemID) {
         return mechanicByItem.get(itemID);
+    }
+
+    public Mechanic getMechanic(ItemStack itemStack) {
+        return mechanicByItem.get(OraxenItems.getIdByItem(itemStack));
     }
 
     public String getMechanicID() {
