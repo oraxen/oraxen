@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.Location;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -107,7 +108,7 @@ public class Drop {
             if (itemMeta != null) {
                 if (silktouch && itemMeta.hasEnchant(Enchantment.SILK_TOUCH)) {
                     if (location.getWorld() != null)
-                        location.getWorld().dropItemNaturally(location, OraxenItems.getItemById(sourceID).build());
+                        location.getWorld().dropItemNaturally(BlockHelpers.toCenterBlockLocation(location), OraxenItems.getItemById(sourceID).build());
                     return;
                 }
 
@@ -142,6 +143,6 @@ public class Drop {
             drop.setItemMeta(clone);
         }
 
-        baseEntity.getLocation().getWorld().dropItemNaturally(baseEntity.getLocation(), drop);
+        baseEntity.getLocation().getWorld().dropItemNaturally(BlockHelpers.toCenterBlockLocation(baseEntity.getLocation()), drop);
     }
 }
