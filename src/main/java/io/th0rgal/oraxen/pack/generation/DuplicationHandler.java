@@ -305,13 +305,8 @@ public class DuplicationHandler {
             JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
             String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
             String id = "migrated_" + Utils.removeParentDirs(modelPath);
-            int cmd;
-            try {
-                cmd = predicate.get("custom_model_data").getAsInt();
-            } catch (NullPointerException e) {
-                Logs.logWarning("Failed to migrate duplicate file-entry, could not find custom_model_data");
-                return false;
-            }
+            // Assume if no cmd is in that it is meant to replace the default model
+            int cmd = predicate.get("custom_model_data") != null ? predicate.get("custom_model_data").getAsInt() : 0;
 
             migratedYaml.set(id + ".material", itemMaterial);
             migratedYaml.set(id + ".excludeFromInventory", true);
