@@ -274,9 +274,10 @@ public class DuplicationHandler {
     // Fix importing other aspects of parent-model like shields display
     // It should use the imported as a base and merge the overrides only
     private static boolean migrateItemJson(String name) {
-        String itemMaterial = Utils.removeParentDirs(name).replace(".json", "").toUpperCase();
+        String itemMaterial = Utils.removeExtensionOnly(Utils.removeParentDirs(name)).toUpperCase();
+        Material material;
         try {
-            Material.valueOf(itemMaterial);
+            material = Material.valueOf(itemMaterial);
         } catch (IllegalArgumentException e) {
             Logs.logWarning("Failed to migrate duplicate file-entry, could not find material");
             return false;
@@ -286,6 +287,13 @@ public class DuplicationHandler {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is not a .json file");
             return false;
         }
+
+        if (Set.of(Material.BOW, Material.FISHING_ROD, Material.SHIELD, Material.CROSSBOW).contains(material)) {
+            Logs.logWarning("Failed to migrate duplicate file-entry, file is a model that is not supported yet");
+            Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
+            return false;
+        }
+
         YamlConfiguration migratedYaml = loadMigrateYaml("items");
         if (migratedYaml == null) {
             Logs.logWarning("Failed to migrate duplicate file-entry, failed to load items/migrated_duplicates.yml");
