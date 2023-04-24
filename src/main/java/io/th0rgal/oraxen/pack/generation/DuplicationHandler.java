@@ -242,7 +242,11 @@ public class DuplicationHandler {
             Logs.logWarning("You are importing another copy of a shader file used to hide scoreboard numbers");
             Logs.logWarning("Either disable <#22b14c>" + Settings.HIDE_SCOREBOARD_NUMBERS.getPath() + "</#22b14c> in settings.yml or delete this file");
             return false;
-        } else if (name.startsWith("assets/minecraft/shaders")) {
+        } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_armor_cutout_no_cull") && Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) {
+            Logs.logWarning("You are trying to import a shader file used for custom armor.");
+            Logs.logWarning("This shader file is already in by Oraxen, you can delete this file");
+            return true;
+        } else if (name.startsWith("assets/minecraft/shaders/core/rendertype")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a shader file");
             Logs.logWarning("Merging this is too advanced and should be migrated manually or deleted.");
             return false;
@@ -254,6 +258,10 @@ public class DuplicationHandler {
         } else if (name.startsWith("assets/minecraft/textures")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a texture file");
             Logs.logWarning("Cannot migrate texture files, rename this or the duplicate entry");
+            return false;
+        } else if (name.startsWith("assets/minecraft/lang")) {
+            Logs.logWarning("Failed to migrate duplicate file-entry, file is a language file");
+            Logs.logWarning("Please combine this with the duplicate file found in Oraxen/pack/lang folder");
             return false;
         } else {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is not a file that Oraxen can migrate right now");
