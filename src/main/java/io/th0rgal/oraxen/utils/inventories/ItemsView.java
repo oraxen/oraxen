@@ -12,7 +12,6 @@ import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -61,7 +60,6 @@ public class ItemsView {
                 String.format("oraxen_inventory.menu_layout.%s.title", Utils.removeExtension(fileName)))
                 .replace("<main_menu_title>", Settings.ORAXEN_INV_TITLE.toString()));
         final PaginatedPane pane = new PaginatedPane(9, rows);
-        Logs.debug(gui.getTitle());
 
         for (int i = 0; i < (items.size() - 1) / 45 + 1; i++) {
             final List<ItemStack> itemStackList = extractPageItems(items, i);
