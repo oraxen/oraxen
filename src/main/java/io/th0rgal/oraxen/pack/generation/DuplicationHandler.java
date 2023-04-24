@@ -238,6 +238,10 @@ public class DuplicationHandler {
         } else if (name.matches("assets/.*/sounds.json")) {
             Logs.logWarning("Found a sounds.json duplicate, trying to migrate it into Oraxens sound.yml config");
             return migrateSoundJson(name);
+        } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_text") && Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) {
+            Logs.logWarning("You are importing another copy of a shader file used to hide scoreboard numbers");
+            Logs.logWarning("Either disable <#22b14c>" + Settings.HIDE_SCOREBOARD_NUMBERS.getPath() + "</#22b14c> in settings.yml or delete this file");
+            return false;
         } else if (name.startsWith("assets/minecraft/shaders")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a shader file");
             Logs.logWarning("Merging this is too advanced and should be migrated manually or deleted.");
