@@ -47,10 +47,8 @@ public class RecipesManager {
                 new File(recipesFolder, "furnace.yml").createNewFile();
                 new File(recipesFolder, "shaped.yml").createNewFile();
                 new File(recipesFolder, "shapeless.yml").createNewFile();
-
                 new File(recipesFolder, "blasting.yml").createNewFile();
                 new File(recipesFolder, "campfire.yml").createNewFile();
-                new File(recipesFolder, "smithing.yml").createNewFile();
                 new File(recipesFolder, "smoking.yml").createNewFile();
                 new File(recipesFolder, "stonecutting.yml").createNewFile();
             } catch (IOException e) {
@@ -98,7 +96,6 @@ public class RecipesManager {
                 case "furnace.yml" -> new FurnaceLoader(recipeSection).registerRecipe();
                 case "blasting.yml" -> new BlastingLoader(recipeSection).registerRecipe();
                 case "campfire.yml" -> new CampfireLoader(recipeSection).registerRecipe();
-                case "smithing.yml" -> new SmithingLoader(recipeSection).registerRecipe();
                 case "smoking.yml" -> new SmokingLoader(recipeSection).registerRecipe();
                 case "stonecutting.yml" -> new StonecuttingLoader(recipeSection).registerRecipe();
                 default -> Logs.logError(configFile.getName());
