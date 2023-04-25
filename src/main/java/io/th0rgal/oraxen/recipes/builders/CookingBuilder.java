@@ -12,16 +12,14 @@ public class CookingBuilder extends RecipeBuilder {
 
     private int cookingTime;
     private int experience;
-    private final InventoryType inventoryType;
 
-    public CookingBuilder(Player player, String builderName, InventoryType inventoryType) {
+    public CookingBuilder(Player player, String builderName) {
         super(player, builderName);
-        this.inventoryType = inventoryType;
     }
 
     @Override
     Inventory createInventory(Player player, String inventoryTitle) {
-        return Bukkit.createInventory(player, inventoryType, inventoryTitle);
+        return Bukkit.createInventory(player, InventoryType.FURNACE, inventoryTitle);
     }
 
     @Override
