@@ -6,9 +6,7 @@ import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.recipes.listeners.RecipesBuilderEvents;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
-import io.th0rgal.oraxen.recipes.loaders.FurnaceLoader;
-import io.th0rgal.oraxen.recipes.loaders.ShapedLoader;
-import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
+import io.th0rgal.oraxen.recipes.loaders.*;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -49,6 +47,12 @@ public class RecipesManager {
                 new File(recipesFolder, "furnace.yml").createNewFile();
                 new File(recipesFolder, "shaped.yml").createNewFile();
                 new File(recipesFolder, "shapeless.yml").createNewFile();
+
+                new File(recipesFolder, "blasting.yml").createNewFile();
+                new File(recipesFolder, "campfire.yml").createNewFile();
+                new File(recipesFolder, "smithing.yml").createNewFile();
+                new File(recipesFolder, "smoking.yml").createNewFile();
+                new File(recipesFolder, "stonecutting.yml").createNewFile();
             } catch (IOException e) {
                 Logs.logError("Error while creating recipes files: " + e.getMessage());
             }
@@ -92,6 +96,11 @@ public class RecipesManager {
                 case "shaped.yml" -> new ShapedLoader(recipeSection).registerRecipe();
                 case "shapeless.yml" -> new ShapelessLoader(recipeSection).registerRecipe();
                 case "furnace.yml" -> new FurnaceLoader(recipeSection).registerRecipe();
+                case "blasting.yml" -> new BlastingLoader(recipeSection).registerRecipe();
+                case "campfire.yml" -> new CampfireLoader(recipeSection).registerRecipe();
+                case "smithing.yml" -> new SmithingLoader(recipeSection).registerRecipe();
+                case "smoking.yml" -> new SmokingLoader(recipeSection).registerRecipe();
+                case "stonecutting.yml" -> new StonecuttingLoader(recipeSection).registerRecipe();
                 default -> Logs.logError(configFile.getName());
             }
         } catch (NullPointerException exception) {
