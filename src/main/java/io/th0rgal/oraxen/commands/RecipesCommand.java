@@ -7,10 +7,7 @@ import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
-import io.th0rgal.oraxen.recipes.builders.FurnaceBuilder;
-import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
-import io.th0rgal.oraxen.recipes.builders.ShapedBuilder;
-import io.th0rgal.oraxen.recipes.builders.ShapelessBuilder;
+import io.th0rgal.oraxen.recipes.builders.*;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -57,6 +54,9 @@ public class RecipesCommand {
                 .withSubcommand(getShapedBuilderCommand())
                 .withSubcommand(getShapelessBuilderCommand())
                 .withSubcommand(getFurnaceBuilderCommand())
+                .withSubcommand(getBlastingBuilderCommand())
+                .withSubcommand(getCampfireBuilderCommand())
+                .withSubcommand(getSmokingBuilderCommand())
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
                         final RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
@@ -105,6 +105,63 @@ public class RecipesCommand {
                         if (recipe instanceof FurnaceBuilder furnace) {
                             furnace.setCookingTime((Integer) args[0]);
                             furnace.setExperience((Integer) args[1]);
+                        }
+                        recipe.open();
+                    } else
+                        Message.NOT_PLAYER.send(sender);
+                });
+    }
+
+    private CommandAPICommand getBlastingBuilderCommand() {
+        return new CommandAPICommand("blasting")
+                .withPermission("oraxen.command.recipes.builder")
+                .withArguments(new IntegerArgument("cookingtime"))
+                .withArguments(new IntegerArgument("experience"))
+                .executes((sender, args) -> {
+                    if (sender instanceof Player player) {
+                        RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                        recipe = recipe != null ? recipe : new BlastingBuilder(player);
+                        if (recipe instanceof BlastingBuilder blasting) {
+                            blasting.setCookingTime((Integer) args[0]);
+                            blasting.setExperience((Integer) args[1]);
+                        }
+                        recipe.open();
+                    } else
+                        Message.NOT_PLAYER.send(sender);
+                });
+    }
+
+    private CommandAPICommand getCampfireBuilderCommand() {
+        return new CommandAPICommand("campfire")
+                .withPermission("oraxen.command.recipes.builder")
+                .withArguments(new IntegerArgument("cookingtime"))
+                .withArguments(new IntegerArgument("experience"))
+                .executes((sender, args) -> {
+                    if (sender instanceof Player player) {
+                        RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                        recipe = recipe != null ? recipe : new CampfireBuilder(player);
+                        if (recipe instanceof CampfireBuilder campfire) {
+                            campfire.setCookingTime((Integer) args[0]);
+                            campfire.setExperience((Integer) args[1]);
+                        }
+                        recipe.open();
+                    } else
+                        Message.NOT_PLAYER.send(sender);
+                });
+    }
+
+    private CommandAPICommand getSmokingBuilderCommand() {
+        return new CommandAPICommand("smoking")
+                .withPermission("oraxen.command.recipes.builder")
+                .withArguments(new IntegerArgument("cookingtime"))
+                .withArguments(new IntegerArgument("experience"))
+                .executes((sender, args) -> {
+                    if (sender instanceof Player player) {
+                        RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                        recipe = recipe != null ? recipe : new SmokingBuilder(player);
+                        if (recipe instanceof SmokingBuilder smoking) {
+                            smoking.setCookingTime((Integer) args[0]);
+                            smoking.setExperience((Integer) args[1]);
                         }
                         recipe.open();
                     } else
