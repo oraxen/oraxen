@@ -110,7 +110,7 @@ public class FurnitureListener implements Listener {
 
         if (item == null || block == null || event.getHand() != EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
+        if (BlockHelpers.isInteractable(block) && !event.getPlayer().isSneaking()) return;
 
         FurnitureMechanic mechanic = (FurnitureMechanic) factory.getMechanic(OraxenItems.getIdByItem(item));
         if (mechanic == null || !mechanic.hasLimitedPlacing()) return;
@@ -142,9 +142,9 @@ public class FurnitureListener implements Listener {
         if (event.useItemInHand() == Event.Result.DENY) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (item == null || hand != EquipmentSlot.HAND) return;
-        if (placedAgainst.getType().isInteractable() && placedAgainst.getType() != Material.NOTE_BLOCK) return;
+        if (block == null || !placedAgainst.canPlace(block.getBlockData())) return;
+        if (BlockHelpers.isInteractable(placedAgainst) && !player.isSneaking()) return;
 
-        if (block == null) return;
         final BlockData currentBlockData = block.getBlockData();
         FurnitureMechanic mechanic = getMechanic(item, player, block);
         if (mechanic == null) return;
@@ -194,11 +194,11 @@ public class FurnitureListener implements Listener {
 
     private Block getTarget(Block placedAgainst, BlockFace blockFace) {
         Block target;
-        if (BlockHelpers.REPLACEABLE_BLOCKS.contains(placedAgainst.getType()))
+        if (BlockHelpers.isReplaceable(placedAgainst))
             target = placedAgainst;
         else {
             target = placedAgainst.getRelative(blockFace);
-            if (!target.getType().isAir() && !target.isLiquid() && target.getType() != Material.LIGHT) return null;
+            if (!BlockHelpers.isReplaceable(target) && !target.getType().isAir() && !target.isLiquid() && target.getType() != Material.LIGHT) return null;
         }
         return target;
     }

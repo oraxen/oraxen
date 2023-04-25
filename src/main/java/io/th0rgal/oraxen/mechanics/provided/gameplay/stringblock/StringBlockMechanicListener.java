@@ -140,7 +140,7 @@ public class StringBlockMechanicListener implements Listener {
 
         if (item == null || block == null || event.getHand() != EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (block.getType().isInteractable() && block.getType() != Material.NOTE_BLOCK) return;
+        if (!event.getPlayer().isSneaking() && BlockHelpers.isInteractable(block)) return;
 
         StringBlockMechanic mechanic = (StringBlockMechanic) factory.getMechanic(OraxenItems.getIdByItem(item));
         if (mechanic == null || !mechanic.hasLimitedPlacing()) return;
@@ -170,11 +170,7 @@ public class StringBlockMechanicListener implements Listener {
         final Player player = event.getPlayer();
 
         if (placedAgainst == null) return;
-        if (placedAgainst.getType().isInteractable() && !player.isSneaking()) {
-            if (placedAgainst.getType() == Material.NOTE_BLOCK && OraxenBlocks.getNoteBlockMechanic(placedAgainst) == null)
-                return;
-            else if (placedAgainst.getType() != Material.NOTE_BLOCK) return;
-        }
+        if (!event.getPlayer().isSneaking() && BlockHelpers.isInteractable(placedAgainst)) return;
 
         if (item != null && item.getType().isBlock() && !factory.isNotImplementedIn(itemID)) {
             for (BlockFace face : BlockFace.values()) {
@@ -266,7 +262,7 @@ public class StringBlockMechanicListener implements Listener {
                         if (item.getType() != Material.AIR)
                             player.getWorld().dropItemNaturally(block.getLocation(), item);
                 block.setType(Material.AIR, true);
-                if (BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) blockAbove.breakNaturally();
+                if (BlockHelpers.isReplaceable(blockAbove.getType())) blockAbove.breakNaturally();
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
                         fixClientsideUpdate(block.getLocation()), 1);
             }
@@ -413,7 +409,7 @@ public class StringBlockMechanicListener implements Listener {
                                        final Block placedAgainst, final BlockFace face, final BlockData newBlock) {
         final Block target;
         final Material type = placedAgainst.getType();
-        if (BlockHelpers.REPLACEABLE_BLOCKS.contains(type))
+        if (BlockHelpers.isReplaceable(type))
             target = placedAgainst;
         else {
             target = placedAgainst.getRelative(face);

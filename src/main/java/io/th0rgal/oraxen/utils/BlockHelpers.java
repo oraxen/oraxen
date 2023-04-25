@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.utils;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
 import org.bukkit.block.Sign;
@@ -92,6 +93,37 @@ public class BlockHelpers {
     public static final List<Material> REPLACEABLE_BLOCKS = Arrays
             .asList(Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,
                     Material.LARGE_FERN, Material.AIR);
+
+    public static boolean isReplaceable(Block block) {
+        return REPLACEABLE_BLOCKS.contains(block.getType());
+    }
+
+    public static boolean isReplaceable(BlockData blockData) {
+        return REPLACEABLE_BLOCKS.contains(blockData.getMaterial());
+    }
+
+    public static boolean isReplaceable(Material material) {
+        return REPLACEABLE_BLOCKS.contains(material);
+    }
+
+    /**
+     * Improved version of {@link Material#isInteractable()} intended for replicating vanilla behavior.
+     * Checks if the block one places against is interactable in the sense a chest is
+     * Also checks if the block is an Oraxen block or not as NoteBlocks are Interacable
+     */
+    public static boolean isInteractable(Block placedAgainst) {
+        if (placedAgainst == null) return false;
+
+        Material type = placedAgainst.getType();
+        if (!type.isInteractable()) return false;
+        if (Tag.STAIRS.isTagged(type)) return false;
+        if (Tag.FENCES.isTagged(type)) return false;
+        if (OraxenBlocks.isOraxenNoteBlock(placedAgainst)) return false;
+        return switch (type) {
+            case PUMPKIN, MOVING_PISTON, REDSTONE_ORE, REDSTONE_WIRE -> false;
+            default -> true;
+        };
+    }
 
     public static boolean correctAllBlockStates(Block block, Player player, BlockFace face, ItemStack item) {
         final BlockData data = block.getBlockData();
