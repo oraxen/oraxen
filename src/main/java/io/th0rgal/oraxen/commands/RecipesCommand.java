@@ -57,6 +57,7 @@ public class RecipesCommand {
                 .withSubcommand(getBlastingBuilderCommand())
                 .withSubcommand(getCampfireBuilderCommand())
                 .withSubcommand(getSmokingBuilderCommand())
+                .withSubcommand(getStonecuttingBuilderCommand())
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
                         final RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
@@ -164,6 +165,18 @@ public class RecipesCommand {
                             smoking.setExperience((Integer) args[1]);
                         }
                         recipe.open();
+                    } else
+                        Message.NOT_PLAYER.send(sender);
+                });
+    }
+
+    private CommandAPICommand getStonecuttingBuilderCommand() {
+        return new CommandAPICommand("stonecutting")
+                .withPermission("oraxen.command.recipes.builder")
+                .executes((sender, args) -> {
+                    if (sender instanceof Player player) {
+                        final RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
+                        (recipe != null ? recipe : new StonecuttingBuilder(player)).open();
                     } else
                         Message.NOT_PLAYER.send(sender);
                 });
