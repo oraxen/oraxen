@@ -258,7 +258,7 @@ public class FontEvents implements Listener {
 
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
                 message = message.replaceText(TextReplacementConfig.builder().match(entry.getKey())
-                        .replacement(Component.text().color(NamedTextColor.WHITE)).build());
+                        .replacement(Component.text(entry.getValue().getCharacter()).color(NamedTextColor.WHITE)).build());
             }
 
             event.result(message);
