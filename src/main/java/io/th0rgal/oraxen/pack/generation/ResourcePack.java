@@ -584,7 +584,6 @@ public class ResourcePack {
 
             // If the file is in the pack, we want to keep the existing entries over global ones
             if (langFile.exists()) {
-                Logs.logWarning(String.valueOf(10));
                 try {
                     langJson = JsonParser.parseString(Files.readString(langFile.toPath(), StandardCharsets.UTF_8)).getAsJsonObject();
                 } catch (IOException | IllegalStateException ignored) {
