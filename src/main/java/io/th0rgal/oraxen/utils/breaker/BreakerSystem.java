@@ -207,6 +207,9 @@ public class BreakerSystem {
                     return false;
                 }
             }
+            case BEDROCK -> { // For BedrockBreakMechanic
+                return false;
+            }
             default -> {
                 return true;
             }

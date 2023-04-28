@@ -74,7 +74,13 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public enum FurnitureType {
-        ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY//, ARMOR_STAND
+        ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY;//, ARMOR_STAND;
+
+        public static List<Class<? extends Entity>> furnitureEntityClasses() {
+            List<Class<? extends Entity>> list = new ArrayList<>(List.of(ItemFrame.class, GlowItemFrame.class, ArmorStand.class));
+            if (OraxenPlugin.supportsDisplayEntities) list.add(ItemDisplay.class);
+            return list;
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -449,15 +455,10 @@ public class FurnitureMechanic extends Mechanic {
         frame.setItem(item);
         frame.setRotation(rotation);
 
-        if (frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
-            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
-            // Make sure that if a floor-only furniture is placed on the side of a wall block, it is facing correctly
-            if (mechanic != null && mechanic.hasLimitedPlacing() && mechanic.limitedPlacing.isFloor() && !mechanic.limitedPlacing.isWall()) {
+        if (hasLimitedPlacing()) {
+            if (limitedPlacing.isFloor() && !limitedPlacing.isWall() && frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
                 frame.setFacingDirection(BlockFace.UP, true);
-            }
-
-            // If placed on the side of a block
-            if (Set.of(BlockFace.NORTH, BlockFace.WEST, BlockFace.SOUTH, BlockFace.EAST).contains(facing)) {
+            } else if (limitedPlacing.isWall()) {
                 frame.setRotation(Rotation.NONE);
             }
         }
@@ -520,7 +521,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private void spawnModelEngineFurniture(Entity entity, float yaw) {
-        ArmorStand baseEntity = entity.getWorld().spawn(entity.getLocation(), ArmorStand.class, (ArmorStand stand) -> {
+        ArmorStand megEntity = entity.getWorld().spawn(entity.getLocation(), ArmorStand.class, (ArmorStand stand) -> {
             stand.setVisible(false);
             stand.setInvulnerable(true);
             stand.setCustomNameVisible(false);
@@ -537,10 +538,10 @@ public class FurnitureMechanic extends Mechanic {
         modelEntity.setBaseEntityVisible(false);
         modelEntity.setModelRotationLock(true);
 
-        entity.getPersistentDataContainer().set(MODELENGINE_KEY, DataType.UUID, entity.getUniqueId());
-        baseEntity.getPersistentDataContainer().set(MODELENGINE_KEY, DataType.ITEM_STACK, getFurnitureItem(entity));
+        entity.getPersistentDataContainer().set(MODELENGINE_KEY, DataType.UUID, megEntity.getUniqueId());
+        megEntity.getPersistentDataContainer().set(MODELENGINE_KEY, DataType.ITEM_STACK, getFurnitureItem(entity));
 
-        baseEntity.setRotation(yaw, 0);
+        megEntity.setRotation(yaw, 0);
         if (entity instanceof ItemDisplay itemDisplay)
             itemDisplay.setItemStack(new ItemStack(Material.AIR));
         else if (entity instanceof ItemFrame itemFrame)
@@ -673,6 +674,10 @@ public class FurnitureMechanic extends Mechanic {
         return (Arrays.asList(Rotation.values()).indexOf(rotation) * 360f) / 8f;
     }
 
+    public static Rotation yawToRotation(float yaw) {
+        return Rotation.values()[Math.round(yaw / 45f) & 0x7];
+    }
+
     public boolean hasClickActions() {
         return !clickActions.isEmpty();
     }
@@ -793,8 +798,17 @@ public class FurnitureMechanic extends Mechanic {
         return switch (furnitureType) {
             case ITEM_FRAME -> EntityType.ITEM_FRAME;
             case GLOW_ITEM_FRAME -> EntityType.GLOW_ITEM_FRAME;
-            case DISPLAY_ENTITY -> EntityType.ITEM_DISPLAY;
+            case DISPLAY_ENTITY -> OraxenPlugin.supportsDisplayEntities ? EntityType.ITEM_DISPLAY : EntityType.ITEM_FRAME;
             //case ARMOR_STAND -> EntityType.ARMOR_STAND;
+        };
+    }
+
+    public Class<? extends Entity> getFurnitureEntityClass() {
+        return switch (furnitureType) {
+            case ITEM_FRAME -> ItemFrame.class;
+            case GLOW_ITEM_FRAME -> GlowItemFrame.class;
+            case DISPLAY_ENTITY -> OraxenPlugin.supportsDisplayEntities ? ItemDisplay.class : ItemFrame.class;
+            //case ARMOR_STAND -> ArmorStand.class;
         };
     }
 

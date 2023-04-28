@@ -1,10 +1,13 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 
+import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Effect;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -13,6 +16,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -20,56 +24,44 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.ROTATION_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.yawToRotation;
+
 
 public class EvolutionListener implements Listener {
-    private final MechanicFactory factory;
 
-    public EvolutionListener(final MechanicFactory factory) {
-        this.factory = factory;
+    public EvolutionListener() {
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBoneMeal(PlayerInteractEntityEvent event) {
         if (event.getHand() != EquipmentSlot.HAND) return;
         Entity entity = event.getRightClicked();
         Player player = event.getPlayer();
-        if (entity instanceof ItemFrame crop) {
-            PersistentDataContainer cropPDC = crop.getPersistentDataContainer();
-            if (!cropPDC.has(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER)) return;
 
-            ItemStack itemInteracted = player.getInventory().getItemInMainHand();
-            if (itemInteracted.getType() != Material.BONE_MEAL) return;
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
+        if (mechanic == null || !mechanic.hasEvolution()) return;
+        // Swap entity to baseEntity to handle 1.19.4 Interaction entities
+        entity = mechanic.getBaseEntity(entity);
 
-            Block blockBelow = crop.getLocation().getBlock().getRelative(BlockFace.DOWN);
-            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(crop);
-            if (mechanic == null) return;
+        PersistentDataContainer cropPDC = entity.getPersistentDataContainer();
+        if (!cropPDC.has(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER)) return;
 
-            if (mechanic.farmlandRequired && blockBelow.getType() != Material.FARMLAND) {
-                OraxenFurniture.remove(crop.getLocation(), event.getPlayer());
-            } else if (mechanic.farmblockRequired) {
-                NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(blockBelow);
-                if (noteMechanic == null) {
-                    OraxenFurniture.remove(crop.getLocation(), event.getPlayer());
-                } else if (noteMechanic.hasDryout()) {
-                    if (!noteMechanic.getDryout().isFarmBlock()) {
-                        OraxenFurniture.remove(crop.getLocation(), event.getPlayer());
-                        return;
-                    } else if (!noteMechanic.getDryout().isMoistFarmBlock()) {
-                        crop.getPersistentDataContainer().set(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
-                        return;
-                    }
-                }
-            }
-            
-            if (!mechanic.getEvolution().isBoneMeal()) return;
-            if (mechanic.getEvolution().getNextStage() == null) return;
+        ItemStack itemInteracted = player.getInventory().getItemInMainHand();
+        if (itemInteracted.getType() != Material.BONE_MEAL) return;
 
-            itemInteracted.setAmount(itemInteracted.getAmount() - 1);
-            crop.getWorld().playEffect(crop.getLocation(), Effect.BONE_MEAL_USE, 3);
-            if (randomChance(mechanic.getEvolution().getBoneMealChance())) {
-                OraxenFurniture.remove(crop.getLocation(), event.getPlayer());
-                OraxenFurniture.place(crop.getLocation(), mechanic.getEvolution().getNextStage(), crop.getRotation(), crop.getFacing());
-            }
+        event.setCancelled(true);
+        EvolvingFurniture evolution = mechanic.getEvolution();
+        if (!evolution.isBoneMeal() || evolution.getNextStage() == null) return;
+        FurnitureMechanic nextMechanic = (FurnitureMechanic) FurnitureFactory.instance.getMechanic(evolution.getNextStage());
+        if (nextMechanic == null) return;
+
+        itemInteracted.setAmount(itemInteracted.getAmount() - 1);
+        entity.getWorld().playEffect(entity.getLocation(), Effect.BONE_MEAL_USE, 3);
+        if (randomChance(evolution.getBoneMealChance())) {
+
+            OraxenFurniture.remove(entity, null);
+            nextMechanic.place(entity.getLocation(), entity.getLocation().getYaw(), FurnitureMechanic.yawToRotation(entity.getLocation().getYaw()), entity.getFacing());
         }
     }
     public boolean randomChance(double chance) {
