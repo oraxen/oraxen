@@ -113,9 +113,6 @@ public class ResourcePack {
                     packFolder.getCanonicalPath(),
                     packFolder.getName() + ".zip");
 
-            // Convert the global.json within the lang-folder to all languages
-            convertGlobalLang(output);
-
             // needs to be ordered, forEach cannot be used
             File[] files = packFolder.listFiles();
             if (files != null) for (final File folder : files) {
@@ -124,6 +121,9 @@ public class ResourcePack {
                 else if (folder.isDirectory())
                     getAllFiles(folder, output, "assets/minecraft");
             }
+
+            // Convert the global.json within the lang-folder to all languages
+            convertGlobalLang(output);
 
             if (Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.toBool() && customArmorsTextures.hasCustomArmors()) {
                 String armorPath = "assets/minecraft/textures/models/armor";
