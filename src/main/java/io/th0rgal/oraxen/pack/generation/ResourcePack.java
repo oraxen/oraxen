@@ -210,7 +210,6 @@ public class ResourcePack {
                     jsonModel = JsonParser.parseString(content).getAsJsonObject();
                 } catch (JsonSyntaxException e) {
                     Logs.logError("Found malformed json at <red>" + model.getPath() + "</red>");
-                    Logs.debug(model.getPath());
                     e.printStackTrace();
                     continue;
                 }

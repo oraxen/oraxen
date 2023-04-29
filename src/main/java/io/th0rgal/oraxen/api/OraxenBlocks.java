@@ -15,7 +15,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.oraxen.utils.storage.StorageMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -164,7 +163,6 @@ public class OraxenBlocks {
         StringBlockMechanic mechanic = getStringMechanic(location.getBlock());
         if (mechanic == null) return;
         if (mechanic.isTall()) {
-            Logs.debug("Placing tall string block");
             if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) return;
             else blockAbove.setType(Material.TRIPWIRE);
         }
