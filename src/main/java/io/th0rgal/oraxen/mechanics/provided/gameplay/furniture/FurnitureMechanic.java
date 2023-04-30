@@ -42,6 +42,8 @@ import java.util.*;
 public class FurnitureMechanic extends Mechanic {
 
     public static final NamespacedKey FURNITURE_KEY = new NamespacedKey(OraxenPlugin.get(), "furniture");
+    public static final NamespacedKey BASE_ENTITY_KEY = new NamespacedKey(OraxenPlugin.get(), "base_entity");
+    public static final NamespacedKey INTERACTION_KEY = new NamespacedKey(OraxenPlugin.get(), "interaction");
     public static final NamespacedKey MODELENGINE_KEY = new NamespacedKey(OraxenPlugin.get(), "modelengine");
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
     public static final NamespacedKey ROOT_KEY = new NamespacedKey(OraxenPlugin.get(), "root");
@@ -403,10 +405,12 @@ public class FurnitureMechanic extends Mechanic {
             i.setInteractionWidth(width);
             i.setInteractionHeight(height);
             i.setResponsive(responsive);
-            i.getPersistentDataContainer().set(FURNITURE_KEY, DataType.STRING, getItemID());
+            i.setPersistent(true);
         });
-
-        entity.addPassenger(interaction);
+        PersistentDataContainer pdc = interaction.getPersistentDataContainer();
+        pdc.set(FURNITURE_KEY, DataType.STRING, getItemID());
+        pdc.set(BASE_ENTITY_KEY, DataType.UUID, entity.getUniqueId());
+        entity.getPersistentDataContainer().set(INTERACTION_KEY, DataType.UUID, interaction.getUniqueId());
 
         return interaction;
     }
@@ -733,7 +737,9 @@ public class FurnitureMechanic extends Mechanic {
         // If the entity is the same type as the base entity, return it
         // Since ItemDisplay entities have no hitbox it will only be for ITEM_FRAME based ones
         if (getFurnitureEntityType() == entity.getType()) return entity;
-        return entity.getVehicle() instanceof ItemDisplay ? entity.getVehicle() : getBaseEntityAlter(entity);
+        UUID baseEntityUUID = entity.getPersistentDataContainer().get(BASE_ENTITY_KEY, DataType.UUID);
+        return baseEntityUUID != null && Bukkit.getEntity(baseEntityUUID) instanceof ItemDisplay itemDisplay
+                ? itemDisplay : getBaseEntityAlter(entity);
     }
 
     /**
@@ -754,8 +760,8 @@ public class FurnitureMechanic extends Mechanic {
         for (Entity baseEntity : location.getWorld().getNearbyEntities(location, 0.1, 0.1, 0.1)) {
             if (baseEntity.getType() != getFurnitureEntityType()) continue;
             if (!OraxenFurniture.isFurniture(baseEntity)) continue;
-            if (!baseEntity.getPassengers().contains(entity)) // Update to new and quicker method
-                baseEntity.addPassenger(entity);
+            // Update to new format
+            entity.getPersistentDataContainer().set(BASE_ENTITY_KEY, DataType.UUID, baseEntity.getUniqueId());
             return baseEntity;
         }
         return null;
@@ -763,9 +769,9 @@ public class FurnitureMechanic extends Mechanic {
 
     @Nullable
     public Interaction getInteractionEntity(@NotNull Entity baseEntity) {
-        return OraxenPlugin.supportsDisplayEntities ?
-                baseEntity.getPassengers().stream().filter(entity -> entity instanceof Interaction)
-                        .map(entity -> (Interaction) entity).findFirst().orElse(getInteractionEntityAlter(baseEntity)) : getInteractionEntityAlter(baseEntity);
+        UUID interactionUUID = baseEntity.getPersistentDataContainer().get(INTERACTION_KEY, DataType.UUID);
+        return OraxenPlugin.supportsDisplayEntities && interactionUUID != null && Bukkit.getEntity(interactionUUID) instanceof Interaction interaction
+                ? interaction : getInteractionEntityAlter(baseEntity);
     }
 
     /**
@@ -781,8 +787,8 @@ public class FurnitureMechanic extends Mechanic {
                 PersistentDataContainer pdc = interaction.getPersistentDataContainer();
                 if (pdc.has(FURNITURE_KEY, DataType.STRING) && pdc.getOrDefault(FURNITURE_KEY, DataType.STRING, "").equals(getItemID())) {
                     if (pdc.has(ROOT_KEY, DataType.LOCATION) && Objects.equals(pdc.get(ROOT_KEY, DataType.LOCATION), baseEntity.getLocation())) {
-                        if (!baseEntity.getPassengers().contains(entity)) // Update to new and quicker method
-                            baseEntity.addPassenger(entity);
+                        // Update to new format
+                        baseEntity.getPersistentDataContainer().set(INTERACTION_KEY, DataType.UUID, interaction.getUniqueId());
                         return interaction;
                     }
                 }
