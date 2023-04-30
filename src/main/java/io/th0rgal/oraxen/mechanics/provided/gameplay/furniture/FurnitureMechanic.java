@@ -733,14 +733,62 @@ public class FurnitureMechanic extends Mechanic {
         // If the entity is the same type as the base entity, return it
         // Since ItemDisplay entities have no hitbox it will only be for ITEM_FRAME based ones
         if (getFurnitureEntityType() == entity.getType()) return entity;
-        return entity.getVehicle() instanceof ItemDisplay ? entity.getVehicle() : null;
+        return entity.getVehicle() instanceof ItemDisplay ? entity.getVehicle() : getBaseEntityAlter(entity);
+    }
+
+    /**
+     * Old method and inefficient method for getting the interaction entity. Kept for backwards compatibility.
+     * When ran it will update the furniture to the new method without needing to replace it
+     */
+    @Nullable
+    @Deprecated(forRemoval = true, since = "1.156.0")
+    private Entity getBaseEntityAlter(Entity entity) {
+        // If the entity is the same type as the base entity, return it
+        // Since ItemDisplay entities have no hitbox it will only be for ITEM_FRAME based ones
+        if (getFurnitureEntityType() == entity.getType()) return entity;
+
+        PersistentDataContainer pdc = entity.getPersistentDataContainer();
+        Location location = pdc.get(ROOT_KEY, DataType.LOCATION);
+        if (location == null || !location.isWorldLoaded()) return null;
+        assert location.getWorld() != null;
+        for (Entity baseEntity : location.getWorld().getNearbyEntities(location, 0.1, 0.1, 0.1)) {
+            if (baseEntity.getType() != getFurnitureEntityType()) continue;
+            if (!OraxenFurniture.isFurniture(baseEntity)) continue;
+            if (!baseEntity.getPassengers().contains(entity)) // Update to new and quicker method
+                baseEntity.addPassenger(entity);
+            return baseEntity;
+        }
+        return null;
     }
 
     @Nullable
     public Interaction getInteractionEntity(@NotNull Entity baseEntity) {
         return OraxenPlugin.supportsDisplayEntities ?
                 baseEntity.getPassengers().stream().filter(entity -> entity instanceof Interaction)
-                        .map(entity -> (Interaction) entity).findFirst().orElse(null) : null;
+                        .map(entity -> (Interaction) entity).findFirst().orElse(getInteractionEntityAlter(baseEntity)) : getInteractionEntityAlter(baseEntity);
+    }
+
+    /**
+     * Old method and inefficient method for getting the interaction entity. Kept for backwards compatibility.
+     * When ran it will update the furniture to the new method without needing to replace it
+     */
+    @Nullable
+    @Deprecated(forRemoval = true, since = "1.156.0")
+    private Interaction getInteractionEntityAlter(Entity baseEntity) {
+        if (OraxenPlugin.supportsDisplayEntities) {
+            for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
+                if (!(entity instanceof Interaction interaction)) continue;
+                PersistentDataContainer pdc = interaction.getPersistentDataContainer();
+                if (pdc.has(FURNITURE_KEY, DataType.STRING) && pdc.getOrDefault(FURNITURE_KEY, DataType.STRING, "").equals(getItemID())) {
+                    if (pdc.has(ROOT_KEY, DataType.LOCATION) && Objects.equals(pdc.get(ROOT_KEY, DataType.LOCATION), baseEntity.getLocation())) {
+                        if (!baseEntity.getPassengers().contains(entity)) // Update to new and quicker method
+                            baseEntity.addPassenger(entity);
+                        return interaction;
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     public FurnitureType getFurnitureType() {
