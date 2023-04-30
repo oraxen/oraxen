@@ -524,16 +524,6 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private void spawnModelEngineFurniture(Entity entity, float yaw) {
-        ArmorStand megEntity = entity.getWorld().spawn(entity.getLocation(), ArmorStand.class, (ArmorStand stand) -> {
-            stand.setVisible(false);
-            stand.setInvulnerable(true);
-            stand.setCustomNameVisible(false);
-            stand.setMarker(true);
-            stand.setGravity(false);
-            stand.setPersistent(true);
-            stand.setAI(false);
-            stand.setRotation(yaw, 0);
-        });
         ModeledEntity modelEntity = ModelEngineAPI.getOrCreateModeledEntity(entity);
         ActiveModel activeModel = ModelEngineAPI.createActiveModel(ModelEngineAPI.getBlueprint(getModelEngineID()));
 
@@ -541,10 +531,6 @@ public class FurnitureMechanic extends Mechanic {
         modelEntity.setBaseEntityVisible(false);
         modelEntity.setModelRotationLock(true);
 
-        entity.getPersistentDataContainer().set(MODELENGINE_KEY, DataType.UUID, megEntity.getUniqueId());
-        megEntity.getPersistentDataContainer().set(MODELENGINE_KEY, DataType.ITEM_STACK, getFurnitureItem(entity));
-
-        megEntity.setRotation(yaw, 0);
         if (entity instanceof ItemDisplay itemDisplay)
             itemDisplay.setItemStack(new ItemStack(Material.AIR));
         else if (entity instanceof ItemFrame itemFrame)
@@ -625,24 +611,11 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void removeSubEntitiesOfFurniture(Entity baseEntity) {
-        PersistentDataContainer entityPDC = baseEntity.getPersistentDataContainer();
         if (hasSeat) {
             Entity stand = getSeat(baseEntity.getLocation());
             if (stand != null) {
                 stand.getPassengers().forEach(stand::removePassenger);
                 stand.remove();
-            }
-        }
-
-        //TODO This might be unneeded if mounting as passenger or modelengine handles it when removing the base entity
-        if (isModelEngine()) {
-            UUID uuid = entityPDC.get(MODELENGINE_KEY, DataType.UUID);
-            if (uuid != null) {
-                ArmorStand stand = (ArmorStand) Bukkit.getEntity(uuid);
-                if (stand != null) {
-                    stand.getPassengers().forEach(stand::removePassenger);
-                    stand.remove();
-                }
             }
         }
 
