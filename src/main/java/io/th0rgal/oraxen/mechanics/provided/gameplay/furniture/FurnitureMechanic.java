@@ -399,13 +399,16 @@ public class FurnitureMechanic extends Mechanic {
 
     private Interaction spawnInteractionEntity(Entity entity, Location location, float width, float height, boolean responsive) {
         if (!OraxenPlugin.supportsDisplayEntities) return null;
-        return entity.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), Interaction.class, (Interaction interaction) -> {
-            interaction.setInteractionWidth(width);
-            interaction.setInteractionHeight(height);
-            interaction.setResponsive(responsive);
-            interaction.getPersistentDataContainer().set(FURNITURE_KEY, DataType.STRING, getItemID());
-            interaction.getPersistentDataContainer().set(ROOT_KEY, DataType.LOCATION, location);
+        Interaction interaction = entity.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), Interaction.class, (Interaction i) -> {
+            i.setInteractionWidth(width);
+            i.setInteractionHeight(height);
+            i.setResponsive(responsive);
+            i.getPersistentDataContainer().set(FURNITURE_KEY, DataType.STRING, getItemID());
         });
+
+        entity.addPassenger(interaction);
+
+        return interaction;
     }
 
     private void setBaseFurnitureData(Entity entity) {
@@ -630,6 +633,8 @@ public class FurnitureMechanic extends Mechanic {
                 stand.remove();
             }
         }
+
+        //TODO This might be unneeded if mounting as passenger or modelengine handles it when removing the base entity
         if (isModelEngine()) {
             UUID uuid = entityPDC.get(MODELENGINE_KEY, DataType.UUID);
             if (uuid != null) {
@@ -642,14 +647,8 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         if (OraxenPlugin.supportsDisplayEntities) {
-            for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
-                if (!(entity instanceof Interaction interaction)) continue;
-                PersistentDataContainer pdc = interaction.getPersistentDataContainer();
-                if (pdc.has(FURNITURE_KEY, DataType.STRING) && pdc.getOrDefault(FURNITURE_KEY, DataType.STRING, "").equals(getItemID())) {
-                    if (pdc.has(ROOT_KEY, DataType.LOCATION) && Objects.equals(pdc.get(ROOT_KEY, DataType.LOCATION), baseEntity.getLocation()))
-                        interaction.remove();
-                }
-            }
+            Interaction interaction = getInteractionEntity(baseEntity);
+            if (interaction != null) interaction.remove();
         }
     }
 
@@ -761,32 +760,14 @@ public class FurnitureMechanic extends Mechanic {
         // If the entity is the same type as the base entity, return it
         // Since ItemDisplay entities have no hitbox it will only be for ITEM_FRAME based ones
         if (getFurnitureEntityType() == entity.getType()) return entity;
-
-        PersistentDataContainer pdc = entity.getPersistentDataContainer();
-        Location location = pdc.get(ROOT_KEY, DataType.LOCATION);
-        if (location == null || !location.isWorldLoaded()) return null;
-        assert location.getWorld() != null;
-        for (Entity baseEntity : location.getWorld().getNearbyEntities(location, 0.1, 0.1, 0.1)) {
-            if (baseEntity.getType() != getFurnitureEntityType()) continue;
-            if (!OraxenFurniture.isFurniture(baseEntity)) continue;
-            return baseEntity;
-        }
-        return null;
+        return entity.getVehicle() instanceof ItemDisplay ? entity.getVehicle() : null;
     }
 
     @Nullable
     public Interaction getInteractionEntity(@NotNull Entity baseEntity) {
-        if (OraxenPlugin.supportsDisplayEntities) {
-            for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
-                if (!(entity instanceof Interaction interaction)) continue;
-                PersistentDataContainer pdc = interaction.getPersistentDataContainer();
-                if (pdc.has(FURNITURE_KEY, DataType.STRING) && pdc.getOrDefault(FURNITURE_KEY, DataType.STRING, "").equals(getItemID())) {
-                    if (pdc.has(ROOT_KEY, DataType.LOCATION) && Objects.equals(pdc.get(ROOT_KEY, DataType.LOCATION), baseEntity.getLocation()))
-                        return interaction;
-                }
-            }
-        }
-        return null;
+        return OraxenPlugin.supportsDisplayEntities ?
+                baseEntity.getPassengers().stream().filter(entity -> entity instanceof Interaction)
+                        .map(entity -> (Interaction) entity).findFirst().orElse(null) : null;
     }
 
     public FurnitureType getFurnitureType() {
