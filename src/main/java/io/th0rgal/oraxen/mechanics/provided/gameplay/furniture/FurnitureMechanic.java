@@ -97,15 +97,16 @@ public class FurnitureMechanic extends Mechanic {
             if (furnitureType == FurnitureType.DISPLAY_ENTITY && !OraxenPlugin.supportsDisplayEntities) {
                 Logs.logError("Use of Display Entity on unsupported server version.");
                 Logs.logError("This EntityType is only supported on 1.19.4 and above.");
-                Logs.logError("Setting type to ITEM_FRAME for <i>" + getItemID() + "</i>.");
+                Logs.logWarning("Setting type to ITEM_FRAME for furniture: <i><gold>" + getItemID());
                 furnitureType = FurnitureType.ITEM_FRAME;
             }
         } catch (IllegalArgumentException e) {
-            Logs.logError("Use of illegal EntityType in " + getItemID() + " furniture.");
-            Logs.logError("Allowed ones are: " + Arrays.stream(FurnitureType.values()).toList().stream().map(Enum::name));
-            Logs.logError("Setting type to ITEM_FRAME.");
+            Logs.logError("Use of illegal EntityType in furniture: <gold>" + getItemID());
+            Logs.logWarning("Allowed ones are: <gold>" + Arrays.stream(FurnitureType.values()).map(Enum::name).toList());
+            Logs.logWarning("Setting type to ITEM_FRAME for furniture: <gold>" + getItemID());
             furnitureType = FurnitureType.ITEM_FRAME;
         }
+
         ConfigurationSection displayEntitySection = section.getConfigurationSection("display_entity_properties");
         displayEntityProperties = OraxenPlugin.supportsDisplayEntities
                 ? displayEntitySection != null

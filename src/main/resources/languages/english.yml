@@ -7,7 +7,7 @@ general:
   reload: "<prefix><#55ffa4>Successfully reloaded"
   pack_uploading: "<prefix><#D5D6D8>Automatic upload of the resource pack is enabled, uploading..."
   pack_not_uploaded: "<prefix><#fa4943>Resourcepack not uploaded"
-  pack_uploaded: "<prefix><#55ffa4>Resourcepack uploaded on url <url> in <delay> ms"
+  pack_uploaded: "<prefix><#55ffa4>Resourcepack uploaded to <url> in <delay> ms"
   pack_regenerated: "<prefix><#55ffa4>Resourcepack successfully regenerated"
   updating_config: "<prefix><#facc43>Configuration option \"<option>\" not found, adding it!"
   configs_validation_failed: "<prefix><#fa4943>Configurations validation failed, plugin automatically disabled!"
