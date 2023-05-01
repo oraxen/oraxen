@@ -282,6 +282,11 @@ public class OraxenBlocks {
                         + noteblock.getNote().getId() + (noteblock.isPowered() ? 400 : 0) - 26);
     }
 
+    public static NoteBlockMechanic getNoteBlockMechanic(String itemID) {
+        Mechanic mechanic = NoteBlockMechanicFactory.getInstance().getMechanic(itemID);
+        return mechanic instanceof NoteBlockMechanic noteBlockMechanic ? noteBlockMechanic : null;
+    }
+
     public static StringBlockMechanic getStringMechanic(BlockData blockData) {
         if (!(blockData instanceof Tripwire tripwire)) return null;
         return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
@@ -292,6 +297,11 @@ public class OraxenBlocks {
             final Tripwire tripwire = (Tripwire) block.getBlockData();
             return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
         } else return null;
+    }
+
+    public static StringBlockMechanic getStringMechanic(String itemID) {
+        Mechanic mechanic = StringBlockMechanicFactory.getInstance().getMechanic(itemID);
+        return mechanic instanceof StringBlockMechanic stringMechanic ? stringMechanic : null;
     }
 
     public static BlockMechanic getBlockMechanic(Block block) {
