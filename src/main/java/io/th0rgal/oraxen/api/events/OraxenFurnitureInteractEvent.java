@@ -2,29 +2,38 @@ package io.th0rgal.oraxen.api.events;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.inventory.EquipmentSlot;
+import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
 
     private final FurnitureMechanic mechanic;
+    private final Entity baseEntity;
     private final Player player;
     private final Block block;
+    private final BlockFace blockFace;
+    private final ItemStack itemInHand;
+    private final EquipmentSlot hand;
     private boolean isCancelled;
-    private final Entity baseEntity;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurnitureInteractEvent(FurnitureMechanic mechanic, Player player, @Nullable Block block, Entity baseEntity) {
-        this.mechanic = mechanic;
+    public OraxenFurnitureInteractEvent(FurnitureMechanic mechanic, Entity baseEntity, Player player, @Nullable Block block, BlockFace blockFace, ItemStack itemInHand, EquipmentSlot hand) {
         this.player = player;
-        this.block = block;
-        this.isCancelled = false;
+        this.mechanic = mechanic;
         this.baseEntity = baseEntity;
+        this.block = block;
+        this.blockFace = blockFace;
+        this.itemInHand = itemInHand;
+        this.hand = hand;
+        this.isCancelled = false;
     }
 
     /**
@@ -64,6 +73,28 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
      */
     @Nullable
     public Entity getInteractionEntity() { return mechanic.getInteractionEntity(baseEntity); }
+
+    /**
+     * @return The block face that was interacted with, null if the furniture has no hitbox
+     */
+    @Nullable
+    public BlockFace getBlockFace() {
+        return blockFace;
+    }
+
+    /**
+     * @return The item in the player's hand when they interacted with the furniture
+     */
+    public ItemStack getItemInHand() {
+        return itemInHand;
+    }
+
+    /**
+     * @return The hand the player interacted with the furniture with
+     */
+    public EquipmentSlot getHand() {
+        return hand;
+    }
 
     @Override
     public boolean isCancelled() {

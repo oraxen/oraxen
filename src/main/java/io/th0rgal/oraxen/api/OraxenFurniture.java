@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -160,6 +159,18 @@ public class OraxenFurniture {
      */
     public static FurnitureMechanic getFurnitureMechanic(Entity entity) {
         final String itemID = entity.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING);
+        if (!OraxenItems.exists(itemID)) return null;
+        return (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
+    }
+
+    /**
+     * Get the FurnitureMechanic from a given block.
+     * This will only return non-null for furniture with a barrier-hitbox
+     *
+     * @param itemID The itemID tied to this FurnitureMechanic
+     * @return Returns the FurnitureMechanic tied to this itemID, or null if the itemID is not tied to a Furniture
+     */
+    public static FurnitureMechanic getFurnitureMechanic(String itemID) {
         if (!OraxenItems.exists(itemID)) return null;
         return (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
     }

@@ -17,12 +17,12 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     private final Player player;
     private final Block block;
     private final ItemStack itemInHand;
-    private boolean isCancelled;
-    private final BlockFace blockFace;
     private final EquipmentSlot hand;
+    private final BlockFace blockFace;
+    private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenStringBlockInteractEvent(StringBlockMechanic mechanic, Block block, ItemStack itemInHand, Player player, BlockFace blockFace, EquipmentSlot hand) {
+    public OraxenStringBlockInteractEvent(StringBlockMechanic mechanic, Player player, ItemStack itemInHand, EquipmentSlot hand, Block block, BlockFace blockFace) {
         this.mechanic = mechanic;
         this.itemInHand = itemInHand;
         this.block = block;
@@ -54,17 +54,17 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     }
 
     /**
-     * @return The item in hand when the player interacted with the string block
-     */
-    public ItemStack getItemInHand() {
-        return itemInHand;
-    }
-
-    /**
      * @return Clicked block face
      */
     public BlockFace getBlockFace() {
         return blockFace;
+    }
+
+    /**
+     * @return The item in hand when the player interacted with the string block
+     */
+    public ItemStack getItemInHand() {
+        return itemInHand;
     }
 
     /**
