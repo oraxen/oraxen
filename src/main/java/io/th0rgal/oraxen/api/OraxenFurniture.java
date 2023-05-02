@@ -126,7 +126,9 @@ public class OraxenFurniture {
      */
     public static boolean remove(Entity baseEntity, @Nullable Player player) {
         FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
-        if (mechanic == null || baseEntity.getType() != mechanic.getFurnitureEntityType()) return false;
+        if (mechanic == null) return false;
+        baseEntity = mechanic.getBaseEntity(baseEntity);
+        if (baseEntity == null || baseEntity.getType() != mechanic.getFurnitureEntityType()) return false;
         ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
 
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
