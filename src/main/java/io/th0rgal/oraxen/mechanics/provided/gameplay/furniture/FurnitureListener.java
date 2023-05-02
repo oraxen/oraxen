@@ -251,6 +251,9 @@ public class FurnitureListener implements Listener {
         OraxenFurniture.remove(entity, player);
     }
 
+    //TODO This should take hardness into account.
+    // Probably best to find the closest barrier to furniture. If none instabreak
+    // Otherwise check hardness and handle breaking like normal
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomFurniture(final BlockBreakEvent event) {
         final Block block = event.getBlock();
