@@ -118,7 +118,7 @@ public class FurnitureListener implements Listener {
         LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
         Block belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN);
 
-        if (limitedPlacing.isNotPlacableOn(belowPlaced, blockFace)) {
+        if (limitedPlacing.isNotPlacableOn(block, blockFace)) {
             event.setCancelled(true);
         } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
             if (!limitedPlacing.checkLimitedMechanic(belowPlaced))

@@ -47,12 +47,15 @@ public class LimitedPlacing {
         return blocks.stream().filter(Objects::nonNull).toList();
     }
 
-    public boolean isNotPlacableOn(Block blockBelow, BlockFace blockFace) {
-        return !switch (blockFace) {
-            case UP -> floor;
-            case DOWN -> roof;
-            default -> wall || blockBelow.getType().isSolid();
-        };
+    public boolean isNotPlacableOn(Block block, BlockFace blockFace) {
+        Block placedBlock = block.getRelative(blockFace);
+        Block blockBelow = placedBlock.getRelative(BlockFace.DOWN);
+        Block blockAbove = placedBlock.getRelative(BlockFace.UP);
+
+        //TODO isBlock better check perhaps?
+        if (wall && block.getType().isSolid()) return false;
+        if (floor && (blockFace == BlockFace.UP || blockBelow.getType().isSolid())) return false;
+        return !roof || (blockFace != BlockFace.DOWN && !blockAbove.getType().isSolid());
     }
 
     public List<String> getLimitedOraxenBlockIds() {
