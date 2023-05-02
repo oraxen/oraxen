@@ -42,6 +42,8 @@ import java.util.*;
 public class FurnitureMechanic extends Mechanic {
 
     public static final NamespacedKey FURNITURE_KEY = new NamespacedKey(OraxenPlugin.get(), "furniture");
+    public static final NamespacedKey BASE_ENTITY_KEY = new NamespacedKey(OraxenPlugin.get(), "base_entity");
+    public static final NamespacedKey INTERACTION_KEY = new NamespacedKey(OraxenPlugin.get(), "interaction");
     public static final NamespacedKey MODELENGINE_KEY = new NamespacedKey(OraxenPlugin.get(), "modelengine");
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
     public static final NamespacedKey ROOT_KEY = new NamespacedKey(OraxenPlugin.get(), "root");
@@ -400,13 +402,18 @@ public class FurnitureMechanic extends Mechanic {
 
     private Interaction spawnInteractionEntity(Entity entity, Location location, float width, float height, boolean responsive) {
         if (!OraxenPlugin.supportsDisplayEntities) return null;
-        return entity.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), Interaction.class, (Interaction interaction) -> {
-            interaction.setInteractionWidth(width);
-            interaction.setInteractionHeight(height);
-            interaction.setResponsive(responsive);
-            interaction.getPersistentDataContainer().set(FURNITURE_KEY, DataType.STRING, getItemID());
-            interaction.getPersistentDataContainer().set(ROOT_KEY, DataType.LOCATION, location);
+        Interaction interaction = entity.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), Interaction.class, (Interaction i) -> {
+            i.setInteractionWidth(width);
+            i.setInteractionHeight(height);
+            i.setResponsive(responsive);
+            i.setPersistent(true);
         });
+        PersistentDataContainer pdc = interaction.getPersistentDataContainer();
+        pdc.set(FURNITURE_KEY, DataType.STRING, getItemID());
+        pdc.set(BASE_ENTITY_KEY, DataType.UUID, entity.getUniqueId());
+        entity.getPersistentDataContainer().set(INTERACTION_KEY, DataType.UUID, interaction.getUniqueId());
+
+        return interaction;
     }
 
     private void setBaseFurnitureData(Entity entity) {
@@ -522,16 +529,6 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private void spawnModelEngineFurniture(Entity entity, float yaw) {
-        ArmorStand megEntity = entity.getWorld().spawn(entity.getLocation(), ArmorStand.class, (ArmorStand stand) -> {
-            stand.setVisible(false);
-            stand.setInvulnerable(true);
-            stand.setCustomNameVisible(false);
-            stand.setMarker(true);
-            stand.setGravity(false);
-            stand.setPersistent(true);
-            stand.setAI(false);
-            stand.setRotation(yaw, 0);
-        });
         ModeledEntity modelEntity = ModelEngineAPI.getOrCreateModeledEntity(entity);
         ActiveModel activeModel = ModelEngineAPI.createActiveModel(ModelEngineAPI.getBlueprint(getModelEngineID()));
 
@@ -539,10 +536,6 @@ public class FurnitureMechanic extends Mechanic {
         modelEntity.setBaseEntityVisible(false);
         modelEntity.setModelRotationLock(true);
 
-        entity.getPersistentDataContainer().set(MODELENGINE_KEY, DataType.UUID, megEntity.getUniqueId());
-        megEntity.getPersistentDataContainer().set(MODELENGINE_KEY, DataType.ITEM_STACK, getFurnitureItem(entity));
-
-        megEntity.setRotation(yaw, 0);
         if (entity instanceof ItemDisplay itemDisplay)
             itemDisplay.setItemStack(new ItemStack(Material.AIR));
         else if (entity instanceof ItemFrame itemFrame)
@@ -623,7 +616,6 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void removeSubEntitiesOfFurniture(Entity baseEntity) {
-        PersistentDataContainer entityPDC = baseEntity.getPersistentDataContainer();
         if (hasSeat) {
             Entity stand = getSeat(baseEntity.getLocation());
             if (stand != null) {
@@ -631,26 +623,10 @@ public class FurnitureMechanic extends Mechanic {
                 stand.remove();
             }
         }
-        if (isModelEngine()) {
-            UUID uuid = entityPDC.get(MODELENGINE_KEY, DataType.UUID);
-            if (uuid != null) {
-                ArmorStand stand = (ArmorStand) Bukkit.getEntity(uuid);
-                if (stand != null) {
-                    stand.getPassengers().forEach(stand::removePassenger);
-                    stand.remove();
-                }
-            }
-        }
 
         if (OraxenPlugin.supportsDisplayEntities) {
-            for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
-                if (!(entity instanceof Interaction interaction)) continue;
-                PersistentDataContainer pdc = interaction.getPersistentDataContainer();
-                if (pdc.has(FURNITURE_KEY, DataType.STRING) && pdc.getOrDefault(FURNITURE_KEY, DataType.STRING, "").equals(getItemID())) {
-                    if (pdc.has(ROOT_KEY, DataType.LOCATION) && Objects.equals(pdc.get(ROOT_KEY, DataType.LOCATION), baseEntity.getLocation()))
-                        interaction.remove();
-                }
-            }
+            Interaction interaction = getInteractionEntity(baseEntity);
+            if (interaction != null) interaction.remove();
         }
     }
 
@@ -762,6 +738,20 @@ public class FurnitureMechanic extends Mechanic {
         // If the entity is the same type as the base entity, return it
         // Since ItemDisplay entities have no hitbox it will only be for ITEM_FRAME based ones
         if (getFurnitureEntityType() == entity.getType()) return entity;
+        UUID baseEntityUUID = entity.getPersistentDataContainer().get(BASE_ENTITY_KEY, DataType.UUID);
+        return baseEntityUUID != null && Bukkit.getEntity(baseEntityUUID) != null ? Bukkit.getEntity(baseEntityUUID) : null;
+    }
+
+    /**
+     * Old method and inefficient method for getting the interaction entity. Kept for backwards compatibility.
+     * When ran it will update the furniture to the new method without needing to replace it
+     */
+    @Nullable
+    @Deprecated(forRemoval = true, since = "1.156.0")
+    private Entity getBaseEntityAlter(Entity entity) {
+        // If the entity is the same type as the base entity, return it
+        // Since ItemDisplay entities have no hitbox it will only be for ITEM_FRAME based ones
+        if (getFurnitureEntityType() == entity.getType()) return entity;
 
         PersistentDataContainer pdc = entity.getPersistentDataContainer();
         Location location = pdc.get(ROOT_KEY, DataType.LOCATION);
@@ -770,6 +760,8 @@ public class FurnitureMechanic extends Mechanic {
         for (Entity baseEntity : location.getWorld().getNearbyEntities(location, 0.1, 0.1, 0.1)) {
             if (baseEntity.getType() != getFurnitureEntityType()) continue;
             if (!OraxenFurniture.isFurniture(baseEntity)) continue;
+            // Update to new format
+            entity.getPersistentDataContainer().set(BASE_ENTITY_KEY, DataType.UUID, baseEntity.getUniqueId());
             return baseEntity;
         }
         return null;
@@ -777,13 +769,28 @@ public class FurnitureMechanic extends Mechanic {
 
     @Nullable
     public Interaction getInteractionEntity(@NotNull Entity baseEntity) {
+        UUID interactionUUID = baseEntity.getPersistentDataContainer().get(INTERACTION_KEY, DataType.UUID);
+        return OraxenPlugin.supportsDisplayEntities && interactionUUID != null && Bukkit.getEntity(interactionUUID) instanceof Interaction interaction
+                ? interaction : getInteractionEntityAlter(baseEntity);
+    }
+
+    /**
+     * Old method and inefficient method for getting the interaction entity. Kept for backwards compatibility.
+     * When ran it will update the furniture to the new method without needing to replace it
+     */
+    @Nullable
+    @Deprecated(forRemoval = true, since = "1.156.0")
+    private Interaction getInteractionEntityAlter(Entity baseEntity) {
         if (OraxenPlugin.supportsDisplayEntities) {
             for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
                 if (!(entity instanceof Interaction interaction)) continue;
                 PersistentDataContainer pdc = interaction.getPersistentDataContainer();
                 if (pdc.has(FURNITURE_KEY, DataType.STRING) && pdc.getOrDefault(FURNITURE_KEY, DataType.STRING, "").equals(getItemID())) {
-                    if (pdc.has(ROOT_KEY, DataType.LOCATION) && Objects.equals(pdc.get(ROOT_KEY, DataType.LOCATION), baseEntity.getLocation()))
+                    if (pdc.has(ROOT_KEY, DataType.LOCATION) && Objects.equals(pdc.get(ROOT_KEY, DataType.LOCATION), baseEntity.getLocation())) {
+                        // Update to new format
+                        baseEntity.getPersistentDataContainer().set(INTERACTION_KEY, DataType.UUID, interaction.getUniqueId());
                         return interaction;
+                    }
                 }
             }
         }
