@@ -24,7 +24,8 @@ import java.util.*;
 @SuppressWarnings("ALL")
 public class ItemBuilder {
 
-    public final NamespacedKey UNSTACKABLE_KEY = new NamespacedKey(OraxenPlugin.get(), "unstackable");
+    public static final NamespacedKey UNSTACKABLE_KEY = new NamespacedKey(OraxenPlugin.get(), "unstackable");
+    public static final NamespacedKey ORIGINAL_NAME_KEY = new NamespacedKey(OraxenPlugin.get(), "original_name");
 
     private final ItemStack itemStack;
     private final Map<PersistentDataSpace, Object> persistentDataMap = new HashMap<>();
@@ -311,8 +312,11 @@ public class ItemBuilder {
          */
         ItemMeta itemMeta = handleVariousMeta(itemStack.getItemMeta());
         assert itemMeta != null;
-        if (displayName != null)
+        PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
+        if (displayName != null) {
+            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
             itemMeta.setDisplayName(displayName);
+        }
 
         itemMeta.setUnbreakable(unbreakable);
 
@@ -325,12 +329,13 @@ public class ItemBuilder {
         if (itemFlags != null)
             itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
 
-        if (enchantments.size() > 0)
+        if (enchantments.size() > 0) {
             for (final Map.Entry<Enchantment, Integer> enchant : enchantments.entrySet()) {
                 if (enchant.getKey() == null) continue;
                 int lvl = enchant.getValue() != null ? enchant.getValue() : 1;
                 itemMeta.addEnchant(enchant.getKey(), lvl, true);
             }
+        }
 
         if (hasAttributeModifiers)
             itemMeta.setAttributeModifiers(attributeModifiers);
@@ -340,10 +345,7 @@ public class ItemBuilder {
 
         if (!persistentDataMap.isEmpty())
             for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
-                itemMeta
-                        .getPersistentDataContainer()
-                        .set(dataSpace.getKey().namespacedKey(),
-                                (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
+                pdc.set(dataSpace.getKey().namespacedKey(), (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
 
         itemMeta.setLore(lore);
 

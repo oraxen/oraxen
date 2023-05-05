@@ -16,7 +16,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DurabilityMechanic extends Mechanic {
 
     private final int itemDurability;
-    public static final NamespacedKey DURAB_KEY = new NamespacedKey(OraxenPlugin.get(), "durability");
+    public static final NamespacedKey DURABILITY_KEY = new NamespacedKey(OraxenPlugin.get(), "durability");
 
     public DurabilityMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         /*
@@ -24,7 +24,7 @@ public class DurabilityMechanic extends Mechanic {
          * section used to configure the mechanic - the item modifier(s)
          */
         super(mechanicFactory, section,
-            item -> item.setCustomTag(DURAB_KEY, PersistentDataType.INTEGER, section.getInt("value")));
+            item -> item.setCustomTag(DURABILITY_KEY, PersistentDataType.INTEGER, section.getInt("value")));
         this.itemDurability = section.getInt("value");
     }
 
@@ -38,7 +38,7 @@ public class DurabilityMechanic extends Mechanic {
 
         Utils.editItemMeta(item, (itemMeta) -> {
             PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-            check.set(pdc.has(DurabilityMechanic.DURAB_KEY, PersistentDataType.INTEGER));
+            check.set(pdc.has(DurabilityMechanic.DURABILITY_KEY, PersistentDataType.INTEGER));
 
             if (check.get()) {
                 if(!(itemMeta instanceof Damageable damageable)) {
@@ -48,11 +48,11 @@ public class DurabilityMechanic extends Mechanic {
 
                 int baseMaxDurab = item.getType().getMaxDurability();
                 int realMaxDurab = durabilityMechanic.getItemMaxDurability(); // because int rounded values suck
-                int realDurabRemain = pdc.getOrDefault(DURAB_KEY, PersistentDataType.INTEGER, realMaxDurab);
+                int realDurabRemain = pdc.getOrDefault(DURABILITY_KEY, PersistentDataType.INTEGER, realMaxDurab);
 
                 // If item was max durab before damage, set the fake one
                 if (damageable.getDamage() != 0 && realDurabRemain == realMaxDurab) {
-                    pdc.set(DURAB_KEY, PersistentDataType.INTEGER,
+                    pdc.set(DURABILITY_KEY, PersistentDataType.INTEGER,
                             (int) (realMaxDurab - (((double) damageable.getDamage() / (double) baseMaxDurab) * realMaxDurab)));
                     item.setItemMeta(itemMeta);
                     // Call function again to have itemmeta stick and run below part aswell
@@ -60,7 +60,7 @@ public class DurabilityMechanic extends Mechanic {
                 } else {
                     realDurabRemain = realDurabRemain + amount;
                     if (realDurabRemain > 0) {
-                        pdc.set(DURAB_KEY, PersistentDataType.INTEGER, realDurabRemain);
+                        pdc.set(DURABILITY_KEY, PersistentDataType.INTEGER, realDurabRemain);
                         //TODO Figure out why when mending this sets the durability abit too high in the actual Damagable meta
                         (damageable).setDamage((int) ((double) baseMaxDurab - (((double) realDurabRemain / realMaxDurab) * (double) baseMaxDurab)));
                     } else item.setAmount(0);

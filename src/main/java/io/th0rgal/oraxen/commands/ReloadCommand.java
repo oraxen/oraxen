@@ -23,13 +23,13 @@ public class ReloadCommand {
         OraxenItems.loadItems();
     }
 
-    private static void reloadPack(OraxenPlugin plugin, CommandSender sender) {
+    private static void reloadPack(CommandSender sender) {
         Message.PACK_REGENERATED.send(sender);
-        plugin.setFontManager(new FontManager(plugin.getConfigsManager()));
-        plugin.setSoundManager(new SoundManager(plugin.getConfigsManager().getSound()));
-        plugin.getResourcePack().generate(plugin.getFontManager(),
-                plugin.getSoundManager());
-        plugin.getUploadManager().uploadAsyncAndSendToPlayers(plugin.getResourcePack(), true, true);
+        OraxenPlugin oraxen = OraxenPlugin.get();
+        oraxen.setFontManager(new FontManager(oraxen.getConfigsManager()));
+        oraxen.setSoundManager(new SoundManager(oraxen.getConfigsManager().getSound()));
+        oraxen.getResourcePack().generate(oraxen.getFontManager(), oraxen.getSoundManager());
+        oraxen.getUploadManager().uploadAsyncAndSendToPlayers(oraxen.getResourcePack(), true, true);
     }
 
     private static void reloadHud(CommandSender sender) {
@@ -61,8 +61,8 @@ public class ReloadCommand {
                             reloadItems(sender);
                             OraxenPlugin.get().getInvManager().regen();
                         }
-                        case "PACK" -> reloadPack(OraxenPlugin.get(), sender);
-                        case "RECIPES" -> RecipesManager.reload(OraxenPlugin.get());
+                        case "PACK" -> reloadPack(sender);
+                        case "RECIPES" -> RecipesManager.reload();
                         case "CONFIGS" -> OraxenPlugin.get().reloadConfigs();
                         default -> {
                             OraxenPlugin oraxen = OraxenPlugin.get();
@@ -70,9 +70,9 @@ public class ReloadCommand {
                             MechanicsManager.registerNativeMechanics();
                             OraxenPlugin.get().reloadConfigs();
                             reloadItems(sender);
-                            reloadPack(oraxen, sender);
+                            reloadPack(sender);
                             reloadHud(sender);
-                            RecipesManager.reload(oraxen);
+                            RecipesManager.reload();
                             OraxenPlugin.get().getInvManager().regen();
                         }
                     }

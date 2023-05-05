@@ -46,7 +46,7 @@ public class OraxenItems {
     }
 
     public static String getIdByItem(final ItemStack item) {
-        return (item == null || item.getItemMeta() == null|| item.getItemMeta().getPersistentDataContainer().isEmpty()) ? null
+        return (item == null || item.getItemMeta() == null || item.getItemMeta().getPersistentDataContainer().isEmpty()) ? null
                 : item.getItemMeta().getPersistentDataContainer().get(ITEM_ID, PersistentDataType.STRING);
     }
 
