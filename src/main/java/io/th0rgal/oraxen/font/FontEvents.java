@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.Utils;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
@@ -146,21 +147,15 @@ public class FontEvents implements Listener {
                 ItemStack current = event.getCurrentItem();
 
                 // Adding item to first slot
+                if (!Settings.FORMAT_ANVIL.toBool()) return;
                 if (cursor != null && cursor.getType() != Material.AIR && OraxenItems.exists(cursor)) {
-                    ItemMeta meta = cursor.getItemMeta();
-                    if (meta == null || !meta.hasDisplayName()) return;
-                    String name = meta.getDisplayName();
-                    name = AdventureUtils.MINI_MESSAGE.serialize(AdventureUtils.LEGACY_SERIALIZER.deserialize(name)).replace("\\<", "<");
-                    meta.setDisplayName(name);
-                    cursor.setItemMeta(meta);
+                    Utils.editItemMeta(cursor, meta ->
+                            meta.setDisplayName(AdventureUtils.parseLegacy(meta.getDisplayName())));
                 }
                 // Taking item from first slot
                 else if (current != null && current.getType() != Material.AIR && OraxenItems.exists(current)) {
-                    ItemMeta meta = current.getItemMeta();
-                    if (meta == null || !meta.hasDisplayName()) return;
-                    String name = meta.getDisplayName();
-                    meta.setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage(name));
-                    current.setItemMeta(meta);
+                    Utils.editItemMeta(current, meta ->
+                            meta.setDisplayName(AdventureUtils.parseLegacy(meta.getDisplayName())));
                 }
             }
             case 2 -> { // Clicking result item
