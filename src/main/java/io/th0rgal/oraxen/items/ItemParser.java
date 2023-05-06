@@ -9,6 +9,9 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import net.kyori.adventure.text.Component;
+import net.md_5.bungee.api.chat.BaseComponent;
+import net.md_5.bungee.chat.ComponentSerializer;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -67,15 +70,15 @@ public class ItemParser {
         return type == null && mmoItem == null && crucibleItem != null;
     }
 
-    private String parseComponentString(String miniString) {
-        return AdventureUtils.LEGACY_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE.deserialize(miniString));
+    private Component parseComponentString(String miniString) {
+        return AdventureUtils.MINI_MESSAGE.deserialize(miniString);
     }
 
     public ItemBuilder buildItem() {
         return buildItem(section.contains("displayname") ? parseComponentString(section.getString("displayname")) : null);
     }
 
-    public ItemBuilder buildItem(String name) {
+    public ItemBuilder buildItem(Component name) {
         ItemBuilder item;
         if (usesCrucibleItems()) item = new ItemBuilder(crucibleItem);
         else if (usesMMOItems()) item = new ItemBuilder(mmoItem);
@@ -89,9 +92,10 @@ public class ItemParser {
     private ItemBuilder applyConfig(ItemBuilder item) {
 
         if (section.contains("lore")) {
-            List<String> lore = section.getStringList("lore");
-            lore.replaceAll(this::parseComponentString);
-            item.setLore(lore);
+            List<Component> lore = section.getStringList("lore").stream()
+                    .map(this::parseComponentString)
+                    .toList();
+            item.setComponentLore(lore);
         }
 
         if (section.contains("durability"))

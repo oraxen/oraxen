@@ -6,6 +6,10 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.bungeecord.BungeeComponentSerializer;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -42,7 +46,7 @@ public class ItemBuilder {
     private DyeColor bodyColor; // TropicalFishBucketMeta
     private TropicalFish.Pattern pattern;
     private DyeColor patternColor;
-    private String displayName;
+    private Component displayName;
     private boolean unbreakable;
     private boolean unstackable;
     private Set<ItemFlag> itemFlags;
@@ -50,7 +54,7 @@ public class ItemBuilder {
     private Multimap<Attribute, AttributeModifier> attributeModifiers;
     private boolean hasCustomModelData;
     private int customModelData;
-    private List<String> lore;
+    private List<Component> lore;
     private ItemStack finalItemStack;
 
     public ItemBuilder(final Material material) {
@@ -104,7 +108,7 @@ public class ItemBuilder {
         }
 
         if (itemMeta.hasDisplayName())
-            displayName = itemMeta.getDisplayName();
+            displayName = AdventureUtils.LEGACY_SERIALIZER.deserialize(itemMeta.getDisplayName());
 
         unbreakable = itemMeta.isUnbreakable();
         unstackable = itemMeta.getPersistentDataContainer().has(UNSTACKABLE_KEY, DataType.UUID);
@@ -121,7 +125,10 @@ public class ItemBuilder {
             customModelData = itemMeta.getCustomModelData();
 
         if (itemMeta.hasLore())
-            lore = itemMeta.getLore();
+            lore = itemMeta.getLore().stream()
+                    .map(AdventureUtils.LEGACY_SERIALIZER::deserialize)
+                    .map(TextComponent::asComponent)
+                    .toList();
 
         persistentDataContainer = itemMeta.getPersistentDataContainer();
 
@@ -142,15 +149,32 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setDisplayName(final String displayName) {
+        return setDisplayName(AdventureUtils.LEGACY_SERIALIZER.deserialize(displayName));
+    }
+
+    public ItemBuilder setDisplayName(final Component displayName) {
         this.displayName = displayName;
         return this;
     }
 
     public List<String> getLore() {
+        return lore.stream()
+                .map(AdventureUtils.LEGACY_SERIALIZER::serialize)
+                .toList();
+    }
+
+    public List<Component> getComponentLore() {
         return lore;
     }
 
     public ItemBuilder setLore(final List<String> lore) {
+        return setComponentLore(lore.stream()
+                .map(AdventureUtils.LEGACY_SERIALIZER::deserialize)
+                .map(TextComponent::asComponent)
+                .toList());
+    }
+
+    public ItemBuilder setComponentLore(final List<Component> lore) {
         this.lore = lore;
         return this;
     }
@@ -314,8 +338,11 @@ public class ItemBuilder {
         assert itemMeta != null;
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
         if (displayName != null) {
-            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
-            itemMeta.setDisplayName(displayName);
+            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.LEGACY_SERIALIZER.serialize(displayName));
+            if (OraxenPlugin.get().isPaperServer)
+                itemMeta.displayName(displayName);
+            else
+                itemMeta.setDisplayName(AdventureUtils.LEGACY_SERIALIZER.serialize(displayName));
         }
 
         itemMeta.setUnbreakable(unbreakable);
@@ -347,7 +374,12 @@ public class ItemBuilder {
             for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
                 pdc.set(dataSpace.getKey().namespacedKey(), (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
 
-        itemMeta.setLore(lore);
+        if (OraxenPlugin.get().isPaperServer)
+            itemMeta.lore(lore);
+        else
+            itemMeta.setLore(lore.stream()
+                    .map(AdventureUtils.LEGACY_SERIALIZER::serialize)
+                    .toList());
 
         itemStack.setItemMeta(itemMeta);
         finalItemStack = itemStack;
