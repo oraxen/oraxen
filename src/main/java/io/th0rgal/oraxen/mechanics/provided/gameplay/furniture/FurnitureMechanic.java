@@ -548,13 +548,11 @@ public class FurnitureMechanic extends Mechanic {
             itemFrame.setItem(new ItemStack(Material.AIR), false);
     }
 
-    @Nullable
     public static ItemStack getFurnitureItem(Entity entity) {
         return switch (entity.getType()) {
-            case ITEM_FRAME, GLOW_ITEM_FRAME -> ((ItemFrame) entity).getItem();
             case ARMOR_STAND -> ((ArmorStand) entity).getEquipment().getHelmet();
             case ITEM_DISPLAY -> OraxenPlugin.supportsDisplayEntities ? ((ItemDisplay) entity).getItemStack() : null;
-            default -> null;
+            default -> ((ItemFrame) entity).getItem();
         };
     }
 

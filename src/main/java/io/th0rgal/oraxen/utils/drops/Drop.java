@@ -4,12 +4,14 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
+import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Location;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 
 import java.util.ArrayList;
@@ -125,22 +127,16 @@ public class Drop {
 
     public void furnitureSpawns(Entity baseEntity, ItemStack itemInHand) {
         ItemStack drop = OraxenItems.getItemById(sourceID).build();
-        ItemMeta dropMeta = drop.getItemMeta();
         if (!canDrop(itemInHand)) return;
-        if (dropMeta == null) return;
         if (!baseEntity.getLocation().isWorldLoaded()) return;
 
-        if (FurnitureMechanic.getFurnitureItem(baseEntity).getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta) {
-            LeatherArmorMeta clone = (LeatherArmorMeta) dropMeta.clone();
-            clone.setColor(leatherArmorMeta.getColor());
-            drop.setItemMeta(clone);
-        }
-
-        if (FurnitureMechanic.getFurnitureItem(baseEntity).getItemMeta() instanceof PotionMeta potionMeta) {
-            PotionMeta clone = (PotionMeta) dropMeta.clone();
-            clone.setColor(potionMeta.getColor());
-            drop.setItemMeta(clone);
-        }
+        ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
+        if (furnitureItem.getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta)
+            Utils.editItemMeta(drop, meta -> ((LeatherArmorMeta) meta).setColor(leatherArmorMeta.getColor()));
+        else if (furnitureItem.getItemMeta() instanceof PotionMeta potionMeta)
+            Utils.editItemMeta(drop, meta -> ((PotionMeta) meta).setBasePotionData(potionMeta.getBasePotionData()));
+        else if (furnitureItem.getItemMeta() instanceof MapMeta mapMeta)
+            Utils.editItemMeta(drop, meta -> ((MapMeta) meta).setColor(mapMeta.getColor()));
 
         baseEntity.getLocation().getWorld().dropItemNaturally(baseEntity.getLocation(), drop);
     }
