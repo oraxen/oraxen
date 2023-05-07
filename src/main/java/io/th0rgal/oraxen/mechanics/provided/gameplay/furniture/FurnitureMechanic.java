@@ -286,9 +286,7 @@ public class FurnitureMechanic extends Mechanic {
     public void setPlacedItem() {
         if (placedItem == null) {
             placedItem = OraxenItems.getItemById(placedItemId != null ? placedItemId : getItemID()).build();
-            ItemMeta meta = placedItem.getItemMeta();
-            if (meta != null) meta.setDisplayName("");
-            placedItem.setItemMeta(meta);
+            //Utils.editItemMeta(placedItem, meta -> meta.setDisplayName(""));
         }
     }
 
@@ -354,9 +352,7 @@ public class FurnitureMechanic extends Mechanic {
         ItemStack item;
         if (evolvingFurniture == null) {
             ItemStack clone = originalItem.clone();
-            ItemMeta meta = clone.getItemMeta();
-            if (meta != null) meta.setDisplayName("");
-            clone.setItemMeta(meta);
+            //Utils.editItemMeta(clone, meta -> meta.setDisplayName(""));
             item = clone;
         } else item = placedItem;
 
@@ -423,6 +419,7 @@ public class FurnitureMechanic extends Mechanic {
 
     private void setBaseFurnitureData(Entity entity) {
         entity.setPersistent(true);
+        entity.setCustomNameVisible(false);
         PersistentDataContainer pdc = entity.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
         if (hasEvolution()) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
@@ -489,7 +486,7 @@ public class FurnitureMechanic extends Mechanic {
             if (meta != null) meta.setDisplayName("");
             clone.setItemMeta(meta);
             frame.setItem(clone, false);
-        } else frame.setItem(placedItem, false);
+        } else
         frame.setRotation(rotation);
         frame.setFacingDirection(facing, true);
 

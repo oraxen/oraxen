@@ -4,15 +4,11 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
-import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Location;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.MapMeta;
-import org.bukkit.inventory.meta.PotionMeta;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -102,42 +98,49 @@ public class Drop {
     public void spawns(Location location, ItemStack itemInHand) {
         if (!canDrop(itemInHand)) return;
         if (!location.isWorldLoaded()) return;
+        ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
 
+        Integer fortuneMultiplier = getFortuneMultiplier(location, itemInHand, baseItem);
+        if (fortuneMultiplier == null) return;
+
+        dropLoot(loots, location, fortuneMultiplier);
+    }
+
+    public void furnitureSpawns(Entity baseEntity, ItemStack itemInHand) {
+        ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
+        Location location = baseEntity.getLocation();
+        ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
+
+        if (!canDrop(itemInHand)) return;
+        if (!location.isWorldLoaded()) return;
+
+        Integer fortuneMultiplier = getFortuneMultiplier(location, itemInHand, furnitureItem);
+        if (fortuneMultiplier == null) return;
+
+        // Drop all the items that aren't the furniture item
+        dropLoot(loots.stream().filter(loot -> !loot.getItemStack().equals(baseItem)).toList(), location, getFortuneMultiplier(location, itemInHand, baseItem));
+        // Filter loots down to only the furniture item and drop the item in the actual Furniture to preseve color etc.
+        dropLoot(loots.stream().filter(loot -> loot.getItemStack().equals(baseItem)).map(loot -> new Loot(furnitureItem, loot.getProbability(), 1, loot.getMaxAmount())).toList(), location, fortuneMultiplier);
+    }
+
+    private Integer getFortuneMultiplier(Location location, ItemStack itemInHand, ItemStack silkTouchItem) {
         int fortuneMultiplier = 1;
         if (itemInHand != null) {
             ItemMeta itemMeta = itemInHand.getItemMeta();
             if (itemMeta != null) {
                 if (silktouch && itemMeta.hasEnchant(Enchantment.SILK_TOUCH)) {
-                    if (location.getWorld() != null)
-                        location.getWorld().dropItemNaturally(location, OraxenItems.getItemById(sourceID).build());
-                    return;
+                    location.getWorld().dropItemNaturally(location, silkTouchItem);
                 }
-
                 if (fortune && itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS))
-                    fortuneMultiplier += ThreadLocalRandom.current()
-                            .nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS));
+                    fortuneMultiplier += ThreadLocalRandom.current().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS));
             }
-
         }
+        return fortuneMultiplier;
+    }
 
+    private void dropLoot(List<Loot> loots, Location location, int fortuneMultiplier) {
         for (Loot loot : loots) {
             loot.dropNaturally(location, fortuneMultiplier);
         }
-    }
-
-    public void furnitureSpawns(Entity baseEntity, ItemStack itemInHand) {
-        ItemStack drop = OraxenItems.getItemById(sourceID).build();
-        if (!canDrop(itemInHand)) return;
-        if (!baseEntity.getLocation().isWorldLoaded()) return;
-
-        ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
-        if (furnitureItem.getItemMeta() instanceof LeatherArmorMeta leatherArmorMeta)
-            Utils.editItemMeta(drop, meta -> ((LeatherArmorMeta) meta).setColor(leatherArmorMeta.getColor()));
-        else if (furnitureItem.getItemMeta() instanceof PotionMeta potionMeta)
-            Utils.editItemMeta(drop, meta -> ((PotionMeta) meta).setBasePotionData(potionMeta.getBasePotionData()));
-        else if (furnitureItem.getItemMeta() instanceof MapMeta mapMeta)
-            Utils.editItemMeta(drop, meta -> ((MapMeta) meta).setColor(mapMeta.getColor()));
-
-        baseEntity.getLocation().getWorld().dropItemNaturally(baseEntity.getLocation(), drop);
     }
 }
