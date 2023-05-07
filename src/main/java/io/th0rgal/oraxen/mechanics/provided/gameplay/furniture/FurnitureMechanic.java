@@ -198,11 +198,21 @@ public class FurnitureMechanic extends Mechanic {
             if (entity instanceof ArmorStand seat
                     && entity.getLocation().getX() == seatLoc.getX()
                     && entity.getLocation().getZ() == seatLoc.getZ()
-                    && entity.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
+                    && entity.getPersistentDataContainer().has(FURNITURE_KEY, DataType.STRING)) {
                 return seat;
             }
         }
+
         return null;
+    }
+
+    public static ArmorStand getSeat(Entity baseEntity) {
+        PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
+        if (!pdc.has(SEAT_KEY, DataType.UUID)) return null;
+        UUID seatUUID = pdc.get(SEAT_KEY, DataType.UUID);
+        if (seatUUID == null) return null;
+        Entity seat = Bukkit.getEntity(seatUUID);
+        return seat instanceof ArmorStand ? (ArmorStand) seat : null;
     }
 
     public boolean hasLimitedPlacing() {
@@ -375,7 +385,7 @@ public class FurnitureMechanic extends Mechanic {
                 Block block = location.getBlock();
                 if (hasSeat()) {
                     UUID entityId = spawnSeat(this, block, hasSeatYaw ? seatYaw : location.getYaw());
-                    if (entityId != null) BlockHelpers.getPDC(block).set(SEAT_KEY, DataType.UUID, entityId);
+                    if (entityId != null) frame.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, entityId);
                 }
                 if (light != -1) {
                     WrappedLightAPI.createBlockLight(location, light);
@@ -391,8 +401,11 @@ public class FurnitureMechanic extends Mechanic {
             if (hasBarriers()) setBarrierHitbox(location, yaw, rotation, false);
             else if (hasSeat()) {
                 UUID entityId = spawnSeat(this, location.getBlock(), hasSeatYaw ? seatYaw : location.getYaw());
-                if (entityId != null && interaction != null)
-                    interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, entityId);
+                if (entityId != null) {
+                    if (interaction != null)
+                        interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, entityId);
+                    itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, entityId);
+                }
             }
         }
     }
@@ -573,7 +586,7 @@ public class FurnitureMechanic extends Mechanic {
                 WrappedLightAPI.removeBlockLight(location);
             if (hasSeat) {
                 ArmorStand seat = getSeat(location);
-                if (seat != null && seat.getPersistentDataContainer().has(SEAT_KEY, PersistentDataType.STRING)) {
+                if (seat != null) {
                     seat.getPassengers().forEach(seat::removePassenger);
                     seat.remove();
                 }
@@ -623,6 +636,7 @@ public class FurnitureMechanic extends Mechanic {
         PersistentDataContainer entityPDC = baseEntity.getPersistentDataContainer();
         if (hasSeat) {
             Entity stand = getSeat(baseEntity.getLocation());
+            if (stand == null) stand = getSeat(baseEntity);
             if (stand != null) {
                 stand.getPassengers().forEach(stand::removePassenger);
                 stand.remove();
@@ -711,7 +725,6 @@ public class FurnitureMechanic extends Mechanic {
                 stand.addEquipmentLock(EquipmentSlot.LEGS, ArmorStand.LockType.ADDING_OR_CHANGING);
                 stand.addEquipmentLock(EquipmentSlot.FEET, ArmorStand.LockType.ADDING_OR_CHANGING);
                 stand.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, mechanic.getItemID());
-                stand.getPersistentDataContainer().set(SEAT_KEY, PersistentDataType.STRING, stand.getUniqueId().toString());
             });
             return seat.getUniqueId();
         }
