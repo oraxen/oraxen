@@ -2,8 +2,10 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanic;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -25,7 +27,7 @@ public class LogStripListener implements Listener {
         ItemStack item = player.getInventory().getItemInMainHand();
 
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null) return;
-        if (block.getType() != Material.NOTE_BLOCK || !item.getType().toString().endsWith("_AXE")) return;
+        if (block.getType() != Material.NOTE_BLOCK || canStripLog(item)) return;
 
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
         if (mechanic == null) return;
@@ -59,5 +61,9 @@ public class LogStripListener implements Listener {
 
         NoteBlockMechanicFactory.setBlockModel(block, log.getStrippedLogBlock());
         player.playSound(block.getLocation(), Sound.ITEM_AXE_STRIP, 1.0f, 0.8f);
+    }
+
+    private boolean canStripLog(ItemStack itemStack) {
+        return itemStack.getType().toString().endsWith("_AXE") || (MechanicsManager.getMechanicFactory("misc").getMechanic(OraxenItems.getIdByItem(itemStack)) instanceof MiscMechanic miscMechanic && miscMechanic.canStripLogs());
     }
 }
