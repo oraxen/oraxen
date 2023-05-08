@@ -42,6 +42,7 @@ public enum Settings {
     UPDATE_FURNITURE_ON_LOAD("ItemUpdater.update_furniture_on_load"),
     FURNITURE_UPDATE_DELAY("ItemUpdater.furniture_update_delay_in_seconds"),
     OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
+    OVERRIDE_LORE("ItemUpdater.override_lore"),
 
     RESET_RECIPES("Misc.reset_recipes"),
     ADD_RECIPES_TO_BOOK("Misc.add_recipes_to_book"),
