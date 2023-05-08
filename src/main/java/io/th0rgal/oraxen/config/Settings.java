@@ -37,6 +37,10 @@ public enum Settings {
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
     GESTURES_ENABLED("Gestures.enabled"),
     AUTO_UPDATE_ITEMS("ItemUpdater.auto_update_items"),
+    UPDATE_ITEMS_ON_RELOAD("ItemUpdater.update_items_on_reload"),
+    UPDATE_FURNITURE_ON_RELOAD("ItemUpdater.update_furniture_on_reload"),
+    UPDATE_FURNITURE_ON_LOAD("ItemUpdater.update_furniture_on_load"),
+    FURNITURE_UPDATE_DELAY("ItemUpdater.furniture_update_delay_in_seconds"),
     OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
 
     RESET_RECIPES("Misc.reset_recipes"),

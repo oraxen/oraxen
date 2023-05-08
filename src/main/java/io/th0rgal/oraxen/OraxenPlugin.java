@@ -160,6 +160,9 @@ public class OraxenPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         unregisterListeners();
+        ItemUpdater.furnitureUpdateTask.cancel();
+        FurnitureFactory.getEvolutionTask().cancel();
+
         CompatibilitiesManager.disableCompatibilities();
         Message.PLUGIN_UNLOADED.log();
     }
