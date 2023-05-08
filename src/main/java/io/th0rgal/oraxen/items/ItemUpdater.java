@@ -1,13 +1,16 @@
 package io.th0rgal.oraxen.items;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -16,6 +19,7 @@ import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.world.EntitiesLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.Damageable;
@@ -51,6 +55,19 @@ public class ItemUpdater implements Listener {
         ItemStack newItem = ItemUpdater.updateItem(oldItem);
         if (oldItem.equals(newItem)) return;
         event.getItem().setItemStack(newItem);
+    }
+
+    @EventHandler
+    public void onEntityLoad(EntitiesLoadEvent event) {
+        if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
+
+        for (Entity entity : event.getEntities()) {
+            if (!OraxenFurniture.isFurniture(entity)) return;
+            ItemStack oldItem = FurnitureMechanic.getFurnitureItem(entity);
+            ItemStack newItem = ItemUpdater.updateItem(oldItem);
+            if (oldItem == null || oldItem.equals(newItem)) continue;
+            FurnitureMechanic.setFurnitureItem(entity, newItem);
+        }
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
