@@ -1,14 +1,14 @@
 package io.th0rgal.oraxen.items;
 
+import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanic;
-import io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -25,6 +25,7 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
@@ -114,7 +115,7 @@ public class ItemUpdater implements Listener {
         }
     }
 
-
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public static ItemStack updateItem(ItemStack oldItem) {
         String id = OraxenItems.getIdByItem(oldItem);
         if (id == null) return oldItem;
@@ -132,6 +133,13 @@ public class ItemUpdater implements Listener {
             PersistentDataContainer oldPdc = oldMeta.getPersistentDataContainer();
             PersistentDataContainer itemPdc = itemMeta.getPersistentDataContainer();
 
+            // Transfer over all PDC entries - Uses method from JeffLib through CustomBlockData
+            for (NamespacedKey key : oldPdc.getKeys()) {
+                PersistentDataType dataType = CustomBlockData.getDataType(oldPdc, key);
+                Object pdcValue = oldPdc.get(key, dataType);
+                if (pdcValue != null) itemPdc.set(key, dataType, pdcValue);
+            }
+
             // Add all enchantments from oldItem and add all from newItem aslong as it is not the same Enchantments
             for (Map.Entry<Enchantment, Integer> entry : oldMeta.getEnchants().entrySet())
                 itemMeta.addEnchant(entry.getKey(), entry.getValue(), true);
@@ -142,19 +150,14 @@ public class ItemUpdater implements Listener {
             itemMeta.setCustomModelData(cmd);
 
             // Lore might be changable ingame, but I think it is safe to just set it to new
-            itemMeta.setLore(newMeta.getLore());
+            if (Settings.OVERRIDE_LORE.toBool()) itemMeta.setLore(newMeta.getLore());
 
-            // Attribute modifiers are only able to be changed via config so no reason to chekc old
+            // Attribute modifiers are only changable via config so no reason to check old
             itemMeta.setAttributeModifiers(newMeta.getAttributeModifiers());
 
             // Transfer over durability from old item
             if (itemMeta instanceof Damageable damageable && oldMeta instanceof Damageable oldDmg)
                 damageable.setDamage(oldDmg.getDamage());
-
-            // Transfer over custom durability from DurabilityMechanic from old item
-            int customDurability = oldPdc.getOrDefault(DurabilityMechanic.DURABILITY_KEY, DataType.INTEGER, 0);
-            if (customDurability > 0)
-                itemPdc.set(DurabilityMechanic.DURABILITY_KEY, DataType.INTEGER, customDurability);
 
             // Parsing with legacy here to fix any inconsistensies caused by server serializers etc
             String oldDisplayName = AdventureUtils.parseLegacy(oldMeta.getDisplayName());
@@ -167,12 +170,6 @@ public class ItemUpdater implements Listener {
                 itemMeta.setDisplayName(newMeta.getDisplayName());
             }
             itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.getDisplayName());
-
-
-            if (OraxenItems.hasMechanic(id, "backpack") && oldPdc.has(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY)) {
-                itemPdc.set(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY,
-                        oldPdc.getOrDefault(BackpackMechanic.BACKPACK_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[0]));
-            }
         });
         return newItem;
     }
