@@ -20,7 +20,7 @@ public class OraxenNoteBlockPlaceEvent extends Event implements Cancellable {
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenNoteBlockPlaceEvent(NoteBlockMechanic mechanic, Block block, Player player, ItemStack itemInHand, EquipmentSlot hand) {
+    public OraxenNoteBlockPlaceEvent(@NotNull final NoteBlockMechanic mechanic, @NotNull final Block block, @NotNull final Player player, @NotNull final ItemStack itemInHand, @NotNull final EquipmentSlot hand) {
         this.mechanic = mechanic;
         this.player = player;
         this.block = block;
@@ -32,6 +32,7 @@ public class OraxenNoteBlockPlaceEvent extends Event implements Cancellable {
     /**
      * @return The NoteBlockMechanic of this block
      */
+    @NotNull
     public NoteBlockMechanic getMechanic() {
         return mechanic;
     }
@@ -39,6 +40,7 @@ public class OraxenNoteBlockPlaceEvent extends Event implements Cancellable {
     /**
      * @return The player who broke this block
      */
+    @NotNull
     public Player getPlayer() {
         return player;
     }
@@ -46,6 +48,7 @@ public class OraxenNoteBlockPlaceEvent extends Event implements Cancellable {
     /**
      * @return The block that was broken
      */
+    @NotNull
     public Block getBlock() {
         return block;
     }
@@ -56,6 +59,7 @@ public class OraxenNoteBlockPlaceEvent extends Event implements Cancellable {
      * @return The ItemStack for the item in the player's hand when they
      *     placed the furniture
      */
+    @NotNull
     public ItemStack getItemInHand() {
         return itemInHand;
     }
@@ -65,6 +69,7 @@ public class OraxenNoteBlockPlaceEvent extends Event implements Cancellable {
      *
      * @return The EquipmentSlot for the hand used to place the furniture
      */
+    @NotNull
     public EquipmentSlot getHand() {
         return hand;
     }

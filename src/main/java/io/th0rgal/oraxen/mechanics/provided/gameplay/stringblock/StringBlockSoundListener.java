@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.events.OraxenStringBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.OraxenStringBlockPlaceEvent;
@@ -34,9 +33,6 @@ public class StringBlockSoundListener implements Listener {
             block.setType(Material.AIR, false);
             if (mechanic == null) return;
             BlockSounds blockSounds = mechanic.getBlockSounds();
-            OraxenStringBlockBreakEvent stringBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, null);
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(stringBlockBreakEvent);
-            if (stringBlockBreakEvent.isCancelled()) return;
 
             if (mechanic.hasBlockSounds() && blockSounds.hasBreakSound())
                 BlockHelpers.playCustomBlockSound(block.getLocation(), blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());

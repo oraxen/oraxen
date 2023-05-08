@@ -25,7 +25,11 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurnitureInteractEvent(FurnitureMechanic mechanic, Entity baseEntity, Player player, @Nullable Block block, BlockFace blockFace, ItemStack itemInHand, EquipmentSlot hand) {
+    public OraxenFurnitureInteractEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Entity baseEntity, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand) {
+        this(mechanic, baseEntity, player, itemInHand, hand, null, null);
+    }
+
+    public OraxenFurnitureInteractEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Entity baseEntity, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @Nullable final Block block, @Nullable final BlockFace blockFace) {
         this.player = player;
         this.mechanic = mechanic;
         this.baseEntity = baseEntity;
@@ -39,6 +43,7 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     /**
      * @return The FurnitureMechanic of the furniture that was interacted with
      */
+    @NotNull
     public FurnitureMechanic getMechanic() {
         return mechanic;
     }
@@ -46,6 +51,7 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     /**
      * @return The player who interacted with the furniture
      */
+    @NotNull
     public Player getPlayer() {
         return player;
     }
@@ -61,6 +67,7 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     /**
      * @return The base entity of the furniture
      */
+    @NotNull
     public Entity getBaseEntity() {
         return baseEntity;
     }

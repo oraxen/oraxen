@@ -77,7 +77,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (event.getClickedBlock().getType() != Material.NOTE_BLOCK) return;
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
         if (mechanic == null) return;
-        OraxenNoteBlockInteractEvent oraxenEvent = new OraxenNoteBlockInteractEvent(mechanic, block, event.getBlockFace(), event.getPlayer(), event.getItem(), event.getHand());
+        OraxenNoteBlockInteractEvent oraxenEvent = new OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
         Bukkit.getPluginManager().callEvent(oraxenEvent);
         if (oraxenEvent.isCancelled()) event.setCancelled(true);
     }
@@ -203,14 +203,10 @@ public class NoteBlockMechanicListener implements Listener {
         if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentMechanic();
 
-        OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(mechanic, block, event.getBlockFace(), event.getPlayer(), event.getItem(), event.getHand());
+        OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
         OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockInteractEvent);
-        if (noteBlockInteractEvent.isCancelled()) {
-            event.setCancelled(true);
-            return;
-        }
-
         event.setCancelled(true);
+        if (noteBlockInteractEvent.isCancelled()) return;
         if (item == null) return;
 
         Block relative = block.getRelative(event.getBlockFace());
@@ -508,7 +504,7 @@ public class NoteBlockMechanicListener implements Listener {
             return null;
         }
 
-        final OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(OraxenBlocks.getNoteBlockMechanic(target), target, player, item);
+        final OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(OraxenBlocks.getNoteBlockMechanic(target), target, player, item, hand);
         Bukkit.getPluginManager().callEvent(oraxenPlaceEvent);
         if (oraxenPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData); // false to cancel physic

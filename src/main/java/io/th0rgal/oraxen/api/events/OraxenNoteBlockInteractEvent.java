@@ -10,6 +10,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
 
@@ -22,7 +23,7 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenNoteBlockInteractEvent(NoteBlockMechanic mechanic, Player player, ItemStack itemInHand, EquipmentSlot hand, Block block, BlockFace blockFace) {
+    public OraxenNoteBlockInteractEvent(@NotNull final NoteBlockMechanic mechanic, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @NotNull final Block block, @NotNull final BlockFace blockFace) {
         this.mechanic = mechanic;
         this.block = block;
         this.player = player;
@@ -35,6 +36,7 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
     /**
      * @return The NoteBlockMechanic of this block
      */
+    @NotNull
     public NoteBlockMechanic getMechanic() {
         return mechanic;
     }
@@ -42,6 +44,7 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
     /**
      * @return The player who interacted with this block
      */
+    @NotNull
     public Player getPlayer() {
         return player;
     }
@@ -49,6 +52,7 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
     /**
      * @return The block that was interacted with
      */
+    @NotNull
     public Block getBlock() {
         return block;
     }
@@ -56,6 +60,7 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
     /**
      * @return The BlockFace that was clicked
      */
+    @NotNull
     public BlockFace getBlockFace() {
         return blockFace;
     }
@@ -63,6 +68,7 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
     /**
      * @return The item in hand when the player interacted with the note block
      */
+    @Nullable
     public ItemStack getItemInHand() {
         return itemInHand;
     }
@@ -70,6 +76,7 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
     /**
      * @return The hand used to perform interaction
      */
+    @NotNull
     public EquipmentSlot getHand() {
         return hand;
     }

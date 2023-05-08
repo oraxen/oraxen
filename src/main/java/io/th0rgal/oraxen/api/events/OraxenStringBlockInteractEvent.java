@@ -10,6 +10,7 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 public class OraxenStringBlockInteractEvent extends Event implements Cancellable {
 
@@ -22,7 +23,7 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenStringBlockInteractEvent(StringBlockMechanic mechanic, Player player, ItemStack itemInHand, EquipmentSlot hand, Block block, BlockFace blockFace) {
+    public OraxenStringBlockInteractEvent(@NotNull final StringBlockMechanic mechanic, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @NotNull final Block block, @NotNull final BlockFace blockFace) {
         this.mechanic = mechanic;
         this.itemInHand = itemInHand;
         this.block = block;
@@ -35,6 +36,7 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     /**
      * @return The StringBlockMechanic of this block
      */
+    @NotNull
     public StringBlockMechanic getMechanic() {
         return mechanic;
     }
@@ -42,6 +44,7 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     /**
      * @return The player who interacted with this StringBlock
      */
+    @NotNull
     public Player getPlayer() {
         return player;
     }
@@ -49,6 +52,7 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     /**
      * @return The StringBlock that was interacted with
      */
+    @NotNull
     public Block getBlock() {
         return block;
     }
@@ -56,6 +60,7 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     /**
      * @return Clicked block face
      */
+    @NotNull
     public BlockFace getBlockFace() {
         return blockFace;
     }
@@ -63,6 +68,7 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     /**
      * @return The item in hand when the player interacted with the string block
      */
+    @Nullable
     public ItemStack getItemInHand() {
         return itemInHand;
     }
@@ -70,6 +76,7 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     /**
      * @return The hand used to perform interaction
      */
+    @NotNull
     public EquipmentSlot getHand() {
         return hand;
     }

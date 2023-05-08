@@ -4,7 +4,6 @@ import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.api.events.OraxenStringBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.OraxenStringBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
@@ -73,7 +72,7 @@ public class StringBlockMechanicListener implements Listener {
         if (event.getClickedBlock().getType() != Material.NOTE_BLOCK) return;
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
         if (mechanic == null) return;
-        OraxenStringBlockInteractEvent oraxenEvent = new OraxenStringBlockInteractEvent(mechanic, block, event.getItem(), event.getPlayer(), event.getBlockFace(), event.getHand());
+        OraxenStringBlockInteractEvent oraxenEvent = new OraxenStringBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
         Bukkit.getPluginManager().callEvent(oraxenEvent);
         if (oraxenEvent.isCancelled()) event.setCancelled(true);
     }
@@ -121,10 +120,6 @@ public class StringBlockMechanicListener implements Listener {
             if (mechanic == null) return;
 
             block.setType(Material.AIR, false);
-
-            OraxenStringBlockBreakEvent stringBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, null);
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(stringBlockBreakEvent);
-            if (stringBlockBreakEvent.isCancelled()) return;
 
             if (mechanic.hasLight())
                 WrappedLightAPI.removeBlockLight(block.getLocation());
@@ -227,7 +222,7 @@ public class StringBlockMechanicListener implements Listener {
             // Call the event
             StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
             if (stringBlockMechanic == null) return;
-            OraxenStringBlockInteractEvent wireBlockInteractEvent = new OraxenStringBlockInteractEvent(stringBlockMechanic, block, event.getItem(), event.getPlayer(), event.getBlockFace(), event.getHand());
+            OraxenStringBlockInteractEvent wireBlockInteractEvent = new OraxenStringBlockInteractEvent(stringBlockMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
             OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockInteractEvent);
             if (wireBlockInteractEvent.isCancelled()) {
                 event.setCancelled(true);
@@ -295,12 +290,6 @@ public class StringBlockMechanicListener implements Listener {
         blockList.forEach(block -> {
             final StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
             if (stringBlockMechanic == null) return;
-
-            OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(stringBlockMechanic, block, null);
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockBreakEvent);
-            if (wireBlockBreakEvent.isCancelled()) {
-                return;
-            }
 
             final Block blockAbove = block.getRelative(BlockFace.UP);
             final Block blockBelow = block.getRelative(BlockFace.DOWN);
@@ -425,7 +414,7 @@ public class StringBlockMechanicListener implements Listener {
         final BlockState currentBlockState = target.getState();
 
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
-        final OraxenStringBlockPlaceEvent oraxenBlockPlaceEvent = new OraxenStringBlockPlaceEvent(OraxenBlocks.getStringMechanic(target), target, player, item);
+        final OraxenStringBlockPlaceEvent oraxenBlockPlaceEvent = new OraxenStringBlockPlaceEvent(OraxenBlocks.getStringMechanic(target), target, player, item, hand);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
         Bukkit.getPluginManager().callEvent(oraxenBlockPlaceEvent);
 

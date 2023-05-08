@@ -22,7 +22,7 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurniturePlaceEvent(FurnitureMechanic mechanic, Block block, Entity baseEntity, Player player, ItemStack itemInHand, EquipmentSlot hand) {
+    public OraxenFurniturePlaceEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Block block, @NotNull final Entity baseEntity, @NotNull final Player player, @NotNull final ItemStack itemInHand, @NotNull final EquipmentSlot hand) {
         this.mechanic = mechanic;
         this.player = player;
         this.block = block;
@@ -35,6 +35,7 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
     /**
      * @return The FurnitureMechanic of this furniture
      */
+    @NotNull
     public FurnitureMechanic getMechanic() {
         return mechanic;
     }
@@ -42,6 +43,7 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
     /**
      * @return The player who placed this furniture
      */
+    @NotNull
     public Player getPlayer() {
         return player;
     }
@@ -49,6 +51,7 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
     /**
      * @return The block this furniture was placed at
      */
+    @NotNull
     public Block getBlock() {
         return block;
     }
@@ -56,6 +59,7 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
     /**
      * @return The item frame for this furniture
      */
+    @NotNull
     public Entity getBaseEntity() {
         return baseEntity;
     }
@@ -66,6 +70,7 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
      * @return The ItemStack for the item in the player's hand when they
      *     placed the furniture
      */
+    @NotNull
     public ItemStack getItemInHand() {
         return itemInHand;
     }
@@ -75,6 +80,7 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
      *
      * @return The hand used to place the furniture
      */
+    @NotNull
     public EquipmentSlot getHand() { return hand; }
 
     @Override

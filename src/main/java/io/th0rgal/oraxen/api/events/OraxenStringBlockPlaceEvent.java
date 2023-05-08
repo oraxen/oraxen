@@ -21,7 +21,7 @@ public class OraxenStringBlockPlaceEvent extends Event implements Cancellable {
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenStringBlockPlaceEvent(StringBlockMechanic mechanic, Block block, @Nullable Player player, ItemStack itemInHand, EquipmentSlot hand) {
+    public OraxenStringBlockPlaceEvent(@NotNull final StringBlockMechanic mechanic, @NotNull final Block block, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand) {
         this.mechanic = mechanic;
         this.player = player;
         this.block = block;
@@ -33,6 +33,7 @@ public class OraxenStringBlockPlaceEvent extends Event implements Cancellable {
     /**
      * @return The StringBlockMechanic of this block
      */
+    @NotNull
     public StringBlockMechanic getMechanic() {
         return mechanic;
     }
@@ -40,7 +41,7 @@ public class OraxenStringBlockPlaceEvent extends Event implements Cancellable {
     /**
      * @return The player who broke this block, or null if the event is not triggered by player
      */
-    @Nullable
+    @NotNull
     public Player getPlayer() {
         return player;
     }
@@ -48,6 +49,7 @@ public class OraxenStringBlockPlaceEvent extends Event implements Cancellable {
     /**
      * @return The block that was placed
      */
+    @NotNull
     public Block getBlock() {
         return block;
     }
@@ -58,6 +60,7 @@ public class OraxenStringBlockPlaceEvent extends Event implements Cancellable {
      * @return The ItemStack for the item in the player's hand when they
      *     placed the furniture
      */
+    @Nullable
     public ItemStack getItemInHand() {
         return itemInHand;
     }
@@ -67,6 +70,7 @@ public class OraxenStringBlockPlaceEvent extends Event implements Cancellable {
      *
      * @return The hand used to place the item
      */
+    @NotNull
     public EquipmentSlot getHand() {
         return hand;
     }
