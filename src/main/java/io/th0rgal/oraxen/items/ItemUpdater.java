@@ -8,10 +8,12 @@ import io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
+import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
@@ -38,6 +40,17 @@ public class ItemUpdater implements Listener {
             if (oldItem == null || oldItem.equals(newItem)) continue;
             inventory.setItem(i, newItem);
         }
+    }
+
+    @EventHandler
+    public void onPlayerPickUp(EntityPickupItemEvent event) {
+        if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
+        if (!(event.getEntity() instanceof Player)) return;
+
+        ItemStack oldItem = event.getItem().getItemStack();
+        ItemStack newItem = ItemUpdater.updateItem(oldItem);
+        if (oldItem.equals(newItem)) return;
+        event.getItem().setItemStack(newItem);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
