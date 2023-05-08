@@ -481,6 +481,16 @@ public class FurnitureMechanic extends Mechanic {
         };
     }
 
+    public static void setFurnitureItem(Entity entity, ItemStack item) {
+        switch (entity.getType()) {
+            case ITEM_FRAME, GLOW_ITEM_FRAME -> ((ItemFrame) entity).setItem(item, false);
+            case ARMOR_STAND -> ((ArmorStand) entity).getEquipment().setHelmet(item);
+            case ITEM_DISPLAY -> {
+                if (OraxenPlugin.supportsDisplayEntities) ((ItemDisplay) entity).setItemStack(item);
+            }
+        };
+    }
+
     public boolean removeSolid(Block block) {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         Float orientation = pdc.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
