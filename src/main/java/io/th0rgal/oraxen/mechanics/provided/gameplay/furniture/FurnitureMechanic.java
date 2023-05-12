@@ -77,8 +77,8 @@ public class FurnitureMechanic extends Mechanic {
         ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY;//, ARMOR_STAND;
 
         public static List<Class<? extends Entity>> furnitureEntityClasses() {
-            List<Class<? extends Entity>> list = List.of(ItemFrame.class, GlowItemFrame.class, ArmorStand.class);
-            if (OraxenPlugin.get().supportsDisplayEntities) list.add(ItemDisplay.class);
+            List<Class<? extends Entity>> list = new ArrayList<>(List.of(ItemFrame.class, GlowItemFrame.class, ArmorStand.class));
+            if (OraxenPlugin.supportsDisplayEntities) list.add(ItemDisplay.class);
             return list;
         }
     }
