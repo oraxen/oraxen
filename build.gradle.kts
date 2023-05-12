@@ -47,10 +47,8 @@ val commandApiVersion = "9.0.3"
 dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"
 
-    //paperweight.foliaDevBundle("1.19.4-R0.1-SNAPSHOT")
-    compileOnly("dev.folia:folia-api:1.19.4-R0.1-SNAPSHOT")
-    compileOnly("org.spigotmc:spigot-api:1.20-R0.1-SNAPSHOT")
-    compileOnly("io.papermc.paper:paper-api:1.20-R0.1-SNAPSHOT") { exclude("net.kyori") }
+    compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT") { exclude("org.bukkit") }
+    compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT") { exclude("net.kyori") }
     compileOnly("com.comphenix.protocol:ProtocolLib:5.0.0")
     compileOnly("me.clip:placeholderapi:2.11.3")
     compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
