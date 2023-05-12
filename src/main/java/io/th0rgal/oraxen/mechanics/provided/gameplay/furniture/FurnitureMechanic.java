@@ -521,7 +521,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private void spawnModelEngineFurniture(Entity entity, float yaw) {
-        ArmorStand baseEntity = entity.getWorld().spawn(entity.getLocation(), ArmorStand.class, (ArmorStand stand) -> {
+        ArmorStand megEntity = entity.getWorld().spawn(entity.getLocation(), ArmorStand.class, (ArmorStand stand) -> {
             stand.setVisible(false);
             stand.setInvulnerable(true);
             stand.setCustomNameVisible(false);
@@ -538,10 +538,10 @@ public class FurnitureMechanic extends Mechanic {
         modelEntity.setBaseEntityVisible(false);
         modelEntity.setModelRotationLock(true);
 
-        entity.getPersistentDataContainer().set(MODELENGINE_KEY, DataType.UUID, entity.getUniqueId());
-        baseEntity.getPersistentDataContainer().set(MODELENGINE_KEY, DataType.ITEM_STACK, getFurnitureItem(entity));
+        entity.getPersistentDataContainer().set(MODELENGINE_KEY, DataType.UUID, megEntity.getUniqueId());
+        megEntity.getPersistentDataContainer().set(MODELENGINE_KEY, DataType.ITEM_STACK, getFurnitureItem(entity));
 
-        baseEntity.setRotation(yaw, 0);
+        megEntity.setRotation(yaw, 0);
         if (entity instanceof ItemDisplay itemDisplay)
             itemDisplay.setItemStack(new ItemStack(Material.AIR));
         else if (entity instanceof ItemFrame itemFrame)

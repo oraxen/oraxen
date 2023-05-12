@@ -59,7 +59,7 @@ command:
   recipe:
     no_builder: "<prefix><#fa4943>Por favor, crie uma receita primeiro!"
     no_furnace: "<prefix><#fa4943>Esta opção está disponível apenas para Receitas de Fornalha!"
-    no_name: "<prefix><#fa4943>Please <gradient:#FA7CBB:#F14658>especifique um nome para a receita!"
+    no_name: "<prefix><#fa4943>Por favor <gradient:#FA7CBB:#F14658>especifique um nome para a receita!"
     no_recipes: "<prefix><#fa4943>Não há receitas para mostrar!"
     no_item: "<prefix><#fa4943>Por favor, especifique um item!"
     save: "<prefix><#55ffa4>Receita '<name>' salva com sucesso!"
@@ -72,8 +72,13 @@ command:
     success: "<prefix><#55ffa4>Você alterou com sucesso a cor deste item!"
     wrong_color: "<prefix><#fa4943>Cor não reconhecida, tente uma cor hexadecimal como #FFFFFF!"
     failed: "<prefix><#fa4943>Você não pode alterar a cor deste item!"
-
+    
+  hud:
+    no_hud: "<prefix><#fa4943>Não existe nenhuma HUD com o nome de '<hud_id>'!"
+    toggle_on: "<prefix><#55ffa4>HUD '<hud_id>' ativada!"
+    toggle_off: "<prefix><#fa4943>HUD '<hud_id>' desativada!"
+    
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Você precisa de mais experiência para fazer isso"
   backpack_stacked: "<prefix><#fa4943>Não é possível abrir backpacks empilhadas!"
-  jukebox_now_playing: "<dark_purple>Now Playing <disc>"
+  jukebox_now_playing: "<dark_purple>Tocando agora <disc>"

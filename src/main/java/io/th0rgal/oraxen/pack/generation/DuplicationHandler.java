@@ -34,8 +34,8 @@ public class DuplicationHandler {
         Map<String, List<VirtualFile>> baseItemsToMerge = new HashMap<>();
         List<String> materials = Arrays.stream(Material.values()).map(Enum::toString).toList();
 
-        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/models/item/") && materials.contains(Utils.removeParentDirs(Utils.removeExtension(v.getPath()).toUpperCase()))).toList()) {
-            Material itemMaterial = Material.getMaterial(Utils.removeParentDirs(Utils.removeExtension(virtual.getPath()).toUpperCase()));
+        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/models/item/") && materials.contains(Utils.getFileNameOnly(v.getPath()).toUpperCase())).toList()) {
+            Material itemMaterial = Material.getMaterial(Utils.getFileNameOnly(virtual.getPath()).toUpperCase());
             if (baseItemsToMerge.containsKey(virtual.getPath())) {
                 List<VirtualFile> newList = new ArrayList<>(baseItemsToMerge.get(virtual.getPath()).stream().toList());
                 newList.add(virtual);

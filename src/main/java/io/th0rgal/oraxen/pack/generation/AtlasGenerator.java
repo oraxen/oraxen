@@ -59,7 +59,7 @@ public class AtlasGenerator {
             String namespace = virtual.getPath().replaceFirst("assets/", "").split("/")[0];
             String malformPathCheck = "assets/" + namespace + "/textures/" + path + ".png";
             if (Settings.EXCLUDE_MALFORMED_ATLAS.toBool() && malformedTextures.stream().anyMatch(malformPathCheck::startsWith)) {
-                Logs.logWarning("Excluding malformed texture from atlas-file: " + malformPathCheck);
+                Logs.logWarning("Excluding malformed texture from atlas-file: <gold>" + malformPathCheck);
                 continue;
             }
 
@@ -85,6 +85,7 @@ public class AtlasGenerator {
         VirtualFile atlasFile = new VirtualFile("assets/minecraft/atlases", "blocks.json", new ByteArrayInputStream(atlas.toString().getBytes(StandardCharsets.UTF_8)));
         output.removeIf(v -> v.getPath().equals(atlasFile.getPath()));
         output.add(atlasFile);
+        Logs.newline();
     }
 
     // If atlas contains entry for "parent"-source, remove following child-directory-entries like "parent/child"
