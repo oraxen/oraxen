@@ -57,7 +57,7 @@ public class ItemsView {
     private ChestGui createSubGUI(final String fileName, final List<ItemBuilder> items) {
         final int rows = Math.min((items.size() - 1) / 9 + 2, 6);
         final ChestGui gui = new ChestGui(6, settings.getString(
-                String.format("oraxen_inventory.menu_layout.%s.title", Utils.removeExtension(fileName)))
+                String.format("oraxen_inventory.menu_layout.%s.title", Utils.removeExtension(fileName)), Settings.ORAXEN_INV_TITLE.toString())
                 .replace("<main_menu_title>", Settings.ORAXEN_INV_TITLE.toString()));
         final PaginatedPane pane = new PaginatedPane(9, rows);
 
