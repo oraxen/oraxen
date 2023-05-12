@@ -5,14 +5,18 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.VectorUtils;
 import io.th0rgal.oraxen.utils.timers.Timer;
+import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -30,22 +34,21 @@ public class EnergyBlastMechanicManager implements Listener {
         this.factory = factory;
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlayerUse(PlayerInteractEvent event) {
-
-        if (!(event.getAction().equals(Action.RIGHT_CLICK_AIR) || event.getAction().equals(Action.RIGHT_CLICK_BLOCK)))
-            return;
-
-        ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
-
-        String itemID = OraxenItems.getIdByItem(item);
-
-        if (factory.isNotImplementedIn(itemID))
-            return;
-
-        EnergyBlastMechanic mechanic = (EnergyBlastMechanic) factory.getMechanic(itemID);
-
         Player player = event.getPlayer();
+        ItemStack item = event.getItem();
+        String itemID = OraxenItems.getIdByItem(item);
+        EnergyBlastMechanic mechanic = (EnergyBlastMechanic) factory.getMechanic(item);
+        Block block = event.getClickedBlock();
+        Location location = block != null ? block.getLocation() : player.getLocation();
+
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.useInteractedBlock() == Event.Result.ALLOW) return;
+        if (event.useItemInHand() == Event.Result.DENY) return;
+        if (!ProtectionLib.canUse(player, location)) return;
+        if (factory.isNotImplementedIn(itemID)) return;
+        if (mechanic == null) return;
 
         Timer playerTimer = mechanic.getTimer(player);
 
@@ -61,6 +64,7 @@ public class EnergyBlastMechanicManager implements Listener {
         direction.normalize();
         direction.multiply(0.1);
         Location destination = origin.clone().add(direction);
+        if (ProtectionLib.canUse(player, destination)) return;
         for (int i = 0; i < mechanic.getLength() * 10; i++) {
             Location loc = destination.add(direction);
             spawnParticle(loc.getWorld(), loc, mechanic);

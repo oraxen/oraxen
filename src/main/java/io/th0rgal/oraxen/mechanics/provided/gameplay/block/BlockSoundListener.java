@@ -35,7 +35,7 @@ public class BlockSoundListener implements Listener {
         float volume;
         float pitch;
 
-        if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(currentBlock.getType()) || currentBlock.getType() == Material.TRIPWIRE) return;
+        if (!BlockHelpers.isReplaceable(currentBlock.getType()) || currentBlock.getType() == Material.TRIPWIRE) return;
         if (blockBelow.getType() != Material.MUSHROOM_STEM) return;
         final BlockMechanic mechanic = OraxenBlocks.getBlockMechanic(blockBelow);
         if (mechanic == null || !mechanic.hasBlockSounds()) return;

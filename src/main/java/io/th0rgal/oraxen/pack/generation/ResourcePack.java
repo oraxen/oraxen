@@ -101,6 +101,7 @@ public class ResourcePack {
         generateFont(fontManager);
         generateSound(soundManager);
         if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
+        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardFiles();
 
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)
@@ -557,4 +558,81 @@ public class ResourcePack {
         return prefix + path.substring(packFolder.getCanonicalPath().length() + 1);
     }
 
+    private void generateScoreboardFiles() {
+        Map<String, String> scoreboardShaderFiles = Map.of("assets/minecraft/shaders/core/rendertype_text.json", getScoreboardJson(), "assets/minecraft/shaders/core/rendertype_text.vsh", getScoreboardVsh());
+        for (Map.Entry<String, String> entry : scoreboardShaderFiles.entrySet())
+            writeStringToVirtual(StringUtils.removeEnd(Utils.getParentDirs(entry.getKey()), "/"), Utils.removeParentDirs(entry.getKey()), entry.getValue());
+    }
+    private String getScoreboardVsh() {
+        return """
+                #version 150
+                                
+                #moj_import <fog.glsl>
+                                
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+                                
+                uniform sampler2D Sampler2;
+                                
+                uniform mat4 ModelViewMat;
+                uniform mat4 ProjMat;
+                uniform mat3 IViewRotMat;
+                uniform int FogShape;
+                                
+                uniform vec2 ScreenSize;
+                                
+                out float vertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                                
+                void main() {
+                    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+                                
+                    vertexDistance = fog_distance(ModelViewMat, IViewRotMat * Position, FogShape);
+                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
+                    texCoord0 = UV0;
+                                
+                    // delete sidebar numbers
+                    if(    Position.z == 0.0 && // check if the depth is correct (0 for gui texts)
+                    gl_Position.x >= 0.94 && gl_Position.y >= -0.35 && // check if the position matches the sidebar
+                    vertexColor.g == 84.0/255.0 && vertexColor.g == 84.0/255.0 && vertexColor.r == 252.0/255.0 && // check if the color is the sidebar red color
+                    gl_VertexID <= 4 // check if it's the first character of a string
+                    ) gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0); // move the vertices offscreen, idk if this is a good solution for that but vec4(0.0) doesnt do the trick for everyone
+                }
+                """;
+    }
+    private String getScoreboardJson() {
+        return """
+                {
+                  "blend": {
+                    "func": "add",
+                    "srcrgb": "srcalpha",
+                    "dstrgb": "1-srcalpha"
+                  },
+                  "vertex": "rendertype_text",
+                  "fragment": "rendertype_text",
+                  "attributes": [
+                    "Position",
+                    "Color",
+                    "UV0",
+                    "UV2"
+                  ],
+                  "samplers": [
+                    { "name": "Sampler0" },
+                    { "name": "Sampler2" }
+                  ],
+                  "uniforms": [
+                    { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                    { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                    { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
+                    { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
+                    { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
+                    { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
+                    { "name": "ScreenSize", "type": "float", "count": 2,  "values": [ 1.0, 1.0 ] }
+                  ]
+                }
+                """;
+    }
 }

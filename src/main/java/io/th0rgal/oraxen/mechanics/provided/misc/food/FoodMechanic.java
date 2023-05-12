@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
@@ -73,6 +74,8 @@ public class FoodMechanic extends Mechanic {
             replacementItem = OraxenItems.getItemById(section.getString("oraxen_item")).build();
         else if (section.isString("crucible_item"))
             replacementItem = MythicCrucible.core().getItemManager().getItemStack(section.getString("crucible_item"));
+        else if (section.isString("mmoitems_id") && section.isString("mmoitems_type"))
+            replacementItem = MMOItems.plugin.getItem(section.getString("mmoitems_type"), section.getString("mmoitems_id"));
         else replacementItem = null;
     }
 
