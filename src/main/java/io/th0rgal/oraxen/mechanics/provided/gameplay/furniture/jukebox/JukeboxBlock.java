@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -36,7 +35,7 @@ public class JukeboxBlock {
         if (disc == null) return null;
         MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(OraxenItems.getIdByItem(disc));
         return (mechanic != null && !mechanic.hasNoSong()) ? mechanic.getSong()
-                : Tag.ITEMS_MUSIC_DISCS.isTagged(disc.getType()) ? disc.getType().toString().toLowerCase().replace("music_disc_", "minecraft:music_disc.") : null;
+                : disc.getType().isRecord() ? disc.getType().toString().toLowerCase().replace("music_disc_", "minecraft:music_disc.") : null;
     }
 
     public boolean loopDisc() {

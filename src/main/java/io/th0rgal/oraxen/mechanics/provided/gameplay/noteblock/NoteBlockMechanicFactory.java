@@ -56,7 +56,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     public static String getInstrumentName(int id) {
-        return switch (id / 25 % 384) {
+        return switch ((id % 400) / 25) {
             case 1 -> "basedrum";
             case 2 -> "snare";
             case 3 -> "hat";
@@ -160,7 +160,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         String modelName = mechanic.getModel(itemMechanicConfiguration.getParent().getParent());
 
         if (mechanic.isDirectional() && !directional.isParentBlock()) {
-            NoteBlockMechanic parentMechanic = mechanic.getDirectional().getParentBlockMechanic(mechanic);
+            NoteBlockMechanic parentMechanic = directional.getParentMechanic();
             modelName = (parentMechanic.getModel(itemMechanicConfiguration.getParent().getParent()));
             variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
                     getDirectionalModelJson(modelName, mechanic, parentMechanic));
@@ -187,7 +187,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
          */
         id += 26;
         NoteBlock noteBlock = (NoteBlock) Bukkit.createBlockData(Material.NOTE_BLOCK);
-        noteBlock.setInstrument(Instrument.getByType((byte) (id / 25 % 400)));
+        noteBlock.setInstrument(Instrument.getByType((byte) ((id % 400) / 25)));
         noteBlock.setNote(new Note(id % 25));
         noteBlock.setPowered(id >= 400);
         return noteBlock;

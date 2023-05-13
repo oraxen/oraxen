@@ -24,7 +24,8 @@ public class WrappedWorldEdit {
         if (loaded) {
             new WorldEditUtils.OraxenBlockInputParser();
             new WorldEditHandlers(true);
-            Bukkit.getPluginManager().registerEvents(new WorldEditListener(), OraxenPlugin.get());
+            if (OraxenPlugin.get().isPaperServer)
+                Bukkit.getPluginManager().registerEvents(new WorldEditListener(), OraxenPlugin.get());
         }
     }
 

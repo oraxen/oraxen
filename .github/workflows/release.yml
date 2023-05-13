@@ -1,0 +1,33 @@
+on:
+  pull_request:
+    types: [closed]
+    branches: [master]
+
+jobs:
+  create-release:
+    runs-on: ubuntu-latest
+    if: >-
+      (contains(github.event.pull_request.labels.*.name, 'release'))
+      && github.event.pull_request.merged == true
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+
+      - name: Get plugin version
+        id: plugin_version
+        shell: bash
+        run: |
+          version=$(grep "^pluginVersion=" gradle.properties | cut -d'=' -f2)
+          echo "::set-output name=version::$version"
+
+      - name: Create GitHub Release
+        uses: marvinpinto/action-automatic-releases@latest
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          automatic_release_tag: ${{ steps.plugin_version.outputs.version }}
+          title: ${{ steps.plugin_version.outputs.version }}
+
+

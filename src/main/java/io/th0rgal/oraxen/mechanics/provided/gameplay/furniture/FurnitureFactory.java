@@ -19,6 +19,7 @@ public class FurnitureFactory extends MechanicFactory {
     private boolean evolvingFurnitures;
     private static EvolutionTask evolutionTask;
     public final boolean customSounds;
+    public final boolean detectViabackwards;
 
     public FurnitureFactory(ConfigurationSection section) {
         super(section);
@@ -26,15 +27,15 @@ public class FurnitureFactory extends MechanicFactory {
         evolutionCheckDelay = section.getInt("evolution_check_delay");
         MechanicsManager.registerListeners(OraxenPlugin.get(),
                 new FurnitureListener(this),
-                new EvolutionListener(this),
+                new EvolutionListener(),
                 new JukeboxListener()
         );
         evolvingFurnitures = false;
         instance = this;
         customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("stringblock_and_furniture", true);
 
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureListener(this));
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureSoundListener());
+        detectViabackwards = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("furniture").getBoolean("detect_viabackwards", true);
     }
 
     @Override

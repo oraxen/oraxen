@@ -7,11 +7,12 @@ plugins {
     id("idea")
     id("eclipse")
     id("maven-publish")
-    id("com.github.johnrengelman.shadow") version "7.1.2"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.0.1"
+    id("net.minecrell.plugin-yml.bukkit") version "0.5.3" // Generates plugin.yml
 }
 
-val pluginVersion = "1.151.0"
+val pluginVersion: String by project
 group = "io.th0rgal"
 version = pluginVersion
 
@@ -26,15 +27,14 @@ repositories {
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
     maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
     maven("https://jitpack.io") // JitPack
-    maven("https://repo.mineinabyss.com/releases") // ModelEngine
     maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
     maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
     maven("https://maven.elmakers.com/repository/") // EffectLib
-    maven("https://repo.codemc.org/repository/maven-public") // CodeMc (bstats)
     maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
     maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
-    maven("https://mvn.lumine.io/repository/maven-public/") // MythicMobs
+    maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
+    maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
     maven("https://maven.enginehub.org/repo/")
 }
@@ -42,35 +42,36 @@ repositories {
 dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"
 
-    compileOnly("org.spigotmc:spigot-api:1.19.3-R0.1-SNAPSHOT")
-    compileOnly("io.papermc.paper:paper-api:1.19.3-R0.1-SNAPSHOT") { exclude(group = "net.kyori") }
+    compileOnly("org.spigotmc:spigot-api:1.19.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.19.4-R0.1-SNAPSHOT") { exclude("net.kyori") }
     compileOnly("com.comphenix.protocol:ProtocolLib:5.0.0-SNAPSHOT")
-    compileOnly("com.github.Hazebyte:CrateReloadedAPI:d7ae2a14c6")
-    compileOnly("com.github.jojodmo:ItemBridge:-SNAPSHOT")
     compileOnly("me.clip:placeholderapi:2.11.2")
     compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
     compileOnly("me.gabytm.util:actions-core:$actionsVersion")
-    compileOnly("org.springframework:spring-expression:6.0.3")
+    compileOnly("org.springframework:spring-expression:6.0.6")
     compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
     compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
     compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
     compileOnly("commons-io:commons-io:2.11.0")
-    compileOnly("com.ticxo:modelengine:R3.0.1")
-    compileOnly(fileTree(mapOf("dir" to "libs/compile", "include" to listOf("*.jar"))))
+    compileOnly("com.ticxo.modelengine:api:R3.1.5")
+    compileOnly(files("libs/compile/BSP.jar"))
+    compileOnly("dev.jorel:commandapi-shade:8.8.0")
+    compileOnly("io.lumine:MythicLib:1.1.6")
+    compileOnly("net.Indyuce:MMOItems:6.7.3")
+    compileOnly("org.joml:joml:1.10.5") // Because pre 1.19.4 api does not have this in the server-jar
 
-    implementation("dev.triumphteam:triumph-gui:3.1.2")
+    implementation("dev.triumphteam:triumph-gui:3.1.4")
     implementation("org.bstats:bstats-bukkit:3.0.0")
-    implementation("com.oraxen:protectionlib:1.1.4")
-    implementation("net.kyori:adventure-text-minimessage:4.13.0-SNAPSHOT")
-    implementation("net.kyori:adventure-text-serializer-plain:4.13.0-SNAPSHOT")
-    implementation("net.kyori:adventure-text-serializer-legacy:4.13.0-SNAPSHOT")
-    implementation("net.kyori:adventure-text-serializer-gson:4.13.0-SNAPSHOT")
-    implementation("net.kyori:adventure-platform-bukkit:4.2.0")
+    implementation("com.github.oraxen:protectionlib:1.2.6")
+    implementation("net.kyori:adventure-text-minimessage:4.13.0")
+    implementation("net.kyori:adventure-text-serializer-plain:4.13.0")
+    implementation("net.kyori:adventure-platform-bukkit:4.3.0")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.8")
-    implementation("dev.jorel:commandapi-shade:8.7.3")
-    implementation("com.jeff_media:CustomBlockData:2.0.0")
-    implementation("com.jeff_media:MorePersistentDataTypes:2.3.1")
-    implementation("gs.mclo:mclogs:2.1.1")
+    implementation("com.jeff_media:CustomBlockData:2.2.0")
+    implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
+    implementation("gs.mclo:java:2.2.1")
+    implementation("com.ticxo.playeranimator:PlayerAnimator:R1.2.5")
+    implementation("org.jetbrains:annotations:24.0.1") { isTransitive = false }
 
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
 }
@@ -106,11 +107,13 @@ tasks {
         relocate("com.jeff_media.customblockdata", "io.th0rgal.oraxen.shaded.customblockdata")
         relocate("com.jeff_media.morepersistentdatatypes", "io.th0rgal.oraxen.shaded.morepersistentdatatypes")
         relocate("com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.if")
-        relocate("dev.jorel.commandapi", "io.th0rgal.oraxen.shaded.commandapi")
         relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
         relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
         relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
+        relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
+        //relocate("org.joml", "io.th0rgal.oraxen.shaded.joml")
+
         //mapOf("dir" to "libs/compile", "include" to listOf("*.jar"))
         manifest {
             attributes(
@@ -125,16 +128,44 @@ tasks {
             )
         }
         archiveFileName.set("oraxen-${pluginVersion}.jar")
+        minimize()
     }
 
     compileJava.get().dependsOn(clean)
     build.get().dependsOn(shadowJar)
 }
 
+bukkit {
+    load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
+    main = "io.th0rgal.oraxen.OraxenPlugin"
+    version = pluginVersion
+    name = "Oraxen"
+    apiVersion = "1.18"
+    authors = listOf("th0rgal", "boy0000")
+    softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim")
+    depend = listOf("ProtocolLib")
+    loadBefore = listOf("Realistic_World")
+    libraries = listOf("org.springframework:spring-expression:6.0.6", "org.apache.httpcomponents:httpmime:4.5.13", "dev.jorel:commandapi-shade:8.8.0", "org.joml:joml:1.10.5")
+    permissions.create("oraxen.command") {
+        description = "Allows the player to use the /oraxen command"
+        default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE
+    }
+}
+
+publishing {
+    publications {
+        register<MavenPublication>("maven") {
+            from(components.getByName("java"))
+        }
+    }
+}
+
 val pluginPath = project.findProperty("oraxen_plugin_path")
 if (pluginPath != null) {
     tasks {
         register<Copy>("copyJar") {
+            this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
+            dependsOn(shadowJar, jar)
             from(findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar"))
             into(pluginPath)
             doLast {

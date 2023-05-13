@@ -34,8 +34,8 @@ public class DuplicationHandler {
         Map<String, List<VirtualFile>> baseItemsToMerge = new HashMap<>();
         List<String> materials = Arrays.stream(Material.values()).map(Enum::toString).toList();
 
-        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/models/item/") && materials.contains(Utils.removeParentDirs(Utils.removeExtension(v.getPath()).toUpperCase()))).toList()) {
-            Material itemMaterial = Material.getMaterial(Utils.removeParentDirs(Utils.removeExtension(virtual.getPath()).toUpperCase()));
+        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/models/item/") && materials.contains(Utils.getFileNameOnly(v.getPath()).toUpperCase())).toList()) {
+            Material itemMaterial = Material.getMaterial(Utils.getFileNameOnly(virtual.getPath()).toUpperCase());
             if (baseItemsToMerge.containsKey(virtual.getPath())) {
                 List<VirtualFile> newList = new ArrayList<>(baseItemsToMerge.get(virtual.getPath()).stream().toList());
                 newList.add(virtual);
@@ -212,12 +212,12 @@ public class DuplicationHandler {
             out.putNextEntry(entry);
         } catch (IOException e) {
             Logs.logWarning("Duplicate file detected: <blue>" + name + "</blue> - Attempting to migrate it");
-            if (!Settings.ATTEMPT_TO_MIGRATE_DUPLICATES.toBool()) {
-                Logs.logError("Not attempting to migrate duplicate file as <#22b14c>attempt_to_migrate_duplicates</#22b14c> is disabled in settings.yml");
+            if (!Settings.MERGE_DUPLICATES.toBool()) {
+                Logs.logError("Not attempting to migrate duplicate file as <#22b14c>" + Settings.MERGE_DUPLICATES.getPath() + "</#22b14c> is disabled in settings.yml");
             } else if (attemptToMigrateDuplicate(name)) {
                 Logs.logSuccess("Duplicate file fixed:<blue> " + name);
                 try {
-                    OraxenPlugin.get().getDataFolder().toPath().resolve("pack/" + name).toFile().delete();
+                    OraxenPlugin.get().getDataFolder().toPath().resolve("pack").resolve(name).toFile().delete();
                     Logs.logSuccess("Deleted the imported <blue>" + Utils.removeParentDirs(name) + "</blue> and migrated it to its supported Oraxen config(s)");
                 } catch (Exception ignored) {
                     Log.error("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");
@@ -229,18 +229,24 @@ public class DuplicationHandler {
     }
 
     private static boolean attemptToMigrateDuplicate(String name) {
-        if (name.startsWith("assets/minecraft/models/item/")) {
+        if (name.matches("assets/minecraft/models/item/.*.json")) {
             Logs.logWarning("Found a duplicate <blue>" + Utils.removeParentDirs(name) + "</blue>, attempting to migrate it into Oraxen item configs");
             return migrateItemJson(name);
         } else if (name.matches("assets/.*/font/.*.json")) {
-            //Logs.logWarning("Found a duplicated font file, trying to migrate it into Oraxens glyph configs");
-            //return migrateDefaultFontJson(name);
             Logs.logWarning("Found a duplicated font file, trying to migrate it into Oraxens generated copy");
-            return migrateDefaultFontJson(name);
+            return mergeDuplicateFontJson(name);
         } else if (name.matches("assets/.*/sounds.json")) {
             Logs.logWarning("Found a sounds.json duplicate, trying to migrate it into Oraxens sound.yml config");
             return migrateSoundJson(name);
-        } else if (name.startsWith("assets/minecraft/shaders")) {
+        } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_text") && Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) {
+            Logs.logWarning("You are importing another copy of a shader file used to hide scoreboard numbers");
+            Logs.logWarning("Either disable <#22b14c>" + Settings.HIDE_SCOREBOARD_NUMBERS.getPath() + "</#22b14c> in settings.yml or delete this file");
+            return false;
+        } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_armor_cutout_no_cull") && Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) {
+            Logs.logWarning("You are trying to import a shader file used for custom armor.");
+            Logs.logWarning("This shader file is already in by Oraxen, you can delete this file");
+            return true;
+        } else if (name.startsWith("assets/minecraft/shaders/core/rendertype")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a shader file");
             Logs.logWarning("Merging this is too advanced and should be migrated manually or deleted.");
             return false;
@@ -253,6 +259,10 @@ public class DuplicationHandler {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a texture file");
             Logs.logWarning("Cannot migrate texture files, rename this or the duplicate entry");
             return false;
+        } else if (name.startsWith("assets/minecraft/lang")) {
+            Logs.logWarning("Failed to migrate duplicate file-entry, file is a language file");
+            Logs.logWarning("Please combine this with the duplicate file found in Oraxen/pack/lang folder");
+            return false;
         } else {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is not a file that Oraxen can migrate right now");
             Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
@@ -260,10 +270,14 @@ public class DuplicationHandler {
         }
     }
 
+    //TODO
+    // Fix importing other aspects of parent-model like shields display
+    // It should use the imported as a base and merge the overrides only
     private static boolean migrateItemJson(String name) {
-        String itemMaterial = Utils.removeParentDirs(name).split(".json")[0].toUpperCase();
+        String itemMaterial = Utils.removeExtensionOnly(Utils.removeParentDirs(name)).toUpperCase();
+        Material material;
         try {
-            Material.valueOf(itemMaterial);
+            material = Material.valueOf(itemMaterial);
         } catch (IllegalArgumentException e) {
             Logs.logWarning("Failed to migrate duplicate file-entry, could not find material");
             return false;
@@ -273,12 +287,19 @@ public class DuplicationHandler {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is not a .json file");
             return false;
         }
+
+        if (Set.of(Material.BOW, Material.FISHING_ROD, Material.SHIELD, Material.CROSSBOW).contains(material)) {
+            Logs.logWarning("Failed to migrate duplicate file-entry, file is a model that is not supported yet");
+            Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
+            return false;
+        }
+
         YamlConfiguration migratedYaml = loadMigrateYaml("items");
         if (migratedYaml == null) {
             Logs.logWarning("Failed to migrate duplicate file-entry, failed to load items/migrated_duplicates.yml");
             return false;
         }
-        Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "\\pack\\", name);
+        Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "pack", name);
         String fileContent;
         try {
             fileContent = Files.readString(path);
@@ -292,20 +313,15 @@ public class DuplicationHandler {
             JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
             String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
             String id = "migrated_" + Utils.removeParentDirs(modelPath);
-            int cmd;
-            try {
-                cmd = predicate.get("custom_model_data").getAsInt();
-            } catch (NullPointerException e) {
-                Logs.logWarning("Failed to migrate duplicate file-entry, could not find custom_model_data");
-                return false;
-            }
+            // Assume if no cmd is in that it is meant to replace the default model
+            int cmd = predicate.get("custom_model_data") != null ? predicate.get("custom_model_data").getAsInt() : 0;
 
             migratedYaml.set(id + ".material", itemMaterial);
             migratedYaml.set(id + ".excludeFromInventory", true);
             migratedYaml.set(id + ".excludeFromCommands", true);
-            migratedYaml.set(id + ".Pack.custom_model_data", cmd);
-            migratedYaml.set(id + ".Pack.model", modelPath);
             migratedYaml.set(id + ".Pack.generate_model", false);
+            migratedYaml.set(id + ".Pack.model", modelPath);
+            if (Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) migratedYaml.set(id + ".Pack.custom_model_data", cmd);
         }
 
         try {
@@ -366,9 +382,6 @@ public class DuplicationHandler {
 
     private static boolean mergeDuplicateFontJson(String name) {
         Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/", name);
-        Logs.broadcast(name);
-        Logs.broadcast(path);
-        Logs.broadcast("\n");
 
         return true;
     }
@@ -435,7 +448,8 @@ public class DuplicationHandler {
     }
 
     private static YamlConfiguration loadMigrateYaml(String folder) {
-        File file = new File(OraxenPlugin.get().getDataFolder(), "\\" + folder + "\\" + "migrated_duplicates.yml");
+
+        File file = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().resolve(folder).resolve("migrated_duplicates.yml").toFile();
         if (!file.exists()) {
             try {
                 file.createNewFile();

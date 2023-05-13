@@ -22,8 +22,10 @@ public enum Settings {
     FORMAT_ACTION_BAR("Plugin.formatting.action_bar"),
     FORMAT_ANVIL("Plugin.formatting.anvil"),
     FORMAT_SIGNS("Plugin.formatting.signs"),
-    MERGE_ITEM_MODELS("Plugin.experimental.merge_item_base_models"),
-    MERGE_FONTS("Plugin.experimental.merge_font_files"),
+    FORMAT_CHAT("Plugin.formatting.chat"),
+    FORMAT_BOOKS("Plugin.formatting.books"),
+    VERIFY_PACK_FILES("Plugin.experimental.verify_pack_files"),
+    EXCLUDE_MALFORMED_ATLAS("Plugin.experimental.exclude_malformed_from_atlas"),
 
     CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),
@@ -33,19 +35,23 @@ public enum Settings {
     ERROR_ITEM("ConfigsTools.error_item"),
 
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
+    GESTURES_ENABLED("Gestures.enabled"),
+    AUTO_UPDATE_ITEMS("ItemUpdater.auto_update_items"),
+    OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
 
     RESET_RECIPES("Misc.reset_recipes"),
+    ADD_RECIPES_TO_BOOK("Misc.add_recipes_to_book"),
+    UNICODE_COMPLETIONS("Misc.unicode_completions"),
     ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass"),
     SHIELD_DISPLAY("Misc.shield_display"),
     BOW_DISPLAY("Misc.bow_display"),
     CROSSBOW_DISPLAY("Misc.crossbow_display"),
-    AUTO_UPDATE_ITEMS("Misc.auto_update_items"),
     HIDE_SCOREBOARD_NUMBERS("Misc.hide_scoreboard_numbers"),
 
     GENERATE("Pack.generation.generate"),
-    ATTEMPT_TO_MIGRATE_DUPLICATES("Pack.generation.attempt_to_migrate_duplicates"),
     EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions"),
-    GENERATE_ATLAS_FILE("Pack.generation.generate_atlas_file"),
+    GENERATE_ATLAS_FILE("Pack.generation.atlas.generate"),
+    ATLAS_GENERATION_TYPE("Pack.generation.atlas.type"),
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
     ARMOR_RESOLUTION("Pack.generation.armor_resolution"),
     ANIMATED_ARMOR_FRAMERATE("Pack.generation.animated_armor_framerate"),
@@ -55,6 +61,10 @@ public enum Settings {
     COMPRESSION("Pack.generation.compression"),
     PROTECTION("Pack.generation.protection"),
     COMMENT("Pack.generation.comment"),
+    MERGE_DUPLICATES("Pack.import.merge_duplicates"),
+    RETAIN_CUSTOM_MODEL_DATA("Pack.import.retain_custom_model_data"),
+    MERGE_ITEM_MODELS("Pack.import.merge_item_base_models"),
+    MERGE_FONTS("Pack.import.merge_font_files"),
 
     UPLOAD_TYPE("Pack.upload.type"),
     UPLOAD("Pack.upload.enabled"),
@@ -72,11 +82,15 @@ public enum Settings {
     JOIN_MESSAGE_DELAY("Pack.dispatch.join_message.delay"),
 
     RECEIVE_ENABLED("Pack.receive.enabled"),
-
     RECEIVE_ALLOWED_ACTIONS("Pack.receive.accepted.actions"),
     RECEIVE_LOADED_ACTIONS("Pack.receive.loaded.actions"),
     RECEIVE_FAILED_ACTIONS("Pack.receive.failed_download.actions"),
-    RECEIVE_DENIED_ACTIONS("Pack.receive.denied.actions");
+    RECEIVE_DENIED_ACTIONS("Pack.receive.denied.actions"),
+
+    ORAXEN_INV_LAYOUT("oraxen_inventory.menu_layout"),
+    ORAXEN_INV_ROWS("oraxen_inventory.menu_rows"),
+    ORAXEN_INV_TITLE("oraxen_inventory.main_menu_title"),
+    ;
 
     private final String path;
 

@@ -29,7 +29,6 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -112,16 +111,11 @@ public class BreakerSystem {
                     breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
 
                 final BukkitScheduler scheduler = Bukkit.getScheduler();
-                final PlayerInteractEvent playerInteractEvent = new PlayerInteractEvent(
-                        player,
-                        Action.LEFT_CLICK_BLOCK,
-                        player.getInventory().getItemInMainHand(),
-                        block,
-                        blockFace,
-                        EquipmentSlot.HAND
-                );
+                // Cancellation state is being ignored.
+                // However still needs to be called for plugin support.
+                final PlayerInteractEvent playerInteractEvent =
+                        new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK, player.getInventory().getItemInMainHand(), block, blockFace, EquipmentSlot.HAND);
                 scheduler.runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
-                if (playerInteractEvent.useInteractedBlock().equals(Event.Result.DENY)) return;
 
                 // If the relevant damage event is cancelled, return
                 if (blockDamageEventCancelled(block, player)) return;
@@ -204,7 +198,7 @@ public class BreakerSystem {
                     return Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
                         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
                         if (mechanic == null) return true;
-                        OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, player, block, mechanic.getItemFrame(block));
+                        OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, mechanic.getBaseEntity(block), player, block);
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(event));
                         return event.isCancelled();
                     }).get();
@@ -212,7 +206,12 @@ public class BreakerSystem {
                     return false;
                 }
             }
-            default -> { return true; }
+            case BEDROCK -> { // For BedrockBreakMechanic
+                return false;
+            }
+            default -> {
+                return true;
+            }
         }
     }
 

@@ -28,10 +28,9 @@ public class ZipUtils {
             final int compressionLevel = Deflater.class.getDeclaredField(Settings.COMPRESSION.toString()).getInt(null);
             zos.setLevel(compressionLevel);
             zos.setComment(Settings.COMMENT.toString());
-            for (final VirtualFile file : fileList)
-                addToZip(file.getPath(),
-                        file.getInputStream(),
-                        zos);
+            for (final VirtualFile file : fileList) {
+                addToZip(file.getPath(), file.getInputStream(), zos);
+            }
 
         } catch (final IOException | NoSuchFieldException | IllegalAccessException ex) {
             ex.printStackTrace();

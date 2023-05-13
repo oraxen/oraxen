@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -19,6 +20,24 @@ import java.util.function.Consumer;
 public class Utils {
 
     private Utils() {
+    }
+
+    public static Color toColor(String string) {
+        if (string.startsWith("#") || string.startsWith("0x")) {
+            return Color.fromRGB(Integer.parseInt(string.substring(1), 16));
+        }
+        else if (string.contains(",")) {
+            String[] newString = string.replace(", ", ",").split(",", 3);
+            try {
+                int r = Integer.parseInt(newString[0]);
+                int g = Integer.parseInt(newString[1]);
+                int b = Integer.parseInt(newString[2]);
+                return Color.fromRGB(r, g, b);
+            } catch (NumberFormatException e) {
+                return Color.WHITE;
+            }
+        }
+        return Color.WHITE;
     }
 
     public static String replaceLast(String string, String toReplace, String replacement) {
@@ -57,6 +76,11 @@ public class Utils {
         return Utils.getLastStringInSplit(s, "/");
     }
 
+    /**
+     * Removes extension AND parent directories
+     * @param s The path or filename including extension
+     * @return Purely the filename, no extension or path
+     */
     public static String removeExtension(String s) {
 
         String separator = System.getProperty("file.separator");
@@ -73,6 +97,21 @@ public class Utils {
             return filename;
 
         return filename.substring(0, extensionIndex);
+    }
+
+    public static String removeExtensionOnly(String s) {
+        // Remove the extension.
+        int extensionIndex = s.lastIndexOf(".");
+        if (extensionIndex == -1)
+            return s;
+
+        return s.substring(0, extensionIndex);
+    }
+
+    public static String getFileNameOnly(String s) {
+        s = Utils.removeParentDirs(s);
+        s = Utils.removeExtensionOnly(s);
+        return s;
     }
 
     public static String getLastStringInSplit(String string, String split) {

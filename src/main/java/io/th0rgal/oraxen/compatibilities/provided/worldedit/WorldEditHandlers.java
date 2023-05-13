@@ -8,6 +8,7 @@ import com.sk89q.worldedit.extent.AbstractDelegateExtent;
 import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.util.eventbus.Subscribe;
 import com.sk89q.worldedit.world.block.BlockStateHolder;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
@@ -50,7 +51,7 @@ public class WorldEditHandlers {
                     }
                 } else {
                     if (world == null) return super.setBlock(pos, block);
-                    OraxenBlocks.remove(loc, null);
+                    Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> OraxenBlocks.remove(loc, null));
                 }
 
                 return getExtent().setBlock(pos, block);

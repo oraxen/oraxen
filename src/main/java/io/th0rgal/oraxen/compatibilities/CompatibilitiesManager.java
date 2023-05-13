@@ -1,8 +1,6 @@
 package io.th0rgal.oraxen.compatibilities;
 
 import io.th0rgal.oraxen.compatibilities.provided.bossshoppro.BossShopProCompatibility;
-import io.th0rgal.oraxen.compatibilities.provided.cratereloaded.CrateReloadedCompatibility;
-import io.th0rgal.oraxen.compatibilities.provided.itembridge.ItemBridgeCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.compatibilities.provided.mythicmobs.MythicMobsCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PlaceholderAPICompatibility;
@@ -28,13 +26,12 @@ public class CompatibilitiesManager {
         new CompatibilityListener();
         addCompatibility("PlaceholderAPI", PlaceholderAPICompatibility.class, true);
         addCompatibility("BossShopPro", BossShopProCompatibility.class, true);
-        addCompatibility("CrateReloaded", CrateReloadedCompatibility.class, true);
-        addCompatibility("ItemBridge", ItemBridgeCompatibility.class, true);
         addCompatibility("MythicMobs", MythicMobsCompatibility.class, true);
     }
 
     public static void disableCompatibilities() {
         WrappedWorldEdit.unregister();
+
         ACTIVE_COMPATIBILITY_PROVIDERS.forEach((pluginName, compatibilityProvider) -> disableCompatibility(pluginName));
     }
 

@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.pack.generation;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
+import com.google.gson.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
@@ -10,25 +9,28 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.Font;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.gestures.GestureManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.CustomArmorsTextures;
-import io.th0rgal.oraxen.utils.VirtualFile;
-import io.th0rgal.oraxen.utils.ZipUtils;
+import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.plugin.java.JavaPlugin;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
@@ -55,6 +57,8 @@ public class ResourcePack {
     }
 
     public void generate(final FontManager fontManager, final SoundManager soundManager) {
+        outputFiles.clear();
+
         customArmorsTextures = new CustomArmorsTextures((int) Settings.ARMOR_RESOLUTION.getValue());
         packFolder = new File(plugin.getDataFolder(), "pack");
         makeDirsIfNotExists(packFolder);
@@ -93,10 +97,12 @@ public class ResourcePack {
         extractInPackIfNotExists(plugin, new File(packFolder, "pack.png"));
 
         // Sorting items to keep only one with models (and generate it if needed)
-        final Map<Material, List<ItemBuilder>> texturedItems = extractTexturedItems();
-        generatePredicates(texturedItems);
+        generatePredicates(extractTexturedItems());
         generateFont(fontManager);
         generateSound(soundManager);
+        if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
+        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardFiles();
+
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)
                 packModifier.accept(packFolder);
@@ -117,7 +123,6 @@ public class ResourcePack {
             }
 
             if (Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.toBool() && customArmorsTextures.hasCustomArmors()) {
-                customArmorsTextures.rescaleVanillaArmorFiles(output);
                 String armorPath = "assets/minecraft/textures/models/armor";
                 output.add(new VirtualFile(armorPath, "leather_layer_1.png", customArmorsTextures.getLayerOne()));
                 output.add(new VirtualFile(armorPath, "leather_layer_2.png", customArmorsTextures.getLayerTwo()));
@@ -130,42 +135,148 @@ public class ResourcePack {
             e.printStackTrace();
         }
 
+        Set<String> malformedTextures = new HashSet<>();
+        if (Settings.VERIFY_PACK_FILES.toBool())
+            malformedTextures = verifyPackFormatting(output);
+
         if (Settings.GENERATE_ATLAS_FILE.toBool())
-            AtlasGenerator.generateAtlasFile(output);
-        if (Settings.MERGE_FONTS.toBool())
-            DuplicationHandler.mergeFontFiles(output);
-        if (Settings.MERGE_ITEM_MODELS.toBool())
-            DuplicationHandler.mergeBaseItemFiles(output);
+            AtlasGenerator.generateAtlasFile(output, malformedTextures);
+        if (!Settings.MERGE_DUPLICATES.toBool()) {
+            if (Settings.MERGE_FONTS.toBool())
+                DuplicationHandler.mergeFontFiles(output);
+            if (Settings.MERGE_ITEM_MODELS.toBool())
+                DuplicationHandler.mergeBaseItemFiles(output);
+        }
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
+        excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
         if (!excludedExtensions.isEmpty() && !output.isEmpty()) {
             List<VirtualFile> newOutput = new ArrayList<>();
-            for (VirtualFile virtual : output)
-                for (String extension : excludedExtensions)
-                    if (virtual.getPath().endsWith(extension))
-                        newOutput.add(virtual);
+            for (VirtualFile virtual : output) for (String extension : excludedExtensions)
+                if (virtual.getPath().endsWith(extension)) newOutput.add(virtual);
             output.removeAll(newOutput);
         }
 
         ZipUtils.writeZipFile(pack, output);
     }
 
-    // Fast check to avoid issues if RP already has these files from another plugin
-    // But also delete them if setting is false, and they existed
-    private void checkShaderFiles(File file) {
-        try {
-            File renamed = new File(file.getAbsolutePath() + ".bak");
-            Files.deleteIfExists(renamed.toPath());
-            if (file.exists()) {
-                file.renameTo(renamed);
-                plugin.saveResource("pack/shaders/core/" + file.getName(), true);
-                if (!Files.readString(file.toPath()).equals(Files.readString(renamed.toPath()))) {
-                    file.delete();
-                    renamed.renameTo(file);
-                } else renamed.delete();
+    private static Set<String> verifyPackFormatting(List<VirtualFile> output) {
+        Logs.logInfo("Verifying formatting for textures and models...");
+        Set<VirtualFile> textures = new HashSet<>();
+        Set<String> texturePaths = new HashSet<>();
+        Set<String> mcmeta = new HashSet<>();
+        Set<VirtualFile> models = new HashSet<>();
+        Set<VirtualFile> malformedTextures = new HashSet<>();
+        Set<VirtualFile> malformedModels = new HashSet<>();
+        for (VirtualFile virtualFile : output) {
+            String path = virtualFile.getPath();
+            if (path.matches("assets/.*/models/.*.json")) models.add(virtualFile);
+            else if (path.matches("assets/.*/textures/.*.png.mcmeta")) mcmeta.add(path);
+            else if (path.matches("assets/.*/textures/.*.png")) {
+                textures.add(virtualFile);
+                texturePaths.add(path);
             }
-        } catch (IOException ignored) {
         }
+
+        if (models.isEmpty() && !textures.isEmpty()) return Collections.emptySet();
+
+        for (VirtualFile model : models) {
+            if (model.getPath().contains(" ") || !model.getPath().toLowerCase().equals(model.getPath())) {
+                Logs.logWarning("Found invalid model at <blue>" + model.getPath());
+                Logs.logError("Models cannot contain spaces or Capital Letters in the filepath or filename");
+                malformedModels.add(model);
+            }
+
+            String content;
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            InputStream inputStream = model.getInputStream();
+            try {
+                inputStream.transferTo(baos);
+                content = baos.toString(StandardCharsets.UTF_8);
+                baos.close();
+                inputStream.reset();
+                inputStream.close();
+            } catch (IOException e) {
+                content = "";
+            }
+
+            if (!content.isEmpty()) {
+                JsonObject jsonModel;
+                try {
+                    jsonModel = JsonParser.parseString(content).getAsJsonObject();
+                } catch (JsonSyntaxException e) {
+                    Logs.logError("Found malformed json at <red>" + model.getPath() + "</red>");
+                    Logs.debug(model.getPath());
+                    e.printStackTrace();
+                    continue;
+                }
+                if (jsonModel.has("textures")) {
+                    for (JsonElement element : jsonModel.getAsJsonObject("textures").entrySet().stream().map(Map.Entry::getValue).toList()) {
+                        String jsonTexture = element.getAsString();
+                        if (!texturePaths.contains(modelPathToPackPath(jsonTexture))) {
+                            if (!jsonTexture.startsWith("#") && !jsonTexture.startsWith("item/") && !jsonTexture.startsWith("block/")) {
+                                try {
+                                    Material.valueOf(Utils.getFileNameOnly(jsonTexture).toUpperCase());
+                                } catch (IllegalArgumentException e) {
+                                    Logs.logWarning("Found invalid texture-path inside model-file <blue>" + model.getPath() + "</blue>: " + jsonTexture);
+                                    Logs.logError("Texture-paths cannot contain spaces or Capital Letters");
+                                    malformedModels.add(model);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (VirtualFile texture : textures) {
+            if (texture.getPath().contains(" ") || !texture.getPath().toLowerCase().equals(texture.getPath())) {
+
+                Logs.logWarning("Found invalid texture at <blue>" + texture.getPath());
+                Logs.logError("Textures cannot contain spaces or Capital Letters in the filepath or filename");
+                malformedTextures.add(texture);
+            }
+            if (!texture.getPath().matches(".*_layer_.*.png")) {
+                if (mcmeta.contains(texture.getPath() + ".mcmeta")) continue;
+                BufferedImage image;
+                InputStream inputStream = texture.getInputStream();
+                try {
+                    image = ImageIO.read(new File("fake_file.png"));
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    inputStream.transferTo(baos);
+                    ImageIO.write(image, "png", baos);
+                    baos.close();
+                    inputStream.reset();
+                    inputStream.close();
+                } catch (IOException e) {
+                    continue;
+                }
+
+                if (image.getHeight() > 256 || image.getWidth() > 256) {
+                    Logs.logWarning("Found invalid texture at <blue>" + texture.getPath());
+                    Logs.logError("Resolution of textures cannot exceed 256x256");
+                    malformedTextures.add(texture);
+                }
+            }
+        }
+
+        Logs.newline();
+        if (!malformedTextures.isEmpty() || !malformedModels.isEmpty()) {
+            Logs.logError("Pack contains malformed texture(s) and/or model(s)");
+            Logs.logError("These need to be fixed, otherwise the resourcepack will be broken");
+        } else Logs.logSuccess("No broken models or textures were found");
+        Logs.newline();
+
+        Set<String> malformedFiles = malformedTextures.stream().map(VirtualFile::getPath).collect(Collectors.toSet());
+        malformedFiles.addAll(malformedModels.stream().map(VirtualFile::getPath).collect(Collectors.toSet()));
+        return malformedFiles;
+    }
+
+    private static String modelPathToPackPath(String modelPath) {
+        String namespace = modelPath.split(":").length == 1 ? "minecraft" : modelPath.split(":")[0];
+        String texturePath = modelPath.split(":").length == 1 ? modelPath : modelPath.split(":")[1];
+        texturePath = texturePath.endsWith(".png") ? texturePath : texturePath + ".png";
+        return "assets/" + namespace + "/textures/" + texturePath;
     }
 
     private void extractFolders(boolean extractModels, boolean extractTextures, boolean extractShaders,
@@ -228,10 +339,12 @@ public class ResourcePack {
         for (final Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
             final ItemBuilder item = entry.getValue();
             if (item.getOraxenMeta().hasPackInfos()) {
-                if (item.getOraxenMeta().shouldGenerateModel())
-                    writeStringToVirtual("assets/minecraft/models",
+                OraxenMeta oraxenMeta = item.getOraxenMeta();
+                if (oraxenMeta.shouldGenerateModel()) {
+                    writeStringToVirtual(oraxenMeta.getModelPath(),
                             item.getOraxenMeta().getModelName() + ".json",
-                            new ModelGenerator(item.getOraxenMeta()).getJson().toString());
+                            new ModelGenerator(oraxenMeta).getJson().toString());
+                }
                 final List<ItemBuilder> items = texturedItems.getOrDefault(item.build().getType(), new ArrayList<>());
                 // todo: could be improved by using
                 // items.get(i).getOraxenMeta().getCustomModelData() when
@@ -313,6 +426,16 @@ public class ResourcePack {
         for (CustomSound sound : handleCustomSoundEntries(soundManager.getCustomSounds()))
             output.add(sound.getName(), sound.toJson());
         writeStringToVirtual("assets/minecraft", "sounds.json", output.toString());
+    }
+
+    private void generateGestureFiles() {
+        GestureManager gestureManager = OraxenPlugin.get().getGesturesManager();
+        for (Map.Entry<String, String> entry : gestureManager.getPlayerHeadJsons().entrySet())
+            writeStringToVirtual(StringUtils.removeEnd(Utils.getParentDirs(entry.getKey()), "/"), Utils.removeParentDirs(entry.getKey()), entry.getValue());
+        writeStringToVirtual("assets/minecraft/models/item", "player_head.json", gestureManager.getSkullJson());
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_entity_translucent.vsh", gestureManager.getShaderVsh());
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_entity_translucent.fsh", gestureManager.getShaderFsh());
+        writeStringToVirtual("assets/minecraft/shaders/core", "rendertype_entity_translucent.json", gestureManager.getShaderJson());
     }
 
     private Collection<CustomSound> handleCustomSoundEntries(Collection<CustomSound> sounds) {
@@ -435,4 +558,81 @@ public class ResourcePack {
         return prefix + path.substring(packFolder.getCanonicalPath().length() + 1);
     }
 
+    private void generateScoreboardFiles() {
+        Map<String, String> scoreboardShaderFiles = Map.of("assets/minecraft/shaders/core/rendertype_text.json", getScoreboardJson(), "assets/minecraft/shaders/core/rendertype_text.vsh", getScoreboardVsh());
+        for (Map.Entry<String, String> entry : scoreboardShaderFiles.entrySet())
+            writeStringToVirtual(StringUtils.removeEnd(Utils.getParentDirs(entry.getKey()), "/"), Utils.removeParentDirs(entry.getKey()), entry.getValue());
+    }
+    private String getScoreboardVsh() {
+        return """
+                #version 150
+                                
+                #moj_import <fog.glsl>
+                                
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+                                
+                uniform sampler2D Sampler2;
+                                
+                uniform mat4 ModelViewMat;
+                uniform mat4 ProjMat;
+                uniform mat3 IViewRotMat;
+                uniform int FogShape;
+                                
+                uniform vec2 ScreenSize;
+                                
+                out float vertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                                
+                void main() {
+                    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+                                
+                    vertexDistance = fog_distance(ModelViewMat, IViewRotMat * Position, FogShape);
+                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
+                    texCoord0 = UV0;
+                                
+                    // delete sidebar numbers
+                    if(    Position.z == 0.0 && // check if the depth is correct (0 for gui texts)
+                    gl_Position.x >= 0.94 && gl_Position.y >= -0.35 && // check if the position matches the sidebar
+                    vertexColor.g == 84.0/255.0 && vertexColor.g == 84.0/255.0 && vertexColor.r == 252.0/255.0 && // check if the color is the sidebar red color
+                    gl_VertexID <= 4 // check if it's the first character of a string
+                    ) gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0); // move the vertices offscreen, idk if this is a good solution for that but vec4(0.0) doesnt do the trick for everyone
+                }
+                """;
+    }
+    private String getScoreboardJson() {
+        return """
+                {
+                  "blend": {
+                    "func": "add",
+                    "srcrgb": "srcalpha",
+                    "dstrgb": "1-srcalpha"
+                  },
+                  "vertex": "rendertype_text",
+                  "fragment": "rendertype_text",
+                  "attributes": [
+                    "Position",
+                    "Color",
+                    "UV0",
+                    "UV2"
+                  ],
+                  "samplers": [
+                    { "name": "Sampler0" },
+                    { "name": "Sampler2" }
+                  ],
+                  "uniforms": [
+                    { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                    { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                    { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
+                    { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
+                    { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
+                    { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
+                    { "name": "ScreenSize", "type": "float", "count": 2,  "values": [ 1.0, 1.0 ] }
+                  ]
+                }
+                """;
+    }
 }

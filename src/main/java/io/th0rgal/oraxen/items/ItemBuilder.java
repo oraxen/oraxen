@@ -24,7 +24,8 @@ import java.util.*;
 @SuppressWarnings("ALL")
 public class ItemBuilder {
 
-    public final NamespacedKey UNSTACKABLE_KEY = new NamespacedKey(OraxenPlugin.get(), "unstackable");
+    public static final NamespacedKey UNSTACKABLE_KEY = new NamespacedKey(OraxenPlugin.get(), "unstackable");
+    public static final NamespacedKey ORIGINAL_NAME_KEY = new NamespacedKey(OraxenPlugin.get(), "original_name");
 
     private final ItemStack itemStack;
     private final Map<PersistentDataSpace, Object> persistentDataMap = new HashMap<>();
@@ -34,7 +35,7 @@ public class ItemBuilder {
     private Material type;
     private int amount;
     private int durability; // Damageable
-    private Color color; // LeatherArmorMeta & PotionMeta
+    private Color color; // LeatherArmorMeta, PotionMeta, MapMeta & FireWorkEffectMeta
     private PotionData potionData;
     private List<PotionEffect> potionEffects;
     private OfflinePlayer owningPlayer; // SkullMeta
@@ -86,6 +87,12 @@ public class ItemBuilder {
             potionData = potionMeta.getBasePotionData();
             potionEffects = new ArrayList<>(potionMeta.getCustomEffects());
         }
+
+        if (itemMeta instanceof MapMeta mapMeta)
+            color = mapMeta.getColor();
+
+        if (itemMeta instanceof FireworkEffectMeta effectMeta)
+            color = effectMeta.hasEffect() ? effectMeta.getEffect().getColors().get(0) : Color.WHITE;
 
         if (itemMeta instanceof SkullMeta skullMeta)
             owningPlayer = skullMeta.getOwningPlayer();
@@ -305,8 +312,11 @@ public class ItemBuilder {
          */
         ItemMeta itemMeta = handleVariousMeta(itemStack.getItemMeta());
         assert itemMeta != null;
-        if (displayName != null)
+        PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
+        if (displayName != null) {
+            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
             itemMeta.setDisplayName(displayName);
+        }
 
         itemMeta.setUnbreakable(unbreakable);
 
@@ -319,12 +329,13 @@ public class ItemBuilder {
         if (itemFlags != null)
             itemMeta.addItemFlags(itemFlags.toArray(new ItemFlag[0]));
 
-        if (enchantments.size() > 0)
+        if (enchantments.size() > 0) {
             for (final Map.Entry<Enchantment, Integer> enchant : enchantments.entrySet()) {
                 if (enchant.getKey() == null) continue;
                 int lvl = enchant.getValue() != null ? enchant.getValue() : 1;
                 itemMeta.addEnchant(enchant.getKey(), lvl, true);
             }
+        }
 
         if (hasAttributeModifiers)
             itemMeta.setAttributeModifiers(attributeModifiers);
@@ -334,10 +345,7 @@ public class ItemBuilder {
 
         if (!persistentDataMap.isEmpty())
             for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
-                itemMeta
-                        .getPersistentDataContainer()
-                        .set(dataSpace.getKey().namespacedKey(),
-                                (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
+                pdc.set(dataSpace.getKey().namespacedKey(), (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
 
         itemMeta.setLore(lore);
 
@@ -361,6 +369,24 @@ public class ItemBuilder {
 
         if (itemMeta instanceof PotionMeta potionMeta)
             return handlePotionMeta(potionMeta);
+
+        if (itemMeta instanceof MapMeta mapMeta && color != null && !color.equals(mapMeta.getColor())) {
+            mapMeta.setColor(color);
+            return mapMeta;
+        }
+
+        if (itemMeta instanceof FireworkEffectMeta effectMeta) {
+            FireworkEffect.Builder fireWorkBuilder = effectMeta.clone().hasEffect() ? effectMeta.getEffect().builder() : FireworkEffect.builder();
+            if (color != null) fireWorkBuilder.withColor(color);
+
+            // If both above fail, the below will throw an exception as builder needs atleast one color
+            // If so return the base meta
+            try {
+                effectMeta.setEffect(fireWorkBuilder.build());
+            } catch (IllegalStateException ignored) {
+            }
+            return effectMeta;
+        }
 
         if (itemMeta instanceof SkullMeta skullMeta) {
             final OfflinePlayer defaultOwningPlayer = skullMeta.getOwningPlayer();

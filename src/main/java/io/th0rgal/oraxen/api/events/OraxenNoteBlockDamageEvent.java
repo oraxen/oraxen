@@ -26,7 +26,7 @@ public class OraxenNoteBlockDamageEvent extends Event implements Cancellable {
      * @param block The block that was damaged
      * @param player The player who damaged this block
      */
-    public OraxenNoteBlockDamageEvent(NoteBlockMechanic mechanic, Block block, Player player) {
+    public OraxenNoteBlockDamageEvent(@NotNull final NoteBlockMechanic mechanic, @NotNull final Block block, @NotNull final Player player) {
         this.mechanic = mechanic;
         this.player = player;
         this.block = block;
@@ -36,6 +36,7 @@ public class OraxenNoteBlockDamageEvent extends Event implements Cancellable {
     /**
      * @return The note block mechanic
      */
+    @NotNull
     public NoteBlockMechanic getMechanic() {
         return mechanic;
     }
@@ -43,6 +44,7 @@ public class OraxenNoteBlockDamageEvent extends Event implements Cancellable {
     /**
      * @return The player who broke the note block
      */
+    @NotNull
     public Player getPlayer() {
         return player;
     }
@@ -50,6 +52,7 @@ public class OraxenNoteBlockDamageEvent extends Event implements Cancellable {
     /**
      * @return The block that was broken
      */
+    @NotNull
     public Block getBlock() {
         return block;
     }

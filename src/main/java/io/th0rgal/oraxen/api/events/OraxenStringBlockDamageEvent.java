@@ -26,7 +26,7 @@ public class OraxenStringBlockDamageEvent extends Event implements Cancellable {
      * @param block The block that was damaged
      * @param player The player who damaged this block
      */
-    public OraxenStringBlockDamageEvent(StringBlockMechanic mechanic, Block block, Player player) {
+    public OraxenStringBlockDamageEvent(@NotNull final StringBlockMechanic mechanic, @NotNull final Block block, @NotNull final Player player) {
         this.mechanic = mechanic;
         this.block = block;
         this.player = player;
@@ -36,6 +36,7 @@ public class OraxenStringBlockDamageEvent extends Event implements Cancellable {
     /**
      * @return The StringBlockMechanic of the damaged block
      */
+    @NotNull
     public StringBlockMechanic getMechanic() {
         return mechanic;
     }
@@ -43,6 +44,7 @@ public class OraxenStringBlockDamageEvent extends Event implements Cancellable {
     /**
      * @return The player who damaged the StringBlock
      */
+    @NotNull
     public Player getPlayer() {
         return player;
     }
@@ -50,6 +52,7 @@ public class OraxenStringBlockDamageEvent extends Event implements Cancellable {
     /**
      * @return The block that was damaged
      */
+    @NotNull
     public Block getBlock() {
         return block;
     }
