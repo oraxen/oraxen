@@ -48,8 +48,10 @@ public class TitlePacketListener extends PacketAdapter {
             if (packet.getType() == SET_TITLE_TEXT) type = "title";
             else if (packet.getType() == SET_SUBTITLE_TEXT) type = "subtitle";
             else type = "actionbar";
-            Logs.logWarning("Error whilst reading " + type + " packet");
-            //e.printStackTrace();
+            if (Settings.DEBUG.toBool()) {
+                Logs.logWarning("Error whilst reading " + type + " packet");
+                e.printStackTrace();
+            }
         }
         return null;
     }
