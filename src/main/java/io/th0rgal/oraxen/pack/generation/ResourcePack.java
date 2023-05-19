@@ -599,7 +599,8 @@ public class ResourcePack {
             InputStream langStream = new ByteArrayInputStream(langJson.toString().getBytes(StandardCharsets.UTF_8));
             virtualLangFiles.add(new VirtualFile("assets/minecraft/lang", lang + ".json", langStream));
         }
-
+        // Remove previous langfiles as these have been migrated in above
+        output.removeIf(virtualFile -> virtualFile.getPath().startsWith("assets/minecraft/lang"));
         output.addAll(virtualLangFiles);
     }
 
