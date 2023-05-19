@@ -46,7 +46,6 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
     public static final NamespacedKey ROOT_KEY = new NamespacedKey(OraxenPlugin.get(), "root");
     public static final NamespacedKey ORIENTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "orientation");
-    public static final NamespacedKey ROTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "rotation");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
     private final LimitedPlacing limitedPlacing;
     private final StorageMechanic storage;
@@ -282,56 +281,17 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    @Deprecated(forRemoval = true, since = "1.154.0")
-    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location) {
-        setPlacedItem();
-        return place(rotation, yaw, facing, location, placedItem);
-    }
-
-    /**
-     * @param rotation
-     * @param yaw
-     * @param facing
-     * @param location
-     * @param item
-     * @return
-     */
-    @Deprecated(forRemoval = true, since = "1.154.0")
-    public ItemFrame place(Rotation rotation, float yaw, BlockFace facing, Location location, ItemStack item) {
-        if (!location.isWorldLoaded()) return null;
-        if (this.notEnoughSpace(yaw, location)) return null;
-        assert location.getWorld() != null;
-        setPlacedItem();
-        assert location.getWorld() != null;
-        ItemFrame itemFrame = getFurnitureEntityType() == EntityType.GLOW_ITEM_FRAME
-                ? location.getWorld().spawn(location, GlowItemFrame.class, (GlowItemFrame frame) ->
-                setFrameData(frame, item, rotation, facing))
-                : location.getWorld().spawn(location, ItemFrame.class, (ItemFrame frame) ->
-                setFrameData(frame, item, rotation, facing));
-
-        if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
-            spawnModelEngineFurniture(itemFrame, yaw);
-        }
-
-        if (hasBarriers())
-            setBarrierHitbox(location, yaw, rotation, true);
-        else if (light != -1)
-            WrappedLightAPI.createBlockLight(location, light);
-
-        return itemFrame;
-    }
-
     public Entity place(Location location) {
         setPlacedItem();
-        return place(location, placedItem, Rotation.NONE, rotationToYaw(Rotation.NONE), BlockFace.NORTH);
+        return place(location, placedItem, 0f, BlockFace.NORTH);
     }
 
-    public Entity place(Location location, float yaw, Rotation rotation, BlockFace facing) {
+    public Entity place(Location location, float yaw, BlockFace facing) {
         setPlacedItem();
-        return place(location, placedItem, rotation, yaw, facing);
+        return place(location, placedItem, yaw, facing);
     }
 
-    public Entity place(Location location, ItemStack originalItem, Rotation rotation, float yaw, BlockFace facing) {
+    public Entity place(Location location, ItemStack originalItem, Float yaw, BlockFace facing) {
         if (!location.isWorldLoaded()) return null;
         if (this.notEnoughSpace(yaw, location)) return null;
         assert location.getWorld() != null;
@@ -351,7 +311,7 @@ public class FurnitureMechanic extends Mechanic {
         } else item = placedItem;
 
         Entity baseEntity = location.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), entityClass, (entity) ->
-                setEntityData(entity, yaw, item, rotation, facing));
+                setEntityData(entity, yaw, item, facing));
 
         if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity, yaw);
@@ -360,13 +320,13 @@ public class FurnitureMechanic extends Mechanic {
         return baseEntity;
     }
 
-    private void setEntityData(Entity entity, float yaw, ItemStack item, Rotation rotation, BlockFace facing) {
+    private void setEntityData(Entity entity, float yaw, ItemStack item, BlockFace facing) {
         setBaseFurnitureData(entity);
         if (entity instanceof ItemFrame frame) {
-            setFrameData(frame, item, facing, rotation);
+            setFrameData(frame, item, facing);
             Location location = entity.getLocation();
 
-            if (hasBarriers()) setBarrierHitbox(location, yaw, rotation, true);
+            if (hasBarriers()) setBarrierHitbox(location, yaw, true);
             else {
                 float width = hasHitbox() ? hitbox.width : 1f;
                 float height = hasHitbox() ? hitbox.height : 1f;
@@ -382,13 +342,14 @@ public class FurnitureMechanic extends Mechanic {
                 }
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
-            setItemDisplayData(itemDisplay, item, rotation, displayEntityProperties);
+            yaw = displayEntityProperties.getDisplayTransform().equals(ItemDisplay.ItemDisplayTransform.FIXED) ? yaw - 180 : yaw;
+            setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
             Location location = itemDisplay.getLocation();
             float width = hasHitbox() ? hitbox.width : displayEntityProperties.getWidth();
             float height = hasHitbox() ? hitbox.height : displayEntityProperties.getHeight();
             Interaction interaction = spawnInteractionEntity(itemDisplay, location, width, height, displayEntityProperties.isInteractable());
 
-            if (hasBarriers()) setBarrierHitbox(location, yaw, rotation, false);
+            if (hasBarriers()) setBarrierHitbox(location, yaw, false);
             else if (hasSeat()) {
                 UUID entityId = spawnSeat(this, location.getBlock(), hasSeatYaw ? seatYaw : location.getYaw());
                 if (entityId != null && interaction != null)
@@ -418,7 +379,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Rotation rotation, DisplayEntityProperties properties) {
+    private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Float yaw, DisplayEntityProperties properties) {
         itemDisplay.setItemDisplayTransform(properties.getDisplayTransform());
         if (properties.hasSpecifiedViewRange()) itemDisplay.setViewRange(properties.getViewRange());
         if (properties.hasInterpolationDuration())
@@ -442,18 +403,17 @@ public class FurnitureMechanic extends Mechanic {
             transform.getScale().set(properties.getScale());
         } else if (isFixed) transform.getScale().set(new Vector3f(0.5f, 0.5f, 0.5f));
 
-        itemDisplay.setTransformation(transform);
-        itemDisplay.setRotation(rotationToYaw(rotation.rotateClockwise().rotateClockwise().rotateClockwise().rotateClockwise()), isFixed ? 90f : 0f);
         if (displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.NONE)
             itemDisplay.teleport(BlockHelpers.toCenterLocation(itemDisplay.getLocation()));
+        itemDisplay.setTransformation(transform);
+        itemDisplay.setRotation(yaw, isFixed ? 90 : 0);
     }
 
-    private void setFrameData(ItemFrame frame, ItemStack item, BlockFace facing, Rotation rotation) {
+    private void setFrameData(ItemFrame frame, ItemStack item, BlockFace facing) {
         frame.setVisible(false);
         frame.setItemDropChance(0);
         frame.setFacingDirection(facing, true);
         frame.setItem(item);
-        frame.setRotation(rotation);
 
         if (hasLimitedPlacing()) {
             if (limitedPlacing.isFloor() && !limitedPlacing.isWall() && frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
@@ -464,45 +424,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    @Deprecated(forRemoval = true, since = "1.154.0")
-    private void setFrameData(ItemFrame frame, ItemStack item, Rotation rotation, BlockFace facing) {
-        frame.setVisible(false);
-        frame.setFixed(false);
-        frame.setPersistent(true);
-        frame.setItemDropChance(0);
-        if (evolvingFurniture == null) {
-            ItemStack clone = item.clone();
-            ItemMeta meta = clone.getItemMeta();
-            if (meta != null) meta.setDisplayName("");
-            clone.setItemMeta(meta);
-            frame.setItem(clone, false);
-        } else frame.setItem(placedItem, false);
-        frame.setRotation(rotation);
-        frame.setFacingDirection(facing, true);
-
-        PersistentDataContainer pdc = frame.getPersistentDataContainer();
-        pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
-        if (hasEvolution()) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
-        if (isStorage()) if (getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
-            pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
-        }
-
-        if (frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
-            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(frame);
-
-            // Make sure that if a floor-only furniture is placed on the side of a wall block, it is facing correctly
-            if (mechanic != null && mechanic.hasLimitedPlacing() && mechanic.limitedPlacing.isFloor() && !mechanic.limitedPlacing.isWall()) {
-                frame.setFacingDirection(BlockFace.UP, true);
-            }
-
-            // If placed on the side of a block
-            if (Set.of(BlockFace.NORTH, BlockFace.WEST, BlockFace.SOUTH, BlockFace.EAST).contains(facing)) {
-                frame.setRotation(Rotation.NONE);
-            }
-        }
-    }
-
-    private void setBarrierHitbox(Location location, float yaw, Rotation rotation, boolean handleLight) {
+    private void setBarrierHitbox(Location location, float yaw, boolean handleLight) {
         for (Location barrierLocation : getLocations(yaw, BlockHelpers.toCenterBlockLocation(location), getBarriers())) {
             Block block = barrierLocation.getBlock();
             PersistentDataContainer data = BlockHelpers.getPDC(block);
@@ -513,7 +435,6 @@ public class FurnitureMechanic extends Mechanic {
             }
             data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location.clone()).toString());
             data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
-            data.set(ROTATION_KEY, DataType.asEnum(Rotation.class), rotation);
             block.setType(Material.BARRIER);
             if (handleLight && light != -1)
                 WrappedLightAPI.createBlockLight(barrierLocation, light);

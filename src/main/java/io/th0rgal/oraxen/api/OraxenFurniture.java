@@ -46,48 +46,10 @@ public class OraxenFurniture {
         return getFurnitureMechanic(entity) != null;
     }
 
-    /**
-     * Places Furniture from a given ID at a given location, optionally by a player
-     *
-     * @param location The location to place the Furniture
-     * @param itemID   The ID of the Furniture to place
-     * @param rotation The rotation of the Furniture
-     * @param blockFace The blockFace to place the Furniture against
-     * @param player   The player who places the Furniture, can be null
-     * @return true if the Furniture was placed, false otherwise
-     */
-    @Deprecated(forRemoval = true, since = "1.154.0")
-    public static boolean place(Location location, String itemID, Rotation rotation, BlockFace blockFace, @Nullable Player player) {
-        FurnitureMechanic mechanic = (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
-        if (mechanic == null) return false;
-        return mechanic.place(rotation, FurnitureMechanic.rotationToYaw(rotation), blockFace, location) != null;
-    }
-
     public static boolean place(Location location, String itemID, Rotation rotation, BlockFace blockFace) {
         FurnitureMechanic mechanic = (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
         if (mechanic == null) return false;
-        return mechanic.place(location, FurnitureMechanic.rotationToYaw(rotation), rotation, blockFace) != null;
-    }
-
-    /**
-     * Places Furniture from a given ID at a given location, optionally by a player
-     *
-     * @param location The location to place the Furniture
-     * @param itemID   The ID of the Furniture to place
-     * @param player   The player who places the Furniture, can be null
-     * @return true if the Furniture was placed, false otherwise
-     */
-    @Deprecated(forRemoval = true, since = "1.154.0")
-    public static boolean place(Location location, String itemID, @Nullable Player player) {
-        FurnitureMechanic mechanic = (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
-        if (mechanic == null) return false;
-        return mechanic.place(location) != null;
-    }
-
-    public static boolean place(Location location, String itemID) {
-        FurnitureMechanic mechanic = (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
-        if (mechanic == null) return false;
-        return mechanic.place(location) != null;
+        return mechanic.place(location, FurnitureMechanic.rotationToYaw(rotation), blockFace) != null;
     }
 
     /**
