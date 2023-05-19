@@ -186,9 +186,9 @@ public class StringBlockMechanicListener implements Listener {
         if (factory.isNotImplementedIn(itemID)) return;
         // determines the new block data of the block
         StringBlockMechanic mechanic = (StringBlockMechanic) factory.getMechanic(itemID);
+        if (mechanic == null) return;
 
         int customVariation = mechanic.getCustomVariation();
-
         if (mechanic.hasRandomPlace()) {
             List<String> randomList = mechanic.getRandomPlaceBlock();
             String randomBlock = randomList.get(new Random().nextInt(randomList.size()));
@@ -200,8 +200,6 @@ public class StringBlockMechanicListener implements Listener {
                 StringBlockMechanicFactory.createTripwireData(customVariation));
         if (placedBlock == null) return;
 
-        if (mechanic.isTall())
-            placedBlock.getRelative(BlockFace.UP).setType(Material.TRIPWIRE, false);
         if (mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
         if (mechanic.isSapling()) {
@@ -252,11 +250,7 @@ public class StringBlockMechanicListener implements Listener {
             if (face == BlockFace.SELF && !face.isCartesian()) continue;
             if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
             if (block.getRelative(face).getType() == Material.TRIPWIRE) {
-                if (player.getGameMode() != GameMode.CREATIVE)
-                    for (ItemStack item : block.getDrops())
-                        if (item.getType() != Material.AIR)
-                            player.getWorld().dropItemNaturally(block.getLocation(), item);
-                block.setType(Material.AIR, true);
+                block.breakNaturally(player.getInventory().getItemInMainHand());
                 if (BlockHelpers.isReplaceable(blockAbove.getType())) blockAbove.breakNaturally();
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
                         fixClientsideUpdate(block.getLocation()), 1);
@@ -413,10 +407,22 @@ public class StringBlockMechanicListener implements Listener {
         target.setBlockData(newBlock, false);
         final BlockState currentBlockState = target.getState();
 
+        StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(target);
+        if (mechanic == null) return null;
+
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
-        final OraxenStringBlockPlaceEvent oraxenBlockPlaceEvent = new OraxenStringBlockPlaceEvent(OraxenBlocks.getStringMechanic(target), target, player, item, hand);
+        final OraxenStringBlockPlaceEvent oraxenBlockPlaceEvent = new OraxenStringBlockPlaceEvent(mechanic, target, player, item, hand);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
         Bukkit.getPluginManager().callEvent(oraxenBlockPlaceEvent);
+
+        Block blockAbove = target.getRelative(BlockFace.UP);
+        if (mechanic.isTall()) {
+            if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) {
+                blockPlaceEvent.setCancelled(true);
+                oraxenBlockPlaceEvent.setCancelled(true);
+            }
+            else blockAbove.setType(Material.TRIPWIRE);
+        }
 
         if (player.getGameMode() == GameMode.ADVENTURE || BlockHelpers.correctAllBlockStates(target, player, face, item))
             blockPlaceEvent.setCancelled(true);

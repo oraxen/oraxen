@@ -12,14 +12,20 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
+import org.bukkit.entity.Piglin;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.Arrays;
 
 import static org.bukkit.event.entity.EntityDamageEvent.DamageCause.FIRE;
 import static org.bukkit.event.entity.EntityDamageEvent.DamageCause.FIRE_TICK;
@@ -30,6 +36,22 @@ public class MiscListener implements Listener {
 
     public MiscListener(MiscMechanicFactory factory) {
         this.factory = factory;
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPiglinAggro(EntityTargetLivingEntityEvent event) {
+        if (!(event.getEntity() instanceof Piglin)) return;
+        if (!(event.getTarget() instanceof Player player)) return;
+
+        EntityEquipment equipment = player.getEquipment();
+        if (equipment == null) return;
+
+        if (shouldPreventPiglinAggro(equipment.getItemInMainHand()))
+            event.setCancelled(true);
+        if (shouldPreventPiglinAggro(equipment.getItemInOffHand()))
+            event.setCancelled(true);
+        if (Arrays.stream(equipment.getArmorContents()).anyMatch(this::shouldPreventPiglinAggro))
+            event.setCancelled(true);
     }
 
     // Since EntityDamageByBlockEvent apparently does not trigger for fire, use this aswell
@@ -93,5 +115,10 @@ public class MiscListener implements Listener {
             Utils.swingHand(player, event.getHand());
         }
 
+    }
+
+    private boolean shouldPreventPiglinAggro(ItemStack itemStack) {
+        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(OraxenItems.getIdByItem(itemStack));
+        return mechanic != null && mechanic.piglinIgnoreWhenEquipped();
     }
 }
