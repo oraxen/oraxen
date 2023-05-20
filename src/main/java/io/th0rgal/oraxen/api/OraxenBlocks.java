@@ -158,9 +158,14 @@ public class OraxenBlocks {
 
     private static void placeStringBlock(Location location, String itemID) {
         Block block = location.getBlock();
+        Block blockAbove = block.getRelative(BlockFace.UP);
         StringBlockMechanicFactory.setBlockModel(block, itemID);
         StringBlockMechanic mechanic = getStringMechanic(location.getBlock());
         if (mechanic == null) return;
+        if (mechanic.isTall()) {
+            if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) return;
+            else blockAbove.setType(Material.TRIPWIRE);
+        }
 
         if (mechanic.getLight() != -1)
             WrappedLightAPI.createBlockLight(block.getLocation(), mechanic.getLight());
@@ -168,9 +173,6 @@ public class OraxenBlocks {
             SaplingMechanic sapling = mechanic.getSaplingMechanic();
             if (sapling != null && sapling.canGrowNaturally())
                 BlockHelpers.getPDC(block).set(SAPLING_KEY, PersistentDataType.INTEGER, sapling.getNaturalGrowthTime());
-        }
-        if (mechanic.isTall()) { //TODO Should this check the block above to verify it can be replaced, or always replace?
-            location.getBlock().getRelative(BlockFace.UP).setType(Material.TRIPWIRE);
         }
     }
 
@@ -282,6 +284,11 @@ public class OraxenBlocks {
                         + noteblock.getNote().getId() + (noteblock.isPowered() ? 400 : 0) - 26);
     }
 
+    public static NoteBlockMechanic getNoteBlockMechanic(String itemID) {
+        Mechanic mechanic = NoteBlockMechanicFactory.getInstance().getMechanic(itemID);
+        return mechanic instanceof NoteBlockMechanic noteBlockMechanic ? noteBlockMechanic : null;
+    }
+
     public static StringBlockMechanic getStringMechanic(BlockData blockData) {
         if (!(blockData instanceof Tripwire tripwire)) return null;
         return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
@@ -292,6 +299,11 @@ public class OraxenBlocks {
             final Tripwire tripwire = (Tripwire) block.getBlockData();
             return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
         } else return null;
+    }
+
+    public static StringBlockMechanic getStringMechanic(String itemID) {
+        Mechanic mechanic = StringBlockMechanicFactory.getInstance().getMechanic(itemID);
+        return mechanic instanceof StringBlockMechanic stringMechanic ? stringMechanic : null;
     }
 
     public static BlockMechanic getBlockMechanic(Block block) {

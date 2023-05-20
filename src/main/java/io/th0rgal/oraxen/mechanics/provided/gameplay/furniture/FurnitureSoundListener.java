@@ -24,7 +24,6 @@ import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
@@ -104,7 +103,7 @@ public class FurnitureSoundListener implements Listener {
         if (blockBelow.getType() == Material.WATER || blockBelow.getType() == Material.AIR) return;
         if (soundGroup.getStepSound() != Sound.BLOCK_STONE_STEP) return;
         if (gameEvent == GameEvent.HIT_GROUND && cause != null && cause.getCause() != EntityDamageEvent.DamageCause.FALL) return;
-        if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(block.getType()) || block.getType() == Material.TRIPWIRE) return;
+        if (!BlockHelpers.isReplaceable(block) || block.getType() == Material.TRIPWIRE) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(blockBelow);
 
         String sound;

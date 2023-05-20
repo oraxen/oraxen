@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.upload;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.events.OraxenPackUploadEvent;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
@@ -66,6 +67,11 @@ public class UploadManager {
                 Message.PACK_NOT_UPLOADED.log();
                 return;
             }
+
+            OraxenPackUploadEvent uploadEvent = new OraxenPackUploadEvent(hostingProvider);
+            Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () ->
+                    Bukkit.getPluginManager().callEvent(uploadEvent));
+
             Message.PACK_UPLOADED.log(
                     AdventureUtils.tagResolver("url", hostingProvider.getPackURL()),
                     AdventureUtils.tagResolver("delay", String.valueOf(System.currentTimeMillis() - time)));

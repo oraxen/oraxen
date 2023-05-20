@@ -57,7 +57,7 @@ public class RecipesManager {
         RecipesEventsManager.get().registerEvents();
     }
 
-    public static void reload(JavaPlugin plugin) {
+    public static void reload() {
         if (Settings.RESET_RECIPES.toBool())
             Bukkit.resetRecipes();
         RecipesEventsManager.get().resetRecipes();
@@ -65,7 +65,7 @@ public class RecipesManager {
         if (!recipesFolder.exists()) {
             recipesFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
+                new ResourcesManager(OraxenPlugin.get()).extractConfigsInFolder("recipes", "yml");
         }
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();

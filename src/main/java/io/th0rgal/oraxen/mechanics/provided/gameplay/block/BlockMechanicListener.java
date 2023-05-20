@@ -106,7 +106,7 @@ public class BlockMechanicListener implements Listener {
         final Player player = event.getPlayer();
         final Block target;
         final Material type = placedAgainst.getType();
-        if (BlockHelpers.REPLACEABLE_BLOCKS.contains(type))
+        if (BlockHelpers.isReplaceable(type))
             target = placedAgainst;
         else {
             target = placedAgainst.getRelative(event.getBlockFace());

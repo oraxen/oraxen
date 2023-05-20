@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.combat.lifeleech;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -9,7 +10,6 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.inventory.ItemStack;
 
 public class LifeLeechMechanicListener implements Listener {
 
@@ -19,30 +19,19 @@ public class LifeLeechMechanicListener implements Listener {
         this.factory = factory;
     }
 
-    @EventHandler(priority = EventPriority.NORMAL)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onCall(EntityDamageByEntityEvent event) {
+        if (!(event.getDamager() instanceof Player damager)) return;
+        if (!(event.getEntity() instanceof LivingEntity livingEntity)) return;
+        if (!ProtectionLib.canInteract(damager, event.getEntity().getLocation())) return;
 
-        if (event.isCancelled())
-            return;
-        if (!(event.getDamager() instanceof Player damager))
-            return;
-
-        ItemStack item = damager.getInventory().getItemInMainHand();
-        String itemID = OraxenItems.getIdByItem(item);
-
-        if (factory.isNotImplementedIn(itemID))
-            return;
-
+        String itemID = OraxenItems.getIdByItem(damager.getInventory().getItemInMainHand());
+        if (!OraxenItems.exists(itemID)) return;
         LifeLeechMechanic mechanic = (LifeLeechMechanic) factory.getMechanic(itemID);
-        double health = damager.getHealth() + mechanic.getAmount();
-        double maxHealth = damager.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+        if (mechanic == null) return;
 
-        damager.setHealth(Math.min(health, maxHealth));
-        if (event.getEntity() instanceof LivingEntity damaged) {
-            damaged
-                    .setHealth(
-                            damaged.getHealth() - mechanic.getAmount() <= 0
-                                    ? 0.0 : damaged.getHealth() - mechanic.getAmount());
-        }
+        double maxHealth = damager.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+        damager.setHealth(Math.min(damager.getHealth() + mechanic.getAmount(), maxHealth));
+        livingEntity.setHealth(Math.max(livingEntity.getHealth() - mechanic.getAmount(), 0));
     }
 }

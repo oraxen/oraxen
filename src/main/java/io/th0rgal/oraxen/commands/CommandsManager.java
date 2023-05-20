@@ -195,7 +195,7 @@ public class CommandsManager {
                 .withPermission("oraxen.command.update")
                 .withArguments(new EntitySelectorArgument.ManyPlayers("targets"))
                 .withArguments(new TextArgument("type")
-                        .replaceSuggestions(ArgumentSuggestions.strings("hand", "all")))
+                        .replaceSuggestions(ArgumentSuggestions.strings("hand", "offhand", "all")))
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args[0];
 
@@ -204,9 +204,12 @@ public class CommandsManager {
                                 ItemUpdater.updateItem(player.getInventory().getItemInMainHand()));
                         Message.UPDATED_ITEMS.send(sender, AdventureUtils.tagResolver("amount", String.valueOf(1)),
                                 AdventureUtils.tagResolver("player", player.getDisplayName()));
-                    }
-
-                    if (sender.hasPermission("oraxen.command.update.all")) for (final Player player : targets) {
+                    } else if ("offhand".equals(args[1])) for (final Player player : targets) {
+                        player.getInventory().setItemInOffHand(
+                                ItemUpdater.updateItem(player.getInventory().getItemInOffHand()));
+                        Message.UPDATED_ITEMS.send(sender, AdventureUtils.tagResolver("amount", String.valueOf(1)),
+                                AdventureUtils.tagResolver("player", player.getDisplayName()));
+                    } else if (sender.hasPermission("oraxen.command.update.all")) for (final Player player : targets) {
                         int updated = 0;
                         for (int i = 0; i < player.getInventory().getSize(); i++) {
                             final ItemStack oldItem = player.getInventory().getItem(i);
@@ -216,6 +219,7 @@ public class CommandsManager {
                             player.getInventory().setItem(i, newItem);
                             updated++;
                         }
+                        player.updateInventory();
                         Message.UPDATED_ITEMS.send(sender, AdventureUtils.tagResolver("amount", String.valueOf(updated)),
                                 AdventureUtils.tagResolver("player", player.getDisplayName()));
                     }

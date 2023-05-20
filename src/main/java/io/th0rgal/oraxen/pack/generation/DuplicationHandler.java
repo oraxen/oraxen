@@ -238,7 +238,15 @@ public class DuplicationHandler {
         } else if (name.matches("assets/.*/sounds.json")) {
             Logs.logWarning("Found a sounds.json duplicate, trying to migrate it into Oraxens sound.yml config");
             return migrateSoundJson(name);
-        } else if (name.startsWith("assets/minecraft/shaders")) {
+        } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_text") && Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) {
+            Logs.logWarning("You are importing another copy of a shader file used to hide scoreboard numbers");
+            Logs.logWarning("Either disable <#22b14c>" + Settings.HIDE_SCOREBOARD_NUMBERS.getPath() + "</#22b14c> in settings.yml or delete this file");
+            return false;
+        } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_armor_cutout_no_cull") && Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) {
+            Logs.logWarning("You are trying to import a shader file used for custom armor.");
+            Logs.logWarning("This shader file is already in by Oraxen, you can delete this file");
+            return true;
+        } else if (name.startsWith("assets/minecraft/shaders/core/rendertype")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a shader file");
             Logs.logWarning("Merging this is too advanced and should be migrated manually or deleted.");
             return false;
@@ -251,6 +259,10 @@ public class DuplicationHandler {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a texture file");
             Logs.logWarning("Cannot migrate texture files, rename this or the duplicate entry");
             return false;
+        } else if (name.startsWith("assets/minecraft/lang")) {
+            Logs.logWarning("Failed to migrate duplicate file-entry, file is a language file");
+            Logs.logWarning("Please combine this with the duplicate file found in Oraxen/pack/lang folder");
+            return false;
         } else {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is not a file that Oraxen can migrate right now");
             Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
@@ -262,9 +274,10 @@ public class DuplicationHandler {
     // Fix importing other aspects of parent-model like shields display
     // It should use the imported as a base and merge the overrides only
     private static boolean migrateItemJson(String name) {
-        String itemMaterial = Utils.removeParentDirs(name).replace(".json", "").toUpperCase();
+        String itemMaterial = Utils.removeExtensionOnly(Utils.removeParentDirs(name)).toUpperCase();
+        Material material;
         try {
-            Material.valueOf(itemMaterial);
+            material = Material.valueOf(itemMaterial);
         } catch (IllegalArgumentException e) {
             Logs.logWarning("Failed to migrate duplicate file-entry, could not find material");
             return false;
@@ -274,6 +287,13 @@ public class DuplicationHandler {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is not a .json file");
             return false;
         }
+
+        if (Set.of(Material.BOW, Material.FISHING_ROD, Material.SHIELD, Material.CROSSBOW).contains(material)) {
+            Logs.logWarning("Failed to migrate duplicate file-entry, file is a model that is not supported yet");
+            Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
+            return false;
+        }
+
         YamlConfiguration migratedYaml = loadMigrateYaml("items");
         if (migratedYaml == null) {
             Logs.logWarning("Failed to migrate duplicate file-entry, failed to load items/migrated_duplicates.yml");
@@ -293,13 +313,8 @@ public class DuplicationHandler {
             JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
             String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
             String id = "migrated_" + Utils.removeParentDirs(modelPath);
-            int cmd;
-            try {
-                cmd = predicate.get("custom_model_data").getAsInt();
-            } catch (NullPointerException e) {
-                Logs.logWarning("Failed to migrate duplicate file-entry, could not find custom_model_data");
-                return false;
-            }
+            // Assume if no cmd is in that it is meant to replace the default model
+            int cmd = predicate.get("custom_model_data") != null ? predicate.get("custom_model_data").getAsInt() : 0;
 
             migratedYaml.set(id + ".material", itemMaterial);
             migratedYaml.set(id + ".excludeFromInventory", true);

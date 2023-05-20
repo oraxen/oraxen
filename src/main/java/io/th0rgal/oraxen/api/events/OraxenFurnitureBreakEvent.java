@@ -19,7 +19,7 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
     private final Entity baseEntity;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurnitureBreakEvent(FurnitureMechanic mechanic, Player player, @Nullable Block block, Entity baseEntity) {
+    public OraxenFurnitureBreakEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Entity baseEntity, @NotNull final Player player, @Nullable final Block block) {
         this.block = block;
         this.mechanic = mechanic;
         this.player = player;
@@ -29,6 +29,7 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
     /**
      * @return The FurnitureMechanic of this Furniture
      */
+    @NotNull
     public FurnitureMechanic getMechanic() {
         return mechanic;
     }
@@ -36,6 +37,7 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
     /**
      * @return The player that broke the furniture
      */
+    @NotNull
     public Player getPlayer() {
         return player;
     }
@@ -52,6 +54,7 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
     /**
      * @return The ItemFrame the furniture is inmechanic
      */
+    @NotNull
     public Entity getBaseEntity() {
         return baseEntity;
     }

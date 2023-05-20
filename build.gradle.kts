@@ -34,6 +34,7 @@ repositories {
     maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
     maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
     maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
+    maven("https://repo.mineinabyss.com/releases") // PlayerAnimator
     maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
     maven("https://maven.enginehub.org/repo/")
@@ -70,7 +71,7 @@ dependencies {
     implementation("com.jeff_media:CustomBlockData:2.2.0")
     implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
     implementation("gs.mclo:java:2.2.1")
-    implementation("com.ticxo.playeranimator:PlayerAnimator:R1.2.5")
+    implementation("com.ticxo:PlayerAnimator:R1.2.6")
     implementation("org.jetbrains:annotations:24.0.1") { isTransitive = false }
 
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }

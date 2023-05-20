@@ -6,6 +6,7 @@ import dev.triumphteam.gui.guis.StorageGui;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -43,10 +44,13 @@ public class BackpackListener implements Listener {
         closeBackpack(event.getPlayer());
     }
 
-    @EventHandler
+    @EventHandler(priority = EventPriority.HIGH)
     public void onPlayerInteract(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() == EquipmentSlot.OFF_HAND) return;
+        if (event.useInteractedBlock() == Event.Result.ALLOW) return;
+        if (event.useItemInHand() == Event.Result.DENY) return;
+        event.setUseItemInHand(Event.Result.ALLOW);
         openBackpack(event.getPlayer());
     }
 
@@ -59,7 +63,7 @@ public class BackpackListener implements Listener {
     }
 
     // Refresh close backpack if open to refresh with picked up items
-    @EventHandler
+    @EventHandler(ignoreCancelled = true)
     public void onPickupItem(final EntityPickupItemEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
         if (!(player.getOpenInventory().getTopInventory().getHolder() instanceof Gui)) return;
