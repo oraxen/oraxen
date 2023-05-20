@@ -1,19 +1,11 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 
-import io.papermc.paper.event.player.PlayerItemFrameChangeEvent;
-import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
-import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Effect;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -23,10 +15,6 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.ROTATION_KEY;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.yawToRotation;
-
 
 public class EvolutionListener implements Listener {
 
@@ -61,7 +49,7 @@ public class EvolutionListener implements Listener {
         if (randomChance(evolution.getBoneMealChance())) {
 
             OraxenFurniture.remove(entity, null);
-            nextMechanic.place(entity.getLocation(), entity.getLocation().getYaw(), FurnitureMechanic.yawToRotation(entity.getLocation().getYaw()), entity.getFacing());
+            nextMechanic.place(entity.getLocation(), entity.getLocation().getYaw(), entity.getFacing());
         }
     }
     public boolean randomChance(double chance) {

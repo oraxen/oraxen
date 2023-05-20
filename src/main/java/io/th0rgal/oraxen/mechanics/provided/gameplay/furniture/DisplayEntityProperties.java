@@ -28,7 +28,7 @@ public class DisplayEntityProperties {
         this.width = 1.0f;
         this.height = 1.0f;
         this.displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
-        this.scale = new Vector3f(1.0f, 1.0f, 1.0f);
+        this.scale = null;
         this.shadowRadius = null;
         this.shadowStrength = null;
         this.brightness = null;
