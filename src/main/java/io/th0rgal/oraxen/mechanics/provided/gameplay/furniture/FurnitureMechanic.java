@@ -323,7 +323,7 @@ public class FurnitureMechanic extends Mechanic {
     private void setEntityData(Entity entity, float yaw, ItemStack item, BlockFace facing) {
         setBaseFurnitureData(entity);
         if (entity instanceof ItemFrame frame) {
-            setFrameData(frame, item, facing);
+            setFrameData(frame, item, yaw, facing);
             Location location = entity.getLocation();
 
             if (hasBarriers()) setBarrierHitbox(location, yaw, true);
@@ -342,7 +342,7 @@ public class FurnitureMechanic extends Mechanic {
                 }
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
-            yaw = displayEntityProperties.getDisplayTransform().equals(ItemDisplay.ItemDisplayTransform.FIXED) ? yaw - 180 : yaw;
+            //Correct FIXED item display yaw until 1.20 fixes this
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
             Location location = itemDisplay.getLocation();
             float width = hasHitbox() ? hitbox.width : displayEntityProperties.getWidth();
@@ -401,19 +401,26 @@ public class FurnitureMechanic extends Mechanic {
         Transformation transform = itemDisplay.getTransformation();
         if (properties.hasScale()) {
             transform.getScale().set(properties.getScale());
-        } else if (isFixed) transform.getScale().set(new Vector3f(0.5f, 0.5f, 0.5f));
+        } else transform.getScale().set(isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : new Vector3f(1f, 1f, 1f));
 
-        if (displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.NONE)
-            itemDisplay.teleport(BlockHelpers.toCenterLocation(itemDisplay.getLocation()));
+        // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation
+        float pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
+        //TODO isWall will be put of the wall slightly. Fixing this is annoying as it is direction relative
+        // isRoof will also be wack if it is set to FIXED
+        Location fixedLocation = !isFixed || !hasLimitedPlacing() || limitedPlacing.isWall()
+                ? BlockHelpers.toCenterLocation(itemDisplay.getLocation())
+                : BlockHelpers.toCenterBlockLocation(itemDisplay.getLocation());
+        itemDisplay.teleport(fixedLocation);
         itemDisplay.setTransformation(transform);
-        itemDisplay.setRotation(yaw, isFixed ? 90 : 0);
+        itemDisplay.setRotation(yaw - 180, pitch);
     }
 
-    private void setFrameData(ItemFrame frame, ItemStack item, BlockFace facing) {
+    private void setFrameData(ItemFrame frame, ItemStack item, float yaw, BlockFace facing) {
         frame.setVisible(false);
         frame.setItemDropChance(0);
         frame.setFacingDirection(facing, true);
         frame.setItem(item);
+        frame.setRotation(yawToRotation(yaw));
 
         if (hasLimitedPlacing()) {
             if (limitedPlacing.isFloor() && !limitedPlacing.isWall() && frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
