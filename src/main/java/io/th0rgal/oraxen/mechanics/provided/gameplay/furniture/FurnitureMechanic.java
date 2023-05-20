@@ -414,9 +414,10 @@ public class FurnitureMechanic extends Mechanic {
         // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation
         float pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
         //TODO isWall will be put of the wall slightly. Fixing this is annoying as it is direction relative
-        // isRoof will also be wack if it is set to FIXED
         Location fixedLocation = !isFixed || !hasLimitedPlacing() || limitedPlacing.isWall()
                 ? BlockHelpers.toCenterLocation(itemDisplay.getLocation())
+                // Add .9 to raise the item up due to pitch change
+                : limitedPlacing.isRoof() ? BlockHelpers.toCenterBlockLocation(itemDisplay.getLocation()).add(0, 0.9, 0)
                 : BlockHelpers.toCenterBlockLocation(itemDisplay.getLocation());
         itemDisplay.teleport(fixedLocation);
         itemDisplay.setTransformation(transform);
