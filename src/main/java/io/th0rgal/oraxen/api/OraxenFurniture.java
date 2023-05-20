@@ -88,7 +88,9 @@ public class OraxenFurniture {
      */
     public static boolean remove(Entity baseEntity, @Nullable Player player) {
         FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
-        if (mechanic == null || baseEntity.getType() != mechanic.getFurnitureEntityType()) return false;
+        if (mechanic == null) return false;
+        baseEntity = mechanic.getBaseEntity(baseEntity);
+        if (baseEntity == null || baseEntity.getType() != mechanic.getFurnitureEntityType()) return false;
         ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
 
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
@@ -121,6 +123,7 @@ public class OraxenFurniture {
      */
     public static FurnitureMechanic getFurnitureMechanic(Entity entity) {
         final String itemID = entity.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING);
+        //TODO check for base entity if itemid is null
         if (!OraxenItems.exists(itemID)) return null;
         return (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
     }

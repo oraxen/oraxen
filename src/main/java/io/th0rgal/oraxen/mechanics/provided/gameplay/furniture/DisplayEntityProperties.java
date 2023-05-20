@@ -62,9 +62,9 @@ public class DisplayEntityProperties {
         try {
             displayTransform = ItemDisplay.ItemDisplayTransform.valueOf(configSection.getString("display_transform", ItemDisplay.ItemDisplayTransform.NONE.name()));
         } catch (IllegalArgumentException e) {
-            Logs.logError("Use of illegal ItemDisplayTransform in " + itemID + " furniture.");
-            Logs.logError("Allowed ones are: " + Arrays.stream(ItemDisplay.ItemDisplayTransform.values()).toList().stream().map(Enum::name));
-            Logs.logWarning("Set transform to NONE for " + itemID);
+            Logs.logError("Use of illegal ItemDisplayTransform in furniture: <gold>" + itemID);
+            Logs.logWarning("Allowed ones are: <gold>" + Arrays.stream(ItemDisplay.ItemDisplayTransform.values()).map(Enum::name).toList());
+            Logs.logWarning("Setting transform to NONE for furniture: <gold>" + itemID);
             displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
         }
 
