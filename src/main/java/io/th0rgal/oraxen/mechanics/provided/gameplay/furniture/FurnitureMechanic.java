@@ -626,24 +626,6 @@ public class FurnitureMechanic extends Mechanic {
         return null;
     }
 
-    @Deprecated(forRemoval = true, since = "1.154.0")
-    public ItemFrame getItemFrame(Block block) {
-        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
-        if (pdc.isEmpty()) return null;
-        final BlockLocation blockLoc = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
-        Location originLoc = blockLoc.toLocation(block.getWorld());
-
-        if (hasBarriers()) for (Entity entity : block.getWorld().getNearbyEntities(originLoc, 0.5, 0.5, 0.5)) {
-            if (entity instanceof ItemFrame frame
-                    && entity.getLocation().getBlockX() == originLoc.getBlockX()
-                    && entity.getLocation().getBlockY() == originLoc.getBlockY()
-                    && entity.getLocation().getBlockZ() == originLoc.getBlockZ()
-                    && entity.getPersistentDataContainer().has(FURNITURE_KEY, PersistentDataType.STRING))
-                return frame;
-        }
-        return null;
-    }
-
     @Nullable
     public Entity getBaseEntity(Block block) {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
@@ -674,9 +656,9 @@ public class FurnitureMechanic extends Mechanic {
     /**
      * Old method and inefficient method for getting the interaction entity. Kept for backwards compatibility.
      * When ran it will update the furniture to the new method without needing to replace it
+     * @apiNote Remove for 1.20
      */
     @Nullable
-    @Deprecated(forRemoval = true, since = "1.156.0")
     private Entity getBaseEntityAlter(Entity entity) {
         // If the entity is the same type as the base entity, return it
         // Since ItemDisplay entities have no hitbox it will only be for ITEM_FRAME based ones
@@ -706,9 +688,9 @@ public class FurnitureMechanic extends Mechanic {
     /**
      * Old method and inefficient method for getting the interaction entity. Kept for backwards compatibility.
      * When ran it will update the furniture to the new method without needing to replace it
+     * @apiNote Remove for 1.20
      */
     @Nullable
-    @Deprecated(forRemoval = true, since = "1.156.0")
     private Interaction getInteractionEntityAlter(Entity baseEntity) {
         if (OraxenPlugin.supportsDisplayEntities) {
             for (Entity entity : baseEntity.getNearbyEntities(0.1, 0.1, 0.1)) {
