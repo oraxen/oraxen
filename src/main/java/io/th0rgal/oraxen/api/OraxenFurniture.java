@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.api;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -11,6 +12,7 @@ import org.bukkit.Rotation;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
@@ -88,7 +90,10 @@ public class OraxenFurniture {
      */
     public static boolean remove(Entity baseEntity, @Nullable Player player) {
         FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
-        if (mechanic == null || baseEntity.getType() != mechanic.getFurnitureEntityType()) return false;
+        if (mechanic == null) return false;
+        // Return if entity is interaction. Otherwise, remove it based on mechanic
+        // Allows for changing the FurnitureType in config and still remove old entities
+        if (OraxenPlugin.supportsDisplayEntities && baseEntity.getType() == EntityType.INTERACTION) return false;
         ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
 
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
