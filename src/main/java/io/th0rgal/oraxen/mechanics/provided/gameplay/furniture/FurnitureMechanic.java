@@ -573,7 +573,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public static float getFurnitureYaw(Entity entity) {
-        return entity.getLocation().getYaw();
+        return (entity instanceof ItemFrame itemFrame) ? rotationToYaw(itemFrame.getRotation()) : entity.getLocation().getYaw();
     }
 
     public static float rotationToYaw(Rotation rotation) {
