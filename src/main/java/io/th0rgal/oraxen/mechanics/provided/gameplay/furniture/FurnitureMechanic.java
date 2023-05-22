@@ -650,7 +650,7 @@ public class FurnitureMechanic extends Mechanic {
         // Since ItemDisplay entities have no hitbox it will only be for ITEM_FRAME based ones
         if (getFurnitureEntityType() == entity.getType()) return entity;
         UUID baseEntityUUID = entity.getPersistentDataContainer().get(BASE_ENTITY_KEY, DataType.UUID);
-        return baseEntityUUID != null && Bukkit.getEntity(baseEntityUUID) != null ? getBaseEntityAlter(entity) : null;
+        return baseEntityUUID != null && Bukkit.getEntity(baseEntityUUID) != null ? Bukkit.getEntity(baseEntityUUID) : getBaseEntityAlter(entity);
     }
 
     /**
