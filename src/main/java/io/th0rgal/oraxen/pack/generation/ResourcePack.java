@@ -79,8 +79,7 @@ public class ResourcePack {
                     !soundFolder.exists(), !assetsFolder.exists(), !optifineFolder.exists());
         else extractRequired();
 
-        if (!Settings.GENERATE.toBool())
-            return;
+        if (!Settings.GENERATE.toBool()) return;
 
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool() && Bukkit.getPluginManager().isPluginEnabled("HappyHUD")) {
             Logs.logError("HappyHUD detected with hide_scoreboard_numbers enabled!");
@@ -107,6 +106,7 @@ public class ResourcePack {
             for (Consumer<File> packModifier : packModifiers)
                 packModifier.accept(packFolder);
         List<VirtualFile> output = new ArrayList<>(outputFiles.values());
+
         // zipping resourcepack
         try {
             getFilesInFolder(packFolder, output,
@@ -121,6 +121,9 @@ public class ResourcePack {
                 else if (folder.isDirectory())
                     getAllFiles(folder, output, "assets/minecraft");
             }
+
+            // Convert the global.json within the lang-folder to all languages
+            convertGlobalLang(output);
 
             if (Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.toBool() && customArmorsTextures.hasCustomArmors()) {
                 String armorPath = "assets/minecraft/textures/models/armor";
@@ -152,8 +155,9 @@ public class ResourcePack {
         excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
         if (!excludedExtensions.isEmpty() && !output.isEmpty()) {
             List<VirtualFile> newOutput = new ArrayList<>();
-            for (VirtualFile virtual : output) for (String extension : excludedExtensions)
-                if (virtual.getPath().endsWith(extension)) newOutput.add(virtual);
+            for (VirtualFile virtual : output)
+                for (String extension : excludedExtensions)
+                    if (virtual.getPath().endsWith(extension)) newOutput.add(virtual);
             output.removeAll(newOutput);
         }
 
@@ -206,7 +210,6 @@ public class ResourcePack {
                     jsonModel = JsonParser.parseString(content).getAsJsonObject();
                 } catch (JsonSyntaxException e) {
                     Logs.logError("Found malformed json at <red>" + model.getPath() + "</red>");
-                    Logs.debug(model.getPath());
                     e.printStackTrace();
                     continue;
                 }
@@ -557,6 +560,55 @@ public class ResourcePack {
         String prefix = newFolder.isEmpty() ? newFolder : newFolder + "/";
         return prefix + path.substring(packFolder.getCanonicalPath().length() + 1);
     }
+
+    private void convertGlobalLang(List<VirtualFile> output) {
+        Logs.logWarning("Converting global lang file to individual language files...");
+        Set<VirtualFile> virtualLangFiles = new HashSet<>();
+        File globalLangFile = new File(packFolder, "lang/global.json");
+        JsonObject globalLang = new JsonObject();
+        String content = "";
+        if (!globalLangFile.exists()) plugin.saveResource("pack/lang/global.json", false);
+
+        try {
+            content = Files.readString(globalLangFile.toPath(), StandardCharsets.UTF_8);
+            globalLang = JsonParser.parseString(content).getAsJsonObject();
+        } catch (IOException | IllegalStateException | IllegalArgumentException ignored) {
+        }
+
+        if (content.isEmpty() || globalLang.isJsonNull()) return;
+
+        for (String lang : availableLanguageCodes) {
+            File langFile = new File(packFolder, "lang/" + lang + ".json");
+            JsonObject langJson = new JsonObject();
+
+            // If the file is in the pack, we want to keep the existing entries over global ones
+            if (langFile.exists()) {
+                try {
+                    langJson = JsonParser.parseString(Files.readString(langFile.toPath(), StandardCharsets.UTF_8)).getAsJsonObject();
+                } catch (IOException | IllegalStateException ignored) {
+                }
+            }
+
+            for (Map.Entry<String, JsonElement> entry : globalLang.entrySet()) {
+                if (entry.getKey().equals("DO_NOT_ALTER_THIS_LINE")) continue;
+                // If the entry already exists in the lang file, we don't want to overwrite it
+                if (langJson.has(entry.getKey())) continue;
+                langJson.add(entry.getKey(), entry.getValue());
+            }
+
+            InputStream langStream = new ByteArrayInputStream(langJson.toString().getBytes(StandardCharsets.UTF_8));
+            virtualLangFiles.add(new VirtualFile("assets/minecraft/lang", lang + ".json", langStream));
+        }
+        // Remove previous langfiles as these have been migrated in above
+        output.removeIf(virtualFile -> virtualFile.getPath().startsWith("assets/minecraft/lang"));
+        output.addAll(virtualLangFiles);
+    }
+
+    private static final Set<String> availableLanguageCodes = new HashSet<>(Arrays.asList("af_za", "ar_sa", "ast_es", "az_az",
+            "be_by", "bg_bg", "br_fr", "ca_es", "cs_cz", "cy_gb", "da_dk", "de_at", "de_ch",
+            "de_de", "el_gr", "en_au", "en_ca", "en_gb", "en_nz", "en_pt", "en_ud", "en_us",
+            "eo_uy", "es_ar", "es_es", "es_mx", "es_uy", "es_ve", "et_ee", "eu_es", "fa_ir",
+            "fi_fi", "fil_ph", "fo_fo", "fr_ca", "fr_fr", "fy_nl", "ga_ie", "gd_gb", "gl_es"));
 
     private void generateScoreboardFiles() {
         Map<String, String> scoreboardShaderFiles = Map.of("assets/minecraft/shaders/core/rendertype_text.json", getScoreboardJson(), "assets/minecraft/shaders/core/rendertype_text.vsh", getScoreboardVsh());

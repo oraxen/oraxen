@@ -1,0 +1,8 @@
+{
+  "DO_NOT_ALTER_THIS_LINE":
+   "This file is for editing all languages at once. To, edit a specific language, use the corresponding file in the 'languages' folder.",
+
+
+  "menu.game": "<glyph:logo>",
+  "menu.disconnect": "<gray><shift:60>See you soon!<shift:-143><glyph:menu_banner>"
+}
