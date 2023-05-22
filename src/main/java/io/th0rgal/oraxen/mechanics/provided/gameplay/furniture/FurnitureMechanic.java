@@ -465,7 +465,7 @@ public class FurnitureMechanic extends Mechanic {
         modelEntity.setBaseEntityVisible(false);
         modelEntity.setModelRotationLock(true);
 
-        if (entity instanceof ItemDisplay itemDisplay)
+        if (OraxenPlugin.supportsDisplayEntities && entity instanceof ItemDisplay itemDisplay)
             itemDisplay.setItemStack(new ItemStack(Material.AIR));
         else if (entity instanceof ItemFrame itemFrame)
             itemFrame.setItem(new ItemStack(Material.AIR), false);
