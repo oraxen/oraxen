@@ -18,15 +18,15 @@ public class DisplayEntityProperties {
     private Float shadowRadius;
     private Integer interpolationDuration;
     private Integer interpolationDelay;
-    private final float width;
-    private final float height;
+    private final float displayWidth;
+    private final float displayHeight;
     private final Vector3f scale;
     private final boolean isInteractable;
 
     public DisplayEntityProperties() {
         this.isInteractable = true;
-        this.width = 0f;
-        this.height = 0f;
+        this.displayWidth = 0f;
+        this.displayHeight = 0f;
         this.displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
         this.scale = null;
         this.shadowRadius = null;
@@ -45,8 +45,8 @@ public class DisplayEntityProperties {
         interpolationDelay = configSection.getInt("interpolation_delay");
         shadowStrength = (float) configSection.getDouble("shadow_strength");
         shadowRadius = (float) configSection.getDouble("shadow_radius");
-        width = (float) configSection.getDouble("width", 0);
-        height = (float) configSection.getDouble("height", 0);
+        displayWidth = (float) configSection.getDouble("displayWidth", 0);
+        displayHeight = (float) configSection.getDouble("displayHeight", 0);
         if (configSection.isConfigurationSection("scale"))
             scale = new Vector3f((float) configSection.getDouble("scale.x", 1.0),
                     (float) configSection.getDouble("scale.y", 1.0),
@@ -146,13 +146,11 @@ public class DisplayEntityProperties {
         return shadowRadius;
     }
 
-    public float getWidth() {
-        return width;
+    public float getDisplayWidth() {
+        return displayWidth;
     }
 
-    public float getHeight() {
-        return height;
-    }
+    public float getDisplayHeight() { return displayHeight; }
 
     public boolean hasScale() {
         return scale != null;

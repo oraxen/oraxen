@@ -348,8 +348,8 @@ public class FurnitureMechanic extends Mechanic {
             //Correct FIXED item display yaw until 1.20 fixes this
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
             Location location = itemDisplay.getLocation();
-            float width = hasHitbox() ? hitbox.width : displayEntityProperties.getWidth();
-            float height = hasHitbox() ? hitbox.height : displayEntityProperties.getHeight();
+            float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
+            float height = hasHitbox() ? hitbox.height : displayEntityProperties.getDisplayHeight();
             Interaction interaction = spawnInteractionEntity(itemDisplay, location, width, height, displayEntityProperties.isInteractable());
 
             if (hasBarriers()) setBarrierHitbox(location, yaw, false);
@@ -400,8 +400,8 @@ public class FurnitureMechanic extends Mechanic {
         if (properties.hasBrightness()) itemDisplay.setBrightness(displayEntityProperties.getBrightness());
         else if (light != -1) itemDisplay.setBrightness(new Display.Brightness(light, 0));
 
-        itemDisplay.setDisplayWidth(properties.getWidth());
-        itemDisplay.setDisplayHeight(properties.getHeight());
+        itemDisplay.setDisplayWidth(properties.getDisplayWidth());
+        itemDisplay.setDisplayHeight(properties.getDisplayHeight());
         itemDisplay.setItemStack(item);
 
         // Set scale to .5 if FIXED aka ItemFrame to fix size. Also flip it 90 degrees on pitch
