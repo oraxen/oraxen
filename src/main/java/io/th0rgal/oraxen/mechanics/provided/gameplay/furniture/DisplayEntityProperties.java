@@ -25,8 +25,8 @@ public class DisplayEntityProperties {
 
     public DisplayEntityProperties() {
         this.isInteractable = true;
-        this.width = 1.0f;
-        this.height = 1.0f;
+        this.width = 0f;
+        this.height = 0f;
         this.displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
         this.scale = null;
         this.shadowRadius = null;
@@ -45,8 +45,8 @@ public class DisplayEntityProperties {
         interpolationDelay = configSection.getInt("interpolation_delay");
         shadowStrength = (float) configSection.getDouble("shadow_strength");
         shadowRadius = (float) configSection.getDouble("shadow_radius");
-        width = (float) configSection.getDouble("width", 1.0);
-        height = (float) configSection.getDouble("height", 1.0);
+        width = (float) configSection.getDouble("width", 0);
+        height = (float) configSection.getDouble("height", 0);
         if (configSection.isConfigurationSection("scale"))
             scale = new Vector3f((float) configSection.getDouble("scale.x", 1.0),
                     (float) configSection.getDouble("scale.y", 1.0),
