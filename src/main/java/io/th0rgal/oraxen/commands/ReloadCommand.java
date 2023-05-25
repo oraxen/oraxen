@@ -53,7 +53,7 @@ public class ReloadCommand {
                 .withAliases("rl")
                 .withPermission("oraxen.command.reload")
                 .withArguments(new TextArgument("type").replaceSuggestions(
-                        ArgumentSuggestions.strings("items", "pack", "hud", "recipes", "messages", "all")))
+                        ArgumentSuggestions.strings("items", "pack", "hud", "recipes", "messages", "all", "all_except_recipes")))
                 .executes((sender, args) -> {
                     switch (((String) args[0]).toUpperCase()) {
                         case "HUD" -> reloadHud(sender);
@@ -64,6 +64,16 @@ public class ReloadCommand {
                         case "PACK" -> reloadPack(sender);
                         case "RECIPES" -> RecipesManager.reload();
                         case "CONFIGS" -> OraxenPlugin.get().reloadConfigs();
+                        case "ALL_EXCEPT_RECIPES" -> {
+                            OraxenPlugin oraxen = OraxenPlugin.get();
+                            MechanicsManager.unloadListeners();
+                            MechanicsManager.registerNativeMechanics();
+                            OraxenPlugin.get().reloadConfigs();
+                            reloadItems(sender);
+                            reloadPack(sender);
+                            reloadHud(sender);
+                            OraxenPlugin.get().getInvManager().regen();
+                        }
                         default -> {
                             OraxenPlugin oraxen = OraxenPlugin.get();
                             MechanicsManager.unloadListeners();
