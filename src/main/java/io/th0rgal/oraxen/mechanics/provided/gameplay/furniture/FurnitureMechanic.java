@@ -488,7 +488,8 @@ public class FurnitureMechanic extends Mechanic {
             case ITEM_DISPLAY -> {
                 if (OraxenPlugin.supportsDisplayEntities) ((ItemDisplay) entity).setItemStack(item);
             }
-        };
+            default -> {}
+        }
     }
 
     public boolean removeSolid(Block block) {
