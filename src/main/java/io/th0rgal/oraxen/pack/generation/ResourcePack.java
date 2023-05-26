@@ -224,7 +224,8 @@ public class ResourcePack {
                                     Material.valueOf(Utils.getFileNameOnly(jsonTexture).toUpperCase());
                                 } catch (IllegalArgumentException e) {
                                     Logs.logWarning("Found invalid texture-path inside model-file <blue>" + model.getPath() + "</blue>: " + jsonTexture);
-                                    Logs.logError("Texture-paths cannot contain spaces or Capital Letters");
+                                    Logs.logWarning("Verify that you have a texture in said path.");
+                                    Logs.newline();
                                     malformedModels.add(model);
                                 }
                             }
