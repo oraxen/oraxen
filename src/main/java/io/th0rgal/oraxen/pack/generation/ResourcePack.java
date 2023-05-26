@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -98,7 +99,6 @@ public class ResourcePack {
         // Sorting items to keep only one with models (and generate it if needed)
         generatePredicates(extractTexturedItems());
         generateFont(fontManager);
-        generateSound(soundManager);
         if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardFiles();
 
@@ -160,6 +160,8 @@ public class ResourcePack {
                     if (virtual.getPath().endsWith(extension)) newOutput.add(virtual);
             output.removeAll(newOutput);
         }
+
+        generateSound(soundManager, output);
 
         ZipUtils.writeZipFile(pack, output);
     }
@@ -421,14 +423,29 @@ public class ResourcePack {
         writeStringToVirtual("assets/minecraft/font", "default.json", output.toString());
     }
 
-    private void generateSound(final SoundManager soundManager) {
-        if (!soundManager.isAutoGenerate())
-            return;
-        final JsonObject output = new JsonObject();
+    private void generateSound(final SoundManager soundManager, List<VirtualFile> output) {
+        if (!soundManager.isAutoGenerate()) return;
+
+        VirtualFile soundFile = output.stream().filter(file -> file.getPath().equals("assets/minecraft/sounds.json")).findFirst().orElse(null);
+        JsonObject outputJson = new JsonObject();
+
+        // If file was imported by other means, we attempt to merge in sound.yml entries
+        if (soundFile != null) {
+            try {
+                JsonElement soundElement = JsonParser.parseString(IOUtils.toString(soundFile.getInputStream(), StandardCharsets.UTF_8));
+                if (soundElement != null && soundElement.isJsonObject())
+                    outputJson = soundElement.getAsJsonObject();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
 
         for (CustomSound sound : handleCustomSoundEntries(soundManager.getCustomSounds()))
-            output.add(sound.getName(), sound.toJson());
-        writeStringToVirtual("assets/minecraft", "sounds.json", output.toString());
+            outputJson.add(sound.getName(), sound.toJson());
+
+        output.remove(soundFile);
+        writeStringToVirtual("assets/minecraft", "sounds.json", outputJson.toString());
     }
 
     private void generateGestureFiles() {
