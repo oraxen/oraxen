@@ -217,8 +217,8 @@ public class DuplicationHandler {
             } else if (attemptToMigrateDuplicate(name)) {
                 Logs.logSuccess("Duplicate file fixed:<blue> " + name);
                 try {
-                    OraxenPlugin.get().getDataFolder().toPath().resolve("pack").resolve(name).toFile().delete();
-                    Logs.logSuccess("Deleted the imported <blue>" + Utils.removeParentDirs(name) + "</blue> and migrated it to its supported Oraxen config(s)");
+                    if (OraxenPlugin.get().getDataFolder().toPath().resolve("pack").resolve(name).toFile().delete())
+                        Logs.logSuccess("Deleted the imported <blue>" + Utils.removeParentDirs(name) + "</blue> and migrated it to its supported Oraxen config(s)");
                 } catch (Exception ignored) {
                     Log.error("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");
                 }
@@ -235,7 +235,7 @@ public class DuplicationHandler {
         } else if (name.matches("assets/.*/font/.*.json")) {
             Logs.logWarning("Found a duplicated font file, trying to migrate it into Oraxens generated copy");
             return mergeDuplicateFontJson(name);
-        } else if (name.matches("assets/.*/sounds.json")) {
+        } else if (name.matches("assets/minecraft/sounds.json")) {
             Logs.logWarning("Found a sounds.json duplicate, trying to migrate it into Oraxens sound.yml config");
             return migrateSoundJson(name);
         } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_text") && Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) {
@@ -244,7 +244,7 @@ public class DuplicationHandler {
             return false;
         } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_armor_cutout_no_cull") && Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) {
             Logs.logWarning("You are trying to import a shader file used for custom armor.");
-            Logs.logWarning("This shader file is already in by Oraxen, you can delete this file");
+            Logs.logWarning("This shader file is already in your pack. Deleting...");
             return true;
         } else if (name.startsWith("assets/minecraft/shaders/core/rendertype")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a shader file");
@@ -263,6 +263,10 @@ public class DuplicationHandler {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a language file");
             Logs.logWarning("Please combine this with the duplicate file found in Oraxen/pack/lang folder");
             return false;
+        } else if (name.matches("assets/minecraft/optifine/cit/armors/.*/.*.properties")) {
+            Logs.logWarning("You are trying to import an Optifine CustomArmor file.");
+            Logs.logWarning("Oraxen already generates all these needed files for you. Deleting...");
+            return true;
         } else {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is not a file that Oraxen can migrate right now");
             Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
