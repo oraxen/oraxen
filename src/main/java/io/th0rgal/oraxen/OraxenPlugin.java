@@ -100,9 +100,9 @@ public class OraxenPlugin extends JavaPlugin {
         CommandAPI.onEnable(this);
         ProtectionLib.init(this);
         PlayerAnimatorImpl.initialize(this);
-        reloadConfigs();
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
+        reloadConfigs();
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
