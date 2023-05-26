@@ -217,8 +217,8 @@ public class DuplicationHandler {
             } else if (attemptToMigrateDuplicate(name)) {
                 Logs.logSuccess("Duplicate file fixed:<blue> " + name);
                 try {
-                    OraxenPlugin.get().getDataFolder().toPath().resolve("pack").resolve(name).toFile().delete();
-                    Logs.logSuccess("Deleted the imported <blue>" + Utils.removeParentDirs(name) + "</blue> and migrated it to its supported Oraxen config(s)");
+                    if (OraxenPlugin.get().getDataFolder().toPath().resolve("pack").resolve(name).toFile().delete())
+                        Logs.logSuccess("Deleted the imported <blue>" + Utils.removeParentDirs(name) + "</blue> and migrated it to its supported Oraxen config(s)");
                 } catch (Exception ignored) {
                     Log.error("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");
                 }
@@ -235,7 +235,7 @@ public class DuplicationHandler {
         } else if (name.matches("assets/.*/font/.*.json")) {
             Logs.logWarning("Found a duplicated font file, trying to migrate it into Oraxens generated copy");
             return mergeDuplicateFontJson(name);
-        } else if (name.matches("assets/.*/sounds.json")) {
+        } else if (name.matches("assets/minecraft/sounds.json")) {
             Logs.logWarning("Found a sounds.json duplicate, trying to migrate it into Oraxens sound.yml config");
             return migrateSoundJson(name);
         } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_text") && Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) {
@@ -244,7 +244,7 @@ public class DuplicationHandler {
             return false;
         } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_armor_cutout_no_cull") && Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) {
             Logs.logWarning("You are trying to import a shader file used for custom armor.");
-            Logs.logWarning("This shader file is already in by Oraxen, you can delete this file");
+            Logs.logWarning("This shader file is already in your pack. Deleting...");
             return true;
         } else if (name.startsWith("assets/minecraft/shaders/core/rendertype")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a shader file");
@@ -252,9 +252,10 @@ public class DuplicationHandler {
             return false;
         } else if (name.startsWith("assets/minecraft/textures/models/armor/leather_layer")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a combined custom armor texture");
-            Logs.logWarning("You should not import already combined armor layer files, but individual ones for every armor set you want.");
-            Logs.logWarning("Please refer to https://docs.oraxen.com/configuration/custom-armors for more information");
-            return false;
+            Logs.logWarning("You should not import already combined armor layer files.");
+            Logs.logWarning("If you want to handle these files manually, disable <#22b14c>" + Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.getPath() + "</#22b14c> in settings.yml");
+            Logs.logWarning("Please refer to https://docs.oraxen.com/configuration/custom-armors for more information. Deleting...");
+            return true;
         } else if (name.startsWith("assets/minecraft/textures")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a texture file");
             Logs.logWarning("Cannot migrate texture files, rename this or the duplicate entry");
@@ -263,6 +264,10 @@ public class DuplicationHandler {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a language file");
             Logs.logWarning("Please combine this with the duplicate file found in Oraxen/pack/lang folder");
             return false;
+        } else if (name.matches("assets/minecraft/optifine/cit/armors/.*/.*.properties")) {
+            Logs.logWarning("You are trying to import an Optifine CustomArmor file.");
+            Logs.logWarning("Oraxen already generates all these needed files for you. Deleting...");
+            return true;
         } else {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is not a file that Oraxen can migrate right now");
             Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
@@ -270,14 +275,10 @@ public class DuplicationHandler {
         }
     }
 
-    //TODO
-    // Fix importing other aspects of parent-model like shields display
-    // It should use the imported as a base and merge the overrides only
     private static boolean migrateItemJson(String name) {
         String itemMaterial = Utils.removeExtensionOnly(Utils.removeParentDirs(name)).toUpperCase();
-        Material material;
         try {
-            material = Material.valueOf(itemMaterial);
+            Material.valueOf(itemMaterial);
         } catch (IllegalArgumentException e) {
             Logs.logWarning("Failed to migrate duplicate file-entry, could not find material");
             return false;
@@ -285,12 +286,6 @@ public class DuplicationHandler {
 
         if (!name.endsWith(".json")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is not a .json file");
-            return false;
-        }
-
-        if (Set.of(Material.BOW, Material.FISHING_ROD, Material.SHIELD, Material.CROSSBOW).contains(material)) {
-            Logs.logWarning("Failed to migrate duplicate file-entry, file is a model that is not supported yet");
-            Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
             return false;
         }
 
@@ -309,19 +304,40 @@ public class DuplicationHandler {
         }
 
         JsonObject json = JsonParser.parseString(fileContent).getAsJsonObject();
-        if (json.getAsJsonArray("overrides") != null) for (JsonElement element : json.getAsJsonArray("overrides")) {
-            JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
-            String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
-            String id = "migrated_" + Utils.removeParentDirs(modelPath);
-            // Assume if no cmd is in that it is meant to replace the default model
-            int cmd = predicate.get("custom_model_data") != null ? predicate.get("custom_model_data").getAsInt() : 0;
+        JsonArray overrides = json.getAsJsonArray("overrides");
+        //Map<Integer, Map<Integer, String>> pullingModels = new HashMap<>();
+        Map<Integer, List<String>> pullingModels = new HashMap<>();
+        Map<Integer, String> chargedModels = new HashMap<>();
+        Map<Integer, String> blockingModels = new HashMap<>();
+        Map<Integer, String> castModels = new HashMap<>();
+        List<JsonElement> overridesToRemove = new ArrayList<>();
+        if (overrides != null) {
+            handleBowPulling(overrides, overridesToRemove, pullingModels);
+            handleCrossbowPulling(overrides, overridesToRemove, chargedModels);
+            handleShieldBlocking(overrides, overridesToRemove, blockingModels);
+            handleFishingRodCast(overrides, overridesToRemove, castModels);
 
-            migratedYaml.set(id + ".material", itemMaterial);
-            migratedYaml.set(id + ".excludeFromInventory", true);
-            migratedYaml.set(id + ".excludeFromCommands", true);
-            migratedYaml.set(id + ".Pack.generate_model", false);
-            migratedYaml.set(id + ".Pack.model", modelPath);
-            if (Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) migratedYaml.set(id + ".Pack.custom_model_data", cmd);
+            for (JsonElement element : overridesToRemove) overrides.remove(element);
+
+            for (JsonElement element : overrides) {
+                JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
+                String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
+                String id = "migrated_" + Utils.removeParentDirs(modelPath);
+                // Assume if no cmd is in that it is meant to replace the default model
+                int cmd = predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsInt() : 0;
+
+
+                migratedYaml.set(id + ".material", itemMaterial);
+                migratedYaml.set(id + ".excludeFromInventory", true);
+                migratedYaml.set(id + ".excludeFromCommands", true);
+                migratedYaml.set(id + ".Pack.generate_model", false);
+                migratedYaml.set(id + ".Pack.model", modelPath);
+                if (pullingModels.containsKey(cmd)) migratedYaml.set(id + ".Pack.pulling_models", pullingModels.get(cmd));
+                if (chargedModels.containsKey(cmd)) migratedYaml.set(id + ".Pack.charged_model", chargedModels.get(cmd));
+                if (blockingModels.containsKey(cmd)) migratedYaml.set(id + ".Pack.blocking_model", blockingModels.get(cmd));
+                if (castModels.containsKey(cmd)) migratedYaml.set(id + ".Pack.cast_model", castModels.get(cmd));
+                if (Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) migratedYaml.set(id + ".Pack.custom_model_data", cmd);
+            }
         }
 
         try {
@@ -332,6 +348,40 @@ public class DuplicationHandler {
         }
 
         return true;
+    }
+
+    private static void handleBowPulling(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, List<String>> pullingModels) {
+        for (JsonElement element : overrides) {
+            JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
+            if (predicate == null) continue;
+            if (!predicate.has("pulling")) continue;
+            int cmd = predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsInt() : 0;
+            String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
+            List<String> newPullingModels = pullingModels.getOrDefault(cmd, new ArrayList<>());
+            newPullingModels.add(modelPath);
+            pullingModels.put(cmd, newPullingModels);
+            overridesToRemove.add(element);
+        }
+    }
+    private static void handleCrossbowPulling(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> chargedModels) {
+        handleExtraPredicates(overrides, overridesToRemove, chargedModels, "charged");
+    }
+    private static void handleShieldBlocking(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> blockingModels) {
+        handleExtraPredicates(overrides, overridesToRemove, blockingModels, "blocking");
+    }
+    private static void handleFishingRodCast(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> castModels) {
+        handleExtraPredicates(overrides, overridesToRemove, castModels, "cast");
+    }
+
+    private static void handleExtraPredicates(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> predicateModels, String predicate) {
+        for (JsonElement element : overrides) {
+            JsonObject predicateObject = element.getAsJsonObject().get("predicate").getAsJsonObject();
+            if (predicateObject == null || !predicateObject.has(predicate)) continue;
+            int cmd = predicateObject.has("custom_model_data") ? predicateObject.get("custom_model_data").getAsInt() : 0;
+            String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
+            predicateModels.putIfAbsent(cmd, modelPath);
+            overridesToRemove.add(element);
+        }
     }
 
     private static boolean migrateSoundJson(String name) {
