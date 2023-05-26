@@ -18,17 +18,17 @@ public class DisplayEntityProperties {
     private Float shadowRadius;
     private Integer interpolationDuration;
     private Integer interpolationDelay;
-    private final float width;
-    private final float height;
+    private final float displayWidth;
+    private final float displayHeight;
     private final Vector3f scale;
     private final boolean isInteractable;
 
     public DisplayEntityProperties() {
         this.isInteractable = true;
-        this.width = 1.0f;
-        this.height = 1.0f;
+        this.displayWidth = 0f;
+        this.displayHeight = 0f;
         this.displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
-        this.scale = new Vector3f(1.0f, 1.0f, 1.0f);
+        this.scale = null;
         this.shadowRadius = null;
         this.shadowStrength = null;
         this.brightness = null;
@@ -45,8 +45,8 @@ public class DisplayEntityProperties {
         interpolationDelay = configSection.getInt("interpolation_delay");
         shadowStrength = (float) configSection.getDouble("shadow_strength");
         shadowRadius = (float) configSection.getDouble("shadow_radius");
-        width = (float) configSection.getDouble("width", 1.0);
-        height = (float) configSection.getDouble("height", 1.0);
+        displayWidth = (float) configSection.getDouble("displayWidth", 0);
+        displayHeight = (float) configSection.getDouble("displayHeight", 0);
         if (configSection.isConfigurationSection("scale"))
             scale = new Vector3f((float) configSection.getDouble("scale.x", 1.0),
                     (float) configSection.getDouble("scale.y", 1.0),
@@ -62,9 +62,9 @@ public class DisplayEntityProperties {
         try {
             displayTransform = ItemDisplay.ItemDisplayTransform.valueOf(configSection.getString("display_transform", ItemDisplay.ItemDisplayTransform.NONE.name()));
         } catch (IllegalArgumentException e) {
-            Logs.logError("Use of illegal ItemDisplayTransform in " + itemID + " furniture.");
-            Logs.logError("Allowed ones are: " + Arrays.stream(ItemDisplay.ItemDisplayTransform.values()).toList().stream().map(Enum::name));
-            Logs.logWarning("Set transform to NONE for " + itemID);
+            Logs.logError("Use of illegal ItemDisplayTransform in furniture: <gold>" + itemID);
+            Logs.logWarning("Allowed ones are: <gold>" + Arrays.stream(ItemDisplay.ItemDisplayTransform.values()).map(Enum::name).toList());
+            Logs.logWarning("Setting transform to NONE for furniture: <gold>" + itemID);
             displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
         }
 
@@ -146,13 +146,11 @@ public class DisplayEntityProperties {
         return shadowRadius;
     }
 
-    public float getWidth() {
-        return width;
+    public float getDisplayWidth() {
+        return displayWidth;
     }
 
-    public float getHeight() {
-        return height;
-    }
+    public float getDisplayHeight() { return displayHeight; }
 
     public boolean hasScale() {
         return scale != null;
