@@ -267,7 +267,7 @@ public class ResourcePack {
         if (!malformedTextures.isEmpty() || !malformedModels.isEmpty()) {
             Logs.logError("Pack contains malformed texture(s) and/or model(s)");
             Logs.logError("These need to be fixed, otherwise the resourcepack will be broken");
-        } else Logs.logSuccess("No broken models or textures were found");
+        } else Logs.logSuccess("No broken models or textures were found in the resourcepack");
         Logs.newline();
 
         Set<String> malformedFiles = malformedTextures.stream().map(VirtualFile::getPath).collect(Collectors.toSet());
@@ -536,12 +536,21 @@ public class ResourcePack {
             return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         }
 
+        return processJson(content);
+    }
+
+    private InputStream processJson(String content) {
+        InputStream newStream;
         // Deserialize said component to a string to handle other tags like glyphs
-        content = AdventureUtils.parseMiniMessage(AdventureUtils.parseLegacy(content), AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
+        String parsedContent = AdventureUtils.parseMiniMessage(AdventureUtils.parseLegacy(content), AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
         // Deserialize adventure component to legacy format due to resourcepacks not supporting adventure components
-        content = AdventureUtils.parseLegacyThroughMiniMessage(content);
-        newStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-        newStream.close();
+        parsedContent = AdventureUtils.parseLegacyThroughMiniMessage(content);
+        newStream = new ByteArrayInputStream(parsedContent.getBytes(StandardCharsets.UTF_8));
+        try {
+            newStream.close();
+        } catch (IOException e) {
+            return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+        }
         return newStream;
     }
 
@@ -596,7 +605,7 @@ public class ResourcePack {
                 langJson.add(entry.getKey(), entry.getValue());
             }
 
-            InputStream langStream = new ByteArrayInputStream(langJson.toString().getBytes(StandardCharsets.UTF_8));
+            InputStream langStream = processJson(langJson.toString());
             virtualLangFiles.add(new VirtualFile("assets/minecraft/lang", lang + ".json", langStream));
         }
         // Remove previous langfiles as these have been migrated in above

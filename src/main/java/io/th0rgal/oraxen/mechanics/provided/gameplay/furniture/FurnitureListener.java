@@ -122,7 +122,7 @@ public class FurnitureListener implements Listener {
         LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
         Block belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN);
 
-        if (limitedPlacing.isNotPlacableOn(belowPlaced, blockFace)) {
+        if (limitedPlacing.isNotPlacableOn(block, blockFace)) {
             event.setCancelled(true);
         } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
             if (!limitedPlacing.checkLimitedMechanic(belowPlaced))
@@ -179,7 +179,7 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        Entity baseEntity = mechanic.place(block.getLocation(), item, rotation, yaw, event.getBlockFace());
+        Entity baseEntity = mechanic.place(block.getLocation(), item, yaw, event.getBlockFace());
         Utils.swingHand(player, event.getHand());
 
         final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, block, baseEntity, player, item, hand);
@@ -255,6 +255,9 @@ public class FurnitureListener implements Listener {
         OraxenFurniture.remove(entity, player);
     }
 
+    //TODO This should take hardness into account.
+    // Probably best to find the closest barrier to furniture. If none instabreak
+    // Otherwise check hardness and handle breaking like normal
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomFurniture(final BlockBreakEvent event) {
         final Block block = event.getBlock();

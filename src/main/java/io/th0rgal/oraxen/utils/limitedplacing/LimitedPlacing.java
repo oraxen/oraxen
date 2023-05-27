@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.utils.limitedplacing;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
-import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -14,14 +13,15 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 public class LimitedPlacing {
     private final LimitedPlacingType type;
-    private final List<String> blockTypes;
-    private final List<String> blockTags;
+    private final List<Material> blockTypes;
+    private final Set<Tag<Material>> blockTags;
     private final List<String> oraxenBlocks;
     private final boolean floor;
     private final boolean roof;
@@ -32,79 +32,85 @@ public class LimitedPlacing {
         roof = section.getBoolean("roof", true);
         wall = section.getBoolean("wall", true);
         type = LimitedPlacingType.valueOf(section.getString("type", "DENY"));
-        blockTypes = section.getStringList("block_types");
-        blockTags = section.getStringList("block_tags");
-        oraxenBlocks = section.getStringList("oraxen_blocks");
+        blockTypes = getLimitedBlockMaterials(section.getStringList("block_types"));
+        blockTags = getLimitedBlockTags(section.getStringList("block_tags"));
+        oraxenBlocks =  getLimitedOraxenBlocks(section.getStringList("oraxen_blocks"));
+    }
+
+    private List<Material> getLimitedBlockMaterials(List<String> list) {
+        return list.stream().map(Material::getMaterial).filter(Objects::nonNull).toList();
+    }
+
+    private List<String> getLimitedOraxenBlocks(List<String> list) {
+        return list.stream().filter(e -> OraxenBlocks.isOraxenBlock(e) || OraxenFurniture.isFurniture(e)).toList();
+    }
+
+    private Set<Tag<Material>> getLimitedBlockTags(List<String> list) {
+        Set<Tag<Material>> tags = new HashSet<>();
+        for (String string : list) {
+            Tag<Material> tag = Bukkit.getTag(Tag.REGISTRY_BLOCKS, NamespacedKey.minecraft(string), Material.class);
+            if (tag != null) tags.add(tag);
+        }
+        return tags;
     }
 
     public LimitedPlacingType getType() { return type; }
 
-    public List<Material> getLimitedBlocks() {
-        List<Material> blocks = new ArrayList<>();
-        for (String blockType : blockTypes) {
-            blocks.add(Material.getMaterial(blockType));
-        }
-        return blocks.stream().filter(Objects::nonNull).toList();
+    public boolean isNotPlacableOn(Block block, BlockFace blockFace) {
+        Block placedBlock = block.getRelative(blockFace);
+        Block blockBelow = placedBlock.getRelative(BlockFace.DOWN);
+        Block blockAbove = placedBlock.getRelative(BlockFace.UP);
+
+        //TODO isBlock better check perhaps?
+        if (wall && block.getType().isSolid()) return false;
+        if (floor && (blockFace == BlockFace.UP || blockBelow.getType().isSolid())) return false;
+        return !roof || (blockFace != BlockFace.DOWN && !blockAbove.getType().isSolid());
     }
 
-    public boolean isNotPlacableOn(Block blockBelow, BlockFace blockFace) {
-        return !switch (blockFace) {
-            case UP -> floor;
-            case DOWN -> roof;
-            default -> wall || blockBelow.getType().isSolid();
-        };
+    public List<Material> getLimitedBlocks() {
+        return blockTypes;
     }
 
     public List<String> getLimitedOraxenBlockIds() {
-        List<String> ids = new ArrayList<>();
-        for (String blockId : oraxenBlocks) {
-            if (!OraxenItems.getItems().contains(OraxenItems.getItemById(blockId))) continue;
-            ids.add(blockId);
-        }
-        return ids;
+        return oraxenBlocks;
+    }
+
+    public Set<Tag<Material>> getLimitedTags() {
+        return blockTags;
     }
 
     public boolean checkLimitedMechanic(Block block) {
         String oraxenId = checkIfOraxenItem(block);
         if (oraxenId == null) {
-            if (getLimitedBlocks().contains(block.getType())) {
-                return true;
-            }
-            for (Tag<Material> tag : getLimitedTags()) {
-                if (tag.isTagged(block.getType())) {
-                    return true;
-                }
+            if (blockTypes.contains(block.getType())) return true;
+            for (Tag<Material> tag : blockTags) {
+                if (tag.isTagged(block.getType())) return true;
             }
         }
-        List<String> limitedOraxenBlockIds = getLimitedOraxenBlockIds();
-        return (oraxenId != null && !limitedOraxenBlockIds.isEmpty() && limitedOraxenBlockIds.contains(oraxenId));
+
+        return (oraxenId != null && !oraxenBlocks.isEmpty() && oraxenBlocks.contains(oraxenId));
     }
 
     private String checkIfOraxenItem(Block block) {
 
         return switch (block.getType()) {
-            case NOTE_BLOCK, TRIPWIRE:
+            case NOTE_BLOCK, TRIPWIRE -> {
                 Mechanic mechanic = OraxenBlocks.getOraxenBlock(block.getBlockData());
                 if (mechanic == null) yield null;
                 else yield mechanic.getItemID();
-            case BARRIER:
+            }
+            case BARRIER -> {
                 FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
                 if (furnitureMechanic != null) yield furnitureMechanic.getItemID();
                 else yield null;
-            case MUSHROOM_STEM:
+            }
+            case MUSHROOM_STEM -> {
                 BlockMechanic blockMechanic = OraxenBlocks.getBlockMechanic(block);
                 if (blockMechanic != null) yield blockMechanic.getItemID();
                 else yield null;
-            default: yield null;
+            }
+            default -> null;
         };
-    }
-
-    public List<Tag<Material>> getLimitedTags() {
-        List<Tag<Material>> blocks = new ArrayList<>();
-        for (String blockTag : blockTags) {
-            blocks.add(Bukkit.getTag(Tag.REGISTRY_BLOCKS, NamespacedKey.minecraft(blockTag), Material.class));
-        }
-        return blocks;
     }
 
     public enum LimitedPlacingType {
