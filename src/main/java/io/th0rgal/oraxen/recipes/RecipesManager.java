@@ -60,8 +60,16 @@ public class RecipesManager {
     }
 
     public static void reload() {
-        if (Settings.RESET_RECIPES.toBool())
-            Bukkit.resetRecipes();
+        if (Settings.RESET_RECIPES.toBool()) {
+            Iterator<Recipe> recipeIterator = Bukkit.recipeIterator();
+            while (recipeIterator.hasNext()) {
+                NamespacedKey recipeID = ((Keyed) recipeIterator.next()).getKey();
+                if (recipeID.getNamespace().equals("oraxen")) {
+                    Bukkit.removeRecipe(recipeID);
+                }
+            }
+        }
+
         RecipesEventsManager.get().resetRecipes();
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {
