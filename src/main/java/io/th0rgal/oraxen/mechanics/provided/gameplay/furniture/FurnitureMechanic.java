@@ -70,6 +70,7 @@ public class FurnitureMechanic extends Mechanic {
     private FurnitureType furnitureType;
     private final DisplayEntityProperties displayEntityProperties;
     private final FurnitureHitbox hitbox;
+    private final boolean isRotatable;
 
     public record FurnitureHitbox(float width, float height) {
     }
@@ -183,6 +184,15 @@ public class FurnitureMechanic extends Mechanic {
         } else jukebox = null;
 
         clickActions = ClickAction.parseList(section);
+
+        if (section.getBoolean("rotatable", false)) {
+            if (barriers.stream().anyMatch(b -> b.getX() != 0 || b.getZ() != 0)) {
+                Logs.logWarning("Furniture <gold>" + getItemID() + " </gold>has barriers with non-zero X or Z coordinates.");
+                Logs.logWarning("Furniture rotation will be disabled for this furniture.");
+                isRotatable = false;
+            } else isRotatable = true;
+        } else isRotatable = false;
+
     }
 
     public boolean isModelEngine() {
@@ -284,6 +294,10 @@ public class FurnitureMechanic extends Mechanic {
     public EvolvingFurniture getEvolution() {
         return evolvingFurniture;
     }
+
+    public boolean isRotatable() { return isRotatable; }
+
+    public boolean isInteractable() { return isRotatable || hasSeat || isStorage(); }
 
     public void setPlacedItem() {
         if (placedItem == null) {
@@ -752,5 +766,33 @@ public class FurnitureMechanic extends Mechanic {
 
     public DisplayEntityProperties getDisplayEntityProperties() {
         return displayEntityProperties;
+    }
+
+    public static void sitOnSeat(PersistentDataContainer pdc, Player player) {
+        UUID entityUuid = pdc.has(SEAT_KEY, DataType.UUID) ? pdc.get(SEAT_KEY, DataType.UUID) : null;
+
+        //Convert old seats to new, remove in a good while
+        if (entityUuid == null) {
+            String oldUUID = pdc.has(SEAT_KEY, PersistentDataType.STRING) ? pdc.get(SEAT_KEY, PersistentDataType.STRING) : null;
+            if (oldUUID != null) {
+                entityUuid = UUID.fromString(oldUUID);
+                pdc.remove(SEAT_KEY);
+                pdc.set(SEAT_KEY, DataType.UUID, entityUuid);
+            }
+        }
+
+        if (entityUuid != null) {
+            Entity stand = Bukkit.getEntity(entityUuid);
+            if (stand != null && stand.getPassengers().isEmpty()) {
+                stand.addPassenger(player);
+            }
+        }
+    }
+
+    public static void rotateFurniture(Entity baseEntity) {
+        float yaw = FurnitureMechanic.getFurnitureYaw(baseEntity);
+        Rotation newRotation = FurnitureMechanic.yawToRotation(yaw).rotateClockwise();
+        if (baseEntity instanceof ItemFrame frame) frame.setRotation(newRotation);
+        else baseEntity.setRotation(FurnitureMechanic.rotationToYaw(newRotation), baseEntity.getLocation().getPitch());
     }
 }
