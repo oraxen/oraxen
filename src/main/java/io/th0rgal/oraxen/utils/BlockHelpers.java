@@ -304,11 +304,15 @@ public class BlockHelpers {
             else trapDoor.setHalf(Bisected.Half.TOP);
         } else if (data instanceof Stairs stairs) {
             stairs.setFacing(player.getFacing());
-            if (hitLoc.getY() <= toCenterLocation(hitBlock.getLocation()).getY())
+            if (hitFace == BlockFace.UP) stairs.setHalf(Bisected.Half.BOTTOM);
+            else if (hitFace == BlockFace.DOWN) stairs.setHalf(Bisected.Half.TOP);
+            else if (hitLoc.getY() <= toCenterLocation(hitBlock.getLocation()).getY())
                 stairs.setHalf(Bisected.Half.BOTTOM);
             else stairs.setHalf(Bisected.Half.TOP);
         } else if (data instanceof Slab slab) {
-            if (hitLoc.getY() <= toCenterLocation(hitBlock.getLocation()).getY())
+            if (hitFace == BlockFace.UP) slab.setType(Slab.Type.BOTTOM);
+            else if (hitFace == BlockFace.DOWN) slab.setType(Slab.Type.TOP);
+            else if (hitLoc.getY() <= toCenterLocation(hitBlock.getLocation()).getY())
                 slab.setType(Slab.Type.BOTTOM);
             else slab.setType(Slab.Type.TOP);
         }
