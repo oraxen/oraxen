@@ -25,6 +25,7 @@ import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -141,10 +142,9 @@ public class NoteBlockMechanicListener implements Listener {
 
         if (item == null || block == null || event.getHand() != EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (!event.getPlayer().isSneaking() && BlockHelpers.isInteractable(block)) return;
-
-        NoteBlockMechanic mechanic = (NoteBlockMechanic) factory.getMechanic(OraxenItems.getIdByItem(item));
+        NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(OraxenItems.getIdByItem(item));
         if (mechanic == null || !mechanic.hasLimitedPlacing()) return;
+        if (!event.getPlayer().isSneaking() && BlockHelpers.isInteractable(block)) return;
 
         LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
         Block belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN);
@@ -165,7 +165,6 @@ public class NoteBlockMechanicListener implements Listener {
         Player player = event.getPlayer();
         Block block = event.getBlock();
         NoteBlockMechanic mechanic = event.getMechanic();
-        if (mechanic == null) return;
         if (!ProtectionLib.canInteract(player, block.getLocation())) return;
 
         if (!player.isSneaking()) {
@@ -195,8 +194,10 @@ public class NoteBlockMechanicListener implements Listener {
         Block block = event.getClickedBlock();
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
+        EquipmentSlot hand = event.getHand();
+        BlockFace blockFace = event.getBlockFace();
 
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK) return;
+        if (hand == null || event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK) return;
         if (!player.isSneaking() && BlockHelpers.isInteractable(block)) return;
 
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
@@ -204,13 +205,13 @@ public class NoteBlockMechanicListener implements Listener {
         if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentMechanic();
 
-        OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
+        OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(mechanic, player, item, hand, block, blockFace);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockInteractEvent);
         event.setCancelled(true);
         if (noteBlockInteractEvent.isCancelled()) return;
         if (item == null) return;
 
-        Block relative = block.getRelative(event.getBlockFace());
+        Block relative = block.getRelative(blockFace);
         Material type = item.getType();
         if (type == Material.AIR) return;
         if (type == Material.BUCKET && relative.isLiquid()) {
@@ -266,11 +267,11 @@ public class NoteBlockMechanicListener implements Listener {
         final Block placedAgainst = event.getClickedBlock();
 
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || placedAgainst == null) return;
-        if (factory.isNotImplementedIn(itemID)) return;
+        NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(itemID);
+        if (mechanic == null) return;
         if (!player.isSneaking() && BlockHelpers.isInteractable(placedAgainst)) return;
 
         // determines the new block data of the block
-        NoteBlockMechanic mechanic = (NoteBlockMechanic) factory.getMechanic(itemID);
         int customVariation = mechanic.getCustomVariation();
         boolean isFalling = mechanic.isFalling();
         BlockFace face = event.getBlockFace();
@@ -293,6 +294,7 @@ public class NoteBlockMechanicListener implements Listener {
                 Location spawnLoc = BlockHelpers.toCenterBlockLocation(placedAgainst.getRelative(face).getLocation());
                 player.getWorld().spawnFallingBlock(spawnLoc, data);
             } //else OraxenBlocks.place(mechanic.getItemID(), placedBlock.getLocation());
+            event.setUseInteractedBlock(Event.Result.DENY);
         }
     }
 

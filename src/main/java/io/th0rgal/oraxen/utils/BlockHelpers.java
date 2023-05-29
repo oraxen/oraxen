@@ -3,6 +3,9 @@ package io.th0rgal.oraxen.utils;
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
 import org.bukkit.block.Sign;
@@ -114,11 +117,15 @@ public class BlockHelpers {
     public static boolean isInteractable(Block placedAgainst) {
         if (placedAgainst == null) return false;
 
+        NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(placedAgainst);
+        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(placedAgainst);
         Material type = placedAgainst.getType();
-        if (!type.isInteractable()) return false;
+
+        if (noteBlockMechanic != null) return false;
+        if (furnitureMechanic != null) return furnitureMechanic.isInteractable();
         if (Tag.STAIRS.isTagged(type)) return false;
         if (Tag.FENCES.isTagged(type)) return false;
-        if (OraxenBlocks.isOraxenNoteBlock(placedAgainst)) return false;
+        if (!type.isInteractable()) return false;
         return switch (type) {
             case PUMPKIN, MOVING_PISTON, REDSTONE_ORE, REDSTONE_WIRE -> false;
             default -> true;
