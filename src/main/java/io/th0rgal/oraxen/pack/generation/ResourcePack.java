@@ -613,17 +613,30 @@ public class ResourcePack {
         output.addAll(virtualLangFiles);
     }
 
-    private static final Set<String> availableLanguageCodes = new HashSet<>(Arrays.asList("af_za", "ar_sa", "ast_es", "az_az",
-            "be_by", "bg_bg", "br_fr", "ca_es", "cs_cz", "cy_gb", "da_dk", "de_at", "de_ch",
-            "de_de", "el_gr", "en_au", "en_ca", "en_gb", "en_nz", "en_pt", "en_ud", "en_us",
-            "eo_uy", "es_ar", "es_es", "es_mx", "es_uy", "es_ve", "et_ee", "eu_es", "fa_ir",
-            "fi_fi", "fil_ph", "fo_fo", "fr_ca", "fr_fr", "fy_nl", "ga_ie", "gd_gb", "gl_es"));
+    private static final Set<String> availableLanguageCodes = new HashSet<>(Arrays.asList(
+            "af_za.json", "ar_sa.json", "ast_es.json", "az_az.json", "ba_ru.json",
+            "bar.json", "be_by.json", "bg_bg.json", "br_fr.json", "brb.json", "bs_ba.json", "ca_es.json", "cs_cz.json",
+            "cy_gb.json", "da_dk.json", "de_at.json", "de_ch.json", "de_de.json", "el_gr.json", "en_au.json", "en_ca.json",
+            "en_gb.json", "en_nz.json", "en_pt.json", "en_ud.json", "en_us.json", "enp.json", "enws.json", "eo_uy.json",
+            "es_ar.json", "es_cl.json", "es_ec.json", "es_es.json", "es_mx.json", "es_uy.json", "es_ve.json", "esan.json",
+            "et_ee.json", "eu_es.json", "fa_ir.json", "fi_fi.json", "fil_ph.json", "fo_fo.json", "fr_ca.json", "fr_fr.json",
+            "fra_de.json", "fur_it.json", "fy_nl.json", "ga_ie.json", "gd_gb.json", "gl_es.json", "haw_us.json", "he_il.json",
+            "hi_in.json", "hr_hr.json", "hu_hu.json", "hy_am.json", "id_id.json", "ig_ng.json", "io_en.json", "is_is.json",
+            "isv.json", "it_it.json", "ja_jp.json", "jbo_en.json", "ka_ge.json", "kk_kz.json", "kn_in.json", "ko_kr.json",
+            "ksh.json", "kw_gb.json", "la_la.json", "lb_lu.json", "li_li.json", "lmo.json", "lol_us.json", "lt_lt.json",
+            "lv_lv.json", "lzh.json", "mk_mk.json", "mn_mn.json", "ms_my.json", "mt_mt.json", "nah.json", "nds_de.json",
+            "nl_be.json", "nl_nl.json", "nn_no.json", "no_no.json", "oc_fr.json", "ovd.json", "pl_pl.json", "pt_br.json",
+            "pt_pt.json", "qya_aa.json", "ro_ro.json", "rpr.json", "ru_ru.json", "ry_ua.json", "se_no.json", "sk_sk.json",
+            "sl_si.json", "so_so.json", "sq_al.json", "sr_sp.json", "sv_se.json", "sxu.json", "szl.json", "ta_in.json",
+            "th_th.json", "tl_ph.json", "tlh_aa.json", "tok.json", "tr_tr.json", "tt_ru.json", "uk_ua.json", "val_es.json",
+            "vec_it.json", "vi_vn.json", "yi_de.json", "yo_ng.json", "zh_cn.json", "zh_hk.json", "zh_tw.json", "zlm_arab.json"));
 
     private void generateScoreboardFiles() {
         Map<String, String> scoreboardShaderFiles = Map.of("assets/minecraft/shaders/core/rendertype_text.json", getScoreboardJson(), "assets/minecraft/shaders/core/rendertype_text.vsh", getScoreboardVsh());
         for (Map.Entry<String, String> entry : scoreboardShaderFiles.entrySet())
             writeStringToVirtual(StringUtils.removeEnd(Utils.getParentDirs(entry.getKey()), "/"), Utils.removeParentDirs(entry.getKey()), entry.getValue());
     }
+
     private String getScoreboardVsh() {
         return """
                 #version 150
@@ -664,6 +677,7 @@ public class ResourcePack {
                 }
                 """;
     }
+
     private String getScoreboardJson() {
         return """
                 {
