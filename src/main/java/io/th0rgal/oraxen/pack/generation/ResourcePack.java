@@ -609,7 +609,7 @@ public class ResourcePack {
             virtualLangFiles.add(new VirtualFile("assets/minecraft/lang", lang + ".json", langStream));
         }
         // Remove previous langfiles as these have been migrated in above
-        output.removeIf(virtualFile -> virtualFile.getPath().startsWith("assets/minecraft/lang"));
+        output.removeIf(virtualFile -> virtualLangFiles.stream().anyMatch(v -> v.getPath().equals(virtualFile.getPath())));
         output.addAll(virtualLangFiles);
     }
 
