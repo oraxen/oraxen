@@ -51,11 +51,11 @@ public class StringBlockMechanicListener implements Listener {
     public StringBlockMechanicListener(final StringBlockMechanicFactory factory) {
         this.factory = factory;
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
-        if (OraxenPlugin.get().isPaperServer)
+        if (OraxenPlugin.isPaperServer)
             Bukkit.getPluginManager().registerEvents(new StringBlockMechanicPaperListener(), OraxenPlugin.get());
     }
 
-    public class StringBlockMechanicPaperListener implements Listener {
+    public static class StringBlockMechanicPaperListener implements Listener {
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onEnteringTripwire(EntityInsideBlockEvent event) {

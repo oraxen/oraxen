@@ -102,6 +102,7 @@ public class OraxenPlugin extends JavaPlugin {
         PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
+        isPaperServer = checkIfPaperServer();
         reloadConfigs();
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
@@ -119,7 +120,6 @@ public class OraxenPlugin extends JavaPlugin {
 
         resourcePack = new ResourcePack(this);
         MechanicsManager.registerNativeMechanics();
-        isPaperServer = checkIfPaperServer();
         supportsDisplayEntities = checkIfSupportsDisplayEntities();
         //CustomBlockData.registerListener(this); //Handle this manually
         hudManager = new HudManager(configsManager);
