@@ -291,38 +291,39 @@ Misc:
   crossbow_display: "{\"thirdperson_righthand\":{\"rotation\":[-90,0,-60],\"translation\":[2,0.1,-3],\"scale\":[0.9,0.9,0.9]},\"thirdperson_lefthand\":{\"rotation\":[-90,0,30],\"translation\":[2,0.1,-3],\"scale\":[0.9,0.9,0.9]},\"firstperson_righthand\":{\"rotation\":[-90,0,-55],\"translation\":[1.13,3.2,1.13],\"scale\":[0.68,0.68,0.68]},\"firstperson_lefthand\":{\"rotation\":[-90,0,35],\"translation\":[1.13,3.2,1.13],\"scale\":[0.68,0.68,0.68]}}"
 
 oraxen_inventory:
-  menu_glyph: "menu_items"
-  menu_overlay_glyph: "menu_items_overlay"
+  main_menu_title: "<shift:-18><glyph:menu_items><shift:-193>"
   menu_rows: 6
-  # Better customization for GUI oraxen inv. Oraxen Items Work. its gui_inventory.<name to file without extension yml>
   menu_layout:
     armors:
       icon: emerald_chestplate
-      color: <#362753>
+      title: "<main_menu_title><#362753><glyph:menu_items_overlay:colorable>"
     blocks:
       icon: orax_ore
-      color: <#EDCDEB>
+      title: "<main_menu_title><#EDCDEB><glyph:menu_items_overlay:colorable>"
+    furniture:
+      icon: chair
+      title: "<main_menu_title><#F2F2F2><glyph:menu_items_overlay:colorable>"
     flowers:
       icon: dailily
-      color: <#bf332c>
+      title: "<main_menu_title><#bf332c><glyph:menu_items_overlay:colorable>"
     hats:
       icon: crown
-      color: <#81B125>
+      title: "<main_menu_title><#81B125><glyph:menu_items_overlay:colorable>"
     items:
       icon: ruby
-      color: <#DA2E45>
+      title: "<main_menu_title><#DA2E45><glyph:menu_items_overlay:colorable>"
     mystical:
       icon: legendary_hammer
-      color: <#9AB2E4>
+      title: "<main_menu_title><#9AB2E4><glyph:menu_items_overlay:colorable>"
     plants:
       icon: weed_leaf
-      color: <#44C886>
+      title: "<main_menu_title><#44C886><glyph:menu_items_overlay:colorable>"
     skins:
       icon: wood_sword
-      color: <#C48E40>
+      title: "<main_menu_title><#C48E40><glyph:menu_items_overlay:colorable>"
     tools:
       icon: iron_serpe
-      color: <#FFFFFF>
+      title: "<main_menu_title><#FFFFFF><glyph:menu_items_overlay:colorable>"
     weapons:
       icon: energy_crystal_sword
-      color: <#2FB6FF>
+      title: "<main_menu_title><#2FB6FF><glyph:menu_items_overlay:colorable>"

@@ -167,7 +167,7 @@ public class Glyph {
         boolean isVanillaTexture = isMinecraftNamespace && materialNames.stream().anyMatch(name -> texture.getName().split("\\.")[0].toUpperCase().contains(name));
         boolean hasUpperCase = false;
         BufferedImage image = null;
-        for (char c : getTexture().toCharArray()) if (Character.isUpperCase(c)) hasUpperCase = true;
+        for (char c : texturePath.toCharArray()) if (Character.isUpperCase(c)) hasUpperCase = true;
         try {
             image = ImageIO.read(texture);
         } catch (IOException ignored) {
@@ -186,11 +186,16 @@ public class Glyph {
             Logs.logError("The filename specified for " + name + " contains capital letters.");
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
             Logs.logWarning("You should edit this in the glyph config and your textures filename.");
-        } else if (texture.getName().contains(" ")) {
+        } else if (texturePath.contains(" ")) {
             this.setTexture("required/exit_icon");
             Logs.logError("The filename specified for " + name + " contains spaces.");
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
             Logs.logWarning("You should replace spaces with _ in your filename and glyph config.");
+        } else if (texturePath.contains("//")) {
+            this.setTexture("required/exit_icon");
+            Logs.logError("The filename specified for " + name + " contains double slashes.");
+            Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
+            Logs.logWarning("You should make sure that the texture-path you have specified is correct.");
         } else if (!isVanillaTexture && (image.getHeight() > 256 || image.getWidth() > 256)) {
             this.setTexture("required/exit_icon");
             Logs.logError("The texture specified for " + name + " is larger than the supported size.");

@@ -79,8 +79,7 @@ public class ResourcePack {
                     !soundFolder.exists(), !assetsFolder.exists(), !optifineFolder.exists());
         else extractRequired();
 
-        if (!Settings.GENERATE.toBool())
-            return;
+        if (!Settings.GENERATE.toBool()) return;
 
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool() && Bukkit.getPluginManager().isPluginEnabled("HappyHUD")) {
             Logs.logError("HappyHUD detected with hide_scoreboard_numbers enabled!");
@@ -101,11 +100,13 @@ public class ResourcePack {
         generateFont(fontManager);
         generateSound(soundManager);
         if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
+        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardFiles();
 
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)
                 packModifier.accept(packFolder);
         List<VirtualFile> output = new ArrayList<>(outputFiles.values());
+
         // zipping resourcepack
         try {
             getFilesInFolder(packFolder, output,
@@ -120,6 +121,9 @@ public class ResourcePack {
                 else if (folder.isDirectory())
                     getAllFiles(folder, output, "assets/minecraft");
             }
+
+            // Convert the global.json within the lang-folder to all languages
+            convertGlobalLang(output);
 
             if (Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.toBool() && customArmorsTextures.hasCustomArmors()) {
                 String armorPath = "assets/minecraft/textures/models/armor";
@@ -151,8 +155,9 @@ public class ResourcePack {
         excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
         if (!excludedExtensions.isEmpty() && !output.isEmpty()) {
             List<VirtualFile> newOutput = new ArrayList<>();
-            for (VirtualFile virtual : output) for (String extension : excludedExtensions)
-                if (virtual.getPath().endsWith(extension)) newOutput.add(virtual);
+            for (VirtualFile virtual : output)
+                for (String extension : excludedExtensions)
+                    if (virtual.getPath().endsWith(extension)) newOutput.add(virtual);
             output.removeAll(newOutput);
         }
 
@@ -205,7 +210,6 @@ public class ResourcePack {
                     jsonModel = JsonParser.parseString(content).getAsJsonObject();
                 } catch (JsonSyntaxException e) {
                     Logs.logError("Found malformed json at <red>" + model.getPath() + "</red>");
-                    Logs.debug(model.getPath());
                     e.printStackTrace();
                     continue;
                 }
@@ -263,7 +267,7 @@ public class ResourcePack {
         if (!malformedTextures.isEmpty() || !malformedModels.isEmpty()) {
             Logs.logError("Pack contains malformed texture(s) and/or model(s)");
             Logs.logError("These need to be fixed, otherwise the resourcepack will be broken");
-        } else Logs.logSuccess("No broken models or textures were found");
+        } else Logs.logSuccess("No broken models or textures were found in the resourcepack");
         Logs.newline();
 
         Set<String> malformedFiles = malformedTextures.stream().map(VirtualFile::getPath).collect(Collectors.toSet());
@@ -532,12 +536,21 @@ public class ResourcePack {
             return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         }
 
+        return processJson(content);
+    }
+
+    private InputStream processJson(String content) {
+        InputStream newStream;
         // Deserialize said component to a string to handle other tags like glyphs
-        content = AdventureUtils.parseMiniMessage(AdventureUtils.parseLegacy(content), AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
+        String parsedContent = AdventureUtils.parseMiniMessage(AdventureUtils.parseLegacy(content), AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
         // Deserialize adventure component to legacy format due to resourcepacks not supporting adventure components
-        content = AdventureUtils.parseLegacyThroughMiniMessage(content);
-        newStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-        newStream.close();
+        parsedContent = AdventureUtils.parseLegacyThroughMiniMessage(content);
+        newStream = new ByteArrayInputStream(parsedContent.getBytes(StandardCharsets.UTF_8));
+        try {
+            newStream.close();
+        } catch (IOException e) {
+            return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+        }
         return newStream;
     }
 
@@ -557,4 +570,144 @@ public class ResourcePack {
         return prefix + path.substring(packFolder.getCanonicalPath().length() + 1);
     }
 
+    private void convertGlobalLang(List<VirtualFile> output) {
+        Logs.logWarning("Converting global lang file to individual language files...");
+        Set<VirtualFile> virtualLangFiles = new HashSet<>();
+        File globalLangFile = new File(packFolder, "lang/global.json");
+        JsonObject globalLang = new JsonObject();
+        String content = "";
+        if (!globalLangFile.exists()) plugin.saveResource("pack/lang/global.json", false);
+
+        try {
+            content = Files.readString(globalLangFile.toPath(), StandardCharsets.UTF_8);
+            globalLang = JsonParser.parseString(content).getAsJsonObject();
+        } catch (IOException | IllegalStateException | IllegalArgumentException ignored) {
+        }
+
+        if (content.isEmpty() || globalLang.isJsonNull()) return;
+
+        for (String lang : availableLanguageCodes) {
+            File langFile = new File(packFolder, "lang/" + lang + ".json");
+            JsonObject langJson = new JsonObject();
+
+            // If the file is in the pack, we want to keep the existing entries over global ones
+            if (langFile.exists()) {
+                try {
+                    langJson = JsonParser.parseString(Files.readString(langFile.toPath(), StandardCharsets.UTF_8)).getAsJsonObject();
+                } catch (IOException | IllegalStateException ignored) {
+                }
+            }
+
+            for (Map.Entry<String, JsonElement> entry : globalLang.entrySet()) {
+                if (entry.getKey().equals("DO_NOT_ALTER_THIS_LINE")) continue;
+                // If the entry already exists in the lang file, we don't want to overwrite it
+                if (langJson.has(entry.getKey())) continue;
+                langJson.add(entry.getKey(), entry.getValue());
+            }
+
+            InputStream langStream = processJson(langJson.toString());
+            virtualLangFiles.add(new VirtualFile("assets/minecraft/lang", lang + ".json", langStream));
+        }
+        // Remove previous langfiles as these have been migrated in above
+        output.removeIf(virtualFile -> virtualLangFiles.stream().anyMatch(v -> v.getPath().equals(virtualFile.getPath())));
+        output.addAll(virtualLangFiles);
+    }
+
+    private static final Set<String> availableLanguageCodes = new HashSet<>(Arrays.asList(
+            "af_za.json", "ar_sa.json", "ast_es.json", "az_az.json", "ba_ru.json",
+            "bar.json", "be_by.json", "bg_bg.json", "br_fr.json", "brb.json", "bs_ba.json", "ca_es.json", "cs_cz.json",
+            "cy_gb.json", "da_dk.json", "de_at.json", "de_ch.json", "de_de.json", "el_gr.json", "en_au.json", "en_ca.json",
+            "en_gb.json", "en_nz.json", "en_pt.json", "en_ud.json", "en_us.json", "enp.json", "enws.json", "eo_uy.json",
+            "es_ar.json", "es_cl.json", "es_ec.json", "es_es.json", "es_mx.json", "es_uy.json", "es_ve.json", "esan.json",
+            "et_ee.json", "eu_es.json", "fa_ir.json", "fi_fi.json", "fil_ph.json", "fo_fo.json", "fr_ca.json", "fr_fr.json",
+            "fra_de.json", "fur_it.json", "fy_nl.json", "ga_ie.json", "gd_gb.json", "gl_es.json", "haw_us.json", "he_il.json",
+            "hi_in.json", "hr_hr.json", "hu_hu.json", "hy_am.json", "id_id.json", "ig_ng.json", "io_en.json", "is_is.json",
+            "isv.json", "it_it.json", "ja_jp.json", "jbo_en.json", "ka_ge.json", "kk_kz.json", "kn_in.json", "ko_kr.json",
+            "ksh.json", "kw_gb.json", "la_la.json", "lb_lu.json", "li_li.json", "lmo.json", "lol_us.json", "lt_lt.json",
+            "lv_lv.json", "lzh.json", "mk_mk.json", "mn_mn.json", "ms_my.json", "mt_mt.json", "nah.json", "nds_de.json",
+            "nl_be.json", "nl_nl.json", "nn_no.json", "no_no.json", "oc_fr.json", "ovd.json", "pl_pl.json", "pt_br.json",
+            "pt_pt.json", "qya_aa.json", "ro_ro.json", "rpr.json", "ru_ru.json", "ry_ua.json", "se_no.json", "sk_sk.json",
+            "sl_si.json", "so_so.json", "sq_al.json", "sr_sp.json", "sv_se.json", "sxu.json", "szl.json", "ta_in.json",
+            "th_th.json", "tl_ph.json", "tlh_aa.json", "tok.json", "tr_tr.json", "tt_ru.json", "uk_ua.json", "val_es.json",
+            "vec_it.json", "vi_vn.json", "yi_de.json", "yo_ng.json", "zh_cn.json", "zh_hk.json", "zh_tw.json", "zlm_arab.json"));
+
+    private void generateScoreboardFiles() {
+        Map<String, String> scoreboardShaderFiles = Map.of("assets/minecraft/shaders/core/rendertype_text.json", getScoreboardJson(), "assets/minecraft/shaders/core/rendertype_text.vsh", getScoreboardVsh());
+        for (Map.Entry<String, String> entry : scoreboardShaderFiles.entrySet())
+            writeStringToVirtual(StringUtils.removeEnd(Utils.getParentDirs(entry.getKey()), "/"), Utils.removeParentDirs(entry.getKey()), entry.getValue());
+    }
+
+    private String getScoreboardVsh() {
+        return """
+                #version 150
+                                
+                #moj_import <fog.glsl>
+                                
+                in vec3 Position;
+                in vec4 Color;
+                in vec2 UV0;
+                in ivec2 UV2;
+                                
+                uniform sampler2D Sampler2;
+                                
+                uniform mat4 ModelViewMat;
+                uniform mat4 ProjMat;
+                uniform mat3 IViewRotMat;
+                uniform int FogShape;
+                                
+                uniform vec2 ScreenSize;
+                                
+                out float vertexDistance;
+                out vec4 vertexColor;
+                out vec2 texCoord0;
+                                
+                void main() {
+                    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+                                
+                    vertexDistance = fog_distance(ModelViewMat, IViewRotMat * Position, FogShape);
+                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
+                    texCoord0 = UV0;
+                                
+                    // delete sidebar numbers
+                    if(    Position.z == 0.0 && // check if the depth is correct (0 for gui texts)
+                    gl_Position.x >= 0.94 && gl_Position.y >= -0.35 && // check if the position matches the sidebar
+                    vertexColor.g == 84.0/255.0 && vertexColor.g == 84.0/255.0 && vertexColor.r == 252.0/255.0 && // check if the color is the sidebar red color
+                    gl_VertexID <= 4 // check if it's the first character of a string
+                    ) gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0); // move the vertices offscreen, idk if this is a good solution for that but vec4(0.0) doesnt do the trick for everyone
+                }
+                """;
+    }
+
+    private String getScoreboardJson() {
+        return """
+                {
+                  "blend": {
+                    "func": "add",
+                    "srcrgb": "srcalpha",
+                    "dstrgb": "1-srcalpha"
+                  },
+                  "vertex": "rendertype_text",
+                  "fragment": "rendertype_text",
+                  "attributes": [
+                    "Position",
+                    "Color",
+                    "UV0",
+                    "UV2"
+                  ],
+                  "samplers": [
+                    { "name": "Sampler0" },
+                    { "name": "Sampler2" }
+                  ],
+                  "uniforms": [
+                    { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                    { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                    { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
+                    { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
+                    { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
+                    { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
+                    { "name": "ScreenSize", "type": "float", "count": 2,  "values": [ 1.0, 1.0 ] }
+                  ]
+                }
+                """;
+    }
 }

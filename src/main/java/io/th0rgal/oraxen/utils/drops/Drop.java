@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.Location;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -129,7 +130,7 @@ public class Drop {
             ItemMeta itemMeta = itemInHand.getItemMeta();
             if (itemMeta != null) {
                 if (silktouch && itemMeta.hasEnchant(Enchantment.SILK_TOUCH)) {
-                    location.getWorld().dropItemNaturally(location, silkTouchItem);
+                    location.getWorld().dropItemNaturally(BlockHelpers.toCenterBlockLocation(location), silkTouchItem);
                 }
                 if (fortune && itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS))
                     fortuneMultiplier += ThreadLocalRandom.current().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS));

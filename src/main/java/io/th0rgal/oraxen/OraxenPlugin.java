@@ -55,14 +55,11 @@ public class OraxenPlugin extends JavaPlugin {
     private ResourcePack resourcePack;
     private ClickActionManager clickActionManager;
     private ProtocolManager protocolManager;
-    public final boolean isPaperServer;
+    public static boolean isPaperServer;
     public static boolean supportsDisplayEntities;
 
-    public OraxenPlugin() throws NoSuchFieldException, IllegalAccessException {
+    public OraxenPlugin() {
         oraxen = this;
-        isPaperServer = checkIfPaperServer();
-        supportsDisplayEntities = checkIfSupportsDisplayEntities();
-        Logs.enableFilter();
     }
 
     private static boolean checkIfPaperServer() {
@@ -105,7 +102,9 @@ public class OraxenPlugin extends JavaPlugin {
         PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
+        isPaperServer = checkIfPaperServer();
         reloadConfigs();
+
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
         final PluginManager pluginManager = Bukkit.getPluginManager();
@@ -118,8 +117,10 @@ public class OraxenPlugin extends JavaPlugin {
         } else Logs.logWarning("ProtocolLib is not on your server, some features will not work");
         if (Settings.DISABLE_LEATHER_REPAIR_CUSTOM.toBool())
             pluginManager.registerEvents(new CustomArmorListener(), this);
+
         resourcePack = new ResourcePack(this);
         MechanicsManager.registerNativeMechanics();
+        supportsDisplayEntities = checkIfSupportsDisplayEntities();
         //CustomBlockData.registerListener(this); //Handle this manually
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);

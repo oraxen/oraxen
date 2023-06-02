@@ -89,8 +89,8 @@ public enum Settings {
 
     ORAXEN_INV_LAYOUT("oraxen_inventory.menu_layout"),
     ORAXEN_INV_ROWS("oraxen_inventory.menu_rows"),
-    ORAXEN_INV_TEXTURE("oraxen_inventory.menu_glyph"),
-    ORAXEN_INV_TEXTURE_OVERLAY("oraxen_inventory.menu_overlay_glyph");
+    ORAXEN_INV_TITLE("oraxen_inventory.main_menu_title"),
+    ;
 
     private final String path;
 

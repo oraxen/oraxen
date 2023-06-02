@@ -16,7 +16,7 @@ public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenNoteBlockBreakEvent(NoteBlockMechanic mechanic, Block block, Player player) {
+    public OraxenNoteBlockBreakEvent(@NotNull final NoteBlockMechanic mechanic, @NotNull final Block block, @NotNull final Player player) {
         this.mechanic = mechanic;
         this.block = block;
         this.player = player;
@@ -26,6 +26,7 @@ public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
     /**
      * @return The NoteBlockMechanic of this block
      */
+    @NotNull
     public NoteBlockMechanic getMechanic() {
         return mechanic;
     }
@@ -33,6 +34,7 @@ public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
     /**
      * @return The player who broke this block
      */
+    @NotNull
     public Player getPlayer() {
         return player;
     }
@@ -40,6 +42,7 @@ public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
     /**
      * @return The block that was broken
      */
+    @NotNull
     public Block getBlock() {
         return block;
     }
