@@ -25,6 +25,7 @@ public class OraxenMeta {
     private boolean generate_model;
     private boolean hasPackInfos = false;
     private boolean excludedFromInventory = false;
+    private boolean excludedFromCommands = false;
     private boolean noUpdate = false;
     private boolean disableEnchanting = false;
 
@@ -34,6 +35,14 @@ public class OraxenMeta {
 
     public boolean isExcludedFromInventory() {
         return excludedFromInventory;
+    }
+
+    public void setExcludedFromCommands(boolean excluded) {
+        this.excludedFromCommands = excluded;
+    }
+
+    public boolean isExcludedFromCommands() {
+        return excludedFromCommands;
     }
 
     public void setPackInfos(ConfigurationSection configurationSection) {

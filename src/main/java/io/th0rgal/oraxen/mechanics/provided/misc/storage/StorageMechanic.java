@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.utils.storage;
+package io.th0rgal.oraxen.mechanics.provided.misc.storage;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.ticxo.modelengine.api.ModelEngineAPI;
