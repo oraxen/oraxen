@@ -8,58 +8,58 @@ import java.util.*;
 public class ModelData {
 
     private final Material type;
-    private final int durability;
-    private static final Map<Material, Map<String, Integer>> DATAS = new HashMap<>();
+    private final int modelData;
+    public static final Map<Material, Map<String, Integer>> DATAS = new HashMap<>();
 
-    public ModelData(Material type, String model, int durability) {
+    public ModelData(Material type, String model, int modelData) {
         this.type = type;
-        this.durability = durability;
-        Map<String, Integer> usedDurabilities = DATAS.getOrDefault(type, new HashMap<>());
-        usedDurabilities.put(model, durability);
-        DATAS.put(type, usedDurabilities);
+        this.modelData = modelData;
+        Map<String, Integer> usedModelDatas = DATAS.getOrDefault(type, new HashMap<>());
+        usedModelDatas.put(model, modelData);
+        DATAS.put(type, usedModelDatas);
     }
 
     public Material getType() {
         return type;
     }
 
-    public int getDurability() {
-        return durability;
+    public int getModelData() {
+        return modelData;
     }
 
     public static int generateId(String model, Material type) {
-        Map<String, Integer> usedDurabilities;
+        Map<String, Integer> usedModelDatas;
         if (!DATAS.containsKey(type) && !getSkippedCustomModelData().contains(1)) {
-            usedDurabilities = new HashMap<>();
-            usedDurabilities.put(model, 1);
-            DATAS.put(type, usedDurabilities);
+            usedModelDatas = new HashMap<>();
+            usedModelDatas.put(model, 1);
+            DATAS.put(type, usedModelDatas);
             return 1;
-        } else usedDurabilities = DATAS.get(type);
+        } else usedModelDatas = DATAS.get(type);
 
-        if (usedDurabilities.containsKey(model)) {
-            return usedDurabilities.get(model);
+        if (usedModelDatas.containsKey(model)) {
+            return usedModelDatas.get(model);
         }
 
-        int currentMaxDurability = Collections.max(usedDurabilities.values());
-        for (int i = 1; i < currentMaxDurability; i++) {
-            if (!usedDurabilities.containsValue(i)) { // if the id is available
+        int currentHighestModelData = Collections.max(usedModelDatas.values());
+        for (int i = 1; i < currentHighestModelData; i++) {
+            if (!usedModelDatas.containsValue(i)) { // if the id is available
                 if (getSkippedCustomModelData().contains(i)) // if the id should be skipped
                     continue;
-                usedDurabilities.put(model, i);
-                DATAS.put(type, usedDurabilities);
+                usedModelDatas.put(model, i);
+                DATAS.put(type, usedModelDatas);
                 return i;
             }
         }
         // if no durability was available between the chosen, let's create a new one
         // bigger
-        int newMaxDurability = currentMaxDurability + 1;
-        if (getSkippedCustomModelData().contains(newMaxDurability)) { // if the id should be skipped
-            newMaxDurability = getNextNotSkippedCustomModelData(newMaxDurability);
+        int newHighestModelData = currentHighestModelData + 1;
+        if (getSkippedCustomModelData().contains(newHighestModelData)) { // if the id should be skipped
+            newHighestModelData = getNextNotSkippedCustomModelData(newHighestModelData);
         }
 
-        usedDurabilities.put(model, newMaxDurability);
-        DATAS.put(type, usedDurabilities);
-        return newMaxDurability;
+        usedModelDatas.put(model, newHighestModelData);
+        DATAS.put(type, usedModelDatas);
+        return newHighestModelData;
     }
 
     private static int getNextNotSkippedCustomModelData(int i) {

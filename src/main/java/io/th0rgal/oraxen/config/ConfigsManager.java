@@ -4,10 +4,12 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
+import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.ChatColor;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -204,24 +206,56 @@ public class ConfigsManager {
         return glyphConfigs;
     }
 
-    public Map<File, Map<String, ItemBuilder>> parseItemConfigs() {
+    public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
+
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
-        List<File> configs = Arrays
-                .stream(getItemsFiles())
-                .filter(file -> file.getName().endsWith(".yml"))
-                .toList();
-        for (File file : configs)
-            parseMap.put(file, parseItemConfigs(YamlConfiguration.loadConfiguration(file), file));
+        List<File> configs = getItemsFiles();
+        Logs.logWarning(configs.stream().map(File::getName).toList().toString());
+        for (File file : configs) {
+            parseMap.put(file, parseItemConfig(YamlConfiguration.loadConfiguration(file), file));
+        }
         return parseMap;
     }
 
-    public Map<String, ItemBuilder> parseItemConfigs(YamlConfiguration config, File itemFile) {
+    public void assignAllUsedModelDatas() {
+        List<File> itemConfigs = getItemsFiles();
+        Map<Material, List<Integer>> assignedModelDatas = new HashMap<>();
+        for (File file : itemConfigs) {
+            YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
+            for (String key : configuration.getKeys(false)) {
+                ConfigurationSection itemSection = configuration.getConfigurationSection(key);
+                if (itemSection == null) continue;
+                Material material = Material.matchMaterial(itemSection.getString("material"));
+                if (material == null) continue;
+                int modelData = itemSection.getInt("Pack.custom_model_data", -1);
+                if (modelData == -1) continue;
+                if (assignedModelDatas.containsKey(material) && assignedModelDatas.get(material).contains(modelData)) {
+                    Logs.logError("Model data " + modelData + " is already assigned to " + material + " in " + file.getName() + " " + key);
+                    itemSection.set("Pack.custom_model_data", null);
+                    continue;
+                }
+                assignedModelDatas.computeIfAbsent(material, k -> new ArrayList<>()).add(modelData);
+                ModelData.DATAS.computeIfAbsent(material, k -> new HashMap<>()).put(key, modelData);
+            }
+            try {
+                configuration.save(file);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        for (Map.Entry<Material, List<Integer>> entry : assignedModelDatas.entrySet()) {
+            Collections.sort(entry.getValue());
+            Logs.logSuccess(entry.toString());
+        }
+    }
+
+    public Map<String, ItemBuilder> parseItemConfig(YamlConfiguration config, File itemFile) {
         Map<String, ItemParser> parseMap = new LinkedHashMap<>();
         ItemParser errorItem = new ItemParser(Settings.ERROR_ITEM.toConfigSection());
         for (String itemSectionName : config.getKeys(false)) {
-            if (!config.isConfigurationSection(itemSectionName))
-                continue;
             ConfigurationSection itemSection = config.getConfigurationSection(itemSectionName);
+            if (itemSection == null) continue;
             parseMap.put(itemSectionName, new ItemParser(itemSection));
         }
         boolean configUpdated = false;
@@ -252,9 +286,11 @@ public class ConfigsManager {
         return map;
     }
 
-    private File[] getItemsFiles() {
-        File[] itemConfigs = itemsFolder.listFiles();
-        Arrays.sort(itemConfigs);
+    private List<File> getItemsFiles() {
+        File[] itemFiles = itemsFolder.listFiles(pathname -> pathname.getName().endsWith(".yml"));
+        if (itemFiles == null) return new ArrayList<>();
+        List<File> itemConfigs = new ArrayList<>(Arrays.stream(itemFiles).toList());
+        Collections.sort(itemConfigs);
         return itemConfigs;
     }
 

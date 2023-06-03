@@ -28,7 +28,7 @@ import java.util.function.Function;
 
 public class ItemParser {
 
-    private static final Map<String, ModelData> MODEL_DATAS_BY_ID = new HashMap<>();
+    public static final Map<String, ModelData> MODEL_DATAS_BY_ID = new HashMap<>();
 
     private final OraxenMeta oraxenMeta;
     private final ConfigurationSection section;
@@ -54,8 +54,8 @@ public class ItemParser {
             oraxenMeta.setPackInfos(packSection);
             assert packSection != null;
             if (packSection.isInt("custom_model_data"))
-                MODEL_DATAS_BY_ID.put(section.getName(), new ModelData(type, oraxenMeta.getModelName(),
-                        packSection.getInt("custom_model_data")));
+                MODEL_DATAS_BY_ID.put(section.getName(),
+                        new ModelData(type, oraxenMeta.getModelName(), packSection.getInt("custom_model_data")));
         }
     }
 
@@ -199,9 +199,9 @@ public class ItemParser {
 
         if (oraxenMeta.hasPackInfos()) {
             int customModelData;
-            if (MODEL_DATAS_BY_ID.containsKey(section.getName()))
-                customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getDurability();
-            else {
+            if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
+                customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
+            } else {
                 customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
                 if (Settings.AUTOMATICALLY_SET_MODEL_DATA.toBool()) {
                     configUpdated = true;

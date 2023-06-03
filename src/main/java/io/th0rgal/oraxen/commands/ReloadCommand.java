@@ -10,7 +10,9 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.hud.HudManager;
+import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ItemUpdater;
+import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
@@ -28,6 +30,8 @@ public class ReloadCommand {
 
     private static void reloadItems(CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "items"));
+        ItemParser.MODEL_DATAS_BY_ID.clear();
+        ModelData.DATAS.clear();
         OraxenItems.loadItems();
 
         if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
