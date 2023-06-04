@@ -74,7 +74,7 @@ public class OraxenPlugin extends JavaPlugin {
     private static boolean checkIfSupportsDisplayEntities() {
         try {
             Class.forName("org.bukkit.entity.ItemDisplay");
-            if (Bukkit.getPluginManager().isPluginEnabled("ViaBackwards") && FurnitureFactory.getInstance().detectViabackwards) {
+            if (Bukkit.getPluginManager().isPluginEnabled("ViaBackwards") && FurnitureFactory.getInstance() != null && FurnitureFactory.getInstance().detectViabackwards) {
                 Logs.logWarning("ViaBackwards is installed, disabling Display Entity type for Furniture");
                 Logs.logWarning("Display Entity furniture is entirely invisible and uninteractable for players using 1.19.3 or lower");
                 Logs.logWarning("If you still want to use Display Entity type for Furniture, disable detect_viabackwards in the mechanics.yml");
