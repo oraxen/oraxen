@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.Evolvin
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
 import io.th0rgal.oraxen.mechanics.provided.misc.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
@@ -327,10 +328,9 @@ public class FurnitureMechanic extends Mechanic {
 
         ItemStack item;
         if (evolvingFurniture == null) {
-            ItemStack clone = originalItem.clone();
-            //Utils.editItemMeta(clone, meta -> meta.setDisplayName(""));
-            item = clone;
+            item = Utils.editItemMeta(originalItem.clone(), meta -> meta.setDisplayName(""));
         } else item = placedItem;
+        item.setAmount(1);
 
         Entity baseEntity = location.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), entityClass, (entity) ->
                 setEntityData(entity, yaw, item, facing));

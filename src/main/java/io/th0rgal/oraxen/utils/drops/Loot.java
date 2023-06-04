@@ -74,7 +74,6 @@ public class Loot {
     }
 
     private void dropItems(Location location, int amountMultiplier) {
-        if (getItemStack() == null) return;
         ItemStack stack = getItemStack().clone();
         int dropAmount = ThreadLocalRandom.current().nextInt(minAmount, maxAmount + 1);
         stack.setAmount(stack.getAmount() * amountMultiplier * dropAmount);
