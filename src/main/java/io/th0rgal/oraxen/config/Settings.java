@@ -8,6 +8,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import java.util.List;
 
 public enum Settings {
+    // Generic Plugin stuff
     DEBUG("debug"),
     PLUGIN_LANGUAGE("Plugin.language"),
     KEEP_UP_TO_DATE("Plugin.keep_this_up_to_date"),
@@ -27,6 +28,7 @@ public enum Settings {
     VERIFY_PACK_FILES("Plugin.experimental.verify_pack_files"),
     EXCLUDE_MALFORMED_ATLAS("Plugin.experimental.exclude_malformed_from_atlas"),
 
+    // Config Tools
     CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),
     AUTOMATICALLY_SET_GLYPH_CODE("ConfigsTools.automatically_set_glyph_code"),
@@ -36,6 +38,8 @@ public enum Settings {
 
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
     GESTURES_ENABLED("Gestures.enabled"),
+
+    // ItemUpdater
     AUTO_UPDATE_ITEMS("ItemUpdater.auto_update_items"),
     UPDATE_ITEMS_ON_RELOAD("ItemUpdater.update_items_on_reload"),
     UPDATE_FURNITURE_ON_RELOAD("ItemUpdater.update_furniture_on_reload"),
@@ -44,6 +48,7 @@ public enum Settings {
     OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
     OVERRIDE_LORE("ItemUpdater.override_lore"),
 
+    //Misc
     RESET_RECIPES("Misc.reset_recipes"),
     ADD_RECIPES_TO_BOOK("Misc.add_recipes_to_book"),
     UNICODE_COMPLETIONS("Misc.unicode_completions"),
@@ -53,6 +58,7 @@ public enum Settings {
     CROSSBOW_DISPLAY("Misc.crossbow_display"),
     HIDE_SCOREBOARD_NUMBERS("Misc.hide_scoreboard_numbers"),
 
+    //Pack
     GENERATE("Pack.generation.generate"),
     EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions"),
     GENERATE_ATLAS_FILE("Pack.generation.atlas.generate"),
@@ -92,6 +98,7 @@ public enum Settings {
     RECEIVE_FAILED_ACTIONS("Pack.receive.failed_download.actions"),
     RECEIVE_DENIED_ACTIONS("Pack.receive.denied.actions"),
 
+    // Inventory
     ORAXEN_INV_LAYOUT("oraxen_inventory.menu_layout"),
     ORAXEN_INV_ROWS("oraxen_inventory.menu_rows"),
     ORAXEN_INV_TITLE("oraxen_inventory.main_menu_title"),

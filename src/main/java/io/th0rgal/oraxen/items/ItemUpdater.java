@@ -40,7 +40,7 @@ public class ItemUpdater implements Listener {
         if (furnitureUpdateTask != null) furnitureUpdateTask.cancel();
         furnitureUpdateTask = new FurnitureUpdateTask();
         int delay = (Settings.FURNITURE_UPDATE_DELAY.getValue() instanceof Integer integer) ? integer : 5;
-        furnitureUpdateTask.runTaskTimerAsynchronously(OraxenPlugin.get(), 0, delay * 20L);
+        furnitureUpdateTask.runTaskTimer(OraxenPlugin.get(), 0, delay * 20L);
     }
 
     public static HashSet<Entity> furnitureToUpdate = new HashSet<>();
@@ -49,9 +49,10 @@ public class ItemUpdater implements Listener {
 
         @Override
         public void run() {
-            for (Entity entity : furnitureToUpdate)
+            for (Entity entity : new HashSet<>(furnitureToUpdate)) {
                 OraxenFurniture.updateFurniture(entity);
-            furnitureToUpdate.clear();
+                furnitureToUpdate.remove(entity);
+            }
         }
     }
 

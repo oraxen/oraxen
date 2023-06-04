@@ -154,6 +154,7 @@ public class OraxenPlugin extends JavaPlugin {
             //TODO Is this needed?
             //OraxenItems.loadItems(configsManager);
             Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
+
         });
     }
 

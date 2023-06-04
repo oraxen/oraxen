@@ -32,8 +32,6 @@ public class ReloadCommand {
 
         if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
 
-        //TODO Make this async?
-
         if (Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
             Logs.logInfo("Updating all items in player-inventories...");
             for (Player player : Bukkit.getServer().getOnlinePlayers()) {
