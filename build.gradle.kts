@@ -12,6 +12,8 @@ plugins {
     id("net.minecrell.plugin-yml.bukkit") version "0.5.3" // Generates plugin.yml
 }
 
+val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
+val pluginPath = project.findProperty("oraxen_plugin_path")
 val pluginVersion: String by project
 group = "io.th0rgal"
 version = pluginVersion
@@ -124,10 +126,12 @@ tasks {
                     "Build-Timestamp" to SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss.SSSZ").format(Date.from(Instant.now())),
                     "Created-By" to "Gradle ${gradle.gradleVersion}",
                     "Build-Jdk" to "${System.getProperty("java.version")} ${System.getProperty("java.vendor")} ${System.getProperty("java.vm.version")}",
-                    "Build-OS" to "${System.getProperty("os.name")} ${System.getProperty("os.arch")} ${System.getProperty("os.version")}"
+                    "Build-OS" to "${System.getProperty("os.name")} ${System.getProperty("os.arch")} ${System.getProperty("os.version")}",
+                    "Premium" to !compiled
                 )
             )
         }
+        if (!compiled) exclude("io/th0rgal/oraxen/CompileNotice\$PrintNotice.class")
         archiveFileName.set("oraxen-${pluginVersion}.jar")
         minimize()
     }
@@ -161,7 +165,6 @@ publishing {
     }
 }
 
-val pluginPath = project.findProperty("oraxen_plugin_path")
 if (pluginPath != null) {
     tasks {
         register<Copy>("copyJar") {
@@ -173,8 +176,6 @@ if (pluginPath != null) {
                 println("Copied to plugin directory $pluginPath")
             }
         }
-        named<DefaultTask>("build") {
-            dependsOn("copyJar")
-        }
+        named<DefaultTask>("build").get().dependsOn("copyJar")
     }
 }

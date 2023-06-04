@@ -144,6 +144,7 @@ public class OraxenPlugin extends JavaPlugin {
         } catch (Exception ignore) {
         }
         CompatibilitiesManager.enableNativeCompatibilities();
+        CompileNotice.print();
     }
 
     private void postLoading(final ConfigsManager configsManager) {
