@@ -2,11 +2,11 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
-import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.utils.limitedplacing;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
