@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -163,7 +162,7 @@ public class FontManager {
         List<String> completions = getGlyphByPlaceholderMap().values().stream()
                 .filter(Glyph::hasTabCompletion)
                 .flatMap(glyph -> Settings.UNICODE_COMPLETIONS.toBool()
-                        ? Stream.of(ChatColor.WHITE + String.valueOf(glyph.getCharacter()))
+                        ? Stream.of(String.valueOf(glyph.getCharacter()))
                         : Arrays.stream(glyph.getPlaceholders()))
                 .toList();
 
