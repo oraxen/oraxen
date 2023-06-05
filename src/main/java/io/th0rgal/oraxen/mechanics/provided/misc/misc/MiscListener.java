@@ -1,20 +1,13 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.misc;
 
 import io.th0rgal.oraxen.api.OraxenItems;
-import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.Tag;
-import org.bukkit.block.Block;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Effect;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.Piglin;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -169,7 +162,6 @@ public class MiscListener implements Listener {
         MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(item);
         if (mechanic == null || !mechanic.isCompostable()) return;
         if (event.useInteractedBlock() == Event.Result.DENY) return;
-        if (event.useItemInHand() == Event.Result.ALLOW) return;
         event.setUseInteractedBlock(Event.Result.ALLOW);
 
         if (levelled.getLevel() < levelled.getMaximumLevel()) {
