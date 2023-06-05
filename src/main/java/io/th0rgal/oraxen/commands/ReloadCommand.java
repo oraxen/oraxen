@@ -78,7 +78,7 @@ public class ReloadCommand {
                     // This does not clear the tablist, and I am not sure how to do it otherwise
                     FontManager manager = new FontManager(OraxenPlugin.get().getConfigsManager());
                     for (Player player : Bukkit.getOnlinePlayers()) {
-                        manager.sendGlyphTabCompletion(player, false);
+                        manager.sendGlyphTabCompletion(player);
                     }
                 });
     }
