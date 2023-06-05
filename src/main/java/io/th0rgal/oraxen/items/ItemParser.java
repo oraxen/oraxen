@@ -101,7 +101,7 @@ public class ItemParser {
         if (section.contains("unstackable"))
             item.setUnstackable(section.getBoolean("unstackable", false));
         if (section.contains("color"))
-            item.setColor(Utils.toColor(section.getString("color", "FFFFFF")));
+            item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
 
         parseMiscOptions(item);
         parseVanillaSections(item);
@@ -114,6 +114,7 @@ public class ItemParser {
         oraxenMeta.setNoUpdate(section.getBoolean("no_auto_update", false));
         oraxenMeta.setDisableEnchanting(section.getBoolean("disable_enchanting", false));
         oraxenMeta.setExcludedFromInventory(section.getBoolean("excludeFromInventory", false));
+        oraxenMeta.setExcludedFromCommands(section.getBoolean("excludeFromCommands", false));
 
         if (!section.contains("injectID") || section.getBoolean("injectId"))
             item.setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING, section.getName());

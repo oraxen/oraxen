@@ -15,11 +15,9 @@ import java.util.Map;
 public class ItemInfoCommand {
 
     public CommandAPICommand getItemInfoCommand() {
-        String[] itemNames = OraxenItems.getItemNames();
-        if (itemNames == null) itemNames = new String[0];
         return new CommandAPICommand("iteminfo")
                 .withPermission("oraxen.command.iteminfo")
-                .withArguments(new StringArgument("itemid").replaceSuggestions(ArgumentSuggestions.strings(itemNames)))
+                .withArguments(new StringArgument("itemid").replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())))
                 .executes((commandSender, args) -> {
                     String argument = (String) args[0];
                     Audience audience = OraxenPlugin.get().getAudience().sender(commandSender);

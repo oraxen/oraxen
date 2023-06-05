@@ -65,7 +65,6 @@ public class ReloadCommand {
                         case "RECIPES" -> RecipesManager.reload();
                         case "CONFIGS" -> OraxenPlugin.get().reloadConfigs();
                         default -> {
-                            OraxenPlugin oraxen = OraxenPlugin.get();
                             MechanicsManager.unloadListeners();
                             MechanicsManager.registerNativeMechanics();
                             OraxenPlugin.get().reloadConfigs();
