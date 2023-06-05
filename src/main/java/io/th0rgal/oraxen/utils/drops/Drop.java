@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Location;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -111,6 +112,10 @@ public class Drop {
         ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
         Location location = baseEntity.getLocation();
         ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
+        Utils.editItemMeta(furnitureItem, (itemMeta) -> {
+            if (baseItem.hasItemMeta() && baseItem.getItemMeta().hasDisplayName())
+                itemMeta.setDisplayName(baseItem.getItemMeta().getDisplayName());
+        });
 
         if (!canDrop(itemInHand)) return;
         if (!location.isWorldLoaded()) return;
