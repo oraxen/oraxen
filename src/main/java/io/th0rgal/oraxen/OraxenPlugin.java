@@ -27,6 +27,7 @@ import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OS;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -55,20 +56,10 @@ public class OraxenPlugin extends JavaPlugin {
     private ResourcePack resourcePack;
     private ClickActionManager clickActionManager;
     private ProtocolManager protocolManager;
-    public static boolean isPaperServer;
     public static boolean supportsDisplayEntities;
 
     public OraxenPlugin() {
         oraxen = this;
-    }
-
-    private static boolean checkIfPaperServer() {
-        try {
-            Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
     }
 
     private static boolean checkIfSupportsDisplayEntities() {
@@ -102,7 +93,6 @@ public class OraxenPlugin extends JavaPlugin {
         PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
-        isPaperServer = checkIfPaperServer();
         reloadConfigs();
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
@@ -120,7 +110,7 @@ public class OraxenPlugin extends JavaPlugin {
 
         resourcePack = new ResourcePack(this);
         MechanicsManager.registerNativeMechanics();
-        supportsDisplayEntities = checkIfSupportsDisplayEntities();
+        supportsDisplayEntities = VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R3);
         //CustomBlockData.registerListener(this); //Handle this manually
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);

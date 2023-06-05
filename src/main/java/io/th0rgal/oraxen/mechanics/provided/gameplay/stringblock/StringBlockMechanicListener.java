@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -51,7 +52,7 @@ public class StringBlockMechanicListener implements Listener {
     public StringBlockMechanicListener(final StringBlockMechanicFactory factory) {
         this.factory = factory;
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
-        if (OraxenPlugin.isPaperServer)
+        if (VersionUtil.isPaperServer())
             Bukkit.getPluginManager().registerEvents(new StringBlockMechanicPaperListener(), OraxenPlugin.get());
     }
 

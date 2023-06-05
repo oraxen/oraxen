@@ -42,7 +42,7 @@ public class FontEvents implements Listener {
     public FontEvents(FontManager manager) {
         this.manager = manager;
         PluginManager pluginManager = OraxenPlugin.get().getServer().getPluginManager();
-        /*if (OraxenPlugin.get().isPaperServer) {
+        /*if (VersionUtil.isPaperServer()) {
             pluginManager.registerEvents(new PaperChatHandler(), OraxenPlugin.get());
         } else pluginManager.registerEvents(new SpigotChatHandler(), OraxenPlugin.get());*/
         pluginManager.registerEvents(new SpigotChatHandler(), OraxenPlugin.get());
