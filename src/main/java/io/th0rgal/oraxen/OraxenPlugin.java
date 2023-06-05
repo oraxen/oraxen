@@ -26,6 +26,7 @@ import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OS;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -54,44 +55,10 @@ public class OraxenPlugin extends JavaPlugin {
     private ResourcePack resourcePack;
     private ClickActionManager clickActionManager;
     private ProtocolManager protocolManager;
-    public static boolean isPaperServer;
     public static boolean supportsDisplayEntities;
 
     public OraxenPlugin() {
         oraxen = this;
-    }
-
-    private static boolean checkIfPaperServer() {
-        try {
-            Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
-    private static boolean checkIfSupportsDisplayEntities() {
-        try {
-            Class.forName("org.bukkit.entity.ItemDisplay");
-            if (Bukkit.getPluginManager().isPluginEnabled("ViaBackwards") && FurnitureFactory.getInstance() != null) {
-                if (FurnitureFactory.getInstance().detectViabackwards) {
-                    Logs.logWarning("ViaBackwards is installed, disabling Display Entity type for Furniture");
-                    Logs.logWarning("Display Entity furniture is entirely invisible and uninteractable for players using 1.19.3 or lower");
-                    Logs.logWarning("If you still want to use Display Entity type for Furniture, disable detect_viabackwards in the mechanics.yml");
-                    return false;
-                } else {
-                    Logs.logWarning("ViaBackwards is installed, but detect_viabackwards is disabled in the mechanics.yml");
-                    Logs.logWarning("Display Entity type for Furniture will be used");
-                    Logs.logError("Do note there will be issues with the Display Entity type for Furniture if you use ViaBackwards");
-                    Logs.logWarning("Players on versions below 1.19.4 will not be able to see/interact with the furniture.");
-                    Logs.logWarning("Players on 1.19.4 will have weird rotations on Display Entity furniture with transformation FIXED.");
-                    return true;
-                }
-            }
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
     }
 
     public static OraxenPlugin get() {
@@ -110,7 +77,6 @@ public class OraxenPlugin extends JavaPlugin {
         //PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
-        isPaperServer = checkIfPaperServer();
         reloadConfigs();
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
@@ -128,7 +94,7 @@ public class OraxenPlugin extends JavaPlugin {
 
         resourcePack = new ResourcePack(this);
         MechanicsManager.registerNativeMechanics();
-        supportsDisplayEntities = checkIfSupportsDisplayEntities();
+        supportsDisplayEntities = VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R3);
         //CustomBlockData.registerListener(this); //Handle this manually
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
@@ -146,7 +112,7 @@ public class OraxenPlugin extends JavaPlugin {
         invManager = new InvManager();
         new ArmorListener(Settings.ARMOR_EQUIP_EVENT_BYPASS.toStringList()).registerEvents(this);
         new CommandsManager().loadCommands();
-        postLoading(configsManager);
+        postLoading();
         try {
             Message.PLUGIN_LOADED.log(AdventureUtils.tagResolver("os", OS.getOs().getPlatformName()));
         } catch (Exception ignore) {
@@ -155,12 +121,11 @@ public class OraxenPlugin extends JavaPlugin {
         CompileNotice.print();
     }
 
-    private void postLoading(final ConfigsManager configsManager) {
+    private void postLoading() {
         uploadManager = new UploadManager(this);
         uploadManager.uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
         Bukkit.getScheduler().runTask(this, () -> {
-            //TODO Is this needed?
             Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
 
         });

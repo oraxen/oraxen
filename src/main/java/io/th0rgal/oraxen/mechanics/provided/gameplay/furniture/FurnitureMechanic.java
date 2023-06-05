@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBl
 import io.th0rgal.oraxen.mechanics.provided.misc.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
@@ -364,7 +365,6 @@ public class FurnitureMechanic extends Mechanic {
                 }
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
-            //Correct FIXED item display yaw until 1.20 fixes this
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
             Location location = itemDisplay.getLocation();
             float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
@@ -436,7 +436,15 @@ public class FurnitureMechanic extends Mechanic {
 
         // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation
         // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
-        float pitch = isFixed && hasLimitedPlacing() && (limitedPlacing.isFloor() || limitedPlacing.isRoof()) ? -90 : 0;
+        float pitch;
+        float alterYaw;
+        if (VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_20_R1)) {
+            pitch = isFixed && hasLimitedPlacing() && (limitedPlacing.isFloor() || limitedPlacing.isRoof()) ? -90 : 0;
+            alterYaw = yaw;
+        } else {
+            pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
+            alterYaw = yaw - 180;
+        }
         //TODO isWall will be put of the wall slightly. Fixing this is annoying as it is direction relative
         Location fixedLocation = !isFixed || !hasLimitedPlacing() || limitedPlacing.isWall()
                 ? BlockHelpers.toCenterLocation(itemDisplay.getLocation())
@@ -445,7 +453,7 @@ public class FurnitureMechanic extends Mechanic {
                 : BlockHelpers.toCenterBlockLocation(itemDisplay.getLocation());
         itemDisplay.teleport(fixedLocation);
         itemDisplay.setTransformation(transform);
-        itemDisplay.setRotation(yaw, pitch);
+        itemDisplay.setRotation(alterYaw, pitch);
     }
 
     private void setFrameData(ItemFrame frame, ItemStack item, float yaw, BlockFace facing) {
