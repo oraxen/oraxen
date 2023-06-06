@@ -413,10 +413,15 @@ public class ResourcePack {
             return;
         final JsonObject output = new JsonObject();
         final JsonArray providers = new JsonArray();
-        for (final Glyph glyph : fontManager.getGlyphs())
-            providers.add(glyph.toJson());
-        for (final Font font : fontManager.getFonts())
+        for (final Glyph glyph : fontManager.getGlyphs()) {
+            if (!glyph.hasBitmap()) providers.add(glyph.toJson());
+        }
+        for (FontManager.GlyphBitMap glyphBitMap : FontManager.glyphBitMaps.values()) {
+            providers.add(glyphBitMap.toJson(fontManager));
+        }
+        for (final Font font : fontManager.getFonts()) {
             providers.add(font.toJson());
+        }
         output.add("providers", providers);
         writeStringToVirtual("assets/minecraft/font", "default.json", output.toString());
     }

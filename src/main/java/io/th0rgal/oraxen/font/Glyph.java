@@ -25,6 +25,8 @@ import java.util.stream.Collectors;
 
 public class Glyph {
 
+    public static final Character WHITESPACE_GLYPH = '\ue000';
+
     private boolean fileChanged = false;
 
     private final String name;
@@ -39,6 +41,7 @@ public class Glyph {
     private String permission = null;
     private String[] placeholders;
     private int code;
+    private final BitMapEntry bitmapEntry;
 
     public Glyph(final String glyphName, final ConfigurationSection glyphSection, int newCode) {
         name = glyphName;
@@ -66,8 +69,34 @@ public class Glyph {
         }
 
         character = (char) code;
-        ascent = glyphSection.getInt("ascent", 8);
-        height = glyphSection.getInt("height", 8);
+
+        ConfigurationSection bitmapSection = glyphSection.getConfigurationSection("bitmap");
+        bitmapEntry = bitmapSection != null ? new BitMapEntry(bitmapSection.getString("id"), bitmapSection.getInt("row"), bitmapSection.getInt("column")) : null;
+        ascent = glyphSection.getInt("ascent", getBitMap() != null ? getBitMap().ascent() : 8);
+        height = glyphSection.getInt("height", getBitMap() != null ? getBitMap().height() : 8);
+    }
+
+    public record BitMapEntry(String id, int row, int column) {
+    }
+
+    public BitMapEntry getBitmapEntry() {
+        return bitmapEntry;
+    }
+
+    public String getBitmapId() {
+        return bitmapEntry != null ? bitmapEntry.id : null;
+    }
+
+    public boolean hasBitmap() {
+        return getBitmapId() != null;
+    }
+
+    public boolean isBitMap() {
+        return FontManager.getGlyphBitMap(getBitmapId()) != null;
+    }
+
+    public FontManager.GlyphBitMap getBitMap() {
+        return FontManager.getGlyphBitMap(getBitmapId());
     }
 
     public boolean isFileChanged() {
