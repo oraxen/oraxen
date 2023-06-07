@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen;
 
 import com.comphenix.protocol.ProtocolManager;
-import com.ticxo.playeranimator.PlayerAnimatorImpl;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -88,14 +87,14 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onLoad() {
-        CommandAPI.onLoad(new CommandAPIBukkitConfig(this));
+        CommandAPI.onLoad(new CommandAPIBukkitConfig(this).silentLogs(true));
     }
 
     @Override
     public void onEnable() {
         CommandAPI.onEnable();
         ProtectionLib.init(this);
-        PlayerAnimatorImpl.initialize(this);
+        //PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
         isPaperServer = checkIfPaperServer();
@@ -115,13 +114,13 @@ public class OraxenPlugin extends JavaPlugin {
             pluginManager.registerEvents(new CustomArmorListener(), this);
 
         resourcePack = new ResourcePack(this);
-        MechanicsManager.registerNativeMechanics();
+        //MechanicsManager.registerNativeMechanics();
         supportsDisplayEntities = checkIfSupportsDisplayEntities();
         //CustomBlockData.registerListener(this); //Handle this manually
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
-        gestureManager = new GestureManager();
+        //gestureManager = new GestureManager();
         OraxenItems.loadItems(configsManager);
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there

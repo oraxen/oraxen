@@ -99,7 +99,7 @@ public class ResourcePack {
         // Sorting items to keep only one with models (and generate it if needed)
         generatePredicates(extractTexturedItems());
         generateFont(fontManager);
-        if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
+        //if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardFiles();
 
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
