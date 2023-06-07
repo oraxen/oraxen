@@ -26,7 +26,7 @@ public class RepairCommand {
                 .withArguments(new TextArgument("type").replaceSuggestions(ArgumentSuggestions.strings("hand", "all")))
                 .executes((sender, args) -> {
 
-                    if (sender instanceof Player player) if ((args[0]).equals("hand")) {
+                    if (sender instanceof Player player) if (args.get("type").equals("hand")) {
                         ItemStack item = player.getInventory().getItemInMainHand();
                         if (item.getType() == Material.AIR) {
                             Message.CANNOT_BE_REPAIRED_INVALID.send(sender);
