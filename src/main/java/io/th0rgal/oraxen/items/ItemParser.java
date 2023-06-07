@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.items;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
-import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -184,16 +183,14 @@ public class ItemParser {
 
     private void parseOraxenSections(ItemBuilder item) {
 
-        if (section.isConfigurationSection("Mechanics")) {
-            ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
-            if (mechanicsSection != null) for (String mechanicID : mechanicsSection.getKeys(false)) {
-                MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
-                if (factory != null) {
-                    Mechanic mechanic = factory.parse(mechanicsSection.getConfigurationSection(mechanicID));
-                    // Apply item modifiers
-                    for (Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers())
-                        item = itemModifier.apply(item);
-                }
+        ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
+        if (mechanicsSection != null) for (String mechanicID : mechanicsSection.getKeys(false)) {
+            MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
+            if (factory != null) {
+                Mechanic mechanic = factory.parse(mechanicsSection.getConfigurationSection(mechanicID));
+                // Apply item modifiers
+                for (Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers())
+                    item = itemModifier.apply(item);
             }
         }
 
@@ -203,10 +200,8 @@ public class ItemParser {
                 customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
             } else {
                 customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
-                if (Settings.AUTOMATICALLY_SET_MODEL_DATA.toBool()) {
-                    configUpdated = true;
-                    section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
-                }
+                configUpdated = true;
+                section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
             }
             item.setCustomModelData(customModelData);
             oraxenMeta.setCustomModelData(customModelData);

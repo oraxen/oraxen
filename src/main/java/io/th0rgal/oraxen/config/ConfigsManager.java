@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ModelData;
+import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -225,13 +226,22 @@ public class ConfigsManager {
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection itemSection = configuration.getConfigurationSection(key);
                 if (itemSection == null) continue;
-                Material material = Material.matchMaterial(itemSection.getString("material"));
+                Material material = Material.matchMaterial(itemSection.getString("material", ""));
                 if (material == null) continue;
                 int modelData = itemSection.getInt("Pack.custom_model_data", -1);
                 if (modelData == -1) continue;
                 if (assignedModelDatas.containsKey(material) && assignedModelDatas.get(material).contains(modelData)) {
-                    Logs.logError("Model data " + modelData + " is already assigned to " + material + " in " + file.getName() + " " + key);
-                    itemSection.set("Pack.custom_model_data", null);
+                    Logs.logError("CustomModelData " + modelData + " is already assigned to " + material + " in " + file.getName() + " " + key);
+                    if (file.getName().equals(DuplicationHandler.DUPLICATE_FILE_MERGE_NAME) && Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) {
+                        Logs.logWarning("Due to " + Settings.RETAIN_CUSTOM_MODEL_DATA.getPath() + " being enabled,");
+                        Logs.logWarning("the model data will not removed from " + file.getName() + ": " + key + ".");
+                        Logs.logWarning("There will still be a conflict which you need to solve yourself.");
+                        Logs.logWarning("Either reset the CustomModelData of this item, or change the CustomModelData of the conflicting item.");
+                    } else {
+                        Logs.logWarning("Removing custom model data from " + file.getName() + ": " + key);
+                        itemSection.set("Pack.custom_model_data", null);
+                    }
+                    Logs.newline();
                     continue;
                 }
                 assignedModelDatas.computeIfAbsent(material, k -> new ArrayList<>()).add(modelData);

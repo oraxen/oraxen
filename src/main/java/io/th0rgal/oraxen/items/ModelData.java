@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 
 import java.util.*;
@@ -17,6 +18,7 @@ public class ModelData {
         Map<String, Integer> usedModelDatas = DATAS.getOrDefault(type, new HashMap<>());
         usedModelDatas.put(model, modelData);
         DATAS.put(type, usedModelDatas);
+        Logs.logSuccess("Registered model data " + modelData + " for " + type.name() + " with model " + model);
     }
 
     public Material getType() {
@@ -31,9 +33,9 @@ public class ModelData {
         Map<String, Integer> usedModelDatas;
         if (!DATAS.containsKey(type) && !getSkippedCustomModelData().contains(1)) {
             usedModelDatas = new HashMap<>();
-            usedModelDatas.put(model, 1);
+            usedModelDatas.put(model, 1000);
             DATAS.put(type, usedModelDatas);
-            return 1;
+            return 1000;
         } else usedModelDatas = DATAS.get(type);
 
         if (usedModelDatas.containsKey(model)) {
@@ -41,10 +43,9 @@ public class ModelData {
         }
 
         int currentHighestModelData = Collections.max(usedModelDatas.values());
-        for (int i = 1; i < currentHighestModelData; i++) {
+        for (int i = 1000; i < currentHighestModelData; i++) {
             if (!usedModelDatas.containsValue(i)) { // if the id is available
-                if (getSkippedCustomModelData().contains(i)) // if the id should be skipped
-                    continue;
+                if (getSkippedCustomModelData().contains(i)) continue; // if the id should be skipped
                 usedModelDatas.put(model, i);
                 DATAS.put(type, usedModelDatas);
                 return i;
