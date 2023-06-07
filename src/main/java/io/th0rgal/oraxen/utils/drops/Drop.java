@@ -113,8 +113,9 @@ public class Drop {
         Location location = baseEntity.getLocation();
         ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
         Utils.editItemMeta(furnitureItem, (itemMeta) -> {
-            if (baseItem.hasItemMeta() && baseItem.getItemMeta().hasDisplayName())
-                itemMeta.setDisplayName(baseItem.getItemMeta().getDisplayName());
+            ItemMeta baseMeta = baseItem.getItemMeta();
+            if (baseMeta != null && baseMeta.hasDisplayName())
+                itemMeta.setDisplayName(baseMeta.getDisplayName());
         });
 
         if (!canDrop(itemInHand)) return;
