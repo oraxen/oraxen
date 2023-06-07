@@ -211,7 +211,6 @@ public class ConfigsManager {
 
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
         List<File> configs = getItemsFiles();
-        Logs.logWarning(configs.stream().map(File::getName).toList().toString());
         for (File file : configs) {
             parseMap.put(file, parseItemConfig(YamlConfiguration.loadConfiguration(file), file));
         }
@@ -256,7 +255,6 @@ public class ConfigsManager {
 
         for (Map.Entry<Material, List<Integer>> entry : assignedModelDatas.entrySet()) {
             Collections.sort(entry.getValue());
-            Logs.logSuccess(entry.toString());
         }
     }
 
