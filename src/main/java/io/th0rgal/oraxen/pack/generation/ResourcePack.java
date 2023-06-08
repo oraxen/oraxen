@@ -623,7 +623,6 @@ public class ResourcePack {
             }
 
             InputStream langStream = processJson(langJson.toString());
-            Logs.logError(lang);
             virtualLangFiles.add(new VirtualFile("assets/minecraft/lang", lang + ".json", langStream));
         }
         // Remove previous langfiles as these have been migrated in above
