@@ -48,7 +48,7 @@ public class ItemsView {
         for (final var entry : files.entrySet()) {
             Pair<ItemStack, Integer> itemSlotPair = getItemStack(entry.getKey());
             ItemStack itemStack = itemSlotPair.getLeft();
-            int slot = itemSlotPair.getRight() != -1 ? itemSlotPair.getRight() : i;
+            int slot = itemSlotPair.getRight() > -1 ? itemSlotPair.getRight() : i;
             final GuiItem item = new GuiItem(itemStack, event ->
                     entry.getValue().show(event.getWhoClicked()));
             highestSlot = Math.max(highestSlot, slot);
@@ -161,6 +161,6 @@ public class ItemsView {
             // avoid possible bug if isOraxenItems is available but can't be an itemstack
             itemStack = new ItemBuilder(Material.PAPER).setDisplayName(ChatColor.GREEN + file.getName()).build();
 
-        return Pair.of(itemStack, settings.getInt(String.format("oraxen_inventory.menu_layout.%s.slot", Utils.removeExtension(file.getName())), -1));
+        return Pair.of(itemStack, settings.getInt(String.format("oraxen_inventory.menu_layout.%s.slot", Utils.removeExtension(file.getName())), -1) - 1);
     }
 }
