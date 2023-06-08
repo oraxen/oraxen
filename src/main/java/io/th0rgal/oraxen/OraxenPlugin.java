@@ -115,8 +115,7 @@ public class OraxenPlugin extends JavaPlugin {
                 protocolManager.addPacketListener(new InventoryPacketListener());
             protocolManager.addPacketListener(new TitlePacketListener());
         } else Logs.logWarning("ProtocolLib is not on your server, some features will not work");
-        if (Settings.DISABLE_LEATHER_REPAIR_CUSTOM.toBool())
-            pluginManager.registerEvents(new CustomArmorListener(), this);
+        pluginManager.registerEvents(new CustomArmorListener(), this);
 
         resourcePack = new ResourcePack(this);
         MechanicsManager.registerNativeMechanics();
