@@ -154,9 +154,6 @@ Pack:
           opped_player: [ ]
 
 ConfigsTools:
-  # Nice for production servers, automatically set model data in settings so
-  # that you can add new items without breaking existing ones
-  automatically_set_model_data: false
   # list of model data numbers the automatic system will skip
   # List can take ranges like 1-4 as well as normal singular numbers
   skipped_model_data_numbers: [ ]

@@ -27,7 +27,6 @@ emerald_helmet:
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
         uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
   Pack:
-    custom_model_data: 1
     generate_model: true
     parent_model: "item/generated"
     textures: # duplicate because we use the overlay of the leather armor
@@ -51,7 +50,6 @@ emerald_chestplate:
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
         uuid: e06fc6c9-f06a-4b58-b1e2-10d6b282ac04, slot: CHEST }
   Pack:
-    custom_model_data: 1
     generate_model: true
     parent_model: "item/generated"
     textures: # duplicate because we use the overlay of the leather armor
@@ -75,7 +73,6 @@ emerald_leggings:
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
         uuid: 389ad53a-76be-4101-9ed1-e8da4845d5d2, slot: LEGS }
   Pack:
-    custom_model_data: 1
     generate_model: true
     parent_model: "item/generated"
     textures: # duplicate because we use the overlay of the leather armor
@@ -99,7 +96,6 @@ emerald_boots:
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
         uuid: 7bfcf804-b75a-40a5-97f5-f23282703d0e, slot: FEET }
   Pack:
-    custom_model_data: 1
     generate_model: true
     parent_model: "item/generated"
     textures: # duplicate because we use the overlay of the leather armor
@@ -119,7 +115,6 @@ obsidian_helmet:
     - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 2, operation: 0,
         uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
   Pack:
-    custom_model_data: 2
     generate_model: true
     parent_model: "item/generated"
     textures: # duplicate because we use the overlay of the leather armor
@@ -159,7 +154,6 @@ obsidian_leggings:
     - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 5, operation: 0,
         uuid: 389ad53a-76be-4101-9ed1-e8da4845d5d2, slot: LEGS }
   Pack:
-    custom_model_data: 2
     generate_model: true
     parent_model: "item/generated"
     textures: # duplicate because we use the overlay of the leather armor
@@ -179,7 +173,6 @@ obsidian_boots:
     - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 2, operation: 0,
         uuid: 7bfcf804-b75a-40a5-97f5-f23282703d0e, slot: FEET }
   Pack:
-    custom_model_data: 2
     generate_model: true
     parent_model: "item/generated"
     textures: # duplicate because we use the overlay of the leather armor
@@ -199,7 +192,6 @@ ruby_helmet:
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
         uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
   Pack:
-    custom_model_data: 3
     generate_model: true
     parent_model: "item/generated"
     textures: # duplicate because we use the overlay of the leather armor
@@ -219,7 +211,6 @@ ruby_chestplate:
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
         uuid: e06fc6c9-f06a-4b58-b1e2-10d6b282ac04, slot: CHEST }
   Pack:
-    custom_model_data: 3
     generate_model: true
     parent_model: "item/generated"
     textures: # duplicate because we use the overlay of the leather armor
@@ -239,7 +230,6 @@ ruby_leggings:
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
         uuid: 389ad53a-76be-4101-9ed1-e8da4845d5d2, slot: LEGS }
   Pack:
-    custom_model_data: 3
     generate_model: true
     parent_model: "item/generated"
     textures: # duplicate because we use the overlay of the leather armor
@@ -259,7 +249,6 @@ ruby_boots:
     - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
         uuid: 7bfcf804-b75a-40a5-97f5-f23282703d0e, slot: FEET }
   Pack:
-    custom_model_data: 3
     generate_model: true
     parent_model: "item/generated"
     textures: # duplicate because we use the overlay of the leather armor

@@ -20,11 +20,16 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class DuplicationHandler {
+
+    public static final String DUPLICATE_FILE_MERGE_NAME = "migrated_duplicates.yml";
 
     public DuplicationHandler() {
     }
@@ -32,10 +37,9 @@ public class DuplicationHandler {
     public static void mergeBaseItemFiles(List<VirtualFile> output) {
         Logs.logSuccess("Attempting to merge imported base-item json files");
         Map<String, List<VirtualFile>> baseItemsToMerge = new HashMap<>();
-        List<String> materials = Arrays.stream(Material.values()).map(Enum::toString).toList();
 
-        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/models/item/") && materials.contains(Utils.getFileNameOnly(v.getPath()).toUpperCase())).toList()) {
-            Material itemMaterial = Material.getMaterial(Utils.getFileNameOnly(virtual.getPath()).toUpperCase());
+        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/models/item/")).toList()) {
+            if (Material.getMaterial(Utils.getFileNameOnly(virtual.getPath()).toUpperCase()) == null) continue;
             if (baseItemsToMerge.containsKey(virtual.getPath())) {
                 List<VirtualFile> newList = new ArrayList<>(baseItemsToMerge.get(virtual.getPath()).stream().toList());
                 newList.add(virtual);
@@ -222,7 +226,7 @@ public class DuplicationHandler {
                 } catch (Exception ignored) {
                     Log.error("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");
                 }
-                Logs.logSuccess("Might need to restart your server ones before the resourcepack works fully");
+                Logs.logSuccess("It is advised to restart your server to ensure that any new conflicts are detected.");
             }
             Logs.newline();
         }
@@ -499,7 +503,7 @@ public class DuplicationHandler {
 
     private static YamlConfiguration loadMigrateYaml(String folder) {
 
-        File file = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().resolve(folder).resolve("migrated_duplicates.yml").toFile();
+        File file = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().resolve(folder).resolve(DUPLICATE_FILE_MERGE_NAME).toFile();
         if (!file.exists()) {
             try {
                 file.createNewFile();

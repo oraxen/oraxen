@@ -220,9 +220,8 @@ public class ResourcePack {
                         String jsonTexture = element.getAsString();
                         if (!texturePaths.contains(modelPathToPackPath(jsonTexture))) {
                             if (!jsonTexture.startsWith("#") && !jsonTexture.startsWith("item/") && !jsonTexture.startsWith("block/")) {
-                                try {
-                                    Material.valueOf(Utils.getFileNameOnly(jsonTexture).toUpperCase());
-                                } catch (IllegalArgumentException e) {
+                                Material material = Material.matchMaterial(Utils.getFileNameOnly(jsonTexture).toUpperCase());
+                                if (material == null) {
                                     Logs.logWarning("Found invalid texture-path inside model-file <blue>" + model.getPath() + "</blue>: " + jsonTexture);
                                     Logs.logWarning("Verify that you have a texture in said path.");
                                     Logs.newline();
@@ -624,6 +623,7 @@ public class ResourcePack {
             }
 
             InputStream langStream = processJson(langJson.toString());
+            Logs.logError(lang);
             virtualLangFiles.add(new VirtualFile("assets/minecraft/lang", lang + ".json", langStream));
         }
         // Remove previous langfiles as these have been migrated in above
