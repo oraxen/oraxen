@@ -94,7 +94,7 @@ public class ReloadCommand {
                 .withArguments(new TextArgument("type").replaceSuggestions(
                         ArgumentSuggestions.strings("items", "pack", "hud", "recipes", "messages", "all")))
                 .executes((sender, args) -> {
-                    switch (((String) args[0]).toUpperCase()) {
+                    switch (((String) args.get("type")).toUpperCase()) {
                         case "HUD" -> reloadHud(sender);
                         case "ITEMS" -> {
                             reloadItems(sender);

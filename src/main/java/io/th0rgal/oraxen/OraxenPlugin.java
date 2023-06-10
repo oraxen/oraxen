@@ -2,9 +2,8 @@ package io.th0rgal.oraxen;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
-import com.ticxo.playeranimator.PlayerAnimatorImpl;
 import dev.jorel.commandapi.CommandAPI;
-import dev.jorel.commandapi.CommandAPIConfig;
+import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.commands.CommandsManager;
@@ -74,11 +73,20 @@ public class OraxenPlugin extends JavaPlugin {
     private static boolean checkIfSupportsDisplayEntities() {
         try {
             Class.forName("org.bukkit.entity.ItemDisplay");
-            if (Bukkit.getPluginManager().isPluginEnabled("ViaBackwards") && FurnitureFactory.getInstance() != null && FurnitureFactory.getInstance().detectViabackwards) {
-                Logs.logWarning("ViaBackwards is installed, disabling Display Entity type for Furniture");
-                Logs.logWarning("Display Entity furniture is entirely invisible and uninteractable for players using 1.19.3 or lower");
-                Logs.logWarning("If you still want to use Display Entity type for Furniture, disable detect_viabackwards in the mechanics.yml");
-                return false;
+            if (Bukkit.getPluginManager().isPluginEnabled("ViaBackwards") && FurnitureFactory.getInstance() != null) {
+                if (FurnitureFactory.getInstance().detectViabackwards) {
+                    Logs.logWarning("ViaBackwards is installed, disabling Display Entity type for Furniture");
+                    Logs.logWarning("Display Entity furniture is entirely invisible and uninteractable for players using 1.19.3 or lower");
+                    Logs.logWarning("If you still want to use Display Entity type for Furniture, disable detect_viabackwards in the mechanics.yml");
+                    return false;
+                } else {
+                    Logs.logWarning("ViaBackwards is installed, but detect_viabackwards is disabled in the mechanics.yml");
+                    Logs.logWarning("Display Entity type for Furniture will be used");
+                    Logs.logError("Do note there will be issues with the Display Entity type for Furniture if you use ViaBackwards");
+                    Logs.logWarning("Players on versions below 1.19.4 will not be able to see/interact with the furniture.");
+                    Logs.logWarning("Players on 1.19.4 will have weird rotations on Display Entity furniture with transformation FIXED.");
+                    return true;
+                }
             }
             return true;
         } catch (ClassNotFoundException e) {
@@ -92,14 +100,14 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onLoad() {
-        CommandAPI.onLoad(new CommandAPIConfig().silentLogs(true));
+        CommandAPI.onLoad(new CommandAPIBukkitConfig(this).silentLogs(true));
     }
 
     @Override
     public void onEnable() {
-        CommandAPI.onEnable(this);
+        CommandAPI.onEnable();
         ProtectionLib.init(this);
-        PlayerAnimatorImpl.initialize(this);
+        //PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
         isPaperServer = checkIfPaperServer();
@@ -108,7 +116,7 @@ public class OraxenPlugin extends JavaPlugin {
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
         final PluginManager pluginManager = Bukkit.getPluginManager();
-        if (ProtocolLibrary.getPlugin().isEnabled()) {
+        if (pluginManager.isPluginEnabled("ProtocolLib")) {
             protocolManager = ProtocolLibrary.getProtocolManager();
             new BreakerSystem().registerListener();
             if (Settings.FORMAT_INVENTORY_TITLES.toBool())
@@ -125,7 +133,7 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
-        gestureManager = new GestureManager();
+        //gestureManager = new GestureManager();
         OraxenItems.loadItems(configsManager);
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there
@@ -153,7 +161,6 @@ public class OraxenPlugin extends JavaPlugin {
         new Metrics(this, 5371);
         Bukkit.getScheduler().runTask(this, () -> {
             //TODO Is this needed?
-            //OraxenItems.loadItems(configsManager);
             Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
 
         });

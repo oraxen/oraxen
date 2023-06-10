@@ -34,7 +34,7 @@ public class RecipesCommand {
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
                         List<CustomRecipe> recipes = RecipesEventsManager.get().getPermittedRecipes(player);
-                        final String param = (String) args[0];
+                        final String param = (String) args.get("type");
                         if (!"all".equals(param))
                             recipes = recipes.stream().filter(customRecipe ->
                                     customRecipe.getName().equals(param)).toList();
@@ -104,8 +104,8 @@ public class RecipesCommand {
                         RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
                         recipe = recipe != null ? recipe : new FurnaceBuilder(player);
                         if (recipe instanceof FurnaceBuilder furnace) {
-                            furnace.setCookingTime((Integer) args[0]);
-                            furnace.setExperience((Integer) args[1]);
+                            furnace.setCookingTime((Integer) args.get("cookingtime"));
+                            furnace.setExperience((Integer) args.get("experience"));
                         }
                         recipe.open();
                     } else
@@ -123,8 +123,8 @@ public class RecipesCommand {
                         RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
                         recipe = recipe != null ? recipe : new BlastingBuilder(player);
                         if (recipe instanceof BlastingBuilder blasting) {
-                            blasting.setCookingTime((Integer) args[0]);
-                            blasting.setExperience((Integer) args[1]);
+                            blasting.setCookingTime((Integer) args.get("cookingtime"));
+                            blasting.setExperience((Integer) args.get("experience"));
                         }
                         recipe.open();
                     } else
@@ -142,8 +142,8 @@ public class RecipesCommand {
                         RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
                         recipe = recipe != null ? recipe : new CampfireBuilder(player);
                         if (recipe instanceof CampfireBuilder campfire) {
-                            campfire.setCookingTime((Integer) args[0]);
-                            campfire.setExperience((Integer) args[1]);
+                            campfire.setCookingTime((Integer) args.get("cookingtime"));
+                            campfire.setExperience((Integer) args.get("experience"));
                         }
                         recipe.open();
                     } else
@@ -161,8 +161,8 @@ public class RecipesCommand {
                         RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
                         recipe = recipe != null ? recipe : new SmokingBuilder(player);
                         if (recipe instanceof SmokingBuilder smoking) {
-                            smoking.setCookingTime((Integer) args[0]);
-                            smoking.setExperience((Integer) args[1]);
+                            smoking.setCookingTime((Integer) args.get("cookingtime"));
+                            smoking.setExperience((Integer) args.get("experience"));
                         }
                         recipe.open();
                     } else
@@ -193,7 +193,7 @@ public class RecipesCommand {
                             Message.RECIPE_NO_BUILDER.send(sender);
                             return;
                         }
-                        final String name = (String) args[0];
+                        final String name = (String) args.args()[0];
                         recipe.saveRecipe(name);
                         Message.RECIPE_SAVE.send(sender, AdventureUtils.tagResolver("name", name));
                     } else

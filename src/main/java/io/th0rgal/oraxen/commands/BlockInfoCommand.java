@@ -29,7 +29,7 @@ public class BlockInfoCommand {
                 .withPermission("oraxen.command.blockinfo")
                 .withArguments(new StringArgument("itemid").replaceSuggestions(ArgumentSuggestions.strings(blockNames)))
                 .executes((commandSender, args) -> {
-                    String argument = (String) args[0];
+                    String argument = (String) args.get("itemid");
                     Audience audience = OraxenPlugin.get().getAudience().sender(commandSender);
 
                     if (argument.equals("all")) {
