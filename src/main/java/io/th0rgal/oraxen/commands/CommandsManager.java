@@ -8,7 +8,6 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Color;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -25,9 +24,7 @@ public class CommandsManager {
     public void loadCommands() {
         ConfigurationSection commandsSection =
                 OraxenPlugin.get().getConfigsManager().getSettings().getConfigurationSection("Plugin.commands");
-        Logs.debug("11111111111111111111111");
         if (commandsSection == null) return;
-        Logs.debug("22222222222222222222222");
         new CommandAPICommand("oraxen")
                 .withAliases("o", "oxn")
                 .withPermission("oraxen.command")
