@@ -73,11 +73,20 @@ public class OraxenPlugin extends JavaPlugin {
     private static boolean checkIfSupportsDisplayEntities() {
         try {
             Class.forName("org.bukkit.entity.ItemDisplay");
-            if (Bukkit.getPluginManager().isPluginEnabled("ViaBackwards") && FurnitureFactory.getInstance() != null && FurnitureFactory.getInstance().detectViabackwards) {
-                Logs.logWarning("ViaBackwards is installed, disabling Display Entity type for Furniture");
-                Logs.logWarning("Display Entity furniture is entirely invisible and uninteractable for players using 1.19.3 or lower");
-                Logs.logWarning("If you still want to use Display Entity type for Furniture, disable detect_viabackwards in the mechanics.yml");
-                return false;
+            if (Bukkit.getPluginManager().isPluginEnabled("ViaBackwards") && FurnitureFactory.getInstance() != null) {
+                if (FurnitureFactory.getInstance().detectViabackwards) {
+                    Logs.logWarning("ViaBackwards is installed, disabling Display Entity type for Furniture");
+                    Logs.logWarning("Display Entity furniture is entirely invisible and uninteractable for players using 1.19.3 or lower");
+                    Logs.logWarning("If you still want to use Display Entity type for Furniture, disable detect_viabackwards in the mechanics.yml");
+                    return false;
+                } else {
+                    Logs.logWarning("ViaBackwards is installed, but detect_viabackwards is disabled in the mechanics.yml");
+                    Logs.logWarning("Display Entity type for Furniture will be used");
+                    Logs.logError("Do note there will be issues with the Display Entity type for Furniture if you use ViaBackwards");
+                    Logs.logWarning("Players on versions below 1.19.4 will not be able to see/interact with the furniture.");
+                    Logs.logWarning("Players on 1.19.4 will have weird rotations on Display Entity furniture with transformation FIXED.");
+                    return true;
+                }
             }
             return true;
         } catch (ClassNotFoundException e) {
