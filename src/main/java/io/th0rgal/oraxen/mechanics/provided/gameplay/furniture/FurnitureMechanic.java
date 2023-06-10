@@ -435,7 +435,8 @@ public class FurnitureMechanic extends Mechanic {
         } else transform.getScale().set(isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : new Vector3f(1f, 1f, 1f));
 
         // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation
-        float pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
+        // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
+        float pitch = isFixed && hasLimitedPlacing() && (limitedPlacing.isFloor() || limitedPlacing.isRoof()) ? -90 : 0;
         //TODO isWall will be put of the wall slightly. Fixing this is annoying as it is direction relative
         Location fixedLocation = !isFixed || !hasLimitedPlacing() || limitedPlacing.isWall()
                 ? BlockHelpers.toCenterLocation(itemDisplay.getLocation())
@@ -444,7 +445,7 @@ public class FurnitureMechanic extends Mechanic {
                 : BlockHelpers.toCenterBlockLocation(itemDisplay.getLocation());
         itemDisplay.teleport(fixedLocation);
         itemDisplay.setTransformation(transform);
-        itemDisplay.setRotation(yaw - 180, pitch);
+        itemDisplay.setRotation(yaw, pitch);
     }
 
     private void setFrameData(ItemFrame frame, ItemStack item, float yaw, BlockFace facing) {
