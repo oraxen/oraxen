@@ -71,10 +71,10 @@ public enum Settings {
     COMPRESSION("Pack.generation.compression"),
     PROTECTION("Pack.generation.protection"),
     COMMENT("Pack.generation.comment"),
+    MERGE_DUPLICATE_FONTS("Pack.import.merge_duplicate_fonts"),
     MERGE_DUPLICATES("Pack.import.merge_duplicates"),
     RETAIN_CUSTOM_MODEL_DATA("Pack.import.retain_custom_model_data"),
     MERGE_ITEM_MODELS("Pack.import.merge_item_base_models"),
-    MERGE_FONTS("Pack.import.merge_font_files"),
 
     UPLOAD_TYPE("Pack.upload.type"),
     UPLOAD("Pack.upload.enabled"),

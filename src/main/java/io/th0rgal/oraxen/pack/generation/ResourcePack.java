@@ -144,12 +144,11 @@ public class ResourcePack {
 
         if (Settings.GENERATE_ATLAS_FILE.toBool())
             AtlasGenerator.generateAtlasFile(output, malformedTextures);
-        if (!Settings.MERGE_DUPLICATES.toBool()) {
-            if (Settings.MERGE_FONTS.toBool())
-                DuplicationHandler.mergeFontFiles(output);
-            if (Settings.MERGE_ITEM_MODELS.toBool())
-                DuplicationHandler.mergeBaseItemFiles(output);
-        }
+
+        if (Settings.MERGE_DUPLICATE_FONTS.toBool())
+            DuplicationHandler.mergeFontFiles(output);
+        if (Settings.MERGE_ITEM_MODELS.toBool())
+            DuplicationHandler.mergeBaseItemFiles(output);
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));

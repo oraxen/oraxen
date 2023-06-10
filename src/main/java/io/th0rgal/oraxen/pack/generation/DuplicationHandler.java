@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -135,12 +136,11 @@ public class DuplicationHandler {
 
     //Experimental way of combining 2 fonts instead of making glyphconfigs later
     public static void mergeFontFiles(List<VirtualFile> output) {
-        Logs.logSuccess("Attempting to merge imported font files");
-        //output.stream().filter(v -> v.getPath().split("/").length > 3 && v.getPath().replaceFirst("assets/.*/font/", "").split("/").length == 1 && v.getPath().endsWith(".json")).collect(Collectors.toSet());
+        Logs.logWarning("Attempting to merge imported font files");
         Map<String, List<VirtualFile>> fontsToMerge = new HashMap<>();
 
         // Generate a map of all duplicate fonts
-        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().split("/").length > 3 && v.getPath().replaceFirst("assets/.*/font/", "").split("/").length == 1 && v.getPath().endsWith(".json")).toList()) {
+        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().matches("assets/.*/font/.*.json")).toList()) {
             if (fontsToMerge.containsKey(virtual.getPath())) {
                 List<VirtualFile> newList = new ArrayList<>(fontsToMerge.get(virtual.getPath()).stream().toList());
                 newList.add(virtual);
@@ -150,24 +150,31 @@ public class DuplicationHandler {
             }
         }
 
+        Map<String, List<VirtualFile>> finalFontsToMerge =
+                fontsToMerge.entrySet().stream().filter(e -> e.getValue().size() > 1)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        if (!fontsToMerge.isEmpty()) for (List<VirtualFile> duplicates : fontsToMerge.values()) {
-            if (duplicates.isEmpty()) continue;
-            JsonObject mainFont = new JsonObject();
-            JsonArray mainFontArray = getFontProviders(duplicates);
-            mainFont.add("providers", mainFontArray);
+        if (!finalFontsToMerge.isEmpty()) {
+            for (List<VirtualFile> duplicates : finalFontsToMerge.values()) {
+                JsonObject mainFont = new JsonObject();
+                JsonArray mainFontArray = getFontProviders(duplicates);
+                mainFont.add("providers", mainFontArray);
 
-            // Generate the template new font file
-            VirtualFile first = duplicates.stream().findFirst().get();
-            InputStream newInput = new ByteArrayInputStream(mainFont.toString().getBytes(StandardCharsets.UTF_8));
-            VirtualFile newFont = new VirtualFile(Utils.getParentDirs(first.getPath()), Utils.removeParentDirs(first.getPath()), newInput);
-            newFont.setPath(newFont.getPath().replace("//", "/"));
-            newFont.setInputStream(newInput);
+                // Generate the template new font file
+                VirtualFile first = duplicates.stream().findFirst().get();
+                InputStream newInput = new ByteArrayInputStream(mainFont.toString().getBytes(StandardCharsets.UTF_8));
+                VirtualFile newFont = new VirtualFile(Utils.getParentDirs(first.getPath()), Utils.removeParentDirs(first.getPath()), newInput);
+                newFont.setPath(newFont.getPath().replace("//", "/"));
+                newFont.setInputStream(newInput);
 
-            // Remove all the old fonts from output
-            output.removeAll(duplicates);
-            output.add(newFont);
-        }
+                // Remove all the old fonts from output
+                output.removeAll(duplicates);
+                output.add(newFont);
+                Logs.logSuccess("Merged " + duplicates.size() + " duplicate font files into a final " + newFont.getPath());
+            }
+            Logs.logWarning("The imported font files have not been deleted.");
+            Logs.logWarning("If anything seems wrong, there might be conflicting unicodes assigned.");
+        } else Logs.logSuccess("No duplicate font files found!");
     }
 
     private static JsonArray getFontProviders(List<VirtualFile> duplicates) {
@@ -236,9 +243,6 @@ public class DuplicationHandler {
         if (name.matches("assets/minecraft/models/item/.*.json")) {
             Logs.logWarning("Found a duplicate <blue>" + Utils.removeParentDirs(name) + "</blue>, attempting to migrate it into Oraxen item configs");
             return migrateItemJson(name);
-        } else if (name.matches("assets/.*/font/.*.json")) {
-            Logs.logWarning("Found a duplicated font file, trying to migrate it into Oraxens generated copy");
-            return mergeDuplicateFontJson(name);
         } else if (name.matches("assets/minecraft/sounds.json")) {
             Logs.logWarning("Found a sounds.json duplicate, trying to migrate it into Oraxens sound.yml config");
             return migrateSoundJson(name);
@@ -293,7 +297,7 @@ public class DuplicationHandler {
             return false;
         }
 
-        YamlConfiguration migratedYaml = loadMigrateYaml("items");
+        YamlConfiguration migratedYaml = loadMigrateItemYaml();
         if (migratedYaml == null) {
             Logs.logWarning("Failed to migrate duplicate file-entry, failed to load items/migrated_duplicates.yml");
             return false;
@@ -434,76 +438,9 @@ public class DuplicationHandler {
         return true;
     }
 
-    private static boolean mergeDuplicateFontJson(String name) {
-        Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/", name);
+    private static YamlConfiguration loadMigrateItemYaml() {
 
-        return true;
-    }
-
-    private static boolean migrateDefaultFontJson(String name) {
-        Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/", name);
-        try {
-            YamlConfiguration glyphYaml = loadMigrateYaml("glyphs");
-
-            if (glyphYaml == null) {
-                Logs.logWarning("Failed to migrate duplicate file-entry, failed to load glyphs/migrated_duplicates.yml");
-                return false;
-            }
-
-            String fileContent;
-            try {
-                fileContent = Files.readString(path);
-            } catch (IOException e) {
-                Logs.logWarning("Failed to migrate duplicate file-entry, could not read file");
-                return false;
-            }
-
-            JsonObject json = JsonParser.parseString(fileContent).getAsJsonObject();
-            if (json.getAsJsonArray("providers") == null) {
-                Logs.logWarning("Failed to migrate duplicate file-entry, file is not a valid font file");
-                return false;
-            }
-
-            for (JsonElement element : json.getAsJsonArray("providers")) {
-                JsonObject provider = element.getAsJsonObject();
-                String file = provider.get("file").getAsString();
-                JsonArray charsArray = provider.getAsJsonArray("chars");
-                List<String> charList = new ArrayList<>();
-                if (charsArray != null) for (JsonElement c : charsArray) charList.add(c.getAsString());
-                int ascent, height;
-
-                try {
-                    ascent = provider.get("ascent").getAsInt();
-                    height = provider.get("height").getAsInt();
-                } catch (IllegalStateException e) {
-                    ascent = 8;
-                    height = 8;
-                }
-
-                glyphYaml.set("glyphs." + file + ".file", file != null ? file : "required/exit_icon.png");
-                glyphYaml.set("glyphs." + file + ".chars", charList);
-                glyphYaml.set("glyphs." + file + ".ascent", ascent);
-                glyphYaml.set("glyphs." + file + ".height", height);
-
-                try {
-                    glyphYaml.save(new File(OraxenPlugin.get().getDataFolder(), "/glyphs/migrated_duplicates.yml"));
-                } catch (IOException e) {
-                    Logs.logWarning("Failed to migrate duplicate file-entry, could not save migrated_duplicates.yml");
-                    return false;
-                }
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        return true;
-    }
-
-    private static YamlConfiguration loadMigrateYaml(String folder) {
-
-        File file = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().resolve(folder).resolve(DUPLICATE_FILE_MERGE_NAME).toFile();
+        File file = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().resolve("items").resolve(DUPLICATE_FILE_MERGE_NAME).toFile();
         if (!file.exists()) {
             try {
                 file.createNewFile();
