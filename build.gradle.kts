@@ -57,8 +57,7 @@ dependencies {
     compileOnly("commons-io:commons-io:2.11.0")
     compileOnly("com.ticxo.modelengine:api:R3.1.5")
     compileOnly(files("libs/compile/BSP.jar"))
-    implementation(files("libs/compile/CommandAPI-9.0.2.jar"))
-    //compileOnly("dev.jorel:commandapi-bukkit-shade:9.0.2")
+    compileOnly("dev.jorel:commandapi-bukkit-shade:9.0.2")
     compileOnly("io.lumine:MythicLib:1.1.6")
     compileOnly("net.Indyuce:MMOItems:6.7.3")
     compileOnly("org.joml:joml:1.10.5") // Because pre 1.19.4 api does not have this in the server-jar
@@ -115,7 +114,6 @@ tasks {
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
         relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
         relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
-        relocate("dev.jorel.commandapi", "io.th0rgal.oraxen.shaded.commandapi")
         //relocate("org.joml", "io.th0rgal.oraxen.shaded.joml")
 
         //mapOf("dir" to "libs/compile", "include" to listOf("*.jar"))
@@ -151,7 +149,7 @@ bukkit {
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards")
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
-    libraries = listOf("org.springframework:spring-expression:6.0.6", "org.apache.httpcomponents:httpmime:4.5.13", /*"dev.jorel:commandapi-bukkit-shade:9.0.2", */"org.joml:joml:1.10.5")
+    libraries = listOf("org.springframework:spring-expression:6.0.6", "org.apache.httpcomponents:httpmime:4.5.13", "dev.jorel:commandapi-bukkit-shade:9.0.2", "org.joml:joml:1.10.5")
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE

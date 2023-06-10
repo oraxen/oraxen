@@ -123,8 +123,8 @@ public class RecipesCommand {
                         RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
                         recipe = recipe != null ? recipe : new BlastingBuilder(player);
                         if (recipe instanceof BlastingBuilder blasting) {
-                            blasting.setCookingTime((Integer) args[0]);
-                            blasting.setExperience((Integer) args[1]);
+                            blasting.setCookingTime((Integer) args.get("cookingtime"));
+                            blasting.setExperience((Integer) args.get("experience"));
                         }
                         recipe.open();
                     } else
@@ -142,8 +142,8 @@ public class RecipesCommand {
                         RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
                         recipe = recipe != null ? recipe : new CampfireBuilder(player);
                         if (recipe instanceof CampfireBuilder campfire) {
-                            campfire.setCookingTime((Integer) args[0]);
-                            campfire.setExperience((Integer) args[1]);
+                            campfire.setCookingTime((Integer) args.get("cookingtime"));
+                            campfire.setExperience((Integer) args.get("experience"));
                         }
                         recipe.open();
                     } else
@@ -161,8 +161,8 @@ public class RecipesCommand {
                         RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
                         recipe = recipe != null ? recipe : new SmokingBuilder(player);
                         if (recipe instanceof SmokingBuilder smoking) {
-                            smoking.setCookingTime((Integer) args[0]);
-                            smoking.setExperience((Integer) args[1]);
+                            smoking.setCookingTime((Integer) args.get("cookingtime"));
+                            smoking.setExperience((Integer) args.get("experience"));
                         }
                         recipe.open();
                     } else
