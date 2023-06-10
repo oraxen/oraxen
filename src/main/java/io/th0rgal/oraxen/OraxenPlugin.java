@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen;
 
+import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
@@ -12,6 +13,8 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.config.SettingsUpdater;
 import io.th0rgal.oraxen.font.FontManager;
+import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
+import io.th0rgal.oraxen.font.packets.TitlePacketListener;
 import io.th0rgal.oraxen.gestures.GestureManager;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
@@ -25,6 +28,7 @@ import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorListener;
+import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -103,18 +107,18 @@ public class OraxenPlugin extends JavaPlugin {
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
         final PluginManager pluginManager = Bukkit.getPluginManager();
-        /*if (pluginManager.isPluginEnabled("ProtocolLib")) {
+        if (pluginManager.isPluginEnabled("ProtocolLib")) {
             protocolManager = ProtocolLibrary.getProtocolManager();
             new BreakerSystem().registerListener();
             if (Settings.FORMAT_INVENTORY_TITLES.toBool())
                 protocolManager.addPacketListener(new InventoryPacketListener());
             protocolManager.addPacketListener(new TitlePacketListener());
-        } else Logs.logWarning("ProtocolLib is not on your server, some features will not work");*/
+        } else Logs.logWarning("ProtocolLib is not on your server, some features will not work");
         if (Settings.DISABLE_LEATHER_REPAIR_CUSTOM.toBool())
             pluginManager.registerEvents(new CustomArmorListener(), this);
 
         resourcePack = new ResourcePack(this);
-        //MechanicsManager.registerNativeMechanics();
+        MechanicsManager.registerNativeMechanics();
         supportsDisplayEntities = checkIfSupportsDisplayEntities();
         //CustomBlockData.registerListener(this); //Handle this manually
         hudManager = new HudManager(configsManager);
@@ -148,7 +152,6 @@ public class OraxenPlugin extends JavaPlugin {
         new Metrics(this, 5371);
         Bukkit.getScheduler().runTask(this, () -> {
             //TODO Is this needed?
-            //OraxenItems.loadItems(configsManager);
             Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
 
         });
