@@ -9,6 +9,8 @@ public enum RemovedSettings {
     ATTEMPT_TO_MIGRATE_DUPLICATES("Pack.generation.attempt_to_migrate_duplicates"),
     ORAXEN_INV_TEXTURE("oraxen_inventory.menu_glyph"),
     ORAXEN_INV_TEXTURE_OVERLAY("oraxen_inventory.menu_overlay_glyph"),
+    AUTOMATICALLY_SET_MODEL_DATA("ConfigsTools.automatically_set_model_data"),
+    MERGE_FONTS("Pack.import.merge_font_files"),
     ;
 
     private final String path;

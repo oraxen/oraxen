@@ -49,6 +49,10 @@ public class FurnitureFactory extends MechanicFactory {
         return instance;
     }
 
+    public static EvolutionTask getEvolutionTask() {
+        return evolutionTask;
+    }
+
     public void registerEvolution() {
         if (evolvingFurnitures)
             return;

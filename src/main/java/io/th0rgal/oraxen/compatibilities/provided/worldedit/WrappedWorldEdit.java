@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.compatibilities.provided.worldedit;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -24,7 +25,7 @@ public class WrappedWorldEdit {
         if (loaded) {
             new WorldEditUtils.OraxenBlockInputParser();
             new WorldEditHandlers(true);
-            if (OraxenPlugin.get().isPaperServer)
+            if (VersionUtil.isPaperServer())
                 Bukkit.getPluginManager().registerEvents(new WorldEditListener(), OraxenPlugin.get());
         }
     }

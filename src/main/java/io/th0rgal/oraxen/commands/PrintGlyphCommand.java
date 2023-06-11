@@ -17,14 +17,13 @@ import org.apache.commons.codec.binary.Hex;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 
 public class PrintGlyphCommand {
     public CommandAPICommand getPrintGlyphCommand() {
         final List<String> glyphnames = new ArrayList<>();
         glyphnames.add("all");
-        glyphnames.addAll(OraxenPlugin.get().getFontManager().getGlyphs().stream().map(Glyph::getName).collect(Collectors.toList()));
+        glyphnames.addAll(OraxenPlugin.get().getFontManager().getGlyphs().stream().map(Glyph::getName).toList());
         return new CommandAPICommand("printglyph")
                 .withPermission("oraxen.command.printglyph")
                 .withArguments(new TextArgument("glyphname").replaceSuggestions(ArgumentSuggestions.strings(glyphnames.toArray(new String[0]))))
@@ -32,9 +31,10 @@ public class PrintGlyphCommand {
                     FontManager fontManager = OraxenPlugin.get().getFontManager();
                     Audience audience = OraxenPlugin.get().getAudience().sender(commandSender);
                     audience.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red><b>Click one of the glyph-ids below to copy the unicode!"));
-                    if (fontManager.getGlyphFromName(String.valueOf(args[0])) != null || String.valueOf(args[0]).equals("all")) {
-                        printGlyph(fontManager, audience, (String) args[0]);
-                    } else printUnicode(audience, (String) args[0]);
+                    String glyphname = (String) args.get("glyphname");
+                    if (fontManager.getGlyphFromName(glyphname) != null || glyphname.equals("all")) {
+                        printGlyph(fontManager, audience, glyphname);
+                    } else printUnicode(audience, glyphname);
                 }));
     }
 

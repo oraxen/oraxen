@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
@@ -51,7 +52,7 @@ public class StringBlockMechanicListener implements Listener {
     public StringBlockMechanicListener(final StringBlockMechanicFactory factory) {
         this.factory = factory;
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
-        if (OraxenPlugin.isPaperServer)
+        if (VersionUtil.isPaperServer())
             Bukkit.getPluginManager().registerEvents(new StringBlockMechanicPaperListener(), OraxenPlugin.get());
     }
 
@@ -135,10 +136,10 @@ public class StringBlockMechanicListener implements Listener {
 
         if (item == null || block == null || event.getHand() != EquipmentSlot.HAND) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (!event.getPlayer().isSneaking() && BlockHelpers.isInteractable(block)) return;
-
-        StringBlockMechanic mechanic = (StringBlockMechanic) factory.getMechanic(OraxenItems.getIdByItem(item));
+        StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(OraxenItems.getIdByItem(item));
         if (mechanic == null || !mechanic.hasLimitedPlacing()) return;
+
+        if (!event.getPlayer().isSneaking() && BlockHelpers.isInteractable(block)) return;
 
         LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
         Block belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN);
@@ -163,8 +164,9 @@ public class StringBlockMechanicListener implements Listener {
         final String itemID = OraxenItems.getIdByItem(item);
         final Block placedAgainst = event.getClickedBlock();
         final Player player = event.getPlayer();
+        StringBlockMechanic mechanic = (StringBlockMechanic) factory.getMechanic(itemID);
 
-        if (placedAgainst == null) return;
+        if (mechanic == null) return;
         if (!event.getPlayer().isSneaking() && BlockHelpers.isInteractable(placedAgainst)) return;
 
         if (item != null && item.getType().isBlock() && !factory.isNotImplementedIn(itemID)) {
@@ -184,9 +186,7 @@ public class StringBlockMechanicListener implements Listener {
         }
 
         if (factory.isNotImplementedIn(itemID)) return;
-        // determines the new block data of the block
-        StringBlockMechanic mechanic = (StringBlockMechanic) factory.getMechanic(itemID);
-        if (mechanic == null) return;
+
 
         int customVariation = mechanic.getCustomVariation();
         if (mechanic.hasRandomPlace()) {

@@ -22,19 +22,19 @@ public class GestureCommand {
                         new PlayerArgument("player")
                 )
                 .executes((sender, args) -> {
-                    String gesture = (String) args[0];
+                    String gesture = (String) args.get("gesture");
                     if (!GestureManager.gestures.contains(gesture)) {
                         Message.GESTURE_NO_GESTURE.send(sender);
                     }
 
-                    if (args.length == 1) {
+                    if (args.count() == 1) {
                         if (sender instanceof Player player) {
                             gestureManager.playGesture(player, gesture);
                         } else if (sender instanceof ConsoleCommandSender console) {
                             Message.GESTURE_CONSOLE.send(console);
                         }
-                    } else if (args.length == 2) {
-                        Player secondPlayer = (Player) args[1];
+                    } else if (args.count() == 2) {
+                        Player secondPlayer = (Player) args.get("player");
                         if (secondPlayer != null) {
                             if (sender.hasPermission("oraxen.command.gesture.others")) {
                                 gestureManager.playGesture(secondPlayer, gesture);

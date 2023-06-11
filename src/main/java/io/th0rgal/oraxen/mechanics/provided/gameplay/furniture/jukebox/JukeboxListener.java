@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
@@ -36,7 +37,7 @@ import static io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscList
 public class JukeboxListener implements Listener {
 
     public JukeboxListener() {
-        if (OraxenPlugin.get().isPaperServer)
+        if (VersionUtil.isPaperServer())
             Bukkit.getPluginManager().registerEvents(new JukeboxPaperListener(), OraxenPlugin.get());
     }
 

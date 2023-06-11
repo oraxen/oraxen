@@ -184,12 +184,16 @@ public class BreakerSystem {
 
         switch (block.getType()) {
             case NOTE_BLOCK -> {
-                OraxenNoteBlockDamageEvent event = new OraxenNoteBlockDamageEvent(OraxenBlocks.getNoteBlockMechanic(block), block, player);
+                NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
+                if (mechanic == null) return true;
+                OraxenNoteBlockDamageEvent event = new OraxenNoteBlockDamageEvent(mechanic, block, player);
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(event));
                 return event.isCancelled();
             }
             case TRIPWIRE -> {
-                OraxenStringBlockDamageEvent event = new OraxenStringBlockDamageEvent(OraxenBlocks.getStringMechanic(block), block, player);
+                StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
+                if (mechanic == null) return true;
+                OraxenStringBlockDamageEvent event = new OraxenStringBlockDamageEvent(mechanic, block, player);
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(event));
                 return event.isCancelled();
             }
@@ -198,7 +202,9 @@ public class BreakerSystem {
                     return Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
                         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
                         if (mechanic == null) return true;
-                        OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, mechanic.getBaseEntity(block), player, block);
+                        Entity baseEntity = mechanic.getBaseEntity(block);
+                        if (baseEntity == null) return true;
+                        OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block);
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(event));
                         return event.isCancelled();
                     }).get();

@@ -34,7 +34,8 @@ public class OraxenItems {
     }
 
     public static void loadItems() {
-        map = configsManager.parseItemConfigs();
+        configsManager.assignAllUsedModelDatas();
+        map = configsManager.parseItemConfig();
         final List<String> itemsList = new ArrayList<>();
         for (final Map<String, ItemBuilder> subMap : map.values())
             itemsList.addAll(subMap.keySet());
