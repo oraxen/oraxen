@@ -208,8 +208,8 @@ public class DuplicationHandler {
         for (JsonElement element : newProvider) {
             if (!element.isJsonObject()) continue;
             if (!element.getAsJsonObject().has("chars")) continue;
-            JsonArray chars = element.getAsJsonObject().get("chars").getAsJsonArray();
-            charList.add(chars.getAsString());
+            String chars = element.getAsJsonObject().get("chars").getAsJsonArray().toString();
+            charList.add(chars);
         }
         return charList;
     }
