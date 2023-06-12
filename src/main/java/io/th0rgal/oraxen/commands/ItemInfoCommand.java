@@ -19,7 +19,7 @@ public class ItemInfoCommand {
                 .withPermission("oraxen.command.iteminfo")
                 .withArguments(new StringArgument("itemid").replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())))
                 .executes((commandSender, args) -> {
-                    String argument = (String) args[0];
+                    String argument = (String) args.get("itemid");
                     Audience audience = OraxenPlugin.get().getAudience().sender(commandSender);
                     if (argument.equals("all")) {
                         for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {

@@ -4,23 +4,62 @@ import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.hud.HudManager;
+import io.th0rgal.oraxen.items.ItemParser;
+import io.th0rgal.oraxen.items.ItemUpdater;
+import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
+import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 
 public class ReloadCommand {
 
     private static void reloadItems(CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "items"));
+        ItemParser.MODEL_DATAS_BY_ID.clear();
+        ModelData.DATAS.clear();
         OraxenItems.loadItems();
+
+        if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
+
+        if (Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
+            Logs.logInfo("Updating all items in player-inventories...");
+            for (Player player : Bukkit.getServer().getOnlinePlayers()) {
+                PlayerInventory inventory = player.getInventory();
+                Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
+                    for (int i = 0; i < inventory.getSize(); i++) {
+                        ItemStack oldItem = inventory.getItem(i);
+                        ItemStack newItem = ItemUpdater.updateItem(oldItem);
+                        if (oldItem == null || oldItem.equals(newItem)) continue;
+                        inventory.setItem(i, newItem);
+                    }
+                });
+            }
+        }
+
+        if (Settings.UPDATE_FURNITURE_ON_RELOAD.toBool()) {
+            Logs.logInfo("Updating all placed furniture...");
+            for (World world : Bukkit.getServer().getWorlds()) {
+                for (Entity entity : world.getEntities())
+                    if (OraxenFurniture.isFurniture(entity))
+                        ItemUpdater.furnitureToUpdate.add(entity);
+            }
+        }
+
     }
 
     private static void reloadPack(CommandSender sender) {
@@ -55,7 +94,7 @@ public class ReloadCommand {
                 .withArguments(new TextArgument("type").replaceSuggestions(
                         ArgumentSuggestions.strings("items", "pack", "hud", "recipes", "messages", "all")))
                 .executes((sender, args) -> {
-                    switch (((String) args[0]).toUpperCase()) {
+                    switch (((String) args.get("type")).toUpperCase()) {
                         case "HUD" -> reloadHud(sender);
                         case "ITEMS" -> {
                             reloadItems(sender);

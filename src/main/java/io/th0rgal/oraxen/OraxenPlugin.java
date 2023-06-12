@@ -4,7 +4,7 @@ import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.ticxo.playeranimator.PlayerAnimatorImpl;
 import dev.jorel.commandapi.CommandAPI;
-import dev.jorel.commandapi.CommandAPIConfig;
+import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.commands.CommandsManager;
@@ -62,33 +62,18 @@ public class OraxenPlugin extends JavaPlugin {
         oraxen = this;
     }
 
-    private static boolean checkIfSupportsDisplayEntities() {
-        try {
-            Class.forName("org.bukkit.entity.ItemDisplay");
-            if (Bukkit.getPluginManager().isPluginEnabled("ViaBackwards") && FurnitureFactory.getInstance().detectViabackwards) {
-                Logs.logWarning("ViaBackwards is installed, disabling Display Entity type for Furniture");
-                Logs.logWarning("Display Entity furniture is entirely invisible and uninteractable for players using 1.19.3 or lower");
-                Logs.logWarning("If you still want to use Display Entity type for Furniture, disable detect_viabackwards in the mechanics.yml");
-                return false;
-            }
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
     public static OraxenPlugin get() {
         return oraxen;
     }
 
     @Override
     public void onLoad() {
-        CommandAPI.onLoad(new CommandAPIConfig().silentLogs(true));
+        CommandAPI.onLoad(new CommandAPIBukkitConfig(this).silentLogs(true));
     }
 
     @Override
     public void onEnable() {
-        CommandAPI.onEnable(this);
+        CommandAPI.onEnable();
         ProtectionLib.init(this);
         PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
@@ -98,7 +83,7 @@ public class OraxenPlugin extends JavaPlugin {
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
         final PluginManager pluginManager = Bukkit.getPluginManager();
-        if (ProtocolLibrary.getPlugin().isEnabled()) {
+        if (pluginManager.isPluginEnabled("ProtocolLib")) {
             protocolManager = ProtocolLibrary.getProtocolManager();
             new BreakerSystem().registerListener();
             if (Settings.FORMAT_INVENTORY_TITLES.toBool())
@@ -128,28 +113,31 @@ public class OraxenPlugin extends JavaPlugin {
         invManager = new InvManager();
         ArmorEquipEvent.registerListener(this);
         new CommandsManager().loadCommands();
-        postLoading(configsManager);
+        postLoading();
         try {
             Message.PLUGIN_LOADED.log(AdventureUtils.tagResolver("os", OS.getOs().getPlatformName()));
         } catch (Exception ignore) {
         }
         CompatibilitiesManager.enableNativeCompatibilities();
+        CompileNotice.print();
     }
 
-    private void postLoading(final ConfigsManager configsManager) {
+    private void postLoading() {
         uploadManager = new UploadManager(this);
         uploadManager.uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
         Bukkit.getScheduler().runTask(this, () -> {
-            //TODO Is this needed?
-            //OraxenItems.loadItems(configsManager);
             Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
+
         });
     }
 
     @Override
     public void onDisable() {
         unregisterListeners();
+        ItemUpdater.furnitureUpdateTask.cancel();
+        FurnitureFactory.getEvolutionTask().cancel();
+
         CompatibilitiesManager.disableCompatibilities();
         Message.PLUGIN_UNLOADED.log();
     }

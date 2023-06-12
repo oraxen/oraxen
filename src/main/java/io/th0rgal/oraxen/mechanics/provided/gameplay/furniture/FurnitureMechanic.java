@@ -18,6 +18,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlaci
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
@@ -71,6 +72,7 @@ public class FurnitureMechanic extends Mechanic {
     private FurnitureType furnitureType;
     private final DisplayEntityProperties displayEntityProperties;
     private final FurnitureHitbox hitbox;
+    private final boolean isRotatable;
 
     public record FurnitureHitbox(float width, float height) {
     }
@@ -186,6 +188,15 @@ public class FurnitureMechanic extends Mechanic {
         } else jukebox = null;
 
         clickActions = ClickAction.parseList(section);
+
+        if (section.getBoolean("rotatable", false)) {
+            if (barriers.stream().anyMatch(b -> b.getX() != 0 || b.getZ() != 0)) {
+                Logs.logWarning("Furniture <gold>" + getItemID() + " </gold>has barriers with non-zero X or Z coordinates.");
+                Logs.logWarning("Furniture rotation will be disabled for this furniture.");
+                isRotatable = false;
+            } else isRotatable = true;
+        } else isRotatable = false;
+
     }
 
     public boolean isModelEngine() {
@@ -292,6 +303,10 @@ public class FurnitureMechanic extends Mechanic {
         return evolvingFurniture;
     }
 
+    public boolean isRotatable() { return isRotatable; }
+
+    public boolean isInteractable() { return isRotatable || hasSeat || isStorage(); }
+
     public void setPlacedItem() {
         if (placedItem == null) {
             placedItem = OraxenItems.getItemById(placedItemId != null ? placedItemId : getItemID()).build();
@@ -357,7 +372,6 @@ public class FurnitureMechanic extends Mechanic {
                 }
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
-            //Correct FIXED item display yaw until 1.20 fixes this
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
             Location location = itemDisplay.getLocation();
             float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
@@ -428,7 +442,16 @@ public class FurnitureMechanic extends Mechanic {
         } else transform.getScale().set(isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : new Vector3f(1f, 1f, 1f));
 
         // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation
-        float pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
+        // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
+        float pitch;
+        float alterYaw;
+        if (VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_20_R1)) {
+            pitch = isFixed && hasLimitedPlacing() && (limitedPlacing.isFloor() || limitedPlacing.isRoof()) ? -90 : 0;
+            alterYaw = yaw;
+        } else {
+            pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
+            alterYaw = yaw - 180;
+        }
         //TODO isWall will be put of the wall slightly. Fixing this is annoying as it is direction relative
         Location fixedLocation = !isFixed || !hasLimitedPlacing() || limitedPlacing.isWall()
                 ? BlockHelpers.toCenterLocation(itemDisplay.getLocation())
@@ -437,7 +460,7 @@ public class FurnitureMechanic extends Mechanic {
                 : BlockHelpers.toCenterBlockLocation(itemDisplay.getLocation());
         itemDisplay.teleport(fixedLocation);
         itemDisplay.setTransformation(transform);
-        itemDisplay.setRotation(yaw - 180, pitch);
+        itemDisplay.setRotation(alterYaw, pitch);
     }
 
     private void setFrameData(ItemFrame frame, ItemStack item, float yaw, BlockFace facing) {
@@ -493,6 +516,17 @@ public class FurnitureMechanic extends Mechanic {
             case ITEM_DISPLAY -> OraxenPlugin.supportsDisplayEntities ? ((ItemDisplay) entity).getItemStack() : null;
             default -> ((ItemFrame) entity).getItem();
         };
+    }
+
+    public static void setFurnitureItem(Entity entity, ItemStack item) {
+        switch (entity.getType()) {
+            case ITEM_FRAME, GLOW_ITEM_FRAME -> ((ItemFrame) entity).setItem(item, false);
+            case ARMOR_STAND -> ((ArmorStand) entity).getEquipment().setHelmet(item);
+            case ITEM_DISPLAY -> {
+                if (OraxenPlugin.supportsDisplayEntities) ((ItemDisplay) entity).setItemStack(item);
+            }
+            default -> {}
+        }
     }
 
     public boolean removeSolid(Block block) {
@@ -747,5 +781,33 @@ public class FurnitureMechanic extends Mechanic {
 
     public DisplayEntityProperties getDisplayEntityProperties() {
         return displayEntityProperties;
+    }
+
+    public static void sitOnSeat(PersistentDataContainer pdc, Player player) {
+        UUID entityUuid = pdc.has(SEAT_KEY, DataType.UUID) ? pdc.get(SEAT_KEY, DataType.UUID) : null;
+
+        //Convert old seats to new, remove in a good while
+        if (entityUuid == null) {
+            String oldUUID = pdc.has(SEAT_KEY, PersistentDataType.STRING) ? pdc.get(SEAT_KEY, PersistentDataType.STRING) : null;
+            if (oldUUID != null) {
+                entityUuid = UUID.fromString(oldUUID);
+                pdc.remove(SEAT_KEY);
+                pdc.set(SEAT_KEY, DataType.UUID, entityUuid);
+            }
+        }
+
+        if (entityUuid != null) {
+            Entity stand = Bukkit.getEntity(entityUuid);
+            if (stand != null && stand.getPassengers().isEmpty()) {
+                stand.addPassenger(player);
+            }
+        }
+    }
+
+    public static void rotateFurniture(Entity baseEntity) {
+        float yaw = FurnitureMechanic.getFurnitureYaw(baseEntity);
+        Rotation newRotation = FurnitureMechanic.yawToRotation(yaw).rotateClockwise();
+        if (baseEntity instanceof ItemFrame frame) frame.setRotation(newRotation);
+        else baseEntity.setRotation(FurnitureMechanic.rotationToYaw(newRotation), baseEntity.getLocation().getPitch());
     }
 }

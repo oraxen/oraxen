@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -98,7 +99,6 @@ public class ResourcePack {
         // Sorting items to keep only one with models (and generate it if needed)
         generatePredicates(extractTexturedItems());
         generateFont(fontManager);
-        generateSound(soundManager);
         if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardFiles();
 
@@ -144,12 +144,11 @@ public class ResourcePack {
 
         if (Settings.GENERATE_ATLAS_FILE.toBool())
             AtlasGenerator.generateAtlasFile(output, malformedTextures);
-        if (!Settings.MERGE_DUPLICATES.toBool()) {
-            if (Settings.MERGE_FONTS.toBool())
-                DuplicationHandler.mergeFontFiles(output);
-            if (Settings.MERGE_ITEM_MODELS.toBool())
-                DuplicationHandler.mergeBaseItemFiles(output);
-        }
+
+        if (Settings.MERGE_DUPLICATE_FONTS.toBool())
+            DuplicationHandler.mergeFontFiles(output);
+        if (Settings.MERGE_ITEM_MODELS.toBool())
+            DuplicationHandler.mergeBaseItemFiles(output);
 
         List<String> excludedExtensions = Settings.EXCLUDED_FILE_EXTENSIONS.toStringList();
         excludedExtensions.removeIf(f -> f.equals("png") || f.equals("json"));
@@ -160,6 +159,8 @@ public class ResourcePack {
                     if (virtual.getPath().endsWith(extension)) newOutput.add(virtual);
             output.removeAll(newOutput);
         }
+
+        generateSound(soundManager, output);
 
         ZipUtils.writeZipFile(pack, output);
     }
@@ -218,11 +219,11 @@ public class ResourcePack {
                         String jsonTexture = element.getAsString();
                         if (!texturePaths.contains(modelPathToPackPath(jsonTexture))) {
                             if (!jsonTexture.startsWith("#") && !jsonTexture.startsWith("item/") && !jsonTexture.startsWith("block/")) {
-                                try {
-                                    Material.valueOf(Utils.getFileNameOnly(jsonTexture).toUpperCase());
-                                } catch (IllegalArgumentException e) {
+                                Material material = Material.matchMaterial(Utils.getFileNameOnly(jsonTexture).toUpperCase());
+                                if (material == null) {
                                     Logs.logWarning("Found invalid texture-path inside model-file <blue>" + model.getPath() + "</blue>: " + jsonTexture);
-                                    Logs.logError("Texture-paths cannot contain spaces or Capital Letters");
+                                    Logs.logWarning("Verify that you have a texture in said path.");
+                                    Logs.newline();
                                     malformedModels.add(model);
                                 }
                             }
@@ -421,14 +422,29 @@ public class ResourcePack {
         writeStringToVirtual("assets/minecraft/font", "default.json", output.toString());
     }
 
-    private void generateSound(final SoundManager soundManager) {
-        if (!soundManager.isAutoGenerate())
-            return;
-        final JsonObject output = new JsonObject();
+    private void generateSound(final SoundManager soundManager, List<VirtualFile> output) {
+        if (!soundManager.isAutoGenerate()) return;
+
+        VirtualFile soundFile = output.stream().filter(file -> file.getPath().equals("assets/minecraft/sounds.json")).findFirst().orElse(null);
+        JsonObject outputJson = new JsonObject();
+
+        // If file was imported by other means, we attempt to merge in sound.yml entries
+        if (soundFile != null) {
+            try {
+                JsonElement soundElement = JsonParser.parseString(IOUtils.toString(soundFile.getInputStream(), StandardCharsets.UTF_8));
+                if (soundElement != null && soundElement.isJsonObject())
+                    outputJson = soundElement.getAsJsonObject();
+            } catch (IOException e) {
+                e.printStackTrace();
+                return;
+            }
+        }
 
         for (CustomSound sound : handleCustomSoundEntries(soundManager.getCustomSounds()))
-            output.add(sound.getName(), sound.toJson());
-        writeStringToVirtual("assets/minecraft", "sounds.json", output.toString());
+            outputJson.add(sound.getName(), sound.toJson());
+
+        output.remove(soundFile);
+        writeStringToVirtual("assets/minecraft", "sounds.json", outputJson.toString());
     }
 
     private void generateGestureFiles() {
@@ -614,22 +630,22 @@ public class ResourcePack {
     }
 
     private static final Set<String> availableLanguageCodes = new HashSet<>(Arrays.asList(
-            "af_za.json", "ar_sa.json", "ast_es.json", "az_az.json", "ba_ru.json",
-            "bar.json", "be_by.json", "bg_bg.json", "br_fr.json", "brb.json", "bs_ba.json", "ca_es.json", "cs_cz.json",
-            "cy_gb.json", "da_dk.json", "de_at.json", "de_ch.json", "de_de.json", "el_gr.json", "en_au.json", "en_ca.json",
-            "en_gb.json", "en_nz.json", "en_pt.json", "en_ud.json", "en_us.json", "enp.json", "enws.json", "eo_uy.json",
-            "es_ar.json", "es_cl.json", "es_ec.json", "es_es.json", "es_mx.json", "es_uy.json", "es_ve.json", "esan.json",
-            "et_ee.json", "eu_es.json", "fa_ir.json", "fi_fi.json", "fil_ph.json", "fo_fo.json", "fr_ca.json", "fr_fr.json",
-            "fra_de.json", "fur_it.json", "fy_nl.json", "ga_ie.json", "gd_gb.json", "gl_es.json", "haw_us.json", "he_il.json",
-            "hi_in.json", "hr_hr.json", "hu_hu.json", "hy_am.json", "id_id.json", "ig_ng.json", "io_en.json", "is_is.json",
-            "isv.json", "it_it.json", "ja_jp.json", "jbo_en.json", "ka_ge.json", "kk_kz.json", "kn_in.json", "ko_kr.json",
-            "ksh.json", "kw_gb.json", "la_la.json", "lb_lu.json", "li_li.json", "lmo.json", "lol_us.json", "lt_lt.json",
-            "lv_lv.json", "lzh.json", "mk_mk.json", "mn_mn.json", "ms_my.json", "mt_mt.json", "nah.json", "nds_de.json",
-            "nl_be.json", "nl_nl.json", "nn_no.json", "no_no.json", "oc_fr.json", "ovd.json", "pl_pl.json", "pt_br.json",
-            "pt_pt.json", "qya_aa.json", "ro_ro.json", "rpr.json", "ru_ru.json", "ry_ua.json", "se_no.json", "sk_sk.json",
-            "sl_si.json", "so_so.json", "sq_al.json", "sr_sp.json", "sv_se.json", "sxu.json", "szl.json", "ta_in.json",
-            "th_th.json", "tl_ph.json", "tlh_aa.json", "tok.json", "tr_tr.json", "tt_ru.json", "uk_ua.json", "val_es.json",
-            "vec_it.json", "vi_vn.json", "yi_de.json", "yo_ng.json", "zh_cn.json", "zh_hk.json", "zh_tw.json", "zlm_arab.json"));
+            "af_za", "ar_sa", "ast_es", "az_az", "ba_ru",
+            "bar", "be_by", "bg_bg", "br_fr", "brb", "bs_ba", "ca_es", "cs_cz",
+            "cy_gb", "da_dk", "de_at", "de_ch", "de_de", "el_gr", "en_au", "en_ca",
+            "en_gb", "en_nz", "en_pt", "en_ud", "en_us", "enp", "enws", "eo_uy",
+            "es_ar", "es_cl", "es_ec", "es_es", "es_mx", "es_uy", "es_ve", "esan",
+            "et_ee", "eu_es", "fa_ir", "fi_fi", "fil_ph", "fo_fo", "fr_ca", "fr_fr",
+            "fra_de", "fur_it", "fy_nl", "ga_ie", "gd_gb", "gl_es", "haw_us", "he_il",
+            "hi_in", "hr_hr", "hu_hu", "hy_am", "id_id", "ig_ng", "io_en", "is_is",
+            "isv", "it_it", "ja_jp", "jbo_en", "ka_ge", "kk_kz", "kn_in", "ko_kr",
+            "ksh", "kw_gb", "la_la", "lb_lu", "li_li", "lmo", "lol_us", "lt_lt",
+            "lv_lv", "lzh", "mk_mk", "mn_mn", "ms_my", "mt_mt", "nah", "nds_de",
+            "nl_be", "nl_nl", "nn_no", "no_no", "oc_fr", "ovd", "pl_pl", "pt_br",
+            "pt_pt", "qya_aa", "ro_ro", "rpr", "ru_ru", "ry_ua", "se_no", "sk_sk",
+            "sl_si", "so_so", "sq_al", "sr_sp", "sv_se", "sxu", "szl", "ta_in",
+            "th_th", "tl_ph", "tlh_aa", "tok", "tr_tr", "tt_ru", "uk_ua", "val_es",
+            "vec_it", "vi_vn", "yi_de", "yo_ng", "zh_cn", "zh_hk", "zh_tw", "zlm_arab"));
 
     private void generateScoreboardFiles() {
         Map<String, String> scoreboardShaderFiles = Map.of("assets/minecraft/shaders/core/rendertype_text.json", getScoreboardJson(), "assets/minecraft/shaders/core/rendertype_text.vsh", getScoreboardVsh());

@@ -65,7 +65,9 @@ public class SmeltingMechanicListener implements Listener {
             return null; // Because item can be null
         String type = item.getType().toString();
         if (type.startsWith("RAW_") && !type.endsWith("_BLOCK")) {
-            item.setType(Material.valueOf(item.getType().toString().substring(4) + "_INGOT"));
+            Material smeltedMaterial = Material.matchMaterial(item.getType().toString().substring(4) + "_INGOT");
+            if (smeltedMaterial == null) return null;
+            item.setType(smeltedMaterial);
             return item;
         }
 

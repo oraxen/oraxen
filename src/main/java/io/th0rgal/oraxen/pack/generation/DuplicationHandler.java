@@ -20,11 +20,17 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 public class DuplicationHandler {
+
+    public static final String DUPLICATE_FILE_MERGE_NAME = "migrated_duplicates.yml";
 
     public DuplicationHandler() {
     }
@@ -32,10 +38,9 @@ public class DuplicationHandler {
     public static void mergeBaseItemFiles(List<VirtualFile> output) {
         Logs.logSuccess("Attempting to merge imported base-item json files");
         Map<String, List<VirtualFile>> baseItemsToMerge = new HashMap<>();
-        List<String> materials = Arrays.stream(Material.values()).map(Enum::toString).toList();
 
-        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/models/item/") && materials.contains(Utils.getFileNameOnly(v.getPath()).toUpperCase())).toList()) {
-            Material itemMaterial = Material.getMaterial(Utils.getFileNameOnly(virtual.getPath()).toUpperCase());
+        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().startsWith("assets/minecraft/models/item/")).toList()) {
+            if (Material.getMaterial(Utils.getFileNameOnly(virtual.getPath()).toUpperCase()) == null) continue;
             if (baseItemsToMerge.containsKey(virtual.getPath())) {
                 List<VirtualFile> newList = new ArrayList<>(baseItemsToMerge.get(virtual.getPath()).stream().toList());
                 newList.add(virtual);
@@ -131,12 +136,11 @@ public class DuplicationHandler {
 
     //Experimental way of combining 2 fonts instead of making glyphconfigs later
     public static void mergeFontFiles(List<VirtualFile> output) {
-        Logs.logSuccess("Attempting to merge imported font files");
-        //output.stream().filter(v -> v.getPath().split("/").length > 3 && v.getPath().replaceFirst("assets/.*/font/", "").split("/").length == 1 && v.getPath().endsWith(".json")).collect(Collectors.toSet());
+        Logs.logWarning("Attempting to merge imported font files");
         Map<String, List<VirtualFile>> fontsToMerge = new HashMap<>();
 
         // Generate a map of all duplicate fonts
-        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().split("/").length > 3 && v.getPath().replaceFirst("assets/.*/font/", "").split("/").length == 1 && v.getPath().endsWith(".json")).toList()) {
+        for (VirtualFile virtual : output.stream().filter(v -> v.getPath().matches("assets/.*/font/.*.json")).toList()) {
             if (fontsToMerge.containsKey(virtual.getPath())) {
                 List<VirtualFile> newList = new ArrayList<>(fontsToMerge.get(virtual.getPath()).stream().toList());
                 newList.add(virtual);
@@ -146,24 +150,31 @@ public class DuplicationHandler {
             }
         }
 
+        Map<String, List<VirtualFile>> finalFontsToMerge =
+                fontsToMerge.entrySet().stream().filter(e -> e.getValue().size() > 1)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        if (!fontsToMerge.isEmpty()) for (List<VirtualFile> duplicates : fontsToMerge.values()) {
-            if (duplicates.isEmpty()) continue;
-            JsonObject mainFont = new JsonObject();
-            JsonArray mainFontArray = getFontProviders(duplicates);
-            mainFont.add("providers", mainFontArray);
+        if (!finalFontsToMerge.isEmpty()) {
+            for (List<VirtualFile> duplicates : finalFontsToMerge.values()) {
+                JsonObject mainFont = new JsonObject();
+                JsonArray mainFontArray = getFontProviders(duplicates);
+                mainFont.add("providers", mainFontArray);
 
-            // Generate the template new font file
-            VirtualFile first = duplicates.stream().findFirst().get();
-            InputStream newInput = new ByteArrayInputStream(mainFont.toString().getBytes(StandardCharsets.UTF_8));
-            VirtualFile newFont = new VirtualFile(Utils.getParentDirs(first.getPath()), Utils.removeParentDirs(first.getPath()), newInput);
-            newFont.setPath(newFont.getPath().replace("//", "/"));
-            newFont.setInputStream(newInput);
+                // Generate the template new font file
+                VirtualFile first = duplicates.stream().findFirst().get();
+                InputStream newInput = new ByteArrayInputStream(mainFont.toString().getBytes(StandardCharsets.UTF_8));
+                VirtualFile newFont = new VirtualFile(Utils.getParentDirs(first.getPath()), Utils.removeParentDirs(first.getPath()), newInput);
+                newFont.setPath(newFont.getPath().replace("//", "/"));
+                newFont.setInputStream(newInput);
 
-            // Remove all the old fonts from output
-            output.removeAll(duplicates);
-            output.add(newFont);
-        }
+                // Remove all the old fonts from output
+                output.removeAll(duplicates);
+                output.add(newFont);
+                Logs.logSuccess("Merged " + duplicates.size() + " duplicate font files into a final " + newFont.getPath());
+            }
+            Logs.logWarning("The imported font files have not been deleted.");
+            Logs.logWarning("If anything seems wrong, there might be conflicting unicodes assigned.");
+        } else Logs.logSuccess("No duplicate font files found!");
     }
 
     private static JsonArray getFontProviders(List<VirtualFile> duplicates) {
@@ -197,8 +208,8 @@ public class DuplicationHandler {
         for (JsonElement element : newProvider) {
             if (!element.isJsonObject()) continue;
             if (!element.getAsJsonObject().has("chars")) continue;
-            JsonArray chars = element.getAsJsonObject().get("chars").getAsJsonArray();
-            charList.add(chars.getAsString());
+            String chars = element.getAsJsonObject().get("chars").getAsJsonArray().toString();
+            charList.add(chars);
         }
         return charList;
     }
@@ -217,12 +228,12 @@ public class DuplicationHandler {
             } else if (attemptToMigrateDuplicate(name)) {
                 Logs.logSuccess("Duplicate file fixed:<blue> " + name);
                 try {
-                    OraxenPlugin.get().getDataFolder().toPath().resolve("pack").resolve(name).toFile().delete();
-                    Logs.logSuccess("Deleted the imported <blue>" + Utils.removeParentDirs(name) + "</blue> and migrated it to its supported Oraxen config(s)");
+                    if (OraxenPlugin.get().getDataFolder().toPath().resolve("pack").resolve(name).toFile().delete())
+                        Logs.logSuccess("Deleted the imported <blue>" + Utils.removeParentDirs(name) + "</blue> and migrated it to its supported Oraxen config(s)");
                 } catch (Exception ignored) {
                     Log.error("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");
                 }
-                Logs.logSuccess("Might need to restart your server ones before the resourcepack works fully");
+                Logs.logSuccess("It is advised to restart your server to ensure that any new conflicts are detected.");
             }
             Logs.newline();
         }
@@ -232,10 +243,7 @@ public class DuplicationHandler {
         if (name.matches("assets/minecraft/models/item/.*.json")) {
             Logs.logWarning("Found a duplicate <blue>" + Utils.removeParentDirs(name) + "</blue>, attempting to migrate it into Oraxen item configs");
             return migrateItemJson(name);
-        } else if (name.matches("assets/.*/font/.*.json")) {
-            Logs.logWarning("Found a duplicated font file, trying to migrate it into Oraxens generated copy");
-            return mergeDuplicateFontJson(name);
-        } else if (name.matches("assets/.*/sounds.json")) {
+        } else if (name.matches("assets/minecraft/sounds.json")) {
             Logs.logWarning("Found a sounds.json duplicate, trying to migrate it into Oraxens sound.yml config");
             return migrateSoundJson(name);
         } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_text") && Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) {
@@ -244,7 +252,7 @@ public class DuplicationHandler {
             return false;
         } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_armor_cutout_no_cull") && Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) {
             Logs.logWarning("You are trying to import a shader file used for custom armor.");
-            Logs.logWarning("This shader file is already in by Oraxen, you can delete this file");
+            Logs.logWarning("This shader file is already in your pack. Deleting...");
             return true;
         } else if (name.startsWith("assets/minecraft/shaders/core/rendertype")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a shader file");
@@ -252,9 +260,10 @@ public class DuplicationHandler {
             return false;
         } else if (name.startsWith("assets/minecraft/textures/models/armor/leather_layer")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a combined custom armor texture");
-            Logs.logWarning("You should not import already combined armor layer files, but individual ones for every armor set you want.");
-            Logs.logWarning("Please refer to https://docs.oraxen.com/configuration/custom-armors for more information");
-            return false;
+            Logs.logWarning("You should not import already combined armor layer files.");
+            Logs.logWarning("If you want to handle these files manually, disable <#22b14c>" + Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.getPath() + "</#22b14c> in settings.yml");
+            Logs.logWarning("Please refer to https://docs.oraxen.com/configuration/custom-armors for more information. Deleting...");
+            return true;
         } else if (name.startsWith("assets/minecraft/textures")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a texture file");
             Logs.logWarning("Cannot migrate texture files, rename this or the duplicate entry");
@@ -263,6 +272,10 @@ public class DuplicationHandler {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a language file");
             Logs.logWarning("Please combine this with the duplicate file found in Oraxen/pack/lang folder");
             return false;
+        } else if (name.matches("assets/minecraft/optifine/cit/armors/.*/.*.properties")) {
+            Logs.logWarning("You are trying to import an Optifine CustomArmor file.");
+            Logs.logWarning("Oraxen already generates all these needed files for you. Deleting...");
+            return true;
         } else {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is not a file that Oraxen can migrate right now");
             Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
@@ -270,14 +283,10 @@ public class DuplicationHandler {
         }
     }
 
-    //TODO
-    // Fix importing other aspects of parent-model like shields display
-    // It should use the imported as a base and merge the overrides only
     private static boolean migrateItemJson(String name) {
         String itemMaterial = Utils.removeExtensionOnly(Utils.removeParentDirs(name)).toUpperCase();
-        Material material;
         try {
-            material = Material.valueOf(itemMaterial);
+            Material.valueOf(itemMaterial);
         } catch (IllegalArgumentException e) {
             Logs.logWarning("Failed to migrate duplicate file-entry, could not find material");
             return false;
@@ -288,13 +297,7 @@ public class DuplicationHandler {
             return false;
         }
 
-        if (Set.of(Material.BOW, Material.FISHING_ROD, Material.SHIELD, Material.CROSSBOW).contains(material)) {
-            Logs.logWarning("Failed to migrate duplicate file-entry, file is a model that is not supported yet");
-            Logs.logWarning("Please refer to https://docs.oraxen.com/ on how to solve this, or ask in the support Discord");
-            return false;
-        }
-
-        YamlConfiguration migratedYaml = loadMigrateYaml("items");
+        YamlConfiguration migratedYaml = loadMigrateItemYaml();
         if (migratedYaml == null) {
             Logs.logWarning("Failed to migrate duplicate file-entry, failed to load items/migrated_duplicates.yml");
             return false;
@@ -309,19 +312,40 @@ public class DuplicationHandler {
         }
 
         JsonObject json = JsonParser.parseString(fileContent).getAsJsonObject();
-        if (json.getAsJsonArray("overrides") != null) for (JsonElement element : json.getAsJsonArray("overrides")) {
-            JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
-            String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
-            String id = "migrated_" + Utils.removeParentDirs(modelPath);
-            // Assume if no cmd is in that it is meant to replace the default model
-            int cmd = predicate.get("custom_model_data") != null ? predicate.get("custom_model_data").getAsInt() : 0;
+        JsonArray overrides = json.getAsJsonArray("overrides");
+        //Map<Integer, Map<Integer, String>> pullingModels = new HashMap<>();
+        Map<Integer, List<String>> pullingModels = new HashMap<>();
+        Map<Integer, String> chargedModels = new HashMap<>();
+        Map<Integer, String> blockingModels = new HashMap<>();
+        Map<Integer, String> castModels = new HashMap<>();
+        List<JsonElement> overridesToRemove = new ArrayList<>();
+        if (overrides != null) {
+            handleBowPulling(overrides, overridesToRemove, pullingModels);
+            handleCrossbowPulling(overrides, overridesToRemove, chargedModels);
+            handleShieldBlocking(overrides, overridesToRemove, blockingModels);
+            handleFishingRodCast(overrides, overridesToRemove, castModels);
 
-            migratedYaml.set(id + ".material", itemMaterial);
-            migratedYaml.set(id + ".excludeFromInventory", true);
-            migratedYaml.set(id + ".excludeFromCommands", true);
-            migratedYaml.set(id + ".Pack.generate_model", false);
-            migratedYaml.set(id + ".Pack.model", modelPath);
-            if (Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) migratedYaml.set(id + ".Pack.custom_model_data", cmd);
+            for (JsonElement element : overridesToRemove) overrides.remove(element);
+
+            for (JsonElement element : overrides) {
+                JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
+                String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
+                String id = "migrated_" + Utils.removeParentDirs(modelPath);
+                // Assume if no cmd is in that it is meant to replace the default model
+                int cmd = predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsInt() : 0;
+
+
+                migratedYaml.set(id + ".material", itemMaterial);
+                migratedYaml.set(id + ".excludeFromInventory", true);
+                migratedYaml.set(id + ".excludeFromCommands", true);
+                migratedYaml.set(id + ".Pack.generate_model", false);
+                migratedYaml.set(id + ".Pack.model", modelPath);
+                if (pullingModels.containsKey(cmd)) migratedYaml.set(id + ".Pack.pulling_models", pullingModels.get(cmd));
+                if (chargedModels.containsKey(cmd)) migratedYaml.set(id + ".Pack.charged_model", chargedModels.get(cmd));
+                if (blockingModels.containsKey(cmd)) migratedYaml.set(id + ".Pack.blocking_model", blockingModels.get(cmd));
+                if (castModels.containsKey(cmd)) migratedYaml.set(id + ".Pack.cast_model", castModels.get(cmd));
+                if (Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) migratedYaml.set(id + ".Pack.custom_model_data", cmd);
+            }
         }
 
         try {
@@ -332,6 +356,40 @@ public class DuplicationHandler {
         }
 
         return true;
+    }
+
+    private static void handleBowPulling(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, List<String>> pullingModels) {
+        for (JsonElement element : overrides) {
+            JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
+            if (predicate == null) continue;
+            if (!predicate.has("pulling")) continue;
+            int cmd = predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsInt() : 0;
+            String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
+            List<String> newPullingModels = pullingModels.getOrDefault(cmd, new ArrayList<>());
+            newPullingModels.add(modelPath);
+            pullingModels.put(cmd, newPullingModels);
+            overridesToRemove.add(element);
+        }
+    }
+    private static void handleCrossbowPulling(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> chargedModels) {
+        handleExtraPredicates(overrides, overridesToRemove, chargedModels, "charged");
+    }
+    private static void handleShieldBlocking(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> blockingModels) {
+        handleExtraPredicates(overrides, overridesToRemove, blockingModels, "blocking");
+    }
+    private static void handleFishingRodCast(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> castModels) {
+        handleExtraPredicates(overrides, overridesToRemove, castModels, "cast");
+    }
+
+    private static void handleExtraPredicates(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> predicateModels, String predicate) {
+        for (JsonElement element : overrides) {
+            JsonObject predicateObject = element.getAsJsonObject().get("predicate").getAsJsonObject();
+            if (predicateObject == null || !predicateObject.has(predicate)) continue;
+            int cmd = predicateObject.has("custom_model_data") ? predicateObject.get("custom_model_data").getAsInt() : 0;
+            String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
+            predicateModels.putIfAbsent(cmd, modelPath);
+            overridesToRemove.add(element);
+        }
     }
 
     private static boolean migrateSoundJson(String name) {
@@ -380,76 +438,9 @@ public class DuplicationHandler {
         return true;
     }
 
-    private static boolean mergeDuplicateFontJson(String name) {
-        Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/", name);
+    private static YamlConfiguration loadMigrateItemYaml() {
 
-        return true;
-    }
-
-    private static boolean migrateDefaultFontJson(String name) {
-        Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/pack/", name);
-        try {
-            YamlConfiguration glyphYaml = loadMigrateYaml("glyphs");
-
-            if (glyphYaml == null) {
-                Logs.logWarning("Failed to migrate duplicate file-entry, failed to load glyphs/migrated_duplicates.yml");
-                return false;
-            }
-
-            String fileContent;
-            try {
-                fileContent = Files.readString(path);
-            } catch (IOException e) {
-                Logs.logWarning("Failed to migrate duplicate file-entry, could not read file");
-                return false;
-            }
-
-            JsonObject json = JsonParser.parseString(fileContent).getAsJsonObject();
-            if (json.getAsJsonArray("providers") == null) {
-                Logs.logWarning("Failed to migrate duplicate file-entry, file is not a valid font file");
-                return false;
-            }
-
-            for (JsonElement element : json.getAsJsonArray("providers")) {
-                JsonObject provider = element.getAsJsonObject();
-                String file = provider.get("file").getAsString();
-                JsonArray charsArray = provider.getAsJsonArray("chars");
-                List<String> charList = new ArrayList<>();
-                if (charsArray != null) for (JsonElement c : charsArray) charList.add(c.getAsString());
-                int ascent, height;
-
-                try {
-                    ascent = provider.get("ascent").getAsInt();
-                    height = provider.get("height").getAsInt();
-                } catch (IllegalStateException e) {
-                    ascent = 8;
-                    height = 8;
-                }
-
-                glyphYaml.set("glyphs." + file + ".file", file != null ? file : "required/exit_icon.png");
-                glyphYaml.set("glyphs." + file + ".chars", charList);
-                glyphYaml.set("glyphs." + file + ".ascent", ascent);
-                glyphYaml.set("glyphs." + file + ".height", height);
-
-                try {
-                    glyphYaml.save(new File(OraxenPlugin.get().getDataFolder(), "/glyphs/migrated_duplicates.yml"));
-                } catch (IOException e) {
-                    Logs.logWarning("Failed to migrate duplicate file-entry, could not save migrated_duplicates.yml");
-                    return false;
-                }
-
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-
-        return true;
-    }
-
-    private static YamlConfiguration loadMigrateYaml(String folder) {
-
-        File file = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().resolve(folder).resolve("migrated_duplicates.yml").toFile();
+        File file = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().resolve("items").resolve(DUPLICATE_FILE_MERGE_NAME).toFile();
         if (!file.exists()) {
             try {
                 file.createNewFile();

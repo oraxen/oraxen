@@ -186,4 +186,8 @@ public class NoteBlockMechanic extends Mechanic {
         }
     }
 
+    public boolean isInteractable() {
+        return hasClickActions() || isStorage();
+    }
+
 }
