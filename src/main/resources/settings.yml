@@ -72,9 +72,11 @@ Pack:
 
   upload:
     enabled: true
-    type: polymath #transfer.sh or polymath
+    type: polymath #transfer.sh, polymath or localhost
     polymath:
       server: atlas.oraxen.com # you can also host your own polymath instance
+    localhost:
+      port: 8080
 
   dispatch:
     send_pack: true

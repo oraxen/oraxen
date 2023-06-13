@@ -46,6 +46,7 @@ public class AdvancedPackSender extends PackSender implements Listener {
         handle.getStrings().write(1, hostingProvider.getOriginalSHA1());
         handle.getBooleans().write(0, Settings.SEND_PACK_ADVANCED_MANDATORY.toBool());
         handle.getChatComponents().write(0, component);
+        //player.setResourcePack(hostingProvider.getMinecraftPackURL(), hostingProvider.getSHA1(), Settings.SEND_PACK_ADVANCED_MANDATORY.toBool());
         protocolManager.sendServerPacket(player, handle);
     }
 

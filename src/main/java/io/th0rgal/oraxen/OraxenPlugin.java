@@ -23,6 +23,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
+import io.th0rgal.oraxen.pack.upload.hosts.LocalHost;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -137,6 +138,7 @@ public class OraxenPlugin extends JavaPlugin {
         unregisterListeners();
         ItemUpdater.furnitureUpdateTask.cancel();
         FurnitureFactory.getEvolutionTask().cancel();
+        LocalHost.stopHttpd();
 
         CompatibilitiesManager.disableCompatibilities();
         Message.PLUGIN_UNLOADED.log();
