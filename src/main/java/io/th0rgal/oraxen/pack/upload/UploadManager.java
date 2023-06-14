@@ -13,6 +13,7 @@ import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -103,11 +104,18 @@ public class UploadManager {
     }
 
     private HostingProvider createHostingProvider() {
-        return switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ENGLISH)) {
+        HostingProvider provider = switch (Settings.UPLOAD_TYPE.toString().toLowerCase(Locale.ENGLISH)) {
             case "polymath" -> new Polymath(Settings.POLYMATH_SERVER.toString());
             case "external" -> createExternalProvider();
-            default -> throw new ProviderNotFoundException("Unknown provider type: " + Settings.UPLOAD_TYPE);
+            default -> null;
         };
+
+        if (provider == null) {
+            Logs.logError("Unknown Hosting-Provider type: " + Settings.UPLOAD_TYPE);
+            Logs.logError("Polymath will be used instead.");
+            provider = new Polymath(Settings.POLYMATH_SERVER.toString());
+        }
+        return provider;
     }
 
     private HostingProvider createExternalProvider() {
