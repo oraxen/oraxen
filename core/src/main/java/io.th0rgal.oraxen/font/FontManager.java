@@ -4,6 +4,7 @@ import com.comphenix.protocol.ProtocolManager;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -43,6 +44,14 @@ public class FontManager {
         loadGlyphs(configsManager.parseGlyphConfigs());
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
+
+
+        // NMS version check
+        if (Settings.USE_NMS_GLYPHS.toBool() && !NMSHandlers.getHandler().getSupported()) {
+            Logs.logError("Oraxens NMS Glyph system does not support this version yet!");
+            Logs.logError("This will not be enabled");
+        }
+
     }
 
     public void verifyRequired() {
