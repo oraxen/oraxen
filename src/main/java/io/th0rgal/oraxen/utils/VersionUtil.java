@@ -64,8 +64,14 @@ public enum VersionUtil implements Comparable<VersionUtil> {
     public static boolean isPaperServer() {
         Server server = Bukkit.getServer();
         Validate.notNull(server, "Server cannot be null");
+        if (server.getName().equalsIgnoreCase("Paper")) return true;
 
-        return server.getName().equalsIgnoreCase("Paper");
+        try {
+            Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     public static boolean isFoliaServer() {
