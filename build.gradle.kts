@@ -12,6 +12,7 @@ plugins {
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
 val pluginPath = project.findProperty("oraxen_plugin_path")
 val pluginVersion: String by project
+val commandApiVersion = "9.0.3"
 group = "io.th0rgal"
 version = pluginVersion
 
@@ -53,7 +54,7 @@ allprojects {
         compileOnly("commons-io:commons-io:2.11.0")
         compileOnly("com.ticxo.modelengine:api:R3.1.5")
         compileOnly(files("../libs/compile/BSP.jar"))
-        compileOnly("dev.jorel:commandapi-bukkit-shade:9.0.3")
+        compileOnly("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         compileOnly("io.lumine:MythicLib:1.1.6")
         compileOnly("net.Indyuce:MMOItems:6.7.3")
         compileOnly("org.joml:joml:1.10.5") // Because pre 1.19.4 api does not have this in the server-jar
@@ -142,7 +143,10 @@ bukkit {
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards")
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
-    libraries = listOf("org.springframework:spring-expression:6.0.6", "org.apache.httpcomponents:httpmime:4.5.13", "dev.jorel:commandapi-bukkit-shade:$9.0.3", "org.joml:joml:1.10.5")
+    libraries = listOf("org.springframework:spring-expression:6.0.6",
+        "org.apache.httpcomponents:httpmime:4.5.13",
+        "dev.jorel:commandapi-bukkit-shade:$commandApiVersion",
+        "org.joml:joml:1.10.5")
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE

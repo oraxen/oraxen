@@ -34,7 +34,6 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
         try{
             //Better way to check for this? Only in 1.13.1+?
             Class.forName("org.bukkit.event.block.BlockDispenseArmorEvent");
-            Bukkit.getServer().getPluginManager().registerEvents(new DispenserArmorListener(), plugin);
         } catch(Exception ignored) {
 
         }
