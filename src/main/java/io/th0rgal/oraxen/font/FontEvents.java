@@ -197,7 +197,7 @@ public class FontEvents implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        manager.sendGlyphTabCompletion(event.getPlayer(), true);
+        manager.sendGlyphTabCompletion(event.getPlayer());
     }
 
     public class SpigotChatHandler implements Listener {

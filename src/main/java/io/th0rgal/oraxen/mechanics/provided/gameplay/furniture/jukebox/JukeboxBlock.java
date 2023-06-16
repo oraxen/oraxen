@@ -4,9 +4,8 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanic;
-import io.th0rgal.oraxen.utils.BlockHelpers;
-import org.bukkit.block.Block;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
@@ -30,8 +29,8 @@ public class JukeboxBlock {
         this.permission = section.getString("permission");
     }
 
-    public String getPlayingSong(Block block) {
-        ItemStack disc = BlockHelpers.getPDC(block).get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
+    public String getPlayingSong(Entity baseEntity) {
+        ItemStack disc = baseEntity.getPersistentDataContainer().get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
         if (disc == null) return null;
         MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(OraxenItems.getIdByItem(disc));
         return (mechanic != null && !mechanic.hasNoSong()) ? mechanic.getSong()

@@ -151,7 +151,10 @@ public class OraxenItems {
     }
 
     public static String[] getItemNames() {
-        return items;
+        return Arrays.stream(items).filter(item -> {
+            ItemBuilder builder = OraxenItems.getItemById(item);
+            return builder != null && builder.hasOraxenMeta() && !builder.getOraxenMeta().isExcludedFromCommands();
+        }).toArray(String[]::new);
     }
 
 }

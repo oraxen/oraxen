@@ -42,6 +42,7 @@ repositories {
     maven("https://maven.enginehub.org/repo/")
 }
 
+val commandApiVersion = "9.0.3"
 dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"
 
@@ -58,16 +59,16 @@ dependencies {
     compileOnly("commons-io:commons-io:2.11.0")
     compileOnly("com.ticxo.modelengine:api:R3.1.5")
     compileOnly(files("libs/compile/BSP.jar"))
-    compileOnly("dev.jorel:commandapi-bukkit-shade:9.0.2")
+    compileOnly("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
     compileOnly("io.lumine:MythicLib:1.1.6")
     compileOnly("net.Indyuce:MMOItems:6.7.3")
     compileOnly("org.joml:joml:1.10.5") // Because pre 1.19.4 api does not have this in the server-jar
 
     implementation("dev.triumphteam:triumph-gui:3.1.5")
     implementation("org.bstats:bstats-bukkit:3.0.0")
-    implementation("com.github.oraxen:protectionlib:1.2.7")
-    implementation("net.kyori:adventure-text-minimessage:4.13.1")
-    implementation("net.kyori:adventure-text-serializer-plain:4.13.1")
+    implementation("com.github.oraxen:protectionlib:1.3.0")
+    implementation("net.kyori:adventure-text-minimessage:4.14.0")
+    implementation("net.kyori:adventure-text-serializer-plain:4.14.0")
     implementation("net.kyori:adventure-platform-bukkit:4.3.0")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.9")
     implementation("com.jeff_media:CustomBlockData:2.2.0")
@@ -103,7 +104,6 @@ tasks {
     }
 
     shadowJar {
-        //archiveClassifier = null
         relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
         relocate("net.kyori", "io.th0rgal.oraxen.shaded.kyori")
         relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
@@ -115,9 +115,7 @@ tasks {
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
         relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
         relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
-        //relocate("org.joml", "io.th0rgal.oraxen.shaded.joml")
 
-        //mapOf("dir" to "libs/compile", "include" to listOf("*.jar"))
         manifest {
             attributes(
                 mapOf(
@@ -150,7 +148,7 @@ bukkit {
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards")
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
-    libraries = listOf("org.springframework:spring-expression:6.0.6", "org.apache.httpcomponents:httpmime:4.5.13", "dev.jorel:commandapi-bukkit-shade:9.0.2", "org.joml:joml:1.10.5")
+    libraries = listOf("org.springframework:spring-expression:6.0.6", "org.apache.httpcomponents:httpmime:4.5.13", "dev.jorel:commandapi-bukkit-shade:$commandApiVersion", "org.joml:joml:1.10.5")
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE

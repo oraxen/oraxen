@@ -1,10 +1,11 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
-import io.papermc.paper.event.block.BlockBreakBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.api.events.OraxenFurnitureBreakEvent;
+import io.th0rgal.oraxen.api.events.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -14,17 +15,15 @@ import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
-import org.bukkit.*;
-import org.bukkit.block.Block;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.SoundCategory;
+import org.bukkit.Tag;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockBurnEvent;
-import org.bukkit.event.block.BlockExplodeEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -36,29 +35,15 @@ import static io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscList
 
 public class JukeboxListener implements Listener {
 
-    public JukeboxListener() {
-        if (VersionUtil.isPaperServer())
-            Bukkit.getPluginManager().registerEvents(new JukeboxPaperListener(), OraxenPlugin.get());
-    }
-
-    public class JukeboxPaperListener implements Listener {
-
-        @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-        public void onJukeboxBreak(BlockBreakBlockEvent event) {
-            ejectAndStopDisc(event.getBlock(), null);
-        }
-    }
-
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onInsertDisc(PlayerInteractEvent event) {
-        Block block = event.getClickedBlock();
+    public void onInsertDisc(OraxenFurnitureInteractEvent event) {
+        Entity baseEntity = event.getBaseEntity();
         Player player = event.getPlayer();
         ItemStack itemStack = player.getInventory().getItemInMainHand();
 
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getHand() != EquipmentSlot.HAND) return;
 
-        boolean played = insertAndPlayDisc(block, itemStack, player);
+        boolean played = insertAndPlayDisc(baseEntity, itemStack, player);
         if (!played) return;
         player.swingMainHand();
 
@@ -83,35 +68,21 @@ public class JukeboxListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onEjectDisc(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.getHand() != EquipmentSlot.HAND) return;
-
-        boolean stopped = ejectAndStopDisc(event.getClickedBlock(), event.getPlayer());
-        if (!stopped) return;
+    public void onEjectDisc(OraxenFurnitureInteractEvent event) {
+        if (!ejectAndStopDisc(event.getBaseEntity(), event.getPlayer())) return;
         event.getPlayer().swingMainHand();
         event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onJukeboxBreak(BlockBreakEvent event) {
-        ejectAndStopDisc(event.getBlock(), null);
+    public void onJukeboxBreak(OraxenFurnitureBreakEvent event) {
+        ejectAndStopDisc(event.getBaseEntity(), null);
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onJukeboxBreak(BlockExplodeEvent event) {
-        ejectAndStopDisc(event.getBlock(), null);
-    }
-
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onJukeboxBreak(BlockBurnEvent event) {
-        ejectAndStopDisc(event.getBlock(), null);
-    }
-
-    private boolean insertAndPlayDisc(Block block, ItemStack disc, @Nullable Player player) {
-        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
-        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
-        Location loc = BlockHelpers.toCenterLocation(block.getLocation());
+    private boolean insertAndPlayDisc(Entity baseEntity, ItemStack disc, @Nullable Player player) {
+        PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
+        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
+        Location loc = BlockHelpers.toCenterLocation(baseEntity.getLocation());
 
         if (furnitureMechanic == null || !furnitureMechanic.isJukebox()) return false;
         if (pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK)) return false;
@@ -123,25 +94,15 @@ public class JukeboxListener implements Listener {
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
             disc.setAmount(disc.getAmount() - insertedDisc.getAmount());
         pdc.set(MUSIC_DISC_KEY, DataType.ITEM_STACK, insertedDisc);
-        block.getWorld().playSound(loc, jukebox.getPlayingSong(block), SoundCategory.RECORDS, jukebox.getVolume(), jukebox.getPitch());
-
-        /*long discDuration = jukebox.getDiscDuration(block);
-        if (jukebox.shouldLoopDisc()) {
-            String song = jukebox.getPlayingSong(block);
-            OraxenPlugin.get().getSoundManager().getCustomSounds().stream().filter(s -> s.getName().equals(song)).findFirst().ifPresent(s -> {
-                String path = s.getName().replace(".", "/").replace("/ogg", ".ogg");
-                File soundFile = OraxenPlugin.get().getDataFolder().toPath().resolve("pack").resolve("sounds").resolve(path).toFile();
-                soundFile.getTotalSpace()
-            });
-        }*/
+        baseEntity.getWorld().playSound(loc, jukebox.getPlayingSong(baseEntity), SoundCategory.RECORDS, jukebox.getVolume(), jukebox.getPitch());
         return true;
     }
 
-    private boolean ejectAndStopDisc(Block block, @Nullable Player player) {
-        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
+    private boolean ejectAndStopDisc(Entity baseEntity, @Nullable Player player) {
+        PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
         ItemStack item = pdc.get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
-        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
-        Location loc = BlockHelpers.toCenterLocation(block.getLocation());
+        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
+        Location loc = BlockHelpers.toCenterLocation(baseEntity.getLocation());
 
         if (furnitureMechanic == null || !furnitureMechanic.isJukebox()) return false;
         if (!pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK)) return false;
@@ -150,11 +111,11 @@ public class JukeboxListener implements Listener {
         JukeboxBlock jukebox = furnitureMechanic.getJukebox();
         if (!jukebox.hasPermission(player)) return false;
 
-        block.getWorld().getNearbyEntities(loc, 32, 32, 32).stream()
+        baseEntity.getWorld().getNearbyEntities(loc, 32, 32, 32).stream()
                 .filter(entity -> entity instanceof Player)
                 .map(entity -> (Player) entity)
                 .forEach(p -> OraxenPlugin.get().getAudience().player(p).stopSound(Sound.sound(getSongFromDisc(item), Sound.Source.RECORD, jukebox.getVolume(), jukebox.getPitch())));
-        block.getWorld().dropItemNaturally(loc, item);
+        baseEntity.getWorld().dropItemNaturally(loc, item);
         pdc.remove(MUSIC_DISC_KEY);
         return true;
     }

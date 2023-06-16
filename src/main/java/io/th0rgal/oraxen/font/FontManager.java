@@ -1,12 +1,10 @@
 package io.th0rgal.oraxen.font;
 
-import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
@@ -159,54 +157,19 @@ public class FontManager {
         return output.toString();
     }
 
-    public void sendGlyphTabCompletion(Player player, boolean add) {
-        boolean useUnicodeCompletions = Settings.UNICODE_COMPLETIONS.toBool();
-        if (PacketType.Play.Server.CUSTOM_CHAT_COMPLETIONS.isSupported()) {
-            PacketContainer packet = new PacketContainer(PacketType.Play.Server.CUSTOM_CHAT_COMPLETIONS);
+    private final HashMap<Player, List<String>> currentGlyphCompletions = new HashMap<>();
+    public void sendGlyphTabCompletion(Player player) {
+        List<String> completions = getGlyphByPlaceholderMap().values().stream()
+                .filter(Glyph::hasTabCompletion)
+                .flatMap(glyph -> Settings.UNICODE_COMPLETIONS.toBool()
+                        ? Stream.of(String.valueOf(glyph.getCharacter()))
+                        : Arrays.stream(glyph.getPlaceholders()))
+                .toList();
 
-            Object[] constants = PacketType.Play.Server.CUSTOM_CHAT_COMPLETIONS.getPacketClass().getDeclaredClasses()[0].getEnumConstants();
-            packet.getModifier().write(0, constants[(add) ? 0 : 1]);
-            packet.getModifier().write(1, getGlyphByPlaceholderMap().values().stream()
-                    .filter(Glyph::hasTabCompletion)
-                    .flatMap(glyph -> useUnicodeCompletions
-                            ? Stream.of(String.valueOf(glyph.getCharacter()))
-                            : Arrays.stream(glyph.getPlaceholders()))
-                    .toList());
-
-            protocolManager.sendServerPacket(player, packet);
+        if (VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R2)) {
+            player.removeCustomChatCompletions(currentGlyphCompletions.getOrDefault(player, new ArrayList<>()));
+            player.addCustomChatCompletions(completions);
+            currentGlyphCompletions.put(player, completions);
         }
-        else for (Glyph glyph : getGlyphByPlaceholderMap().values()) {
-            if (glyph.hasTabCompletion()) {
-                PacketContainer packet = new PacketContainer(PacketType.Play.Server.PLAYER_INFO);
-
-                packet.getPlayerInfoAction().write(0, (add) ? EnumWrappers.PlayerInfoAction.ADD_PLAYER : EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
-
-                List<WrappedGameProfile> profiles = useUnicodeCompletions
-                        ? Collections.singletonList(getGameProfileForCompletion(String.valueOf(glyph.getCharacter())))
-                        : Arrays.stream(glyph.getPlaceholders())
-                        .map(this::getGameProfileForCompletion)
-                        .toList();
-
-                if (glyph.getTabIconTexture() != null && glyph.getTabIconSignature() != null) {
-                    for (WrappedGameProfile profile : profiles) {
-                        profile.getProperties().put("textures",
-                                new WrappedSignedProperty(
-                                        "textures",
-                                        glyph.getTabIconTexture(),
-                                        glyph.getTabIconSignature()));
-                    }
-                }
-
-                packet.getPlayerInfoDataLists().write(0, profiles.stream()
-                        .map(profile -> new PlayerInfoData(profile, 0, EnumWrappers.NativeGameMode.SPECTATOR, WrappedChatComponent.fromText("")))
-                        .toList());
-
-                protocolManager.sendServerPacket(player, packet);
-            }
-        }
-    }
-
-    private WrappedGameProfile getGameProfileForCompletion(String completion) {
-        return new WrappedGameProfile(UUID.randomUUID(), completion);
     }
 }

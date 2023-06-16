@@ -10,13 +10,13 @@ import io.th0rgal.oraxen.api.events.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.api.events.OraxenFurniturePlaceEvent;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.misc.storage.StorageMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
-import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -63,7 +63,9 @@ public class FurnitureListener implements Listener {
 
             @Override
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                return block.getType() == Material.BARRIER;
+                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+
+                return mechanic != null && mechanic.hasHardness();
             }
 
             @Override
@@ -73,7 +75,18 @@ public class FurnitureListener implements Listener {
 
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
-                return 1;
+                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+                if (mechanic == null) return 0;
+
+                final long hardness = mechanic.getHardness();
+                double modifier = 1;
+                if (mechanic.getDrop().canDrop(tool)) {
+                    modifier *= 0.4;
+                    final int diff = mechanic.getDrop().getDiff(tool);
+                    if (diff >= 1) modifier *= Math.pow(0.9, diff);
+                }
+                long period = (long) (hardness * modifier);
+                return period == 0 && mechanic.hasHardness() ? 1 : period;
             }
         };
     }

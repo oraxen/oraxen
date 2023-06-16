@@ -1,22 +1,35 @@
 package io.th0rgal.oraxen.utils.armorequipevent;
 
-import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.mechanics.provided.cosmetic.hat.HatMechanicFactory;
+import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 /**
+ * Represents the different types of armor.
+ *
  * @author Arnah
  * @since Jul 30, 2015
  */
-public enum ArmorType {
+public enum ArmorType{
+    /**
+     * Represents armor belonging to the helmet slot, e.g. helmets, skulls, and carved pumpkins.
+     */
     HELMET(5),
+    /**
+     * Represents armor belonging to the chestplate slot, e.g. chestplates and elytras.
+     */
     CHESTPLATE(6),
+    /**
+     * Represents leggings.
+     */
     LEGGINGS(7),
+    /**
+     * Represents boots.
+     */
     BOOTS(8);
 
     private final int slot;
 
-    ArmorType(int slot) {
+    ArmorType(int slot){
         this.slot = slot;
     }
 
@@ -26,27 +39,22 @@ public enum ArmorType {
      * @param itemStack The ItemStack to parse the type of.
      * @return The parsed ArmorType, or null if not found.
      */
-    public static ArmorType matchType(final ItemStack itemStack) {
-        if (ArmorListener.isAirOrNull(itemStack))
-            return null;
-        String itemID = OraxenItems.getIdByItem(itemStack);
-        if (OraxenItems.exists(itemID) && HatMechanicFactory.get() != null
-            && !HatMechanicFactory.get().isNotImplementedIn(itemID))
-            return HELMET;
-        String type = itemStack.getType().name();
-        if (type.endsWith("_HELMET") || type.endsWith("_SKULL"))
-            return HELMET;
-        else if (type.endsWith("_CHESTPLATE") || type.endsWith("ELYTRA"))
-            return CHESTPLATE;
-        else if (type.endsWith("_LEGGINGS"))
-            return LEGGINGS;
-        else if (type.endsWith("_BOOTS"))
-            return BOOTS;
-        else
-            return null;
+    public static ArmorType matchType(final ItemStack itemStack){
+        if(ArmorListener.isEmpty(itemStack)) return null;
+        Material type = itemStack.getType();
+        String typeName = type.name();
+        if(typeName.endsWith("_HELMET") || typeName.endsWith("_SKULL") || typeName.endsWith("_HEAD") || type == Material.CARVED_PUMPKIN) return HELMET;
+        else if(typeName.endsWith("_CHESTPLATE") || typeName.equals("ELYTRA")) return CHESTPLATE;
+        else if(typeName.endsWith("_LEGGINGS")) return LEGGINGS;
+        else if(typeName.endsWith("_BOOTS")) return BOOTS;
+        else return null;
     }
 
-    public int getSlot() {
+    /**
+     * Returns the raw slot where this piece of armor usually gets equipped
+     * @return Raw slot belonging to this piece of armor
+     */
+    public int getSlot(){
         return slot;
     }
 }

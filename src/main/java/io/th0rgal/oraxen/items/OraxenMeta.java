@@ -204,3 +204,4 @@ public class OraxenMeta {
     public boolean isDisableEnchanting() { return disableEnchanting; }
 
 }
+

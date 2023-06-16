@@ -22,12 +22,9 @@ import java.util.Map;
 public class BlockInfoCommand {
 
     public CommandAPICommand getBlockInfoCommand() {
-        String[] blockNames = OraxenItems.getItemNames();
-        if (blockNames == null) blockNames = new String[0];
-
         return new CommandAPICommand("blockinfo")
                 .withPermission("oraxen.command.blockinfo")
-                .withArguments(new StringArgument("itemid").replaceSuggestions(ArgumentSuggestions.strings(blockNames)))
+                .withArguments(new StringArgument("itemid").replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())))
                 .executes((commandSender, args) -> {
                     String argument = (String) args.get("itemid");
                     Audience audience = OraxenPlugin.get().getAudience().sender(commandSender);
