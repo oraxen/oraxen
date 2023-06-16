@@ -1,9 +1,6 @@
 
 plugins {
     id("java")
-    id("idea")
-    id("eclipse")
-    id("maven-publish")
 }
 
 dependencies {

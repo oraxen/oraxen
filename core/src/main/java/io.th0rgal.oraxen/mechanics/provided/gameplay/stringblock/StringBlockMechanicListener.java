@@ -8,7 +8,6 @@ import io.th0rgal.oraxen.api.events.OraxenStringBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.utils.BlockHelpers;

@@ -4,8 +4,6 @@ import java.util.*
 
 plugins {
     id("java")
-    id("idea")
-    id("eclipse")
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("net.minecrell.plugin-yml.bukkit") version "0.5.3" // Generates plugin.yml
@@ -55,7 +53,7 @@ allprojects {
         compileOnly("commons-io:commons-io:2.11.0")
         compileOnly("com.ticxo.modelengine:api:R3.1.5")
         compileOnly(files("../libs/compile/BSP.jar"))
-        compileOnly("dev.jorel:commandapi-bukkit-shade:9.0.2")
+        compileOnly("dev.jorel:commandapi-bukkit-shade:9.0.3")
         compileOnly("io.lumine:MythicLib:1.1.6")
         compileOnly("net.Indyuce:MMOItems:6.7.3")
         compileOnly("org.joml:joml:1.10.5") // Because pre 1.19.4 api does not have this in the server-jar
@@ -129,10 +127,8 @@ tasks {
         }
         if (!compiled) exclude("io/th0rgal/oraxen/core/CompileNotice\$PrintNotice.class")
         archiveFileName.set("oraxen-${pluginVersion}.jar")
-        minimize()
     }
 
-    compileJava.get().dependsOn(clean)
     build.get().dependsOn(shadowJar)
 }
 
@@ -146,7 +142,7 @@ bukkit {
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards")
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
-    libraries = listOf("org.springframework:spring-expression:6.0.6", "org.apache.httpcomponents:httpmime:4.5.13", "dev.jorel:commandapi-bukkit-shade:$commandApiVersion", "org.joml:joml:1.10.5")
+    libraries = listOf("org.springframework:spring-expression:6.0.6", "org.apache.httpcomponents:httpmime:4.5.13", "dev.jorel:commandapi-bukkit-shade:$9.0.3", "org.joml:joml:1.10.5")
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE
