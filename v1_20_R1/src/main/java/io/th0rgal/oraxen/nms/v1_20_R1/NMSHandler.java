@@ -9,6 +9,8 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.text.Component;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import net.minecraft.nbt.StringTag;
@@ -109,10 +111,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         ChannelInboundHandlerAdapter serverChannelHandler = new ChannelInboundHandlerAdapter() {
             @Override
             public void channelRead(ChannelHandlerContext ctx, @NotNull Object msg) {
-                Channel channel = (Channel) msg;
-
                 // Prepare to initialize ths channel
-                channel.pipeline().addFirst(beginInitProtocol);
+                ((Channel) msg).pipeline().addFirst(beginInitProtocol);
                 ctx.fireChannelRead(msg);
             }
         };
@@ -127,6 +127,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 }
             }.runTask(OraxenPlugin.get());
         }
+
+        OraxenPlugin.get().getServer().getOnlinePlayers().stream().map(player -> (Player) player).forEach(this::inject);
     }
 
     private void bind(List<ChannelFuture> channelFutures, ChannelInboundHandlerAdapter serverChannelHandler) {
@@ -169,9 +171,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             if (previousHandler instanceof PacketEncoder) {
                 // PacketEncoder is not shareable, so we can't re-add it back. Instead, we'll have to create a new instance
                 channel.pipeline().replace("encoder", "encoder", new PacketEncoder(PacketFlow.CLIENTBOUND));
-            } else {
-                channel.pipeline().replace("encoder", "encoder", previousHandler);
-            }
+            } else channel.pipeline().replace("encoder", "encoder", previousHandler);
         }
 
         if (decoder.containsKey(channel)) {
@@ -211,23 +211,23 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             this.supplier = supplier;
         }
 
-		/*@Override
-		public PacketDataSerializer a( IChatBaseComponent component ) {
-			JsonElement element = ChatSerializer.b( component );
-			BaseComponent[] components = ComponentSerializer.parse( element.toString() );
-			for ( int i = 0; i < components.length; i++ ) {
-				components[ i ] = transformer.transform( components[ i ] );
-			}
-			String json = ComponentSerializer.toString( components );
-			return super.a( ChatSerializer.a( json ) );
-		}*/
+        @NotNull
+        @Override
+        public FriendlyByteBuf writeComponent(@NotNull Component component) {
+            return super.writeComponent(AdventureUtils.parseMiniMessage(component));
+        }
 
         @Override
         public @NotNull FriendlyByteBuf writeUtf(@NotNull String string, int maxLength) {
             try {
                 JsonElement element = JsonParser.parseString(string);
-                if (element.isJsonObject()) return super.writeUtf(returnFormattedStrign(element.getAsJsonObject()), maxLength);
+                if (element.isJsonObject())
+                {
+                    Logs.logWarning(element.toString());
+                    return super.writeUtf(returnFormattedString(element.getAsJsonObject()), maxLength);
+                }
             } catch (Exception ignored) {
+
             }
 
             return super.writeUtf(string, maxLength);
@@ -240,7 +240,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     try {
                         JsonElement element = JsonParser.parseString(string);
                         if (element.isJsonObject()) {
-                            return returnFormattedStrign(element.getAsJsonObject());
+                            return returnFormattedString(element.getAsJsonObject());
                         }
                     } catch (Exception ignored) {
                     }
@@ -251,9 +251,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             return super.writeNbt(compound);
         }
 
-        private String returnFormattedStrign(JsonObject obj) {
+        private String returnFormattedString(JsonObject obj) {
             if (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) {
-                return AdventureUtils.parseJson(obj.toString());
+                return AdventureUtils.parseJsonThroughLegacy(obj.toString());
             } else return obj.toString();
         }
 
@@ -288,30 +288,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         @Override
         public @NotNull String readUtf(int i) {
             String val = super.readUtf(i);
-
-            Player player = supplier.get();
-            if (player != null) {
-                //TODO Format
-
-                //val = transformer.verifyFor(player, val);
-            }
-
-            return val;
+            return supplier != null ? AdventureUtils.parseLegacy(val) : val;
         }
-
-//		@Override
-//		public NBTTagCompound a( NBTReadLimiter limiter ) {
-//			NBTTagCompound compound = super.a( limiter );
-//
-//			if ( compound != null ) {
-//				Player player = supplier.get();
-//				if ( player != null ) {
-//					transform( compound, val -> transformer.verifyFor( player, val ) );
-//				}
-//			}
-//
-//			return compound;
-//		}
     }
 
     private static class CustomPacketEncoder extends MessageToByteEncoder<Packet<?>> {
@@ -319,7 +297,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         private Player player;
 
         @Override
-        protected void encode(ChannelHandlerContext ctx, Packet<?> msg, ByteBuf out) throws Exception {
+        protected void encode(ChannelHandlerContext ctx, Packet<?> msg, ByteBuf out) {
             ConnectionProtocol enumProt = ctx.channel().attr(Connection.ATTRIBUTE_PROTOCOL).get();
             if (enumProt == null) {
                 throw new RuntimeException("ConnectionProtocol unknown: " + msg);
