@@ -104,7 +104,6 @@ public class ReloadCommand {
                         case "RECIPES" -> RecipesManager.reload();
                         case "CONFIGS" -> OraxenPlugin.get().reloadConfigs();
                         default -> {
-                            OraxenPlugin oraxen = OraxenPlugin.get();
                             MechanicsManager.unloadListeners();
                             MechanicsManager.registerNativeMechanics();
                             OraxenPlugin.get().reloadConfigs();
@@ -118,7 +117,7 @@ public class ReloadCommand {
                     // This does not clear the tablist, and I am not sure how to do it otherwise
                     FontManager manager = new FontManager(OraxenPlugin.get().getConfigsManager());
                     for (Player player : Bukkit.getOnlinePlayers()) {
-                        manager.sendGlyphTabCompletion(player, false);
+                        manager.sendGlyphTabCompletion(player);
                     }
                 });
     }

@@ -22,8 +22,7 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.EntitiesLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.*;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -159,6 +158,18 @@ public class ItemUpdater implements Listener {
             // Transfer over durability from old item
             if (itemMeta instanceof Damageable damageable && oldMeta instanceof Damageable oldDmg)
                 damageable.setDamage(oldDmg.getDamage());
+
+            if (itemMeta instanceof LeatherArmorMeta leatherMeta && oldMeta instanceof LeatherArmorMeta oldLeatherMeta) {
+                leatherMeta.setColor(oldLeatherMeta.getColor());
+            }
+
+            if (itemMeta instanceof PotionMeta potionMeta && oldMeta instanceof PotionMeta oldPotionMeta) {
+                potionMeta.setColor(oldPotionMeta.getColor());
+            }
+
+            if (itemMeta instanceof MapMeta mapMeta && oldMeta instanceof MapMeta oldMapMeta) {
+                mapMeta.setColor(oldMapMeta.getColor());
+            }
 
             // Parsing with legacy here to fix any inconsistensies caused by server serializers etc
             String oldDisplayName = AdventureUtils.parseLegacy(oldMeta.getDisplayName());
