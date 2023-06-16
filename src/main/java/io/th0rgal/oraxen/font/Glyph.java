@@ -32,8 +32,6 @@ public class Glyph {
     private final String name;
     private final boolean isEmoji;
     private boolean tabcomplete;
-    private String tabIconTexture;
-    private String tabIconSignature;
     private final char character;
     private String texture;
     private final int ascent;
@@ -49,14 +47,11 @@ public class Glyph {
         isEmoji = glyphSection.getBoolean("is_emoji", false);
         if (glyphSection.isConfigurationSection("chat")) {
             final ConfigurationSection chatSection = glyphSection.getConfigurationSection("chat");
+            assert chatSection != null;
             placeholders = chatSection.getStringList("placeholders").toArray(new String[0]);
             if (chatSection.isString("permission"))
                 permission = chatSection.getString("permission");
-            if (chatSection.isBoolean("tabcomplete"))
-                tabcomplete = chatSection.getBoolean("tabcomplete");
-            else tabcomplete = false;
-            tabIconTexture = chatSection.getString("tab_icon_texture", "ewogICJ0aW1lc3RhbXAiIDogMTY0ODI4NzUzMTA4NywKICAicHJvZmlsZUlkIiA6ICJhYzM2YmVkZGQxNGQ0YjVmYmQyYzc5OThlMWMwOTg3ZCIsCiAgInByb2ZpbGVOYW1lIiA6ICJtYWlzYWthIiwKICAic2lnbmF0dXJlUmVxdWlyZWQiIDogdHJ1ZSwKICAidGV4dHVyZXMiIDogewogICAgIlNLSU4iIDogewogICAgICAidXJsIiA6ICJodHRwOi8vdGV4dHVyZXMubWluZWNyYWZ0Lm5ldC90ZXh0dXJlLzU3ZGRlMGExN2MwNDY4MzI0MGIyNzJlYjJkODk1NWY4NzRiM2ExMTIyNTkxNjMwMGZlM2U4ODhkZjI4YjI4ZDciCiAgICB9CiAgfQp9");
-            tabIconSignature = chatSection.getString("tab_icon_signature", "ScFX2rWxyhSyIn3YIke0ecNezt0bx+K8fRLQVPAzNli+X/dmod9ohujwwmDyog0exnlDAdEtXJY2XEUELpNLBHYZFyMsUChL4MObACzxGXExRBbyE8NzemmcRePKmglJfIHBxATlvG3VXeNn1dNA9g+GgLAB4KdqlDaYO5qAtdET7rckzLhSVeFz3yct3LuqZwzutdkJIbnR2Bu9kM4IpyowDbBEoASUp2ogNq4bQ+9O7cU7PtayknPGJaustHQR32jVcLYNqGweZKjZZUgER+6XrGAwyuWENQ00UpEWanHa2ahBugxzg1atcgc3spx3FxWLN0bVsUj4oXulPhxD4/44jALhHl7898qXwoRhqGaAuombJRH/bMoyoTZUDgcxmTbWFZcos9Ugg6eBlQo7ip35mW7fyd/8rk6RCGyf/wmqyDUnFNUHeQgJHHED+yr2oN/Y4jzCmG5Ikk1RExpi2Mbi7ouZx3bKzkTsEafGdnx8sMxenRCYFtcoQCcV4woQsk7xqqJyBVFiU4wXzHzMnbOhiRPJHlcqzJljFw2LuI97f8vlQGpW5KriFUWLSgKs1Zw4QOIdl5cv/oSZOvEAoi0s5EOB4rzVVE1XXLatYWOaRXy6Nbl8c9SH8UbkhcK5t+J54UIsvvuqq8AoDOX6yyw/wDORVlTaqy7pVXKZSQk=");
+            tabcomplete = chatSection.getBoolean("tabcomplete", false);
         }
         texture = glyphSection.getString("texture", "required/exit_icon.png");
         if (!texture.endsWith(".png"))
@@ -139,17 +134,7 @@ public class Glyph {
         return isEmoji;
     }
 
-    public boolean hasTabCompletion() {
-        return tabcomplete;
-    }
-
-    public String getTabIconTexture() {
-        return tabIconTexture;
-    }
-
-    public String getTabIconSignature() {
-        return tabIconSignature;
-    }
+    public boolean hasTabCompletion() { return tabcomplete; }
 
     public JsonObject toJson() {
         final JsonObject output = new JsonObject();
