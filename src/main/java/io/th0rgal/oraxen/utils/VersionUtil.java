@@ -81,6 +81,15 @@ public enum VersionUtil implements Comparable<VersionUtil> {
         return server.getName().equalsIgnoreCase("Folia");
     }
 
+    public static boolean isCompiled() {
+        try {
+            Class.forName("io.th0rgal.oraxen.CompileNotice");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     public static boolean isSupportedVersionOrNewer(VersionUtil serverVersion) {
         VersionUtil currentVersion = VersionUtil.getServerVersion(Bukkit.getServer());
         return currentVersion.value >= serverVersion.value;

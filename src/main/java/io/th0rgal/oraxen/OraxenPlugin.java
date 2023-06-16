@@ -118,7 +118,7 @@ public class OraxenPlugin extends JavaPlugin {
         } catch (Exception ignore) {
         }
         CompatibilitiesManager.enableNativeCompatibilities();
-        CompileNotice.print();
+        if (VersionUtil.isCompiled()) CompileNotice.print();
     }
 
     private void postLoading() {
