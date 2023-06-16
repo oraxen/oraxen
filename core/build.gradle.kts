@@ -6,26 +6,6 @@ plugins {
     id("maven-publish")
 }
 
-repositories {
-    mavenCentral()
-
-    maven("https://papermc.io/repo/repository/maven-public/") // Paper
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
-    maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
-    maven("https://jitpack.io") // JitPack
-    maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
-    maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
-    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
-    maven("https://maven.elmakers.com/repository/") // EffectLib
-    maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
-    maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
-    maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
-    //maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
-    maven("https://repo.mineinabyss.com/releases") // PlayerAnimator
-    maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
-    maven("https://maven.enginehub.org/repo/")
-}
-
 dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"
 

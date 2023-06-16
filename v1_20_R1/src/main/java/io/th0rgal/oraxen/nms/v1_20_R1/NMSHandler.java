@@ -33,8 +33,8 @@ import java.util.function.Supplier;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
-    private Map<Channel, ChannelHandler> encoder = Collections.synchronizedMap(new WeakHashMap<Channel, ChannelHandler>());
-    private Map<Channel, ChannelHandler> decoder = Collections.synchronizedMap(new WeakHashMap<Channel, ChannelHandler>());
+    private Map<Channel, ChannelHandler> encoder = Collections.synchronizedMap(new WeakHashMap<>());
+    private Map<Channel, ChannelHandler> decoder = Collections.synchronizedMap(new WeakHashMap<>());
 
     public NMSHandler() {
         List<ConnectionProtocol> networkManagers;
@@ -49,8 +49,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             networkManagers = (List<ConnectionProtocol>) networkManagerField.get(MinecraftServer.getServer().getConnection());
             channelFutures = (List<ChannelFuture>) channelFutureField.get(MinecraftServer.getServer().getConnection());
         } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e1) {
-            networkManagers = new ArrayList<ConnectionProtocol>();
-            channelFutures = new ArrayList<ChannelFuture>();
+            networkManagers = new ArrayList<>();
+            channelFutures = new ArrayList<>();
             e1.printStackTrace();
         }
 
@@ -58,9 +58,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         final List<ChannelFuture> futures = channelFutures;
 
         // Handle connected channels
-        ChannelInitializer<Channel> endInitProtocol = new ChannelInitializer<Channel>() {
+        ChannelInitializer<Channel> endInitProtocol = new ChannelInitializer<>() {
             @Override
-            protected void initChannel(Channel channel) throws Exception {
+            protected void initChannel(@NotNull Channel channel) {
                 try {
                     // This can take a while, so we need to stop the main thread from interfering
                     synchronized (managers) {
@@ -93,9 +93,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     Field original = clazz.getDeclaredField("original");
                     original.setAccessible(true);
                     ChannelInitializer<Channel> initializer = (ChannelInitializer<Channel>) original.get(handler);
-                    ChannelInitializer<Channel> miniInit = new ChannelInitializer<Channel>() {
+                    ChannelInitializer<Channel> miniInit = new ChannelInitializer<>() {
                         @Override
-                        protected void initChannel(Channel ch) throws Exception {
+                        protected void initChannel(@NotNull Channel ch) throws Exception {
                             initChannel.invoke(initializer, ch);
 
                             inject(ch);
@@ -108,7 +108,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         ChannelInboundHandlerAdapter serverChannelHandler = new ChannelInboundHandlerAdapter() {
             @Override
-            public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            public void channelRead(ChannelHandlerContext ctx, @NotNull Object msg) {
                 Channel channel = (Channel) msg;
 
                 // Prepare to initialize ths channel
@@ -202,8 +202,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
     }
 
-    private class CustomDataSerializer extends FriendlyByteBuf {
-        private Supplier<Player> supplier;
+    private static class CustomDataSerializer extends FriendlyByteBuf {
+        private final Supplier<Player> supplier;
 
         public CustomDataSerializer(Supplier<Player> supplier, ByteBuf bytebuf) {
             super(bytebuf);
@@ -225,9 +225,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         @Override
         public @NotNull FriendlyByteBuf writeUtf(@NotNull String string, int maxLength) {
             try {
-                // TODO Format
                 JsonElement element = JsonParser.parseString(string);
-                if (element.isJsonObject()) return super.writeUtf(element.getAsJsonObject().toString(), maxLength);
+                if (element.isJsonObject()) return super.writeUtf(returnFormattedStrign(element.getAsJsonObject()), maxLength);
             } catch (Exception ignored) {
             }
 
@@ -241,11 +240,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     try {
                         JsonElement element = JsonParser.parseString(string);
                         if (element.isJsonObject()) {
-                            JsonObject obj = element.getAsJsonObject();
-
-                            if (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) {
-                                return AdventureUtils.parseJson(string);
-                            }
+                            return returnFormattedStrign(element.getAsJsonObject());
                         }
                     } catch (Exception ignored) {
                     }
@@ -254,6 +249,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             }
 
             return super.writeNbt(compound);
+        }
+
+        private String returnFormattedStrign(JsonObject obj) {
+            if (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) {
+                return AdventureUtils.parseJson(obj.toString());
+            } else return obj.toString();
         }
 
         private void transform(CompoundTag compound, Function<String, String> transformer) {
@@ -288,12 +289,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         public @NotNull String readUtf(int i) {
             String val = super.readUtf(i);
 
-            if (val != null) {
-                Player player = supplier.get();
-                if (player != null) {
-                    //TODO Format
-                    //val = transformer.verifyFor(player, val);
-                }
+            Player player = supplier.get();
+            if (player != null) {
+                //TODO Format
+
+                //val = transformer.verifyFor(player, val);
             }
 
             return val;
@@ -314,7 +314,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 //		}
     }
 
-    private class CustomPacketEncoder extends MessageToByteEncoder<Packet<?>> {
+    private static class CustomPacketEncoder extends MessageToByteEncoder<Packet<?>> {
         private final PacketFlow protocolDirection = PacketFlow.CLIENTBOUND;
         private Player player;
 
@@ -324,7 +324,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             if (enumProt == null) {
                 throw new RuntimeException("ConnectionProtocol unknown: " + msg);
             }
-            Integer integer = enumProt.getPacketId(this.protocolDirection, msg);
+            int integer = enumProt.getPacketId(this.protocolDirection, msg);
 
             FriendlyByteBuf packetDataSerializer = new CustomDataSerializer(() -> player, out);
             packetDataSerializer.writeVarInt(integer);
@@ -346,7 +346,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
     }
 
-    private class CustomPacketDecoder extends ByteToMessageDecoder {
+    private static class CustomPacketDecoder extends ByteToMessageDecoder {
         private Player player;
 
         @Override

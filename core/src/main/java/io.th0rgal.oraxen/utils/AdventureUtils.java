@@ -33,6 +33,8 @@ public class AdventureUtils {
 
     public static final ScoreComponentSerializer SCORE_SERIALIZER = new ScoreComponentSerializer();
 
+    public static final MiniMessage ORAXEN_TAG_SERIALIZER = MiniMessage.builder().tags(OraxenTagResolver).build();
+
     /**
      * @param message The string to parse
      * @return The original string, serialized and deserialized through MiniMessage
