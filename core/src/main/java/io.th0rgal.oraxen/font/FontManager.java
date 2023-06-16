@@ -175,7 +175,7 @@ public class FontManager {
                         : Arrays.stream(glyph.getPlaceholders()))
                 .toList();
 
-        if (VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R2)) {
+        if (VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R3)) {
             player.removeCustomChatCompletions(currentGlyphCompletions.getOrDefault(player, new ArrayList<>()));
             player.addCustomChatCompletions(completions);
             currentGlyphCompletions.put(player, completions);
