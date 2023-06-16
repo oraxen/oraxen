@@ -281,13 +281,6 @@ public class CustomArmorsTextures {
                 optifineFiles.addAll(getOptifineAnimFiles(armorFile.getValue(), fileName, parentFolder));
         }
 
-        try {
-            InputStream inputStream = new ByteArrayInputStream("suffix.emissive=_e".getBytes(StandardCharsets.UTF_8));
-            optifineFiles.add(new VirtualFile("assets/minecraft/optifine", "emissive.properties", inputStream));
-            inputStream.close();
-        } catch (IOException ignored) {
-        }
-
         return optifineFiles;
     }
 

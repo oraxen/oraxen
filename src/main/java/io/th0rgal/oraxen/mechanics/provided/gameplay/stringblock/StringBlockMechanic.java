@@ -1,13 +1,12 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
-import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
-import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
@@ -16,13 +15,12 @@ import java.util.List;
 
 public class StringBlockMechanic extends Mechanic {
 
-    protected final boolean hasHardness;
     private final int customVariation;
     private final Drop drop;
     private final BlockSounds blockSounds;
     private final LimitedPlacing limitedPlacing;
     private String model;
-    private int period;
+    private final int hardness;
     private final int light;
 
     private final List<String> randomPlaceBlock;
@@ -64,11 +62,7 @@ public class StringBlockMechanic extends Mechanic {
         } else
             drop = new Drop(loots, false, false, getItemID());
 
-        // hardness requires protocollib
-        if (CompatibilitiesManager.hasPlugin("ProtocolLib") && section.isInt("hardness")) {
-            hasHardness = true;
-            period = section.getInt("hardness");
-        } else hasHardness = false;
+        hardness = section.getInt("hardness", 1);
 
         light = section.getInt("light", -1);
 
@@ -124,8 +118,12 @@ public class StringBlockMechanic extends Mechanic {
         return drop;
     }
 
-    public int getPeriod() {
-        return period;
+    public boolean hasHardness() {
+        return hardness != -1;
+    }
+
+    public int getHardness() {
+        return hardness;
     }
 
     public boolean hasLight() {

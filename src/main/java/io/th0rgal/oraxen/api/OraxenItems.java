@@ -34,7 +34,8 @@ public class OraxenItems {
     }
 
     public static void loadItems() {
-        map = configsManager.parseItemConfigs();
+        configsManager.assignAllUsedModelDatas();
+        map = configsManager.parseItemConfig();
         final List<String> itemsList = new ArrayList<>();
         for (final Map<String, ItemBuilder> subMap : map.values())
             itemsList.addAll(subMap.keySet());
@@ -150,7 +151,10 @@ public class OraxenItems {
     }
 
     public static String[] getItemNames() {
-        return items;
+        return Arrays.stream(items).filter(item -> {
+            ItemBuilder builder = OraxenItems.getItemById(item);
+            return builder != null && builder.hasOraxenMeta() && !builder.getOraxenMeta().isExcludedFromCommands();
+        }).toArray(String[]::new);
     }
 
 }
