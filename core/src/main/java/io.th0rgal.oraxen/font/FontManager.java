@@ -50,7 +50,7 @@ public class FontManager {
         if (Settings.USE_NMS_GLYPHS.toBool() && !NMSHandlers.getHandler().getSupported()) {
             Logs.logError("Oraxens NMS Glyph system does not support this version yet!");
             Logs.logError("This will not be enabled");
-        }
+        } else NMSHandlers.setup();
 
     }
 

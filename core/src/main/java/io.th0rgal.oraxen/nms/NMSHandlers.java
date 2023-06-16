@@ -35,7 +35,8 @@ public class NMSHandlers {
             if (!selectedVersion.toString().contains(packageVersion)) {
                 continue;
             }
-            Logs.debug(packageVersion + " has been detected.");
+            Logs.logSuccess("Version " + packageVersion + " has been detected.");
+            Logs.logSuccess("Oraxen will use the Glyph-NMSHandler for this version.");
             version = packageVersion;
             try {
                 handler = (NMSHandler) Class.forName("io.th0rgal.oraxen.nms." + packageVersion + ".NMSHandler").getConstructor().newInstance();
