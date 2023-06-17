@@ -14,6 +14,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 
 import java.util.Collection;
@@ -67,7 +68,7 @@ public class CommandsManager {
                     if (sender instanceof Player player) {
                         Color hexColor;
                         try {
-                            hexColor = hex2Rgb((String) args.get(0));
+                            hexColor = hex2Rgb((String) args.get("color"));
                         } catch (StringIndexOutOfBoundsException e) {
                             Message.DYE_WRONG_COLOR.send(sender);
                             return;
@@ -76,6 +77,7 @@ public class CommandsManager {
                         ItemMeta itemMeta = item.getItemMeta();
                         if (itemMeta instanceof LeatherArmorMeta meta) meta.setColor(hexColor);
                         else if (itemMeta instanceof PotionMeta meta) meta.setColor(hexColor);
+                        else if (itemMeta instanceof MapMeta meta) meta.setColor(hexColor);
                         else {
                             Message.DYE_FAILED.send(sender);
                             return;
