@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.recipes.loaders;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import org.bukkit.Bukkit;
@@ -28,23 +29,24 @@ public abstract class RecipeLoader {
     protected ItemStack getResult() {
         ConfigurationSection resultSection = getSection().getConfigurationSection("result");
         if (resultSection == null) return null;
+        ItemStack result;
+        int amount = resultSection.getInt("amount", 1);
 
-        if (resultSection.isString("oraxen_item"))
-            return OraxenItems.getItemById(resultSection.getString("oraxen_item")).build();
-
-        if (resultSection.isString("minecraft_type")) {
+        if (resultSection.isString("oraxen_item")) {
+            result = ItemUpdater.updateItem(OraxenItems.getItemById(resultSection.getString("oraxen_item")).build());
+        } else if (resultSection.isString("minecraft_type")) {
             Material material = Material.getMaterial(resultSection.getString("minecraft_type", "AIR"));
             if (material == null || material.isAir()) return null;
-            return new ItemStack(material);
-        }
+            result = new ItemStack(material);
+        } else result = resultSection.getItemStack("minecraft_item");
 
-        return resultSection.getItemStack("minecraft_item");
-
+        if (result != null) result.setAmount(amount);
+        return result;
     }
 
     protected ItemStack getIndredientItemStack(ConfigurationSection ingredientSection) {
         if (ingredientSection.isString("oraxen_item"))
-            return OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build();
+            return ItemUpdater.updateItem(OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build());
 
         if (ingredientSection.isString("minecraft_type")) {
             Material material = Material.getMaterial(ingredientSection.getString("minecraft_type", "AIR"));
@@ -59,7 +61,7 @@ public abstract class RecipeLoader {
 
         if (ingredientSection.isString("oraxen_item"))
             return new RecipeChoice.ExactChoice(
-                    OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build());
+                    ItemUpdater.updateItem(OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build()));
 
         if (ingredientSection.isString("minecraft_type")) {
             Material material = Material.getMaterial(ingredientSection.getString("minecraft_type", "AIR"));
