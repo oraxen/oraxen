@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.commands;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.PlayerArgument;
-import dev.jorel.commandapi.arguments.TextArgument;
+import dev.jorel.commandapi.arguments.StringArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.gestures.GestureManager;
@@ -18,8 +18,8 @@ public class GestureCommand {
                 .withAliases("gestures", "g")
                 .withPermission("oraxen.command.gesture")
                 .withArguments(
-                        new TextArgument("gesture").replaceSuggestions(ArgumentSuggestions.strings(GestureManager.gestures)),
-                        new PlayerArgument("player")
+                        new StringArgument("gesture").replaceSuggestions(ArgumentSuggestions.strings(GestureManager.getGestures())),
+                        new PlayerArgument("player").setOptional(true)
                 )
                 .executes((sender, args) -> {
                     String gesture = (String) args.get("gesture");
@@ -35,6 +35,7 @@ public class GestureCommand {
                         }
                     } else if (args.count() == 2) {
                         Player secondPlayer = (Player) args.get("player");
+                        if (secondPlayer == null) secondPlayer = (Player) sender;
                         if (secondPlayer != null) {
                             if (sender.hasPermission("oraxen.command.gesture.others")) {
                                 gestureManager.playGesture(secondPlayer, gesture);
