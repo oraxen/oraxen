@@ -100,18 +100,18 @@ public class PredicatesGenerator {
             if (oraxenMeta.hasBlockingModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("blocking", 1);
-                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getBlockingModelName()));
+                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getBlockingModel()));
             }
             if (oraxenMeta.hasChargedModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("charged", 1);
-                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getChargedModelName()));
+                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getChargedModel()));
             }
             if (oraxenMeta.hasFireworkModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("charged", 1);
                 predicate.addProperty("firework", 1);
-                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getFireworkModelName()));
+                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getFireworkModel()));
             }
             if (oraxenMeta.hasPullingModels()) {
                 final List<String> pullingModels = oraxenMeta.getPullingModels();
@@ -126,7 +126,7 @@ public class PredicatesGenerator {
             if (oraxenMeta.hasCastModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("cast", 1);
-                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getCastModelName()));
+                overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getCastModel()));
             }
 
         }
@@ -144,6 +144,50 @@ public class PredicatesGenerator {
             ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(Utils.getParentDirs(texture)),
                     Utils.getFileNameOnly(texture) + ".json", json.toString());
         }
+    }
+
+    public static void generateChargedModels(OraxenMeta oraxenMeta) {
+        if (!oraxenMeta.hasChargedTexture()) return;
+        final JsonObject json = new JsonObject();
+        json.addProperty("parent", oraxenMeta.getParentModel());
+        final JsonObject textureJson = new JsonObject();
+        textureJson.addProperty("layer0", oraxenMeta.getChargedTexture());
+        json.add("textures", textureJson);
+        ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(Utils.getParentDirs(oraxenMeta.getChargedTexture())),
+                Utils.getFileNameOnly(oraxenMeta.getChargedTexture()) + ".json", json.toString());
+    }
+
+    public static void generateBlockingModels(OraxenMeta oraxenMeta) {
+        if (!oraxenMeta.hasBlockingTexture()) return;
+        final JsonObject json = new JsonObject();
+        json.addProperty("parent", oraxenMeta.getParentModel());
+        final JsonObject textureJson = new JsonObject();
+        textureJson.addProperty("layer0", oraxenMeta.getBlockingTexture());
+        json.add("textures", textureJson);
+        ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(Utils.getParentDirs(oraxenMeta.getBlockingTexture())),
+                Utils.getFileNameOnly(oraxenMeta.getBlockingTexture()) + ".json", json.toString());
+    }
+
+    public static void generateFireworkModels(OraxenMeta oraxenMeta) {
+        if (!oraxenMeta.hasFireworkTexture()) return;
+        final JsonObject json = new JsonObject();
+        json.addProperty("parent", oraxenMeta.getParentModel());
+        final JsonObject textureJson = new JsonObject();
+        textureJson.addProperty("layer0", oraxenMeta.getFireworkTexture());
+        json.add("textures", textureJson);
+        ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(Utils.getParentDirs(oraxenMeta.getFireworkTexture())),
+                Utils.getFileNameOnly(oraxenMeta.getFireworkTexture()) + ".json", json.toString());
+    }
+
+    public static void generateCastModels(OraxenMeta oraxenMeta) {
+        if (!oraxenMeta.hasCastTexture()) return;
+        final JsonObject json = new JsonObject();
+        json.addProperty("parent", oraxenMeta.getParentModel());
+        final JsonObject textureJson = new JsonObject();
+        textureJson.addProperty("layer0", oraxenMeta.getCastTexture());
+        json.add("textures", textureJson);
+        ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(Utils.getParentDirs(oraxenMeta.getCastTexture())),
+                Utils.getFileNameOnly(oraxenMeta.getCastTexture()) + ".json", json.toString());
     }
 
     private JsonObject getOverride(final String property, final int propertyValue, final String model) {
