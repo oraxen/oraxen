@@ -219,18 +219,22 @@ public class ConfigsManager {
 
     public void assignAllUsedModelDatas() {
         List<File> itemConfigs = getItemsFiles();
-        Map<Material, List<Integer>> assignedModelDatas = new HashMap<>();
+        Map<Material, Map<Integer, String>> assignedModelDatas = new HashMap<>();
         for (File file : itemConfigs) {
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection itemSection = configuration.getConfigurationSection(key);
                 if (itemSection == null) continue;
+                ConfigurationSection packSection = itemSection.getConfigurationSection("Pack");
+                if (packSection == null) continue;
                 Material material = Material.matchMaterial(itemSection.getString("material", ""));
                 if (material == null) continue;
-                int modelData = itemSection.getInt("Pack.custom_model_data", -1);
+                int modelData = packSection.getInt("custom_model_data", -1);
+                String model = getItemModelFromConfigurationSection(packSection);
                 if (modelData == -1) continue;
-                if (assignedModelDatas.containsKey(material) && assignedModelDatas.get(material).contains(modelData)) {
-                    Logs.logError("CustomModelData " + modelData + " is already assigned to " + material + " in " + file.getName() + " " + key);
+                if (assignedModelDatas.containsKey(material) && assignedModelDatas.get(material).containsKey(modelData)) {
+                    if (assignedModelDatas.get(material).get(modelData).equals(model)) continue;
+                    Logs.logError("CustomModelData " + modelData + " is already assigned to another item with this material but different model");
                     if (file.getName().equals(DuplicationHandler.DUPLICATE_FILE_MERGE_NAME) && Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) {
                         Logs.logWarning("Due to " + Settings.RETAIN_CUSTOM_MODEL_DATA.getPath() + " being enabled,");
                         Logs.logWarning("the model data will not removed from " + file.getName() + ": " + key + ".");
@@ -238,12 +242,12 @@ public class ConfigsManager {
                         Logs.logWarning("Either reset the CustomModelData of this item, or change the CustomModelData of the conflicting item.");
                     } else {
                         Logs.logWarning("Removing custom model data from " + file.getName() + ": " + key);
-                        itemSection.set("Pack.custom_model_data", null);
+                        packSection.set("custom_model_data", null);
                     }
                     Logs.newline();
                     continue;
                 }
-                assignedModelDatas.computeIfAbsent(material, k -> new ArrayList<>()).add(modelData);
+                assignedModelDatas.computeIfAbsent(material, k -> new HashMap<>()).put(modelData, model);
                 ModelData.DATAS.computeIfAbsent(material, k -> new HashMap<>()).put(key, modelData);
             }
             try {
@@ -252,10 +256,14 @@ public class ConfigsManager {
                 e.printStackTrace();
             }
         }
+    }
 
-        for (Map.Entry<Material, List<Integer>> entry : assignedModelDatas.entrySet()) {
-            Collections.sort(entry.getValue());
+    private String getItemModelFromConfigurationSection(ConfigurationSection packSection) {
+        String model = packSection.getString("model", "");
+        if (model.isEmpty() && packSection.getBoolean("generate_model", false)) {
+            model = packSection.getParent().getName();
         }
+        return model;
     }
 
     public Map<String, ItemBuilder> parseItemConfig(YamlConfiguration config, File itemFile) {
