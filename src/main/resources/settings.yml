@@ -58,11 +58,11 @@ Pack:
     # Merges duplicate font files, most often default.json into the final pack.
     # This will not delete the original file, simply exclude all duplicates in favour of the merged one
     merge_duplicate_fonts: true
-    merge_duplicates: false
+    merge_duplicates: true
     # Whether the above merger will set the custommodeldata to the same values as in the imported file
     # To avoid issues, only set this to true if you need them to be these values for another plugin
     # This might override some of your other OraxenItems if they have they have their custom_model_data set to the same.
-    retain_custom_model_data: false
+    retain_custom_model_data: true
     # Unlike duplication handler, this will simply attempt to merge the Jsons for the final pack
     # This will not be flawless but will not be generating item-configs like above.
     # The issue of custom-model-data is still here but it will copy it over no matter what [retain_custom_model_data] is set to
