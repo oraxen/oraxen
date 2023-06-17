@@ -79,7 +79,6 @@ public class RecipesManager {
         }
         registerAllConfigRecipesFromFolder(recipesFolder);
         RecipesEventsManager.get().registerEvents();
-        Logs.logSuccess("Recipes reloaded!");
     }
 
     private static void registerAllConfigRecipesFromFolder(File recipesFolder) {

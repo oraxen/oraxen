@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.recipes.loaders;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import org.bukkit.Bukkit;
@@ -58,8 +59,7 @@ public abstract class RecipeLoader {
     protected RecipeChoice getRecipeChoice(ConfigurationSection ingredientSection) {
 
         if (ingredientSection.isString("oraxen_item"))
-            return new RecipeChoice.ExactChoice(
-                    OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build());
+            return new RecipeChoice.ExactChoice(ItemUpdater.updateItem(OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build()));
 
         if (ingredientSection.isString("minecraft_type")) {
             Material material = Material.getMaterial(ingredientSection.getString("minecraft_type", "AIR"));
