@@ -31,7 +31,7 @@ public abstract class RecipeLoader {
         if (resultSection == null) return null;
 
         if (resultSection.isString("oraxen_item"))
-            return OraxenItems.getItemById(resultSection.getString("oraxen_item")).build();
+            return ItemUpdater.updateItem(OraxenItems.getItemById(resultSection.getString("oraxen_item")).build());
 
         if (resultSection.isString("minecraft_type")) {
             Material material = Material.getMaterial(resultSection.getString("minecraft_type", "AIR"));
@@ -45,7 +45,7 @@ public abstract class RecipeLoader {
 
     protected ItemStack getIndredientItemStack(ConfigurationSection ingredientSection) {
         if (ingredientSection.isString("oraxen_item"))
-            return OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build();
+            return ItemUpdater.updateItem(OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build());
 
         if (ingredientSection.isString("minecraft_type")) {
             Material material = Material.getMaterial(ingredientSection.getString("minecraft_type", "AIR"));
