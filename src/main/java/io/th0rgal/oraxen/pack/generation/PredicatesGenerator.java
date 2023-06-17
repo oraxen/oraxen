@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
+import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -52,30 +53,23 @@ public class PredicatesGenerator {
 
         // specific items
         switch (material) {
-            case SHIELD:
+            case SHIELD -> {
                 overrides.add(getOverride("blocking", 1, "item/shield_blocking"));
                 json.addProperty("gui_light", "front");
                 json.add("display", JsonParser.parseString(Settings.SHIELD_DISPLAY.toString()).getAsJsonObject());
-                break;
-
-            case BOW:
+            }
+            case BOW -> {
                 JsonObject pullingPredicate = new JsonObject();
                 pullingPredicate.addProperty("pulling", 1);
-                /*
-                    JsonParser.parseString(pullingPredicate.toString()).getAsJsonObject()
-                    This is the easiest (but incredibly slow and inefficient) way to clone a JsonObject
-                 */
                 overrides.add(getOverride(JsonParser.parseString(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_0"));
                 pullingPredicate.addProperty("pull", 0.65);
                 overrides.add(getOverride(JsonParser.parseString(pullingPredicate.toString()).getAsJsonObject(), "item/bow_pulling_1"));
                 pullingPredicate.addProperty("pull", 0.9);
                 overrides.add(getOverride(pullingPredicate, "item/bow_pulling_2"));
                 json.add("display", JsonParser.parseString(Settings.BOW_DISPLAY.toString()).getAsJsonObject());
-                break;
-
-
-            case CROSSBOW:
-                pullingPredicate = new JsonObject();
+            }
+            case CROSSBOW -> {
+                JsonObject pullingPredicate = new JsonObject();
                 pullingPredicate.addProperty("pulling", 1);
                 overrides.add(getOverride(JsonParser.parseString(pullingPredicate.toString()).getAsJsonObject(), "item/crossbow_pulling_0"));
                 pullingPredicate.addProperty("pull", 0.65);
@@ -90,10 +84,7 @@ public class PredicatesGenerator {
                 overrides.add(getOverride(JsonParser.parseString(chargedPredicate.toString()).getAsJsonObject(), "item/crossbow_firework"));
 
                 json.add("display", JsonParser.parseString(Settings.CROSSBOW_DISPLAY.toString()).getAsJsonObject());
-                break;
-
-            default:
-                break;
+            }
         }
 
         // custom items
@@ -140,6 +131,19 @@ public class PredicatesGenerator {
 
         }
         json.add("overrides", overrides);
+    }
+
+    public static void generatePullingModels(OraxenMeta oraxenMeta) {
+        if (!oraxenMeta.hasPullingTextures()) return;
+        for (String texture : oraxenMeta.getPullingTextures()) {
+            final JsonObject json = new JsonObject();
+            json.addProperty("parent", oraxenMeta.getParentModel());
+            final JsonObject textureJson = new JsonObject();
+            textureJson.addProperty("layer0", texture);
+            json.add("textures", textureJson);
+            ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(Utils.getParentDirs(texture)),
+                    Utils.getFileNameOnly(texture) + ".json", json.toString());
+        }
     }
 
     private JsonObject getOverride(final String property, final int propertyValue, final String model) {

@@ -53,6 +53,11 @@ public class ModelGenerator {
             }
         }
 
+        // Generates pulling models based on the provided textures
+        if (oraxenMeta.hasPullingTextures()) {
+            PredicatesGenerator.generatePullingModels(oraxenMeta);
+        }
+
         json.add("textures", textures);
 
     }
