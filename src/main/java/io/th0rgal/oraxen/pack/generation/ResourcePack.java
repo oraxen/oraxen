@@ -430,26 +430,37 @@ public class ResourcePack {
     private void generateSound(final SoundManager soundManager, List<VirtualFile> output) {
         if (!soundManager.isAutoGenerate()) return;
 
-        VirtualFile soundFile = output.stream().filter(file -> file.getPath().equals("assets/minecraft/sounds.json")).findFirst().orElse(null);
+        List<VirtualFile> soundFiles = output.stream().filter(file -> file.getPath().equals("assets/minecraft/sounds.json")).toList();
         JsonObject outputJson = new JsonObject();
 
         // If file was imported by other means, we attempt to merge in sound.yml entries
-        if (soundFile != null) {
-            try {
-                JsonElement soundElement = JsonParser.parseString(IOUtils.toString(soundFile.getInputStream(), StandardCharsets.UTF_8));
-                if (soundElement != null && soundElement.isJsonObject())
-                    outputJson = soundElement.getAsJsonObject();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
+        for (VirtualFile soundFile : soundFiles) {
+            if (soundFile != null) {
+                try {
+                    JsonElement soundElement = JsonParser.parseString(IOUtils.toString(soundFile.getInputStream(), StandardCharsets.UTF_8));
+                    if (soundElement != null && soundElement.isJsonObject()) {
+                        for (Map.Entry<String, JsonElement> entry : soundElement.getAsJsonObject().entrySet())
+                            outputJson.add(entry.getKey(), entry.getValue());
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    continue;
+                }
             }
+            output.remove(soundFile);
         }
 
-        for (CustomSound sound : handleCustomSoundEntries(soundManager.getCustomSounds()))
+        for (CustomSound sound : handleCustomSoundEntries(soundManager.getCustomSounds())) {
             outputJson.add(sound.getName(), sound.toJson());
+        }
 
-        output.remove(soundFile);
-        writeStringToVirtual("assets/minecraft", "sounds.json", outputJson.toString());
+        InputStream soundInput = new ByteArrayInputStream(outputJson.toString().getBytes(StandardCharsets.UTF_8));
+        output.add(new VirtualFile("assets/minecraft", "sounds.json", soundInput));
+        try {
+            soundInput.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void generateGestureFiles() {
