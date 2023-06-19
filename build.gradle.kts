@@ -64,6 +64,7 @@ allprojects {
 
 dependencies {
     implementation(project(path = ":core"))
+    implementation(project(path = ":v1_18_R1", configuration = "reobf"))
     implementation(project(path = ":v1_18_R2", configuration = "reobf"))
     implementation(project(path = ":v1_19_R1", configuration = "reobf"))
     implementation(project(path = ":v1_19_R2", configuration = "reobf"))
@@ -95,10 +96,11 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.20.1")
+        minecraftVersion("1.18")
     }
 
     shadowJar {
+        dependsOn(":v1_18_R1:reobfJar")
         dependsOn(":v1_18_R2:reobfJar")
         dependsOn(":v1_19_R1:reobfJar")
         dependsOn(":v1_19_R2:reobfJar")
@@ -136,6 +138,7 @@ tasks {
     }
 
     build.get().dependsOn(shadowJar)
+    runServer.get().dependsOn(build)
 }
 
 bukkit {
