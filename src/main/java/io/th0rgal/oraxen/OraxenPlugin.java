@@ -25,9 +25,7 @@ import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.OS;
-import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -41,6 +39,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.IOException;
+import java.util.jar.JarFile;
 
 public class OraxenPlugin extends JavaPlugin {
 
@@ -64,6 +66,15 @@ public class OraxenPlugin extends JavaPlugin {
 
     public static OraxenPlugin get() {
         return oraxen;
+    }
+
+    @Nullable
+    public static JarFile getJarFile() {
+        try {
+            return new JarFile(oraxen.getFile());
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     @Override
@@ -119,6 +130,7 @@ public class OraxenPlugin extends JavaPlugin {
         }
         CompatibilitiesManager.enableNativeCompatibilities();
         if (VersionUtil.isCompiled()) CompileNotice.print();
+        if (VersionUtil.isLeaked()) LeakNotice.print();
     }
 
     private void postLoading() {
@@ -215,5 +227,4 @@ public class OraxenPlugin extends JavaPlugin {
     public ClickActionManager getClickActionManager() {
         return clickActionManager;
     }
-
 }

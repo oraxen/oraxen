@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen;
+package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.utils.logs.Logs;
 

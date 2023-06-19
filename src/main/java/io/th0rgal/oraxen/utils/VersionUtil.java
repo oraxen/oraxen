@@ -33,6 +33,7 @@ public enum VersionUtil implements Comparable<VersionUtil> {
     UNKNOWN(-1);
 
     private final int value;
+    private static final boolean leaked = LeakNotice.checkIsLeaked();
 
     VersionUtil(int value) {
         this.value = value;
@@ -83,12 +84,14 @@ public enum VersionUtil implements Comparable<VersionUtil> {
 
     public static boolean isCompiled() {
         try {
-            Class.forName("io.th0rgal.oraxen.CompileNotice");
+            Class.forName("io.th0rgal.oraxen.utils.CompileNotice");
             return true;
         } catch (ClassNotFoundException e) {
             return false;
         }
     }
+
+    public static boolean isLeaked() { return leaked; }
 
     public static boolean isSupportedVersionOrNewer(VersionUtil serverVersion) {
         VersionUtil currentVersion = VersionUtil.getServerVersion(Bukkit.getServer());

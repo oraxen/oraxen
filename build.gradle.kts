@@ -129,7 +129,7 @@ tasks {
                 )
             )
         }
-        if (!compiled) exclude("io/th0rgal/oraxen/CompileNotice.class")
+        if (!compiled) exclude("io/th0rgal/oraxen/utils/CompileNotice.class")
         archiveFileName.set("oraxen-${pluginVersion}.jar")
         minimize()
     }
