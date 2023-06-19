@@ -117,6 +117,16 @@ public class FurnitureListener implements Listener {
 
         if (limitedPlacing.isNotPlacableOn(block, blockFace)) {
             event.setCancelled(true);
+        } else if (limitedPlacing.isRadiusLimited()) {
+            LimitedPlacing.RadiusLimitation radiusLimitation = limitedPlacing.getRadiusLimitation();
+            int radius = radiusLimitation.getRadius();
+            int amount = radiusLimitation.getAmount();
+            if (block.getWorld().getNearbyEntities(block.getLocation(), radius, radius, radius).stream()
+                    .filter(e -> OraxenFurniture.isBaseEntity(e) && OraxenFurniture.getFurnitureMechanic(e).getItemID().equals(mechanic.getItemID()))
+                    .filter(e -> e.getLocation().distanceSquared(block.getLocation()) <= radius * radius)
+                    .count() >= amount) {
+                event.setCancelled(true);
+            }
         } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
             if (!limitedPlacing.checkLimitedMechanic(belowPlaced))
                 event.setCancelled(true);
