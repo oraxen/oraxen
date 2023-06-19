@@ -6,6 +6,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+import java.util.List;
+
 public enum VersionUtil implements Comparable<VersionUtil> {
 
     v1_20_R1(21),
@@ -33,7 +36,7 @@ public enum VersionUtil implements Comparable<VersionUtil> {
     UNKNOWN(-1);
 
     private final int value;
-    private static final boolean leaked = LeakNotice.checkIsLeaked();
+    private static final boolean leaked = JarReader.checkIsLeaked();
 
     VersionUtil(int value) {
         this.value = value;
@@ -81,17 +84,6 @@ public enum VersionUtil implements Comparable<VersionUtil> {
 
         return server.getName().equalsIgnoreCase("Folia");
     }
-
-    public static boolean isCompiled() {
-        try {
-            Class.forName("io.th0rgal.oraxen.utils.CompileNotice");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
-    }
-
-    public static boolean isLeaked() { return leaked; }
 
     public static boolean isSupportedVersionOrNewer(VersionUtil serverVersion) {
         VersionUtil currentVersion = VersionUtil.getServerVersion(Bukkit.getServer());
@@ -204,4 +196,12 @@ public enum VersionUtil implements Comparable<VersionUtil> {
 
         return value <= version.value;
     }
+
+    private final static String manifest = JarReader.getManifestContent();
+    public static boolean isCompiled() {
+        List<String> split = Arrays.stream(manifest.split(":|\n")).toList();
+        return Boolean.parseBoolean(split.get(split.indexOf("Compiled") + 1));
+    }
+
+    public static boolean isLeaked() { return leaked; }
 }
