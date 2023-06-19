@@ -25,7 +25,10 @@ import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.NoticeUtils;
+import io.th0rgal.oraxen.utils.OS;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -129,18 +132,16 @@ public class OraxenPlugin extends JavaPlugin {
         } catch (Exception ignore) {
         }
         CompatibilitiesManager.enableNativeCompatibilities();
-        if (VersionUtil.isCompiled()) CompileNotice.print();
-        if (VersionUtil.isLeaked()) LeakNotice.print();
+        if (VersionUtil.isCompiled()) NoticeUtils.compileNotice();
+        if (VersionUtil.isLeaked()) NoticeUtils.leakNotice();
     }
 
     private void postLoading() {
         uploadManager = new UploadManager(this);
         uploadManager.uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
-        Bukkit.getScheduler().runTask(this, () -> {
-            Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
-
-        });
+        Bukkit.getScheduler().runTask(this, () ->
+                Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
     }
 
     @Override
