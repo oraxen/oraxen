@@ -117,11 +117,12 @@ public enum Settings {
     public Object getValue() {
         return OraxenPlugin.get().getConfigsManager().getSettings().get(path);
     }
-    public void setValue(Object value) {
+    public void setValue(Object value) { setValue(value, true); }
+    public void setValue(Object value, boolean save) {
         YamlConfiguration settingFile = OraxenPlugin.get().getConfigsManager().getSettings();
         settingFile.set(path, value);
         try {
-            settingFile.save(OraxenPlugin.get().getDataFolder().getAbsoluteFile().toPath().resolve("settings.yml").toFile());
+            if (save) settingFile.save(OraxenPlugin.get().getDataFolder().toPath().resolve("settings.yml").toFile());
         } catch (Exception e) {
             Logs.logError("Failed to apply changes to settings.yml");
         }

@@ -47,11 +47,25 @@ public class FontManager {
 
 
         // NMS version check
-        if (Settings.USE_NMS_GLYPHS.toBool() && !NMSHandlers.getHandler().getSupported()) {
-            Logs.logError("Oraxens NMS Glyph system does not support this version yet!");
-            Logs.logError("This will not be enabled");
-        } else NMSHandlers.setup();
-
+        if (Settings.USE_NMS_GLYPHS.toBool()) {
+            if (!NMSHandlers.getHandler().getSupported()) {
+                Logs.logError("Oraxens NMS Glyph system does not support this version yet!");
+                Logs.logError("This will not be enabled");
+            } else {
+                NMSHandlers.setup();
+                Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
+                Logs.logSuccess("Disabling packet-based glyph systems");
+                Logs.debug(Settings.FORMAT_CHAT.toBool());
+                Settings.FORMAT_CHAT.setValue(false, false);
+                Settings.FORMAT_INVENTORY_TITLES.setValue(false, false);
+                Settings.FORMAT_ANVIL.setValue(false, false);
+                Settings.FORMAT_SIGNS.setValue(false, false);
+                Settings.FORMAT_TITLES.setValue(false, false);
+                Settings.FORMAT_SUBTITLES.setValue(false, false);
+                Settings.FORMAT_ACTION_BAR.setValue(false, false);
+                Logs.debug(Settings.FORMAT_CHAT.toBool());
+            }
+        }
     }
 
     public void verifyRequired() {
