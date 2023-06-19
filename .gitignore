@@ -7,6 +7,7 @@ core/src/main/resources/pack/optifine
 core/src/main/resources/pack/sounds
 core/src/main/resources/pack/models
 core/src/main/resources/pack/textures
+run
 
 # Macos
 .DS_Store

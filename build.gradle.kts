@@ -6,6 +6,7 @@ plugins {
     id("java")
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("xyz.jpenilla.run-paper") version "2.0.1"
     id("net.minecrell.plugin-yml.bukkit") version "0.5.3" // Generates plugin.yml
 }
 
@@ -91,6 +92,10 @@ tasks {
         }
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
         filteringCharset = Charsets.UTF_8.name()
+    }
+
+    runServer {
+        minecraftVersion("1.20.1")
     }
 
     shadowJar {
