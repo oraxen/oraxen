@@ -87,6 +87,11 @@ public class ReloadCommand {
         OraxenPlugin.get().getGesturesManager().reload();
     }
 
+    private static void reloadRecipes(CommandSender sender) {
+        Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "recipes"));
+        RecipesManager.reload();
+    }
+
     public CommandAPICommand getReloadCommand() {
         return new CommandAPICommand("reload")
                 .withAliases("rl")
@@ -101,7 +106,7 @@ public class ReloadCommand {
                             OraxenPlugin.get().getInvManager().regen();
                         }
                         case "PACK" -> reloadPack(sender);
-                        case "RECIPES" -> RecipesManager.reload();
+                        case "RECIPES" -> reloadRecipes(sender);
                         case "CONFIGS" -> OraxenPlugin.get().reloadConfigs();
                         default -> {
                             MechanicsManager.unloadListeners();
@@ -110,7 +115,7 @@ public class ReloadCommand {
                             reloadItems(sender);
                             reloadPack(sender);
                             reloadHud(sender);
-                            RecipesManager.reload();
+                            reloadRecipes(sender);
                             OraxenPlugin.get().getInvManager().regen();
                         }
                     }

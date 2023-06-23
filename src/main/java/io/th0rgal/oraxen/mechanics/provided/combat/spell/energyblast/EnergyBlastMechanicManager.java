@@ -44,7 +44,6 @@ public class EnergyBlastMechanicManager implements Listener {
         Location location = block != null ? block.getLocation() : player.getLocation();
 
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.useInteractedBlock() == Event.Result.ALLOW) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
         if (!ProtectionLib.canUse(player, location)) return;
         if (factory.isNotImplementedIn(itemID)) return;
@@ -64,7 +63,6 @@ public class EnergyBlastMechanicManager implements Listener {
         direction.normalize();
         direction.multiply(0.1);
         Location destination = origin.clone().add(direction);
-        if (ProtectionLib.canUse(player, destination)) return;
         for (int i = 0; i < mechanic.getLength() * 10; i++) {
             Location loc = destination.add(direction);
             spawnParticle(loc.getWorld(), loc, mechanic);

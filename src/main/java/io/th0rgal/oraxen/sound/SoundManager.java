@@ -12,8 +12,7 @@ public class SoundManager {
     private final Collection<CustomSound> customSounds;
 
     public SoundManager(YamlConfiguration soundConfig) {
-        autoGenerate = soundConfig.getBoolean("settings.automatically_generate")
-                && soundConfig.isConfigurationSection("sounds");
+        autoGenerate = soundConfig.getBoolean("settings.automatically_generate");
         customSounds = autoGenerate
                 ? parseCustomSounds(Objects.requireNonNull(soundConfig.getConfigurationSection("sounds")))
                 : new ArrayList<>();

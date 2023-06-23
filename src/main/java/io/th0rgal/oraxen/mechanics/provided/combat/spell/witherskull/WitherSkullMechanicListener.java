@@ -35,7 +35,6 @@ public class WitherSkullMechanicListener implements Listener {
         Location location = block != null ? block.getLocation() : player.getLocation();
 
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (event.useInteractedBlock() == Event.Result.ALLOW) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
         if (!ProtectionLib.canUse(player, location)) return;
         if (factory.isNotImplementedIn(itemID)) return;
