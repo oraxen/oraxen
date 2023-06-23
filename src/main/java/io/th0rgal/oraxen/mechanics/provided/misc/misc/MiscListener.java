@@ -1,20 +1,17 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.misc;
 
+import io.papermc.paper.event.entity.EntityLoadCrossbowEvent;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
-import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.Tag;
-import org.bukkit.block.Block;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Effect;
-import org.bukkit.GameMode;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Item;
-import org.bukkit.entity.Player;
 import org.bukkit.entity.Piglin;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -24,11 +21,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.CrossbowMeta;
 import org.bukkit.inventory.meta.Damageable;
 
 import java.util.Arrays;
@@ -42,6 +41,35 @@ public class MiscListener implements Listener {
 
     public MiscListener(MiscMechanicFactory factory) {
         this.factory = factory;
+        if (VersionUtil.isPaperServer()) {
+            OraxenPlugin.get().getServer().getPluginManager().registerEvents(new PaperOnlyListeners(factory), OraxenPlugin.get());
+        }
+    }
+
+    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
+    public void onCompost(PlayerInteractEvent event) {
+        Block block = event.getClickedBlock();
+        ItemStack item = event.getItem();
+        Player player = event.getPlayer();
+
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() == null) return;
+        if (item == null || block == null || block.getType() != Material.COMPOSTER) return;
+        if (!(block.getBlockData() instanceof Levelled levelled)) return;
+        if (!ProtectionLib.canInteract(player, block.getLocation())) return;
+        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(item);
+        if (mechanic == null || !mechanic.isCompostable()) return;
+        if (event.useInteractedBlock() == Event.Result.DENY) return;
+        if (event.useItemInHand() == Event.Result.ALLOW) return;
+        event.setUseInteractedBlock(Event.Result.ALLOW);
+
+        if (levelled.getLevel() < levelled.getMaximumLevel()) {
+            if (Math.random() <= 0.65) levelled.setLevel(levelled.getLevel() + 1); // Same as wheat
+            block.setBlockData(levelled);
+            block.getWorld().playEffect(block.getLocation(), Effect.COMPOSTER_FILL_ATTEMPT, 0, 1);
+            if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
+            Utils.swingHand(player, event.getHand());
+        }
+
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -101,8 +129,10 @@ public class MiscListener implements Listener {
         if (mechanic == null) return;
 
         switch (event.getCause()) {
-            case CONTACT: if (!mechanic.breaksFromCactus()) event.setCancelled(true);
-            case LAVA: if (!mechanic.burnsInLava()) event.setCancelled(true);
+            case CONTACT:
+                if (!mechanic.breaksFromCactus()) event.setCancelled(true);
+            case LAVA:
+                if (!mechanic.burnsInLava()) event.setCancelled(true);
         }
     }
 
@@ -111,7 +141,8 @@ public class MiscListener implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(event.getItem());
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
-        event.setCancelled(true);
+        event.setUseItemInHand(Event.Result.DENY);
+        //event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -119,6 +150,16 @@ public class MiscListener implements Listener {
         MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(event.getItem());
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onDisableVanilleInteraction(EntityShootBowEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(event.getConsumable());
+        if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
+        event.setConsumeItem(false);
+        event.setCancelled(true);
+        player.updateInventory(); // Client desyncs and "removes" an arrow
     }
 
     private MiscMechanic getMiscMechanic(Entity entity) {
@@ -156,34 +197,22 @@ public class MiscListener implements Listener {
         };
     }
 
-    @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
-    public void onCompost(PlayerInteractEvent event) {
-        Block block = event.getClickedBlock();
-        ItemStack item = event.getItem();
-        Player player = event.getPlayer();
-
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK || event.getHand() == null) return;
-        if (item == null || block == null || block.getType() != Material.COMPOSTER) return;
-        if (!(block.getBlockData() instanceof Levelled levelled)) return;
-        if (!ProtectionLib.canInteract(player, block.getLocation())) return;
-        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(item);
-        if (mechanic == null || !mechanic.isCompostable()) return;
-        if (event.useInteractedBlock() == Event.Result.DENY) return;
-        if (event.useItemInHand() == Event.Result.ALLOW) return;
-        event.setUseInteractedBlock(Event.Result.ALLOW);
-
-        if (levelled.getLevel() < levelled.getMaximumLevel()) {
-            if (Math.random() <= 0.65) levelled.setLevel(levelled.getLevel() + 1); // Same as wheat
-            block.setBlockData(levelled);
-            block.getWorld().playEffect(block.getLocation(), Effect.COMPOSTER_FILL_ATTEMPT, 0, 1);
-            if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-            Utils.swingHand(player, event.getHand());
-        }
-
-    }
-
     private boolean shouldPreventPiglinAggro(ItemStack itemStack) {
         MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(OraxenItems.getIdByItem(itemStack));
         return mechanic != null && mechanic.piglinIgnoreWhenEquipped();
+    }
+
+    private record PaperOnlyListeners(MiscMechanicFactory factory) implements Listener {
+
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        public void onDisableVanillaInteraction(EntityLoadCrossbowEvent event) {
+            Logs.debug("EntityLoadCrossbowEvent");
+            Logs.debug(event.getCrossbow());
+            if (!(event.getEntity() instanceof Player player)) return;
+            ItemStack crossbow = event.getCrossbow();
+            if (crossbow == null || crossbow.getType() != Material.CROSSBOW) return;
+            CrossbowMeta meta = (CrossbowMeta) event.getCrossbow().getItemMeta();
+            if (meta == null || meta.getChargedProjectiles().isEmpty()) return;
+        }
     }
 }
