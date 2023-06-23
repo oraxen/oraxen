@@ -384,6 +384,9 @@ public class FurnitureMechanic extends Mechanic {
                 interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
             }
+            if (light != -1) {
+                WrappedLightAPI.createBlockLight(location, light);
+            }
         }
     }
 
