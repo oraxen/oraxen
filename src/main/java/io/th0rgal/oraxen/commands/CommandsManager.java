@@ -139,7 +139,7 @@ public class CommandsManager {
                     int amount = (int) args.get(2);
                     final int max = itemBuilder.getMaxStackSize();
                     final int slots = amount / max + (max % amount > 0 ? 1 : 0);
-                    final ItemStack[] items = itemBuilder.buildArray(slots > 36 ? (amount = max * 36) : amount);
+                    ItemStack[] items = itemBuilder.buildArray(slots > 36 ? (amount = max * 36) : amount);
 
                     for (final Player target : targets) {
                         Map<Integer, ItemStack> output = target.getInventory().addItem(items);
@@ -176,7 +176,7 @@ public class CommandsManager {
                         return;
                     }
                     for (final Player target : targets)
-                        target.getInventory().addItem(itemBuilder.build());
+                        target.getInventory().addItem(ItemUpdater.updateItem(itemBuilder.build()));
 
                     if (targets.size() == 1)
                         Message.GIVE_PLAYER

@@ -151,13 +151,15 @@ public class ItemUpdater implements Listener {
 
             // Lore might be changable ingame, but I think it is safe to just set it to new
             if (Settings.OVERRIDE_LORE.toBool()) itemMeta.setLore(newMeta.getLore());
+            else itemMeta.setLore(oldMeta.getLore());
 
             // Attribute modifiers are only changable via config so no reason to check old
             itemMeta.setAttributeModifiers(newMeta.getAttributeModifiers());
 
             // Transfer over durability from old item
-            if (itemMeta instanceof Damageable damageable && oldMeta instanceof Damageable oldDmg)
+            if (itemMeta instanceof Damageable damageable && oldMeta instanceof Damageable oldDmg) {
                 damageable.setDamage(oldDmg.getDamage());
+            }
 
             if (itemMeta instanceof LeatherArmorMeta leatherMeta && oldMeta instanceof LeatherArmorMeta oldLeatherMeta) {
                 leatherMeta.setColor(oldLeatherMeta.getColor());

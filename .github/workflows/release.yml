@@ -1,3 +1,5 @@
+name: "Publish API Release"
+
 on:
   pull_request:
     types: [closed]
@@ -7,7 +9,7 @@ jobs:
   create-release:
     runs-on: ubuntu-latest
     if: >-
-      (contains(github.event.pull_request.labels.*.name, 'release'))
+      (contains(github.event.pull_request.title, 'release:'))
       && github.event.pull_request.merged == true
     steps:
       - name: Checkout code

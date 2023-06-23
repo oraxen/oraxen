@@ -203,7 +203,7 @@ public class ConfigsManager {
 
     private File[] getGlyphsFiles() {
         File[] glyphConfigs = glyphsFolder.listFiles();
-        Arrays.sort(glyphConfigs);
+        if (glyphConfigs != null) Arrays.sort(glyphConfigs);
         return glyphConfigs;
     }
 
@@ -221,6 +221,7 @@ public class ConfigsManager {
         List<File> itemConfigs = getItemsFiles();
         Map<Material, Map<Integer, String>> assignedModelDatas = new HashMap<>();
         for (File file : itemConfigs) {
+            if (!file.exists()) continue;
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection itemSection = configuration.getConfigurationSection(key);

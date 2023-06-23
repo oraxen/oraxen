@@ -447,6 +447,7 @@ public class ItemBuilder {
             final ItemStack clone = built.clone();
             clone.setAmount(max);
             if (unstackable) handleUnstackable(clone);
+            ItemUpdater.updateItem(clone);
             output[index] = clone;
         }
         if (rest != 0) {

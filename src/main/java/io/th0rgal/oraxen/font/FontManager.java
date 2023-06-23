@@ -1,6 +1,11 @@
 package io.th0rgal.oraxen.font;
 
 import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.events.PacketContainer;
+import com.comphenix.protocol.wrappers.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Settings;
@@ -24,6 +29,7 @@ public class FontManager {
 
     public final boolean autoGenerate;
     public final String permsChatcolor;
+    public static Map<String, GlyphBitMap> glyphBitMaps = new HashMap<>();
     private final Map<String, Glyph> glyphMap;
     private final Map<String, Glyph> glyphByPlaceholder;
     private final Map<Character, String> reverse;
@@ -33,8 +39,19 @@ public class FontManager {
 
     public FontManager(final ConfigsManager configsManager) {
         final Configuration fontConfiguration = configsManager.getFont();
+        final ConfigurationSection bitmapSection = fontConfiguration.getConfigurationSection("bitmaps");
         autoGenerate = fontConfiguration.getBoolean("settings.automatically_generate");
         permsChatcolor = fontConfiguration.getString("settings.perms_chatcolor");
+        if (bitmapSection != null) {
+            glyphBitMaps = bitmapSection.getKeys(false).stream().collect(HashMap::new, (map, key) -> {
+                final ConfigurationSection section = bitmapSection.getConfigurationSection(key);
+                if (section != null) {
+                    map.put(key, new GlyphBitMap(
+                            section.getString("texture"), section.getInt("rows"), section.getInt("columns"),
+                            section.getInt("ascent", 8), section.getInt("height", 8)));
+                }
+            }, HashMap::putAll);
+        }
         glyphMap = new HashMap<>();
         glyphByPlaceholder = new HashMap<>();
         reverse = new HashMap<>();
@@ -43,6 +60,10 @@ public class FontManager {
         loadGlyphs(configsManager.parseGlyphConfigs());
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
+    }
+
+    public static GlyphBitMap getGlyphBitMap(String id) {
+        return id != null ? glyphBitMaps.getOrDefault(id, null) : null;
     }
 
     public void verifyRequired() {
@@ -100,7 +121,7 @@ public class FontManager {
                 if (!new HashSet<>(requiredKeys).containsAll(tempKeys)) {
                     file.renameTo(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/" + file.getName() + ".old"));
                     OraxenPlugin.get().saveResource("glyphs/" + file.getName(), true);
-                    Logs.logWarning("glyphs/" + file.getName() +  " was incorrect, renamed to .old and regenerated the default one");
+                    Logs.logWarning("glyphs/" + file.getName() + " was incorrect, renamed to .old and regenerated the default one");
                 }
             }
         } catch (IOException e) {
@@ -170,6 +191,37 @@ public class FontManager {
             player.removeCustomChatCompletions(currentGlyphCompletions.getOrDefault(player, new ArrayList<>()));
             player.addCustomChatCompletions(completions);
             currentGlyphCompletions.put(player, completions);
+        }
+    }
+
+    public record GlyphBitMap(String texture, int rows, int columns, int ascent, int height) {
+
+        public JsonObject toJson(FontManager fontManager) {
+            JsonObject json = new JsonObject();
+            JsonArray chars = new JsonArray();
+
+            List<Glyph> bitmapGlyphs = fontManager.getGlyphs().stream().filter(Glyph::hasBitmap).filter(g -> g.getBitMap() != null && g.getBitMap().equals(this)).toList();
+
+            for (int i = 1; i <= rows(); i++) {
+                int currentRow = i;
+                List<Glyph> glyphsInRow = bitmapGlyphs.stream().filter(g -> g.getBitmapEntry().row() == currentRow).toList();
+                StringBuilder charRow = new StringBuilder();
+                for (int j = 1; j <= columns(); j++) {
+                    int currentColumn = j;
+                    Glyph glyph = glyphsInRow.stream().filter(g -> g.getBitmapEntry().column() == currentColumn).findFirst().orElse(null);
+                    charRow.append(glyph != null ? glyph.getCharacter() : Glyph.WHITESPACE_GLYPH);
+                }
+                chars.add(""); // Add row
+                chars.set(i - 1, new JsonPrimitive(charRow.toString()));
+            }
+            json.add("chars", chars);
+
+            json.addProperty("type", "bitmap");
+            json.addProperty("ascent", ascent);
+            json.addProperty("height", height);
+            json.addProperty("file", texture.endsWith(".png") ? texture : texture + ".png");
+
+            return json;
         }
     }
 }

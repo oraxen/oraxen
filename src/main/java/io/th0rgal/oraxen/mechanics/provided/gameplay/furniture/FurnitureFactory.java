@@ -63,4 +63,9 @@ public class FurnitureFactory extends MechanicFactory {
         evolvingFurnitures = true;
     }
 
+    public static void unregisterEvolution() {
+        if (evolutionTask != null)
+            evolutionTask.cancel();
+    }
+
 }
