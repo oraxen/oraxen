@@ -8,6 +8,8 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -67,7 +69,9 @@ public class ItemParser {
     }
 
     private String parseComponentString(String miniString) {
-        return AdventureUtils.LEGACY_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE.deserialize(miniString));
+        Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
+        // If it has no formatting, set color to WHITE to prevent Italic
+        return AdventureUtils.LEGACY_SERIALIZER.serialize(component.colorIfAbsent(NamedTextColor.WHITE));
     }
 
     public ItemBuilder buildItem() {
