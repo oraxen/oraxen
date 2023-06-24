@@ -1,11 +1,9 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.misc;
 
-import io.papermc.paper.event.entity.EntityLoadCrossbowEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -27,7 +25,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.CrossbowMeta;
 import org.bukkit.inventory.meta.Damageable;
 
 import java.util.Arrays;
@@ -142,7 +139,6 @@ public class MiscListener implements Listener {
         MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(event.getItem());
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         event.setUseItemInHand(Event.Result.DENY);
-        //event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -160,6 +156,7 @@ public class MiscListener implements Listener {
         event.setConsumeItem(false);
         event.setCancelled(true);
         player.updateInventory(); // Client desyncs and "removes" an arrow
+        //TODO See if crossbows can have their loading phase cancelled, currently impossible to check loaded projectile
     }
 
     private MiscMechanic getMiscMechanic(Entity entity) {
@@ -204,15 +201,6 @@ public class MiscListener implements Listener {
 
     private record PaperOnlyListeners(MiscMechanicFactory factory) implements Listener {
 
-        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-        public void onDisableVanillaInteraction(EntityLoadCrossbowEvent event) {
-            Logs.debug("EntityLoadCrossbowEvent");
-            Logs.debug(event.getCrossbow());
-            if (!(event.getEntity() instanceof Player player)) return;
-            ItemStack crossbow = event.getCrossbow();
-            if (crossbow == null || crossbow.getType() != Material.CROSSBOW) return;
-            CrossbowMeta meta = (CrossbowMeta) event.getCrossbow().getItemMeta();
-            if (meta == null || meta.getChargedProjectiles().isEmpty()) return;
-        }
+
     }
 }

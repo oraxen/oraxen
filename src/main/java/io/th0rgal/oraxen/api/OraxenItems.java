@@ -68,18 +68,12 @@ public class OraxenItems {
     }
 
     public static List<ItemBuilder> getUnexcludedItems() {
-        return itemStream()
-                .filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
+        return itemStream().filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
                 .toList();
     }
 
     public static List<ItemBuilder> getUnexcludedItems(final File file) {
-        return map
-                .get(file)
-                .values()
-                .stream()
-                .filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
-                .toList();
+        return map.get(file).values().stream().filter(item -> !item.getOraxenMeta().isExcludedFromInventory()).toList();
     }
 
     public static List<ItemStack> getItemStacksByName(final List<List<String>> lists) {
@@ -87,17 +81,12 @@ public class OraxenItems {
             final ItemStack[] itemStack = new ItemStack[]{new ItemStack(Material.AIR)};
             list.stream().map(line -> line.split(":")).forEach(param -> {
                 switch (param[0].toLowerCase(Locale.ENGLISH)) {
-                    case "type":
+                    case "type" -> {
                         if (exists(param[1]))
                             itemStack[0] = getItemById(param[1]).build().clone();
-                        else
-                            Message.ITEM_NOT_FOUND.log(AdventureUtils.tagResolver("item", param[1]));
-                        break;
-                    case "amount":
-                        itemStack[0].setAmount(Integer.parseInt(param[1]));
-                        break;
-                    default:
-                        break;
+                        else Message.ITEM_NOT_FOUND.log(AdventureUtils.tagResolver("item", param[1]));
+                    }
+                    case "amount" -> itemStack[0].setAmount(Integer.parseInt(param[1]));
                 }
             });
             return Stream.of(itemStack[0]);
