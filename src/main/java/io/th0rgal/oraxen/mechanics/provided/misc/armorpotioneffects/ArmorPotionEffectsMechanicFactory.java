@@ -10,7 +10,7 @@ public class ArmorPotionEffectsMechanicFactory extends MechanicFactory {
 
     public ArmorPotionEffectsMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new ArmorPotionEffectsMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new ArmorPotionEffectsMechanicListener(this));
     }
 
     @Override

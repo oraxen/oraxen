@@ -12,7 +12,7 @@ public class HatMechanicFactory extends MechanicFactory {
 
     public HatMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new HatMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new HatMechanicListener(this));
         instance = this;
     }
 

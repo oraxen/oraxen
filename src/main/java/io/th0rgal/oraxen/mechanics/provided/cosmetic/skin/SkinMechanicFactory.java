@@ -9,7 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 public class SkinMechanicFactory extends MechanicFactory {
     public SkinMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new SkinMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new SkinMechanicListener(this));
     }
 
     @Override
