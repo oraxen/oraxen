@@ -43,7 +43,7 @@ public class PrintGlyphCommand {
         if (glyphName.equals("all")) {
             int i = 0;
             for (Glyph glyph : fontManager.getGlyphs()) {
-                component = component.append(printClickableMsg("<reset>[<green>" + glyph.getName() + "<reset>] ", String.valueOf(glyph.getCharacter()), String.valueOf(glyph.getCharacter())));
+                component = component.append(printClickableMsg("<reset>[<green>" + glyph.getName() + "<reset>] ", glyph.getCharacter(), glyph.getCharacter()));
                 if (i % 3 == 0) {
                     audience.sendMessage(component);
                     component = Component.empty();
@@ -63,7 +63,7 @@ public class PrintGlyphCommand {
         } else {
             Glyph g = fontManager.getGlyphs().stream().filter(glyph -> glyph.getName().equals(glyphName)).findFirst().orElse(null);
             if (g == null) return;
-            component = printClickableMsg("<white>" + g.getName(), String.valueOf(g.getCharacter()), "<reset>" + g.getCharacter());
+            component = printClickableMsg("<white>" + g.getName(), g.getCharacter(), "<reset>" + g.getCharacter());
         }
         audience.sendMessage(component);
     }

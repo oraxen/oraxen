@@ -134,10 +134,10 @@ public class Utils {
         }
     }
 
-    public static int firstEmpty(Map<String, Integer> map, int min) {
-        while (map.containsValue(min))
-            min++;
-        return min;
+    public static char firstEmpty(Map<String, Character> map, int min) {
+        List<Integer> newMap = map.values().stream().map(c -> (int) c).toList();
+        while (newMap.contains(min)) min++;
+        return (char) min;
     }
 
     public static void swingHand(Player player, EquipmentSlot hand) {
