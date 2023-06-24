@@ -61,7 +61,7 @@ public class FontManager {
         verifyRequiredGlyphs();
         for (Glyph glyph : glyphs) {
             glyphMap.put(glyph.getName(), glyph);
-            reverse.put(glyph.getCharacter(), glyph.getName());
+            reverse.put(glyph.getCharacter().charAt(0), glyph.getName());
             for (final String placeholder : glyph.getPlaceholders())
                 glyphByPlaceholder.put(placeholder, glyph);
         }
@@ -162,7 +162,7 @@ public class FontManager {
         List<String> completions = getGlyphByPlaceholderMap().values().stream()
                 .filter(Glyph::hasTabCompletion)
                 .flatMap(glyph -> Settings.UNICODE_COMPLETIONS.toBool()
-                        ? Stream.of(String.valueOf(glyph.getCharacter()))
+                        ? Stream.of(glyph.getCharacter())
                         : Arrays.stream(glyph.getPlaceholders()))
                 .toList();
 
