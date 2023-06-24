@@ -1,6 +1,6 @@
-package io.th0rgal.oraxen.api.events;
+package io.th0rgal.oraxen.api.events.noteblock;
 
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -8,25 +8,15 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Event fired right before a player damages a StringBlock
- * If cancelled, the block will not be damaged.
- * @see StringBlockMechanic
- */
-public class OraxenStringBlockDamageEvent extends Event implements Cancellable {
+public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
 
-    private final StringBlockMechanic mechanic;
+    private final NoteBlockMechanic mechanic;
     private final Player player;
     private final Block block;
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    /**
-     * @param mechanic The StringBlockMechanic of this block
-     * @param block The block that was damaged
-     * @param player The player who damaged this block
-     */
-    public OraxenStringBlockDamageEvent(@NotNull final StringBlockMechanic mechanic, @NotNull final Block block, @NotNull final Player player) {
+    public OraxenNoteBlockBreakEvent(@NotNull final NoteBlockMechanic mechanic, @NotNull final Block block, @NotNull final Player player) {
         this.mechanic = mechanic;
         this.block = block;
         this.player = player;
@@ -34,15 +24,15 @@ public class OraxenStringBlockDamageEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return The StringBlockMechanic of the damaged block
+     * @return The NoteBlockMechanic of this block
      */
     @NotNull
-    public StringBlockMechanic getMechanic() {
+    public NoteBlockMechanic getMechanic() {
         return mechanic;
     }
 
     /**
-     * @return The player who damaged the StringBlock
+     * @return The player who broke this block
      */
     @NotNull
     public Player getPlayer() {
@@ -50,7 +40,7 @@ public class OraxenStringBlockDamageEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return The block that was damaged
+     * @return The block that was broken
      */
     @NotNull
     public Block getBlock() {
@@ -76,4 +66,5 @@ public class OraxenStringBlockDamageEvent extends Event implements Cancellable {
     public static HandlerList getHandlerList() {
         return HANDLERS;
     }
+
 }
