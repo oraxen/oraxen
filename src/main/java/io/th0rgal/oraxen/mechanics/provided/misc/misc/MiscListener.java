@@ -8,10 +8,7 @@ import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Levelled;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.Item;
-import org.bukkit.entity.Piglin;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -21,10 +18,15 @@ import org.bukkit.event.entity.EntityDamageByBlockEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
+import org.bukkit.event.inventory.InventoryAction;
+import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.EntityEquipment;
+import org.bukkit.inventory.HorseInventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.Damageable;
 
 import java.util.Arrays;
@@ -125,11 +127,11 @@ public class MiscListener implements Listener {
         MiscMechanic mechanic = getMiscMechanic(event.getEntity());
         if (mechanic == null) return;
 
-        switch (event.getCause()) {
-            case CONTACT:
-                if (!mechanic.breaksFromCactus()) event.setCancelled(true);
-            case LAVA:
-                if (!mechanic.burnsInLava()) event.setCancelled(true);
+        EntityDamageEvent.DamageCause cause = event.getCause();
+        if (cause == EntityDamageEvent.DamageCause.CONTACT && !mechanic.breaksFromCactus()) {
+            event.setCancelled(true);
+        } else if (cause == EntityDamageEvent.DamageCause.LAVA && !mechanic.burnsInLava()) {
+            event.setCancelled(true);
         }
     }
 
@@ -142,14 +144,14 @@ public class MiscListener implements Listener {
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onDisableVanillaInteraction(PlayerItemConsumeEvent event) {
+    public void onDisableItemConsume(PlayerItemConsumeEvent event) {
         MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(event.getItem());
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onDisableVanilleInteraction(EntityShootBowEvent event) {
+    public void onDisableBowShoot(EntityShootBowEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
         MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(event.getConsumable());
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
@@ -157,6 +159,34 @@ public class MiscListener implements Listener {
         event.setCancelled(true);
         player.updateInventory(); // Client desyncs and "removes" an arrow
         //TODO See if crossbows can have their loading phase cancelled, currently impossible to check loaded projectile
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onDisableHorseArmorEquip(InventoryClickEvent event) {
+        if (!(event.getInventory() instanceof HorseInventory)) return;
+        ItemStack item;
+        if (event.getAction() == InventoryAction.PLACE_ALL && event.getClickedInventory() instanceof HorseInventory)
+            item = event.getCursor();
+        else if (event.getAction() == InventoryAction.MOVE_TO_OTHER_INVENTORY && event.getClickedInventory() instanceof PlayerInventory)
+            item = event.getCurrentItem();
+        else return;
+
+
+        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(item);
+        if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
+        event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onDisableHorseArmorEquip(PlayerInteractEntityEvent event) {
+        if (!(event.getRightClicked() instanceof Horse)) return;
+        ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
+        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(item);
+        if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
+        if (item.getType().name().endsWith("_HORSE_ARMOR")) {
+            event.setCancelled(true);
+            //player.updateInventory();
+        }
     }
 
     private MiscMechanic getMiscMechanic(Entity entity) {
