@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.api.events;
+package io.th0rgal.oraxen.api.events.furniture;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.block.Block;

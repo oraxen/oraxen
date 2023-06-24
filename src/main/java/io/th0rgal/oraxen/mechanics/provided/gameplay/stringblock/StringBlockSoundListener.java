@@ -1,8 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
-import io.th0rgal.oraxen.api.events.OraxenStringBlockBreakEvent;
-import io.th0rgal.oraxen.api.events.OraxenStringBlockPlaceEvent;
+import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockBreakEvent;
+import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import org.bukkit.GameEvent;

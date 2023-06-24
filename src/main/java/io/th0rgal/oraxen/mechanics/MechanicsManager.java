@@ -45,7 +45,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +55,7 @@ import java.util.Map.Entry;
 public class MechanicsManager {
 
     private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
-    private static final List<Listener> MECHANICS_LISTENERS = new ArrayList<>();
+    private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new HashMap<>();
 
     public static void registerNativeMechanics() {
         // misc
@@ -106,6 +107,11 @@ public class MechanicsManager {
         if (enabled) FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
     }
 
+    public static void  unregisterMechanicFactory(String mechanicId) {
+        FACTORIES_BY_MECHANIC_ID.remove(mechanicId);
+        unloadListeners(mechanicId);
+    }
+
     /**
      * This method is deprecated and will be removed in a future release.<br>
      * Use {@link #registerMechanicFactory(String, MechanicFactory, boolean)} instead.
@@ -113,13 +119,11 @@ public class MechanicsManager {
      * @param constructor the constructor of the mechanic
      */
     @Deprecated(forRemoval = true, since = "1.158.0")
-    public static void registerMechanicFactory(final String mechanicId,
-                                               final FactoryConstructor constructor) {
+    public static void registerMechanicFactory(final String mechanicId, final FactoryConstructor constructor) {
         registerFactory(mechanicId, constructor);
     }
 
-    private static void registerFactory(final String mechanicId,
-                                               final FactoryConstructor constructor) {
+    private static void registerFactory(final String mechanicId, final FactoryConstructor constructor) {
         final Entry<File, YamlConfiguration> mechanicsEntry = new ResourcesManager(OraxenPlugin.get()).getMechanicsEntry();
         final YamlConfiguration mechanicsConfig = mechanicsEntry.getValue();
         final boolean updated = false;
@@ -138,16 +142,22 @@ public class MechanicsManager {
             }
     }
 
-    public static void registerListeners(final JavaPlugin plugin, final Listener... listeners) {
+    public static void registerListeners(final JavaPlugin plugin, String mechanicId, final Listener... listeners) {
         for (final Listener listener : listeners) {
             Bukkit.getPluginManager().registerEvents(listener, plugin);
-            MECHANICS_LISTENERS.add(listener);
         }
+        MECHANICS_LISTENERS.put(mechanicId, Arrays.stream(listeners).toList());
     }
 
     public static void unloadListeners() {
-        for (final Listener listener : MECHANICS_LISTENERS)
+        for (final Listener listener : MECHANICS_LISTENERS.values().stream().flatMap(Collection::stream).toList())
             HandlerList.unregisterAll(listener);
+    }
+
+    public static void unloadListeners(String mechanicId) {
+        for (Listener listener : MECHANICS_LISTENERS.remove(mechanicId))
+            HandlerList.unregisterAll(listener);
+
     }
 
     public static MechanicFactory getMechanicFactory(final String mechanicID) {
