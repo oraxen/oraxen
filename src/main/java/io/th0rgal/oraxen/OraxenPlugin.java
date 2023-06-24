@@ -27,8 +27,8 @@ import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OS;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.SchedulerUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -76,7 +76,7 @@ public class OraxenPlugin extends JavaPlugin {
     public void onEnable() {
         CommandAPI.onEnable();
         ProtectionLib.init(this);
-        if (!isFoliaServer) PlayerAnimatorImpl.initialize(this);
+        if (!VersionUtil.isFoliaServer()) PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
         reloadConfigs();
@@ -101,7 +101,7 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
-        if (!isFoliaServer)  gestureManager = new GestureManager();
+        if (!VersionUtil.isFoliaServer())  gestureManager = new GestureManager();
         OraxenItems.loadItems(configsManager);
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there

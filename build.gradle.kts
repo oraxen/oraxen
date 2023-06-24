@@ -47,7 +47,7 @@ val commandApiVersion = "9.0.3"
 dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"
 
-    compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT") { exclude("org.bukkit") }
+    //compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT") { exclude("org.bukkit")}
     compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT") { exclude("net.kyori") }
     compileOnly("com.comphenix.protocol:ProtocolLib:5.0.0")
     compileOnly("me.clip:placeholderapi:2.11.3")
