@@ -35,8 +35,8 @@ public class BlockMechanicFactory extends MechanicFactory {
                 packFolder -> OraxenPlugin.get().getResourcePack()
                         .writeStringToVirtual("assets/minecraft/blockstates",
                                 "mushroom_stem.json", getBlockstateContent()));
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockMechanicListener(this));
-        if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new BlockSoundListener());
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new BlockMechanicListener(this));
+        if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new BlockSoundListener());
     }
 
     private String getBlockstateContent() {

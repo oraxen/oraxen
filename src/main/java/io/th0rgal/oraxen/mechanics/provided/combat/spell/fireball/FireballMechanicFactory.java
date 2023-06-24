@@ -9,7 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 public class FireballMechanicFactory extends MechanicFactory {
     public FireballMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new FireballMechanicManager(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FireballMechanicManager(this));
     }
 
     @Override

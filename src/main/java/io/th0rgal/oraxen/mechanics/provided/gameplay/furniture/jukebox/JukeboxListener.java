@@ -4,7 +4,7 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureBreakEvent;
+import io.th0rgal.oraxen.api.events.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;

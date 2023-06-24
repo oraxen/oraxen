@@ -10,7 +10,7 @@ public class SmeltingMechanicFactory extends MechanicFactory {
 
     public SmeltingMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new SmeltingMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new SmeltingMechanicListener(this));
     }
 
     @Override
