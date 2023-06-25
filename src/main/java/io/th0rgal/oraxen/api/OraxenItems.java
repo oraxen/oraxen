@@ -4,6 +4,8 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.items.ItemParser;
+import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -34,6 +36,8 @@ public class OraxenItems {
     }
 
     public static void loadItems() {
+        ItemParser.MODEL_DATAS_BY_ID.clear();
+        ModelData.DATAS.clear();
         configsManager.assignAllUsedModelDatas();
         map = configsManager.parseItemConfig();
         final List<String> itemsList = new ArrayList<>();
