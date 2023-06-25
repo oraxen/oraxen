@@ -103,6 +103,12 @@ public class MechanicsManager {
             registerFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
     }
 
+    /**
+     * Register a new MechanicFactory
+     * @param mechanicId the id of the mechanic
+     * @param factory the MechanicFactory of the mechanic
+     * @param enabled if the mechanic should be enabled by default or not
+     */
     public static void registerMechanicFactory(String mechanicId, MechanicFactory factory, boolean enabled) {
         if (enabled) FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
     }
