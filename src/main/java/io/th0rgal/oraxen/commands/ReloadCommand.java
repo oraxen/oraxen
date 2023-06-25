@@ -6,16 +6,13 @@ import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.api.OraxenPack;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.hud.HudManager;
-import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ItemUpdater;
-import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
-import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -25,13 +22,12 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
+import org.jetbrains.annotations.Nullable;
 
 public class ReloadCommand {
 
-    private static void reloadItems(CommandSender sender) {
+    public static void reloadItems(@Nullable CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "items"));
-        ItemParser.MODEL_DATAS_BY_ID.clear();
-        ModelData.DATAS.clear();
         OraxenItems.loadItems();
 
         if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
@@ -62,16 +58,12 @@ public class ReloadCommand {
 
     }
 
-    private static void reloadPack(CommandSender sender) {
+    public static void reloadPack(@Nullable CommandSender sender) {
         Message.PACK_REGENERATED.send(sender);
-        OraxenPlugin oraxen = OraxenPlugin.get();
-        oraxen.setFontManager(new FontManager(oraxen.getConfigsManager()));
-        oraxen.setSoundManager(new SoundManager(oraxen.getConfigsManager().getSound()));
-        oraxen.getResourcePack().generate(oraxen.getFontManager(), oraxen.getSoundManager());
-        oraxen.getUploadManager().uploadAsyncAndSendToPlayers(oraxen.getResourcePack(), true, true);
+        OraxenPack.reloadPack();
     }
 
-    private static void reloadHud(CommandSender sender) {
+    public static void reloadHud(@Nullable CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "hud"));
         OraxenPlugin.get().reloadConfigs();
         HudManager hudManager = new HudManager(OraxenPlugin.get().getConfigsManager());
@@ -82,12 +74,12 @@ public class ReloadCommand {
         hudManager.restartTask();
     }
 
-    private static void reloadGestures(CommandSender sender) {
+    public static void reloadGestures(@Nullable CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "gestures"));
         OraxenPlugin.get().getGesturesManager().reload();
     }
 
-    private static void reloadRecipes(CommandSender sender) {
+    public static void reloadRecipes(@Nullable CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "recipes"));
         RecipesManager.reload();
     }
@@ -119,10 +111,8 @@ public class ReloadCommand {
                             OraxenPlugin.get().getInvManager().regen();
                         }
                     }
-                    // This does not clear the tablist, and I am not sure how to do it otherwise
-                    FontManager manager = new FontManager(OraxenPlugin.get().getConfigsManager());
                     for (Player player : Bukkit.getOnlinePlayers()) {
-                        manager.sendGlyphTabCompletion(player);
+                        OraxenPlugin.get().getFontManager().sendGlyphTabCompletion(player);
                     }
                 });
     }
