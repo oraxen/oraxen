@@ -53,9 +53,6 @@ public class Glyph {
                 permission = chatSection.getString("permission");
             tabcomplete = chatSection.getBoolean("tabcomplete", false);
         }
-        texture = glyphSection.getString("texture", "required/exit_icon.png");
-        if (!texture.endsWith(".png"))
-            texture += ".png";
 
         this.code = newCode;
         if (glyphSection.getInt("code", -1) != newCode && Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool()) {
@@ -67,8 +64,10 @@ public class Glyph {
 
         ConfigurationSection bitmapSection = glyphSection.getConfigurationSection("bitmap");
         bitmapEntry = bitmapSection != null ? new BitMapEntry(bitmapSection.getString("id"), bitmapSection.getInt("row"), bitmapSection.getInt("column")) : null;
-        ascent = glyphSection.getInt("ascent", getBitMap() != null ? getBitMap().ascent() : 8);
-        height = glyphSection.getInt("height", getBitMap() != null ? getBitMap().height() : 8);
+        ascent = getBitMap() != null ? getBitMap().ascent() : glyphSection.getInt("ascent", 8);
+        height = getBitMap() != null ? getBitMap().height() : glyphSection.getInt("height", 8);
+        texture = getBitMap() != null ? getBitMap().texture() : glyphSection.getString("texture", "required/exit_icon.png");
+        if (!texture.endsWith(".png")) texture += ".png";
     }
 
     public record BitMapEntry(String id, int row, int column) {
