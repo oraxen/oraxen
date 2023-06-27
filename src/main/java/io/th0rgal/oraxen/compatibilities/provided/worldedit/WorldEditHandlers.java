@@ -14,7 +14,6 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
-import io.th0rgal.oraxen.utils.SchedulerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -59,7 +58,7 @@ public class WorldEditHandlers {
                     if (replacingMechanic instanceof StringBlockMechanic && !Settings.WORLDEDIT_STRINGBLOCKS.toBool()) return super.setBlock(pos, block);
                     if (replacingMechanic instanceof NoteBlockMechanic && !Settings.WORLDEDIT_NOTEBLOCKS.toBool()) return super.setBlock(pos, block);
 
-                    SchedulerUtils.execute(OraxenPlugin.get(), () -> OraxenBlocks.remove(loc, null));
+                    OraxenPlugin.foliaLib.getImpl().runAtLocation(loc, () -> OraxenBlocks.remove(loc, null));
                 }
 
                 return getExtent().setBlock(pos, block);

@@ -143,8 +143,15 @@ public class FurnitureMechanic extends Mechanic {
 
         ConfigurationSection evoSection = section.getConfigurationSection("evolution");
         if (evoSection != null) {
-            evolvingFurniture = new EvolvingFurniture(getItemID(), evoSection);
-            ((FurnitureFactory) getFactory()).registerEvolution();
+            if (VersionUtil.isFoliaServer()) {
+                Logs.logError("Folia currently does not support Evolution Mechanic on Furniture.");
+                Logs.logError("This will hopefully be fixed in an upcoming update");
+                evolvingFurniture = null;
+            } else {
+                evolvingFurniture = new EvolvingFurniture(getItemID(), evoSection);
+                ((FurnitureFactory) getFactory()).registerEvolution();
+            }
+
         } else evolvingFurniture = null;
 
         light = section.getInt("light", -1);

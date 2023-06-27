@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlaci
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.SchedulerUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -42,6 +41,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.RayTraceResult;
 
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.getAnvilFacing;
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
@@ -123,7 +123,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (!GameEvent.values().contains(GameEvent.getByKey(eventKey))) return;
         if (block.getType() != Material.NOTE_BLOCK || event.getEvent() != GameEvent.getByKey(eventKey)) return;
         NoteBlock data = (NoteBlock) block.getBlockData().clone();
-        SchedulerUtils.executeDelayed(OraxenPlugin.get(), () -> block.setBlockData(data, false), 1L);
+        OraxenPlugin.foliaLib.getImpl().runAtLocationLater(block.getLocation(), () -> block.setBlockData(data, false), 1L, TimeUnit.MILLISECONDS);
     }
 
     public void updateAndCheck(final Location loc) {

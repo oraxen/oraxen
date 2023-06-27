@@ -40,6 +40,7 @@ repositories {
     //maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
     maven("https://repo.mineinabyss.com/releases") // PlayerAnimator
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
+    maven("https://nexuslite.gcnt.net/repos/other/") // FoliaSchedulers
     maven("https://maven.enginehub.org/repo/")
 }
 
@@ -47,7 +48,7 @@ val commandApiVersion = "9.0.3"
 dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"
 
-    //compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT") { exclude("org.bukkit")}
+    compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT") { exclude("org.bukkit")}
     compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT") { exclude("net.kyori") }
     compileOnly("com.comphenix.protocol:ProtocolLib:5.0.0")
     compileOnly("me.clip:placeholderapi:2.11.3")
@@ -78,6 +79,7 @@ dependencies {
     implementation("com.ticxo:PlayerAnimator:R1.2.7")
     implementation("org.jetbrains:annotations:24.0.1") { isTransitive = false }
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
+    implementation("com.tcoded:FoliaLib:0.2.0")
 }
 
 tasks {
@@ -115,6 +117,7 @@ tasks {
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
         relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
         relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
+        relocate("com.tcoded.folialib", "io.th0rgal.oraxen.shaded.folialib")
 
         manifest {
             attributes(

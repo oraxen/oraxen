@@ -2,6 +2,7 @@ package io.th0rgal.oraxen;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
+import com.tcoded.folialib.FoliaLib;
 import com.ticxo.playeranimator.PlayerAnimatorImpl;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
@@ -27,7 +28,6 @@ import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OS;
-import io.th0rgal.oraxen.utils.SchedulerUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
@@ -58,6 +58,7 @@ public class OraxenPlugin extends JavaPlugin {
     private ClickActionManager clickActionManager;
     private ProtocolManager protocolManager;
     public static boolean supportsDisplayEntities;
+    public static FoliaLib foliaLib;
 
     public OraxenPlugin() {
         oraxen = this;
@@ -74,6 +75,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        foliaLib = new FoliaLib(this);
         CommandAPI.onEnable();
         ProtectionLib.init(this);
         if (!VersionUtil.isFoliaServer()) PlayerAnimatorImpl.initialize(this);
@@ -127,17 +129,13 @@ public class OraxenPlugin extends JavaPlugin {
         uploadManager = new UploadManager(this);
         uploadManager.uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
-        SchedulerUtils.execute(this, () -> {
-            //TODO Is this needed?
-            //OraxenItems.loadItems(configsManager);
-            Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
-        });
+        foliaLib.getImpl().runNextTick(() -> Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
     }
 
     @Override
     public void onDisable() {
         unregisterListeners();
-        ItemUpdater.furnitureUpdateTask.cancel();
+        getServer().getScheduler().cancelTasks(this);
         FurnitureFactory.getEvolutionTask().cancel();
 
         CompatibilitiesManager.disableCompatibilities();

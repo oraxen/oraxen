@@ -8,6 +8,8 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -36,10 +38,15 @@ import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
 public class ItemUpdater implements Listener {
 
     public ItemUpdater() {
-        if (furnitureUpdateTask != null) furnitureUpdateTask.cancel();
-        furnitureUpdateTask = new FurnitureUpdateTask();
-        int delay = (Settings.FURNITURE_UPDATE_DELAY.getValue() instanceof Integer integer) ? integer : 5;
-        furnitureUpdateTask.runTaskTimer(OraxenPlugin.get(), 0, delay * 20L);
+        if (VersionUtil.isFoliaServer()) {
+            Logs.logError("Furniture updating is currently not supported on Folia servers");
+            Logs.logError("Hopefully this will be fixed in the near future");
+        } else {
+            if (furnitureUpdateTask != null) furnitureUpdateTask.cancel();
+            furnitureUpdateTask = new FurnitureUpdateTask();
+            int delay = (Settings.FURNITURE_UPDATE_DELAY.getValue() instanceof Integer integer) ? integer : 5;
+            furnitureUpdateTask.runTaskTimer(OraxenPlugin.get(), 0, delay * 20L);
+        }
     }
 
     public static HashSet<Entity> furnitureToUpdate = new HashSet<>();

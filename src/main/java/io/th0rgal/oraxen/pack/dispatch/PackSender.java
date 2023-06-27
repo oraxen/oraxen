@@ -5,8 +5,9 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.SchedulerUtils;
 import org.bukkit.entity.Player;
+
+import java.util.concurrent.TimeUnit;
 
 public abstract class PackSender {
 
@@ -28,9 +29,9 @@ public abstract class PackSender {
         if (delay == -1 || !delayed)
             Message.COMMAND_JOIN_MESSAGE.send(player,
                     AdventureUtils.tagResolver("pack_url", hostingProvider.getPackURL()));
-        else
-            SchedulerUtils.executeAsyncDelayed(OraxenPlugin.get(), () -> Message.COMMAND_JOIN_MESSAGE.send(player, AdventureUtils.tagResolver("pack_url"
-                            , hostingProvider.getPackURL())), delay * 20L);
+        else OraxenPlugin.foliaLib.getImpl().runLaterAsync(() ->
+                Message.COMMAND_JOIN_MESSAGE.send(player, AdventureUtils.tagResolver("pack_url"
+                        , hostingProvider.getPackURL())), delay * 20L, TimeUnit.MILLISECONDS);
     }
 
 }

@@ -16,7 +16,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.SchedulerUtils;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -31,6 +30,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
+import java.util.concurrent.TimeUnit;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic.STORAGE_KEY;
@@ -237,11 +237,12 @@ public class OraxenBlocks {
             mechanic.getDrop().spawns(block.getLocation(), item);
         block.setType(Material.AIR, false);
         final Block blockAbove = block.getRelative(BlockFace.UP);
-        SchedulerUtils.executeDelayed(OraxenPlugin.get(), () -> {
-            StringBlockMechanicListener.fixClientsideUpdate(block.getLocation());
-            if (blockAbove.getType() == Material.TRIPWIRE)
-                removeStringBlock(blockAbove, player);
-        }, 1L);
+        OraxenPlugin.foliaLib.getImpl().runLater(() -> {
+                    StringBlockMechanicListener.fixClientsideUpdate(block.getLocation());
+                    if (blockAbove.getType() == Material.TRIPWIRE)
+                        removeStringBlock(blockAbove, player);
+                }, 1L, TimeUnit.MILLISECONDS
+        );
     }
 
     /**

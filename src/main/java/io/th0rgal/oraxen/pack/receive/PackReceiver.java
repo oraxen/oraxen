@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.pack.receive;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.SchedulerUtils;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.title.Title;
@@ -15,6 +14,7 @@ import org.bukkit.event.player.PlayerResourcePackStatusEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 
 public class PackReceiver implements Listener {
 
@@ -27,14 +27,14 @@ public class PackReceiver implements Listener {
             case FAILED_DOWNLOAD -> new PackAction(Settings.RECEIVE_FAILED_ACTIONS.toConfigSection());
             case SUCCESSFULLY_LOADED -> new PackAction(Settings.RECEIVE_LOADED_ACTIONS.toConfigSection());
         };
-        SchedulerUtils.executeDelayed(OraxenPlugin.get(), () -> {
+        OraxenPlugin.foliaLib.getImpl().runLater(() -> {
             if (packAction.hasMessage())
                 sendMessage(event.getPlayer(), packAction.getMessageType(), packAction.getMessageContent());
             if (packAction.hasSound())
                 packAction.playSound(event.getPlayer(), event.getPlayer().getLocation());
 
             packAction.getCommandsParser().perform(event.getPlayer());
-        }, packAction.getDelay());
+        }, Math.min(packAction.getDelay(), 20), TimeUnit.MILLISECONDS);
     }
 
     private void sendMessage(Player receiver, String action, Component message) {

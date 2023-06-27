@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.pack.dispatch;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
-import io.th0rgal.oraxen.utils.SchedulerUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -11,6 +10,8 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+
+import java.util.concurrent.TimeUnit;
 
 public class BukkitPackSender extends PackSender implements Listener {
 
@@ -39,8 +40,7 @@ public class BukkitPackSender extends PackSender implements Listener {
             int delay = (int) Settings.SEND_PACK_DELAY.getValue();
             if (delay <= 0)
                 sendPack(event.getPlayer());
-            else SchedulerUtils.executeAsyncDelayed(OraxenPlugin.get(),
-                    () -> sendPack(event.getPlayer()), delay * 20L);
+            else OraxenPlugin.foliaLib.getImpl().runLater(() -> sendPack(event.getPlayer()), delay * 20L, TimeUnit.MILLISECONDS);
         }
     }
 }
