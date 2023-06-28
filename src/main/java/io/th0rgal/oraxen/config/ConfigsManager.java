@@ -86,7 +86,8 @@ public class ConfigsManager {
             try {
                 inputStreamReader.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                Logs.logError("Failed to extract default file: " + source);
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
             }
         }
     }
@@ -147,7 +148,8 @@ public class ConfigsManager {
             try {
                 configuration.save(configurationFile);
             } catch (IOException e) {
-                e.printStackTrace();
+                Logs.logError("Failed to save updated configuration file: " + configurationFile.getName());
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
             }
         return configuration;
     }
@@ -196,7 +198,8 @@ public class ConfigsManager {
                 try {
                     configuration.save(file);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logs.logWarning("Failed to save updated glyph file: " + file.getName());
+                    if (Settings.DEBUG.toBool()) e.printStackTrace();
                 }
             }
         }
