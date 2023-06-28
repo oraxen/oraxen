@@ -100,7 +100,14 @@ public class NoteBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPhysics(final BlockPhysicsEvent event) {
         final Block aboveBlock = event.getBlock().getRelative(BlockFace.UP);
-        if (aboveBlock.getType() == Material.NOTE_BLOCK) {
+        final Block belowBlock = event.getBlock().getRelative(BlockFace.DOWN);
+        // If block below is NoteBlock, it will be affected by the break
+        // Call updateAndCheck from it to fix vertical stack of NoteBlocks
+        // if belowBlock is not a NoteBlock we must ensure the above is not, if it is call updateAndCheck from block
+        if (belowBlock.getType() == Material.NOTE_BLOCK) {
+            updateAndCheck(belowBlock.getLocation());
+            event.setCancelled(true);
+        } else if (aboveBlock.getType() == Material.NOTE_BLOCK) {
             updateAndCheck(event.getBlock().getLocation());
             event.setCancelled(true);
         }
