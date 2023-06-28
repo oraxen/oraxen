@@ -55,7 +55,7 @@ public class Glyph {
         }
 
         this.code = newCode;
-        if (glyphSection.getInt("code", -1) != newCode && Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool()) {
+        if (glyphSection.getInt("code", -1) != newCode && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
             glyphSection.set("code", code);
             fileChanged = true;
         }
@@ -214,7 +214,7 @@ public class Glyph {
             Logs.logError("The texture specified for " + name + " is larger than the supported size.");
             Logs.logWarning("The maximum image size is 256x256. Anything bigger will break all your glyphs.");
             Logs.logWarning("It has been temporarily set to a placeholder-image. You should edit this in the glyph config.");
-        } else if (!Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool() && !sameCodeMap.isEmpty()) {
+        } else if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool() && !sameCodeMap.isEmpty()) {
             this.setTexture("required/exit_icon");
             Logs.logError(name + " code is the same as " + sameCodeMap.keySet().stream().map(Glyph::getName).collect(Collectors.joining(", ")) + ".");
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");

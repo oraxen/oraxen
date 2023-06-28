@@ -141,7 +141,8 @@ public class ConfigsManager {
                 updated = true;
                 Message.UPDATING_CONFIG.log(AdventureUtils.tagResolver("option", key));
                 configuration.set(key, defaultConfiguration.get(key));
-            }        }
+            }
+        }
         if (updated)
             try {
                 configuration.save(configurationFile);
@@ -154,7 +155,7 @@ public class ConfigsManager {
     // Skip optional keys and subkeys
     private final List<String> skippedYamlKeys =
             List.of(
-                    "gui_inventory",
+                    "oraxen_inventory",
                     "Misc.armor_equip_event_bypass"
             );
 
@@ -191,12 +192,13 @@ public class ConfigsManager {
                 glyph.verifyGlyph(output);
                 output.add(glyph);
             }
-            if (fileChanged && Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool())
+            if (fileChanged && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
                 try {
                     configuration.save(file);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
+            }
         }
         return output;
     }
