@@ -58,11 +58,11 @@ Pack:
     # Merges duplicate font files, most often default.json into the final pack.
     # This will not delete the original file, simply exclude all duplicates in favour of the merged one
     merge_duplicate_fonts: true
-    merge_duplicates: false
+    merge_duplicates: true
     # Whether the above merger will set the custommodeldata to the same values as in the imported file
     # To avoid issues, only set this to true if you need them to be these values for another plugin
     # This might override some of your other OraxenItems if they have they have their custom_model_data set to the same.
-    retain_custom_model_data: false
+    retain_custom_model_data: true
     # Unlike duplication handler, this will simply attempt to merge the Jsons for the final pack
     # This will not be flawless but will not be generating item-configs like above.
     # The issue of custom-model-data is still here but it will copy it over no matter what [retain_custom_model_data] is set to
@@ -159,8 +159,8 @@ ConfigsTools:
   # list of model data numbers the automatic system will skip
   # List can take ranges like 1-4 as well as normal singular numbers
   skipped_model_data_numbers: [ ]
-  # Same option for glyph codes
-  automatically_set_glyph_code: false
+  disable_automatic_model_data: false
+  disable_automatic_glyph_code: false
   enable_configs_updater: true
   error_item:
     material: PODZOL
@@ -177,7 +177,7 @@ Gestures:
 
 ItemUpdater:
   # Update the items in player inventory to the latest in config when player joins
-  auto_update_items: false
+  auto_update_items: true
   override_renamed_items: false
   override_lore: true # If lore should be overriden, disable if other plugins modify the OraxenItem's lore
   update_items_on_reload: true # If Oraxen should update all the items of online players on /oraxen reload items/all

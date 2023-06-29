@@ -82,17 +82,13 @@ public class StringBlockMechanicListener implements Listener {
     public void tripwireEvent(BlockPhysicsEvent event) {
         Block block = event.getBlock();
         if (event.getChangedType() != Material.TRIPWIRE) return;
+        if (event.getSourceBlock() == event.getBlock()) return;
         event.setCancelled(true);
 
-        for (BlockFace f : BlockFace.values()) {
-            if (!f.isCartesian() || f.getModY() != 0 || f == BlockFace.SELF) continue; // Only take N/S/W/E
-            final Block changed = block.getRelative(f);
-            if (changed.getType() != Material.TRIPWIRE) continue;
-
-            final BlockData data = changed.getBlockData().clone();
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                    changed.setBlockData(data, false), 1L);
-        }
+        // Stores the pre-change blockdata and applies it on next tick to prevent the block from updating
+        final BlockData blockData = block.getBlockData().clone();
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                block.setBlockData(blockData, false), 1L);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)

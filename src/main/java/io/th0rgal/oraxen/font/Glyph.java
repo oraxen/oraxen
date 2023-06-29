@@ -22,6 +22,8 @@ import java.util.stream.Collectors;
 
 public class Glyph {
 
+    public static final Character WHITESPACE_GLYPH = '\ue000';
+
     private boolean fileChanged = false;
 
     private final String name;
@@ -33,6 +35,8 @@ public class Glyph {
     private final int height;
     private String permission = null;
     private String[] placeholders;
+    private int code;
+    private final BitMapEntry bitmapEntry;
 
     public Glyph(final String glyphName, final ConfigurationSection glyphSection, char newChars) {
         name = glyphName;
@@ -46,9 +50,6 @@ public class Glyph {
                 permission = chatSection.getString("permission");
             tabcomplete = chatSection.getBoolean("tabcomplete", false);
         }
-        texture = glyphSection.getString("texture", "required/exit_icon.png");
-        if (!texture.endsWith(".png"))
-            texture += ".png";
 
         if (glyphSection.contains("code")) {
             glyphSection.set("char", (char) glyphSection.getInt("code"));
@@ -56,15 +57,43 @@ public class Glyph {
             fileChanged = true;
         }
 
-        if (!glyphSection.isString("char")) {
+        if (!glyphSection.isString("char") && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
             glyphSection.set("char", newChars);
             fileChanged = true;
         }
 
         character = glyphSection.get("char") != null ? glyphSection.getString("char", "").charAt(0) : null;
 
-        ascent = glyphSection.getInt("ascent", 8);
-        height = glyphSection.getInt("height", 8);
+
+        ConfigurationSection bitmapSection = glyphSection.getConfigurationSection("bitmap");
+        bitmapEntry = bitmapSection != null ? new BitMapEntry(bitmapSection.getString("id"), bitmapSection.getInt("row"), bitmapSection.getInt("column")) : null;
+        ascent = getBitMap() != null ? getBitMap().ascent() : glyphSection.getInt("ascent", 8);
+        height = getBitMap() != null ? getBitMap().height() : glyphSection.getInt("height", 8);
+        texture = getBitMap() != null ? getBitMap().texture() : glyphSection.getString("texture", "required/exit_icon.png");
+        if (!texture.endsWith(".png")) texture += ".png";
+    }
+
+    public record BitMapEntry(String id, int row, int column) {
+    }
+
+    public BitMapEntry getBitmapEntry() {
+        return bitmapEntry;
+    }
+
+    public String getBitmapId() {
+        return bitmapEntry != null ? bitmapEntry.id : null;
+    }
+
+    public boolean hasBitmap() {
+        return getBitmapId() != null;
+    }
+
+    public boolean isBitMap() {
+        return FontManager.getGlyphBitMap(getBitmapId()) != null;
+    }
+
+    public FontManager.GlyphBitMap getBitMap() {
+        return FontManager.getGlyphBitMap(getBitmapId());
     }
 
     public boolean isFileChanged() {
@@ -180,7 +209,7 @@ public class Glyph {
             Logs.logError("The texture specified for " + name + " is larger than the supported size.");
             Logs.logWarning("The maximum image size is 256x256. Anything bigger will break all your glyphs.");
             Logs.logWarning("It has been temporarily set to a placeholder-image. You should edit this in the glyph config.");
-        } else if (!Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool() && !sameCharMap.isEmpty()) {
+        } else if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool() && !sameCharMap.isEmpty()) {
             this.setTexture("required/exit_icon");
             Logs.logError(name + " code is the same as " + sameCharMap.keySet().stream().map(Glyph::getName).collect(Collectors.joining(", ")) + ".");
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");

@@ -144,7 +144,7 @@ public class WorldEditUtils {
                 editSession.close();
             } catch (WorldEditException e) {
                 OraxenPlugin.get().getLogger().warning("Could not paste schematic for sapling-mechanic");
-                e.printStackTrace();
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
             }
 
         } catch (Exception e) {

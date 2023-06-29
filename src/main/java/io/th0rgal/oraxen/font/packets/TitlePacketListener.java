@@ -50,7 +50,7 @@ public class TitlePacketListener extends PacketAdapter {
             else type = "actionbar";
             if (Settings.DEBUG.toBool()) {
                 Logs.logWarning("Error whilst reading " + type + " packet");
-                e.printStackTrace();
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
             }
         }
         return null;

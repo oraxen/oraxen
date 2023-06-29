@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils.customarmor;
 
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.config.Settings;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -18,6 +19,7 @@ public class CustomArmorListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onCustomArmorRepair(PrepareAnvilEvent event) {
+        if (!Settings.DISABLE_LEATHER_REPAIR_CUSTOM.toBool()) return;
         AnvilInventory inventory = event.getInventory();
         Player player = (Player) inventory.getViewers().stream().filter(p -> p.getOpenInventory().getTopInventory() == inventory).findFirst().orElse(null);
         if (player == null) return;
@@ -25,14 +27,11 @@ public class CustomArmorListener implements Listener {
         ItemStack second = inventory.getItem(1);
         String firstID = OraxenItems.getIdByItem(first);
         String secondID = OraxenItems.getIdByItem(second);
-
         if (first == null || second == null) return; // Empty slot
         if (firstID == null) return; // Not a custom item
-        Material type = first.getType();
-        if (type != Material.LEATHER_HELMET && type != Material.LEATHER_CHESTPLATE && type != Material.LEATHER_LEGGINGS && type != Material.LEATHER_BOOTS)
-            return; // Not a custom armor
+        if (!(first.getItemMeta() instanceof LeatherArmorMeta)) return; // Not a custom armor
 
-        if (second.getType() == Material.LEATHER || (!firstID.equals(secondID) && secondID != null)) {
+        if (second.getType() == Material.LEATHER || (!firstID.equals(secondID) && second.getItemMeta() instanceof LeatherArmorMeta)) {
             event.setResult(null);
             player.updateInventory();
         }

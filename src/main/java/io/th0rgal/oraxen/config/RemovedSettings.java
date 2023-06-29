@@ -10,6 +10,7 @@ public enum RemovedSettings {
     ORAXEN_INV_TEXTURE("oraxen_inventory.menu_glyph"),
     ORAXEN_INV_TEXTURE_OVERLAY("oraxen_inventory.menu_overlay_glyph"),
     AUTOMATICALLY_SET_MODEL_DATA("ConfigsTools.automatically_set_model_data"),
+    AUTOMATICALLY_SET_GLYPH_CODE("ConfigsTools.automatically_set_glyph_code"),
     MERGE_FONTS("Pack.import.merge_font_files"),
     ;
 

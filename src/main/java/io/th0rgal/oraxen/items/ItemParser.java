@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.items;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -205,7 +206,8 @@ public class ItemParser {
             } else {
                 customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
                 configUpdated = true;
-                section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
+                if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())
+                    section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
             }
             item.setCustomModelData(customModelData);
             oraxenMeta.setCustomModelData(customModelData);
