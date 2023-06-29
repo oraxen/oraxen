@@ -40,7 +40,7 @@ public class ResourcePack {
     private static final String SHADER_PARAMETER_PLACEHOLDER = "{#TEXTURE_RESOLUTION#}";
 
     private Map<String, Collection<Consumer<File>>> packModifiers;
-    private Map<String, VirtualFile> outputFiles;
+    private static Map<String, VirtualFile> outputFiles;
     private CustomArmorsTextures customArmorsTextures;
     private File packFolder;
     private File pack;
@@ -357,16 +357,15 @@ public class ResourcePack {
                     items.add(item);
                 else
                     // for some reason those breaks are needed to avoid some nasty "memory leak"
-                    for (int i = 0; i < items.size(); i++)
-                        if (items.get(i).getOraxenMeta().getCustomModelData() > item
-                                .getOraxenMeta()
-                                .getCustomModelData()) {
+                    for (int i = 0; i < items.size(); i++) {
+                        if (items.get(i).getOraxenMeta().getCustomModelData() > item.getOraxenMeta().getCustomModelData()) {
                             items.add(i, item);
                             break;
                         } else if (i == items.size() - 1) {
                             items.add(item);
                             break;
                         }
+                    }
                 texturedItems.put(item.build().getType(), items);
             }
         }
@@ -378,7 +377,7 @@ public class ResourcePack {
         packModifiers.put(groupName, Arrays.asList(modifiers));
     }
 
-    public void addOutputFiles(final VirtualFile... files) {
+    public static void addOutputFiles(final VirtualFile... files) {
         for (VirtualFile file : files)
             outputFiles.put(file.getPath(), file);
     }
@@ -484,14 +483,19 @@ public class ResourcePack {
         if (customSounds == null) {
             sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
             sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
-        } else if (!customSounds.getBoolean("noteblock_and_block", true)) {
-            sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
-        } else if (!customSounds.getBoolean("stringblock_and_furniture", true)) {
-            sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
-        } else if ((noteblock != null && !noteblock.getBoolean("enabled", true) && block != null && block.getBoolean("enabled", false))) {
-            sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
-        } else if (stringblock != null && !stringblock.getBoolean("enabled", true) && furniture != null && furniture.getBoolean("enabled", true)) {
-            sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
+        } else {
+            if (!customSounds.getBoolean("noteblock_and_block", true)) {
+                sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
+            }
+            if (!customSounds.getBoolean("stringblock_and_furniture", true)) {
+                sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
+            }
+            if ((noteblock != null && !noteblock.getBoolean("enabled", true) && block != null && !block.getBoolean("enabled", false))) {
+                sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
+            }
+            if (stringblock != null && !stringblock.getBoolean("enabled", true) && furniture != null && !furniture.getBoolean("enabled", true)) {
+                sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
+            }
         }
 
         // Clear the sounds.json file of yaml configuration entries that should not be there
@@ -507,7 +511,7 @@ public class ResourcePack {
         return sounds;
     }
 
-    public void writeStringToVirtual(String folder, String name, String content) {
+    public static void writeStringToVirtual(String folder, String name, String content) {
         addOutputFiles(new VirtualFile(folder, name,
                 new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
     }

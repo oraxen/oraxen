@@ -1,8 +1,6 @@
 package io.th0rgal.oraxen.font;
 
 import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.*;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -115,7 +113,7 @@ public class FontManager {
                 OraxenPlugin.get().saveResource("glyphs/" + file.getName(), false);
             }
             // Check if file is equal to the resource
-            else if (Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool()) {
+            else if (!Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
                 List<String> tempKeys = YamlConfiguration.loadConfiguration(tempFile).getKeys(false).stream().toList();
                 List<String> requiredKeys = YamlConfiguration.loadConfiguration(file).getKeys(false).stream().toList();
                 if (!new HashSet<>(requiredKeys).containsAll(tempKeys)) {

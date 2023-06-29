@@ -159,8 +159,8 @@ ConfigsTools:
   # list of model data numbers the automatic system will skip
   # List can take ranges like 1-4 as well as normal singular numbers
   skipped_model_data_numbers: [ ]
-  # Same option for glyph codes
-  automatically_set_glyph_code: false
+  disable_automatic_model_data: false
+  disable_automatic_glyph_code: false
   enable_configs_updater: true
   error_item:
     material: PODZOL
@@ -177,7 +177,7 @@ Gestures:
 
 ItemUpdater:
   # Update the items in player inventory to the latest in config when player joins
-  auto_update_items: false
+  auto_update_items: true
   override_renamed_items: false
   override_lore: true # If lore should be overriden, disable if other plugins modify the OraxenItem's lore
   update_items_on_reload: true # If Oraxen should update all the items of online players on /oraxen reload items/all

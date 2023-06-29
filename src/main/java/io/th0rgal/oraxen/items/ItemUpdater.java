@@ -29,6 +29,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
@@ -120,10 +121,14 @@ public class ItemUpdater implements Listener {
         String id = OraxenItems.getIdByItem(oldItem);
         if (id == null) return oldItem;
 
-        Optional<ItemBuilder> newItemBuilder = OraxenItems.getOptionalItemById(id);
+        // Oraxens Inventory adds a dumb PDC entry to items, this will remove them
+        // Done here over [ItemsView] as this method is called anyway and supports old items
+        NamespacedKey guiItemKey = Objects.requireNonNull(NamespacedKey.fromString("oraxen:if-uuid"));
+        Utils.editItemMeta(oldItem, itemMeta -> itemMeta.getPersistentDataContainer().remove(guiItemKey));
 
-        if (newItemBuilder.isEmpty() || newItemBuilder.get().getOraxenMeta().isNoUpdate())
-            return oldItem;
+        Optional<ItemBuilder> newItemBuilder = OraxenItems.getOptionalItemById(id);
+        if (newItemBuilder.isEmpty() || newItemBuilder.get().getOraxenMeta().isNoUpdate()) return oldItem;
+
         ItemStack newItem = newItemBuilder.get().build();
         newItem.setAmount(oldItem.getAmount());
         Utils.editItemMeta(newItem, itemMeta -> {

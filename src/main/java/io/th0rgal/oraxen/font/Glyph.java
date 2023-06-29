@@ -53,12 +53,9 @@ public class Glyph {
                 permission = chatSection.getString("permission");
             tabcomplete = chatSection.getBoolean("tabcomplete", false);
         }
-        texture = glyphSection.getString("texture", "required/exit_icon.png");
-        if (!texture.endsWith(".png"))
-            texture += ".png";
 
         this.code = newCode;
-        if (glyphSection.getInt("code", -1) != newCode && Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool()) {
+        if (glyphSection.getInt("code", -1) != newCode && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
             glyphSection.set("code", code);
             fileChanged = true;
         }
@@ -67,8 +64,10 @@ public class Glyph {
 
         ConfigurationSection bitmapSection = glyphSection.getConfigurationSection("bitmap");
         bitmapEntry = bitmapSection != null ? new BitMapEntry(bitmapSection.getString("id"), bitmapSection.getInt("row"), bitmapSection.getInt("column")) : null;
-        ascent = glyphSection.getInt("ascent", getBitMap() != null ? getBitMap().ascent() : 8);
-        height = glyphSection.getInt("height", getBitMap() != null ? getBitMap().height() : 8);
+        ascent = getBitMap() != null ? getBitMap().ascent() : glyphSection.getInt("ascent", 8);
+        height = getBitMap() != null ? getBitMap().height() : glyphSection.getInt("height", 8);
+        texture = getBitMap() != null ? getBitMap().texture() : glyphSection.getString("texture", "required/exit_icon.png");
+        if (!texture.endsWith(".png")) texture += ".png";
     }
 
     public record BitMapEntry(String id, int row, int column) {
@@ -215,7 +214,7 @@ public class Glyph {
             Logs.logError("The texture specified for " + name + " is larger than the supported size.");
             Logs.logWarning("The maximum image size is 256x256. Anything bigger will break all your glyphs.");
             Logs.logWarning("It has been temporarily set to a placeholder-image. You should edit this in the glyph config.");
-        } else if (!Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool() && !sameCodeMap.isEmpty()) {
+        } else if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool() && !sameCodeMap.isEmpty()) {
             this.setTexture("required/exit_icon");
             Logs.logError(name + " code is the same as " + sameCodeMap.keySet().stream().map(Glyph::getName).collect(Collectors.joining(", ")) + ".");
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
