@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.inventory.ItemStack;
@@ -89,11 +90,10 @@ public class OraxenItems {
             list.stream().map(line -> line.split(":")).forEach(param -> {
                 switch (param[0].toLowerCase(Locale.ENGLISH)) {
                     case "type" -> {
-                        if (exists(param[1]))
-                            itemStack[0] = getItemById(param[1]).build().clone();
+                        if (exists(param[1])) itemStack[0] = getItemById(param[1]).build().clone();
                         else Message.ITEM_NOT_FOUND.log(AdventureUtils.tagResolver("item", param[1]));
                     }
-                    case "amount" -> itemStack[0].setAmount(Integer.parseInt(param[1]));
+                    case "amount" -> itemStack[0].setAmount(NumberUtils.toInt(param[1], 1));
                 }
             });
             return Stream.of(itemStack[0]);
