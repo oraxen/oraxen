@@ -14,8 +14,8 @@ import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -77,7 +77,7 @@ public class FontEvents implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getItem() == null || !(event.getItem().getItemMeta() instanceof BookMeta meta)) return;
         if (event.getItem().getType() != Material.WRITTEN_BOOK) return;
-        Block block = event.getClickedBlock();
+        if (event.useInteractedBlock() == Event.Result.ALLOW) return;
 
         for (String page : meta.getPages()) {
             int i = meta.getPages().indexOf(page) + 1;
@@ -95,16 +95,15 @@ public class FontEvents implements Listener {
             }
         }
 
-        if (block == null || block.getType() != Material.LECTERN) {
-            Book book = Book.builder()
-                    .title(AdventureUtils.MINI_MESSAGE.deserialize(meta.getTitle() != null ? meta.getTitle() : ""))
-                    .author(AdventureUtils.MINI_MESSAGE.deserialize(meta.getAuthor() != null ? meta.getAuthor() : ""))
-                    .pages(meta.getPages().stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList())
-                    .build();
-            // Open fake book and cancel event to prevent normal book opening
-            OraxenPlugin.get().getAudience().player(event.getPlayer()).openBook(book);
-            event.setCancelled(true);
-        }
+        Book book = Book.builder()
+                .title(AdventureUtils.MINI_MESSAGE.deserialize(meta.getTitle() != null ? meta.getTitle() : ""))
+                .author(AdventureUtils.MINI_MESSAGE.deserialize(meta.getAuthor() != null ? meta.getAuthor() : ""))
+                .pages(meta.getPages().stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList())
+                .build();
+
+        // Open fake book and deny opening of original book to avoid needing to format the original book
+        event.setUseItemInHand(Event.Result.DENY);
+        OraxenPlugin.get().getAudience().player(event.getPlayer()).openBook(book);
     }
 
     @EventHandler(ignoreCancelled = true)
