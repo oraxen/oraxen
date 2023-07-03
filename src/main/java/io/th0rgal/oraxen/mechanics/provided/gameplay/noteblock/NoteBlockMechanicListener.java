@@ -526,7 +526,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (isFlowing) {
             if (newBlock.getMaterial() == Material.WATER) sound = "item.bucket.empty";
             else sound = "item.bucket.empty_" + newBlock.getMaterial().toString().toLowerCase();
-        } else if (!OraxenBlocks.isOraxenBlock(target)) sound = target.getBlockData().getSoundGroup().getPlaceSound().toString();
+        } else if (!OraxenBlocks.isOraxenBlock(target)) sound = target.getBlockData().getSoundGroup().getPlaceSound().getKey().toString();
         else sound = null;
 
         if (!player.getGameMode().equals(GameMode.CREATIVE)) {
@@ -534,8 +534,7 @@ public class NoteBlockMechanicListener implements Listener {
             else item.setAmount(item.getAmount() - 1);
         }
 
-        if (sound != null)
-            BlockHelpers.playCustomBlockSound(target.getLocation(), sound, SoundCategory.BLOCKS, 0.8f, 0.8f);
+        if (sound != null) BlockHelpers.playCustomBlockSound(target.getLocation(), sound, SoundCategory.BLOCKS, 0.8f, 0.8f);
         Utils.swingHand(player, hand);
 
         return target;
