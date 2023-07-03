@@ -18,14 +18,10 @@ emerald_helmet:
     # - name: You don't really care about the name but it can be useful for some developers
     # - attribute: Get the list here: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
     # - operations: 0 for ADD_NUMBER, 1 for ADD_SCALAR, 2 for MULTIPLY_SCALAR_1;
-    # - uuid: put a random uuid, generate one here: https://www.uuidgenerator.net/
     # - slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
-    - { name: "oraxen", attribute: GENERIC_MAX_HEALTH, amount: 2, operation: 0,
-        uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0,
-        uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
-    - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
-        uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
+    - { attribute: GENERIC_MAX_HEALTH, amount: 2, operation: 0, slot: HEAD }
+    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -43,12 +39,9 @@ emerald_chestplate:
     durability:
       value: 635
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0,
-        uuid: e06fc6c9-f06a-4b58-b1e2-10d6b282ac04, slot: CHEST }
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 8, operation: 0,
-        uuid: e06fc6c9-f06a-4b58-b1e2-10d6b282ac04, slot: CHEST }
-    - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
-        uuid: e06fc6c9-f06a-4b58-b1e2-10d6b282ac04, slot: CHEST }
+    - { attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0, slot: CHEST }
+    - { attribute: GENERIC_ARMOR, amount: 8, operation: 0, slot: CHEST }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: CHEST }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -66,12 +59,12 @@ emerald_leggings:
     durability:
       value: 595
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0,
-        uuid: 389ad53a-76be-4101-9ed1-e8da4845d5d2, slot: LEGS }
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 6, operation: 0,
-        uuid: 389ad53a-76be-4101-9ed1-e8da4845d5d2, slot: LEGS }
-    - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
-        uuid: 389ad53a-76be-4101-9ed1-e8da4845d5d2, slot: LEGS }
+    - { attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0,
+        slot: LEGS }
+    - { attribute: GENERIC_ARMOR, amount: 6, operation: 0,
+        slot: LEGS }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
+        slot: LEGS }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -89,12 +82,12 @@ emerald_boots:
     durability:
       value: 516
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_MAX_HEALTH, amount: 2, operation: 0,
-        uuid: 7bfcf804-b75a-40a5-97f5-f23282703d0e, slot: FEET }
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0,
-        uuid: 7bfcf804-b75a-40a5-97f5-f23282703d0e, slot: FEET }
-    - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
-        uuid: 7bfcf804-b75a-40a5-97f5-f23282703d0e, slot: FEET }
+    - { attribute: GENERIC_MAX_HEALTH, amount: 2, operation: 0,
+        slot: FEET }
+    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0,
+        slot: FEET }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
+        slot: FEET }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -112,8 +105,8 @@ obsidian_helmet:
     durability:
       value: 4370
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 2, operation: 0,
-        uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
+    - { attribute: GENERIC_ARMOR, amount: 2, operation: 0,
+        slot: HEAD }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -132,8 +125,8 @@ obsidian_chestplate:
     durability:
       value: 6350
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 6, operation: 0,
-        uuid: e06fc6c9-f06a-4b58-b1e2-10d6b282ac04, slot: CHEST }
+    - { attribute: GENERIC_ARMOR, amount: 6, operation: 0,
+        slot: CHEST }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -151,8 +144,8 @@ obsidian_leggings:
     durability:
       value: 5950
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 5, operation: 0,
-        uuid: 389ad53a-76be-4101-9ed1-e8da4845d5d2, slot: LEGS }
+    - { attribute: GENERIC_ARMOR, amount: 5, operation: 0,
+        slot: LEGS }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -170,8 +163,8 @@ obsidian_boots:
     durability:
       value: 5160
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 2, operation: 0,
-        uuid: 7bfcf804-b75a-40a5-97f5-f23282703d0e, slot: FEET }
+    - { attribute: GENERIC_ARMOR, amount: 2, operation: 0,
+        slot: FEET }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -187,10 +180,10 @@ ruby_helmet:
     durability:
       value: 547 # 50% more than diamond helmet
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0,
-        uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
-    - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
-        uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
+    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0,
+        slot: HEAD }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
+        slot: HEAD }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -206,10 +199,10 @@ ruby_chestplate:
     durability:
       value: 792
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 8, operation: 0,
-        uuid: e06fc6c9-f06a-4b58-b1e2-10d6b282ac04, slot: CHEST }
-    - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
-        uuid: e06fc6c9-f06a-4b58-b1e2-10d6b282ac04, slot: CHEST }
+    - { attribute: GENERIC_ARMOR, amount: 8, operation: 0,
+        slot: CHEST }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
+        slot: CHEST }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -225,10 +218,10 @@ ruby_leggings:
     durability:
       value: 742
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 6, operation: 0,
-        uuid: 389ad53a-76be-4101-9ed1-e8da4845d5d2, slot: LEGS }
-    - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
-        uuid: 389ad53a-76be-4101-9ed1-e8da4845d5d2, slot: LEGS }
+    - { attribute: GENERIC_ARMOR, amount: 6, operation: 0,
+        slot: LEGS }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
+        slot: LEGS }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -244,10 +237,10 @@ ruby_boots:
     durability:
       value: 643
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0,
-        uuid: 7bfcf804-b75a-40a5-97f5-f23282703d0e, slot: FEET }
-    - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
-        uuid: 7bfcf804-b75a-40a5-97f5-f23282703d0e, slot: FEET }
+    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0,
+        slot: FEET }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
+        slot: FEET }
   Pack:
     generate_model: true
     parent_model: "item/generated"
