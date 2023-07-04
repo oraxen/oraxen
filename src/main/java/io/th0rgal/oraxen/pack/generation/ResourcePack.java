@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.customarmor.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -101,6 +102,7 @@ public class ResourcePack {
         generateFont(fontManager);
         if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardFiles();
+        if (Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) CustomArmorsTextures.generateArmorShaderFiles();
 
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)
@@ -512,8 +514,8 @@ public class ResourcePack {
     }
 
     public static void writeStringToVirtual(String folder, String name, String content) {
-        addOutputFiles(new VirtualFile(folder, name,
-                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
+        folder = !folder.endsWith("/") ? folder : folder.substring(0, folder.length() - 1);
+        addOutputFiles(new VirtualFile(folder, name, new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
     }
 
     private void getAllFiles(final File directory, final Collection<VirtualFile> fileList,
