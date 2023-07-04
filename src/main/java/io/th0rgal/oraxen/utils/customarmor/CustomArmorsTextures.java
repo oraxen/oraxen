@@ -13,17 +13,26 @@ import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.PotionMeta;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.WritableRaster;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
-import java.util.*;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 public class CustomArmorsTextures {
 
@@ -31,7 +40,6 @@ public class CustomArmorsTextures {
     static final int HEIGHT_RATIO = 2;
     static final int WIDTH_RATIO = 4;
 
-    private final Map<Integer, String> usedColors = new HashMap<>();
     private final List<BufferedImage> layers1 = new ArrayList<>();
     private final List<BufferedImage> layers2 = new ArrayList<>();
     private final int resolution;
@@ -132,23 +140,11 @@ public class CustomArmorsTextures {
 
     private boolean handleArmorLayer(String name, File file) {
         String prefix = name.split("armor_layer_")[0];
-        ItemBuilder builder = null;
 
         // Skip actually editing the emissive image,
         // should check for file with same name + e to properly apply everything
         if (name.endsWith("_e.png")) return false;
 
-        for (String suffix : new String[]{"helmet", "chestplate", "leggings", "boots"}) {
-            builder = OraxenItems.getItemById(prefix + suffix);
-            ItemMeta meta = builder != null ? builder.build().getItemMeta() : null;
-            if (builder != null && (meta instanceof LeatherArmorMeta || meta instanceof PotionMeta))
-                break;
-        }
-        if (builder == null) {
-            Message.NO_ARMOR_ITEM.log(AdventureUtils.tagResolver("name", prefix + "<part>"),
-                    AdventureUtils.tagResolver("armor_layer_file", name));
-            return true;
-        }
         BufferedImage original;
         try {
             original = ImageIO.read(file);
@@ -187,24 +183,48 @@ public class CustomArmorsTextures {
             image = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
             image.getGraphics().drawImage(resizedImage, 0, 0, null);
         }
-        addPixel(image, builder, name, prefix, isAnimated);
+        addPixel(image, name, prefix, isAnimated);
 
         return true;
     }
 
-    private void addPixel(BufferedImage image, ItemBuilder builder, String name, String prefix, boolean isAnimated) {
-        if (shaderType == ShaderType.FANCY) {
-            Color stuffColor = builder.getColor();
-            if (stuffColor == null) return;
-            if (usedColors.containsKey(stuffColor.asRGB())) {
-                String detectedPrefix = usedColors.get(stuffColor.asRGB());
-                if (!detectedPrefix.equals(prefix))
-                    Message.DUPLICATE_ARMOR_COLOR.log(
-                            AdventureUtils.tagResolver("first_armor_prefix", prefix),
-                            AdventureUtils.tagResolver("second_armor_prefix", detectedPrefix));
-            } else usedColors.put(stuffColor.asRGB(), prefix);
+    /**
+     * Finds Armor Items tied to this prefix and fixes their colors
+     * This removes the need for manually specifying a color
+     * It also adds support for LessFancyPants' color system
+     * @param prefix The prefix of the armor item
+     * @param name The name of the armor layer file
+     */
+    private void fixArmorColors(String prefix, String name) {
+        // No need to run for layer 1 and 2 so skip 2 :)
+        if (name.endsWith("_armor_layer_2.png")) return;
+        for (String suffix : new String[]{"helmet", "chestplate", "leggings", "boots"}) {
+            ItemBuilder builder = OraxenItems.getItemById(prefix + suffix);
+            ItemMeta meta = builder != null ? builder.build().getItemMeta() : null;
 
-            setPixel(image.getRaster(), 0, 0, stuffColor);
+            if (!(meta instanceof LeatherArmorMeta)) {
+                Logs.logError("Material of " + prefix+suffix + " is not a LeatherArmor material!");
+                Logs.logWarning("Custom Armor requires that the item is LeatherArmor");
+                Logs.logWarning("You can add fake armor values via AttributeModifiers");
+                Logs.newline();
+            }
+
+            if (builder == null) {
+                Message.NO_ARMOR_ITEM.log(AdventureUtils.tagResolver("name", prefix + "<part>"),
+                        AdventureUtils.tagResolver("armor_layer_file", name));
+                continue;
+            }
+            // Regen ItemBuilder to make ItemUpdater fix items
+            builder.setColor(Color.fromRGB(layers1.size()));
+            builder.regen();
+        }
+    }
+
+    private void addPixel(BufferedImage image, String name, String prefix, boolean isAnimated) {
+        fixArmorColors(prefix, name);
+        Color color = Color.fromRGB(layers1.size());
+        if (shaderType == ShaderType.FANCY) {
+            setPixel(image.getRaster(), 0, 0, color);
             if (isAnimated)
                 setPixel(image.getRaster(), 1, 0, Color.fromRGB(image.getHeight() / (int) Settings.ARMOR_RESOLUTION.getValue(), getAnimatedArmorFramerate(), 1));
         }
