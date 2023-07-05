@@ -22,7 +22,11 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
@@ -40,7 +44,11 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Consumer;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory.getBlockMechanic;
@@ -96,18 +104,22 @@ public class BreakerSystem {
 
             final Location location = block.getLocation();
             if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
-                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
-                        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING,
-                                (int) (period * 11),
-                                Integer.MAX_VALUE,
-                                false, false, false)));
-                BlockSounds blockSounds = getBlockSounds(block);
-                if (blockSounds != null)
-                    BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getHitVolume(), blockSounds.getHitPitch());
-                if (breakerPerLocation.containsKey(location))
-                    breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
-
                 final BukkitScheduler scheduler = Bukkit.getScheduler();
+                BlockSounds blockSounds = getBlockSounds(block);
+
+                scheduler.runTask(OraxenPlugin.get(), () ->
+                        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING,
+                                (int) (period * 11), Integer.MAX_VALUE, false, false, false))
+                );
+
+                // Run through scheduler to fix edge-case on some servers throwing an exception
+                if (blockSounds != null) {
+                    scheduler.runTask(OraxenPlugin.get(), () -> BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getHitVolume(), blockSounds.getHitPitch()));
+                }
+                if (breakerPerLocation.containsKey(location)) {
+                    breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
+                }
+
                 // Cancellation state is being ignored.
                 // However still needs to be called for plugin support.
                 final PlayerInteractEvent playerInteractEvent =
