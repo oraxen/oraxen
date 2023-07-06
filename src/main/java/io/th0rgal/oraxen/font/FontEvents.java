@@ -14,8 +14,8 @@ import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
-import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -29,11 +29,13 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.PluginManager;
 
 import java.util.Arrays;
 import java.util.Map;
+
+import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
 
 public class FontEvents implements Listener {
 
@@ -75,7 +77,7 @@ public class FontEvents implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.getItem() == null || !(event.getItem().getItemMeta() instanceof BookMeta meta)) return;
         if (event.getItem().getType() != Material.WRITTEN_BOOK) return;
-        Block block = event.getClickedBlock();
+        if (event.useInteractedBlock() == Event.Result.ALLOW) return;
 
         for (String page : meta.getPages()) {
             int i = meta.getPages().indexOf(page) + 1;
@@ -93,16 +95,15 @@ public class FontEvents implements Listener {
             }
         }
 
-        if (block == null || block.getType() != Material.LECTERN) {
-            Book book = Book.builder()
-                    .title(AdventureUtils.MINI_MESSAGE.deserialize(meta.getTitle() != null ? meta.getTitle() : ""))
-                    .author(AdventureUtils.MINI_MESSAGE.deserialize(meta.getAuthor() != null ? meta.getAuthor() : ""))
-                    .pages(meta.getPages().stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList())
-                    .build();
-            // Open fake book and cancel event to prevent normal book opening
-            OraxenPlugin.get().getAudience().player(event.getPlayer()).openBook(book);
-            event.setCancelled(true);
-        }
+        Book book = Book.builder()
+                .title(AdventureUtils.MINI_MESSAGE.deserialize(meta.getTitle() != null ? meta.getTitle() : ""))
+                .author(AdventureUtils.MINI_MESSAGE.deserialize(meta.getAuthor() != null ? meta.getAuthor() : ""))
+                .pages(meta.getPages().stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList())
+                .build();
+
+        // Open fake book and deny opening of original book to avoid needing to format the original book
+        event.setUseItemInHand(Event.Result.DENY);
+        OraxenPlugin.get().getAudience().player(event.getPlayer()).openBook(book);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -138,61 +139,48 @@ public class FontEvents implements Listener {
     @EventHandler
     public void onPlayerRename(final InventoryClickEvent event) {
         if (!(event.getClickedInventory() instanceof AnvilInventory clickedInv)) return;
+        if (!Settings.FORMAT_ANVIL.toBool() || event.getSlot() != 2) return;
+
         Player player = (Player) event.getWhoClicked();
         String displayName = clickedInv.getRenameText();
+        ItemStack inputItem = clickedInv.getItem(0);
+        ItemStack resultItem = clickedInv.getItem(2);
+        if (resultItem == null) return;
 
-        switch (event.getSlot()) {
-            case 0 -> { // Clicking first item
-                ItemStack cursor = event.getCursor();
-                ItemStack current = event.getCurrentItem();
-
-                // Adding item to first slot
-                if (!Settings.FORMAT_ANVIL.toBool()) return;
-                if (cursor != null && cursor.getType() != Material.AIR && OraxenItems.exists(cursor)) {
-                    Utils.editItemMeta(cursor, meta ->
-                            meta.setDisplayName(AdventureUtils.parseLegacy(meta.getDisplayName())));
-                }
-                // Taking item from first slot
-                else if (current != null && current.getType() != Material.AIR && OraxenItems.exists(current)) {
-                    Utils.editItemMeta(current, meta ->
-                            meta.setDisplayName(AdventureUtils.parseLegacy(meta.getDisplayName())));
+        if (displayName != null) {
+            displayName = AdventureUtils.parseLegacyThroughMiniMessage(displayName);
+            for (Character character : manager.getReverseMap().keySet()) {
+                if (!displayName.contains(String.valueOf(character))) continue;
+                Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
+                if (!glyph.hasPermission(player)) {
+                    Glyph required = manager.getGlyphFromName("required");
+                    String replacement = required.hasPermission(player) ? String.valueOf(required.getCharacter()) : "";
+                    Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
+                    displayName = displayName.replace(String.valueOf(character), replacement);
                 }
             }
-            case 2 -> { // Clicking result item
-                ItemStack clickedItem = clickedInv.getItem(2);
-                if (clickedItem == null) return;
-                if (displayName == null || displayName.isBlank()) return;
 
-                if (Settings.FORMAT_ANVIL.toBool())
-                    displayName = AdventureUtils.parseLegacyThroughMiniMessage(displayName);
-
-                for (Character character : manager.getReverseMap().keySet()) {
-                    if (!displayName.contains(String.valueOf(character))) continue;
-                    Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
-                    if (!glyph.hasPermission(player)) {
-                        Glyph required = manager.getGlyphFromName("required");
-                        String replacement = required.hasPermission(player) ? String.valueOf(required.getCharacter()) : "";
-                        Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
-                        displayName = displayName.replace(String.valueOf(character), replacement);
-                    }
-                }
-
-                for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-                    if (entry.getValue().hasPermission(player))
-                        displayName = (manager.permsChatcolor == null)
-                                ? displayName.replace(entry.getKey(),
-                                String.valueOf(entry.getValue().getCharacter()))
-                                : displayName.replace(entry.getKey(),
-                                ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter())
-                                        + PapiAliases.setPlaceholders(player, manager.permsChatcolor));
-                }
-
-                ItemMeta meta = clickedItem.getItemMeta();
-                if (meta == null) return;
-                meta.setDisplayName(displayName);
-                clickedItem.setItemMeta(meta);
+            for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
+                if (entry.getValue().hasPermission(player))
+                    displayName = (manager.permsChatcolor == null)
+                            ? displayName.replace(entry.getKey(),
+                            String.valueOf(entry.getValue().getCharacter()))
+                            : displayName.replace(entry.getKey(),
+                            ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter())
+                                    + PapiAliases.setPlaceholders(player, manager.permsChatcolor));
             }
         }
+
+        // Since getRenameText is in PlainText, check if the displayName is the same as the rename text with all tags stripped
+        // If so retain the displayName of inputItem. This also fixes enchantments breaking names
+        // If the displayName is null, reset it to the "original" name
+        String strippedDownInputDisplay = AdventureUtils.MINI_MESSAGE.stripTags(AdventureUtils.parseLegacy(inputItem.getItemMeta().getDisplayName()));
+        if (((displayName == null || displayName.isEmpty()) && OraxenItems.exists(inputItem)) || strippedDownInputDisplay.equals(displayName)) {
+            displayName = inputItem.getItemMeta().getPersistentDataContainer().get(ORIGINAL_NAME_KEY, PersistentDataType.STRING);
+        }
+
+        String finalDisplayName = displayName;
+        Utils.editItemMeta(resultItem, meta -> meta.setDisplayName(finalDisplayName));
     }
 
     @EventHandler
