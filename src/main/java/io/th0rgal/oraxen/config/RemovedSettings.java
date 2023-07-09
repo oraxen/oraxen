@@ -12,6 +12,7 @@ public enum RemovedSettings {
     AUTOMATICALLY_SET_MODEL_DATA("ConfigsTools.automatically_set_model_data"),
     AUTOMATICALLY_SET_GLYPH_CODE("ConfigsTools.automatically_set_glyph_code"),
     MERGE_FONTS("Pack.import.merge_font_files"),
+    AUTO_UPDATE_ITEMS("ItemUpdater.auto_update_items"),
     ;
 
     private final String path;

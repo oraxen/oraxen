@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -192,7 +193,6 @@ public class NoteBlockMechanicListener implements Listener {
                 event.setCancelled(true);
             }
         }
-
     }
 
     // TODO Make this function less of a clusterfuck and more readable
@@ -215,7 +215,7 @@ public class NoteBlockMechanicListener implements Listener {
 
         OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(mechanic, player, item, hand, block, blockFace);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockInteractEvent);
-        event.setCancelled(true);
+        event.setUseInteractedBlock(Event.Result.DENY);
         if (noteBlockInteractEvent.isCancelled()) return;
         if (item == null) return;
 
@@ -262,9 +262,9 @@ public class NoteBlockMechanicListener implements Listener {
             block.getWorld().spawnFallingBlock(BlockHelpers.toCenterBlockLocation(relative.getLocation()), data);
             return;
         }
+        if (!type.isBlock()) return;
 
-        if (type.isBlock())
-            makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), Bukkit.createBlockData(type));
+        makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), Bukkit.createBlockData(type));
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -513,25 +513,28 @@ public class NoteBlockMechanicListener implements Listener {
             return null;
         }
 
-        final OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(OraxenBlocks.getNoteBlockMechanic(target), target, player, item, hand);
-        Bukkit.getPluginManager().callEvent(oraxenPlaceEvent);
-        if (oraxenPlaceEvent.isCancelled()) {
-            target.setBlockData(curentBlockData); // false to cancel physic
-            return null;
+        // This method is ran for placing on custom blocks aswell, so this should not be called for vanilla blocks
+        if (OraxenBlocks.isOraxenNoteBlock(target)) {
+            final OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(OraxenBlocks.getNoteBlockMechanic(target), target, player, item, hand);
+            Bukkit.getPluginManager().callEvent(oraxenPlaceEvent);
+            if (oraxenPlaceEvent.isCancelled()) {
+                target.setBlockData(curentBlockData); // false to cancel physic
+                return null;
+            }
         }
 
         if (isFlowing) {
             if (newBlock.getMaterial() == Material.WATER) sound = "item.bucket.empty";
             else sound = "item.bucket.empty_" + newBlock.getMaterial().toString().toLowerCase();
-        } else sound = null;
+        } else if (!OraxenBlocks.isOraxenBlock(target)) sound = target.getBlockData().getSoundGroup().getPlaceSound().getKey().toString();
+        else sound = null;
 
         if (!player.getGameMode().equals(GameMode.CREATIVE)) {
             if (item.getType().toString().toLowerCase().contains("bucket")) item.setType(Material.BUCKET);
             else item.setAmount(item.getAmount() - 1);
         }
 
-        if (sound != null)
-            BlockHelpers.playCustomBlockSound(target.getLocation(), sound, SoundCategory.BLOCKS, 0.8f, 0.8f);
+        if (sound != null) BlockHelpers.playCustomBlockSound(target.getLocation(), sound, SoundCategory.BLOCKS, 0.8f, 0.8f);
         Utils.swingHand(player, hand);
 
         return target;
