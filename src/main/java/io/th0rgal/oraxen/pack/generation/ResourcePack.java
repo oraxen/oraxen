@@ -1,6 +1,10 @@
 package io.th0rgal.oraxen.pack.generation;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
@@ -14,7 +18,11 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.CustomArmorsTextures;
+import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VirtualFile;
+import io.th0rgal.oraxen.utils.ZipUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,11 +33,24 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -218,9 +239,8 @@ public class ResourcePack {
                     for (JsonElement element : jsonModel.getAsJsonObject("textures").entrySet().stream().map(Map.Entry::getValue).toList()) {
                         String jsonTexture = element.getAsString();
                         if (!texturePaths.contains(modelPathToPackPath(jsonTexture))) {
-                            if (!jsonTexture.startsWith("#") && !jsonTexture.startsWith("item/") && !jsonTexture.startsWith("block/")) {
-                                Material material = Material.matchMaterial(Utils.getFileNameOnly(jsonTexture).toUpperCase());
-                                if (material == null) {
+                            if (!jsonTexture.startsWith("#") && !jsonTexture.startsWith("item/") && !jsonTexture.startsWith("block/") && !jsonTexture.startsWith("entity/")) {
+                                if (Material.matchMaterial(Utils.getFileNameOnly(jsonTexture).toUpperCase()) == null) {
                                     Logs.logWarning("Found invalid texture-path inside model-file <blue>" + model.getPath() + "</blue>: " + jsonTexture);
                                     Logs.logWarning("Verify that you have a texture in said path.");
                                     Logs.newline();

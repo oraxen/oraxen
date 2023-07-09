@@ -34,7 +34,7 @@ public class ReloadCommand {
         ModelData.DATAS.clear();
         OraxenItems.loadItems();
 
-        if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
+        if (!Settings.UPDATE_ITEMS.toBool()) return;
 
         if (Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
             Logs.logInfo("Updating all items in player-inventories...");

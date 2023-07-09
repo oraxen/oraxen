@@ -22,7 +22,11 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.world.EntitiesLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -58,7 +62,7 @@ public class ItemUpdater implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
+        if (!Settings.UPDATE_ITEMS.toBool()) return;
 
         PlayerInventory inventory = event.getPlayer().getInventory();
         for (int i = 0; i < inventory.getSize(); i++) {
@@ -71,7 +75,7 @@ public class ItemUpdater implements Listener {
 
     @EventHandler
     public void onPlayerPickUp(EntityPickupItemEvent event) {
-        if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
+        if (!Settings.UPDATE_ITEMS.toBool()) return;
         if (!(event.getEntity() instanceof Player)) return;
 
         ItemStack oldItem = event.getItem().getItemStack();
@@ -82,7 +86,7 @@ public class ItemUpdater implements Listener {
 
     @EventHandler
     public void onEntityLoad(EntitiesLoadEvent event) {
-        if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
+        if (!Settings.UPDATE_ITEMS.toBool()) return;
         if (!Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) return;
 
         for (Entity entity : event.getEntities())

@@ -65,7 +65,7 @@ dependencies {
 
     implementation("dev.triumphteam:triumph-gui:3.1.5")
     implementation("org.bstats:bstats-bukkit:3.0.0")
-    implementation("com.github.oraxen:protectionlib:1.3.0")
+    implementation("com.github.oraxen:protectionlib:1.3.1")
     implementation("net.kyori:adventure-text-minimessage:4.14.0")
     implementation("net.kyori:adventure-text-serializer-plain:4.14.0")
     implementation("net.kyori:adventure-platform-bukkit:4.3.0")

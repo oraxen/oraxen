@@ -177,7 +177,7 @@ Gestures:
 
 ItemUpdater:
   # Update the items in player inventory to the latest in config when player joins
-  auto_update_items: true
+  update_items: true
   override_renamed_items: false
   override_lore: true # If lore should be overriden, disable if other plugins modify the OraxenItem's lore
   update_items_on_reload: true # If Oraxen should update all the items of online players on /oraxen reload items/all

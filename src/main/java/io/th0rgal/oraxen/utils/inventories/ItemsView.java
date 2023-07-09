@@ -9,11 +9,9 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -52,7 +50,7 @@ public class ItemsView {
             ItemStack itemStack = itemSlotPair.getLeft();
             int slot = itemSlotPair.getRight() > -1 ? itemSlotPair.getRight() : getUnusedSlot(i, usedSlots);
             final GuiItem item = new GuiItem(itemStack, event -> entry.getValue().show(event.getWhoClicked()));
-            filesPane.addItem(item, Slot.fromXY(slot % 9, slot / 9 + 1));
+            filesPane.addItem(item, Slot.fromXY(slot % 9, slot / 9));
             i++;
         }
 
