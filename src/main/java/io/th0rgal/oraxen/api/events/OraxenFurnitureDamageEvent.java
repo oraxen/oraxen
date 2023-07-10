@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.api.events.furniture;
+package io.th0rgal.oraxen.api.events;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.block.Block;
@@ -10,20 +10,35 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
+/**
+ * @deprecated This event is deprecated and will be removed in a future version.
+ * Use {@link io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureDamageEvent} instead.
+ */
+@Deprecated(since = "1.158.0", forRemoval = true)
+public class OraxenFurnitureDamageEvent extends Event implements Cancellable {
 
     boolean isCancelled;
-    private final FurnitureMechanic mechanic;
     private final Block block;
+    private final FurnitureMechanic mechanic;
     private final Player player;
     private final Entity baseEntity;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenFurnitureBreakEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Entity baseEntity, @NotNull final Player player, @Nullable final Block block) {
-        this.block = block;
+    /**
+     * @param mechanic The FurnitureMechanic of this block
+     * @param baseEntity The base-entity for the damaged furniture
+     * @param player The player who damaged this block
+     * @param block The block that was damaged
+     */
+    public OraxenFurnitureDamageEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Entity baseEntity, @NotNull final Player player, @Nullable final Block block) {
         this.mechanic = mechanic;
         this.player = player;
+        this.block = block;
         this.baseEntity = baseEntity;
+    }
+
+    public OraxenFurnitureDamageEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Entity baseEntity, @NotNull final Player player) {
+        this(mechanic, baseEntity, player, null);
     }
 
     /**
@@ -35,7 +50,7 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return The player that broke the furniture
+     * @return The player that damaged the furniture
      */
     @NotNull
     public Player getPlayer() {
@@ -43,7 +58,7 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
     }
 
     /**
-     * Returns the block that was broken.
+     * Gets the block that was damaged.
      * @return block that was broken or null if it was an entity
      */
     @Nullable
@@ -52,7 +67,7 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return The ItemFrame the furniture is inmechanic
+     * @return The ItemFrame the furniture is in
      */
     @NotNull
     public Entity getBaseEntity() {
@@ -78,5 +93,4 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
     public static HandlerList getHandlerList() {
         return HANDLERS;
     }
-
 }
