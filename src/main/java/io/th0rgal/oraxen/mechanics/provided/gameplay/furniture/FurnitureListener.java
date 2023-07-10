@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
@@ -18,11 +17,22 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Rotation;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.entity.*;
+import org.bukkit.entity.AbstractArrow;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Explosive;
+import org.bukkit.entity.Fireball;
+import org.bukkit.entity.Interaction;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -45,7 +55,6 @@ import org.bukkit.util.RayTraceResult;
 
 import java.util.Objects;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.SEAT_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.rotationToYaw;
 
 public class FurnitureListener implements Listener {
@@ -425,11 +434,6 @@ public class FurnitureListener implements Listener {
     @EventHandler
     public void onPlayerQuitEvent(final PlayerQuitEvent event) {
         final Player player = event.getPlayer();
-        final Entity vehicle = player.getVehicle();
-        if (vehicle instanceof final ArmorStand armorStand) {
-            if (armorStand.getPersistentDataContainer().has(SEAT_KEY, DataType.UUID)) {
-                player.leaveVehicle();
-            }
-        }
+        if (OraxenFurniture.isFurniture(player.getVehicle())) player.leaveVehicle();
     }
 }
