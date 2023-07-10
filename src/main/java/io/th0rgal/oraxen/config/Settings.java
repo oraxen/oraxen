@@ -89,6 +89,7 @@ public enum Settings {
     SEND_PACK_ADVANCED("Pack.dispatch.send_pack_advanced.enabled"),
     SEND_PACK_ADVANCED_MANDATORY("Pack.dispatch.send_pack_advanced.mandatory"),
     SEND_PACK_ADVANCED_MESSAGE("Pack.dispatch.send_pack_advanced.message"),
+    SEND_PACK_ADVANCED_MIN_PROTOCOL("Pack.dispatch.send_pack_advanced.min_protocol"),
     SEND_JOIN_MESSAGE("Pack.dispatch.join_message.enabled"),
     JOIN_MESSAGE_DELAY("Pack.dispatch.join_message.delay"),
 

@@ -4,6 +4,7 @@ import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolManager;
 import com.comphenix.protocol.events.PacketContainer;
 import com.comphenix.protocol.wrappers.WrappedChatComponent;
+import com.viaversion.viaversion.api.Via;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
@@ -21,6 +22,7 @@ public class AdvancedPackSender extends PackSender implements Listener {
 
     private final ProtocolManager protocolManager;
     private final WrappedChatComponent component;
+    private boolean useViaVersion;
 
     public AdvancedPackSender(HostingProvider hostingProvider) {
         super(hostingProvider);
@@ -29,9 +31,24 @@ public class AdvancedPackSender extends PackSender implements Listener {
                 .serialize(AdventureUtils.MINI_MESSAGE.deserialize(Settings.SEND_PACK_ADVANCED_MESSAGE.toString())));
     }
 
+    @SuppressWarnings("unchecked")
+    public int getPlayerProtocol(Player player) {
+        if (useViaVersion) {
+            return Via.getAPI().getPlayerVersion(player);
+        } else {
+            return protocolManager.getProtocolVersion(player);
+        }
+    }
+
     @Override
     public void register() {
         Bukkit.getPluginManager().registerEvents(this, OraxenPlugin.get());
+        if (Bukkit.getPluginManager().isPluginEnabled("ViaVersion")) {
+            try {
+                Class.forName("com.viaversion.viaversion.api.Via");
+                useViaVersion = true;
+            } catch (ClassNotFoundException ignored) { }
+        }
     }
 
     @Override
@@ -41,6 +58,11 @@ public class AdvancedPackSender extends PackSender implements Listener {
 
     @Override
     public void sendPack(Player player) {
+        int minProtocol = (int) Settings.SEND_PACK_ADVANCED_MIN_PROTOCOL.getValue();
+        int playerProtocol;
+        if (minProtocol > 0 && (playerProtocol = getPlayerProtocol(player)) > 0 && playerProtocol < minProtocol) {
+            return;
+        }
         PacketContainer handle = protocolManager.createPacket(PacketType.Play.Server.RESOURCE_PACK_SEND);
         handle.getStrings().write(0, hostingProvider.getMinecraftPackURL());
         handle.getStrings().write(1, hostingProvider.getOriginalSHA1());
