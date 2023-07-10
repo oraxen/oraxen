@@ -3,7 +3,11 @@ package io.th0rgal.oraxen.mechanics.provided.misc.misc;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.*;
+import org.bukkit.Effect;
+import org.bukkit.GameMode;
+import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.Tag;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.entity.Entity;
@@ -99,12 +103,12 @@ public class MiscListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDisableVanillaInteraction(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(event.getItem());
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
-        event.setCancelled(true);
+        event.setUseItemInHand(Event.Result.DENY);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -163,6 +167,7 @@ public class MiscListener implements Listener {
         if (mechanic == null || !mechanic.isCompostable()) return;
         if (event.useInteractedBlock() == Event.Result.DENY) return;
         event.setUseInteractedBlock(Event.Result.ALLOW);
+        event.setUseItemInHand(Event.Result.ALLOW);
 
         if (levelled.getLevel() < levelled.getMaximumLevel()) {
             if (Math.random() <= 0.65) levelled.setLevel(levelled.getLevel() + 1); // Same as wheat
