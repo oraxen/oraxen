@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
 import org.bukkit.Axis;
 import org.bukkit.Bukkit;
@@ -164,10 +163,11 @@ public class BlockHelpers {
         };
     }
 
-    public static boolean correctAllBlockStates(Block block, Player player, BlockFace face, ItemStack item) {
+    public static boolean correctAllBlockStates(Block block, Player player, BlockFace face, ItemStack item, boolean waterloggedBefore) {
         BlockData data = block.getBlockData();
         BlockState state = block.getState();
         Material type = block.getType();
+        if (type == Material.SEAGRASS && !waterloggedBefore) return true;
         if (data instanceof Tripwire) return false;
         if (data instanceof Sapling && face != BlockFace.UP) return true;
         if (data instanceof Ladder && (face == BlockFace.UP || face == BlockFace.DOWN)) return true;
@@ -357,7 +357,6 @@ public class BlockHelpers {
     }
 
     private static void handleDirectionalBlocks(Block block, BlockFace face) {
-        Logs.debug(1);
         final BlockData data = block.getBlockData();
         if (data instanceof Directional directional) {
             if (data instanceof FaceAttachable faceAttachable) {
