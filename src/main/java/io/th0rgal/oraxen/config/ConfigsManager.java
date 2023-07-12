@@ -65,6 +65,10 @@ public class ConfigsManager {
         return settings != null ? settings : defaultSettings;
     }
 
+    public File getSettingsFile() {
+        return new File(plugin.getDataFolder(), "settings.yml");
+    }
+
     public YamlConfiguration getLanguage() {
         return language != null ? language : defaultLanguage;
     }

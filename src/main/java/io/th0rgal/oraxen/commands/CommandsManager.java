@@ -50,6 +50,7 @@ public class CommandsManager {
                 .withSubcommand((new HudCommand()).getHudCommand())
                 .withSubcommand((new LogDumpCommand().getLogDumpCommand()))
                 .withSubcommand((new GestureCommand().getGestureCommand()))
+                .withSubcommand((new VersionCommand()).getVersionCommand())
                 .executes((sender, args) -> {
                     Message.COMMAND_HELP.send(sender);
                 })
