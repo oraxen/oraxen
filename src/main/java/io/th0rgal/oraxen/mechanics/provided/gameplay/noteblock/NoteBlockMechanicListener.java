@@ -21,7 +21,6 @@ import org.bukkit.GameMode;
 import org.bukkit.Instrument;
 import org.bukkit.Location;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.Sound;
 import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
@@ -138,15 +137,15 @@ public class NoteBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onNoteblockPowered(final GenericGameEvent event) {
         Block block = event.getLocation().getBlock();
-        NamespacedKey eventKey = NamespacedKey.minecraft("note_block_play");
         Location eLoc = block.getLocation();
         if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
 
         // This GameEvent only exists in 1.19
         // If server is 1.18 check if its there and if not return
         // If 1.19 we can check if this event is fired
-        if (!GameEvent.values().contains(GameEvent.getByKey(eventKey))) return;
-        if (block.getType() != Material.NOTE_BLOCK || event.getEvent() != GameEvent.getByKey(eventKey)) return;
+        if (!VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R1)) return;
+        if (event.getEvent() != GameEvent.NOTE_BLOCK_PLAY) return;
+        if (block.getType() != Material.NOTE_BLOCK) return;
         NoteBlock data = (NoteBlock) block.getBlockData().clone();
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> block.setBlockData(data, false), 1L);
     }
