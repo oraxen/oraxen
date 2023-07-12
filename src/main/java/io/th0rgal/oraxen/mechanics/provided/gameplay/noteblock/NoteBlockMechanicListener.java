@@ -14,7 +14,6 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.GameEvent;
@@ -515,6 +514,7 @@ public class NoteBlockMechanicListener implements Listener {
         final Block target;
         final String sound;
         final Material type = placedAgainst.getType();
+        final boolean waterloggedBefore = placedAgainst.getRelative(face).getType() == Material.WATER;
 
         if (BlockHelpers.isReplaceable(type))
             target = placedAgainst;
@@ -532,7 +532,7 @@ public class NoteBlockMechanicListener implements Listener {
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
 
-        if (BlockHelpers.correctAllBlockStates(target, player, face, item)) blockPlaceEvent.setCancelled(true);
+        if (BlockHelpers.correctAllBlockStates(target, player, face, item, waterloggedBefore)) blockPlaceEvent.setCancelled(true);
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
         if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions()))
             blockPlaceEvent.setCancelled(true);

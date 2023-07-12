@@ -404,6 +404,7 @@ public class StringBlockMechanicListener implements Listener {
                                        final Block placedAgainst, final BlockFace face, final BlockData newBlock) {
         final Block target;
         final Material type = placedAgainst.getType();
+        final boolean waterloggedBefore = placedAgainst.getRelative(face).getType() == Material.WATER;
         if (BlockHelpers.isReplaceable(type))
             target = placedAgainst;
         else {
@@ -436,7 +437,7 @@ public class StringBlockMechanicListener implements Listener {
             else blockAbove.setType(Material.TRIPWIRE);
         }
 
-        if (player.getGameMode() == GameMode.ADVENTURE || BlockHelpers.correctAllBlockStates(target, player, face, item))
+        if (player.getGameMode() == GameMode.ADVENTURE || BlockHelpers.correctAllBlockStates(target, player, face, item, waterloggedBefore))
             blockPlaceEvent.setCancelled(true);
 
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled() || oraxenBlockPlaceEvent.isCancelled()) {
