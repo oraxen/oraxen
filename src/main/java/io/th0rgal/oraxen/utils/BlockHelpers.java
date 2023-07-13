@@ -71,13 +71,15 @@ public class BlockHelpers {
 
     public static void playCustomBlockSound(Location location, String sound, SoundCategory category, float volume, float pitch) {
         if (sound == null || location == null || location.getWorld() == null || category == null) return;
-        location.getWorld().playSound(location, sound, category, volume, pitch);
+        location.getWorld().playSound(location, validateReplacedSounds(sound), category, volume, pitch);
     }
 
     public static String validateReplacedSounds(String sound) {
         ConfigurationSection mechanics = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds");
         if (mechanics == null) return sound;
-        else if (sound.startsWith("block.wood") && mechanics.getBoolean("noteblock_and_block")) {
+
+        sound = sound.replace("minecraft:", "");
+        if (sound.startsWith("block.wood") && mechanics.getBoolean("noteblock_and_block")) {
             return sound.replace("block.wood", "required.wood");
         } else if (sound.startsWith("block.stone") && mechanics.getBoolean("stringblock_and_furniture")) {
                 return sound.replace("block.stone", "required.stone");
