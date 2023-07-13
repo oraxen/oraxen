@@ -46,6 +46,7 @@ import org.bukkit.block.data.type.Slab;
 import org.bukkit.block.data.type.Stairs;
 import org.bukkit.block.data.type.TrapDoor;
 import org.bukkit.block.data.type.Tripwire;
+import org.bukkit.block.data.type.TripwireHook;
 import org.bukkit.block.data.type.WallHangingSign;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -229,6 +230,17 @@ public class BlockHelpers {
         if (data instanceof Repeater repeater) {
             repeater.setFacing(player.getFacing().getOppositeFace());
             block.setBlockData(repeater, false);
+        }
+
+        if (data instanceof TripwireHook hook) {
+            if (block.getRelative(player.getFacing()).getType().isSolid())
+                hook.setFacing(player.getFacing().getOppositeFace());
+            else {
+                List<BlockFace> solidFaces = hook.getFaces().stream().filter(f -> block.getRelative(f).getType().isSolid()).toList();
+                if (solidFaces.isEmpty()) return true;
+                else hook.setFacing(solidFaces.get(0).getOppositeFace());
+            }
+            block.setBlockData(hook, false);
         }
 
         if (block.getState() instanceof Sign sign) player.openSign(sign);
