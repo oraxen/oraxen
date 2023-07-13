@@ -41,6 +41,7 @@ import org.bukkit.block.data.type.Lantern;
 import org.bukkit.block.data.type.Lectern;
 import org.bukkit.block.data.type.Repeater;
 import org.bukkit.block.data.type.Sapling;
+import org.bukkit.block.data.type.SculkVein;
 import org.bukkit.block.data.type.Slab;
 import org.bukkit.block.data.type.Stairs;
 import org.bukkit.block.data.type.TrapDoor;
@@ -188,7 +189,7 @@ public class BlockHelpers {
         if ((state instanceof Skull || state instanceof Sign || state instanceof Banner || type.toString().contains("TORCH")) && face != BlockFace.DOWN && face != BlockFace.UP) handleWallAttachable(block, face);
 
         if (!(data instanceof Stairs) && !(data instanceof HangingSign) && (data instanceof Directional || data instanceof FaceAttachable || data instanceof MultipleFacing || data instanceof Attachable)) {
-            if (data instanceof MultipleFacing && face == BlockFace.UP) return true;
+            if (!(data instanceof SculkVein) && data instanceof MultipleFacing && face == BlockFace.UP) return true;
             if (data instanceof CoralWallFan && face == BlockFace.DOWN) return true;
             handleDirectionalBlocks(block, face);
         }
@@ -366,7 +367,9 @@ public class BlockHelpers {
                 else if (face == BlockFace.DOWN) faceAttachable.setAttachedFace(CEILING);
                 else directional.setFacing(face);
             } else if (directional.getFaces().contains(face)) directional.setFacing(face);
-        } else if (data instanceof MultipleFacing multipleFacing) {
+        } else if (data instanceof SculkVein sculkVein)
+            sculkVein.setFace(face.getOppositeFace(), block.getRelative(face.getOppositeFace()).getType().isSolid());
+        else if (data instanceof MultipleFacing multipleFacing) {
             for (BlockFace blockFace : multipleFacing.getAllowedFaces())
                 multipleFacing.setFace(blockFace, block.getRelative(blockFace).getType().isSolid());
         } else if (data instanceof Attachable attachable)
