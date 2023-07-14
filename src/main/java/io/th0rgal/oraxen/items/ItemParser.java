@@ -26,6 +26,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 public class ItemParser {
@@ -169,9 +170,10 @@ public class ItemParser {
 
         if (section.contains("AttributeModifiers")) {
             @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
-            List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section
-                    .getList("AttributeModifiers");
+            List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section.getList("AttributeModifiers");
             for (LinkedHashMap<String, Object> attributeJson : attributes) {
+                attributeJson.putIfAbsent("uuid", UUID.randomUUID().toString());
+                attributeJson.putIfAbsent("name", "oraxen:modifier");
                 AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
                 Attribute attribute = Attribute.valueOf((String) attributeJson.get("attribute"));
                 item.addAttributeModifiers(attribute, attributeModifier);

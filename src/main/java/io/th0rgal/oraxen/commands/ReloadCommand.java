@@ -30,7 +30,7 @@ public class ReloadCommand {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "items"));
         OraxenItems.loadItems();
 
-        if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
+        if (!Settings.UPDATE_ITEMS.toBool()) return;
 
         if (Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
             Logs.logInfo("Updating all items in player-inventories...");

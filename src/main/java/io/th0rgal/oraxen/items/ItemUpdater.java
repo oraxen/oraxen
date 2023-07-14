@@ -62,7 +62,7 @@ public class ItemUpdater implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
+        if (!Settings.UPDATE_ITEMS.toBool()) return;
 
         PlayerInventory inventory = event.getPlayer().getInventory();
         for (int i = 0; i < inventory.getSize(); i++) {
@@ -75,7 +75,7 @@ public class ItemUpdater implements Listener {
 
     @EventHandler
     public void onPlayerPickUp(EntityPickupItemEvent event) {
-        if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
+        if (!Settings.UPDATE_ITEMS.toBool()) return;
         if (!(event.getEntity() instanceof Player)) return;
 
         ItemStack oldItem = event.getItem().getItemStack();
@@ -86,7 +86,7 @@ public class ItemUpdater implements Listener {
 
     @EventHandler
     public void onEntityLoad(EntitiesLoadEvent event) {
-        if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
+        if (!Settings.UPDATE_ITEMS.toBool()) return;
         if (!Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) return;
 
         for (Entity entity : event.getEntities())

@@ -9,7 +9,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.Utils;
@@ -25,12 +24,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ItemsView {
 
     private final YamlConfiguration settings = new ResourcesManager(OraxenPlugin.get()).getSettings();
-    private final FontManager fontManager = OraxenPlugin.get().getFontManager();
-    private final String baseMenuTexture = Settings.ORAXEN_INV_TITLE.toString();
     ChestGui mainGui;
 
     public ChestGui create() {
@@ -40,27 +39,30 @@ public class ItemsView {
             if (!unexcludedItems.isEmpty())
                 files.put(file, createSubGUI(file.getName(), unexcludedItems));
         }
-        final int rows = (files.size() - 1) / 9 + 1;
         mainGui = new ChestGui((int) Settings.ORAXEN_INV_ROWS.getValue(), Settings.ORAXEN_INV_TITLE.toString());
-        final StaticPane filesPane = new StaticPane(0, 0, 9, rows);
+        final StaticPane filesPane = new StaticPane(0, 0, 9, mainGui.getRows());
         int i = 0;
-        int highestSlot = 0;
+
+        Set<Integer> usedSlots = files.keySet().stream().map(e -> getItemStack(e).getRight()).filter(e -> e > -1).collect(Collectors.toSet());
+
         for (final var entry : files.entrySet()) {
             Pair<ItemStack, Integer> itemSlotPair = getItemStack(entry.getKey());
             ItemStack itemStack = itemSlotPair.getLeft();
-            int slot = itemSlotPair.getRight() > -1 ? itemSlotPair.getRight() : i;
-            final GuiItem item = new GuiItem(itemStack, event ->
-                    entry.getValue().show(event.getWhoClicked()));
-            highestSlot = Math.max(highestSlot, slot);
-            filesPane.setHeight(highestSlot / 9 + 1);
-            filesPane.addItem(item, Slot.fromIndex(slot));
+            int slot = itemSlotPair.getRight() > -1 ? itemSlotPair.getRight() : getUnusedSlot(i, usedSlots);
+            final GuiItem item = new GuiItem(itemStack, event -> entry.getValue().show(event.getWhoClicked()));
+            filesPane.addItem(item, Slot.fromXY(slot % 9, slot / 9));
             i++;
         }
-
 
         mainGui.addPane(filesPane);
         mainGui.setOnTopClick(event -> event.setCancelled(true));
         return mainGui;
+    }
+
+    private int getUnusedSlot(int i, Set<Integer> usedSlots) {
+        int slot = usedSlots.contains(i) ? getUnusedSlot(i + 1, usedSlots) : i;
+        usedSlots.add(slot);
+        return slot;
     }
 
     private ChestGui createSubGUI(final String fileName, final List<ItemBuilder> items) {

@@ -172,7 +172,7 @@ public class ConfigsManager {
     // Skip optional keys and subkeys
     private final List<String> skippedYamlKeys =
             List.of(
-                    "oraxen_inventory",
+                    "oraxen_inventory.menu_layout",
                     "Misc.armor_equip_event_bypass"
             );
 

@@ -40,7 +40,7 @@ public enum Settings {
     GESTURES_ENABLED("Gestures.enabled"),
 
     // ItemUpdater
-    AUTO_UPDATE_ITEMS("ItemUpdater.auto_update_items"),
+    UPDATE_ITEMS("ItemUpdater.update_items"),
     UPDATE_ITEMS_ON_RELOAD("ItemUpdater.update_items_on_reload"),
     UPDATE_FURNITURE_ON_RELOAD("ItemUpdater.update_furniture_on_reload"),
     UPDATE_FURNITURE_ON_LOAD("ItemUpdater.update_furniture_on_load"),
