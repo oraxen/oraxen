@@ -39,7 +39,6 @@ public class Glyph {
     private final int height;
     private String permission = null;
     private String[] placeholders;
-    private int code;
     private final BitMapEntry bitmapEntry;
 
     public Glyph(final String glyphName, final ConfigurationSection glyphSection, char newChars) {
@@ -56,7 +55,7 @@ public class Glyph {
         }
 
         if (glyphSection.contains("code")) {
-            glyphSection.set("char", (char) glyphSection.getInt("code"));
+            if (glyphSection.isInt("code")) glyphSection.set("char", (char) glyphSection.getInt("code"));
             glyphSection.set("code", null);
             fileChanged = true;
         }
