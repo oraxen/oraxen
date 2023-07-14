@@ -10,7 +10,7 @@ public class ConsumablePotionEffectsMechanicFactory extends MechanicFactory {
 
     public ConsumablePotionEffectsMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new ConsumablePotionEffectsMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new ConsumablePotionEffectsMechanicListener(this));
     }
 
     @Override

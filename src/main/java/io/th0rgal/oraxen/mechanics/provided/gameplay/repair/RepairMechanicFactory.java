@@ -13,7 +13,7 @@ public class RepairMechanicFactory extends MechanicFactory {
     public RepairMechanicFactory(ConfigurationSection section) {
         super(section);
         oraxenDurabilityOnly = section.getBoolean("oraxen_durability_only");
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new RepairMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new RepairMechanicListener(this));
     }
 
     @Override

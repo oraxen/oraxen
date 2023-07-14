@@ -9,7 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 public class FoodMechanicFactory extends MechanicFactory {
     public FoodMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new FoodMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FoodMechanicListener(this));
     }
 
     @Override

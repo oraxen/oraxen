@@ -27,7 +27,7 @@ public class LogStripListener implements Listener {
         ItemStack item = player.getInventory().getItemInMainHand();
 
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null) return;
-        if (block.getType() != Material.NOTE_BLOCK || canStripLog(item)) return;
+        if (block.getType() != Material.NOTE_BLOCK || !canStripLog(item)) return;
 
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
         if (mechanic == null) return;

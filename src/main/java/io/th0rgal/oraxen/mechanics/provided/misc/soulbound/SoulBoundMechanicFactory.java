@@ -9,7 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 public class SoulBoundMechanicFactory extends MechanicFactory {
     public SoulBoundMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new SoulBoundMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new SoulBoundMechanicListener(this));
     }
 
     @Override
