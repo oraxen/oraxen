@@ -18,7 +18,7 @@ jobs:
       - name: Get release version from commit message
         id: release_version
         run: |
-          echo "::set-output name=version::$(echo ${{ github.event.head_commit.message }} | sed -nE 's/release:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*/\1/p')"
+          echo "::set-output name=version::$(echo ${{ github.event.head_commit.message }} | sed -nE 's/release:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*')"
       - name: Check if gradle.properties file needs to be updated
         id: check_gradle_properties_file
         run: |

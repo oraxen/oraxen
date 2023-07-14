@@ -9,7 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 public class MiscMechanicFactory extends MechanicFactory {
     public MiscMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new MiscListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new MiscListener(this));
     }
 
     @Override

@@ -46,7 +46,7 @@ public class OraxenExpansion extends PlaceholderExpansion {
         else if (params.equals("pack_hash"))
             return plugin.getUploadManager().getHostingProvider().getOriginalSHA1();
         else if (glyph != null)
-            return String.valueOf(glyph.getCharacter());
+            return glyph.getCharacter();
         return null; // Placeholder is unknown by the Expansion
     }
 }

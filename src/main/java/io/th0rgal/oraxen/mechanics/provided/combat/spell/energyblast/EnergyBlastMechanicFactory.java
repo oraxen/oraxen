@@ -9,7 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 public class EnergyBlastMechanicFactory extends MechanicFactory {
     public EnergyBlastMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new EnergyBlastMechanicManager(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new EnergyBlastMechanicManager(this));
     }
 
     @Override

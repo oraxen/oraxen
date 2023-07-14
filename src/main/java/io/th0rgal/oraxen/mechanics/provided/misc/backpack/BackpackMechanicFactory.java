@@ -10,7 +10,7 @@ public class BackpackMechanicFactory extends MechanicFactory {
 
         public BackpackMechanicFactory(ConfigurationSection section) {
             super(section);
-            MechanicsManager.registerListeners(OraxenPlugin.get(), new BackpackListener(this));
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new BackpackListener(this));
         }
 
         @Override

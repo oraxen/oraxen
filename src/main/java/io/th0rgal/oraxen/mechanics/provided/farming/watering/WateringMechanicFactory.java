@@ -12,7 +12,7 @@ public class WateringMechanicFactory extends MechanicFactory {
 
     public WateringMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new WateringMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new WateringMechanicListener(this));
         instance = this;
     }
 

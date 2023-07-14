@@ -10,7 +10,7 @@ public class EfficiencyMechanicFactory extends MechanicFactory {
 
     public EfficiencyMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new EfficiencyMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new EfficiencyMechanicListener(this));
     }
 
     @Override
