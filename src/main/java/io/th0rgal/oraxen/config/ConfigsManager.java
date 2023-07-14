@@ -42,10 +42,10 @@ public class ConfigsManager {
     private YamlConfiguration sound;
     private YamlConfiguration language;
     private YamlConfiguration hud;
-    private YamlConfiguration gestures;
     private File itemsFolder;
     private File glyphsFolder;
     private File schematicsFolder;
+    private File gesturesFolder;
 
     public ConfigsManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -140,6 +140,14 @@ public class ConfigsManager {
                 new ResourcesManager(plugin).extractConfigsInFolder("schematics", "schem");
         }
 
+        // check gestures
+        gesturesFolder = new File(plugin.getDataFolder(), "gestures");
+        if (!gesturesFolder.exists()) {
+            gesturesFolder.mkdirs();
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("gestures", "yml");
+        }
+
         return true; // todo : return false when an error is detected + prints a detailed error
     }
 
@@ -178,15 +186,16 @@ public class ConfigsManager {
                 .stream(getGlyphsFiles())
                 .filter(file -> file.getName().endsWith(".yml"))
                 .toList();
-        Map<String, Integer> codePerGlyph = new HashMap<>();
+        Map<String, Character> charPerGlyph = new HashMap<>();
         for (File file : configs) {
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
                 if (glyphSection == null) continue;
-                int code = glyphSection.getInt("code", -1);
-                if (code != -1)
-                    codePerGlyph.put(key, code);
+                String characterString = glyphSection.getString("char");
+                char character = characterString != null ? characterString.charAt(0) : Character.MIN_VALUE;
+                if (character != Character.MIN_VALUE)
+                    charPerGlyph.put(key, character);
             }
         }
 
@@ -194,12 +203,12 @@ public class ConfigsManager {
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
             boolean fileChanged = false;
             for (String key : configuration.getKeys(false)) {
-                int code = codePerGlyph.getOrDefault(key, -1);
-                if (code == -1) {
-                    code = Utils.firstEmpty(codePerGlyph, 42000);
-                    codePerGlyph.put(key, code);
+                char character = charPerGlyph.getOrDefault(key, Character.MIN_VALUE);
+                if (character == Character.MIN_VALUE) {
+                    character = Utils.firstEmpty(charPerGlyph, 42000);
+                    charPerGlyph.put(key, character);
                 }
-                Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key), code);
+                Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key), character);
                 if (glyph.isFileChanged())
                     fileChanged = true;
                 glyph.verifyGlyph(output);

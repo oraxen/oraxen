@@ -11,6 +11,11 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * @deprecated This event is deprecated and will be removed in a future version.
+ * Use {@link io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent} instead.
+ */
+@Deprecated(since = "1.158.0", forRemoval = true)
 public class OraxenStringBlockPlaceEvent extends Event implements Cancellable {
 
     private final StringBlockMechanic mechanic;

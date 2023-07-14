@@ -25,7 +25,7 @@ public class FurnitureFactory extends MechanicFactory {
         super(section);
         toolTypes = section.getStringList("tool_types");
         evolutionCheckDelay = section.getInt("evolution_check_delay");
-        MechanicsManager.registerListeners(OraxenPlugin.get(),
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new FurnitureListener(this),
                 new EvolutionListener(),
                 new JukeboxListener()
@@ -34,7 +34,7 @@ public class FurnitureFactory extends MechanicFactory {
         instance = this;
         customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("stringblock_and_furniture", true);
 
-        if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new FurnitureSoundListener());
+        if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
         detectViabackwards = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("furniture").getBoolean("detect_viabackwards", true);
     }
 

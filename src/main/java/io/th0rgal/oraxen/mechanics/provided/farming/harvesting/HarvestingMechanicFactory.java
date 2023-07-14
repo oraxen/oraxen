@@ -9,7 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 public class HarvestingMechanicFactory extends MechanicFactory {
     public HarvestingMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new HarvestingMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new HarvestingMechanicListener(this));
     }
 
     @Override

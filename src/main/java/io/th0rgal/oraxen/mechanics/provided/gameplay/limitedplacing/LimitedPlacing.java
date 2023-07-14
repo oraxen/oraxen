@@ -26,6 +26,25 @@ public class LimitedPlacing {
     private final boolean floor;
     private final boolean roof;
     private final boolean wall;
+    private final RadiusLimitation radiusLimitation;
+
+    public static final class RadiusLimitation {
+        private final int radius;
+        private final int amount;
+
+        public RadiusLimitation(ConfigurationSection section) {
+            radius = section.getInt("radius", -1);
+            amount = section.getInt("amount", -1);
+        }
+
+        public int getRadius() {
+            return radius;
+        }
+
+        public int getAmount() {
+            return amount;
+        }
+    }
 
     public LimitedPlacing(ConfigurationSection section) {
         floor = section.getBoolean("floor", true);
@@ -35,6 +54,18 @@ public class LimitedPlacing {
         blockTypes = getLimitedBlockMaterials(section.getStringList("block_types"));
         blockTags = getLimitedBlockTags(section.getStringList("block_tags"));
         oraxenBlocks =  getLimitedOraxenBlocks(section.getStringList("oraxen_blocks"));
+
+        ConfigurationSection radiusSection = section.getConfigurationSection("radius_limitation");
+        if (radiusSection != null) radiusLimitation = new RadiusLimitation(radiusSection);
+        else radiusLimitation = null;
+    }
+
+    public boolean isRadiusLimited() {
+        return radiusLimitation != null && radiusLimitation.getRadius() != -1 && radiusLimitation.getAmount() != -1;
+    }
+
+    public RadiusLimitation getRadiusLimitation() {
+        return radiusLimitation;
     }
 
     private List<Material> getLimitedBlockMaterials(List<String> list) {

@@ -12,7 +12,7 @@ public class ConsumableMechanicFactory extends MechanicFactory {
 
     public ConsumableMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new ConsumableMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new ConsumableMechanicListener(this));
         instance = this;
     }
 
