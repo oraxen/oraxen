@@ -36,6 +36,8 @@ import java.util.Arrays;
 import java.util.Map;
 
 import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
+import static io.th0rgal.oraxen.utils.AdventureUtils.MINI_MESSAGE;
+import static io.th0rgal.oraxen.utils.AdventureUtils.MINI_MESSAGE_EMPTY;
 
 public class FontEvents implements Listener {
 
@@ -72,6 +74,7 @@ public class FontEvents implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onBookGlyph(final PlayerInteractEvent event) {
+        Player player = event.getPlayer();
         if (!Settings.FORMAT_BOOKS.toBool()) return;
 
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
@@ -85,51 +88,53 @@ public class FontEvents implements Listener {
 
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
                 String unicode = String.valueOf(entry.getValue().getCharacter());
-                if (entry.getValue().hasPermission(event.getPlayer()))
+                if (entry.getValue().hasPermission(player))
                     page = (manager.permsChatcolor == null)
                             ? page.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
                             .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK)
-                            : page.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(event.getPlayer(), manager.permsChatcolor))
+                            : page.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(player, manager.permsChatcolor))
                             .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK);
                 meta.setPage(i, AdventureUtils.parseLegacy(page));
             }
         }
 
         Book book = Book.builder()
-                .title(AdventureUtils.MINI_MESSAGE.deserialize(meta.getTitle() != null ? meta.getTitle() : ""))
-                .author(AdventureUtils.MINI_MESSAGE.deserialize(meta.getAuthor() != null ? meta.getAuthor() : ""))
-                .pages(meta.getPages().stream().map(AdventureUtils.MINI_MESSAGE::deserialize).toList())
+                .title(MINI_MESSAGE.deserialize(meta.getTitle() != null ? meta.getTitle() : ""))
+                .author(MINI_MESSAGE.deserialize(meta.getAuthor() != null ? meta.getAuthor() : ""))
+                .pages(meta.getPages().stream().map(p -> MINI_MESSAGE_EMPTY.deserialize(p, GlyphTag.getResolverForPlayer(player))).toList())
                 .build();
 
         // Open fake book and deny opening of original book to avoid needing to format the original book
         event.setUseItemInHand(Event.Result.DENY);
-        OraxenPlugin.get().getAudience().player(event.getPlayer()).openBook(book);
+        OraxenPlugin.get().getAudience().player(player).openBook(book);
     }
 
     @EventHandler(ignoreCancelled = true)
     public void onSignGlyph(final SignChangeEvent event) {
         if (!Settings.FORMAT_SIGNS.toBool()) return;
+        Player player = event.getPlayer();
 
         for (String line : event.getLines()) {
+            line = AdventureUtils.parseLegacyThroughMiniMessage(line);
             int i = Arrays.stream(event.getLines()).toList().indexOf(line);
             if (i == -1) continue;
             for (Character character : manager.getReverseMap().keySet()) {
                 if (!line.contains(String.valueOf(character))) continue;
 
                 Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
-                if (!glyph.hasPermission(event.getPlayer())) {
-                    Message.NO_PERMISSION.send(event.getPlayer(), AdventureUtils.tagResolver("permission", glyph.getPermission()));
+                if (!glyph.hasPermission(player)) {
+                    Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
                     event.setCancelled(true);
                 }
             }
 
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
                 String unicode = String.valueOf(entry.getValue().getCharacter());
-                if (entry.getValue().hasPermission(event.getPlayer()))
+                if (entry.getValue().hasPermission(player))
                     line = (manager.permsChatcolor == null)
                             ? line.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
                             .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK)
-                            : line.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(event.getPlayer(), manager.permsChatcolor))
+                            : line.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(player, manager.permsChatcolor))
                             .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK);
             }
             event.setLine(i, AdventureUtils.parseLegacy(line));
@@ -174,7 +179,7 @@ public class FontEvents implements Listener {
         // Since getRenameText is in PlainText, check if the displayName is the same as the rename text with all tags stripped
         // If so retain the displayName of inputItem. This also fixes enchantments breaking names
         // If the displayName is null, reset it to the "original" name
-        String strippedDownInputDisplay = AdventureUtils.MINI_MESSAGE.stripTags(AdventureUtils.parseLegacy(inputItem.getItemMeta().getDisplayName()));
+        String strippedDownInputDisplay = MINI_MESSAGE.stripTags(AdventureUtils.parseLegacy(inputItem.getItemMeta().getDisplayName()));
         if (((displayName == null || displayName.isEmpty()) && OraxenItems.exists(inputItem)) || strippedDownInputDisplay.equals(displayName)) {
             displayName = inputItem.getItemMeta().getPersistentDataContainer().get(ORIGINAL_NAME_KEY, PersistentDataType.STRING);
         }
@@ -193,7 +198,7 @@ public class FontEvents implements Listener {
         public void onPlayerChat(AsyncPlayerChatEvent event) {
             if (!Settings.FORMAT_CHAT.toBool()) return;
 
-            String message = event.getMessage();
+            String message = AdventureUtils.parseLegacyThroughMiniMessage(event.getMessage());
             for (Character character : manager.getReverseMap().keySet()) {
                 if (!message.contains(String.valueOf(character)))
                     continue;
@@ -227,7 +232,7 @@ public class FontEvents implements Listener {
             if (!Settings.FORMAT_CHAT.toBool()) return;
 
             Player player = event.player();
-            Component message = event.result();
+            Component message = AdventureUtils.parseMiniMessage(event.result());
             for (Character character : manager.getReverseMap().keySet()) {
                 if (!message.contains(Component.text(character))) continue;
 

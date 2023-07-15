@@ -27,6 +27,8 @@ public class AdventureUtils {
 
     public static final MiniMessage MINI_MESSAGE = MiniMessage.builder().tags(OraxenTagResolver).build();
 
+    public static final MiniMessage MINI_MESSAGE_EMPTY = MiniMessage.builder().build();
+
     public static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
 
     public static final PlainTextComponentSerializer PLAIN_TEXT = PlainTextComponentSerializer.plainText();
@@ -111,7 +113,7 @@ public class AdventureUtils {
     }
 
     public static String parseJsonThroughLegacy(String message) {
-        return GSON_SERIALIZER.serialize(MINI_MESSAGE.deserialize(LEGACY_SERIALIZER.serialize(GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!\")", "")));
+        return GSON_SERIALIZER.serialize(MINI_MESSAGE.deserialize(LEGACY_SERIALIZER.serialize(GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!\")", ""))).replaceAll("\\\\(?!u)(?!\")", "");
     }
 
     /**

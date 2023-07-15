@@ -13,6 +13,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.text.Component;
 import net.minecraft.nbt.CompoundTag;
@@ -262,7 +263,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         private String returnFormattedString(JsonObject obj) {
             if (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) {
-                return AdventureUtils.parseJsonThroughLegacy(obj.toString());
+                return NMSHandlers.parseJsonThroughLegacy(obj.toString(), supplier.get());
             } else return obj.toString();
         }
 

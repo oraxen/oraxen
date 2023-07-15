@@ -12,6 +12,7 @@ import net.kyori.adventure.text.minimessage.internal.serializer.SerializableReso
 import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
+import org.bukkit.entity.Player;
 
 import javax.annotation.Nullable;
 
@@ -19,9 +20,13 @@ public class GlyphTag {
 
     private static final String GLYPH = "glyph";
 
-    public static final TagResolver RESOLVER = SerializableResolver.claimingComponent(GLYPH, GlyphTag::create, GlyphTag::emit);
+    public static final TagResolver RESOLVER = SerializableResolver.claimingComponent(GLYPH, (ArgumentQueue args, Context ctx) -> create(args, ctx, null), GlyphTag::emit);
 
-    static Tag create(final ArgumentQueue args, final Context ctx) throws ParsingException {
+    public static TagResolver getResolverForPlayer(Player player) {
+        return SerializableResolver.claimingComponent(GLYPH, (ArgumentQueue args, Context ctx) -> create(args, ctx, player), GlyphTag::emit);
+    }
+
+    static Tag create(final ArgumentQueue args, final Context ctx, Player player) throws ParsingException {
         Glyph glyph = OraxenPlugin.get().getFontManager().getGlyphFromName(args.popOr("A glyph value is required").value());
         Component glyphComponent = Component.text(glyph.getCharacter()).font(Key.key("default")).style(Style.empty());
         if (!args.hasNext() || !args.peek().value().equals("colorable"))
