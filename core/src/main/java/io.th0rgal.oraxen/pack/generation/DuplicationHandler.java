@@ -175,6 +175,7 @@ public class DuplicationHandler {
             Logs.logWarning("The imported font files have not been deleted.");
             Logs.logWarning("If anything seems wrong, there might be conflicting unicodes assigned.");
         } else Logs.logSuccess("No duplicate font files found!");
+        Logs.newline();
     }
 
     private static JsonArray getFontProviders(List<VirtualFile> duplicates) {

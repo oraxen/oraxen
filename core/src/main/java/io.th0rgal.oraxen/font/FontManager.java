@@ -7,6 +7,8 @@ import com.google.gson.JsonPrimitive;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
+import io.th0rgal.oraxen.font.packets.TitlePacketListener;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -78,15 +80,9 @@ public class FontManager {
                 NMSHandlers.setup();
                 Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
                 Logs.logSuccess("Disabling packet-based glyph systems");
-                Logs.debug(Settings.FORMAT_CHAT.toBool());
-                Settings.FORMAT_CHAT.setValue(false, false);
-                Settings.FORMAT_INVENTORY_TITLES.setValue(false, false);
-                Settings.FORMAT_ANVIL.setValue(false, false);
-                Settings.FORMAT_SIGNS.setValue(false, false);
-                Settings.FORMAT_TITLES.setValue(false, false);
-                Settings.FORMAT_SUBTITLES.setValue(false, false);
-                Settings.FORMAT_ACTION_BAR.setValue(false, false);
-                Logs.debug(Settings.FORMAT_CHAT.toBool());
+                Logs.newline();
+                OraxenPlugin.get().getProtocolManager().removePacketListener(new InventoryPacketListener());
+                OraxenPlugin.get().getProtocolManager().removePacketListener(new TitlePacketListener());
             }
         }
     }

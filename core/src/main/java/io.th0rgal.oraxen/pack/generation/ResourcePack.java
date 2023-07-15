@@ -187,7 +187,7 @@ public class ResourcePack {
     }
 
     private static Set<String> verifyPackFormatting(List<VirtualFile> output) {
-        Logs.logInfo("Verifying formatting for textures and models...");
+        Logs.logWarning("Verifying formatting for textures and models...");
         Set<VirtualFile> textures = new HashSet<>();
         Set<String> texturePaths = new HashSet<>();
         Set<String> mcmeta = new HashSet<>();
