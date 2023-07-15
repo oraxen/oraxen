@@ -100,6 +100,14 @@ tasks {
     }
 
     shadowJar {
+        dependsOn(":v1_18_R1:reobfJar")
+        dependsOn(":v1_18_R2:reobfJar")
+        dependsOn(":v1_19_R1:reobfJar")
+        dependsOn(":v1_19_R2:reobfJar")
+        dependsOn(":v1_19_R3:reobfJar")
+        dependsOn(":v1_20_R1:reobfJar")
+
+        //archiveClassifier = null
         relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
         relocate("net.kyori", "io.th0rgal.oraxen.shaded.kyori")
         relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
@@ -126,7 +134,6 @@ tasks {
             )
         }
         archiveFileName.set("oraxen-${pluginVersion}.jar")
-        minimize()
     }
 
     compileJava.get().dependsOn(clean)
