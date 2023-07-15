@@ -72,6 +72,7 @@ dependencies {
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.9")
     implementation("com.jeff_media:CustomBlockData:2.2.0")
     implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
+    implementation("com.jeff_media:PersistentDataSerializer:1.0-SNAPSHOT")
     implementation("gs.mclo:java:2.2.1")
     implementation("com.ticxo:PlayerAnimator:R1.2.7")
     implementation("org.jetbrains:annotations:24.0.1") { isTransitive = false }

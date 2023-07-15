@@ -51,8 +51,10 @@ public class ReloadCommand {
             Logs.logInfo("Updating all placed furniture...");
             for (World world : Bukkit.getServer().getWorlds()) {
                 for (Entity entity : world.getEntities())
-                    if (OraxenFurniture.isFurniture(entity))
+                    if (OraxenFurniture.isFurniture(entity) && !OraxenFurniture.isInteractionEntity(entity)) {
+                        Logs.debug("Updating furniture: " + entity.getType() + " " + entity.getUniqueId());
                         ItemUpdater.furnitureToUpdate.add(entity);
+                    }
             }
         }
 

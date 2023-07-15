@@ -252,9 +252,7 @@ public class FurnitureListener implements Listener {
 
         event.setCancelled(true);
         if (mechanic.hasBarriers()) return;
-
-        mechanic.removeAirFurniture(entity);
-        mechanic.getDrop().spawns(entity.getLocation(), new ItemStack(Material.AIR));
+        OraxenFurniture.remove(entity, null);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -294,9 +292,8 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        if (OraxenFurniture.remove(block.getLocation(), player)) {
-            event.setCancelled(true);
-        } else event.setDropItems(false);
+        OraxenFurniture.remove(block.getLocation(), player);
+        event.setDropItems(false);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
