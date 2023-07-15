@@ -26,6 +26,7 @@ import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.NoticeUtils;
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
@@ -41,6 +42,10 @@ import org.bukkit.Bukkit;
 import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.Nullable;
+
+import java.io.IOException;
+import java.util.jar.JarFile;
 
 public class OraxenPlugin extends JavaPlugin {
 
@@ -64,6 +69,15 @@ public class OraxenPlugin extends JavaPlugin {
 
     public static OraxenPlugin get() {
         return oraxen;
+    }
+
+    @Nullable
+    public static JarFile getJarFile() {
+        try {
+            return new JarFile(oraxen.getFile());
+        } catch (IOException e) {
+            return null;
+        }
     }
 
     @Override
@@ -90,8 +104,7 @@ public class OraxenPlugin extends JavaPlugin {
                 protocolManager.addPacketListener(new InventoryPacketListener());
             protocolManager.addPacketListener(new TitlePacketListener());
         } else Logs.logWarning("ProtocolLib is not on your server, some features will not work");
-        if (Settings.DISABLE_LEATHER_REPAIR_CUSTOM.toBool())
-            pluginManager.registerEvents(new CustomArmorListener(), this);
+        pluginManager.registerEvents(new CustomArmorListener(), this);
 
         resourcePack = new ResourcePack(this);
         MechanicsManager.registerNativeMechanics();
@@ -119,24 +132,23 @@ public class OraxenPlugin extends JavaPlugin {
         } catch (Exception ignore) {
         }
         CompatibilitiesManager.enableNativeCompatibilities();
-        CompileNotice.print();
+        if (VersionUtil.isCompiled()) NoticeUtils.compileNotice();
+        if (VersionUtil.isLeaked()) NoticeUtils.leakNotice();
     }
 
     private void postLoading() {
         uploadManager = new UploadManager(this);
         uploadManager.uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
-        Bukkit.getScheduler().runTask(this, () -> {
-            Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
-
-        });
+        Bukkit.getScheduler().runTask(this, () ->
+                Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
     }
 
     @Override
     public void onDisable() {
         unregisterListeners();
         ItemUpdater.furnitureUpdateTask.cancel();
-        FurnitureFactory.getEvolutionTask().cancel();
+        FurnitureFactory.unregisterEvolution();
 
         CompatibilitiesManager.disableCompatibilities();
         Message.PLUGIN_UNLOADED.log();
@@ -216,5 +228,4 @@ public class OraxenPlugin extends JavaPlugin {
     public ClickActionManager getClickActionManager() {
         return clickActionManager;
     }
-
 }

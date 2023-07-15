@@ -18,7 +18,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ConfigsManager {
 
@@ -35,10 +42,10 @@ public class ConfigsManager {
     private YamlConfiguration sound;
     private YamlConfiguration language;
     private YamlConfiguration hud;
-    private YamlConfiguration gestures;
     private File itemsFolder;
     private File glyphsFolder;
     private File schematicsFolder;
+    private File gesturesFolder;
 
     public ConfigsManager(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -86,7 +93,8 @@ public class ConfigsManager {
             try {
                 inputStreamReader.close();
             } catch (IOException e) {
-                e.printStackTrace();
+                Logs.logError("Failed to extract default file: " + source);
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
             }
         }
     }
@@ -128,6 +136,14 @@ public class ConfigsManager {
                 new ResourcesManager(plugin).extractConfigsInFolder("schematics", "schem");
         }
 
+        // check gestures
+        gesturesFolder = new File(plugin.getDataFolder(), "gestures");
+        if (!gesturesFolder.exists()) {
+            gesturesFolder.mkdirs();
+            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
+                new ResourcesManager(plugin).extractConfigsInFolder("gestures", "yml");
+        }
+
         return true; // todo : return false when an error is detected + prints a detailed error
     }
 
@@ -141,12 +157,14 @@ public class ConfigsManager {
                 updated = true;
                 Message.UPDATING_CONFIG.log(AdventureUtils.tagResolver("option", key));
                 configuration.set(key, defaultConfiguration.get(key));
-            }        }
+            }
+        }
         if (updated)
             try {
                 configuration.save(configurationFile);
             } catch (IOException e) {
-                e.printStackTrace();
+                Logs.logError("Failed to save updated configuration file: " + configurationFile.getName());
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
             }
         return configuration;
     }
@@ -154,7 +172,7 @@ public class ConfigsManager {
     // Skip optional keys and subkeys
     private final List<String> skippedYamlKeys =
             List.of(
-                    "gui_inventory",
+                    "oraxen_inventory.menu_layout",
                     "Misc.armor_equip_event_bypass"
             );
 
@@ -164,15 +182,16 @@ public class ConfigsManager {
                 .stream(getGlyphsFiles())
                 .filter(file -> file.getName().endsWith(".yml"))
                 .toList();
-        Map<String, Integer> codePerGlyph = new HashMap<>();
+        Map<String, Character> charPerGlyph = new HashMap<>();
         for (File file : configs) {
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
                 if (glyphSection == null) continue;
-                int code = glyphSection.getInt("code", -1);
-                if (code != -1)
-                    codePerGlyph.put(key, code);
+                String characterString = glyphSection.getString("char");
+                char character = characterString != null ? characterString.charAt(0) : Character.MIN_VALUE;
+                if (character != Character.MIN_VALUE)
+                    charPerGlyph.put(key, character);
             }
         }
 
@@ -180,30 +199,32 @@ public class ConfigsManager {
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
             boolean fileChanged = false;
             for (String key : configuration.getKeys(false)) {
-                int code = codePerGlyph.getOrDefault(key, -1);
-                if (code == -1) {
-                    code = Utils.firstEmpty(codePerGlyph, 42000);
-                    codePerGlyph.put(key, code);
+                char character = charPerGlyph.getOrDefault(key, Character.MIN_VALUE);
+                if (character == Character.MIN_VALUE) {
+                    character = Utils.firstEmpty(charPerGlyph, 42000);
+                    charPerGlyph.put(key, character);
                 }
-                Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key), code);
+                Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key), character);
                 if (glyph.isFileChanged())
                     fileChanged = true;
                 glyph.verifyGlyph(output);
                 output.add(glyph);
             }
-            if (fileChanged && Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool())
+            if (fileChanged && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
                 try {
                     configuration.save(file);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logs.logWarning("Failed to save updated glyph file: " + file.getName());
+                    if (Settings.DEBUG.toBool()) e.printStackTrace();
                 }
+            }
         }
         return output;
     }
 
     private File[] getGlyphsFiles() {
         File[] glyphConfigs = glyphsFolder.listFiles();
-        Arrays.sort(glyphConfigs);
+        if (glyphConfigs != null) Arrays.sort(glyphConfigs);
         return glyphConfigs;
     }
 
@@ -219,18 +240,23 @@ public class ConfigsManager {
 
     public void assignAllUsedModelDatas() {
         List<File> itemConfigs = getItemsFiles();
-        Map<Material, List<Integer>> assignedModelDatas = new HashMap<>();
+        Map<Material, Map<Integer, String>> assignedModelDatas = new HashMap<>();
         for (File file : itemConfigs) {
+            if (!file.exists()) continue;
             YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection itemSection = configuration.getConfigurationSection(key);
                 if (itemSection == null) continue;
+                ConfigurationSection packSection = itemSection.getConfigurationSection("Pack");
+                if (packSection == null) continue;
                 Material material = Material.matchMaterial(itemSection.getString("material", ""));
                 if (material == null) continue;
-                int modelData = itemSection.getInt("Pack.custom_model_data", -1);
+                int modelData = packSection.getInt("custom_model_data", -1);
+                String model = getItemModelFromConfigurationSection(packSection);
                 if (modelData == -1) continue;
-                if (assignedModelDatas.containsKey(material) && assignedModelDatas.get(material).contains(modelData)) {
-                    Logs.logError("CustomModelData " + modelData + " is already assigned to " + material + " in " + file.getName() + " " + key);
+                if (assignedModelDatas.containsKey(material) && assignedModelDatas.get(material).containsKey(modelData)) {
+                    if (assignedModelDatas.get(material).get(modelData).equals(model)) continue;
+                    Logs.logError("CustomModelData " + modelData + " is already assigned to another item with this material but different model");
                     if (file.getName().equals(DuplicationHandler.DUPLICATE_FILE_MERGE_NAME) && Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) {
                         Logs.logWarning("Due to " + Settings.RETAIN_CUSTOM_MODEL_DATA.getPath() + " being enabled,");
                         Logs.logWarning("the model data will not removed from " + file.getName() + ": " + key + ".");
@@ -238,12 +264,12 @@ public class ConfigsManager {
                         Logs.logWarning("Either reset the CustomModelData of this item, or change the CustomModelData of the conflicting item.");
                     } else {
                         Logs.logWarning("Removing custom model data from " + file.getName() + ": " + key);
-                        itemSection.set("Pack.custom_model_data", null);
+                        packSection.set("custom_model_data", null);
                     }
                     Logs.newline();
                     continue;
                 }
-                assignedModelDatas.computeIfAbsent(material, k -> new ArrayList<>()).add(modelData);
+                assignedModelDatas.computeIfAbsent(material, k -> new HashMap<>()).put(modelData, model);
                 ModelData.DATAS.computeIfAbsent(material, k -> new HashMap<>()).put(key, modelData);
             }
             try {
@@ -252,10 +278,14 @@ public class ConfigsManager {
                 e.printStackTrace();
             }
         }
+    }
 
-        for (Map.Entry<Material, List<Integer>> entry : assignedModelDatas.entrySet()) {
-            Collections.sort(entry.getValue());
+    private String getItemModelFromConfigurationSection(ConfigurationSection packSection) {
+        String model = packSection.getString("model", "");
+        if (model.isEmpty() && packSection.getBoolean("generate_model", false)) {
+            model = packSection.getParent().getName();
         }
+        return model;
     }
 
     public Map<String, ItemBuilder> parseItemConfig(YamlConfiguration config, File itemFile) {

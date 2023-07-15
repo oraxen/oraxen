@@ -11,8 +11,8 @@ anubis_head:
   lore:
     - "<#6f737d>» <#D5D6D8>NightVision when worn"
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
-    - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
+    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: false
     model: default/anubis_head # .json extension is not mandatory
@@ -30,8 +30,8 @@ crown:
   displayname: "<gradient:#F06966:#FAD6A6>Crown"
   material: PAPER
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
-    - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
+    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: false
     model: default/crown
@@ -43,8 +43,8 @@ pharaoh_head:
   displayname: "<gradient:#F06966:#FAD6A6>Pharaoh Head"
   material: PAPER
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
-    - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
+    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: false
     model: default/pharaoh_head
@@ -56,8 +56,8 @@ witch_hat:
   displayname: "<gradient:#DF98FA:#9055FF>Witch Hat"
   material: PAPER
   AttributeModifiers:
-    - { name: "oraxen", attribute: GENERIC_ARMOR, amount: 3, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
-    - { name: "oraxen", attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, uuid: 3a25f0b5-dbda-4e38-b097-9e75e37ae464, slot: HEAD }
+    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: false
     model: default/witch_hat

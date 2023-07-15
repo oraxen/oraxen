@@ -3,11 +3,14 @@ package io.th0rgal.oraxen.items;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -23,6 +26,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 public class ItemParser {
@@ -67,7 +71,9 @@ public class ItemParser {
     }
 
     private String parseComponentString(String miniString) {
-        return AdventureUtils.LEGACY_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE.deserialize(miniString));
+        Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
+        // If it has no formatting, set color to WHITE to prevent Italic
+        return AdventureUtils.LEGACY_SERIALIZER.serialize(component.colorIfAbsent(NamedTextColor.WHITE));
     }
 
     public ItemBuilder buildItem() {
@@ -164,9 +170,10 @@ public class ItemParser {
 
         if (section.contains("AttributeModifiers")) {
             @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
-            List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section
-                    .getList("AttributeModifiers");
+            List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section.getList("AttributeModifiers");
             for (LinkedHashMap<String, Object> attributeJson : attributes) {
+                attributeJson.putIfAbsent("uuid", UUID.randomUUID().toString());
+                attributeJson.putIfAbsent("name", "oraxen:modifier");
                 AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
                 Attribute attribute = Attribute.valueOf((String) attributeJson.get("attribute"));
                 item.addAttributeModifiers(attribute, attributeModifier);
@@ -201,7 +208,8 @@ public class ItemParser {
             } else {
                 customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
                 configUpdated = true;
-                section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
+                if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())
+                    section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
             }
             item.setCustomModelData(customModelData);
             oraxenMeta.setCustomModelData(customModelData);

@@ -96,6 +96,7 @@ public enum Message {
     }
 
     public void send(final CommandSender sender, final TagResolver... placeholders) {
+        if (sender == null) return;
         String lang = OraxenPlugin.get().getConfigsManager().getLanguage().getString(path);
         ArrayList<TagResolver> tagResolvers = new ArrayList<>(List.of(placeholders));
         tagResolvers.add(AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));

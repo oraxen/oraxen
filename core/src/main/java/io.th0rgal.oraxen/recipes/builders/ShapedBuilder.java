@@ -51,7 +51,6 @@ public class ShapedBuilder extends WorkbenchBuilder {
         ConfigurationSection ingredients;
         if (getConfig().isConfigurationSection(name)) {
             newCraftSection = getConfig().getConfigurationSection(name);
-            if (newCraftSection == null) return;
             resultSection = newCraftSection.getConfigurationSection("result");
             ingredients = newCraftSection.getConfigurationSection("ingredients");
         } else {
@@ -61,7 +60,7 @@ public class ShapedBuilder extends WorkbenchBuilder {
         }
         newCraftSection.set("shape", shapes);
         setSerializedItem(resultSection, inventory.getItem(0));
-        if (ingredients != null) for (Map.Entry<ItemStack, Character> entry : letterByItem.entrySet()) {
+        for (Map.Entry<ItemStack, Character> entry : letterByItem.entrySet()) {
             ConfigurationSection ingredientSection = ingredients.createSection(String.valueOf(entry.getValue()));
             setSerializedItem(ingredientSection, entry.getKey());
         }

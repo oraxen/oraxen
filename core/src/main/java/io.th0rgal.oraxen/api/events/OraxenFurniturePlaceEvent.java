@@ -11,6 +11,11 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * @deprecated This event is deprecated and will be removed in a future version.
+ * Use {@link io.th0rgal.oraxen.api.events.furniture.OraxenFurniturePlaceEvent} instead.
+ */
+@Deprecated(since = "1.158.0", forRemoval = true)
 public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
 
     private final FurnitureMechanic mechanic;
@@ -94,7 +99,11 @@ public class OraxenFurniturePlaceEvent extends Event implements Cancellable {
     }
 
     @NotNull
-    public HandlerList getHandlers() { return getHandlerList(); }
+    @Override
+    public HandlerList getHandlers() {
+        return getHandlerList();
+    }
+
     public static HandlerList getHandlerList() {
         return HANDLERS;
     }

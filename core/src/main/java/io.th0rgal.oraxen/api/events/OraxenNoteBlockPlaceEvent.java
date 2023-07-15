@@ -10,6 +10,11 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * @deprecated This event is deprecated and will be removed in a future version.
+ * Use {@link io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockPlaceEvent} instead.
+ */
+@Deprecated(since = "1.158.0", forRemoval = true)
 public class OraxenNoteBlockPlaceEvent extends Event implements Cancellable {
 
     private final NoteBlockMechanic mechanic;

@@ -2,12 +2,19 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
-import io.th0rgal.oraxen.api.events.OraxenNoteBlockBreakEvent;
-import io.th0rgal.oraxen.api.events.OraxenNoteBlockPlaceEvent;
+import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent;
+import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockPlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameEvent;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
+import org.bukkit.SoundGroup;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
@@ -27,7 +34,21 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
-import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.*;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_BREAK_PITCH;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_BREAK_VOLUME;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_FALL_PITCH;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_FALL_VOLUME;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_HIT_PITCH;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_HIT_VOLUME;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_PLACE_PITCH;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_PLACE_VOLUME;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_STEP_PITCH;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_STEP_VOLUME;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_WOOD_BREAK;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_WOOD_FALL;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_WOOD_HIT;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_WOOD_PLACE;
+import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.VANILLA_WOOD_STEP;
 
 public class NoteBlockSoundListener implements Listener {
     private final Map<Location, BukkitTask> breakerPlaySound = new HashMap<>();
@@ -125,7 +146,7 @@ public class NoteBlockSoundListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlacing(final OraxenNoteBlockPlaceEvent event) {
         NoteBlockMechanic mechanic = event.getMechanic();
-        if (mechanic != null && mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
+        if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentMechanic();
         if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.getBlockSounds().hasPlaceSound()) return;
 

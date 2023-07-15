@@ -6,7 +6,13 @@ import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.recipes.listeners.RecipesBuilderEvents;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
-import io.th0rgal.oraxen.recipes.loaders.*;
+import io.th0rgal.oraxen.recipes.loaders.BlastingLoader;
+import io.th0rgal.oraxen.recipes.loaders.CampfireLoader;
+import io.th0rgal.oraxen.recipes.loaders.FurnaceLoader;
+import io.th0rgal.oraxen.recipes.loaders.ShapedLoader;
+import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
+import io.th0rgal.oraxen.recipes.loaders.SmokingLoader;
+import io.th0rgal.oraxen.recipes.loaders.StonecuttingLoader;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -40,7 +46,7 @@ public class RecipesManager {
         Bukkit.getPluginManager().registerEvents(new RecipesBuilderEvents(), plugin);
         File recipesFolder = new File(OraxenPlugin.get().getDataFolder(), "recipes");
         if (!recipesFolder.exists()) {
-           recipesFolder.mkdirs();
+            recipesFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
                 new ResourcesManager(plugin).extractConfigsInFolder("recipes", "yml");
             else try {

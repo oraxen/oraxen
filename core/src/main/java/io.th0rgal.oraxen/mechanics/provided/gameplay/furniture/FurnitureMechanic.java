@@ -24,11 +24,24 @@ import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Rotation;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.*;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Display;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.GlowItemFrame;
+import org.bukkit.entity.Interaction;
+import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -38,7 +51,13 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.UUID;
 
 public class FurnitureMechanic extends Mechanic {
 
@@ -352,20 +371,21 @@ public class FurnitureMechanic extends Mechanic {
 
     private void setEntityData(Entity entity, float yaw, ItemStack item, BlockFace facing) {
         setBaseFurnitureData(entity);
+        Location location = entity.getLocation();
         if (entity instanceof ItemFrame frame) {
             setFrameData(frame, item, yaw, facing);
-            Location location = entity.getLocation();
 
             if (hasBarriers()) setBarrierHitbox(location, yaw, true);
             else {
                 float width = hasHitbox() ? hitbox.width : 1f;
                 float height = hasHitbox() ? hitbox.height : 1f;
-                spawnInteractionEntity(entity, location, width, height, true);
+                Entity interaction = spawnInteractionEntity(frame, location, width, height, true);
 
                 Block block = location.getBlock();
-                if (hasSeat()) {
-                    UUID entityId = spawnSeat(this, block, hasSeatYaw ? seatYaw : location.getYaw());
-                    if (entityId != null) frame.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, entityId);
+                if (hasSeat() && interaction != null) {
+                    UUID seatUuid = spawnSeat(block, hasSeatYaw ? seatYaw : FurnitureMechanic.getFurnitureYaw(frame));
+                    interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                    frame.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 }
                 if (light != -1) {
                     WrappedLightAPI.createBlockLight(location, light);
@@ -373,19 +393,18 @@ public class FurnitureMechanic extends Mechanic {
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
-            Location location = itemDisplay.getLocation();
             float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
             float height = hasHitbox() ? hitbox.height : displayEntityProperties.getDisplayHeight();
             Interaction interaction = spawnInteractionEntity(itemDisplay, location, width, height, displayEntityProperties.isInteractable());
 
             if (hasBarriers()) setBarrierHitbox(location, yaw, false);
-            else if (hasSeat()) {
-                UUID entityId = spawnSeat(this, location.getBlock(), hasSeatYaw ? seatYaw : location.getYaw());
-                if (entityId != null) {
-                    if (interaction != null)
-                        interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, entityId);
-                    itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, entityId);
-                }
+            else if (hasSeat() && interaction != null) {
+                UUID seatUuid = spawnSeat(location.getBlock(), hasSeatYaw ? seatYaw : yaw);
+                interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+                itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
+            }
+            if (light != -1) {
+                WrappedLightAPI.createBlockLight(location, light);
             }
         }
     }
@@ -485,8 +504,7 @@ public class FurnitureMechanic extends Mechanic {
             PersistentDataContainer data = BlockHelpers.getPDC(block);
             data.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
             if (hasSeat()) {
-                UUID entityId = spawnSeat(this, block, hasSeatYaw ? seatYaw : yaw);
-                if (entityId != null) data.set(SEAT_KEY, DataType.UUID, entityId);
+                data.set(SEAT_KEY, DataType.UUID, spawnSeat(block, hasSeatYaw ? seatYaw : yaw));
             }
             data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location.clone()).toString());
             data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
@@ -645,33 +663,29 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    @Nullable
-    private UUID spawnSeat(FurnitureMechanic mechanic, Block target, float yaw) {
-        if (mechanic.hasSeat()) {
-            final ArmorStand seat = target.getWorld().spawn(target.getLocation()
-                    .add(0.5, mechanic.getSeatHeight() - 1, 0.5), ArmorStand.class, (ArmorStand stand) -> {
-                stand.setVisible(false);
-                stand.setRotation(yaw, 0);
-                stand.setInvulnerable(true);
-                stand.setPersistent(true);
-                stand.setAI(false);
-                stand.setCollidable(false);
-                stand.setGravity(false);
-                stand.setSilent(true);
-                stand.setCustomNameVisible(false);
-                stand.setCanPickupItems(false);
-                //TODO Maybe marker works here? Was removed for rotation issues but should be fixed
-                stand.addEquipmentLock(EquipmentSlot.HEAD, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.OFF_HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.CHEST, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.LEGS, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.FEET, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, mechanic.getItemID());
-            });
-            return seat.getUniqueId();
-        }
-        return null;
+    private UUID spawnSeat(Block target, float yaw) {
+        final ArmorStand seat = target.getWorld().spawn(target.getLocation()
+                .add(0.5, seatHeight - 1, 0.5), ArmorStand.class, (ArmorStand stand) -> {
+            stand.setVisible(false);
+            stand.setRotation(yaw, 0);
+            stand.setInvulnerable(true);
+            stand.setPersistent(true);
+            stand.setAI(false);
+            stand.setCollidable(false);
+            stand.setGravity(false);
+            stand.setSilent(true);
+            stand.setCustomNameVisible(false);
+            stand.setCanPickupItems(false);
+            //TODO Maybe marker works here? Was removed for rotation issues but should be fixed
+            stand.addEquipmentLock(EquipmentSlot.HEAD, ArmorStand.LockType.ADDING_OR_CHANGING);
+            stand.addEquipmentLock(EquipmentSlot.HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
+            stand.addEquipmentLock(EquipmentSlot.OFF_HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
+            stand.addEquipmentLock(EquipmentSlot.CHEST, ArmorStand.LockType.ADDING_OR_CHANGING);
+            stand.addEquipmentLock(EquipmentSlot.LEGS, ArmorStand.LockType.ADDING_OR_CHANGING);
+            stand.addEquipmentLock(EquipmentSlot.FEET, ArmorStand.LockType.ADDING_OR_CHANGING);
+            stand.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
+        });
+        return seat.getUniqueId();
     }
 
     @Nullable

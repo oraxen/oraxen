@@ -45,7 +45,8 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,56 +55,81 @@ import java.util.Map.Entry;
 public class MechanicsManager {
 
     private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
-    private static final List<Listener> MECHANICS_LISTENERS = new ArrayList<>();
+    private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new HashMap<>();
 
     public static void registerNativeMechanics() {
         // misc
-        registerMechanicFactory("armorpotioneffects", ArmorPotionEffectsMechanicFactory::new);
-        registerMechanicFactory("consumablepotioneffects", ConsumablePotionEffectsMechanicFactory::new);
-        registerMechanicFactory("soulbound", SoulBoundMechanicFactory::new);
-        registerMechanicFactory("itemtype", ItemTypeMechanicFactory::new);
-        registerMechanicFactory("consumable", ConsumableMechanicFactory::new);
-        registerMechanicFactory("custom", CustomMechanicFactory::new);
-        registerMechanicFactory("commands", CommandsMechanicFactory::new);
-        registerMechanicFactory("backpack", BackpackMechanicFactory::new);
-        registerMechanicFactory("music_disc", MusicDiscMechanicFactory::new);
-        registerMechanicFactory("misc", MiscMechanicFactory::new);
+        registerFactory("armorpotioneffects", ArmorPotionEffectsMechanicFactory::new);
+        registerFactory("consumablepotioneffects", ConsumablePotionEffectsMechanicFactory::new);
+        registerFactory("soulbound", SoulBoundMechanicFactory::new);
+        registerFactory("itemtype", ItemTypeMechanicFactory::new);
+        registerFactory("consumable", ConsumableMechanicFactory::new);
+        registerFactory("custom", CustomMechanicFactory::new);
+        registerFactory("commands", CommandsMechanicFactory::new);
+        registerFactory("backpack", BackpackMechanicFactory::new);
+        registerFactory("music_disc", MusicDiscMechanicFactory::new);
+        registerFactory("misc", MiscMechanicFactory::new);
 
         // gameplay
-        registerMechanicFactory("food", FoodMechanicFactory::new);
-        registerMechanicFactory("repair", RepairMechanicFactory::new);
-        registerMechanicFactory("durability", DurabilityMechanicFactory::new);
-        registerMechanicFactory("efficiency", EfficiencyMechanicFactory::new);
-        registerMechanicFactory("block", BlockMechanicFactory::new);
-        registerMechanicFactory("noteblock", NoteBlockMechanicFactory::new);
-        registerMechanicFactory("stringblock", StringBlockMechanicFactory::new);
-        registerMechanicFactory("furniture", FurnitureFactory::new);
+        registerFactory("food", FoodMechanicFactory::new);
+        registerFactory("repair", RepairMechanicFactory::new);
+        registerFactory("durability", DurabilityMechanicFactory::new);
+        registerFactory("efficiency", EfficiencyMechanicFactory::new);
+        registerFactory("block", BlockMechanicFactory::new);
+        registerFactory("noteblock", NoteBlockMechanicFactory::new);
+        registerFactory("stringblock", StringBlockMechanicFactory::new);
+        registerFactory("furniture", FurnitureFactory::new);
 
         // cosmetic
-        registerMechanicFactory("aura", AuraMechanicFactory::new);
-        registerMechanicFactory("hat", HatMechanicFactory::new);
-        registerMechanicFactory("skin", SkinMechanicFactory::new);
-        registerMechanicFactory("skinnable", SkinnableMechanicFactory::new);
+        registerFactory("aura", AuraMechanicFactory::new);
+        registerFactory("hat", HatMechanicFactory::new);
+        registerFactory("skin", SkinMechanicFactory::new);
+        registerFactory("skinnable", SkinnableMechanicFactory::new);
 
         // combat
-        registerMechanicFactory("thor", ThorMechanicFactory::new);
-        registerMechanicFactory("lifeleech", LifeLeechMechanicFactory::new);
-        registerMechanicFactory("energyblast", EnergyBlastMechanicFactory::new);
-        registerMechanicFactory("witherskull", WitherSkullMechanicFactory::new);
-        registerMechanicFactory("fireball", FireballMechanicFactory::new);
+        registerFactory("thor", ThorMechanicFactory::new);
+        registerFactory("lifeleech", LifeLeechMechanicFactory::new);
+        registerFactory("energyblast", EnergyBlastMechanicFactory::new);
+        registerFactory("witherskull", WitherSkullMechanicFactory::new);
+        registerFactory("fireball", FireballMechanicFactory::new);
 
         // farming
-        registerMechanicFactory("bigmining", BigMiningMechanicFactory::new);
-        registerMechanicFactory("smelting", SmeltingMechanicFactory::new);
-        registerMechanicFactory("bottledexp", BottledExpMechanicFactory::new);
-        registerMechanicFactory("harvesting", HarvestingMechanicFactory::new);
-        registerMechanicFactory("watering", WateringMechanicFactory::new);
+        registerFactory("bigmining", BigMiningMechanicFactory::new);
+        registerFactory("smelting", SmeltingMechanicFactory::new);
+        registerFactory("bottledexp", BottledExpMechanicFactory::new);
+        registerFactory("harvesting", HarvestingMechanicFactory::new);
+        registerFactory("watering", WateringMechanicFactory::new);
         if (CompatibilitiesManager.hasPlugin("ProtocolLib"))
-            registerMechanicFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
+            registerFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
     }
 
-    public static void registerMechanicFactory(final String mechanicId,
-                                               final FactoryConstructor constructor) {
+    /**
+     * Register a new MechanicFactory
+     * @param mechanicId the id of the mechanic
+     * @param factory the MechanicFactory of the mechanic
+     * @param enabled if the mechanic should be enabled by default or not
+     */
+    public static void registerMechanicFactory(String mechanicId, MechanicFactory factory, boolean enabled) {
+        if (enabled) FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
+    }
+
+    public static void  unregisterMechanicFactory(String mechanicId) {
+        FACTORIES_BY_MECHANIC_ID.remove(mechanicId);
+        unloadListeners(mechanicId);
+    }
+
+    /**
+     * This method is deprecated and will be removed in a future release.<br>
+     * Use {@link #registerMechanicFactory(String, MechanicFactory, boolean)} instead.
+     * @param mechanicId the id of the mechanic
+     * @param constructor the constructor of the mechanic
+     */
+    @Deprecated(forRemoval = true, since = "1.158.0")
+    public static void registerMechanicFactory(final String mechanicId, final FactoryConstructor constructor) {
+        registerFactory(mechanicId, constructor);
+    }
+
+    private static void registerFactory(final String mechanicId, final FactoryConstructor constructor) {
         final Entry<File, YamlConfiguration> mechanicsEntry = new ResourcesManager(OraxenPlugin.get()).getMechanicsEntry();
         final YamlConfiguration mechanicsConfig = mechanicsEntry.getValue();
         final boolean updated = false;
@@ -122,16 +148,22 @@ public class MechanicsManager {
             }
     }
 
-    public static void registerListeners(final JavaPlugin plugin, final Listener... listeners) {
+    public static void registerListeners(final JavaPlugin plugin, String mechanicId, final Listener... listeners) {
         for (final Listener listener : listeners) {
             Bukkit.getPluginManager().registerEvents(listener, plugin);
-            MECHANICS_LISTENERS.add(listener);
         }
+        MECHANICS_LISTENERS.put(mechanicId, Arrays.stream(listeners).toList());
     }
 
     public static void unloadListeners() {
-        for (final Listener listener : MECHANICS_LISTENERS)
+        for (final Listener listener : MECHANICS_LISTENERS.values().stream().flatMap(Collection::stream).toList())
             HandlerList.unregisterAll(listener);
+    }
+
+    public static void unloadListeners(String mechanicId) {
+        for (Listener listener : MECHANICS_LISTENERS.remove(mechanicId))
+            HandlerList.unregisterAll(listener);
+
     }
 
     public static MechanicFactory getMechanicFactory(final String mechanicID) {

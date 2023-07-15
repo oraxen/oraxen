@@ -1,9 +1,12 @@
 package io.th0rgal.oraxen.recipes.loaders;
 
+import io.lumine.mythiccrucible.MythicCrucible;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
+import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -28,23 +31,36 @@ public abstract class RecipeLoader {
     protected ItemStack getResult() {
         ConfigurationSection resultSection = getSection().getConfigurationSection("result");
         if (resultSection == null) return null;
+        ItemStack result;
+        int amount = resultSection.getInt("amount", 1);
 
-        if (resultSection.isString("oraxen_item"))
-            return OraxenItems.getItemById(resultSection.getString("oraxen_item")).build();
-
-        if (resultSection.isString("minecraft_type")) {
+        if (resultSection.isString("oraxen_item")) {
+            result = ItemUpdater.updateItem(OraxenItems.getItemById(resultSection.getString("oraxen_item")).build());
+        } else if (resultSection.isString("crucible_item")) {
+            result = MythicCrucible.core().getItemManager().getItemStack(resultSection.getString("crucible_item"));
+        } else if (resultSection.isString("mmoitems_id") && resultSection.isString("mmoitems_type")) {
+            result = MMOItems.plugin.getItem(resultSection.getString("mmoitems_type"), resultSection.getString("mmoitems_id"));
+        } else if (resultSection.isString("minecraft_type")) {
             Material material = Material.getMaterial(resultSection.getString("minecraft_type", "AIR"));
             if (material == null || material.isAir()) return null;
-            return new ItemStack(material);
-        }
+            result = new ItemStack(material);
+        } else result = resultSection.getItemStack("minecraft_item");
 
-        return resultSection.getItemStack("minecraft_item");
-
+        if (result != null) result.setAmount(amount);
+        return result;
     }
 
     protected ItemStack getIndredientItemStack(ConfigurationSection ingredientSection) {
         if (ingredientSection.isString("oraxen_item"))
-            return OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build();
+            return ItemUpdater.updateItem(OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build());
+
+        if (ingredientSection.isString("crucible_item")) {
+            return MythicCrucible.core().getItemManager().getItemStack(ingredientSection.getString("crucible_item"));
+        }
+
+        if (ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type")) {
+            return MMOItems.plugin.getItem(ingredientSection.getString("mmoitems_type"), ingredientSection.getString("mmoitems_id"));
+        }
 
         if (ingredientSection.isString("minecraft_type")) {
             Material material = Material.getMaterial(ingredientSection.getString("minecraft_type", "AIR"));
@@ -58,8 +74,16 @@ public abstract class RecipeLoader {
     protected RecipeChoice getRecipeChoice(ConfigurationSection ingredientSection) {
 
         if (ingredientSection.isString("oraxen_item"))
-            return new RecipeChoice.ExactChoice(
-                    OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build());
+            return new RecipeChoice.ExactChoice(ItemUpdater.updateItem(OraxenItems.getItemById(ingredientSection.getString("oraxen_item")).build()));
+
+        if (ingredientSection.isString("crucible_item")) {
+            return new RecipeChoice.ExactChoice(MythicCrucible.core().getItemManager().getItemStack(section.getString("crucible_item")));
+        }
+
+        if (ingredientSection.isString("mmoitems_id") && ingredientSection.isString("mmoitems_type")) {
+            ItemStack ingredient = MMOItems.plugin.getItem(ingredientSection.getString("mmoitems_type"), ingredientSection.getString("mmoitems_id"));
+            return new RecipeChoice.ExactChoice(ingredient != null ? ingredient : new ItemStack(Material.AIR));
+        }
 
         if (ingredientSection.isString("minecraft_type")) {
             Material material = Material.getMaterial(ingredientSection.getString("minecraft_type", "AIR"));

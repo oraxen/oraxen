@@ -19,26 +19,29 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 
 public class Glyph {
 
+    public static final Character WHITESPACE_GLYPH = '\ue000';
+
     private boolean fileChanged = false;
 
     private final String name;
     private final boolean isEmoji;
     private boolean tabcomplete;
-    private final char character;
+    private final Character character;
     private String texture;
     private final int ascent;
     private final int height;
     private String permission = null;
     private String[] placeholders;
-    private int code;
+    private final BitMapEntry bitmapEntry;
 
-    public Glyph(final String glyphName, final ConfigurationSection glyphSection, int newCode) {
+    public Glyph(final String glyphName, final ConfigurationSection glyphSection, char newChars) {
         name = glyphName;
         placeholders = new String[0];
         isEmoji = glyphSection.getBoolean("is_emoji", false);
@@ -50,19 +53,50 @@ public class Glyph {
                 permission = chatSection.getString("permission");
             tabcomplete = chatSection.getBoolean("tabcomplete", false);
         }
-        texture = glyphSection.getString("texture", "required/exit_icon.png");
-        if (!texture.endsWith(".png"))
-            texture += ".png";
 
-        this.code = newCode;
-        if (glyphSection.getInt("code", -1) != newCode && Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool()) {
-            glyphSection.set("code", code);
+        if (glyphSection.contains("code")) {
+            if (glyphSection.isInt("code")) glyphSection.set("char", (char) glyphSection.getInt("code"));
+            glyphSection.set("code", null);
             fileChanged = true;
         }
 
-        character = (char) code;
-        ascent = glyphSection.getInt("ascent", 8);
-        height = glyphSection.getInt("height", 8);
+        if (!glyphSection.isString("char") && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
+            glyphSection.set("char", newChars);
+            fileChanged = true;
+        }
+
+        character = glyphSection.get("char") != null ? glyphSection.getString("char", "").charAt(0) : null;
+
+
+        ConfigurationSection bitmapSection = glyphSection.getConfigurationSection("bitmap");
+        bitmapEntry = bitmapSection != null ? new BitMapEntry(bitmapSection.getString("id"), bitmapSection.getInt("row"), bitmapSection.getInt("column")) : null;
+        ascent = getBitMap() != null ? getBitMap().ascent() : glyphSection.getInt("ascent", 8);
+        height = getBitMap() != null ? getBitMap().height() : glyphSection.getInt("height", 8);
+        texture = getBitMap() != null ? getBitMap().texture() : glyphSection.getString("texture", "required/exit_icon.png");
+        if (!texture.endsWith(".png")) texture += ".png";
+    }
+
+    public record BitMapEntry(String id, int row, int column) {
+    }
+
+    public BitMapEntry getBitmapEntry() {
+        return bitmapEntry;
+    }
+
+    public String getBitmapId() {
+        return bitmapEntry != null ? bitmapEntry.id : null;
+    }
+
+    public boolean hasBitmap() {
+        return getBitmapId() != null;
+    }
+
+    public boolean isBitMap() {
+        return FontManager.getGlyphBitMap(getBitmapId()) != null;
+    }
+
+    public FontManager.GlyphBitMap getBitMap() {
+        return FontManager.getGlyphBitMap(getBitmapId());
     }
 
     public boolean isFileChanged() {
@@ -73,8 +107,8 @@ public class Glyph {
         return name;
     }
 
-    public char getCharacter() {
-        return character;
+    public String getCharacter() {
+        return character != null ? character.toString() : "";
     }
 
     public String getTexture() {
@@ -123,14 +157,6 @@ public class Glyph {
         return permission == null || permission.isEmpty() || player.hasPermission(permission);
     }
 
-    protected void setCode(int code) {
-        this.code = code;
-    }
-
-    public int getCode() {
-        return code;
-    }
-
     private final Set<String> materialNames = Arrays.stream(Material.values()).map(Material::name).collect(Collectors.toSet());
 
     public void verifyGlyph(List<Glyph> glyphs) {
@@ -146,7 +172,7 @@ public class Glyph {
             texture = packFolder.resolve(texturePath).toFile();
         else texture = packFolder.resolve(texturePath.replace("assets/minecraft/", "")).toFile();
 
-        Map<Glyph, Boolean> sameCodeMap = glyphs.stream().filter(g -> g != this && g.getCode() == this.getCode()).collect(Collectors.toMap(g -> g, g -> true));
+        Map<Glyph, Boolean> sameCharMap = glyphs.stream().filter(g -> g != this && Objects.equals(g.getCharacter(), this.getCharacter())).collect(Collectors.toMap(g -> g, g -> true));
         // Check if the texture is a vanilla item texture and therefore not in oraxen, but the vanilla pack
         boolean isMinecraftNamespace = !getTexture().contains(":") || getTexture().split(":")[0].equals("minecraft");
         boolean isVanillaTexture = isMinecraftNamespace && materialNames.stream().anyMatch(name -> texture.getName().split("\\.")[0].toUpperCase().contains(name));
@@ -186,9 +212,9 @@ public class Glyph {
             Logs.logError("The texture specified for " + name + " is larger than the supported size.");
             Logs.logWarning("The maximum image size is 256x256. Anything bigger will break all your glyphs.");
             Logs.logWarning("It has been temporarily set to a placeholder-image. You should edit this in the glyph config.");
-        } else if (!Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool() && !sameCodeMap.isEmpty()) {
+        } else if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool() && !sameCharMap.isEmpty()) {
             this.setTexture("required/exit_icon");
-            Logs.logError(name + " code is the same as " + sameCodeMap.keySet().stream().map(Glyph::getName).collect(Collectors.joining(", ")) + ".");
+            Logs.logError(name + " code is the same as " + sameCharMap.keySet().stream().map(Glyph::getName).collect(Collectors.joining(", ")) + ".");
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
             Logs.logWarning("You should edit the code of all these glyphs to be unique.");
         }

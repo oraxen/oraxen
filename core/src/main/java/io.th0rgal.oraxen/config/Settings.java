@@ -32,7 +32,8 @@ public enum Settings {
     // Config Tools
     CONFIGS_VERSION("configs_version"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater"),
-    AUTOMATICALLY_SET_GLYPH_CODE("ConfigsTools.automatically_set_glyph_code"),
+    DISABLE_AUTOMATIC_MODEL_DATA("ConfigsTools.disable_automatic_model_data"),
+    DISABLE_AUTOMATIC_GLYPH_CODE("ConfigsTools.disable_automatic_glyph_code"),
     SKIPPED_MODEL_DATA_NUMBERS("ConfigsTools.skipped_model_data_numbers"),
     ERROR_ITEM("ConfigsTools.error_item"),
 
@@ -40,7 +41,7 @@ public enum Settings {
     GESTURES_ENABLED("Gestures.enabled"),
 
     // ItemUpdater
-    AUTO_UPDATE_ITEMS("ItemUpdater.auto_update_items"),
+    UPDATE_ITEMS("ItemUpdater.update_items"),
     UPDATE_ITEMS_ON_RELOAD("ItemUpdater.update_items_on_reload"),
     UPDATE_FURNITURE_ON_RELOAD("ItemUpdater.update_furniture_on_reload"),
     UPDATE_FURNITURE_ON_LOAD("ItemUpdater.update_furniture_on_load"),

@@ -4,8 +4,8 @@ import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.api.events.OraxenStringBlockInteractEvent;
-import io.th0rgal.oraxen.api.events.OraxenStringBlockPlaceEvent;
+import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockInteractEvent;
+import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
@@ -30,7 +30,12 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.*;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
@@ -82,17 +87,13 @@ public class StringBlockMechanicListener implements Listener {
     public void tripwireEvent(BlockPhysicsEvent event) {
         Block block = event.getBlock();
         if (event.getChangedType() != Material.TRIPWIRE) return;
+        if (event.getSourceBlock() == event.getBlock()) return;
         event.setCancelled(true);
 
-        for (BlockFace f : BlockFace.values()) {
-            if (!f.isCartesian() || f.getModY() != 0 || f == BlockFace.SELF) continue; // Only take N/S/W/E
-            final Block changed = block.getRelative(f);
-            if (changed.getType() != Material.TRIPWIRE) continue;
-
-            final BlockData data = changed.getBlockData().clone();
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                    changed.setBlockData(data, false), 1L);
-        }
+        // Stores the pre-change blockdata and applies it on next tick to prevent the block from updating
+        final BlockData blockData = block.getBlockData().clone();
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                block.setBlockData(blockData, false), 1L);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -146,6 +147,17 @@ public class StringBlockMechanicListener implements Listener {
 
         if (limitedPlacing.isNotPlacableOn(block, blockFace)) {
             event.setCancelled(true);
+        } else if (limitedPlacing.isRadiusLimited()) {
+            LimitedPlacing.RadiusLimitation radiusLimitation = limitedPlacing.getRadiusLimitation();
+            int rad = radiusLimitation.getRadius();
+            int amount = radiusLimitation.getAmount();
+            int count = 0;
+            for (int x = -rad; x <= rad; x++) for (int y = -rad; y <= rad; y++) for (int z = -rad; z <= rad; z++) {
+                StringBlockMechanic relativeMechanic = OraxenBlocks.getStringMechanic(block.getRelative(x, y, z));
+                if (relativeMechanic == null || !relativeMechanic.getItemID().equals(mechanic.getItemID())) continue;
+                count++;
+            }
+            if (count >= amount) event.setCancelled(true);
         } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
             if (!limitedPlacing.checkLimitedMechanic(belowPlaced))
                 event.setCancelled(true);
