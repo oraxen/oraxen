@@ -1,8 +1,9 @@
 package io.th0rgal.oraxen.api;
 
+import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemUpdater;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -14,14 +15,20 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
-import java.util.stream.Collectors;
+import java.util.List;
+import java.util.Map;
 
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.BASE_ENTITY_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.FURNITURE_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.INTERACTION_KEY;
 
 public class OraxenFurniture {
 
@@ -84,23 +91,25 @@ public class OraxenFurniture {
      * @param player   The player who removed the Furniture, can be null
      * @return true if the Furniture was removed, false otherwise
      */
-    public static boolean remove(Location location, @Nullable Player player) {
-        Block block = location.getBlock();
-        FurnitureMechanic mechanic = getFurnitureMechanic(block);
+    public static boolean remove(@NotNull Location location, @Nullable Player player) {
+        if (!location.isWorldLoaded()) return false;
+        assert location.getWorld() != null;
+
+        Entity entity = location.getWorld().getNearbyEntities(location, 0.5,0.5,0.5).stream().filter(OraxenFurniture::isFurniture).findFirst().orElse(null);
+        FurnitureMechanic mechanic = getFurnitureMechanic(location.getBlock());
+        mechanic = mechanic != null ? mechanic : getFurnitureMechanic(entity);
         ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
         if (mechanic == null) return false;
 
-        Entity baseEntity = mechanic.getBaseEntity(block);
+        Entity baseEntity = mechanic.getBaseEntity(location.getBlock());
+        baseEntity = baseEntity != null ? baseEntity : mechanic.getBaseEntity(entity);
         if (baseEntity == null) return false;
 
-        if (mechanic.removeSolid(block) && (!mechanic.isStorage() || !mechanic.getStorage().isShulker())) {
-            if (player != null && player.getGameMode() != GameMode.CREATIVE)
-                mechanic.getDrop().furnitureSpawns(baseEntity, itemStack);
-        }
+        if (player != null && player.getGameMode() != GameMode.CREATIVE)
+            mechanic.getDrop().furnitureSpawns(baseEntity, itemStack);
         if (mechanic.hasBarriers())
-            for (Block barrier : mechanic.getBarriers().stream().map(blockLoc -> blockLoc.toLocation(baseEntity.getWorld()).getBlock()).collect(Collectors.toSet()))
-                if (block.getType() == Material.BARRIER) mechanic.removeSolid(barrier);
-                else mechanic.removeAirFurniture(baseEntity);
+            mechanic.removeSolid(baseEntity.getLocation(), FurnitureMechanic.getFurnitureYaw(baseEntity));
+        else mechanic.removeNonSolidFurniture(baseEntity);
         return true;
     }
 
@@ -108,7 +117,7 @@ public class OraxenFurniture {
      * Removes Furniture at a given Entity, optionally by a player
      *
      * @param baseEntity The entity at which the Furniture should be removed
-     * @param player The player who removed the Furniture, can be null
+     * @param player     The player who removed the Furniture, can be null
      * @return true if the Furniture was removed, false otherwise
      */
     public static boolean remove(Entity baseEntity, @Nullable Player player) {
@@ -122,8 +131,8 @@ public class OraxenFurniture {
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
             mechanic.getDrop().furnitureSpawns(baseEntity, itemStack);
         if (mechanic.hasBarriers())
-            mechanic.removeSolid(baseEntity.getWorld(), new BlockLocation(baseEntity.getLocation()), FurnitureMechanic.getFurnitureYaw(baseEntity));
-        else mechanic.removeAirFurniture(baseEntity);
+            mechanic.removeSolid(baseEntity.getLocation(), FurnitureMechanic.getFurnitureYaw(baseEntity));
+        else mechanic.removeNonSolidFurniture(baseEntity);
         return true;
     }
 
@@ -134,6 +143,7 @@ public class OraxenFurniture {
      * @param block The block to get the FurnitureMechanic from
      * @return Instance of this block's FurnitureMechanic, or null if the block is not tied to a Furniture
      */
+    @Nullable
     public static FurnitureMechanic getFurnitureMechanic(Block block) {
         if (block.getType() != Material.BARRIER) return null;
         final String mechanicID = BlockHelpers.getPDC(block).get(FURNITURE_KEY, PersistentDataType.STRING);
@@ -148,6 +158,7 @@ public class OraxenFurniture {
      * @return Returns this entity's FurnitureMechanic, or null if the entity is not tied to a Furniture
      */
     public static FurnitureMechanic getFurnitureMechanic(Entity entity) {
+        if (entity == null) return null;
         final String itemID = entity.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING);
         if (!OraxenItems.exists(itemID)) return null;
         return (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
@@ -167,15 +178,31 @@ public class OraxenFurniture {
 
     /**
      * Ensures that the given entity is a Furniture, and updates its item if it is
+     *
      * @param entity
      */
     public static void updateFurniture(Entity entity) {
-        if (!OraxenFurniture.isFurniture(entity)) return;
-        entity = OraxenFurniture.getFurnitureMechanic(entity).getBaseEntity(entity);
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
+        if (mechanic == null) return;
+        entity = mechanic.getBaseEntity(entity);
         if (entity == null) return;
+
         ItemStack oldItem = FurnitureMechanic.getFurnitureItem(entity);
         ItemStack newItem = ItemUpdater.updateItem(oldItem);
-        if (oldItem == null || oldItem.equals(newItem)) return;
+
+        if (Settings.EXPERIMENTAL_FURNITURE_TYPE_UPDATE.toBool() && mechanic.getFurnitureEntityType() != entity.getType()) {
+            final PersistentDataContainer oldPdc = entity.getPersistentDataContainer();
+            final BlockFace oldFacing = entity instanceof ItemFrame itemFrame ? itemFrame.getAttachedFace() : BlockFace.UP;
+            if (!OraxenFurniture.remove(entity, null)) return;
+            entity = mechanic.place(entity.getLocation(), newItem, FurnitureMechanic.getFurnitureYaw(entity), oldFacing);
+            PersistentDataContainer newPdc = entity.getPersistentDataContainer();
+
+            // Copy old PDC to new PDC
+            List<Map<?, ?>> serializedPdc = PersistentDataSerializer.toMapList(oldPdc);
+            serializedPdc.removeIf(map -> map.containsKey(INTERACTION_KEY) || map.containsKey(FURNITURE_KEY) || map.containsKey(BASE_ENTITY_KEY));
+            PersistentDataSerializer.fromMapList(serializedPdc, newPdc);
+        }
+
         FurnitureMechanic.setFurnitureItem(entity, newItem);
     }
 }

@@ -14,7 +14,6 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.GameEvent;
@@ -63,7 +62,6 @@ import java.util.Objects;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.getAnvilFacing;
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
-import static io.th0rgal.oraxen.utils.BlockHelpers.validateReplacedSounds;
 
 public class NoteBlockMechanicListener implements Listener {
 
@@ -287,7 +285,6 @@ public class NoteBlockMechanicListener implements Listener {
         if (type.hasGravity() && relative.getRelative(BlockFace.DOWN).getType().isAir()) {
             BlockData data = type.createBlockData();
             if (type.toString().endsWith("ANVIL")) ((Directional) data).setFacing(getAnvilFacing(event.getBlockFace()));
-            Logs.debug(validateReplacedSounds(data.getSoundGroup().getPlaceSound().getKey().toString()));
             BlockHelpers.playCustomBlockSound(relative.getLocation(), data.getSoundGroup().getPlaceSound().getKey().toString(), data.getSoundGroup().getVolume(), data.getSoundGroup().getPitch());
             block.getWorld().spawnFallingBlock(BlockHelpers.toCenterBlockLocation(relative.getLocation()), data);
             if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);

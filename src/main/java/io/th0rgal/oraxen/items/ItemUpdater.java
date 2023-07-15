@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.items;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
+import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -29,7 +29,6 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
@@ -121,7 +120,6 @@ public class ItemUpdater implements Listener {
         }
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
     public static ItemStack updateItem(ItemStack oldItem) {
         String id = OraxenItems.getIdByItem(oldItem);
         if (id == null) return oldItem;
@@ -143,12 +141,8 @@ public class ItemUpdater implements Listener {
             PersistentDataContainer oldPdc = oldMeta.getPersistentDataContainer();
             PersistentDataContainer itemPdc = itemMeta.getPersistentDataContainer();
 
-            // Transfer over all PDC entries - Uses method from JeffLib through CustomBlockData
-            for (NamespacedKey key : oldPdc.getKeys()) {
-                PersistentDataType dataType = CustomBlockData.getDataType(oldPdc, key);
-                Object pdcValue = oldPdc.get(key, dataType);
-                if (pdcValue != null) itemPdc.set(key, dataType, pdcValue);
-            }
+            // Transfer over all PDC entries from oldItem to newItem
+            PersistentDataSerializer.fromMapList(PersistentDataSerializer.toMapList(oldPdc), itemPdc);
 
             // Add all enchantments from oldItem and add all from newItem aslong as it is not the same Enchantments
             for (Map.Entry<Enchantment, Integer> entry : oldMeta.getEnchants().entrySet())
