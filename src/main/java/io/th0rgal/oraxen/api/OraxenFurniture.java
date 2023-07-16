@@ -1,9 +1,11 @@
 package io.th0rgal.oraxen.api;
 
+import com.jeff_media.morepersistentdatatypes.DataType;
 import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemUpdater;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
@@ -11,6 +13,7 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
 import org.bukkit.Rotation;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -24,12 +27,17 @@ import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.BASE_ENTITY_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.BARRIER_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.EVOLUTION_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.FURNITURE_KEY;
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.INTERACTION_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic.PERSONAL_STORAGE_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic.STORAGE_KEY;
+import static io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscListener.MUSIC_DISC_KEY;
 
 public class OraxenFurniture {
 
@@ -115,7 +123,7 @@ public class OraxenFurniture {
         }
 
         if (mechanic.hasBarriers())
-            mechanic.removeSolid(baseEntity.getLocation(), FurnitureMechanic.getFurnitureYaw(baseEntity));
+            mechanic.removeSolid(baseEntity, baseEntity.getLocation(), FurnitureMechanic.getFurnitureYaw(baseEntity));
         else mechanic.removeNonSolidFurniture(baseEntity);
         return true;
     }
@@ -145,7 +153,7 @@ public class OraxenFurniture {
         }
 
         if (mechanic.hasBarriers())
-            mechanic.removeSolid(baseEntity.getLocation(), FurnitureMechanic.getFurnitureYaw(baseEntity));
+            mechanic.removeSolid(baseEntity, baseEntity.getLocation(), FurnitureMechanic.getFurnitureYaw(baseEntity));
         else mechanic.removeNonSolidFurniture(baseEntity);
         return true;
     }
@@ -203,20 +211,23 @@ public class OraxenFurniture {
 
         ItemStack oldItem = FurnitureMechanic.getFurnitureItem(entity);
         ItemStack newItem = ItemUpdater.updateItem(oldItem);
+        FurnitureMechanic.setFurnitureItem(entity, newItem);
 
-        if (Settings.EXPERIMENTAL_FURNITURE_TYPE_UPDATE.toBool() && mechanic.getFurnitureEntityType() != entity.getType()) {
+        if (Settings.EXPERIMENTAL_FURNITURE_TYPE_UPDATE.toBool()) {
             final PersistentDataContainer oldPdc = entity.getPersistentDataContainer();
             final BlockFace oldFacing = entity instanceof ItemFrame itemFrame ? itemFrame.getAttachedFace() : BlockFace.UP;
-            if (!OraxenFurniture.remove(entity, null)) return;
-            entity = mechanic.place(entity.getLocation(), newItem, FurnitureMechanic.getFurnitureYaw(entity), oldFacing);
-            PersistentDataContainer newPdc = entity.getPersistentDataContainer();
 
-            // Copy old PDC to new PDC
-            List<Map<?, ?>> serializedPdc = PersistentDataSerializer.toMapList(oldPdc);
-            serializedPdc.removeIf(map -> map.containsKey(INTERACTION_KEY) || map.containsKey(FURNITURE_KEY) || map.containsKey(BASE_ENTITY_KEY));
-            PersistentDataSerializer.fromMapList(serializedPdc, newPdc);
+            // If the entityType and barriers have not changed we can just update the item
+            if (entity.getType() != mechanic.getFurnitureEntityType() || !mechanic.getBarriers().equals(oldPdc.getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>()))) {
+                if (!OraxenFurniture.remove(entity, null)) return;
+                Entity newEntity = mechanic.place(entity.getLocation(), newItem, FurnitureMechanic.getFurnitureYaw(entity), oldFacing);
+                if (newEntity == null) return;
+
+                // Copy old PDC to new PDC, skip keys that should not persist
+                List<Map<?, ?>> serializedPdc = PersistentDataSerializer.toMapList(oldPdc);
+                serializedPdc.removeIf(map -> Stream.of(MUSIC_DISC_KEY, EVOLUTION_KEY, STORAGE_KEY, PERSONAL_STORAGE_KEY).map(NamespacedKey::toString).noneMatch(map::containsValue));
+                PersistentDataSerializer.fromMapList(serializedPdc, newEntity.getPersistentDataContainer());
+            }
         }
-
-        FurnitureMechanic.setFurnitureItem(entity, newItem);
     }
 }
