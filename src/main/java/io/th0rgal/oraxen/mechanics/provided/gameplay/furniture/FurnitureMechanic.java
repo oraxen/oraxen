@@ -68,6 +68,8 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey ROOT_KEY = new NamespacedKey(OraxenPlugin.get(), "root");
     public static final NamespacedKey ORIENTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "orientation");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
+    public static final NamespacedKey BARRIER_KEY = new NamespacedKey(OraxenPlugin.get(), "barriers");
+
     private final int hardness;
     private final LimitedPlacing limitedPlacing;
     private final StorageMechanic storage;
@@ -368,7 +370,6 @@ public class FurnitureMechanic extends Mechanic {
 
         Entity baseEntity = location.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), entityClass, (entity) ->
                 setEntityData(entity, yaw, item, facing));
-
         if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity, yaw);
         }
@@ -437,6 +438,7 @@ public class FurnitureMechanic extends Mechanic {
         entity.setCustomNameVisible(false);
         PersistentDataContainer pdc = entity.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
+        pdc.set(BARRIER_KEY, DataType.asList(BlockLocation.dataType), barriers);
         if (hasEvolution()) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
         if (isStorage() && getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
@@ -506,17 +508,16 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private void setBarrierHitbox(Entity entity, Location location, float yaw, boolean handleLight) {
-        for (Location barrierLocation : getLocations(yaw, BlockHelpers.toCenterBlockLocation(location), getBarriers())) {
+        List<Location> barrierLocations = getLocations(yaw, BlockHelpers.toCenterBlockLocation(location), barriers);
+        for (Location barrierLocation : barrierLocations) {
             Block block = barrierLocation.getBlock();
+            block.setType(Material.BARRIER);
             PersistentDataContainer data = BlockHelpers.getPDC(block);
             data.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
-            if (hasSeat()) {
-                data.set(SEAT_KEY, DataType.UUID, spawnSeat(block, hasSeatYaw ? seatYaw : yaw));
-            }
+            if (hasSeat) data.set(SEAT_KEY, DataType.UUID, spawnSeat(block, hasSeatYaw ? seatYaw : yaw));
             data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location.clone()).toString());
             data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
             data.set(BASE_ENTITY_KEY, DataType.UUID, entity.getUniqueId());
-            block.setType(Material.BARRIER);
             if (handleLight && light != -1)
                 WrappedLightAPI.createBlockLight(barrierLocation, light);
         }
@@ -556,34 +557,18 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    public void removeSolid(Block block) {
-        PersistentDataContainer pdc = BlockHelpers.getPDC(block);
-        Float orientation = pdc.getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
-        final BlockLocation rootBlock = new BlockLocation(Objects.requireNonNull(pdc.get(ROOT_KEY, PersistentDataType.STRING)));
+    public void removeSolid(Entity baseEntity, Location rootLocation, float orientation) {
+        List<BlockLocation> blockLocations = baseEntity.getPersistentDataContainer().getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>());
+        List<Location> barrierLocations = getLocations(orientation, rootLocation, blockLocations.isEmpty() ? getBarriers() : blockLocations);
 
-        removeSolid(rootBlock.toLocation(block.getWorld()), orientation);
-    }
+        for (Location location : barrierLocations) {
+            if (light != -1) WrappedLightAPI.removeBlockLight(location);
+            if (hasSeat) removeFurnitureSeat(location);
+            if (location.getBlock().getType() != Material.BARRIER) continue;
+            if (!BlockHelpers.getPDC(location.getBlock()).getOrDefault(BASE_ENTITY_KEY, DataType.UUID, UUID.randomUUID()).equals(baseEntity.getUniqueId())) continue;
 
-    public void removeSolid(Location rootLocation, float orientation) {
-        List<Location> barrierLocations = getLocations(orientation, rootLocation, getBarriers());
-        Entity baseEntity = null;
-        if (!barrierLocations.isEmpty()) {
-            for (Location location : barrierLocations) {
-                if (light != -1) WrappedLightAPI.removeBlockLight(location);
-                if (hasSeat) removeFurnitureSeat(location);
-                baseEntity = baseEntity != null ? baseEntity : getBaseEntity(location.getBlock());
-                location.getBlock().setType(Material.AIR);
-                new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
-            }
-        } else for (Entity entity : rootLocation.getWorld().getNearbyEntities(rootLocation, 1, 1, 1)) {
-            if (entity.getType() == getFurnitureEntityType()
-                    && entity.getLocation().getBlockX() == rootLocation.getBlockX()
-                    && entity.getLocation().getBlockY() == rootLocation.getBlockY()
-                    && entity.getLocation().getBlockZ() == rootLocation.getBlockZ()
-                    && OraxenFurniture.isFurniture(entity)) {
-                baseEntity = entity;
-                break;
-            }
+            location.getBlock().setType(Material.AIR);
+            new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
         }
         removeBaseEntity(baseEntity);
     }
