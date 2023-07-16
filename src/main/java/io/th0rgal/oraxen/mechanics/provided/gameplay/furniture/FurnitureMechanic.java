@@ -566,11 +566,12 @@ public class FurnitureMechanic extends Mechanic {
 
     public void removeSolid(Location rootLocation, float orientation) {
         List<Location> barrierLocations = getLocations(orientation, rootLocation, getBarriers());
+        Entity baseEntity = null;
         if (!barrierLocations.isEmpty()) {
             for (Location location : barrierLocations) {
                 if (light != -1) WrappedLightAPI.removeBlockLight(location);
                 if (hasSeat) removeFurnitureSeat(location);
-                removeBaseEntity(getBaseEntity(location.getBlock()));
+                baseEntity = baseEntity != null ? baseEntity : getBaseEntity(location.getBlock());
                 location.getBlock().setType(Material.AIR);
                 new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
             }
@@ -580,10 +581,15 @@ public class FurnitureMechanic extends Mechanic {
                     && entity.getLocation().getBlockY() == rootLocation.getBlockY()
                     && entity.getLocation().getBlockZ() == rootLocation.getBlockZ()
                     && OraxenFurniture.isFurniture(entity)) {
-                removeBaseEntity(entity);
+                baseEntity = entity;
                 break;
             }
         }
+        removeBaseEntity(baseEntity);
+    }
+
+    public void removeNonSolidFurniture(Entity baseEntity) {
+        removeBaseEntity(baseEntity);
     }
 
     private void removeBaseEntity(Entity baseEntity) {
@@ -593,16 +599,9 @@ public class FurnitureMechanic extends Mechanic {
         baseEntity.remove();
     }
 
-    public void removeNonSolidFurniture(Entity baseEntity) {
-        removeSubEntitiesOfFurniture(baseEntity);
-        baseEntity.remove();
-    }
-
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
         if (light != -1) WrappedLightAPI.removeBlockLight(baseEntity.getLocation());
         if (hasSeat) removeFurnitureSeat(baseEntity.getLocation());
-        if (storage != null && (storage.isStorage() || storage.isShulker()))
-            storage.dropStorageContent(this, baseEntity);
 
         if (OraxenPlugin.supportsDisplayEntities) {
             Interaction interaction = getInteractionEntity(baseEntity);

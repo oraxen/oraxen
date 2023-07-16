@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -93,8 +94,14 @@ public class OraxenFurniture {
         baseEntity = baseEntity != null ? baseEntity : mechanic.getBaseEntity(entity);
         if (baseEntity == null) return false;
 
-        if (player != null && player.getGameMode() != GameMode.CREATIVE)
-            mechanic.getDrop().furnitureSpawns(baseEntity, itemStack);
+        if (player != null) {
+            if (player.getGameMode() != GameMode.CREATIVE)
+                mechanic.getDrop().furnitureSpawns(baseEntity, itemStack);
+            StorageMechanic storage = mechanic.getStorage();
+            if (storage != null && (storage.isStorage() || storage.isShulker()))
+                storage.dropStorageContent(mechanic, baseEntity);
+        }
+
         if (mechanic.hasBarriers())
             mechanic.removeSolid(baseEntity.getLocation(), FurnitureMechanic.getFurnitureYaw(baseEntity));
         else mechanic.removeNonSolidFurniture(baseEntity);
@@ -111,13 +118,20 @@ public class OraxenFurniture {
     public static boolean remove(Entity baseEntity, @Nullable Player player) {
         FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
         if (mechanic == null) return false;
-        // Return if entity is interaction. Otherwise, remove it based on mechanic
+        // Ensure the baseEntity is baseEntity and not interactionEntity
+        if (OraxenFurniture.isInteractionEntity(baseEntity)) baseEntity = mechanic.getBaseEntity(baseEntity);
+        if (baseEntity == null) return false;
         // Allows for changing the FurnitureType in config and still remove old entities
-        if (OraxenPlugin.supportsDisplayEntities && baseEntity.getType() == EntityType.INTERACTION) return false;
         ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
 
-        if (player != null && player.getGameMode() != GameMode.CREATIVE)
-            mechanic.getDrop().furnitureSpawns(baseEntity, itemStack);
+        if (player != null) {
+            if (player.getGameMode() != GameMode.CREATIVE)
+                mechanic.getDrop().furnitureSpawns(baseEntity, itemStack);
+            StorageMechanic storage = mechanic.getStorage();
+            if (storage != null && (storage.isStorage() || storage.isShulker()))
+                storage.dropStorageContent(mechanic, baseEntity);
+        }
+
         if (mechanic.hasBarriers())
             mechanic.removeSolid(baseEntity.getLocation(), FurnitureMechanic.getFurnitureYaw(baseEntity));
         else mechanic.removeNonSolidFurniture(baseEntity);
@@ -165,9 +179,9 @@ public class OraxenFurniture {
     }
 
     /**
-     * Ensures that the given entity is a Furniture, and updates its item if it is
+     * Ensures that the given entity is a Furniture, and updates it if it is
      *
-     * @param entity
+     * @param entity The furniture baseEntity to update
      */
     public static void updateFurniture(Entity entity) {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
