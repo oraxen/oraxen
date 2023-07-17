@@ -1,7 +1,11 @@
 package io.th0rgal.oraxen.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
-import dev.jorel.commandapi.arguments.*;
+import dev.jorel.commandapi.arguments.ArgumentSuggestions;
+import dev.jorel.commandapi.arguments.EntitySelectorArgument;
+import dev.jorel.commandapi.arguments.GreedyStringArgument;
+import dev.jorel.commandapi.arguments.IntegerArgument;
+import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
@@ -41,7 +45,6 @@ public class CommandsManager {
                 .withSubcommand((new DebugCommand()).getDebugCommand())
                 .withSubcommand((new ModelDataCommand()).getHighestModelDataCommand())
                 .withSubcommand((new GlyphCommand()).getGlyphCommand(commandsSection))
-                .withSubcommand((new PrintGlyphCommand()).getPrintGlyphCommand())
                 .withSubcommand((new ItemInfoCommand()).getItemInfoCommand())
                 .withSubcommand((new BlockInfoCommand()).getBlockInfoCommand())
                 .withSubcommand((new HudCommand()).getHudCommand())

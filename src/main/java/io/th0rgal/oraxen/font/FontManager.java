@@ -20,7 +20,15 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class FontManager {
@@ -80,7 +88,7 @@ public class FontManager {
         verifyRequiredGlyphs();
         for (Glyph glyph : glyphs) {
             glyphMap.put(glyph.getName(), glyph);
-            reverse.put(glyph.getCharacter(), glyph.getName());
+            reverse.put(glyph.getCharacter().charAt(0), glyph.getName());
             for (final String placeholder : glyph.getPlaceholders())
                 glyphByPlaceholder.put(placeholder, glyph);
         }
@@ -181,7 +189,7 @@ public class FontManager {
         List<String> completions = getGlyphByPlaceholderMap().values().stream()
                 .filter(Glyph::hasTabCompletion)
                 .flatMap(glyph -> Settings.UNICODE_COMPLETIONS.toBool()
-                        ? Stream.of(String.valueOf(glyph.getCharacter()))
+                        ? Stream.of(glyph.getCharacter())
                         : Arrays.stream(glyph.getPlaceholders()))
                 .toList();
 

@@ -48,11 +48,11 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                 OraxenPlugin.get().getResourcePack().writeStringToVirtual(
                         "assets/minecraft/blockstates", "note_block.json", getBlockstateContent())
         );
-        MechanicsManager.registerListeners(OraxenPlugin.get(),
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new NoteBlockMechanicListener(),
                 new LogStripListener()
         );
-        if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), new NoteBlockSoundListener());
+        if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockSoundListener());
     }
 
     public static String getInstrumentName(int id) {

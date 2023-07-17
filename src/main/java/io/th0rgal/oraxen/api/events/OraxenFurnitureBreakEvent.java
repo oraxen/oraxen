@@ -10,6 +10,11 @@ import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+/**
+ * @deprecated This event is deprecated and will be removed in a future version.
+ * Use {@link io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureBreakEvent} instead.
+ */
+@Deprecated(since = "1.158.0", forRemoval = true)
 public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
 
     boolean isCancelled;

@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.api;
 
-import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -47,6 +47,16 @@ public class OraxenFurniture {
 
     public static boolean isFurniture(Entity entity) {
         return getFurnitureMechanic(entity) != null;
+    }
+
+    public static boolean isBaseEntity(Entity entity) {
+        FurnitureMechanic mechanic = getFurnitureMechanic(entity);
+        return mechanic != null && mechanic.getFurnitureEntityType() == entity.getType();
+    }
+
+    public static boolean isInteractionEntity(Entity entity) {
+        FurnitureMechanic mechanic = getFurnitureMechanic(entity);
+        return mechanic != null && OraxenPlugin.supportsDisplayEntities && entity.getType() == EntityType.INTERACTION;
     }
 
     public static boolean place(Location location, String itemID, Rotation rotation, BlockFace blockFace) {

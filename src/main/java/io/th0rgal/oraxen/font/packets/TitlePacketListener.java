@@ -12,7 +12,9 @@ import io.th0rgal.oraxen.utils.PacketHelpers;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.Component;
 
-import static com.comphenix.protocol.PacketType.Play.Server.*;
+import static com.comphenix.protocol.PacketType.Play.Server.SET_ACTION_BAR_TEXT;
+import static com.comphenix.protocol.PacketType.Play.Server.SET_SUBTITLE_TEXT;
+import static com.comphenix.protocol.PacketType.Play.Server.SET_TITLE_TEXT;
 
 public class TitlePacketListener extends PacketAdapter {
 

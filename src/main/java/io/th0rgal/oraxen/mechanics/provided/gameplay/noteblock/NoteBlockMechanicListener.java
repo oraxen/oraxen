@@ -4,9 +4,8 @@ import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.api.events.OraxenNoteBlockInteractEvent;
-import io.th0rgal.oraxen.api.events.OraxenNoteBlockPlaceEvent;
-import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockInteractEvent;
+import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockPlaceEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
@@ -17,7 +16,15 @@ import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameEvent;
+import org.bukkit.GameMode;
+import org.bukkit.Instrument;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -31,7 +38,14 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.*;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.NotePlayEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.ClickType;
@@ -42,13 +56,16 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.RayTraceResult;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.getAnvilFacing;
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
 public class NoteBlockMechanicListener implements Listener {
-    private final MechanicFactory factory = NoteBlockMechanicFactory.getInstance();
 
     public NoteBlockMechanicListener() {
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
@@ -62,7 +79,8 @@ public class NoteBlockMechanicListener implements Listener {
         public void onFallingBlockLandOnCarpet(EntityRemoveFromWorldEvent event) {
             if (!(event.getEntity() instanceof FallingBlock fallingBlock)) return;
             NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(fallingBlock.getBlockData());
-            if (mechanic == null || Objects.equals(OraxenBlocks.getOraxenBlock(fallingBlock.getLocation()), mechanic)) return;
+            if (mechanic == null || Objects.equals(OraxenBlocks.getOraxenBlock(fallingBlock.getLocation()), mechanic))
+                return;
             if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
                 mechanic = mechanic.getDirectional().getParentMechanic();
 
@@ -160,6 +178,17 @@ public class NoteBlockMechanicListener implements Listener {
 
         if (limitedPlacing.isNotPlacableOn(block, blockFace)) {
             event.setCancelled(true);
+        } else if (limitedPlacing.isRadiusLimited()) {
+            LimitedPlacing.RadiusLimitation radiusLimitation = limitedPlacing.getRadiusLimitation();
+            int rad = radiusLimitation.getRadius();
+            int amount = radiusLimitation.getAmount();
+            int count = 0;
+            for (int x = -rad; x <= rad; x++) for (int y = -rad; y <= rad; y++) for (int z = -rad; z <= rad; z++) {
+                NoteBlockMechanic relativeMechanic = OraxenBlocks.getNoteBlockMechanic(block.getRelative(x, y, z));
+                if (relativeMechanic == null || !relativeMechanic.getItemID().equals(mechanic.getItemID())) continue;
+                count++;
+            }
+            if (count >= amount) event.setCancelled(true);
         } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
             if (!limitedPlacing.checkLimitedMechanic(belowPlaced))
                 event.setCancelled(true);
@@ -205,7 +234,8 @@ public class NoteBlockMechanicListener implements Listener {
         EquipmentSlot hand = event.getHand();
         BlockFace blockFace = event.getBlockFace();
 
-        if (hand == null || event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK) return;
+        if (hand == null || event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK)
+            return;
         if (!player.isSneaking() && BlockHelpers.isInteractable(block)) return;
 
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);

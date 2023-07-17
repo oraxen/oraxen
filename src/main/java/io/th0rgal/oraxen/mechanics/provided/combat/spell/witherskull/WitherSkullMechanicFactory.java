@@ -9,7 +9,7 @@ import org.bukkit.configuration.ConfigurationSection;
 public class WitherSkullMechanicFactory extends MechanicFactory {
     public WitherSkullMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new WitherSkullMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new WitherSkullMechanicListener(this));
     }
 
     @Override
