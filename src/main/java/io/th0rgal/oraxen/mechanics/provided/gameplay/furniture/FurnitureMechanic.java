@@ -295,6 +295,16 @@ public class FurnitureMechanic extends Mechanic {
         return !barriers.isEmpty();
     }
 
+    /**
+     * Checks if the given entity has barriers.
+     * This method also checks the actual entity in-case the config changed.
+     * @param baseEntity the entity to check
+     * @return true if the entity has barriers
+     */
+    public boolean hasBarriers(@NotNull Entity baseEntity) {
+        return hasBarriers() || !baseEntity.getPersistentDataContainer().getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>()).isEmpty();
+    }
+
     public List<BlockLocation> getBarriers() {
         return barriers;
     }
@@ -387,7 +397,7 @@ public class FurnitureMechanic extends Mechanic {
             else {
                 float width = hasHitbox() ? hitbox.width : 1f;
                 float height = hasHitbox() ? hitbox.height : 1f;
-                Entity interaction = spawnInteractionEntity(frame, location, width, height, true);
+                Entity interaction = spawnInteractionEntity(frame, location, width, height);
 
                 Block block = location.getBlock();
                 if (hasSeat() && interaction != null) {
@@ -403,7 +413,7 @@ public class FurnitureMechanic extends Mechanic {
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
             float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
             float height = hasHitbox() ? hitbox.height : displayEntityProperties.getDisplayHeight();
-            Interaction interaction = spawnInteractionEntity(itemDisplay, location, width, height, displayEntityProperties.isInteractable());
+            Interaction interaction = spawnInteractionEntity(itemDisplay, location, width, height);
 
             if (hasBarriers()) setBarrierHitbox(entity, location, yaw, false);
             else if (hasSeat() && interaction != null) {
@@ -417,12 +427,11 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private Interaction spawnInteractionEntity(Entity entity, Location location, float width, float height, boolean responsive) {
-        if (!OraxenPlugin.supportsDisplayEntities) return null;
+    private Interaction spawnInteractionEntity(Entity entity, Location location, float width, float height) {
+        if (!OraxenPlugin.supportsDisplayEntities || width <= 0f || height <= 0f) return null;
         Interaction interaction = entity.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), Interaction.class, (Interaction i) -> {
             i.setInteractionWidth(width);
             i.setInteractionHeight(height);
-            i.setResponsive(responsive);
             i.setPersistent(true);
         });
         PersistentDataContainer pdc = interaction.getPersistentDataContainer();

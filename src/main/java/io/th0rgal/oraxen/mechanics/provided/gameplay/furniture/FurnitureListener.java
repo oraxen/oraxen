@@ -249,9 +249,11 @@ public class FurnitureListener implements Listener {
 
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic == null) return;
+        entity = mechanic.getBaseEntity(entity);
+        if (entity == null) return;
 
         event.setCancelled(true);
-        if (mechanic.hasBarriers()) return;
+        if (mechanic.hasBarriers(entity) || mechanic.hasHitbox()) return;
         OraxenFurniture.remove(entity, null);
     }
 
