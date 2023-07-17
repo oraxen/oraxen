@@ -19,6 +19,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Interaction;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -104,7 +105,7 @@ public class OraxenFurniture {
         if (!location.isWorldLoaded()) return false;
         assert location.getWorld() != null;
 
-        Entity entity = location.getWorld().getNearbyEntities(location, 0.5,0.5,0.5).stream().filter(OraxenFurniture::isFurniture).findFirst().orElse(null);
+        Entity entity = location.getWorld().getNearbyEntities(location, 0.5, 0.5, 0.5).stream().filter(OraxenFurniture::isFurniture).findFirst().orElse(null);
         FurnitureMechanic mechanic = getFurnitureMechanic(location.getBlock());
         mechanic = mechanic != null ? mechanic : getFurnitureMechanic(entity);
         ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
@@ -152,7 +153,8 @@ public class OraxenFurniture {
                 storage.dropStorageContent(mechanic, baseEntity);
         }
 
-        if (mechanic.hasBarriers())
+        // Check if the mechanic or the baseEntity has barriers tied to it
+        if (mechanic.hasBarriers(baseEntity))
             mechanic.removeSolid(baseEntity, baseEntity.getLocation(), FurnitureMechanic.getFurnitureYaw(baseEntity));
         else mechanic.removeNonSolidFurniture(baseEntity);
         return true;
@@ -217,17 +219,28 @@ public class OraxenFurniture {
             final PersistentDataContainer oldPdc = entity.getPersistentDataContainer();
             final BlockFace oldFacing = entity instanceof ItemFrame itemFrame ? itemFrame.getAttachedFace() : BlockFace.UP;
 
-            // If the entityType and barriers have not changed we can just update the item
-            if (entity.getType() != mechanic.getFurnitureEntityType() || !mechanic.getBarriers().equals(oldPdc.getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>()))) {
-                if (!OraxenFurniture.remove(entity, null)) return;
-                Entity newEntity = mechanic.place(entity.getLocation(), newItem, FurnitureMechanic.getFurnitureYaw(entity), oldFacing);
-                if (newEntity == null) return;
-
-                // Copy old PDC to new PDC, skip keys that should not persist
-                List<Map<?, ?>> serializedPdc = PersistentDataSerializer.toMapList(oldPdc);
-                serializedPdc.removeIf(map -> Stream.of(MUSIC_DISC_KEY, EVOLUTION_KEY, STORAGE_KEY, PERSONAL_STORAGE_KEY).map(NamespacedKey::toString).noneMatch(map::containsValue));
-                PersistentDataSerializer.fromMapList(serializedPdc, newEntity.getPersistentDataContainer());
+            // Check if furnitureType changed, if so remove and place new
+            if (entity.getType() == mechanic.getFurnitureEntityType()) {
+                // Check if barriers changed, if so remove and place new
+                if (mechanic.getBarriers().equals(oldPdc.getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>()))) {
+                    // Check if interaction-hitbox changed, if so remove and place new
+                    Interaction interaction = mechanic.getInteractionEntity(entity);
+                    if (OraxenPlugin.supportsDisplayEntities && interaction != null && mechanic.hasHitbox()) {
+                        if (interaction.getInteractionWidth() == mechanic.getHitbox().width())
+                            if (interaction.getInteractionHeight() == mechanic.getHitbox().height())
+                                return;
+                    } else return;
+                }
             }
+
+            if (!OraxenFurniture.remove(entity, null)) return;
+            Entity newEntity = mechanic.place(entity.getLocation(), newItem, FurnitureMechanic.getFurnitureYaw(entity), oldFacing);
+            if (newEntity == null) return;
+
+            // Copy old PDC to new PDC, skip keys that should not persist
+            List<Map<?, ?>> serializedPdc = PersistentDataSerializer.toMapList(oldPdc);
+            serializedPdc.removeIf(map -> Stream.of(MUSIC_DISC_KEY, EVOLUTION_KEY, STORAGE_KEY, PERSONAL_STORAGE_KEY).map(NamespacedKey::toString).noneMatch(map::containsValue));
+            PersistentDataSerializer.fromMapList(serializedPdc, newEntity.getPersistentDataContainer());
         }
     }
 }

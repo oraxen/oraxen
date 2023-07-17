@@ -21,10 +21,8 @@ public class DisplayEntityProperties {
     private final float displayWidth;
     private final float displayHeight;
     private final Vector3f scale;
-    private final boolean isInteractable;
 
     public DisplayEntityProperties() {
-        this.isInteractable = true;
         this.displayWidth = 0f;
         this.displayHeight = 0f;
         this.displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
@@ -38,7 +36,6 @@ public class DisplayEntityProperties {
 
     public DisplayEntityProperties(ConfigurationSection configSection) {
         String itemID = configSection.getParent().getParent().getParent().getName();
-        isInteractable = configSection.getBoolean("interactable", true);
         //glowColor = Utils.toColor(configSection.getString("glow_color", ""));
         viewRange = configSection.getInt("view_range");
         interpolationDuration = configSection.getInt("interpolation_duration");
@@ -158,9 +155,5 @@ public class DisplayEntityProperties {
 
     public Vector3f getScale() {
         return scale;
-    }
-
-    public boolean isInteractable() {
-        return isInteractable;
     }
 }
