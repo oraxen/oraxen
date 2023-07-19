@@ -2,15 +2,12 @@ package io.th0rgal.oraxen.items;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
-import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -19,7 +16,6 @@ import org.bukkit.event.enchantment.PrepareItemEnchantEvent;
 import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.world.EntitiesLoadEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.Damageable;
@@ -28,9 +24,7 @@ import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.scheduler.BukkitRunnable;
 
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -38,26 +32,6 @@ import java.util.Optional;
 import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
 
 public class ItemUpdater implements Listener {
-
-    public ItemUpdater() {
-        if (furnitureUpdateTask != null) furnitureUpdateTask.cancel();
-        furnitureUpdateTask = new FurnitureUpdateTask();
-        int delay = (Settings.FURNITURE_UPDATE_DELAY.getValue() instanceof Integer integer) ? integer : 5;
-        furnitureUpdateTask.runTaskTimer(OraxenPlugin.get(), 0, delay * 20L);
-    }
-
-    public static HashSet<Entity> furnitureToUpdate = new HashSet<>();
-    public static FurnitureUpdateTask furnitureUpdateTask;
-    public static class FurnitureUpdateTask extends BukkitRunnable {
-
-        @Override
-        public void run() {
-            for (Entity entity : new HashSet<>(furnitureToUpdate)) {
-                OraxenFurniture.updateFurniture(entity);
-                furnitureToUpdate.remove(entity);
-            }
-        }
-    }
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
@@ -81,16 +55,6 @@ public class ItemUpdater implements Listener {
         ItemStack newItem = ItemUpdater.updateItem(oldItem);
         if (oldItem.equals(newItem)) return;
         event.getItem().setItemStack(newItem);
-    }
-
-    @EventHandler
-    public void onEntityLoad(EntitiesLoadEvent event) {
-        if (!Settings.UPDATE_ITEMS.toBool()) return;
-        if (!Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) return;
-
-        for (Entity entity : event.getEntities())
-            if (OraxenFurniture.isFurniture(entity))
-                ItemUpdater.furnitureToUpdate.add(entity);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)

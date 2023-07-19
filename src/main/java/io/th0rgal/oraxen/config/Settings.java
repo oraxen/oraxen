@@ -42,12 +42,15 @@ public enum Settings {
     // ItemUpdater
     UPDATE_ITEMS("ItemUpdater.update_items"),
     UPDATE_ITEMS_ON_RELOAD("ItemUpdater.update_items_on_reload"),
-    UPDATE_FURNITURE_ON_RELOAD("ItemUpdater.update_furniture_on_reload"),
-    UPDATE_FURNITURE_ON_LOAD("ItemUpdater.update_furniture_on_load"),
-    FURNITURE_UPDATE_DELAY("ItemUpdater.furniture_update_delay_in_seconds"),
-    EXPERIMENTAL_FURNITURE_TYPE_UPDATE("ItemUpdater.experimental_furniture_type_update"),
     OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
     OVERRIDE_LORE("ItemUpdater.override_lore"),
+
+    // FurnitureUpdater
+    UPDATE_FURNITURE("FurnitureUpdater.update_furniture"),
+    UPDATE_FURNITURE_ON_RELOAD("FurnitureUpdater.update_furniture_on_reload"),
+    UPDATE_FURNITURE_ON_LOAD("FurnitureUpdater.update_furniture_on_load"),
+    FURNITURE_UPDATE_DELAY("FurnitureUpdater.furniture_update_delay_in_seconds"),
+    EXPERIMENTAL_FURNITURE_TYPE_UPDATE("FurnitureUpdater.experimental_furniture_type_update"),
 
     //Misc
     RESET_RECIPES("Misc.reset_recipes"),
