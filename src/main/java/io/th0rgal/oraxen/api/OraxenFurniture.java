@@ -95,9 +95,10 @@ public class OraxenFurniture {
 
         Entity entity = location.getWorld().getNearbyEntities(location, 0.5, 0.5, 0.5).stream().filter(OraxenFurniture::isFurniture).findFirst().orElse(null);
         FurnitureMechanic mechanic = getFurnitureMechanic(location.getBlock());
-        mechanic = mechanic != null ? mechanic : getFurnitureMechanic(entity);
+        mechanic = mechanic != null ? mechanic : entity != null ? getFurnitureMechanic(entity) : null;
         ItemStack itemStack = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
         if (mechanic == null) return false;
+        assert entity != null;
 
         Entity baseEntity = mechanic.getBaseEntity(location.getBlock());
         baseEntity = baseEntity != null ? baseEntity : mechanic.getBaseEntity(entity);

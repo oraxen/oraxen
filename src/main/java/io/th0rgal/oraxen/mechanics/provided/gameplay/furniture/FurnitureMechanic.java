@@ -309,6 +309,17 @@ public class FurnitureMechanic extends Mechanic {
         return barriers;
     }
 
+    /**
+     * Gets the barriers for the given entity.
+     * This method also checks the actual entity in-case the config changed.
+     * @param baseEntity the entity to get the barriers for
+     * @return the barriers for the given entity
+     */
+    public List<BlockLocation> getBarriers(@NotNull Entity baseEntity) {
+        List<BlockLocation> barriers = baseEntity.getPersistentDataContainer().getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>());
+        return barriers.isEmpty() ? this.barriers : barriers;
+    }
+
     public boolean hasHitbox() {
         return !hasBarriers() && hitbox != null;
     }

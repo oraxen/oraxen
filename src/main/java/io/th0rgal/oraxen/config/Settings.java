@@ -51,6 +51,7 @@ public enum Settings {
     UPDATE_FURNITURE_ON_LOAD("FurnitureUpdater.update_furniture_on_load"),
     FURNITURE_UPDATE_DELAY("FurnitureUpdater.furniture_update_delay_in_seconds"),
     EXPERIMENTAL_FURNITURE_TYPE_UPDATE("FurnitureUpdater.experimental_furniture_type_update"),
+    EXPERIMENTAL_FIX_BROKEN_FURNITURE("FurnitureUpdater.experimental_fix_broken_furniture"),
 
     //Misc
     RESET_RECIPES("Misc.reset_recipes"),
