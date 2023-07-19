@@ -21,7 +21,7 @@ import java.util.Map;
 
 public class BlockInfoCommand {
 
-    public CommandAPICommand getBlockInfoCommand() {
+    CommandAPICommand getBlockInfoCommand() {
         return new CommandAPICommand("blockinfo")
                 .withPermission("oraxen.command.blockinfo")
                 .withArguments(new StringArgument("itemid").replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())))

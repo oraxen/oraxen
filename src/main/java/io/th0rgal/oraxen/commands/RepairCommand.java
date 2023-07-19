@@ -20,7 +20,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 public class RepairCommand {
 
-    public CommandAPICommand getRepairCommand() {
+    CommandAPICommand getRepairCommand() {
         return new CommandAPICommand("repair")
                 .withPermission("oraxen.command.repair")
                 .withArguments(new TextArgument("type").replaceSuggestions(ArgumentSuggestions.strings("hand", "all")))

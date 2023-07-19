@@ -87,7 +87,7 @@ public class ReloadCommand {
         RecipesManager.reload();
     }
 
-    public CommandAPICommand getReloadCommand() {
+    CommandAPICommand getReloadCommand() {
         return new CommandAPICommand("reload")
                 .withAliases("rl")
                 .withPermission("oraxen.command.reload")
