@@ -5,12 +5,11 @@ import io.th0rgal.oraxen.OraxenPlugin;
 
 public class VersionCommand {
 
-    public CommandAPICommand getVersionCommand() {
+    CommandAPICommand getVersionCommand() {
         return new CommandAPICommand("version")
                 .withPermission("oraxen.command.version")
                 .executes((sender, args) -> {
                     sender.sendMessage("Oraxen version: " + OraxenPlugin.get().getDescription().getVersion());
                 });
-
     }
 }

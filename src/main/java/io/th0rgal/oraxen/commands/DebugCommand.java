@@ -12,7 +12,7 @@ import java.io.IOException;
 
 public class DebugCommand {
 
-    public CommandAPICommand getDebugCommand() {
+    CommandAPICommand getDebugCommand() {
         return new CommandAPICommand("debug")
                 .withPermission("oraxen.command.debug")
                 .withOptionalArguments(new StringArgument("toggle"))
