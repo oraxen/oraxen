@@ -119,7 +119,8 @@ public class FurnitureMechanic extends Mechanic {
         modelEngineID = section.getString("modelengine_id", null);
 
         try {
-            furnitureType = FurnitureType.valueOf(section.getString("type", FurnitureType.ITEM_FRAME.name()));
+            String defaultEntityType = OraxenPlugin.supportsDisplayEntities ? FurnitureType.DISPLAY_ENTITY.name() : FurnitureType.ITEM_FRAME.name();
+            furnitureType = FurnitureType.valueOf(section.getString("type", defaultEntityType));
             if (furnitureType == FurnitureType.DISPLAY_ENTITY && !OraxenPlugin.supportsDisplayEntities) {
                 Logs.logError("Use of Display Entity on unsupported server version.");
                 Logs.logError("This EntityType is only supported on 1.19.4 and above.");
