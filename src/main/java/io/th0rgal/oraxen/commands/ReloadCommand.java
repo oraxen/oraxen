@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureUpdater;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -53,7 +54,7 @@ public class ReloadCommand {
                 for (Entity entity : world.getEntities())
                     if (OraxenFurniture.isFurniture(entity) && !OraxenFurniture.isInteractionEntity(entity)) {
                         Logs.debug("Updating furniture: " + entity.getType() + " " + entity.getUniqueId());
-                        ItemUpdater.furnitureToUpdate.add(entity);
+                        FurnitureUpdater.furnitureToUpdate.add(entity);
                     }
             }
         }
