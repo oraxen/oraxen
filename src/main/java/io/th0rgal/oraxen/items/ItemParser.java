@@ -70,14 +70,20 @@ public class ItemParser {
         return type == null && mmoItem == null && crucibleItem != null;
     }
 
-    private String parseComponentString(String miniString) {
+    private String parseComponentDisplayName(String miniString) {
         Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
         // If it has no formatting, set color to WHITE to prevent Italic
         return AdventureUtils.LEGACY_SERIALIZER.serialize(component.colorIfAbsent(NamedTextColor.WHITE));
     }
 
+    private String parseComponentLore(String miniString) {
+        Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
+        // If it has no formatting, set color to WHITE to prevent Italic
+        return AdventureUtils.LEGACY_SERIALIZER.serialize(component);
+    }
+
     public ItemBuilder buildItem() {
-        return buildItem(section.contains("displayname") ? parseComponentString(section.getString("displayname")) : null);
+        return buildItem(section.contains("displayname") ? parseComponentDisplayName(section.getString("displayname")) : null);
     }
 
     public ItemBuilder buildItem(String name) {
@@ -95,7 +101,7 @@ public class ItemParser {
 
         if (section.contains("lore")) {
             List<String> lore = section.getStringList("lore");
-            lore.replaceAll(this::parseComponentString);
+            lore.replaceAll(this::parseComponentLore);
             item.setLore(lore);
         }
 
