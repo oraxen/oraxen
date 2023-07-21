@@ -53,7 +53,8 @@ public class NMSHandlers {
     }
 
     public static String parseJsonThroughLegacy(String message, Player player) {
-        MiniMessage miniMessage = (player != null) ? MiniMessage.builder().tags(GlyphTag.getResolverForPlayer(player)).build() : MiniMessage.miniMessage();
-        return AdventureUtils.GSON_SERIALIZER.serialize(miniMessage.deserialize(AdventureUtils.LEGACY_SERIALIZER.serialize(AdventureUtils.GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!\")", ""))).replaceAll("\\\\(?!u)(?!\")", "");
+        message = message;
+        message = AdventureUtils.MINI_MESSAGE.serialize(AdventureUtils.MINI_MESSAGE.deserialize(message));
+        return AdventureUtils.GSON_SERIALIZER.serialize(AdventureUtils.GSON_SERIALIZER.deserialize(message));
     }
 }
