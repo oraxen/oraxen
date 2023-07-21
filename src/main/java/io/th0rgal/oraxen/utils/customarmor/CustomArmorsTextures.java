@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
+import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
@@ -192,8 +193,9 @@ public class CustomArmorsTextures {
      * Finds Armor Items tied to this prefix and fixes their colors
      * This removes the need for manually specifying a color
      * It also adds support for LessFancyPants' color system
+     *
      * @param prefix The prefix of the armor item
-     * @param name The name of the armor layer file
+     * @param name   The name of the armor layer file
      */
     private void fixArmorColors(String prefix, String name) {
         // No need to run for layer 1 and 2 so skip 2 :)
@@ -202,27 +204,37 @@ public class CustomArmorsTextures {
             ItemBuilder builder = OraxenItems.getItemById(prefix + suffix);
             ItemMeta meta = builder != null ? builder.build().getItemMeta() : null;
 
-            if (!(meta instanceof LeatherArmorMeta)) {
-                Logs.logError("Material of " + prefix+suffix + " is not a LeatherArmor material!");
+            if (meta instanceof ArmorMeta && !(meta instanceof LeatherArmorMeta)) {
+                Logs.logError("Material of " + prefix + suffix + " is not a LeatherArmor material!");
                 Logs.logWarning("Custom Armor requires that the item is LeatherArmor");
                 Logs.logWarning("You can add fake armor values via AttributeModifiers");
                 Logs.newline();
             }
 
-            if (builder == null) {
-                Message.NO_ARMOR_ITEM.log(AdventureUtils.tagResolver("name", prefix + "<part>"),
+            boolean missingArmor = switch (suffix) {
+                case "helmet", "chestplate" ->
+                        OraxenItems.getItemById(prefix + "helmet") == null && OraxenItems.getItemById(prefix + "chestplate") == null;
+                case "leggings", "boots" ->
+                        OraxenItems.getItemById(prefix + "leggings") == null && OraxenItems.getItemById(prefix + "boots") == null;
+                default -> true;
+            };
+
+            if (missingArmor) {
+                Message.NO_ARMOR_ITEM.log(AdventureUtils.tagResolver("name", prefix + suffix),
                         AdventureUtils.tagResolver("armor_layer_file", name));
                 continue;
             }
-            // Regen ItemBuilder to make ItemUpdater fix items
-            builder.setColor(Color.fromRGB(layers1.size()));
-            builder.regen();
+            if (builder != null) {
+                // Regen ItemBuilder to make ItemUpdater fix items
+                builder.setColor(Color.fromRGB(layers1.size() + 1));
+                builder.save();
+            }
         }
     }
 
     private void addPixel(BufferedImage image, String name, String prefix, boolean isAnimated) {
         fixArmorColors(prefix, name);
-        Color color = Color.fromRGB(layers1.size());
+        Color color = Color.fromRGB((name.contains("armor_layer_1") ? layers1 : layers2).size() + 1);
         if (shaderType == ShaderType.FANCY) {
             setPixel(image.getRaster(), 0, 0, color);
             if (isAnimated)

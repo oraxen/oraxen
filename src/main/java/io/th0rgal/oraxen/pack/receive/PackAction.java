@@ -3,11 +3,10 @@ package io.th0rgal.oraxen.pack.receive;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.commands.CommandsParser;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-
-import java.util.Objects;
 
 public class PackAction {
 
@@ -22,7 +21,7 @@ public class PackAction {
 
     private final CommandsParser commandsParser;
 
-    public PackAction(ConfigurationSection configurationSection) {
+    public PackAction(ConfigurationSection configurationSection, TagResolver tagResolver) {
 
         delay = configurationSection.getInt("delay", 0);
 
@@ -38,8 +37,9 @@ public class PackAction {
             ConfigurationSection messageSection = configurationSection.getConfigurationSection("message");
             assert messageSection != null;
             messageType = messageSection.getString("type");
-            if (messageSection.getBoolean("enabled", true))
-                messageContent = AdventureUtils.MINI_MESSAGE.deserialize(Objects.requireNonNull(messageSection.getString("content")));
+            if (messageSection.getBoolean("enabled", true)) {
+                messageContent = AdventureUtils.MINI_MESSAGE.deserialize(messageSection.getString("content", ""), tagResolver);
+            }
         }
 
         commandsParser = new CommandsParser(configurationSection.getConfigurationSection("commands"));
