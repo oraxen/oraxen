@@ -228,7 +228,12 @@ public class DuplicationHandler {
             } else if (attemptToMigrateDuplicate(name)) {
                 Logs.logSuccess("Duplicate file fixed:<blue> " + name);
                 try {
-                    if (OraxenPlugin.get().getDataFolder().toPath().resolve("pack").resolve(name).toFile().delete())
+                    Path filePathToDelete;
+                    Path packFolder = OraxenPlugin.get().getDataFolder().toPath().resolve("pack");
+                    if (packFolder.resolve(name).toFile().exists()) filePathToDelete = packFolder.resolve(name);
+                    else filePathToDelete = packFolder.resolve(name.replace("assets/minecraft/", ""));
+
+                    if (filePathToDelete.toFile().delete())
                         Logs.logSuccess("Deleted the imported <blue>" + Utils.removeParentDirs(name) + "</blue> and migrated it to its supported Oraxen config(s)");
                 } catch (Exception ignored) {
                     Log.error("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");

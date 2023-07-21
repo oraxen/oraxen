@@ -17,6 +17,7 @@ public class ShiftTag {
     private static final String SHIFT = "shift";
 
     public static final TagResolver RESOLVER = SerializableResolver.claimingComponent(SHIFT, ShiftTag::create, ShiftTag::emit);
+    public static final TagResolver RESOLVER_SHORT = SerializableResolver.claimingComponent("s", ShiftTag::create, ShiftTag::emit);
 
     static Tag create(final ArgumentQueue args, final Context ctx) throws ParsingException {
         int length = 0;

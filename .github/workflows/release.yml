@@ -1,35 +1,32 @@
 name: Create Release
-
 on:
   push:
     branches:
       - master
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v2.4.1
       - name: Set up JDK 11
-        uses: actions/setup-java@v1
+        uses: actions/setup-java@v2.4.0
         with:
-          java-version: 11
-      - name: Get release version from commit message
-        id: release_version
+          java-version: '11'
+          distribution: 'adopt'
+      - name: Check plugin version
         run: |
-          echo "::set-output name=version::$(echo ${{ github.event.head_commit.message }} | sed -nE 's/release:[[:space:]]*([0-9]+\.[0-9]+\.[0-9]+).*')"
-      - name: Check if gradle.properties file needs to be updated
-        id: check_gradle_properties_file
-        run: |
-          if [ "$(grep pluginVersion gradle.properties | cut -d'=' -f2)" != "${{ steps.release_version.outputs.version }}" ]; then
-            echo "Version specified in gradle.properties does not match release version"
+          version=$(sed -n "s/^pluginVersion=\(.*\)$/\1/p" gradle.properties)
+          commit_version=$(echo "${{ github.event.head_commit.message }}" | grep -oP '(?<=release: )[^ ]+')
+          if [ "$version" != "$commit_version" ]; then
+            echo "Plugin version does not match commit message"
             exit 1
           fi
-      - name: Create GitHub Release
-        uses: marvinpinto/action-automatic-releases@latest
+          echo "commit_version=$commit_version" >> $GITHUB_ENV
+      - name: Create Release
+        uses: ncipollo/release-action@v1
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
-          automatic_release_tag: ${{ steps.release_version.outputs.version }}
-          title: ${{ steps.release_version.outputs.version }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ env.commit_version }}
+          name: ${{ env.commit_version }}
+          body: ${{ github.event.head_commit.message }}
