@@ -215,14 +215,14 @@ public class CustomArmorsTextures {
                 continue;
             }
             // Regen ItemBuilder to make ItemUpdater fix items
-            builder.setColor(Color.fromRGB(layers1.size()));
+            builder.setColor(Color.fromRGB(layers1.size() + 1));
             builder.regen();
         }
     }
 
     private void addPixel(BufferedImage image, String name, String prefix, boolean isAnimated) {
         fixArmorColors(prefix, name);
-        Color color = Color.fromRGB(layers1.size());
+        Color color = Color.fromRGB((name.contains("armor_layer_1") ? layers1 : layers2).size() + 1);
         if (shaderType == ShaderType.FANCY) {
             setPixel(image.getRaster(), 0, 0, color);
             if (isAnimated)
