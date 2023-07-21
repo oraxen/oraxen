@@ -46,15 +46,17 @@ public class OraxenFurniture {
     }
 
     public static boolean isFurniture(Entity entity) {
-        return getFurnitureMechanic(entity) != null;
+        return entity != null && getFurnitureMechanic(entity) != null;
     }
 
     public static boolean isBaseEntity(Entity entity) {
+        if (entity == null) return false;
         FurnitureMechanic mechanic = getFurnitureMechanic(entity);
         return mechanic != null && mechanic.getFurnitureEntityType() == entity.getType();
     }
 
     public static boolean isInteractionEntity(Entity entity) {
+        if (entity == null) return false;
         FurnitureMechanic mechanic = getFurnitureMechanic(entity);
         return mechanic != null && OraxenPlugin.supportsDisplayEntities && entity.getType() == EntityType.INTERACTION;
     }

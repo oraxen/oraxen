@@ -158,8 +158,8 @@ public class ItemUpdater implements Listener {
             int cmd = newMeta.hasCustomModelData() ? newMeta.getCustomModelData() : oldMeta.hasCustomModelData() ? oldMeta.getCustomModelData() : 0;
             itemMeta.setCustomModelData(cmd);
 
-            // Lore might be changable ingame, but I think it is safe to just set it to new
-            if (Settings.OVERRIDE_LORE.toBool()) itemMeta.setLore(newMeta.getLore());
+            // If OraxenItem has no lore, we should assume that 3rd-party plugin has added lore
+            if (Settings.OVERRIDE_ITEM_LORE.toBool()) itemMeta.setLore(newMeta.getLore());
             else itemMeta.setLore(oldMeta.getLore());
 
             // Attribute modifiers are only changable via config so no reason to check old
