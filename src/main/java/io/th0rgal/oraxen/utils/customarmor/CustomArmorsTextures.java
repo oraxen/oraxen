@@ -193,8 +193,9 @@ public class CustomArmorsTextures {
      * Finds Armor Items tied to this prefix and fixes their colors
      * This removes the need for manually specifying a color
      * It also adds support for LessFancyPants' color system
+     *
      * @param prefix The prefix of the armor item
-     * @param name The name of the armor layer file
+     * @param name   The name of the armor layer file
      */
     private void fixArmorColors(String prefix, String name) {
         // No need to run for layer 1 and 2 so skip 2 :)
@@ -204,19 +205,30 @@ public class CustomArmorsTextures {
             ItemMeta meta = builder != null ? builder.build().getItemMeta() : null;
 
             if (meta instanceof ArmorMeta && !(meta instanceof LeatherArmorMeta)) {
-                Logs.logError("Material of " + prefix+suffix + " is not a LeatherArmor material!");
+                Logs.logError("Material of " + prefix + suffix + " is not a LeatherArmor material!");
                 Logs.logWarning("Custom Armor requires that the item is LeatherArmor");
                 Logs.logWarning("You can add fake armor values via AttributeModifiers");
                 Logs.newline();
             }
-            if (builder == null) {
+
+            boolean missingArmor = switch (suffix) {
+                case "helmet", "chestplate" ->
+                        OraxenItems.getItemById(prefix + "helmet") == null && OraxenItems.getItemById(prefix + "chestplate") == null;
+                case "leggings", "boots" ->
+                        OraxenItems.getItemById(prefix + "leggings") == null && OraxenItems.getItemById(prefix + "boots") == null;
+                default -> true;
+            };
+
+            if (missingArmor) {
                 Message.NO_ARMOR_ITEM.log(AdventureUtils.tagResolver("name", prefix + suffix),
                         AdventureUtils.tagResolver("armor_layer_file", name));
                 continue;
             }
-            // Regen ItemBuilder to make ItemUpdater fix items
-            builder.setColor(Color.fromRGB(layers1.size() + 1));
-            builder.regen();
+            if (builder != null) {
+                // Regen ItemBuilder to make ItemUpdater fix items
+                builder.setColor(Color.fromRGB(layers1.size() + 1));
+                builder.regen();
+            }
         }
     }
 
