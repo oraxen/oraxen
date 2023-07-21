@@ -49,9 +49,10 @@ import java.util.function.Supplier;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
-    private Map<Channel, ChannelHandler> encoder = Collections.synchronizedMap(new WeakHashMap<>());
-    private Map<Channel, ChannelHandler> decoder = Collections.synchronizedMap(new WeakHashMap<>());
+    private final Map<Channel, ChannelHandler> encoder = Collections.synchronizedMap(new WeakHashMap<>());
+    private final Map<Channel, ChannelHandler> decoder = Collections.synchronizedMap(new WeakHashMap<>());
 
+    @SuppressWarnings("unchecked")
     public NMSHandler() {
         List<ConnectionProtocol> networkManagers;
         List<ChannelFuture> channelFutures;
@@ -264,7 +265,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         private String returnFormattedString(JsonObject obj) {
             if (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) {
-                return NMSHandlers.parseJsonThroughLegacy(obj.toString(), supplier.get());
+                return NMSHandlers.parseJsonThroughLegacy(obj.toString());
             } else return obj.toString();
         }
 

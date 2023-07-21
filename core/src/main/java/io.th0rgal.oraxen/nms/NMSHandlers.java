@@ -52,8 +52,7 @@ public class NMSHandlers {
         }
     }
 
-    public static String parseJsonThroughLegacy(String message, Player player) {
-        message = message;
+    public static String parseJsonThroughLegacy(String message) {
         message = AdventureUtils.MINI_MESSAGE.serialize(AdventureUtils.MINI_MESSAGE.deserialize(message));
         return AdventureUtils.GSON_SERIALIZER.serialize(AdventureUtils.GSON_SERIALIZER.deserialize(message));
     }
