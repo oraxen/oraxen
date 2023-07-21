@@ -227,7 +227,7 @@ public class CustomArmorsTextures {
             if (builder != null) {
                 // Regen ItemBuilder to make ItemUpdater fix items
                 builder.setColor(Color.fromRGB(layers1.size() + 1));
-                builder.regen();
+                builder.save();
             }
         }
     }
