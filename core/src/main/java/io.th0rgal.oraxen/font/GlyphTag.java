@@ -21,6 +21,7 @@ public class GlyphTag {
     private static final String GLYPH = "glyph";
 
     public static final TagResolver RESOLVER = SerializableResolver.claimingComponent(GLYPH, (ArgumentQueue args, Context ctx) -> create(args, ctx, null), GlyphTag::emit);
+    public static final TagResolver RESOLVER_SHORT = SerializableResolver.claimingComponent("g", (ArgumentQueue args, Context ctx) -> create(args, ctx, null), GlyphTag::emit);
 
     public static TagResolver getResolverForPlayer(Player player) {
         return SerializableResolver.claimingComponent(GLYPH, (ArgumentQueue args, Context ctx) -> create(args, ctx, player), GlyphTag::emit);

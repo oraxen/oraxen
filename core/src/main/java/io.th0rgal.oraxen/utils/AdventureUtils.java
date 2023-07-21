@@ -17,7 +17,7 @@ public class AdventureUtils {
     }
 
     public static final TagResolver OraxenTagResolver =
-            TagResolver.resolver(TagResolver.standard(), GlyphTag.RESOLVER, ShiftTag.RESOLVER);
+            TagResolver.resolver(TagResolver.standard(), GlyphTag.RESOLVER, GlyphTag.RESOLVER_SHORT, ShiftTag.RESOLVER, ShiftTag.RESOLVER_SHORT);
 
     public static final LegacyComponentSerializer LEGACY_SERIALIZER =
             LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat().build();
@@ -32,10 +32,6 @@ public class AdventureUtils {
     public static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
 
     public static final PlainTextComponentSerializer PLAIN_TEXT = PlainTextComponentSerializer.plainText();
-
-    public static final ScoreComponentSerializer SCORE_SERIALIZER = new ScoreComponentSerializer();
-
-    public static final MiniMessage ORAXEN_TAG_SERIALIZER = MiniMessage.builder().tags(OraxenTagResolver).build();
 
     /**
      * @param message The string to parse

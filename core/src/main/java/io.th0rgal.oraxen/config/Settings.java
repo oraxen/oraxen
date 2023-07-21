@@ -38,6 +38,7 @@ public enum Settings {
     ERROR_ITEM("ConfigsTools.error_item"),
 
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
+    CUSTOM_ARMOR_SHADER_TYPE("CustomArmor.shader_type"),
     GESTURES_ENABLED("Gestures.enabled"),
 
     // ItemUpdater
@@ -47,7 +48,7 @@ public enum Settings {
     UPDATE_FURNITURE_ON_LOAD("ItemUpdater.update_furniture_on_load"),
     FURNITURE_UPDATE_DELAY("ItemUpdater.furniture_update_delay_in_seconds"),
     OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
-    OVERRIDE_LORE("ItemUpdater.override_lore"),
+    OVERRIDE_ITEM_LORE("ItemUpdater.override_item_lore"),
 
     //Misc
     RESET_RECIPES("Misc.reset_recipes"),

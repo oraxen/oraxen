@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.combat.spell.energyblast;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VectorUtils;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -34,7 +35,7 @@ public class EnergyBlastMechanicManager implements Listener {
         this.factory = factory;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerUse(PlayerInteractEvent event) {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
@@ -45,6 +46,7 @@ public class EnergyBlastMechanicManager implements Listener {
 
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
+        if (BlockHelpers.isInteractable(block) && event.useInteractedBlock() == Event.Result.ALLOW) return;
         if (!ProtectionLib.canUse(player, location)) return;
         if (factory.isNotImplementedIn(itemID)) return;
         if (mechanic == null) return;

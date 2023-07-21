@@ -66,8 +66,8 @@ public class MiscListener implements Listener {
         MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(item);
         if (mechanic == null || !mechanic.isCompostable()) return;
         if (event.useInteractedBlock() == Event.Result.DENY) return;
-        if (event.useItemInHand() == Event.Result.ALLOW) return;
         event.setUseInteractedBlock(Event.Result.ALLOW);
+        event.setUseItemInHand(Event.Result.ALLOW);
 
         if (levelled.getLevel() < levelled.getMaximumLevel()) {
             if (Math.random() <= 0.65) levelled.setLevel(levelled.getLevel() + 1); // Same as wheat
@@ -143,7 +143,7 @@ public class MiscListener implements Listener {
         }
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDisableVanillaInteraction(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(event.getItem());

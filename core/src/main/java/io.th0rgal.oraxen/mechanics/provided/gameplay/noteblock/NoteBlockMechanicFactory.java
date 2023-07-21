@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import com.google.gson.JsonObject;
-import io.papermc.paper.configuration.GlobalConfiguration;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -9,9 +8,6 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripListener;
-import io.th0rgal.oraxen.pack.generation.ResourcePack;
-import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Instrument;
 import org.bukkit.Material;
@@ -44,30 +40,18 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         toolTypes = section.getStringList("tool_types");
         farmBlockCheckDelay = section.getInt("farmblock_check_delay");
         farmBlock = false;
-        ConfigurationSection customBlockSoundSection = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds");
-        customSounds = customBlockSoundSection != null && customBlockSoundSection.getBoolean("noteblock_and_block", true);
+        customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("noteblock_and_block", true);
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
         OraxenPlugin.get().getResourcePack().addModifiers(getMechanicID(), packFolder ->
-                ResourcePack.writeStringToVirtual("assets/minecraft/blockstates", "note_block.json", getBlockstateContent())
+                OraxenPlugin.get().getResourcePack().writeStringToVirtual(
+                        "assets/minecraft/blockstates", "note_block.json", getBlockstateContent())
         );
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new NoteBlockMechanicListener(),
                 new LogStripListener()
         );
-
-        if (VersionUtil.isPaperServer() && VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_20_R1)) {
-            try {
-                if (!GlobalConfiguration.get().blockUpdates.disableNoteblockUpdates) {
-                    Logs.logError("BlockUpdates.disableNoteblockUpdates is not enabled in paper-global.yml");
-                    Logs.logWarning("It is recommended to enable this to improve performance and visual bugs");
-                    MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
-                }
-            } catch (Exception e) {
-                MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
-            }
-        } else MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockSoundListener());
     }
 
