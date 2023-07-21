@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -170,8 +171,8 @@ public class ItemUpdater implements Listener {
                 damageable.setDamage(oldDmg.getDamage());
             }
 
-            if (itemMeta instanceof LeatherArmorMeta leatherMeta && oldMeta instanceof LeatherArmorMeta oldLeatherMeta) {
-                leatherMeta.setColor(oldLeatherMeta.getColor());
+            if (itemMeta instanceof LeatherArmorMeta leatherMeta && oldMeta instanceof LeatherArmorMeta oldLeatherMeta && newMeta instanceof LeatherArmorMeta newLeatherMeta) {
+                leatherMeta.setColor(oldItem.getType() != Material.LEATHER_HORSE_ARMOR ? newLeatherMeta.getColor() : oldLeatherMeta.getColor());
             }
 
             if (itemMeta instanceof PotionMeta potionMeta && oldMeta instanceof PotionMeta oldPotionMeta) {
