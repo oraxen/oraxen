@@ -122,7 +122,7 @@ public class AdventureUtils {
     }
 
 
-    public static TagResolver tagResolver(String string, String tag) {
-        return TagResolver.resolver(string, Tag.selfClosingInserting(AdventureUtils.MINI_MESSAGE.deserialize(tag)));
+    public static TagResolver tagResolver(String tag, String string) {
+        return TagResolver.resolver(tag, Tag.selfClosingInserting(AdventureUtils.MINI_MESSAGE.deserialize(string)));
     }
 }
