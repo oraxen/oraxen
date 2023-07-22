@@ -10,11 +10,13 @@ import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.io.FileUtils;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.checkerframework.checker.units.qual.A;
 
 import java.io.File;
 import java.io.IOException;
@@ -327,22 +329,14 @@ public class ConfigsManager {
 
     private List<File> getItemFiles() {
         if (itemsFolder == null || !itemsFolder.exists()) return new ArrayList<>();
-        File[] itemFiles = itemsFolder.listFiles(pathname -> pathname.getName().endsWith(".yml"));
-        if (itemFiles == null) return new ArrayList<>();
-        List<File> itemConfigs = new ArrayList<>(Arrays.stream(itemFiles).filter(OraxenYaml::isValidYaml).toList());
-        Collections.sort(itemConfigs);
-        return itemConfigs;
+        return FileUtils.listFiles(itemsFolder, new String[]{"yml"}, true).stream().filter(OraxenYaml::isValidYaml).sorted().toList();
     }
 
     private List<File> glyphConfigs = new ArrayList<>();
 
     private List<File> getGlyphFiles() {
         if (glyphsFolder == null || !glyphsFolder.exists()) return new ArrayList<>();
-        File[] glyphFiles = glyphsFolder.listFiles(pathname -> pathname.getName().endsWith(".yml"));
-        if (glyphFiles == null) return new ArrayList<>();
-        List<File> glyphConfigs = new ArrayList<>(Arrays.stream(glyphFiles).filter(OraxenYaml::isValidYaml).toList());
-        Collections.sort(glyphConfigs);
-        return glyphConfigs;
+        return FileUtils.listFiles(glyphsFolder, new String[]{"yml"}, true).stream().filter(OraxenYaml::isValidYaml).sorted().toList();
     }
 
 }
