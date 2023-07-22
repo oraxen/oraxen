@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.FireworkEffect;
@@ -381,7 +382,7 @@ public class ItemBuilder {
     public void save() {
         regen();
         OraxenItems.getMap().entrySet().stream().filter(entry -> entry.getValue().containsValue(this)).findFirst().ifPresent(entry -> {
-            YamlConfiguration yamlConfiguration = YamlConfiguration.loadConfiguration(entry.getKey());
+            YamlConfiguration yamlConfiguration = OraxenYaml.loadConfiguration(entry.getKey());
             String color = this.color.getRed() + "," + this.color.getGreen() + "," + this.color.getBlue();
             yamlConfiguration.set(OraxenItems.getIdByItem(this.build()) + ".color", color);
             try {
