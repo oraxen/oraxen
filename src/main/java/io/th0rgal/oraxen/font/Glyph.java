@@ -60,7 +60,7 @@ public class Glyph {
             fileChanged = true;
         }
 
-        if (!glyphSection.isString("char") && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
+        if (!glyphSection.contains("char") && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
             glyphSection.set("char", newChars);
             fileChanged = true;
         }
