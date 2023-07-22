@@ -90,12 +90,10 @@ public class ResourcePack {
         File optifineFolder = new File(packFolder, "optifine");
         File langFolder = new File(packFolder, "lang");
         File textureFolder = new File(packFolder, "textures");
-        File shaderFolder = new File(packFolder, "shaders");
         File soundFolder = new File(packFolder, "sounds");
 
         if (Settings.GENERATE_DEFAULT_ASSETS.toBool())
-            extractFolders(!modelsFolder.exists(), !textureFolder.exists(),
-                    !shaderFolder.exists(), !langFolder.exists(), !fontFolder.exists(),
+            extractFolders(!modelsFolder.exists(), !textureFolder.exists(), !langFolder.exists(), !fontFolder.exists(),
                     !soundFolder.exists(), !assetsFolder.exists(), !optifineFolder.exists());
         extractRequired();
 
@@ -302,9 +300,9 @@ public class ResourcePack {
         return "assets/" + namespace + "/textures/" + texturePath;
     }
 
-    private void extractFolders(boolean extractModels, boolean extractTextures, boolean extractShaders,
+    private void extractFolders(boolean extractModels, boolean extractTextures,
                                 boolean extractLang, boolean extractFonts, boolean extractSounds, boolean extractAssets, boolean extractOptifine) {
-        if (!extractModels && !extractTextures && !extractShaders && !extractLang && !extractAssets && !extractOptifine && !extractFonts && !extractSounds)
+        if (!extractModels && !extractTextures && !extractLang && !extractAssets && !extractOptifine && !extractFonts && !extractSounds)
             return;
 
         final ZipInputStream zip = ResourcesManager.browse();
@@ -312,7 +310,7 @@ public class ResourcePack {
             ZipEntry entry = zip.getNextEntry();
             final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
             while (entry != null) {
-                extract(entry, extractModels, extractTextures, extractShaders,
+                extract(entry, extractModels, extractTextures,
                         extractLang, extractFonts, extractSounds, extractAssets, extractOptifine, resourcesManager);
                 entry = zip.getNextEntry();
             }
@@ -330,7 +328,7 @@ public class ResourcePack {
             final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
             while (entry != null) {
                 if (entry.getName().startsWith("pack/textures/required") || entry.getName().startsWith("pack/models/required")) {
-                    resourcesManager.extractFileIfTrue(entry, entry.getName(), !OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists());
+                    resourcesManager.extractFileIfTrue(entry, !OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists());
                 }
                 entry = zip.getNextEntry();
             }
@@ -342,19 +340,18 @@ public class ResourcePack {
     }
 
     private void extract(ZipEntry entry, boolean extractModels, boolean extractTextures,
-                         boolean extractShaders, boolean extractLang, boolean extractFonts,
+                         boolean extractLang, boolean extractFonts,
                          boolean extractSounds, boolean extractAssets,
                          boolean extractOptifine, ResourcesManager resourcesManager) {
         final String name = entry.getName();
         final boolean isSuitable = (extractModels && name.startsWith("pack/models"))
                 || (extractTextures && name.startsWith("pack/textures"))
-                || (extractShaders && name.startsWith("pack/shaders"))
                 || (extractLang && name.startsWith("pack/lang"))
                 || (extractFonts && name.startsWith("pack/font"))
                 || (extractSounds && name.startsWith("pack/sounds"))
                 || (extractAssets && name.startsWith("/pack/assets"))
                 || (extractOptifine && name.startsWith("pack/optifine"));
-        resourcesManager.extractFileIfTrue(entry, name, isSuitable);
+        resourcesManager.extractFileIfTrue(entry, isSuitable);
     }
 
     private Map<Material, List<ItemBuilder>> extractTexturedItems() {
