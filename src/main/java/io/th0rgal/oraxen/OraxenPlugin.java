@@ -176,10 +176,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     public void reloadConfigs() {
         configsManager = new ConfigsManager(this);
-        if (!configsManager.validatesConfig()) {
-            Logs.logError("unable to validate config");
-            getServer().getPluginManager().disablePlugin(this);
-        }
+        configsManager.validatesConfig();
     }
 
     public ConfigsManager getConfigsManager() {

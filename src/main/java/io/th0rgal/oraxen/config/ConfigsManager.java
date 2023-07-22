@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.ChatColor;
@@ -92,7 +93,7 @@ public class ConfigsManager {
     private YamlConfiguration extractDefault(String source) {
         InputStreamReader inputStreamReader = new InputStreamReader(plugin.getResource(source));
         try {
-            return YamlConfiguration.loadConfiguration(inputStreamReader);
+            return OraxenYaml.loadConfiguration(inputStreamReader);
         } finally {
             try {
                 inputStreamReader.close();
@@ -103,7 +104,7 @@ public class ConfigsManager {
         }
     }
 
-    public boolean validatesConfig() {
+    public void validatesConfig() {
         ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
         mechanics = validate(resourcesManager, "mechanics.yml", defaultMechanics);
         settings = validate(resourcesManager, "settings.yml", defaultSettings);
@@ -117,6 +118,7 @@ public class ConfigsManager {
 
         // check itemsFolder
         itemsFolder = new File(plugin.getDataFolder(), "items");
+        itemConfigs = getItemFiles();
         if (!itemsFolder.exists()) {
             itemsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
@@ -125,6 +127,7 @@ public class ConfigsManager {
 
         // check glyphsFolder
         glyphsFolder = new File(plugin.getDataFolder(), "glyphs");
+        glyphConfigs = getGlyphFiles();
         if (!glyphsFolder.exists()) {
             glyphsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
@@ -148,12 +151,11 @@ public class ConfigsManager {
                 new ResourcesManager(plugin).extractConfigsInFolder("gestures", "yml");
         }
 
-        return true; // todo : return false when an error is detected + prints a detailed error
     }
 
     private YamlConfiguration validate(ResourcesManager resourcesManager, String configName, YamlConfiguration defaultConfiguration) {
         File configurationFile = resourcesManager.extractConfiguration(configName);
-        YamlConfiguration configuration = YamlConfiguration.loadConfiguration(configurationFile);
+        YamlConfiguration configuration = OraxenYaml.loadConfiguration(configurationFile);
         boolean updated = false;
         for (String key : defaultConfiguration.getKeys(true)) {
             if (!skippedYamlKeys.stream().filter(key::startsWith).toList().isEmpty()) continue;
@@ -182,13 +184,9 @@ public class ConfigsManager {
 
     public Collection<Glyph> parseGlyphConfigs() {
         List<Glyph> output = new ArrayList<>();
-        List<File> configs = Arrays
-                .stream(getGlyphsFiles())
-                .filter(file -> file.getName().endsWith(".yml"))
-                .toList();
         Map<String, Character> charPerGlyph = new HashMap<>();
-        for (File file : configs) {
-            YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
+        for (File file : glyphConfigs) {
+            YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
                 if (glyphSection == null) continue;
@@ -199,8 +197,8 @@ public class ConfigsManager {
             }
         }
 
-        for (File file : configs) {
-            YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
+        for (File file : glyphConfigs) {
+            YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             boolean fileChanged = false;
             for (String key : configuration.getKeys(false)) {
                 char character = charPerGlyph.getOrDefault(key, Character.MIN_VALUE);
@@ -226,28 +224,22 @@ public class ConfigsManager {
         return output;
     }
 
-    private File[] getGlyphsFiles() {
-        File[] glyphConfigs = glyphsFolder.listFiles();
-        if (glyphConfigs != null) Arrays.sort(glyphConfigs);
-        return glyphConfigs;
-    }
-
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
 
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
-        List<File> configs = getItemsFiles();
-        for (File file : configs) {
-            parseMap.put(file, parseItemConfig(YamlConfiguration.loadConfiguration(file), file));
+        for (File file : itemConfigs) {
+            parseMap.put(file, parseItemConfig(OraxenYaml.loadConfiguration(file), file));
         }
         return parseMap;
     }
 
     public void assignAllUsedModelDatas() {
-        List<File> itemConfigs = getItemsFiles();
         Map<Material, Map<Integer, String>> assignedModelDatas = new HashMap<>();
         for (File file : itemConfigs) {
             if (!file.exists()) continue;
-            YamlConfiguration configuration = YamlConfiguration.loadConfiguration(file);
+            YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
+            // If file is empty, assume it was malformed and don't save the configuration
+
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection itemSection = configuration.getConfigurationSection(key);
                 if (itemSection == null) continue;
@@ -275,11 +267,14 @@ public class ConfigsManager {
                 }
                 assignedModelDatas.computeIfAbsent(material, k -> new HashMap<>()).put(modelData, model);
                 ModelData.DATAS.computeIfAbsent(material, k -> new HashMap<>()).put(key, modelData);
-            }
-            try {
-                configuration.save(file);
-            } catch (IOException e) {
-                e.printStackTrace();
+
+                if (!configuration.getKeys(false).isEmpty()) {
+                    try {
+                        configuration.save(file);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
         }
     }
@@ -328,12 +323,26 @@ public class ConfigsManager {
         return map;
     }
 
-    private List<File> getItemsFiles() {
+    private List<File> itemConfigs = new ArrayList<>();
+
+    private List<File> getItemFiles() {
+        if (itemsFolder == null || !itemsFolder.exists()) return new ArrayList<>();
         File[] itemFiles = itemsFolder.listFiles(pathname -> pathname.getName().endsWith(".yml"));
         if (itemFiles == null) return new ArrayList<>();
-        List<File> itemConfigs = new ArrayList<>(Arrays.stream(itemFiles).toList());
+        List<File> itemConfigs = new ArrayList<>(Arrays.stream(itemFiles).filter(OraxenYaml::isValidYaml).toList());
         Collections.sort(itemConfigs);
         return itemConfigs;
+    }
+
+    private List<File> glyphConfigs = new ArrayList<>();
+
+    private List<File> getGlyphFiles() {
+        if (glyphsFolder == null || !glyphsFolder.exists()) return new ArrayList<>();
+        File[] glyphFiles = glyphsFolder.listFiles(pathname -> pathname.getName().endsWith(".yml"));
+        if (glyphFiles == null) return new ArrayList<>();
+        List<File> glyphConfigs = new ArrayList<>(Arrays.stream(glyphFiles).filter(OraxenYaml::isValidYaml).toList());
+        Collections.sort(glyphConfigs);
+        return glyphConfigs;
     }
 
 }

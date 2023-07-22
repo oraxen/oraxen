@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.ReflectionUtils;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -41,7 +42,7 @@ public class ResourcesManager {
 
     public Entry<File, YamlConfiguration> getEntry(String fileName) {
         File file = extractConfiguration(fileName);
-        return new AbstractMap.SimpleEntry<>(file, YamlConfiguration.loadConfiguration(file));
+        return new AbstractMap.SimpleEntry<>(file, OraxenYaml.loadConfiguration(file));
     }
 
     public File extractConfiguration(String fileName) {
