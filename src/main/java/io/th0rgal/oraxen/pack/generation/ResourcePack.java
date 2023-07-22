@@ -19,10 +19,10 @@ import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.ZipUtils;
+import io.th0rgal.oraxen.utils.customarmor.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -57,8 +57,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public class ResourcePack {
-
-    private static final String SHADER_PARAMETER_PLACEHOLDER = "{#TEXTURE_RESOLUTION#}";
 
     private Map<String, Collection<Consumer<File>>> packModifiers;
     private static Map<String, VirtualFile> outputFiles;
@@ -122,6 +120,7 @@ public class ResourcePack {
         generateFont(fontManager);
         if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardFiles();
+        if (Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) CustomArmorsTextures.generateArmorShaderFiles();
 
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)
@@ -532,8 +531,8 @@ public class ResourcePack {
     }
 
     public static void writeStringToVirtual(String folder, String name, String content) {
-        addOutputFiles(new VirtualFile(folder, name,
-                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
+        folder = !folder.endsWith("/") ? folder : folder.substring(0, folder.length() - 1);
+        addOutputFiles(new VirtualFile(folder, name, new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
     }
 
     private void getAllFiles(final File directory, final Collection<VirtualFile> fileList,
@@ -562,7 +561,6 @@ public class ResourcePack {
         try {
             final InputStream fis;
             if (file.getName().endsWith(".json")) fis = processJsonFile(file);
-            else if (file.getName().endsWith(".fsh")) fis = processShaderFile(file);
             else if (customArmorsTextures.registerImage(file)) return;
             else fis = new FileInputStream(file);
 
@@ -608,13 +606,6 @@ public class ResourcePack {
             return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         }
         return newStream;
-    }
-
-    private InputStream processShaderFile(File file) throws IOException {
-        String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
-        content = content.replace(
-                SHADER_PARAMETER_PLACEHOLDER, String.valueOf((int) Settings.ARMOR_RESOLUTION.getValue()));
-        return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
     }
 
     private String getZipFilePath(String path, String newFolder) throws IOException {

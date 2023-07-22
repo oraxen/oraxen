@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.title.Title;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -21,11 +22,12 @@ public class PackReceiver implements Listener {
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerUpdatesPackStatus(PlayerResourcePackStatusEvent event) {
         PlayerResourcePackStatusEvent.Status status = event.getStatus();
+        TagResolver playerResolver = AdventureUtils.tagResolver("player", event.getPlayer().getName());
         PackAction packAction = switch (status) {
-            case ACCEPTED -> new PackAction(Settings.RECEIVE_ALLOWED_ACTIONS.toConfigSection());
-            case DECLINED -> new PackAction(Settings.RECEIVE_DENIED_ACTIONS.toConfigSection());
-            case FAILED_DOWNLOAD -> new PackAction(Settings.RECEIVE_FAILED_ACTIONS.toConfigSection());
-            case SUCCESSFULLY_LOADED -> new PackAction(Settings.RECEIVE_LOADED_ACTIONS.toConfigSection());
+            case ACCEPTED -> new PackAction(Settings.RECEIVE_ALLOWED_ACTIONS.toConfigSection(), playerResolver);
+            case DECLINED -> new PackAction(Settings.RECEIVE_DENIED_ACTIONS.toConfigSection(), playerResolver);
+            case FAILED_DOWNLOAD -> new PackAction(Settings.RECEIVE_FAILED_ACTIONS.toConfigSection(), playerResolver);
+            case SUCCESSFULLY_LOADED -> new PackAction(Settings.RECEIVE_LOADED_ACTIONS.toConfigSection(), playerResolver);
         };
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             if (packAction.hasMessage())

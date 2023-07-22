@@ -16,10 +16,10 @@ import com.sk89q.worldedit.math.BlockVector3;
 import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.block.BaseBlock;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.mechanics.Mechanic;
-import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
@@ -62,11 +62,11 @@ public class WorldEditUtils {
 
             if (!input.startsWith("oraxen:") || input.endsWith(":")) return null;
             String id = input.split(":")[1].split("\\[")[0]; // Potential arguments
-            if (id.equals(input) || !OraxenItems.exists(id) || getMechanic(id, "furniture") != null) return null;
+            if (id.equals(input) || !OraxenItems.exists(id) || OraxenFurniture.isFurniture(id)) return null;
 
             BlockData blockData;
-            NoteBlockMechanic noteMechanic = (NoteBlockMechanic) getMechanic(id, "noteblock");
-            StringBlockMechanic stringMechanic = (StringBlockMechanic) getMechanic(id, "stringblock");
+            NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(id);
+            StringBlockMechanic stringMechanic = OraxenBlocks.getStringMechanic(id);
 
             if (Settings.WORLDEDIT_STRINGBLOCKS.toBool() && stringMechanic != null)
                 blockData = StringBlockMechanicFactory.createTripwireData(stringMechanic.getCustomVariation());
@@ -112,10 +112,6 @@ public class WorldEditUtils {
                 default -> mechanic.getItemID();
             };
         }
-    }
-
-    private static Mechanic getMechanic(String id, String mechanicType) {
-        return MechanicsManager.getMechanicFactory(mechanicType).getMechanic(id);
     }
 
     protected static void pasteSchematic(Location loc, File schematic, Boolean replaceBlocks, Boolean shouldCopyBiomes, Boolean shouldCopyEntities) {

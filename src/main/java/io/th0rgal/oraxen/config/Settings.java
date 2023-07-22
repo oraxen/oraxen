@@ -37,13 +37,14 @@ public enum Settings {
     ERROR_ITEM("ConfigsTools.error_item"),
 
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
+    CUSTOM_ARMOR_SHADER_TYPE("CustomArmor.shader_type"),
     GESTURES_ENABLED("Gestures.enabled"),
 
     // ItemUpdater
     UPDATE_ITEMS("ItemUpdater.update_items"),
     UPDATE_ITEMS_ON_RELOAD("ItemUpdater.update_items_on_reload"),
     OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
-    OVERRIDE_LORE("ItemUpdater.override_lore"),
+    OVERRIDE_ITEM_LORE("ItemUpdater.override_item_lore"),
 
     // FurnitureUpdater
     UPDATE_FURNITURE("FurnitureUpdater.update_furniture"),

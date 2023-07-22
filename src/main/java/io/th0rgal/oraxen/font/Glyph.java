@@ -164,23 +164,27 @@ public class Glyph {
         Path packFolder = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath()).resolve("pack");
         if (!packFolder.toFile().exists()) return;
 
-        String texturePath = getTexture().contains(":") ? "assets/" + StringUtils.substringBefore(getTexture(), ":") + "/textures/" : "textures/";
-        texturePath = texturePath + (getTexture().contains(":") ? getTexture().split(":")[1] : getTexture());
-        final File texture;
+        String texturePath = texture.contains(":") ? "assets/" + StringUtils.substringBefore(texture, ":") + "/textures/" : "textures/";
+        texturePath = texturePath + (texture.contains(":") ? texture.split(":")[1] : texture);
+        File textureFile;
         // If using minecraft as a namespace, make sure it is in assets or root pack-dir
-        if (!StringUtils.substringBefore(getTexture(), ":").equals("minecraft") || packFolder.resolve(texturePath).toFile().exists())
-            texture = packFolder.resolve(texturePath).toFile();
-        else texture = packFolder.resolve(texturePath.replace("assets/minecraft/", "")).toFile();
+        if (!StringUtils.substringBefore(texture, ":").equals("minecraft") || packFolder.resolve(texturePath).toFile().exists()) {
+            textureFile = packFolder.resolve(texturePath).toFile();
+            if (!textureFile.exists())
+                textureFile = packFolder.resolve("assets/minecraft/" + texturePath).toFile();
+        }
+        else textureFile = packFolder.resolve(texturePath.replace("assets/minecraft/", "")).toFile();
 
         Map<Glyph, Boolean> sameCharMap = glyphs.stream().filter(g -> g != this && Objects.equals(g.getCharacter(), this.getCharacter())).collect(Collectors.toMap(g -> g, g -> true));
         // Check if the texture is a vanilla item texture and therefore not in oraxen, but the vanilla pack
-        boolean isMinecraftNamespace = !getTexture().contains(":") || getTexture().split(":")[0].equals("minecraft");
-        boolean isVanillaTexture = isMinecraftNamespace && materialNames.stream().anyMatch(name -> texture.getName().split("\\.")[0].toUpperCase().contains(name));
+        boolean isMinecraftNamespace = !texture.contains(":") || texture.split(":")[0].equals("minecraft");
+        String textureName = textureFile.getName().split("\\.")[0].toUpperCase();
+        boolean isVanillaTexture = isMinecraftNamespace && materialNames.stream().anyMatch(textureName::contains);
         boolean hasUpperCase = false;
         BufferedImage image = null;
         for (char c : texturePath.toCharArray()) if (Character.isUpperCase(c)) hasUpperCase = true;
         try {
-            image = ImageIO.read(texture);
+            image = ImageIO.read(textureFile);
         } catch (IOException ignored) {
         }
 
@@ -188,7 +192,7 @@ public class Glyph {
             this.setTexture("required/exit_icon");
             Logs.logError("The ascent is bigger than the height for " + name + ". This will break all your glyphs.");
             Logs.logWarning("It has been temporarily set to a placeholder image. You should edit this in the glyph config.");
-        } else if (!isVanillaTexture && (!texture.exists() || image == null)) {
+        } else if (!isVanillaTexture && (!textureFile.exists() || image == null)) {
             this.setTexture("required/exit_icon");
             Logs.logError("The texture specified for " + name + " does not exist. This will break all your glyphs.");
             Logs.logWarning("It has been temporarily set to a placeholder image. You should edit this in the glyph config.");

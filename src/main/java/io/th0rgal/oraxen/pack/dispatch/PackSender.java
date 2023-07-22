@@ -27,11 +27,14 @@ public abstract class PackSender {
         long delay = (int) Settings.JOIN_MESSAGE_DELAY.getValue();
         if (delay == -1 || !delayed)
             Message.COMMAND_JOIN_MESSAGE.send(player,
-                    AdventureUtils.tagResolver("pack_url", hostingProvider.getPackURL()));
+                    AdventureUtils.tagResolver("pack_url", hostingProvider.getPackURL()),
+                    AdventureUtils.tagResolver("player", player.getName()));
         else
             Bukkit.getScheduler().runTaskLaterAsynchronously(OraxenPlugin.get(),
-                    () -> Message.COMMAND_JOIN_MESSAGE.send(player, AdventureUtils.tagResolver("pack_url"
-                            , hostingProvider.getPackURL())), delay * 20L);
+                    () -> Message.COMMAND_JOIN_MESSAGE.send(player,
+                            AdventureUtils.tagResolver("pack_url", hostingProvider.getPackURL()),
+                            AdventureUtils.tagResolver("player", player.getName()))
+                    , delay * 20L);
     }
 
 }

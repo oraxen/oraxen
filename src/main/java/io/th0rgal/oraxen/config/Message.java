@@ -1,8 +1,6 @@
 package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.font.GlyphTag;
-import io.th0rgal.oraxen.font.ShiftTag;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
@@ -101,7 +99,6 @@ public enum Message {
         String lang = OraxenPlugin.get().getConfigsManager().getLanguage().getString(path);
         ArrayList<TagResolver> tagResolvers = new ArrayList<>(List.of(placeholders));
         tagResolvers.add(AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
-        tagResolvers.add(TagResolver.resolver(GlyphTag.RESOLVER, ShiftTag.RESOLVER));
         if (lang == null) return;
         OraxenPlugin.get().getAudience().sender(sender).sendMessage(
                 AdventureUtils.MINI_MESSAGE.deserialize(lang, TagResolver.resolver(tagResolvers))

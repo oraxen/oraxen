@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
@@ -116,8 +117,8 @@ public class ItemUpdater implements Listener {
             int cmd = newMeta.hasCustomModelData() ? newMeta.getCustomModelData() : oldMeta.hasCustomModelData() ? oldMeta.getCustomModelData() : 0;
             itemMeta.setCustomModelData(cmd);
 
-            // Lore might be changable ingame, but I think it is safe to just set it to new
-            if (Settings.OVERRIDE_LORE.toBool()) itemMeta.setLore(newMeta.getLore());
+            // If OraxenItem has no lore, we should assume that 3rd-party plugin has added lore
+            if (Settings.OVERRIDE_ITEM_LORE.toBool()) itemMeta.setLore(newMeta.getLore());
             else itemMeta.setLore(oldMeta.getLore());
 
             // Attribute modifiers are only changable via config so no reason to check old
@@ -128,8 +129,15 @@ public class ItemUpdater implements Listener {
                 damageable.setDamage(oldDmg.getDamage());
             }
 
-            if (itemMeta instanceof LeatherArmorMeta leatherMeta && oldMeta instanceof LeatherArmorMeta oldLeatherMeta) {
-                leatherMeta.setColor(oldLeatherMeta.getColor());
+            if (itemMeta instanceof LeatherArmorMeta leatherMeta && oldMeta instanceof LeatherArmorMeta oldLeatherMeta && newMeta instanceof LeatherArmorMeta newLeatherMeta) {
+                // If it is not custom armor, keep color
+                if (oldItem.getType() == Material.LEATHER_HORSE_ARMOR) leatherMeta.setColor(oldLeatherMeta.getColor());
+                // If it is custom armor we use newLeatherMeta color, since the builder would have been altered
+                // in the process of creating the shader images. Then we just save the builder to update the config
+                else {
+                    leatherMeta.setColor(newLeatherMeta.getColor());
+                    newItemBuilder.get().save();
+                }
             }
 
             if (itemMeta instanceof PotionMeta potionMeta && oldMeta instanceof PotionMeta oldPotionMeta) {
@@ -152,6 +160,7 @@ public class ItemUpdater implements Listener {
             }
             itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.getDisplayName());
         });
+
         return newItem;
     }
 

@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
@@ -57,7 +56,6 @@ import org.bukkit.util.RayTraceResult;
 
 import java.util.Objects;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.SEAT_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.rotationToYaw;
 
 public class FurnitureListener implements Listener {
@@ -446,11 +444,6 @@ public class FurnitureListener implements Listener {
     @EventHandler
     public void onPlayerQuitEvent(final PlayerQuitEvent event) {
         final Player player = event.getPlayer();
-        final Entity vehicle = player.getVehicle();
-        if (vehicle instanceof final ArmorStand armorStand) {
-            if (armorStand.getPersistentDataContainer().has(SEAT_KEY, DataType.UUID)) {
-                player.leaveVehicle();
-            }
-        }
+        if (OraxenFurniture.isFurniture(player.getVehicle())) player.leaveVehicle();
     }
 }

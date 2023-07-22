@@ -19,6 +19,7 @@ public class GlyphTag {
     private static final String GLYPH = "glyph";
 
     public static final TagResolver RESOLVER = SerializableResolver.claimingComponent(GLYPH, GlyphTag::create, GlyphTag::emit);
+    public static final TagResolver RESOLVER_SHORT = SerializableResolver.claimingComponent("g", GlyphTag::create, GlyphTag::emit);
 
     static Tag create(final ArgumentQueue args, final Context ctx) throws ParsingException {
         Glyph glyph = OraxenPlugin.get().getFontManager().getGlyphFromName(args.popOr("A glyph value is required").value());
