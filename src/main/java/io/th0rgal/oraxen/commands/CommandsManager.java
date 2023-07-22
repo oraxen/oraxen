@@ -37,7 +37,7 @@ public class CommandsManager {
                 .withSubcommand(getInvCommand())
                 .withSubcommand(getSimpleGiveCommand())
                 .withSubcommand(getGiveCommand())
-                .withSubcommand(getPackCommand())
+                .withSubcommand((new PackCommand()).getPackCommand())
                 .withSubcommand((new UpdateCommand()).getUpdateCommand())
                 .withSubcommand((new RepairCommand()).getRepairCommand())
                 .withSubcommand((new RecipesCommand()).getRecipesCommand())
@@ -91,25 +91,6 @@ public class CommandsManager {
                     } else
                         Message.NOT_PLAYER.send(sender);
                 });
-    }
-
-    @SuppressWarnings("unchecked")
-    private CommandAPICommand getPackCommand() {
-        return new CommandAPICommand("pack")
-                .withPermission("oraxen.command.pack")
-                .withArguments(new TextArgument("action")
-                        .replaceSuggestions(ArgumentSuggestions.strings("send", "msg")))
-                .withArguments(new EntitySelectorArgument.ManyPlayers("targets"))
-                .executes((sender, args) -> {
-                    final Collection<Player> targets = (Collection<Player>) args.get(1);
-                    if (args.get(0).equals("msg"))
-                        for (final Player target : targets)
-                            Message.COMMAND_JOIN_MESSAGE.send(target, AdventureUtils.tagResolver("pack_url",
-                                    (OraxenPlugin.get().getUploadManager().getHostingProvider().getPackURL())));
-                    else for (final Player target : targets)
-                        OraxenPlugin.get().getUploadManager().getSender().sendPack(target);
-                });
-
     }
 
     private CommandAPICommand getInvCommand() {
