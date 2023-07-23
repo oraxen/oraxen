@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
@@ -108,14 +109,14 @@ public class FurnitureMechanic extends Mechanic {
 
     @SuppressWarnings("unchecked")
     public FurnitureMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
-        super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY,
-                PersistentDataType.BYTE, (byte) 1));
+        super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY, PersistentDataType.BYTE, (byte) 1));
 
         hardness = section.getInt("hardness", 1);
-
         placedItemId = section.getString("item", null);
-
         modelEngineID = section.getString("modelengine_id", null);
+        light = section.getInt("light", -1);
+        farmlandRequired = section.getBoolean("farmland_required", false);
+        farmblockRequired = section.getBoolean("farmblock_required", false);
 
         try {
             furnitureType = FurnitureType.valueOf(section.getString("type", FurnitureType.ITEM_FRAME.name()));
@@ -139,13 +140,11 @@ public class FurnitureMechanic extends Mechanic {
                 : null;
 
         barriers = new ArrayList<>();
-        if (CompatibilitiesManager.hasPlugin("ProtocolLib")) {
-            if (section.getBoolean("barrier", false))
-                barriers.add(new BlockLocation(0, 0, 0));
-            if (section.isList("barriers"))
-                for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
-                    barriers.add(new BlockLocation((Map<String, Object>) barrierObject));
-        }
+        if (section.getBoolean("barrier", false))
+            barriers.add(new BlockLocation(0, 0, 0));
+        if (section.isList("barriers"))
+            for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
+                barriers.add(new BlockLocation((Map<String, Object>) barrierObject));
 
         ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
         hitbox = !hasBarriers() && hitboxSection != null
@@ -161,50 +160,23 @@ public class FurnitureMechanic extends Mechanic {
         } else hasSeat = false;
 
         ConfigurationSection evoSection = section.getConfigurationSection("evolution");
-        if (evoSection != null) {
-            evolvingFurniture = new EvolvingFurniture(getItemID(), evoSection);
-            ((FurnitureFactory) getFactory()).registerEvolution();
-        } else evolvingFurniture = null;
+        evolvingFurniture = evoSection != null ? new EvolvingFurniture(getItemID(), evoSection) : null;
+        if (evolvingFurniture != null) ((FurnitureFactory) getFactory()).registerEvolution();
 
-        light = section.getInt("light", -1);
+        ConfigurationSection dropSection = section.getConfigurationSection("drop");
+        drop = dropSection != null ? Drop.createDrop(dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
 
-        farmlandRequired = section.getBoolean("farmland_required", false);
-        farmblockRequired = section.getBoolean("farmblock_required", false);
+        ConfigurationSection limitedPlacingSection = section.getConfigurationSection("limited_placing");
+        limitedPlacing = limitedPlacingSection != null ? new LimitedPlacing(limitedPlacingSection) : null;
 
-        List<Loot> loots = new ArrayList<>();
-        if (section.isConfigurationSection("drop")) {
-            ConfigurationSection drop = section.getConfigurationSection("drop");
-            if (drop != null) {
-                for (LinkedHashMap<String, Object> lootConfig : (List<LinkedHashMap<String, Object>>) drop.getList("loots", new ArrayList<>()))
-                    loots.add(new Loot(lootConfig));
+        ConfigurationSection storageSection = section.getConfigurationSection("storage");
+        storage = storageSection != null ? new StorageMechanic(storageSection) : null;
 
-                if (drop.isString("minimal_type")) {
-                    FurnitureFactory mechanic = (FurnitureFactory) mechanicFactory;
-                    List<String> bestTools = drop.isList("best_tools") ? drop.getStringList("best_tools") : new ArrayList<>();
-                    this.drop = new Drop(mechanic.toolTypes, loots, drop.getBoolean("silktouch"),
-                            drop.getBoolean("fortune"), getItemID(),
-                            drop.getString("minimal_type"),
-                            bestTools);
-                } else this.drop =
-                        new Drop(loots, drop.getBoolean("silktouch", false), drop.getBoolean("fortune", false), getItemID());
-            } else this.drop = new Drop(loots, false, false, getItemID());
-        } else drop = new Drop(loots, false, false, getItemID());
+        ConfigurationSection blockSoundsSection = section.getConfigurationSection("block_sounds");
+        blockSounds = blockSoundsSection != null ? new BlockSounds(blockSoundsSection) : null;
 
-        if (section.isConfigurationSection("limited_placing")) {
-            limitedPlacing = new LimitedPlacing(Objects.requireNonNull(section.getConfigurationSection("limited_placing")));
-        } else limitedPlacing = null;
-
-        if (section.isConfigurationSection("storage")) {
-            storage = new StorageMechanic(Objects.requireNonNull(section.getConfigurationSection("storage")));
-        } else storage = null;
-
-        if (section.isConfigurationSection("block_sounds")) {
-            blockSounds = new BlockSounds(Objects.requireNonNull(section.getConfigurationSection("block_sounds")));
-        } else blockSounds = null;
-
-        if (section.isConfigurationSection("jukebox")) {
-            jukebox = new JukeboxBlock(mechanicFactory, Objects.requireNonNull(section.getConfigurationSection("jukebox")));
-        } else jukebox = null;
+        ConfigurationSection jukeboxSection = section.getConfigurationSection("jukebox");
+        jukebox = jukeboxSection != null ? new JukeboxBlock(mechanicFactory, jukeboxSection) : null;
 
         clickActions = ClickAction.parseList(section);
 
