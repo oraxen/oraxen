@@ -11,7 +11,6 @@ import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
-import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
@@ -204,7 +203,7 @@ public class CustomArmorsTextures {
             ItemBuilder builder = OraxenItems.getItemById(prefix + suffix);
             ItemMeta meta = builder != null ? builder.build().getItemMeta() : null;
 
-            if (meta instanceof ArmorMeta && !(meta instanceof LeatherArmorMeta)) {
+            if (!(meta instanceof LeatherArmorMeta) && builder != null && builder.build().getType().toString().toLowerCase().endsWith(suffix)) {
                 Logs.logError("Material of " + prefix + suffix + " is not a LeatherArmor material!");
                 Logs.logWarning("Custom Armor requires that the item is LeatherArmor");
                 Logs.logWarning("You can add fake armor values via AttributeModifiers");
