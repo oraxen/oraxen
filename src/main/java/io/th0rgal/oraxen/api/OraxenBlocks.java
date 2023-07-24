@@ -200,9 +200,10 @@ public class OraxenBlocks {
 
         if (player != null) {
             OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
+            io.th0rgal.oraxen.api.events.OraxenNoteBlockBreakEvent deprecatedNoteBlockBreakEvent = new io.th0rgal.oraxen.api.events.OraxenNoteBlockBreakEvent(mechanic, block, player);
             OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockBreakEvent);
-            if (noteBlockBreakEvent.isCancelled())
-                return;
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedNoteBlockBreakEvent);
+            if (noteBlockBreakEvent.isCancelled() || deprecatedNoteBlockBreakEvent.isCancelled()) return;
         }
 
         if (mechanic.hasLight())
@@ -223,10 +224,10 @@ public class OraxenBlocks {
 
         if (player != null) {
             OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
+            io.th0rgal.oraxen.api.events.OraxenStringBlockBreakEvent deprecatedWireBlockBreakEvent = new io.th0rgal.oraxen.api.events.OraxenStringBlockBreakEvent(mechanic, block, player);
             OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockBreakEvent);
-            if (wireBlockBreakEvent.isCancelled()) {
-                return;
-            }
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedWireBlockBreakEvent);
+            if (wireBlockBreakEvent.isCancelled() || deprecatedWireBlockBreakEvent.isCancelled()) return;
         }
 
         if (mechanic.hasLight())
