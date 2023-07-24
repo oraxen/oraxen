@@ -26,7 +26,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.AbstractArrow;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Explosive;
 import org.bukkit.entity.Fireball;
@@ -196,9 +195,11 @@ public class FurnitureListener implements Listener {
         Utils.swingHand(player, event.getHand());
 
         final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, block, baseEntity, player, item, hand);
+        final io.th0rgal.oraxen.api.events.OraxenFurniturePlaceEvent deprecatedFurniturePlaceEvent = new io.th0rgal.oraxen.api.events.OraxenFurniturePlaceEvent(mechanic, block, baseEntity, player, item, hand);
         Bukkit.getPluginManager().callEvent(furniturePlaceEvent);
+        Bukkit.getPluginManager().callEvent(deprecatedFurniturePlaceEvent);
 
-        if (furniturePlaceEvent.isCancelled()) {
+        if (furniturePlaceEvent.isCancelled() || deprecatedFurniturePlaceEvent.isCancelled()) {
             OraxenFurniture.remove(baseEntity, null);
             block.setBlockData(currentBlockData);
             return;
@@ -266,8 +267,10 @@ public class FurnitureListener implements Listener {
         entity = mechanic.getBaseEntity(entity);
         if (entity == null) return;
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, entity, player, entity.getLocation().getBlock());
+        io.th0rgal.oraxen.api.events.OraxenFurnitureBreakEvent deprecatedFurnitureBreakEvent = new io.th0rgal.oraxen.api.events.OraxenFurnitureBreakEvent(mechanic, entity, player, entity.getLocation().getBlock());
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
-        if (furnitureBreakEvent.isCancelled()) return;
+        OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedFurnitureBreakEvent);
+        if (furnitureBreakEvent.isCancelled() || deprecatedFurnitureBreakEvent.isCancelled()) return;
 
         OraxenFurniture.remove(entity, player);
     }
@@ -286,8 +289,10 @@ public class FurnitureListener implements Listener {
         if (baseEntity == null) return;
 
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, baseEntity, player, block);
+        io.th0rgal.oraxen.api.events.OraxenFurnitureBreakEvent deprecatedFurnitureBreakEvent = new io.th0rgal.oraxen.api.events.OraxenFurnitureBreakEvent(mechanic, baseEntity, player, block);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
-        if (furnitureBreakEvent.isCancelled()) {
+        OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedFurnitureBreakEvent);
+        if (furnitureBreakEvent.isCancelled() || deprecatedFurnitureBreakEvent.isCancelled()) {
             event.setCancelled(true);
             return;
         }
@@ -354,7 +359,9 @@ public class FurnitureListener implements Listener {
 
         ItemStack itemInHand = hand == EquipmentSlot.HAND ? player.getInventory().getItemInMainHand() : player.getInventory().getItemInOffHand();
         OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, itemInHand, hand);
+        io.th0rgal.oraxen.api.events.OraxenFurnitureInteractEvent deprecatedFurnitureInteractEvent = new io.th0rgal.oraxen.api.events.OraxenFurnitureInteractEvent(mechanic, baseEntity, player, itemInHand, hand);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureInteractEvent);
+        OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedFurnitureInteractEvent);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
