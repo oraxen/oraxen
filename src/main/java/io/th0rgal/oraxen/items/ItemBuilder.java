@@ -199,8 +199,12 @@ public class ItemBuilder {
         return this;
     }
 
+    /**
+     * Check if the ItemBuilder has color.
+     * @return true if the ItemBuilder has color that is not default LeatherMetaColor
+     */
     public boolean hasColor() {
-        return color != null;
+        return color != null && !color.equals(Color.fromRGB(160, 101, 64));
     }
 
     public Color getColor() {
