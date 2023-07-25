@@ -244,13 +244,13 @@ public class CustomArmorsTextures {
         // Ensures armorColor is set. If no Color is specified, assigns one.
         // If ShaderType = LESS_FANCY then it will assign a color regardless following armor-ID
         Color armorColor = fixArmorColors(prefix, name);
-        if (armorColor != null && shaderType == ShaderType.FANCY) {
-            setPixel(image.getRaster(), 0, 0, armorColor);
-            if (isAnimated)
-                setPixel(image.getRaster(), 1, 0, Color.fromRGB(image.getHeight() / (int) Settings.ARMOR_RESOLUTION.getValue(), getAnimatedArmorFramerate(), 1));
-        }
-
         if (armorColor != null) {
+            if (shaderType == ShaderType.FANCY) {
+                setPixel(image.getRaster(), 0, 0, armorColor);
+                if (isAnimated)
+                    setPixel(image.getRaster(), 1, 0, Color.fromRGB(image.getHeight() / (int) Settings.ARMOR_RESOLUTION.getValue(), getAnimatedArmorFramerate(), 1));
+            }
+
             if (name.contains("armor_layer_1")) {
                 layers1.add(image);
                 layer1Width = shaderType == ShaderType.FANCY ? layer1Width + image.getWidth() : Math.max(layer1Width, image.getWidth());
@@ -260,13 +260,13 @@ public class CustomArmorsTextures {
                 layer2Width = shaderType == ShaderType.FANCY ? layer2Width + image.getWidth() : Math.max(layer2Width, image.getWidth());
                 layer2Height = shaderType == ShaderType.FANCY ? Math.max(layer2Height, image.getHeight()) : layer2Height + image.getHeight();
             }
-        }
 
-        if (!isAnimated && image.getHeight() > getLayerHeight()) {
-            Logs.logError("The height of " + name + " is greater than " + getLayerHeight() + "px.");
-            Logs.logWarning("Since it is not an animated armor-file, this will potentially break other armor sets.");
-            Logs.logWarning("Adjust the " + Settings.ARMOR_RESOLUTION.getPath() + " setting to fix this issue.");
-            Logs.logWarning("If it is meant to be an animated armor-file, make sure it ends with _a.png or _a_e.png if emissive");
+            if (!isAnimated && image.getHeight() > getLayerHeight()) {
+                Logs.logError("The height of " + name + " is greater than " + getLayerHeight() + "px.");
+                Logs.logWarning("Since it is not an animated armor-file, this will potentially break other armor sets.");
+                Logs.logWarning("Adjust the " + Settings.ARMOR_RESOLUTION.getPath() + " setting to fix this issue.");
+                Logs.logWarning("If it is meant to be an animated armor-file, make sure it ends with _a.png or _a_e.png if emissive");
+            }
         }
     }
 
