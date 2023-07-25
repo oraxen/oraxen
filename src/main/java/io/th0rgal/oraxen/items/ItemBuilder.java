@@ -198,6 +198,10 @@ public class ItemBuilder {
         return this;
     }
 
+    public boolean hasColor() {
+        return color != null;
+    }
+
     public Color getColor() {
         return color;
     }
