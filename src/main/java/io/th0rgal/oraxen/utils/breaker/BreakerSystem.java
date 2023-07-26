@@ -12,9 +12,9 @@ import com.comphenix.protocol.wrappers.EnumWrappers;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
-import io.th0rgal.oraxen.api.events.OraxenFurnitureDamageEvent;
-import io.th0rgal.oraxen.api.events.OraxenNoteBlockDamageEvent;
-import io.th0rgal.oraxen.api.events.OraxenStringBlockDamageEvent;
+import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureDamageEvent;
+import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockDamageEvent;
+import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockDamageEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -22,7 +22,11 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
@@ -41,6 +45,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,18 +87,18 @@ public class BreakerSystem {
                     BlockFace.UP;
 
             HardnessModifier triggeredModifier = null;
-            for (final HardnessModifier modifier : MODIFIERS)
+            for (final HardnessModifier modifier : MODIFIERS) {
                 if (modifier.isTriggered(player, block, item)) {
                     triggeredModifier = modifier;
                     break;
                 }
+            }
             if (triggeredModifier == null) return;
             final long period = triggeredModifier.getPeriod(player, block, item);
             if (period == 0) return;
             if (block.getType() == Material.NOTE_BLOCK && !OraxenBlocks.isOraxenNoteBlock(block)) return;
             if (block.getType() == Material.TRIPWIRE_HOOK && !OraxenBlocks.isOraxenStringBlock(block)) return;
             if (block.getType() == Material.BARRIER && !OraxenFurniture.isFurniture(block)) return;
-
 
             event.setCancelled(true);
 
@@ -128,6 +133,11 @@ public class BreakerSystem {
 
                     @Override
                     public void accept(final BukkitTask bukkitTask) {
+                        // Methods for sending multi-barrier block-breaks
+                        final FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
+                        final Entity furnitureBaseEntity = furnitureMechanic != null ? furnitureMechanic.getBaseEntity(block) : null;
+                        final List<Location> furnitureBarrierLocations = furnitureMechanic != null && furnitureBaseEntity != null ? furnitureMechanic.getLocations(FurnitureMechanic.getFurnitureYaw(furnitureBaseEntity), furnitureBaseEntity.getLocation(), furnitureMechanic.getBarriers()) : Collections.singletonList(block.getLocation());
+
                         if (!breakerPerLocation.containsKey(location)) {
                             bukkitTask.cancel();
                             return;
@@ -138,7 +148,10 @@ public class BreakerSystem {
 
                         for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
                             if (entity instanceof Player viewer) {
-                                sendBlockBreak(viewer, location, value);
+                                if (furnitureMechanic != null) {
+                                    for (Location barrierLoc : furnitureBarrierLocations)
+                                        sendBlockBreak(viewer, barrierLoc, value);
+                                } else sendBlockBreak(viewer, location, value);
                             }
 
                         if (value++ < 10) return;
@@ -155,9 +168,14 @@ public class BreakerSystem {
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
                                 player.removePotionEffect(PotionEffectType.SLOW_DIGGING));
                         breakerPerLocation.remove(location);
-                        for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
-                            if (entity instanceof Player viewer)
-                                sendBlockBreak(viewer, location, 10);
+                        for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
+                            if (entity instanceof Player viewer) {
+                                if (furnitureMechanic != null) {
+                                    for (Location barrierLoc : furnitureBarrierLocations)
+                                        sendBlockBreak(viewer, barrierLoc, value);
+                                } else sendBlockBreak(viewer, location, value);
+                            }
+                        }
                         bukkitTask.cancel();
                     }
                 }, period, period);

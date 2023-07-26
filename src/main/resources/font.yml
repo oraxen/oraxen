@@ -4,6 +4,14 @@ settings:
   # Should Oraxen suffix glyphs in chat by a placeholder? Requires PlaceholderAPI
   #perms_chatcolor: "%luckperms_meta_chatcolor%"
 
+#bitmaps:
+  #example_bitmap:
+  #  texture: example/texture
+  #  rows: 2
+  #  columns: 9
+  #  ascent: 8
+  #  height: 8
+
 # You can also use ttf  fonts:
 #fonts:
 #  my_cool_font:

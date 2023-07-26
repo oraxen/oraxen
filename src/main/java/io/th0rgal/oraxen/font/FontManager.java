@@ -1,12 +1,13 @@
 package io.th0rgal.oraxen.font;
 
-import com.comphenix.protocol.PacketType;
 import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
@@ -19,13 +20,22 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class FontManager {
 
     public final boolean autoGenerate;
     public final String permsChatcolor;
+    public static Map<String, GlyphBitMap> glyphBitMaps = new HashMap<>();
     private final Map<String, Glyph> glyphMap;
     private final Map<String, Glyph> glyphByPlaceholder;
     private final Map<Character, String> reverse;
@@ -35,8 +45,19 @@ public class FontManager {
 
     public FontManager(final ConfigsManager configsManager) {
         final Configuration fontConfiguration = configsManager.getFont();
+        final ConfigurationSection bitmapSection = fontConfiguration.getConfigurationSection("bitmaps");
         autoGenerate = fontConfiguration.getBoolean("settings.automatically_generate");
         permsChatcolor = fontConfiguration.getString("settings.perms_chatcolor");
+        if (bitmapSection != null) {
+            glyphBitMaps = bitmapSection.getKeys(false).stream().collect(HashMap::new, (map, key) -> {
+                final ConfigurationSection section = bitmapSection.getConfigurationSection(key);
+                if (section != null) {
+                    map.put(key, new GlyphBitMap(
+                            section.getString("texture"), section.getInt("rows"), section.getInt("columns"),
+                            section.getInt("ascent", 8), section.getInt("height", 8)));
+                }
+            }, HashMap::putAll);
+        }
         glyphMap = new HashMap<>();
         glyphByPlaceholder = new HashMap<>();
         reverse = new HashMap<>();
@@ -45,6 +66,10 @@ public class FontManager {
         loadGlyphs(configsManager.parseGlyphConfigs());
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
+    }
+
+    public static GlyphBitMap getGlyphBitMap(String id) {
+        return id != null ? glyphBitMaps.getOrDefault(id, null) : null;
     }
 
     public void verifyRequired() {
@@ -63,7 +88,7 @@ public class FontManager {
         verifyRequiredGlyphs();
         for (Glyph glyph : glyphs) {
             glyphMap.put(glyph.getName(), glyph);
-            reverse.put(glyph.getCharacter(), glyph.getName());
+            reverse.put(glyph.getCharacter().charAt(0), glyph.getName());
             for (final String placeholder : glyph.getPlaceholders())
                 glyphByPlaceholder.put(placeholder, glyph);
         }
@@ -96,13 +121,13 @@ public class FontManager {
                 OraxenPlugin.get().saveResource("glyphs/" + file.getName(), false);
             }
             // Check if file is equal to the resource
-            else if (Settings.AUTOMATICALLY_SET_GLYPH_CODE.toBool()) {
+            else if (!Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
                 List<String> tempKeys = YamlConfiguration.loadConfiguration(tempFile).getKeys(false).stream().toList();
                 List<String> requiredKeys = YamlConfiguration.loadConfiguration(file).getKeys(false).stream().toList();
                 if (!new HashSet<>(requiredKeys).containsAll(tempKeys)) {
                     file.renameTo(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/" + file.getName() + ".old"));
                     OraxenPlugin.get().saveResource("glyphs/" + file.getName(), true);
-                    Logs.logWarning("glyphs/" + file.getName() +  " was incorrect, renamed to .old and regenerated the default one");
+                    Logs.logWarning("glyphs/" + file.getName() + " was incorrect, renamed to .old and regenerated the default one");
                 }
             }
         } catch (IOException e) {
@@ -159,54 +184,50 @@ public class FontManager {
         return output.toString();
     }
 
-    public void sendGlyphTabCompletion(Player player, boolean add) {
-        boolean useUnicodeCompletions = Settings.UNICODE_COMPLETIONS.toBool();
-        if (PacketType.Play.Server.CUSTOM_CHAT_COMPLETIONS.isSupported()) {
-            PacketContainer packet = new PacketContainer(PacketType.Play.Server.CUSTOM_CHAT_COMPLETIONS);
+    private final HashMap<Player, List<String>> currentGlyphCompletions = new HashMap<>();
+    public void sendGlyphTabCompletion(Player player) {
+        List<String> completions = getGlyphByPlaceholderMap().values().stream()
+                .filter(Glyph::hasTabCompletion)
+                .flatMap(glyph -> Settings.UNICODE_COMPLETIONS.toBool()
+                        ? Stream.of(glyph.getCharacter())
+                        : Arrays.stream(glyph.getPlaceholders()))
+                .toList();
 
-            Object[] constants = PacketType.Play.Server.CUSTOM_CHAT_COMPLETIONS.getPacketClass().getDeclaredClasses()[0].getEnumConstants();
-            packet.getModifier().write(0, constants[(add) ? 0 : 1]);
-            packet.getModifier().write(1, getGlyphByPlaceholderMap().values().stream()
-                    .filter(Glyph::hasTabCompletion)
-                    .flatMap(glyph -> useUnicodeCompletions
-                            ? Stream.of(String.valueOf(glyph.getCharacter()))
-                            : Arrays.stream(glyph.getPlaceholders()))
-                    .toList());
-
-            protocolManager.sendServerPacket(player, packet);
-        }
-        else for (Glyph glyph : getGlyphByPlaceholderMap().values()) {
-            if (glyph.hasTabCompletion()) {
-                PacketContainer packet = new PacketContainer(PacketType.Play.Server.PLAYER_INFO);
-
-                packet.getPlayerInfoAction().write(0, (add) ? EnumWrappers.PlayerInfoAction.ADD_PLAYER : EnumWrappers.PlayerInfoAction.REMOVE_PLAYER);
-
-                List<WrappedGameProfile> profiles = useUnicodeCompletions
-                        ? Collections.singletonList(getGameProfileForCompletion(String.valueOf(glyph.getCharacter())))
-                        : Arrays.stream(glyph.getPlaceholders())
-                        .map(this::getGameProfileForCompletion)
-                        .toList();
-
-                if (glyph.getTabIconTexture() != null && glyph.getTabIconSignature() != null) {
-                    for (WrappedGameProfile profile : profiles) {
-                        profile.getProperties().put("textures",
-                                new WrappedSignedProperty(
-                                        "textures",
-                                        glyph.getTabIconTexture(),
-                                        glyph.getTabIconSignature()));
-                    }
-                }
-
-                packet.getPlayerInfoDataLists().write(0, profiles.stream()
-                        .map(profile -> new PlayerInfoData(profile, 0, EnumWrappers.NativeGameMode.SPECTATOR, WrappedChatComponent.fromText("")))
-                        .toList());
-
-                protocolManager.sendServerPacket(player, packet);
-            }
+        if (VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R3)) {
+            player.removeCustomChatCompletions(currentGlyphCompletions.getOrDefault(player, new ArrayList<>()));
+            player.addCustomChatCompletions(completions);
+            currentGlyphCompletions.put(player, completions);
         }
     }
 
-    private WrappedGameProfile getGameProfileForCompletion(String completion) {
-        return new WrappedGameProfile(UUID.randomUUID(), completion);
+    public record GlyphBitMap(String texture, int rows, int columns, int ascent, int height) {
+
+        public JsonObject toJson(FontManager fontManager) {
+            JsonObject json = new JsonObject();
+            JsonArray chars = new JsonArray();
+
+            List<Glyph> bitmapGlyphs = fontManager.getGlyphs().stream().filter(Glyph::hasBitmap).filter(g -> g.getBitMap() != null && g.getBitMap().equals(this)).toList();
+
+            for (int i = 1; i <= rows(); i++) {
+                int currentRow = i;
+                List<Glyph> glyphsInRow = bitmapGlyphs.stream().filter(g -> g.getBitmapEntry().row() == currentRow).toList();
+                StringBuilder charRow = new StringBuilder();
+                for (int j = 1; j <= columns(); j++) {
+                    int currentColumn = j;
+                    Glyph glyph = glyphsInRow.stream().filter(g -> g.getBitmapEntry().column() == currentColumn).findFirst().orElse(null);
+                    charRow.append(glyph != null ? glyph.getCharacter() : Glyph.WHITESPACE_GLYPH);
+                }
+                chars.add(""); // Add row
+                chars.set(i - 1, new JsonPrimitive(charRow.toString()));
+            }
+            json.add("chars", chars);
+
+            json.addProperty("type", "bitmap");
+            json.addProperty("ascent", ascent);
+            json.addProperty("height", height);
+            json.addProperty("file", texture.endsWith(".png") ? texture : texture + ".png");
+
+            return json;
+        }
     }
 }

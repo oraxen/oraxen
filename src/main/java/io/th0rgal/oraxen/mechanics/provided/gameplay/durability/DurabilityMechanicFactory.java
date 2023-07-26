@@ -12,7 +12,7 @@ public class DurabilityMechanicFactory extends MechanicFactory {
 
     public DurabilityMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new DurabilityMechanicManager(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new DurabilityMechanicManager(this));
         instance = this;
     }
 

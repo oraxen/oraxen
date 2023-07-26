@@ -1,7 +1,11 @@
 package io.th0rgal.oraxen.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
-import dev.jorel.commandapi.arguments.*;
+import dev.jorel.commandapi.arguments.ArgumentSuggestions;
+import dev.jorel.commandapi.arguments.EntitySelectorArgument;
+import dev.jorel.commandapi.arguments.GreedyStringArgument;
+import dev.jorel.commandapi.arguments.IntegerArgument;
+import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
@@ -14,6 +18,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.MapMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 
 import java.util.Collection;
@@ -40,7 +45,6 @@ public class CommandsManager {
                 .withSubcommand((new DebugCommand()).getDebugCommand())
                 .withSubcommand((new ModelDataCommand()).getHighestModelDataCommand())
                 .withSubcommand((new GlyphCommand()).getGlyphCommand(commandsSection))
-                .withSubcommand((new PrintGlyphCommand()).getPrintGlyphCommand())
                 .withSubcommand((new ItemInfoCommand()).getItemInfoCommand())
                 .withSubcommand((new BlockInfoCommand()).getBlockInfoCommand())
                 .withSubcommand((new HudCommand()).getHudCommand())
@@ -67,7 +71,7 @@ public class CommandsManager {
                     if (sender instanceof Player player) {
                         Color hexColor;
                         try {
-                            hexColor = hex2Rgb((String) args.get(0));
+                            hexColor = hex2Rgb((String) args.get("color"));
                         } catch (StringIndexOutOfBoundsException e) {
                             Message.DYE_WRONG_COLOR.send(sender);
                             return;
@@ -76,6 +80,7 @@ public class CommandsManager {
                         ItemMeta itemMeta = item.getItemMeta();
                         if (itemMeta instanceof LeatherArmorMeta meta) meta.setColor(hexColor);
                         else if (itemMeta instanceof PotionMeta meta) meta.setColor(hexColor);
+                        else if (itemMeta instanceof MapMeta meta) meta.setColor(hexColor);
                         else {
                             Message.DYE_FAILED.send(sender);
                             return;
@@ -137,7 +142,7 @@ public class CommandsManager {
                     int amount = (int) args.get(2);
                     final int max = itemBuilder.getMaxStackSize();
                     final int slots = amount / max + (max % amount > 0 ? 1 : 0);
-                    final ItemStack[] items = itemBuilder.buildArray(slots > 36 ? (amount = max * 36) : amount);
+                    ItemStack[] items = itemBuilder.buildArray(slots > 36 ? (amount = max * 36) : amount);
 
                     for (final Player target : targets) {
                         Map<Integer, ItemStack> output = target.getInventory().addItem(items);
@@ -174,7 +179,7 @@ public class CommandsManager {
                         return;
                     }
                     for (final Player target : targets)
-                        target.getInventory().addItem(itemBuilder.build());
+                        target.getInventory().addItem(ItemUpdater.updateItem(itemBuilder.build()));
 
                     if (targets.size() == 1)
                         Message.GIVE_PLAYER

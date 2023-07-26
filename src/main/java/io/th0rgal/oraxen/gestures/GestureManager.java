@@ -5,12 +5,15 @@ import com.ticxo.playeranimator.api.animation.pack.AnimationPack;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class GestureManager {
@@ -77,7 +80,7 @@ public class GestureManager {
 
     public static Set<String> gestures = new HashSet<>();
 
-    public Set<String> getGestures() {
+    public static Set<String> getGestures() {
         return gestures;
     }
 
@@ -282,31 +285,31 @@ public class GestureManager {
                 vec2 getUVOffset(int corner, vec3 cubeSize, float yOffset) {
                     vec2 offset, uv;
                     switch(corner / 4) {
-                        case 0: // Left
-                            offset = vec2(cubeSize.z + cubeSize.x, cubeSize.z);
-                            offset.y += yOffset;
-                            uv = vec2(cubeSize.z, cubeSize.y);
+                        case 0: // Up
+                            offset = vec2(cubeSize.z, 0);
+                            uv = vec2(cubeSize.x, cubeSize.z);
                             break;
-                        case 1: // Right
+                        case 1: // Down
+                            offset = vec2(cubeSize.z + cubeSize.x, 0);
+                            uv = vec2(cubeSize.x, cubeSize.z);
+                            break;
+                        case 2: // Right
                             offset = vec2(0, cubeSize.z);
                             offset.y += yOffset;
                             uv = vec2(cubeSize.z, cubeSize.y);
                             break;
-                        case 2: // Up
-                            offset = vec2(cubeSize.z, 0);
-                            uv = vec2(cubeSize.x, cubeSize.z);
-                            break;
-                        case 3: // Down
-                            offset = vec2(cubeSize.z + cubeSize.x, 0);
-                            uv = vec2(cubeSize.x, cubeSize.z);
-                            break;
-                        case 4: // Front
+                        case 3: // Front
                             offset = vec2(cubeSize.z, cubeSize.z);
                             offset.y += yOffset;
                             uv = vec2(cubeSize.x, cubeSize.y);
                             break;
+                        case 4: // Left
+                            offset = vec2(cubeSize.z + cubeSize.x, cubeSize.z);
+                            offset.y += yOffset;
+                            uv = vec2(cubeSize.z, cubeSize.y);
+                            break;
                         case 5: // Back
-                			offset = vec2(2 * cubeSize.z + cubeSize.x, cubeSize.z);
+                            offset = vec2(2 * cubeSize.z + cubeSize.x, cubeSize.z);
                             offset.y += yOffset;
                             uv = vec2(cubeSize.x, cubeSize.y);
                             break;
@@ -383,6 +386,7 @@ public class GestureManager {
                     texCoord1 = UV0;
                     normal = ProjMat * ModelViewMat * vec4(Normal, 0.0);
                 }
+                                
                                 
                 """;
     }

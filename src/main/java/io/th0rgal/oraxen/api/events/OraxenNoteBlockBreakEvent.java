@@ -8,6 +8,11 @@ import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 
+/**
+ * @deprecated This event is deprecated and will be removed in a future version.
+ * Use {@link io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent} instead.
+ */
+@Deprecated(since = "1.158.0", forRemoval = true)
 public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
 
     private final NoteBlockMechanic mechanic;

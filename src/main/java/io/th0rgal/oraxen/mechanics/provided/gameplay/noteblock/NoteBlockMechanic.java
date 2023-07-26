@@ -1,18 +1,17 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripping;
-import io.th0rgal.oraxen.mechanics.provided.misc.storage.StorageMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
-import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -25,14 +24,13 @@ import java.util.Objects;
 public class NoteBlockMechanic extends Mechanic {
 
     public static final NamespacedKey FARMBLOCK_KEY = new NamespacedKey(OraxenPlugin.get(), "farmblock");
-    protected final boolean hasHardness;
     private final int customVariation;
     private final Drop drop;
     private final LimitedPlacing limitedPlacing;
     private final StorageMechanic storage;
     private final BlockSounds blockSounds;
     private String model;
-    private int period;
+    private final int hardness;
     private final int light;
     private final boolean canIgnite;
     private final boolean isFalling;
@@ -76,10 +74,7 @@ public class NoteBlockMechanic extends Mechanic {
             drop = new Drop(loots, false, false, getItemID());
 
         // hardness requires protocollib
-        if (CompatibilitiesManager.hasPlugin("ProtocolLib") && section.isInt("hardness")) {
-            hasHardness = true;
-            period = section.getInt("hardness");
-        } else hasHardness = false;
+        hardness = section.getInt("hardness", 1);
 
         light = section.getInt("light", -1);
         clickActions = ClickAction.parseList(section);
@@ -155,8 +150,14 @@ public class NoteBlockMechanic extends Mechanic {
         return drop;
     }
 
-    public int getPeriod() {
-        return period;
+    public boolean hasHardness() {
+        if (isDirectional() && !getDirectional().isParentBlock()) {
+            return hardness != -1 || directionalBlock.getParentMechanic().hasHardness();
+        } else return hardness != -1;
+    }
+
+    public int getHardness() {
+        return hardness;
     }
 
     public boolean hasLight() {

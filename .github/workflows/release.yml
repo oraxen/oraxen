@@ -1,33 +1,32 @@
+name: Create Release
 on:
-  pull_request:
-    types: [closed]
-    branches: [master]
-
+  push:
+    branches:
+      - master
 jobs:
-  create-release:
+  build:
     runs-on: ubuntu-latest
-    if: >-
-      (contains(github.event.pull_request.labels.*.name, 'release'))
-      && github.event.pull_request.merged == true
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2.4.1
+      - name: Set up JDK 11
+        uses: actions/setup-java@v2.4.0
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Get plugin version
-        id: plugin_version
-        shell: bash
+          java-version: '11'
+          distribution: 'adopt'
+      - name: Check plugin version
         run: |
-          version=$(grep "^pluginVersion=" gradle.properties | cut -d'=' -f2)
-          echo "::set-output name=version::$version"
-
-      - name: Create GitHub Release
-        uses: marvinpinto/action-automatic-releases@latest
+          version=$(sed -n "s/^pluginVersion=\(.*\)$/\1/p" gradle.properties)
+          commit_version=$(echo "${{ github.event.head_commit.message }}" | grep -oP '(?<=release: )[^ ]+')
+          if [ "$version" != "$commit_version" ]; then
+            echo "Plugin version does not match commit message"
+            exit 1
+          fi
+          echo "commit_version=$commit_version" >> $GITHUB_ENV
+      - name: Create Release
+        uses: ncipollo/release-action@v1
         with:
-          repo_token: "${{ secrets.GITHUB_TOKEN }}"
-          prerelease: false
-          automatic_release_tag: ${{ steps.plugin_version.outputs.version }}
-          title: ${{ steps.plugin_version.outputs.version }}
-
-
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: ${{ env.commit_version }}
+          name: ${{ env.commit_version }}
+          body: ${{ github.event.head_commit.message }}

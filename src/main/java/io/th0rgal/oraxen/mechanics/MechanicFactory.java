@@ -11,10 +11,17 @@ import java.util.Set;
 public abstract class MechanicFactory {
 
     private final Map<String, Mechanic> mechanicByItem = new HashMap<>();
+    private final String mechanicId;
     private final ConfigurationSection section;
 
     protected MechanicFactory(ConfigurationSection section) {
         this.section = section;
+        this.mechanicId = section.getName();
+    }
+
+    protected MechanicFactory(String mechanicId) {
+        this.mechanicId = mechanicId;
+        this.section = null;
     }
 
     protected ConfigurationSection getSection() {
@@ -35,6 +42,10 @@ public abstract class MechanicFactory {
         return !mechanicByItem.containsKey(itemID);
     }
 
+    public boolean isNotImplementedIn(ItemStack itemStack) {
+        return !mechanicByItem.containsKey(OraxenItems.getIdByItem(itemStack));
+    }
+
     public Mechanic getMechanic(String itemID) {
         return mechanicByItem.get(itemID);
     }
@@ -44,7 +55,7 @@ public abstract class MechanicFactory {
     }
 
     public String getMechanicID() {
-        return section.getName();
+        return mechanicId;
     }
 
 }

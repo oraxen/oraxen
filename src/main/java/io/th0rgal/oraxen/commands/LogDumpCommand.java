@@ -5,6 +5,7 @@ import gs.mclo.java.APIResponse;
 import gs.mclo.java.Log;
 import gs.mclo.java.MclogsAPI;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -27,11 +28,12 @@ public class LogDumpCommand {
                     String logfile;
 
                     try {
-                        String path = OraxenPlugin.get().getDataFolder().getAbsoluteFile().getParentFile().getParentFile().getAbsolutePath();
-                        logfile = Files.readString(Path.of(path + "/logs/latest.log"));
-                        logfile = logfile.replace(packUrl, "[REDACTED]");
+                        Logs.logError(OraxenPlugin.get().getDataFolder().getAbsoluteFile().getParentFile().getParentFile().toPath().resolve("logs/latest.log").toString());
+                        Path path = OraxenPlugin.get().getDataFolder().getAbsoluteFile().getParentFile().getParentFile().toPath().resolve("logs/latest.log");
+                        logfile = Files.readString(path).replace(packUrl, "[REDACTED]");
                     } catch (Exception e) {
                         Logs.logError("Failed to read latest.log, is it missing?");
+                        if (Settings.DEBUG.toBool()) e.printStackTrace();
                         return;
                     }
 
@@ -40,11 +42,12 @@ public class LogDumpCommand {
                         Logs.logSuccess("Logfile has been dumped to: " + post.url);
                     } catch (IOException e) {
                         Logs.logWarning("Failed to upload logfile to mclo.gs, attempting to using pastebin");
+                        if (Settings.DEBUG.toBool()) e.printStackTrace();
                         try {
-                            Logs.logSuccess("Logfile has been dumped to: " + postToPasteBin(logfile, true));
+                            Logs.logSuccess("Logfile has been dumped to: " + postToPasteBin(logfile));
                         } catch (IOException ex) {
                             Logs.logError("Failed to use backup solution with pastebin");
-                            e.printStackTrace();
+                            if (Settings.DEBUG.toBool()) e.printStackTrace();
                         }
                     }
                 });
@@ -52,7 +55,7 @@ public class LogDumpCommand {
 
     }
 
-    private String postToPasteBin(String text, boolean raw) throws IOException {
+    private String postToPasteBin(String text) throws IOException {
         byte[] postData = text.getBytes(StandardCharsets.UTF_8);
         int postDataLength = postData.length;
 
@@ -77,7 +80,8 @@ public class LogDumpCommand {
             reader = new BufferedReader(inputReader);
             response = reader.readLine();
         } catch (IOException e) {
-            e.printStackTrace();
+            Logs.logWarning("Failed to read hastebin result");
+            if (Settings.DEBUG.toBool()) e.printStackTrace();
         } finally {
             if (inputReader != null) inputReader.close();
             if (wr != null) wr.close();
@@ -87,7 +91,7 @@ public class LogDumpCommand {
         if (response != null && response.contains("key")) {
             response = response.substring(response.indexOf(":") + 2, response.length() - 2);
 
-            String postURL = raw ? "https://hastebin.com/raw/" : "https://hastebin.com/";
+            String postURL = "https://hastebin.com/raw/";
             response = postURL + response;
         }
 

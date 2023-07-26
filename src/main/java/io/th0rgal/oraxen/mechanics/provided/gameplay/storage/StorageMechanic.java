@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.mechanics.provided.misc.storage;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.storage;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.ticxo.modelengine.api.ModelEngineAPI;
@@ -28,7 +28,12 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 public class StorageMechanic {
 

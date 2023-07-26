@@ -10,7 +10,7 @@ public class MusicDiscMechanicFactory extends MechanicFactory {
 
     public MusicDiscMechanicFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), new MusicDiscListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new MusicDiscListener(this));
     }
 
     @Override

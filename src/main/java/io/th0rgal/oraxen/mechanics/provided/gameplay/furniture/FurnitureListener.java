@@ -1,28 +1,38 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.api.events.OraxenFurnitureBreakEvent;
-import io.th0rgal.oraxen.api.events.OraxenFurnitureInteractEvent;
-import io.th0rgal.oraxen.api.events.OraxenFurniturePlaceEvent;
+import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureBreakEvent;
+import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureInteractEvent;
+import io.th0rgal.oraxen.api.events.furniture.OraxenFurniturePlaceEvent;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.misc.storage.StorageMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
-import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Rotation;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.entity.*;
+import org.bukkit.entity.AbstractArrow;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.Explosive;
+import org.bukkit.entity.Fireball;
+import org.bukkit.entity.Interaction;
+import org.bukkit.entity.ItemFrame;
+import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -45,7 +55,6 @@ import org.bukkit.util.RayTraceResult;
 
 import java.util.Objects;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.SEAT_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.rotationToYaw;
 
 public class FurnitureListener implements Listener {
@@ -63,7 +72,9 @@ public class FurnitureListener implements Listener {
 
             @Override
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                return block.getType() == Material.BARRIER;
+                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+
+                return mechanic != null && mechanic.hasHardness();
             }
 
             @Override
@@ -73,7 +84,18 @@ public class FurnitureListener implements Listener {
 
             @Override
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
-                return 1;
+                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+                if (mechanic == null) return 0;
+
+                final long hardness = mechanic.getHardness();
+                double modifier = 1;
+                if (mechanic.getDrop().canDrop(tool)) {
+                    modifier *= 0.4;
+                    final int diff = mechanic.getDrop().getDiff(tool);
+                    if (diff >= 1) modifier *= Math.pow(0.9, diff);
+                }
+                long period = (long) (hardness * modifier);
+                return period == 0 && mechanic.hasHardness() ? 1 : period;
             }
         };
     }
@@ -104,6 +126,16 @@ public class FurnitureListener implements Listener {
 
         if (limitedPlacing.isNotPlacableOn(block, blockFace)) {
             event.setCancelled(true);
+        } else if (limitedPlacing.isRadiusLimited()) {
+            LimitedPlacing.RadiusLimitation radiusLimitation = limitedPlacing.getRadiusLimitation();
+            int radius = radiusLimitation.getRadius();
+            int amount = radiusLimitation.getAmount();
+            if (block.getWorld().getNearbyEntities(block.getLocation(), radius, radius, radius).stream()
+                    .filter(e -> OraxenFurniture.isBaseEntity(e) && OraxenFurniture.getFurnitureMechanic(e).getItemID().equals(mechanic.getItemID()))
+                    .filter(e -> e.getLocation().distanceSquared(block.getLocation()) <= radius * radius)
+                    .count() >= amount) {
+                event.setCancelled(true);
+            }
         } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
             if (!limitedPlacing.checkLimitedMechanic(belowPlaced))
                 event.setCancelled(true);
@@ -412,11 +444,6 @@ public class FurnitureListener implements Listener {
     @EventHandler
     public void onPlayerQuitEvent(final PlayerQuitEvent event) {
         final Player player = event.getPlayer();
-        final Entity vehicle = player.getVehicle();
-        if (vehicle instanceof final ArmorStand armorStand) {
-            if (armorStand.getPersistentDataContainer().has(SEAT_KEY, DataType.UUID)) {
-                player.leaveVehicle();
-            }
-        }
+        if (OraxenFurniture.isFurniture(player.getVehicle())) player.leaveVehicle();
     }
 }

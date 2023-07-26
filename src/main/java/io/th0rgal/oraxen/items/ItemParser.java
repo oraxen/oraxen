@@ -3,11 +3,14 @@ package io.th0rgal.oraxen.items;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -23,6 +26,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.function.Function;
 
 public class ItemParser {
@@ -66,12 +70,20 @@ public class ItemParser {
         return type == null && mmoItem == null && crucibleItem != null;
     }
 
-    private String parseComponentString(String miniString) {
-        return AdventureUtils.LEGACY_SERIALIZER.serialize(AdventureUtils.MINI_MESSAGE.deserialize(miniString));
+    private String parseComponentDisplayName(String miniString) {
+        Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
+        // If it has no formatting, set color to WHITE to prevent Italic
+        return AdventureUtils.LEGACY_SERIALIZER.serialize(component.colorIfAbsent(NamedTextColor.WHITE));
+    }
+
+    private String parseComponentLore(String miniString) {
+        Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
+        // If it has no formatting, set color to WHITE to prevent Italic
+        return AdventureUtils.LEGACY_SERIALIZER.serialize(component);
     }
 
     public ItemBuilder buildItem() {
-        return buildItem(section.contains("displayname") ? parseComponentString(section.getString("displayname")) : null);
+        return buildItem(section.contains("displayname") ? parseComponentDisplayName(section.getString("displayname")) : null);
     }
 
     public ItemBuilder buildItem(String name) {
@@ -89,7 +101,7 @@ public class ItemParser {
 
         if (section.contains("lore")) {
             List<String> lore = section.getStringList("lore");
-            lore.replaceAll(this::parseComponentString);
+            lore.replaceAll(this::parseComponentLore);
             item.setLore(lore);
         }
 
@@ -100,7 +112,7 @@ public class ItemParser {
         if (section.contains("unstackable"))
             item.setUnstackable(section.getBoolean("unstackable", false));
         if (section.contains("color"))
-            item.setColor(Utils.toColor(section.getString("color", "FFFFFF")));
+            item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
 
         parseMiscOptions(item);
         parseVanillaSections(item);
@@ -113,7 +125,7 @@ public class ItemParser {
         oraxenMeta.setNoUpdate(section.getBoolean("no_auto_update", false));
         oraxenMeta.setDisableEnchanting(section.getBoolean("disable_enchanting", false));
         oraxenMeta.setExcludedFromInventory(section.getBoolean("excludeFromInventory", false));
-        oraxenMeta.setExcludedFromCommands(section.getBoolean("excludedFromCommands", false));
+        oraxenMeta.setExcludedFromCommands(section.getBoolean("excludeFromCommands", false));
 
         if (!section.contains("injectID") || section.getBoolean("injectId"))
             item.setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING, section.getName());
@@ -164,9 +176,10 @@ public class ItemParser {
 
         if (section.contains("AttributeModifiers")) {
             @SuppressWarnings("unchecked") // because this sections must always return a List<LinkedHashMap<String, ?>>
-            List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section
-                    .getList("AttributeModifiers");
-            for (LinkedHashMap<String, Object> attributeJson : attributes) {
+            List<LinkedHashMap<String, Object>> attributes = (List<LinkedHashMap<String, Object>>) section.getList("AttributeModifiers");
+            if (attributes != null) for (LinkedHashMap<String, Object> attributeJson : attributes) {
+                attributeJson.putIfAbsent("uuid", UUID.randomUUID().toString());
+                attributeJson.putIfAbsent("name", "oraxen:modifier");
                 AttributeModifier attributeModifier = AttributeModifier.deserialize(attributeJson);
                 Attribute attribute = Attribute.valueOf((String) attributeJson.get("attribute"));
                 item.addAttributeModifiers(attribute, attributeModifier);
@@ -201,7 +214,8 @@ public class ItemParser {
             } else {
                 customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
                 configUpdated = true;
-                section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
+                if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())
+                    section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
             }
             item.setCustomModelData(customModelData);
             oraxenMeta.setCustomModelData(customModelData);

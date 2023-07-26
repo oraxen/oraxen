@@ -4,19 +4,27 @@ import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.api.events.OraxenNoteBlockInteractEvent;
-import io.th0rgal.oraxen.api.events.OraxenNoteBlockPlaceEvent;
-import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockInteractEvent;
+import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockPlaceEvent;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
-import io.th0rgal.oraxen.mechanics.provided.misc.storage.StorageMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
-import io.th0rgal.oraxen.utils.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameEvent;
+import org.bukkit.GameMode;
+import org.bukkit.Instrument;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Sound;
+import org.bukkit.SoundCategory;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -30,7 +38,14 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.*;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPistonRetractEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.NotePlayEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.ClickType;
@@ -41,13 +56,16 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.RayTraceResult;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.getAnvilFacing;
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
 public class NoteBlockMechanicListener implements Listener {
-    private final MechanicFactory factory = NoteBlockMechanicFactory.getInstance();
 
     public NoteBlockMechanicListener() {
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
@@ -61,7 +79,8 @@ public class NoteBlockMechanicListener implements Listener {
         public void onFallingBlockLandOnCarpet(EntityRemoveFromWorldEvent event) {
             if (!(event.getEntity() instanceof FallingBlock fallingBlock)) return;
             NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(fallingBlock.getBlockData());
-            if (mechanic == null || Objects.equals(OraxenBlocks.getOraxenBlock(fallingBlock.getLocation()), mechanic)) return;
+            if (mechanic == null || Objects.equals(OraxenBlocks.getOraxenBlock(fallingBlock.getLocation()), mechanic))
+                return;
             if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
                 mechanic = mechanic.getDirectional().getParentMechanic();
 
@@ -100,7 +119,14 @@ public class NoteBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBlockPhysics(final BlockPhysicsEvent event) {
         final Block aboveBlock = event.getBlock().getRelative(BlockFace.UP);
-        if (aboveBlock.getType() == Material.NOTE_BLOCK) {
+        final Block belowBlock = event.getBlock().getRelative(BlockFace.DOWN);
+        // If block below is NoteBlock, it will be affected by the break
+        // Call updateAndCheck from it to fix vertical stack of NoteBlocks
+        // if belowBlock is not a NoteBlock we must ensure the above is not, if it is call updateAndCheck from block
+        if (belowBlock.getType() == Material.NOTE_BLOCK) {
+            updateAndCheck(belowBlock.getLocation());
+            event.setCancelled(true);
+        } else if (aboveBlock.getType() == Material.NOTE_BLOCK) {
             updateAndCheck(event.getBlock().getLocation());
             event.setCancelled(true);
         }
@@ -152,6 +178,17 @@ public class NoteBlockMechanicListener implements Listener {
 
         if (limitedPlacing.isNotPlacableOn(block, blockFace)) {
             event.setCancelled(true);
+        } else if (limitedPlacing.isRadiusLimited()) {
+            LimitedPlacing.RadiusLimitation radiusLimitation = limitedPlacing.getRadiusLimitation();
+            int rad = radiusLimitation.getRadius();
+            int amount = radiusLimitation.getAmount();
+            int count = 0;
+            for (int x = -rad; x <= rad; x++) for (int y = -rad; y <= rad; y++) for (int z = -rad; z <= rad; z++) {
+                NoteBlockMechanic relativeMechanic = OraxenBlocks.getNoteBlockMechanic(block.getRelative(x, y, z));
+                if (relativeMechanic == null || !relativeMechanic.getItemID().equals(mechanic.getItemID())) continue;
+                count++;
+            }
+            if (count >= amount) event.setCancelled(true);
         } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
             if (!limitedPlacing.checkLimitedMechanic(belowPlaced))
                 event.setCancelled(true);
@@ -185,7 +222,6 @@ public class NoteBlockMechanicListener implements Listener {
                 event.setCancelled(true);
             }
         }
-
     }
 
     // TODO Make this function less of a clusterfuck and more readable
@@ -198,7 +234,8 @@ public class NoteBlockMechanicListener implements Listener {
         EquipmentSlot hand = event.getHand();
         BlockFace blockFace = event.getBlockFace();
 
-        if (hand == null || event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK) return;
+        if (hand == null || event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK)
+            return;
         if (!player.isSneaking() && BlockHelpers.isInteractable(block)) return;
 
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
@@ -208,7 +245,7 @@ public class NoteBlockMechanicListener implements Listener {
 
         OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(mechanic, player, item, hand, block, blockFace);
         OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockInteractEvent);
-        event.setCancelled(true);
+        event.setUseInteractedBlock(Event.Result.DENY);
         if (noteBlockInteractEvent.isCancelled()) return;
         if (item == null) return;
 
@@ -255,9 +292,9 @@ public class NoteBlockMechanicListener implements Listener {
             block.getWorld().spawnFallingBlock(BlockHelpers.toCenterBlockLocation(relative.getLocation()), data);
             return;
         }
+        if (!type.isBlock()) return;
 
-        if (type.isBlock())
-            makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), Bukkit.createBlockData(type));
+        makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), Bukkit.createBlockData(type));
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -445,7 +482,7 @@ public class NoteBlockMechanicListener implements Listener {
                 if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
                     mechanic = mechanic.getDirectional().getParentMechanic();
 
-                return mechanic.hasHardness;
+                return mechanic.hasHardness();
             }
 
             @Override
@@ -460,7 +497,7 @@ public class NoteBlockMechanicListener implements Listener {
                 if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
                     mechanic = mechanic.getDirectional().getParentMechanic();
 
-                final long period = mechanic.getPeriod();
+                final long period = mechanic.getHardness();
                 double modifier = 1;
                 if (mechanic.getDrop().canDrop(tool)) {
                     modifier *= 0.4;
@@ -506,25 +543,28 @@ public class NoteBlockMechanicListener implements Listener {
             return null;
         }
 
-        final OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(OraxenBlocks.getNoteBlockMechanic(target), target, player, item, hand);
-        Bukkit.getPluginManager().callEvent(oraxenPlaceEvent);
-        if (oraxenPlaceEvent.isCancelled()) {
-            target.setBlockData(curentBlockData); // false to cancel physic
-            return null;
+        // This method is ran for placing on custom blocks aswell, so this should not be called for vanilla blocks
+        if (OraxenBlocks.isOraxenNoteBlock(target)) {
+            final OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(OraxenBlocks.getNoteBlockMechanic(target), target, player, item, hand);
+            Bukkit.getPluginManager().callEvent(oraxenPlaceEvent);
+            if (oraxenPlaceEvent.isCancelled()) {
+                target.setBlockData(curentBlockData); // false to cancel physic
+                return null;
+            }
         }
 
         if (isFlowing) {
             if (newBlock.getMaterial() == Material.WATER) sound = "item.bucket.empty";
             else sound = "item.bucket.empty_" + newBlock.getMaterial().toString().toLowerCase();
-        } else sound = null;
+        } else if (!OraxenBlocks.isOraxenBlock(target)) sound = target.getBlockData().getSoundGroup().getPlaceSound().getKey().toString();
+        else sound = null;
 
         if (!player.getGameMode().equals(GameMode.CREATIVE)) {
             if (item.getType().toString().toLowerCase().contains("bucket")) item.setType(Material.BUCKET);
             else item.setAmount(item.getAmount() - 1);
         }
 
-        if (sound != null)
-            BlockHelpers.playCustomBlockSound(target.getLocation(), sound, SoundCategory.BLOCKS, 0.8f, 0.8f);
+        if (sound != null) BlockHelpers.playCustomBlockSound(target.getLocation(), sound, SoundCategory.BLOCKS, 0.8f, 0.8f);
         Utils.swingHand(player, hand);
 
         return target;

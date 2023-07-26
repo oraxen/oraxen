@@ -6,7 +6,12 @@ import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.Set;
+
 public enum VersionUtil implements Comparable<VersionUtil> {
+
     v1_20_R1(21),
     v1_19_R3(20),
     v1_19_R2(19),
@@ -32,6 +37,7 @@ public enum VersionUtil implements Comparable<VersionUtil> {
     UNKNOWN(-1);
 
     private final int value;
+    private static final boolean leaked = JarReader.checkIsLeaked();
 
     VersionUtil(int value) {
         this.value = value;
@@ -63,8 +69,14 @@ public enum VersionUtil implements Comparable<VersionUtil> {
     public static boolean isPaperServer() {
         Server server = Bukkit.getServer();
         Validate.notNull(server, "Server cannot be null");
+        if (server.getName().equalsIgnoreCase("Paper")) return true;
 
-        return server.getName().equalsIgnoreCase("Paper");
+        try {
+            Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
     }
 
     public static boolean isFoliaServer() {
@@ -184,5 +196,21 @@ public enum VersionUtil implements Comparable<VersionUtil> {
         Validate.isTrue(version != UNKNOWN, "Cannot check, if version UNKNOWN is older or same");
 
         return value <= version.value;
+    }
+
+    private final static String manifest = JarReader.getManifestContent();
+
+    public static boolean isCompiled() {
+        List<String> split = Arrays.stream(manifest.split(":|\n")).map(String::trim).toList();
+        return Boolean.parseBoolean(split.get(split.indexOf("Compiled") + 1)) && !isValidCompiler();
+    }
+
+    public static boolean isLeaked() {
+        return leaked;
+    }
+
+    public static boolean isValidCompiler() {
+        List<String> split = Arrays.stream(manifest.split(":|\n")).map(String::trim).toList();
+        return Set.of("sivert", "thomas").contains(split.get(split.indexOf("Built-By") + 1).toLowerCase());
     }
 }

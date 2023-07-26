@@ -28,7 +28,6 @@ public class LocalHost implements HostingProvider {
     private String sha1;
 
     public LocalHost() {
-        startHttpd();
         port = OraxenPlugin.get().getConfigsManager().getSettings().getInt("Pack.upload.localhost.port", 8080);
         ip = getIp();
         ip = ip == null ? Bukkit.getIp() : ip;
@@ -51,6 +50,7 @@ public class LocalHost implements HostingProvider {
 
     @Override
     public boolean uploadPack(File resourcePack) {
+        startHttpd();
         return OraxenPlugin.get().getResourcePack().getFile().exists();
     }
 

@@ -4,22 +4,46 @@ import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
-import org.bukkit.*;
+import io.th0rgal.oraxen.config.Settings;
+import org.bukkit.Color;
+import org.bukkit.DyeColor;
+import org.bukkit.FireworkEffect;
+import org.bukkit.Material;
+import org.bukkit.NamespacedKey;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.Damageable;
+import org.bukkit.inventory.meta.FireworkEffectMeta;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.SkullMeta;
+import org.bukkit.inventory.meta.TropicalFishBucketMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 
-import java.util.*;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.UUID;
 
 @SuppressWarnings("ALL")
 public class ItemBuilder {
@@ -355,6 +379,20 @@ public class ItemBuilder {
         return this;
     }
 
+    public void save() {
+        regen();
+        OraxenItems.getMap().entrySet().stream().filter(entry -> entry.getValue().containsValue(this)).findFirst().ifPresent(entry -> {
+            YamlConfiguration yamlConfiguration = YamlConfiguration.loadConfiguration(entry.getKey());
+            String color = this.color.getRed() + "," + this.color.getGreen() + "," + this.color.getBlue();
+            yamlConfiguration.set(OraxenItems.getIdByItem(this.build()) + ".color", color);
+            try {
+                yamlConfiguration.save(entry.getKey());
+            } catch (IOException e) {
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
+            }
+        });
+    }
+
     private ItemMeta handleVariousMeta(ItemMeta itemMeta) {
         // durability
         if (itemMeta instanceof Damageable damageable && durability != damageable.getDamage()) {
@@ -447,6 +485,7 @@ public class ItemBuilder {
             final ItemStack clone = built.clone();
             clone.setAmount(max);
             if (unstackable) handleUnstackable(clone);
+            ItemUpdater.updateItem(clone);
             output[index] = clone;
         }
         if (rest != 0) {

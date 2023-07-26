@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -24,12 +25,16 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.inventory.meta.MapMeta;
+import org.bukkit.inventory.meta.PotionMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
@@ -58,7 +63,7 @@ public class ItemUpdater implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
+        if (!Settings.UPDATE_ITEMS.toBool()) return;
 
         PlayerInventory inventory = event.getPlayer().getInventory();
         for (int i = 0; i < inventory.getSize(); i++) {
@@ -71,7 +76,7 @@ public class ItemUpdater implements Listener {
 
     @EventHandler
     public void onPlayerPickUp(EntityPickupItemEvent event) {
-        if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
+        if (!Settings.UPDATE_ITEMS.toBool()) return;
         if (!(event.getEntity() instanceof Player)) return;
 
         ItemStack oldItem = event.getItem().getItemStack();
@@ -82,7 +87,7 @@ public class ItemUpdater implements Listener {
 
     @EventHandler
     public void onEntityLoad(EntitiesLoadEvent event) {
-        if (!Settings.AUTO_UPDATE_ITEMS.toBool()) return;
+        if (!Settings.UPDATE_ITEMS.toBool()) return;
         if (!Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) return;
 
         for (Entity entity : event.getEntities())
@@ -121,10 +126,14 @@ public class ItemUpdater implements Listener {
         String id = OraxenItems.getIdByItem(oldItem);
         if (id == null) return oldItem;
 
-        Optional<ItemBuilder> newItemBuilder = OraxenItems.getOptionalItemById(id);
+        // Oraxens Inventory adds a dumb PDC entry to items, this will remove them
+        // Done here over [ItemsView] as this method is called anyway and supports old items
+        NamespacedKey guiItemKey = Objects.requireNonNull(NamespacedKey.fromString("oraxen:if-uuid"));
+        Utils.editItemMeta(oldItem, itemMeta -> itemMeta.getPersistentDataContainer().remove(guiItemKey));
 
-        if (newItemBuilder.isEmpty() || newItemBuilder.get().getOraxenMeta().isNoUpdate())
-            return oldItem;
+        Optional<ItemBuilder> newItemBuilder = OraxenItems.getOptionalItemById(id);
+        if (newItemBuilder.isEmpty() || newItemBuilder.get().getOraxenMeta().isNoUpdate()) return oldItem;
+
         ItemStack newItem = newItemBuilder.get().build();
         newItem.setAmount(oldItem.getAmount());
         Utils.editItemMeta(newItem, itemMeta -> {
@@ -150,15 +159,36 @@ public class ItemUpdater implements Listener {
             int cmd = newMeta.hasCustomModelData() ? newMeta.getCustomModelData() : oldMeta.hasCustomModelData() ? oldMeta.getCustomModelData() : 0;
             itemMeta.setCustomModelData(cmd);
 
-            // Lore might be changable ingame, but I think it is safe to just set it to new
-            if (Settings.OVERRIDE_LORE.toBool()) itemMeta.setLore(newMeta.getLore());
+            // If OraxenItem has no lore, we should assume that 3rd-party plugin has added lore
+            if (Settings.OVERRIDE_ITEM_LORE.toBool()) itemMeta.setLore(newMeta.getLore());
+            else itemMeta.setLore(oldMeta.getLore());
 
             // Attribute modifiers are only changable via config so no reason to check old
             itemMeta.setAttributeModifiers(newMeta.getAttributeModifiers());
 
             // Transfer over durability from old item
-            if (itemMeta instanceof Damageable damageable && oldMeta instanceof Damageable oldDmg)
+            if (itemMeta instanceof Damageable damageable && oldMeta instanceof Damageable oldDmg) {
                 damageable.setDamage(oldDmg.getDamage());
+            }
+
+            if (itemMeta instanceof LeatherArmorMeta leatherMeta && oldMeta instanceof LeatherArmorMeta oldLeatherMeta && newMeta instanceof LeatherArmorMeta newLeatherMeta) {
+                // If it is not custom armor, keep color
+                if (oldItem.getType() == Material.LEATHER_HORSE_ARMOR) leatherMeta.setColor(oldLeatherMeta.getColor());
+                // If it is custom armor we use newLeatherMeta color, since the builder would have been altered
+                // in the process of creating the shader images. Then we just save the builder to update the config
+                else {
+                    leatherMeta.setColor(newLeatherMeta.getColor());
+                    newItemBuilder.get().save();
+                }
+            }
+
+            if (itemMeta instanceof PotionMeta potionMeta && oldMeta instanceof PotionMeta oldPotionMeta) {
+                potionMeta.setColor(oldPotionMeta.getColor());
+            }
+
+            if (itemMeta instanceof MapMeta mapMeta && oldMeta instanceof MapMeta oldMapMeta) {
+                mapMeta.setColor(oldMapMeta.getColor());
+            }
 
             // Parsing with legacy here to fix any inconsistensies caused by server serializers etc
             String oldDisplayName = AdventureUtils.parseLegacy(oldMeta.getDisplayName());
@@ -172,6 +202,7 @@ public class ItemUpdater implements Listener {
             }
             itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.getDisplayName());
         });
+
         return newItem;
     }
 

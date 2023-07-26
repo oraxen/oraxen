@@ -14,10 +14,15 @@ public class OraxenMeta {
     private int customModelData;
     private String modelName;
     private String blockingModel;
+    private String blockingTexture;
     private List<String> pullingModels;
+    private List<String> pullingTextures;
     private String chargedModel;
+    private String chargedTexture;
     private String fireworkModel;
+    private String fireworkTexture;
     private String castModel;
+    private String castTexture;
     private List<String> layers;
     private Map<String, String> layersMap;
     private String parentModel;
@@ -54,6 +59,34 @@ public class OraxenMeta {
         this.fireworkModel = readModelName(configurationSection, "firework_model");
         this.pullingModels = configurationSection.isList("pulling_models")
                 ? configurationSection.getStringList("pulling_models") : null;
+
+        // By adding the textures to pullingModels aswell,
+        // we can use the same code for both pullingModels
+        // and pullingTextures to add to the base-bow file predicates
+        if (pullingModels == null && configurationSection.isList("pulling_textures")) {
+            pullingTextures = configurationSection.getStringList("pulling_textures").stream().map(texture -> texture.replace(".png", "")).toList();
+            pullingModels = pullingTextures;
+        }
+
+        if (chargedModel == null && configurationSection.isString("charged_texture")) {
+            chargedTexture = configurationSection.getString("charged_texture").replace(".png", "");
+            chargedModel = chargedTexture;
+        }
+
+        if (fireworkModel == null && configurationSection.isString("firework_texture")) {
+            fireworkTexture = configurationSection.getString("firework_texture").replace(".png", "");
+            fireworkModel = fireworkTexture;
+        }
+
+        if (castModel == null && configurationSection.isString("cast_texture")) {
+            castTexture = configurationSection.getString("cast_texture").replace(".png", "");
+            castModel = castTexture;
+        }
+
+        if (blockingModel == null && configurationSection.isString("blocking_texture")) {
+            blockingTexture = configurationSection.getString("blocking_texture").replace(".png", "");
+            blockingModel = blockingTexture;
+        }
 
         if (configurationSection.isList("textures")) {
             this.layers = configurationSection.getStringList("textures");
@@ -127,36 +160,79 @@ public class OraxenMeta {
         return path;
     }
 
+    public static String getModelPath(String model) {
+        String[] pathElements = model.split(":");
+        String path;
+        if (pathElements.length > 1)
+            path = "assets/" + pathElements[0] + "/models/" + pathElements[1];
+        else
+            path = "assets/minecraft/models/" + pathElements[0];
+        if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
+        return path;
+    }
+
     public boolean hasBlockingModel() {
         return blockingModel != null;
     }
 
-    public String getBlockingModelName() {
+    public String getBlockingModel() {
         return blockingModel;
+    }
+
+    public boolean hasBlockingTexture() {
+        return blockingTexture != null;
+    }
+
+    public String getBlockingTexture() {
+        return blockingTexture;
     }
 
     public boolean hasCastModel() {
         return castModel != null;
     }
 
-    public String getCastModelName() {
+    public String getCastModel() {
         return castModel;
+    }
+
+    public boolean hasCastTexture() {
+        return castTexture != null;
+    }
+
+    public String getCastTexture() {
+        return castTexture;
     }
 
     public boolean hasChargedModel() {
         return chargedModel != null;
     }
 
-    public String getChargedModelName() {
+    public String getChargedModel() {
         return chargedModel;
+    }
+
+    public boolean hasChargedTexture() {
+        return chargedTexture != null;
+    }
+
+    public String getChargedTexture() {
+        return chargedTexture;
     }
 
     public boolean hasFireworkModel() {
         return fireworkModel != null;
     }
 
-    public String getFireworkModelName() {
+    public String getFireworkModel() {
         return fireworkModel;
+    }
+
+    public boolean hasFireworkTexture() {
+        return fireworkTexture != null;
+    }
+
+    public String getFireworkTexture() {
+        return fireworkTexture;
     }
 
     public boolean hasPullingModels() {
@@ -165,6 +241,14 @@ public class OraxenMeta {
 
     public List<String> getPullingModels() {
         return pullingModels;
+    }
+
+    public boolean hasPullingTextures() {
+        return pullingTextures != null && !pullingTextures.isEmpty();
+    }
+
+    public List<String> getPullingTextures() {
+        return pullingTextures;
     }
 
     public boolean hasLayers() {
@@ -204,3 +288,4 @@ public class OraxenMeta {
     public boolean isDisableEnchanting() { return disableEnchanting; }
 
 }
+

@@ -1,6 +1,10 @@
 package io.th0rgal.oraxen.pack.generation;
 
-import com.google.gson.*;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
@@ -14,7 +18,11 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VirtualFile;
+import io.th0rgal.oraxen.utils.ZipUtils;
+import io.th0rgal.oraxen.utils.customarmor.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -25,11 +33,24 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -37,10 +58,8 @@ import java.util.zip.ZipInputStream;
 
 public class ResourcePack {
 
-    private static final String SHADER_PARAMETER_PLACEHOLDER = "{#TEXTURE_RESOLUTION#}";
-
     private Map<String, Collection<Consumer<File>>> packModifiers;
-    private Map<String, VirtualFile> outputFiles;
+    private static Map<String, VirtualFile> outputFiles;
     private CustomArmorsTextures customArmorsTextures;
     private File packFolder;
     private File pack;
@@ -101,6 +120,7 @@ public class ResourcePack {
         generateFont(fontManager);
         if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardFiles();
+        if (Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) CustomArmorsTextures.generateArmorShaderFiles();
 
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)
@@ -218,9 +238,8 @@ public class ResourcePack {
                     for (JsonElement element : jsonModel.getAsJsonObject("textures").entrySet().stream().map(Map.Entry::getValue).toList()) {
                         String jsonTexture = element.getAsString();
                         if (!texturePaths.contains(modelPathToPackPath(jsonTexture))) {
-                            if (!jsonTexture.startsWith("#") && !jsonTexture.startsWith("item/") && !jsonTexture.startsWith("block/")) {
-                                Material material = Material.matchMaterial(Utils.getFileNameOnly(jsonTexture).toUpperCase());
-                                if (material == null) {
+                            if (!jsonTexture.startsWith("#") && !jsonTexture.startsWith("item/") && !jsonTexture.startsWith("block/") && !jsonTexture.startsWith("entity/")) {
+                                if (Material.matchMaterial(Utils.getFileNameOnly(jsonTexture).toUpperCase()) == null) {
                                     Logs.logWarning("Found invalid texture-path inside model-file <blue>" + model.getPath() + "</blue>: " + jsonTexture);
                                     Logs.logWarning("Verify that you have a texture in said path.");
                                     Logs.newline();
@@ -357,16 +376,15 @@ public class ResourcePack {
                     items.add(item);
                 else
                     // for some reason those breaks are needed to avoid some nasty "memory leak"
-                    for (int i = 0; i < items.size(); i++)
-                        if (items.get(i).getOraxenMeta().getCustomModelData() > item
-                                .getOraxenMeta()
-                                .getCustomModelData()) {
+                    for (int i = 0; i < items.size(); i++) {
+                        if (items.get(i).getOraxenMeta().getCustomModelData() > item.getOraxenMeta().getCustomModelData()) {
                             items.add(i, item);
                             break;
                         } else if (i == items.size() - 1) {
                             items.add(item);
                             break;
                         }
+                    }
                 texturedItems.put(item.build().getType(), items);
             }
         }
@@ -378,7 +396,7 @@ public class ResourcePack {
         packModifiers.put(groupName, Arrays.asList(modifiers));
     }
 
-    public void addOutputFiles(final VirtualFile... files) {
+    public static void addOutputFiles(final VirtualFile... files) {
         for (VirtualFile file : files)
             outputFiles.put(file.getPath(), file);
     }
@@ -414,10 +432,15 @@ public class ResourcePack {
             return;
         final JsonObject output = new JsonObject();
         final JsonArray providers = new JsonArray();
-        for (final Glyph glyph : fontManager.getGlyphs())
-            providers.add(glyph.toJson());
-        for (final Font font : fontManager.getFonts())
+        for (final Glyph glyph : fontManager.getGlyphs()) {
+            if (!glyph.hasBitmap()) providers.add(glyph.toJson());
+        }
+        for (FontManager.GlyphBitMap glyphBitMap : FontManager.glyphBitMaps.values()) {
+            providers.add(glyphBitMap.toJson(fontManager));
+        }
+        for (final Font font : fontManager.getFonts()) {
             providers.add(font.toJson());
+        }
         output.add("providers", providers);
         writeStringToVirtual("assets/minecraft/font", "default.json", output.toString());
     }
@@ -425,26 +448,37 @@ public class ResourcePack {
     private void generateSound(final SoundManager soundManager, List<VirtualFile> output) {
         if (!soundManager.isAutoGenerate()) return;
 
-        VirtualFile soundFile = output.stream().filter(file -> file.getPath().equals("assets/minecraft/sounds.json")).findFirst().orElse(null);
+        List<VirtualFile> soundFiles = output.stream().filter(file -> file.getPath().equals("assets/minecraft/sounds.json")).toList();
         JsonObject outputJson = new JsonObject();
 
         // If file was imported by other means, we attempt to merge in sound.yml entries
-        if (soundFile != null) {
-            try {
-                JsonElement soundElement = JsonParser.parseString(IOUtils.toString(soundFile.getInputStream(), StandardCharsets.UTF_8));
-                if (soundElement != null && soundElement.isJsonObject())
-                    outputJson = soundElement.getAsJsonObject();
-            } catch (IOException e) {
-                e.printStackTrace();
-                return;
+        for (VirtualFile soundFile : soundFiles) {
+            if (soundFile != null) {
+                try {
+                    JsonElement soundElement = JsonParser.parseString(IOUtils.toString(soundFile.getInputStream(), StandardCharsets.UTF_8));
+                    if (soundElement != null && soundElement.isJsonObject()) {
+                        for (Map.Entry<String, JsonElement> entry : soundElement.getAsJsonObject().entrySet())
+                            outputJson.add(entry.getKey(), entry.getValue());
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    continue;
+                }
             }
+            output.remove(soundFile);
         }
 
-        for (CustomSound sound : handleCustomSoundEntries(soundManager.getCustomSounds()))
+        for (CustomSound sound : handleCustomSoundEntries(soundManager.getCustomSounds())) {
             outputJson.add(sound.getName(), sound.toJson());
+        }
 
-        output.remove(soundFile);
-        writeStringToVirtual("assets/minecraft", "sounds.json", outputJson.toString());
+        InputStream soundInput = new ByteArrayInputStream(outputJson.toString().getBytes(StandardCharsets.UTF_8));
+        output.add(new VirtualFile("assets/minecraft", "sounds.json", soundInput));
+        try {
+            soundInput.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void generateGestureFiles() {
@@ -468,14 +502,19 @@ public class ResourcePack {
         if (customSounds == null) {
             sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
             sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
-        } else if (!customSounds.getBoolean("noteblock_and_block", true)) {
-            sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
-        } else if (!customSounds.getBoolean("stringblock_and_furniture", true)) {
-            sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
-        } else if ((noteblock != null && !noteblock.getBoolean("enabled", true) && block != null && block.getBoolean("enabled", false))) {
-            sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
-        } else if (stringblock != null && !stringblock.getBoolean("enabled", true) && furniture != null && furniture.getBoolean("enabled", true)) {
-            sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
+        } else {
+            if (!customSounds.getBoolean("noteblock_and_block", true)) {
+                sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
+            }
+            if (!customSounds.getBoolean("stringblock_and_furniture", true)) {
+                sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
+            }
+            if ((noteblock != null && !noteblock.getBoolean("enabled", true) && block != null && !block.getBoolean("enabled", false))) {
+                sounds.removeIf(s -> s.getName().startsWith("required.wood") || s.getName().startsWith("block.wood"));
+            }
+            if (stringblock != null && !stringblock.getBoolean("enabled", true) && furniture != null && !furniture.getBoolean("enabled", true)) {
+                sounds.removeIf(s -> s.getName().startsWith("required.stone") || s.getName().startsWith("block.stone"));
+            }
         }
 
         // Clear the sounds.json file of yaml configuration entries that should not be there
@@ -491,9 +530,9 @@ public class ResourcePack {
         return sounds;
     }
 
-    public void writeStringToVirtual(String folder, String name, String content) {
-        addOutputFiles(new VirtualFile(folder, name,
-                new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
+    public static void writeStringToVirtual(String folder, String name, String content) {
+        folder = !folder.endsWith("/") ? folder : folder.substring(0, folder.length() - 1);
+        addOutputFiles(new VirtualFile(folder, name, new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
     }
 
     private void getAllFiles(final File directory, final Collection<VirtualFile> fileList,
@@ -522,7 +561,6 @@ public class ResourcePack {
         try {
             final InputStream fis;
             if (file.getName().endsWith(".json")) fis = processJsonFile(file);
-            else if (file.getName().endsWith(".fsh")) fis = processShaderFile(file);
             else if (customArmorsTextures.registerImage(file)) return;
             else fis = new FileInputStream(file);
 
@@ -568,13 +606,6 @@ public class ResourcePack {
             return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
         }
         return newStream;
-    }
-
-    private InputStream processShaderFile(File file) throws IOException {
-        String content = Files.readString(Path.of(file.getPath()), StandardCharsets.UTF_8);
-        content = content.replace(
-                SHADER_PARAMETER_PLACEHOLDER, String.valueOf((int) Settings.ARMOR_RESOLUTION.getValue()));
-        return new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
     }
 
     private String getZipFilePath(String path, String newFolder) throws IOException {
@@ -656,74 +687,74 @@ public class ResourcePack {
     private String getScoreboardVsh() {
         return """
                 #version 150
-                                
-                #moj_import <fog.glsl>
-                                
-                in vec3 Position;
-                in vec4 Color;
-                in vec2 UV0;
-                in ivec2 UV2;
-                                
-                uniform sampler2D Sampler2;
-                                
-                uniform mat4 ModelViewMat;
-                uniform mat4 ProjMat;
-                uniform mat3 IViewRotMat;
-                uniform int FogShape;
-                                
-                uniform vec2 ScreenSize;
-                                
-                out float vertexDistance;
-                out vec4 vertexColor;
-                out vec2 texCoord0;
-                                
-                void main() {
-                    gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
-                                
-                    vertexDistance = fog_distance(ModelViewMat, IViewRotMat * Position, FogShape);
-                    vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
-                    texCoord0 = UV0;
-                                
-                    // delete sidebar numbers
-                    if(    Position.z == 0.0 && // check if the depth is correct (0 for gui texts)
-                    gl_Position.x >= 0.94 && gl_Position.y >= -0.35 && // check if the position matches the sidebar
-                    vertexColor.g == 84.0/255.0 && vertexColor.g == 84.0/255.0 && vertexColor.r == 252.0/255.0 && // check if the color is the sidebar red color
-                    gl_VertexID <= 4 // check if it's the first character of a string
-                    ) gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0); // move the vertices offscreen, idk if this is a good solution for that but vec4(0.0) doesnt do the trick for everyone
-                }
+                 
+                 #moj_import <fog.glsl>
+                 
+                 in vec3 Position;
+                 in vec4 Color;
+                 in vec2 UV0;
+                 in ivec2 UV2;
+                 
+                 uniform sampler2D Sampler2;
+                 
+                 uniform mat4 ModelViewMat;
+                 uniform mat4 ProjMat;
+                 uniform mat3 IViewRotMat;
+                 uniform int FogShape;
+                 
+                 uniform vec2 ScreenSize;
+                 
+                 out float vertexDistance;
+                 out vec4 vertexColor;
+                 out vec2 texCoord0;
+                 
+                 void main() {
+                     gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+                 
+                     vertexDistance = fog_distance(ModelViewMat, IViewRotMat * Position, FogShape);
+                     vertexColor = Color * texelFetch(Sampler2, UV2 / 16, 0);
+                     texCoord0 = UV0;
+                    
+                 	// delete sidebar numbers
+                 	if(	Position.z == 0.0 && // check if the depth is correct (0 for gui texts)
+                 			gl_Position.x >= 0.94 && gl_Position.y >= -0.35 && // check if the position matches the sidebar
+                 			vertexColor.g == 84.0/255.0 && vertexColor.g == 84.0/255.0 && vertexColor.r == 252.0/255.0 && // check if the color is the sidebar red color
+                 			gl_VertexID <= 7 // check if it's the first character of a string !! if you want two characters removed replace '3' with '7'
+                 		) gl_Position = ProjMat * ModelViewMat * vec4(ScreenSize + 100.0, 0.0, 0.0); // move the vertices offscreen, idk if this is a good solution for that but vec4(0.0) doesnt do the trick for everyone
+                 }
                 """;
     }
 
     private String getScoreboardJson() {
         return """
                 {
-                  "blend": {
-                    "func": "add",
-                    "srcrgb": "srcalpha",
-                    "dstrgb": "1-srcalpha"
-                  },
-                  "vertex": "rendertype_text",
-                  "fragment": "rendertype_text",
-                  "attributes": [
-                    "Position",
-                    "Color",
-                    "UV0",
-                    "UV2"
-                  ],
-                  "samplers": [
-                    { "name": "Sampler0" },
-                    { "name": "Sampler2" }
-                  ],
-                  "uniforms": [
-                    { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-                    { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
-                    { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
-                    { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
-                    { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
-                    { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
-                    { "name": "ScreenSize", "type": "float", "count": 2,  "values": [ 1.0, 1.0 ] }
-                  ]
-                }
+                     "blend": {
+                         "func": "add",
+                         "srcrgb": "srcalpha",
+                         "dstrgb": "1-srcalpha"
+                     },
+                     "vertex": "rendertype_text",
+                     "fragment": "rendertype_text",
+                     "attributes": [
+                         "Position",
+                         "Color",
+                         "UV0",
+                         "UV2"
+                     ],
+                     "samplers": [
+                         { "name": "Sampler0" },
+                         { "name": "Sampler2" }
+                     ],
+                     "uniforms": [
+                         { "name": "ModelViewMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                         { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
+                         { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] },
+                         { "name": "FogStart", "type": "float", "count": 1, "values": [ 0.0 ] },
+                         { "name": "FogEnd", "type": "float", "count": 1, "values": [ 1.0 ] },
+                         { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
+                        { "name": "ScreenSize", "type": "float", "count": 2,  "values": [ 1.0, 1.0 ] }
+                     ]
+                 }
                 """;
     }
 }

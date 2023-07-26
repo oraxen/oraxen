@@ -11,10 +11,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
- * Event fired right before a player damages the Furniture.
- * If cancelled, the block will not be damaged.
- * @see FurnitureMechanic
+ * @deprecated This event is deprecated and will be removed in a future version.
+ * Use {@link io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureDamageEvent} instead.
  */
+@Deprecated(since = "1.158.0", forRemoval = true)
 public class OraxenFurnitureDamageEvent extends Event implements Cancellable {
 
     boolean isCancelled;
