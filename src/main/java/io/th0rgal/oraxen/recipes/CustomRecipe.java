@@ -42,7 +42,7 @@ public class CustomRecipe {
     }
 
     public List<ItemStack> getIngredients() {
-        return ingredients;
+        return !ingredients.isEmpty() ? ingredients : new ArrayList<>();
     }
 
     public boolean isOrdered() {
