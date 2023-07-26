@@ -211,7 +211,7 @@ public class Glyph {
             Logs.logError("The filename specified for " + name + " contains double slashes.");
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
             Logs.logWarning("You should make sure that the texture-path you have specified is correct.");
-        } else if (!isVanillaTexture && (image.getHeight() > 256 || image.getWidth() > 256)) {
+        } else if (!isVanillaTexture && !isBitMap() && (image.getHeight() > 256 || image.getWidth() > 256)) {
             this.setTexture("required/exit_icon");
             Logs.logError("The texture specified for " + name + " is larger than the supported size.");
             Logs.logWarning("The maximum image size is 256x256. Anything bigger will break all your glyphs.");
