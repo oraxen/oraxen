@@ -211,13 +211,10 @@ public class PredicatesGenerator {
     }
 
     public String getVanillaTextureName(final Material material, final boolean model) {
-        if (material.isBlock())
-            return "block/" + material.toString().toLowerCase(Locale.ENGLISH);
-        else if (!model && material == Material.CROSSBOW)
-            return "item/crossbow_standby";
-        else
-            return "item/" + material.toString().toLowerCase(Locale.ENGLISH);
-
+        if (!model)
+            if (material.isBlock()) return "block/" + material.toString().toLowerCase(Locale.ENGLISH);
+            else if (material == Material.CROSSBOW) return "item/crossbow_standby";
+        return "item/" + material.toString().toLowerCase(Locale.ENGLISH);
     }
 
     private String getParent(final Material material) {
