@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
@@ -75,7 +74,7 @@ public class Drop {
     }
 
     public boolean isTypeEnough(ItemStack itemInHand) {
-        if (minimalType != null) {
+        if (!minimalType.isEmpty()) {
             String itemType = itemInHand == null ? "" : getItemType(itemInHand);
             return !itemType.isEmpty() && hierarchy.contains(itemType)
                     && (hierarchy.indexOf(itemType) >= hierarchy.indexOf(minimalType));
