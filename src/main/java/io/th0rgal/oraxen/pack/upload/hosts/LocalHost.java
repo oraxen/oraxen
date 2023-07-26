@@ -6,10 +6,12 @@ import io.javalin.util.JavalinLogger;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
@@ -17,7 +19,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import javax.xml.bind.DatatypeConverter;
 
 public class LocalHost implements HostingProvider {
     private static Javalin app;
@@ -40,9 +41,9 @@ public class LocalHost implements HostingProvider {
             UploadedFile file = ctx.uploadedFile("pack.zip");
             if (file != null) {
                 Path path = Paths.get(uploadDir, file.filename());
-                try {
+                try (InputStream inputStream = file.content()) {
                     Files.createDirectories(path.getParent());
-                    Files.copy(file.content(), path);
+                    Files.copy(inputStream, path);
                     Logs.logWarning("File uploaded successfully!");
                 } catch (IOException e) {
                     Logs.logWarning("Error uploading file: " + e.getMessage());
