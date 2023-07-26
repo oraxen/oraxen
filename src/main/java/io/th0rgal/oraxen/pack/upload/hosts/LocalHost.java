@@ -1,155 +1,132 @@
 package io.th0rgal.oraxen.pack.upload.hosts;
 
+import io.javalin.Javalin;
+import io.javalin.http.UploadedFile;
+import io.javalin.util.JavalinLogger;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.utils.MineHttpd;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
 
+import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.InetAddress;
-import java.net.NetworkInterface;
-import java.net.SocketException;
+import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
-import java.security.DigestInputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.Arrays;
-import java.util.Scanner;
+import javax.xml.bind.DatatypeConverter;
 
 public class LocalHost implements HostingProvider {
-    private int port;
-    private String ip;
-    private static MineHttpd httpd;
-    private String sha1;
+    private static Javalin app;
+    private final String uploadDir;
+    private final String packUrl;
 
     public LocalHost() {
-        port = OraxenPlugin.get().getConfigsManager().getSettings().getInt("Pack.upload.localhost.port", 8080);
-        ip = getIp();
-        ip = ip == null ? Bukkit.getIp() : ip;
+        JavalinLogger.enabled = false; // Disables Javalin Server start messages
+        Logs.logInfo("<blue>Starting Javalin server for hosting ResourcePack locally...");
+        int port = OraxenPlugin.get().getConfigsManager().getSettings().getInt("Pack.upload.localhost.port", 8080);
+        app = Javalin.create().start(port);
+        uploadDir = OraxenPlugin.get().getResourcePack().getFile().getParent();
+        packUrl = "http://localhost:" + port + "/pack.zip";
+        setupEndpoints();
+        Logs.logSuccess("Local Javalin server started on port " + port);
     }
 
-    private static String getIp() {
-        try {
-            URL url = new URL("https://api.ipify.org");
-            InputStream stream = url.openStream();
-            Scanner s = new Scanner(stream, StandardCharsets.UTF_8).useDelimiter("\\A");
-            String ip = s.next();
-            s.close();
-            stream.close();
-            return ip;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return null;
-        }
+    private void setupEndpoints() {
+        app.post("/upload", ctx -> {
+            UploadedFile file = ctx.uploadedFile("pack.zip");
+            if (file != null) {
+                Path path = Paths.get(uploadDir, file.filename());
+                try {
+                    Files.createDirectories(path.getParent());
+                    Files.copy(file.content(), path);
+                    Logs.logWarning("File uploaded successfully!");
+                } catch (IOException e) {
+                    Logs.logWarning("Error uploading file: " + e.getMessage());
+                }
+            } else {
+                Logs.logWarning("No file uploaded");
+            }
+        });
+        app.get("/pack.zip", ctx -> {
+            File file = new File(uploadDir, "pack.zip");
+            try {
+                byte[] fileBytes = Files.readAllBytes(file.toPath());
+                ctx.result(fileBytes)
+                        .header("Content-Type", "application/zip")
+                        .header("Content-Disposition", "attachment; filename=" + file.getName());
+            } catch (IOException e) {
+                Logs.logWarning("Error downloading file: " + e.getMessage());
+            }
+        });
+    }
+
+    public static void stop() {
+        app.stop();
     }
 
     @Override
     public boolean uploadPack(File resourcePack) {
-        startHttpd();
-        return OraxenPlugin.get().getResourcePack().getFile().exists();
+        try {
+            String boundary = Long.toHexString(System.currentTimeMillis());
+            String CRLF = "\r\n";
+            URL url = new URL(packUrl.replace("/pack.zip", "/upload"));
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setDoOutput(true);
+            conn.setRequestMethod("POST");
+            conn.setRequestProperty("Content-Type", "multipart/form-data; boundary=" + boundary);
+
+            try (DataOutputStream out = new DataOutputStream(conn.getOutputStream())) {
+                out.writeBytes("--" + boundary + CRLF);
+                out.writeBytes("Content-Disposition: form-data; name=\"pack.zip\"; filename=\"" + resourcePack.getName() + "\"" + CRLF);
+                out.writeBytes(CRLF);
+                try (FileInputStream in = new FileInputStream(resourcePack)) {
+                    byte[] buffer = new byte[1024];
+                    int bytesRead;
+                    while ((bytesRead = in.read(buffer)) != -1) {
+                        out.write(buffer, 0, bytesRead);
+                    }
+                }
+                out.writeBytes(CRLF);
+                out.writeBytes("--" + boundary + "--" + CRLF);
+            }
+
+            int responseCode = conn.getResponseCode();
+            return responseCode == HttpURLConnection.HTTP_OK;
+        } catch (IOException e) {
+            Logs.logWarning("Error uploading pack to localhost: " + e.getMessage());
+            return false;
+        }
     }
 
     @Override
     public String getPackURL() {
-        return "https://" + ip + ":" + port + "/pack.zip";
+        return packUrl;
     }
 
     @Override
     public String getMinecraftPackURL() {
-        return "http://" + ip + ":" + port + "/pack.zip";
+        return packUrl;
     }
 
     @Override
     public byte[] getSHA1() {
         try {
-            return calcSHA1(OraxenPlugin.get().getResourcePack().getFile());
+            File file = new File(uploadDir, "pack.zip");
+            byte[] fileBytes = Files.readAllBytes(file.toPath());
+            MessageDigest md = MessageDigest.getInstance("SHA-1");
+            md.update(fileBytes);
+            return md.digest();
         } catch (IOException | NoSuchAlgorithmException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
-        return new byte[0];
     }
 
     @Override
     public String getOriginalSHA1() {
-        return bytesToHexString(getSHA1());
-    }
-
-    private static byte[] calcSHA1(File file) throws IOException, NoSuchAlgorithmException {
-        FileInputStream fileInputStream = new FileInputStream(file);
-        MessageDigest digest = MessageDigest.getInstance("SHA-1");
-        DigestInputStream digestInputStream = new DigestInputStream(fileInputStream, digest);
-        byte[] bytes = new byte[1024];
-        // read all file content
-        while (digestInputStream.read(bytes) > 0) ;
-
-        byte[] resultByteArry = digest.digest();
-        digestInputStream.close();
-        return resultByteArry;
-    }
-
-    private static String bytesToHexString(byte[] bytes) {
-        StringBuilder sb = new StringBuilder();
-        for (byte b : bytes) {
-            int value = b & 0xFF;
-            if (value < 16) {
-                // if value less than 16, then it's hex String will be only
-                // one character, so we need to append a character of '0'
-                sb.append("0");
-            }
-            sb.append(Integer.toHexString(value).toUpperCase());
-        }
-        return sb.toString();
-    }
-
-    public static void stopHttpd() {
-        if (httpd != null) httpd.terminate();
-    }
-
-    private void startHttpd() {
-        try {
-            httpd = new MineHttpd(port) {
-                @Override
-                public File requestFileCallback(MineConnection connection) {
-                    Player player = WebUtil.getAddress(connection);
-                    if (player == null) {
-                        Logs.logWarning("Unknown connection from '" + connection.getClient().getInetAddress() + "'. Aborting...");
-                        return null;
-                    }
-
-                    return OraxenPlugin.get().getResourcePack().getFile();
-                }
-            };
-            // Start the web server
-            httpd.start();
-            Logs.logSuccess("Successfully started the mini http daemon!");
-        } catch (IOException e1) {
-            Logs.logError("Unable to start the mini http daemon! Disabling...");
-        }
-    }
-
-    public static class WebUtil {
-        public static Player getAddress( MineHttpd.MineConnection connection ) {
-            byte[] mac = connection.getClient().getInetAddress().getAddress();
-            for ( Player player : Bukkit.getOnlinePlayers() ) {
-                if ( Arrays.equals( player.getAddress().getAddress().getAddress(), mac ) ) {
-                    return player;
-                }
-            }
-            return null;
-        }
-
-        public static byte[] getMAC( InetAddress address ) {
-            try {
-                return NetworkInterface.getByInetAddress( address ).getHardwareAddress();
-            } catch ( SocketException e ) {
-                e.printStackTrace();
-                return null;
-            }
-        }
+        return DatatypeConverter.printHexBinary(getSHA1()).toLowerCase();
     }
 }

@@ -150,7 +150,7 @@ public class OraxenPlugin extends JavaPlugin {
         unregisterListeners();
         ItemUpdater.furnitureUpdateTask.cancel();
         FurnitureFactory.unregisterEvolution();
-        LocalHost.stopHttpd();
+        LocalHost.stop();
 
         CompatibilitiesManager.disableCompatibilities();
         Message.PLUGIN_UNLOADED.log();
