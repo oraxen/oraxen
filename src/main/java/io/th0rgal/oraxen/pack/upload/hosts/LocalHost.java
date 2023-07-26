@@ -43,6 +43,7 @@ public class LocalHost implements HostingProvider {
                 Path path = Paths.get(uploadDir, file.filename());
                 try (InputStream inputStream = file.content()) {
                     Files.createDirectories(path.getParent());
+                    Files.delete(path);
                     Files.copy(inputStream, path);
                     Logs.logWarning("File uploaded successfully!");
                 } catch (IOException e) {
