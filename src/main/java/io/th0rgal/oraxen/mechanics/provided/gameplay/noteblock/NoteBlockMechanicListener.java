@@ -11,10 +11,8 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.Direc
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.GameEvent;
@@ -70,8 +68,6 @@ public class NoteBlockMechanicListener implements Listener {
 
     public NoteBlockMechanicListener() {
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
-        if (VersionUtil.isPaperServer())
-            Bukkit.getPluginManager().registerEvents(new NoteBlockMechanicPaperListener(), OraxenPlugin.get());
     }
 
     public static class NoteBlockMechanicPaperListener implements Listener {
@@ -91,6 +87,66 @@ public class NoteBlockMechanicListener implements Listener {
         }
     }
 
+    public static class NoteBlockMechanicPhysicsListener implements Listener {
+        // TODO try and fix these and not just cancel them
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        public void onPistonPush(BlockPistonExtendEvent event) {
+            if (event.getBlocks().stream().anyMatch(block -> block.getType().equals(Material.NOTE_BLOCK)))
+                event.setCancelled(true);
+        }
+
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        public void onPistonPull(BlockPistonRetractEvent event) {
+            if (event.getBlocks().stream().anyMatch(block -> block.getType().equals(Material.NOTE_BLOCK)))
+                event.setCancelled(true);
+        }
+
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        public void onBlockPhysics(final BlockPhysicsEvent event) {
+            final Block aboveBlock = event.getBlock().getRelative(BlockFace.UP);
+            final Block belowBlock = event.getBlock().getRelative(BlockFace.DOWN);
+            // If block below is NoteBlock, it will be affected by the break
+            // Call updateAndCheck from it to fix vertical stack of NoteBlocks
+            // if belowBlock is not a NoteBlock we must ensure the above is not, if it is call updateAndCheck from block
+            if (belowBlock.getType() == Material.NOTE_BLOCK) {
+                updateAndCheck(belowBlock.getLocation());
+                event.setCancelled(true);
+            } else if (aboveBlock.getType() == Material.NOTE_BLOCK) {
+                updateAndCheck(event.getBlock().getLocation());
+                event.setCancelled(true);
+            }
+            if (event.getBlock().getType() == Material.NOTE_BLOCK) {
+                event.setCancelled(true);
+                event.getBlock().getState().update(true, false);
+            }
+        }
+
+        @EventHandler(priority = EventPriority.HIGHEST)
+        public void onNoteblockPowered(final GenericGameEvent event) {
+            Block block = event.getLocation().getBlock();
+            NamespacedKey eventKey = NamespacedKey.minecraft("note_block_play");
+        Location eLoc = block.getLocation();
+        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
+
+            // This GameEvent only exists in 1.19
+            // If server is 1.18 check if its there and if not return
+            // If 1.19 we can check if this event is fired
+            if (!GameEvent.values().contains(GameEvent.getByKey(eventKey))) return;
+        if (block.getType() != Material.NOTE_BLOCK || event.getEvent() != GameEvent.getByKey(eventKey)) return;
+            NoteBlock data = (NoteBlock) block.getBlockData().clone();
+            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> block.setBlockData(data, false), 1L);
+        }
+
+        public void updateAndCheck(final Location loc) {
+            final Block block = loc.add(0, 1, 0).getBlock();
+            if (block.getType() == Material.NOTE_BLOCK)
+                block.getState().update(true, true);
+            final Location nextBlock = block.getLocation().add(0, 1, 0);
+            if (nextBlock.getBlock().getType() == Material.NOTE_BLOCK)
+                updateAndCheck(block.getLocation());
+        }
+    }
+
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void callInteract(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
@@ -100,66 +156,10 @@ public class NoteBlockMechanicListener implements Listener {
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
         if (mechanic == null) return;
         OraxenNoteBlockInteractEvent oraxenEvent = new OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
+        io.th0rgal.oraxen.api.events.OraxenNoteBlockInteractEvent deprecatedOraxenEvent = new io.th0rgal.oraxen.api.events.OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
         Bukkit.getPluginManager().callEvent(oraxenEvent);
-        if (oraxenEvent.isCancelled()) event.setCancelled(true);
-    }
-
-    // TODO try and fix these and not just cancel them
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onPistonPush(BlockPistonExtendEvent event) {
-        if (event.getBlocks().stream().anyMatch(block -> block.getType().equals(Material.NOTE_BLOCK)))
-            event.setCancelled(true);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onPistonPull(BlockPistonRetractEvent event) {
-        if (event.getBlocks().stream().anyMatch(block -> block.getType().equals(Material.NOTE_BLOCK)))
-            event.setCancelled(true);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-    public void onBlockPhysics(final BlockPhysicsEvent event) {
-        final Block aboveBlock = event.getBlock().getRelative(BlockFace.UP);
-        final Block belowBlock = event.getBlock().getRelative(BlockFace.DOWN);
-        // If block below is NoteBlock, it will be affected by the break
-        // Call updateAndCheck from it to fix vertical stack of NoteBlocks
-        // if belowBlock is not a NoteBlock we must ensure the above is not, if it is call updateAndCheck from block
-        if (belowBlock.getType() == Material.NOTE_BLOCK) {
-            updateAndCheck(belowBlock.getLocation());
-            event.setCancelled(true);
-        } else if (aboveBlock.getType() == Material.NOTE_BLOCK) {
-            updateAndCheck(event.getBlock().getLocation());
-            event.setCancelled(true);
-        }
-        if (event.getBlock().getType() == Material.NOTE_BLOCK) {
-            event.setCancelled(true);
-            event.getBlock().getState().update(true, false);
-        }
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onNoteblockPowered(final GenericGameEvent event) {
-        Block block = event.getLocation().getBlock();
-        NamespacedKey eventKey = NamespacedKey.minecraft("note_block_play");
-        Location eLoc = block.getLocation();
-        if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
-
-        // This GameEvent only exists in 1.19
-        // If server is 1.18 check if its there and if not return
-        // If 1.19 we can check if this event is fired
-        if (!GameEvent.values().contains(GameEvent.getByKey(eventKey))) return;
-        if (block.getType() != Material.NOTE_BLOCK || event.getEvent() != GameEvent.getByKey(eventKey)) return;
-        NoteBlock data = (NoteBlock) block.getBlockData().clone();
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> block.setBlockData(data, false), 1L);
-    }
-
-    public void updateAndCheck(final Location loc) {
-        final Block block = loc.add(0, 1, 0).getBlock();
-        if (block.getType() == Material.NOTE_BLOCK)
-            block.getState().update(true, true);
-        final Location nextBlock = block.getLocation().add(0, 1, 0);
-        if (nextBlock.getBlock().getType() == Material.NOTE_BLOCK)
-            updateAndCheck(block.getLocation());
+        Bukkit.getPluginManager().callEvent(deprecatedOraxenEvent);
+        if (oraxenEvent.isCancelled() || deprecatedOraxenEvent.isCancelled()) event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
