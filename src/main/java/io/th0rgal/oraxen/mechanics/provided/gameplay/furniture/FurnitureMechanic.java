@@ -151,7 +151,7 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
-        hitbox = !hasBarriers() && hitboxSection != null
+        hitbox = hitboxSection != null
                 ? new FurnitureHitbox((float) hitboxSection.getDouble("width", 1.0), (float) hitboxSection.getDouble("height", 1.0))
                 : null;
 
@@ -323,7 +323,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public boolean hasHitbox() {
-        return !hasBarriers() && hitbox != null;
+        return hitbox != null;
     }
 
     public FurnitureHitbox getHitbox() {
