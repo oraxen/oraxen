@@ -175,7 +175,7 @@ public class Glyph {
         }
         else textureFile = packFolder.resolve(texturePath.replace("assets/minecraft/", "")).toFile();
 
-        Map<Glyph, Boolean> sameCharMap = glyphs.stream().filter(g -> g != this && Objects.equals(g.getCharacter(), this.getCharacter())).collect(Collectors.toMap(g -> g, g -> true));
+        Map<Glyph, Boolean> sameCharMap = glyphs.stream().filter(g -> !g.name.equals(name) && !g.getCharacter().isBlank() && g.character.equals(character)).collect(Collectors.toMap(g -> g, g -> true));
         // Check if the texture is a vanilla item texture and therefore not in oraxen, but the vanilla pack
         boolean isMinecraftNamespace = !texture.contains(":") || texture.split(":")[0].equals("minecraft");
         String textureName = textureFile.getName().split("\\.")[0].toUpperCase();
