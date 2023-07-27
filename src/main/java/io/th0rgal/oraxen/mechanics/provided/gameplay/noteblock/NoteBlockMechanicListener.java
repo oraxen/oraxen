@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.GameEvent;
@@ -28,6 +29,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
+import org.bukkit.block.data.Levelled;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.FallingBlock;
@@ -254,7 +256,7 @@ public class NoteBlockMechanicListener implements Listener {
         Block relative = block.getRelative(blockFace);
         Material type = item.getType();
         if (type == Material.AIR) return;
-        if (type == Material.BUCKET && relative.isLiquid()) {
+        if (type == Material.BUCKET && relative.getBlockData() instanceof Levelled levelled && levelled.getLevel() == levelled.getMaximumLevel()) {
             final Sound sound;
             if (relative.getType() == Material.WATER) sound = Sound.ITEM_BUCKET_FILL;
             else sound = Sound.valueOf("ITEM_BUCKET_FILL_" + relative.getType());
