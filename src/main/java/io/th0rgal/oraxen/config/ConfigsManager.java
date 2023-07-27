@@ -16,15 +16,12 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.checkerframework.checker.units.qual.A;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -192,8 +189,8 @@ public class ConfigsManager {
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
                 if (glyphSection == null) continue;
-                String characterString = glyphSection.getString("char");
-                char character = characterString != null ? characterString.charAt(0) : Character.MIN_VALUE;
+                String characterString = glyphSection.getString("char", "");
+                char character = !characterString.isBlank() ? characterString.charAt(0) : Character.MIN_VALUE;
                 if (character != Character.MIN_VALUE)
                     charPerGlyph.put(key, character);
             }

@@ -88,6 +88,7 @@ public class FontManager {
     private void loadGlyphs(Collection<Glyph> glyphs) {
         verifyRequiredGlyphs();
         for (Glyph glyph : glyphs) {
+            if (glyph.getCharacter().isBlank()) continue;
             glyphMap.put(glyph.getName(), glyph);
             reverse.put(glyph.getCharacter().charAt(0), glyph.getName());
             for (final String placeholder : glyph.getPlaceholders())
