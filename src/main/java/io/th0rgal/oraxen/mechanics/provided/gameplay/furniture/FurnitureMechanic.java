@@ -168,7 +168,7 @@ public class FurnitureMechanic extends Mechanic {
             ((FurnitureFactory) getFactory()).registerEvolution();
         } else evolvingFurniture = null;
 
-        light = section.getInt("light", -1);
+        light = Math.min(section.getInt("light", 0), 15);
 
         farmlandRequired = section.getBoolean("farmland_required", false);
         farmblockRequired = section.getBoolean("farmblock_required", false);
