@@ -525,8 +525,7 @@ public class NoteBlockMechanicListener implements Listener {
         }
 
         final BlockData curentBlockData = target.getBlockData();
-        final boolean isFlowing = (newBlock.getMaterial() == Material.WATER || newBlock.getMaterial() == Material.LAVA);
-        target.setBlockData(newBlock, isFlowing);
+        target.setBlockData(newBlock);
         final BlockState currentBlockState = target.getState();
         final NoteBlockMechanic againstMechanic = OraxenBlocks.getNoteBlockMechanic(placedAgainst);
 
@@ -554,7 +553,7 @@ public class NoteBlockMechanicListener implements Listener {
             }
         }
 
-        if (isFlowing) {
+        if (newBlock.getMaterial() == Material.WATER || newBlock.getMaterial() == Material.LAVA) {
             if (newBlock.getMaterial() == Material.WATER) sound = "item.bucket.empty";
             else sound = "item.bucket.empty_" + newBlock.getMaterial().toString().toLowerCase();
         } else if (!OraxenBlocks.isOraxenBlock(target)) sound = target.getBlockData().getSoundGroup().getPlaceSound().getKey().toString();
