@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class DisplayEntityProperties {
     //private final Color glowColor;
@@ -161,18 +162,17 @@ public class DisplayEntityProperties {
         return scale;
     }
 
-    public boolean sameDisplayEntityProperties(@NotNull Entity entity) {
+    public boolean ensureSameDisplayProperties(@NotNull Entity entity) {
         if (!(entity instanceof ItemDisplay itemDisplay)) return false;
-        if (itemDisplay.getBrightness() != brightness) return false;
-        if (itemDisplay.getItemDisplayTransform() != displayTransform) return false;
-        if (itemDisplay.getBillboard() != trackingRotation) return false;
-        if (itemDisplay.getShadowRadius() != shadowRadius) return false;
-        if (itemDisplay.getShadowStrength() != shadowStrength) return false;
-        if (itemDisplay.getDisplayHeight() != displayHeight) return false;
-        if (itemDisplay.getDisplayWidth() != displayWidth) return false;
-        if (itemDisplay.getTransformation().getScale() != scale) return false;
-        if (itemDisplay.getViewRange() != viewRange) return false;
-        if (itemDisplay.getInterpolationDuration() != interpolationDuration) return false;
+        itemDisplay.setItemDisplayTransform(displayTransform);
+        itemDisplay.setBillboard(Objects.requireNonNullElse(trackingRotation, Display.Billboard.FIXED));
+        itemDisplay.setBrightness(Objects.requireNonNullElse(brightness, new Display.Brightness(0,0)));
+        itemDisplay.setShadowRadius(Objects.requireNonNullElse(shadowRadius, 0f));
+        itemDisplay.setShadowStrength(Objects.requireNonNullElse(shadowStrength, 0f));
+        itemDisplay.setViewRange(Objects.requireNonNullElse(viewRange, 0));
+        itemDisplay.setInterpolationDuration(Objects.requireNonNullElse(interpolationDuration, 0));
+        itemDisplay.setInterpolationDelay(Objects.requireNonNullElse(interpolationDelay, 0));
+        itemDisplay.getTransformation().getScale().set(Objects.requireNonNullElse(scale, new Vector3f(1,1,1)));
 
         return true;
     }
