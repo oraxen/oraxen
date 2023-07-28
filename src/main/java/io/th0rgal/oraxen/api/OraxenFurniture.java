@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -20,6 +21,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Interaction;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.ItemFrame;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -215,13 +217,17 @@ public class OraxenFurniture {
             if (entity.getType() == mechanic.getFurnitureEntityType()) {
                 // Check if barriers changed, if so remove and place new
                 if (mechanic.getBarriers().equals(oldPdc.getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>()))) {
-                    // Check if interaction-hitbox changed, if so remove and place new
-                    Interaction interaction = mechanic.getInteractionEntity(entity);
-                    if (OraxenPlugin.supportsDisplayEntities && interaction != null && mechanic.hasHitbox()) {
-                        if (interaction.getInteractionWidth() == mechanic.getHitbox().width())
-                            if (interaction.getInteractionHeight() == mechanic.getHitbox().height())
-                                if (oldPdc.has(SEAT_KEY, DataType.UUID) && mechanic.hasSeat())
-                                    return;
+                    if (OraxenPlugin.supportsDisplayEntities) {
+                        Interaction interaction = mechanic.getInteractionEntity(entity);
+                        // Check if interaction-hitbox changed, if so remove and place new
+                        if (interaction != null && mechanic.hasHitbox())
+                            if (interaction.getInteractionWidth() == mechanic.getHitbox().width())
+                                if (interaction.getInteractionHeight() == mechanic.getHitbox().height())
+                                    // Check if seat changed, if so remove and place new
+                                    if (oldPdc.has(SEAT_KEY, DataType.UUID) && mechanic.hasSeat())
+                                        // Check if any displayEntity properties changed, if so remove and place new
+                                        if (mechanic.hasDisplayEntityProperties() && mechanic.getDisplayEntityProperties().sameDisplayEntityProperties(entity))
+                                            return;
                     } else return;
                 }
             }

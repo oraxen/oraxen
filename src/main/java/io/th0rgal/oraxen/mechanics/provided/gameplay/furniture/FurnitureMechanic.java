@@ -135,10 +135,10 @@ public class FurnitureMechanic extends Mechanic {
             furnitureType = FurnitureType.ITEM_FRAME;
         }
 
-        ConfigurationSection displayEntitySection = section.getConfigurationSection("display_entity_properties");
+        ConfigurationSection displayProperties = section.getConfigurationSection("display_entity_properties");
         displayEntityProperties = OraxenPlugin.supportsDisplayEntities
-                ? displayEntitySection != null
-                ? new DisplayEntityProperties(displayEntitySection) : new DisplayEntityProperties()
+                ? displayProperties != null
+                ? new DisplayEntityProperties(displayProperties) : new DisplayEntityProperties()
                 : null;
 
         barriers = new ArrayList<>();
@@ -799,6 +799,10 @@ public class FurnitureMechanic extends Mechanic {
             case DISPLAY_ENTITY -> OraxenPlugin.supportsDisplayEntities ? ItemDisplay.class : ItemFrame.class;
             //case ARMOR_STAND -> ArmorStand.class;
         };
+    }
+
+    public boolean hasDisplayEntityProperties() {
+        return displayEntityProperties != null;
     }
 
     public DisplayEntityProperties getDisplayEntityProperties() {

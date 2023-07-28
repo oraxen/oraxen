@@ -3,7 +3,9 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Display;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.Arrays;
@@ -147,7 +149,9 @@ public class DisplayEntityProperties {
         return displayWidth;
     }
 
-    public float getDisplayHeight() { return displayHeight; }
+    public float getDisplayHeight() {
+        return displayHeight;
+    }
 
     public boolean hasScale() {
         return scale != null;
@@ -155,5 +159,21 @@ public class DisplayEntityProperties {
 
     public Vector3f getScale() {
         return scale;
+    }
+
+    public boolean sameDisplayEntityProperties(@NotNull Entity entity) {
+        if (!(entity instanceof ItemDisplay itemDisplay)) return false;
+        if (itemDisplay.getBrightness() != brightness) return false;
+        if (itemDisplay.getItemDisplayTransform() != displayTransform) return false;
+        if (itemDisplay.getBillboard() != trackingRotation) return false;
+        if (itemDisplay.getShadowRadius() != shadowRadius) return false;
+        if (itemDisplay.getShadowStrength() != shadowStrength) return false;
+        if (itemDisplay.getDisplayHeight() != displayHeight) return false;
+        if (itemDisplay.getDisplayWidth() != displayWidth) return false;
+        if (itemDisplay.getTransformation().getScale() != scale) return false;
+        if (itemDisplay.getViewRange() != viewRange) return false;
+        if (itemDisplay.getInterpolationDuration() != interpolationDuration) return false;
+
+        return true;
     }
 }
