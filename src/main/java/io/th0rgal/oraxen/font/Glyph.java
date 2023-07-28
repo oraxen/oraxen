@@ -60,7 +60,7 @@ public class Glyph {
             fileChanged = true;
         }
 
-        if (!glyphSection.isString("char") && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
+        if (!glyphSection.contains("char") && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
             glyphSection.set("char", newChars);
             fileChanged = true;
         }
@@ -175,7 +175,7 @@ public class Glyph {
         }
         else textureFile = packFolder.resolve(texturePath.replace("assets/minecraft/", "")).toFile();
 
-        Map<Glyph, Boolean> sameCharMap = glyphs.stream().filter(g -> g != this && Objects.equals(g.getCharacter(), this.getCharacter())).collect(Collectors.toMap(g -> g, g -> true));
+        Map<Glyph, Boolean> sameCharMap = glyphs.stream().filter(g -> !g.name.equals(name) && !g.getCharacter().isBlank() && g.character.equals(character)).collect(Collectors.toMap(g -> g, g -> true));
         // Check if the texture is a vanilla item texture and therefore not in oraxen, but the vanilla pack
         boolean isMinecraftNamespace = !texture.contains(":") || texture.split(":")[0].equals("minecraft");
         String textureName = textureFile.getName().split("\\.")[0].toUpperCase();
@@ -211,7 +211,7 @@ public class Glyph {
             Logs.logError("The filename specified for " + name + " contains double slashes.");
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
             Logs.logWarning("You should make sure that the texture-path you have specified is correct.");
-        } else if (!isVanillaTexture && (image.getHeight() > 256 || image.getWidth() > 256)) {
+        } else if (!isVanillaTexture && !isBitMap() && (image.getHeight() > 256 || image.getWidth() > 256)) {
             this.setTexture("required/exit_icon");
             Logs.logError("The texture specified for " + name + " is larger than the supported size.");
             Logs.logWarning("The maximum image size is 256x256. Anything bigger will break all your glyphs.");

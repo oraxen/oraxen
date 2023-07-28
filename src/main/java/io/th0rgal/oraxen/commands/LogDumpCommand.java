@@ -20,7 +20,7 @@ import java.nio.file.Path;
 
 public class LogDumpCommand {
 
-    public CommandAPICommand getLogDumpCommand() {
+    CommandAPICommand getLogDumpCommand() {
         return new CommandAPICommand("dump_log")
                 .withPermission("oraxen.command.dumplog")
                 .executes((sender, args) -> {

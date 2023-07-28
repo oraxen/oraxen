@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class ItemInfoCommand {
 
-    public CommandAPICommand getItemInfoCommand() {
+    CommandAPICommand getItemInfoCommand() {
         return new CommandAPICommand("iteminfo")
                 .withPermission("oraxen.command.iteminfo")
                 .withArguments(new StringArgument("itemid").replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())))

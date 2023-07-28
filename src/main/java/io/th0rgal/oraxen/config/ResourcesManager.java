@@ -1,7 +1,9 @@
 package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.ReflectionUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -41,7 +43,7 @@ public class ResourcesManager {
 
     public Entry<File, YamlConfiguration> getEntry(String fileName) {
         File file = extractConfiguration(fileName);
-        return new AbstractMap.SimpleEntry<>(file, YamlConfiguration.loadConfiguration(file));
+        return new AbstractMap.SimpleEntry<>(file, OraxenYaml.loadConfiguration(file));
     }
 
     public File extractConfiguration(String fileName) {
@@ -70,20 +72,17 @@ public class ResourcesManager {
         zip.close();
     }
 
-    public void extractFileIfTrue(ZipEntry entry, String name, boolean isSuitable) {
-        if (entry.isDirectory())
-            return;
+    public void extractFileIfTrue(ZipEntry entry, boolean isSuitable) {
+        if (entry.isDirectory()) return;
         if (isSuitable) {
-            if (!Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.toBool() && name.startsWith("pack/textures/models/armor/leather_layer")) return;
-
-            plugin.saveResource(name, true);
+            if (!Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.toBool() && entry.getName().startsWith("pack/textures/models/armor/leather_layer")) return;
+            plugin.saveResource(entry.getName(), true);
         }
     }
 
     private void extractFileAccordingToExtension(ZipEntry entry, String folder, String fileExtension) {
-        String name = entry.getName();
-        boolean isSuitable = name.startsWith(folder + "/") && name.endsWith("." + fileExtension);
-        extractFileIfTrue(entry, name, isSuitable);
+        boolean isSuitable = entry.getName().startsWith(folder + "/") && entry.getName().endsWith("." + fileExtension);
+        extractFileIfTrue(entry, isSuitable);
     }
 
     public static ZipInputStream browse() {

@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import io.lumine.mythic.utils.logging.Log;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -236,7 +237,7 @@ public class DuplicationHandler {
                     if (filePathToDelete.toFile().delete())
                         Logs.logSuccess("Deleted the imported <blue>" + Utils.removeParentDirs(name) + "</blue> and migrated it to its supported Oraxen config(s)");
                 } catch (Exception ignored) {
-                    Log.error("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");
+                    Logs.logError("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");
                 }
                 Logs.logSuccess("It is advised to restart your server to ensure that any new conflicts are detected.");
             }
@@ -409,7 +410,7 @@ public class DuplicationHandler {
             }
 
             JsonObject sounds = JsonParser.parseString(fileContent).getAsJsonObject();
-            YamlConfiguration soundYaml = YamlConfiguration.loadConfiguration(new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/sound.yml"));
+            YamlConfiguration soundYaml = OraxenYaml.loadConfiguration(new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/sound.yml"));
             for (String id : sounds.keySet()) {
                 if (soundYaml.contains("sounds." + id)) {
                     Logs.logWarning("Sound " + id + " is already defined in sound.yml, skipping");
@@ -454,7 +455,7 @@ public class DuplicationHandler {
             }
         }
         try {
-            return YamlConfiguration.loadConfiguration(file);
+            return OraxenYaml.loadConfiguration(file);
         } catch (Exception e) {
             return null;
         }

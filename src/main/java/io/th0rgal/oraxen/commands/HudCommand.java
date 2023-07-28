@@ -14,7 +14,7 @@ public class HudCommand {
 
     private final HudManager manager = OraxenPlugin.get().getHudManager();
 
-    public CommandAPICommand getHudCommand() {
+    CommandAPICommand getHudCommand() {
         return new CommandAPICommand("hud")
                 .withPermission("oraxen.command.hud.toggle")
                 .withArguments(new TextArgument("type").replaceSuggestions(ArgumentSuggestions.strings("toggle")))
