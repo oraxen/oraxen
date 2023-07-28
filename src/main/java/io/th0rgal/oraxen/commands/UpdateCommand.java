@@ -15,8 +15,10 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
@@ -25,6 +27,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.ORIENTATION_KEY;
@@ -35,36 +38,7 @@ public class UpdateCommand {
     CommandAPICommand getUpdateCommand() {
         return new CommandAPICommand("update")
                 .withPermission("oraxen.command.update")
-                .withSubcommands(getFurnitureUpdateCommand(), getItemUpdateCommand(), getBlockUpdateCommand());
-    }
-
-    private CommandAPICommand getBlockUpdateCommand() {
-        return new CommandAPICommand("block")
-                .withOptionalArguments(new IntegerArgument("radius"))
-                .executesPlayer((player, args) -> {
-                    int radius = (int) args.getOptional("radius").orElse(10);
-                    if (!Settings.EXPERIMENTAL_FIX_BROKEN_FURNITURE.toBool()) return;
-                    Set<Block> blocks = CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), player.getLocation().getChunk());
-
-                    for (Block block : blocks.stream().filter(b -> b.getLocation().distance(player.getLocation()) <= radius).toList()) {
-                        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
-                        if (mechanic == null) return;
-                        Entity baseEntity = mechanic.getBaseEntity(block);
-                        // Return if there is a baseEntity
-                        if (baseEntity != null) return;
-
-                        Location rootLoc = new BlockLocation(BlockHelpers.getPDC(block).getOrDefault(ROOT_KEY, DataType.STRING, "")).toLocation(block.getWorld());
-                        float yaw = BlockHelpers.getPDC(block).getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
-                        if (rootLoc == null) return;
-
-                        //OraxenFurniture.remove(block.getLocation(), null);
-                        mechanic.getLocations(yaw, rootLoc, mechanic.getBarriers()).forEach(loc -> {
-                            loc.getBlock().setType(Material.AIR);
-                            new CustomBlockData(loc.getBlock(), OraxenPlugin.get()).clear();
-                        });
-                        mechanic.place(rootLoc, yaw, BlockFace.UP);
-                    }
-                });
+                .withSubcommands(getFurnitureUpdateCommand(), getItemUpdateCommand());
     }
 
     @SuppressWarnings("unchecked")
@@ -97,6 +71,57 @@ public class UpdateCommand {
                     int radius = (int) args.getOptional("radius").orElse(10);
                     final Collection<Entity> targets = ((Collection<Entity>) args.getOptional("targets").orElse(player.getNearbyEntities(radius, radius, radius))).stream().filter(OraxenFurniture::isBaseEntity).toList();
                     FurnitureUpdater.furnitureToUpdate.addAll(targets);
+                    updateBrokenFurnitureBlocks(player, radius);
                 });
+    }
+
+    /**
+     * Fixes furniture where only the barrier block remains for xyz reason
+     */
+    private void updateBrokenFurnitureBlocks(Player player, int radius) {
+        if (!Settings.EXPERIMENTAL_FIX_BROKEN_FURNITURE.toBool()) return;
+        Set<Chunk> chunks = getChunksAroundPlayer(player, radius);
+        Set<Block> blocks = new HashSet<>();
+        for (Chunk chunk : chunks) blocks.addAll(CustomBlockData.getBlocksWithCustomData(OraxenPlugin.get(), chunk));
+        for (Block block : blocks.stream().filter(b -> b.getLocation().distance(player.getLocation()) <= radius).toList()) {
+            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+            if (mechanic == null) return;
+            Entity baseEntity = mechanic.getBaseEntity(block);
+            // Return if there is a baseEntity
+            if (baseEntity != null) return;
+
+            Location rootLoc = new BlockLocation(BlockHelpers.getPDC(block).getOrDefault(ROOT_KEY, DataType.STRING, "")).toLocation(block.getWorld());
+            float yaw = BlockHelpers.getPDC(block).getOrDefault(ORIENTATION_KEY, PersistentDataType.FLOAT, 0f);
+            if (rootLoc == null) return;
+
+            //OraxenFurniture.remove(block.getLocation(), null);
+            mechanic.getLocations(yaw, rootLoc, mechanic.getBarriers()).forEach(loc -> {
+                loc.getBlock().setType(Material.AIR);
+                new CustomBlockData(loc.getBlock(), OraxenPlugin.get()).clear();
+            });
+            mechanic.place(rootLoc, yaw, BlockFace.UP);
+        }
+    }
+
+    private static Set<Chunk> getChunksAroundPlayer(Player player, int radius) {
+        World world = player.getWorld();
+        Location playerLocation = player.getLocation();
+
+        int startX = playerLocation.getBlockX() - radius;
+        int startZ = playerLocation.getBlockZ() - radius;
+        int endX = playerLocation.getBlockX() + radius;
+        int endZ = playerLocation.getBlockZ() + radius;
+
+        Set<Chunk> chunks = new HashSet<>();
+
+        for (int x = startX; x <= endX; x++) {
+            for (int z = startZ; z <= endZ; z++) {
+                Location blockLocation = new Location(world, x, playerLocation.getBlockY(), z);
+                Chunk chunk = blockLocation.getChunk();
+                chunks.add(chunk);
+            }
+        }
+
+        return chunks;
     }
 }
