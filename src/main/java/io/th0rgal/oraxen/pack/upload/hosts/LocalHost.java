@@ -24,14 +24,16 @@ public class LocalHost implements HostingProvider {
     private static Javalin app;
     private final String uploadDir;
     private final String packUrl;
+    private final String ip;
 
     public LocalHost() {
         JavalinLogger.enabled = false; // Disables Javalin Server start messages
         Logs.logInfo("<blue>Starting Javalin server for hosting ResourcePack locally...");
         int port = OraxenPlugin.get().getConfigsManager().getSettings().getInt("Pack.upload.localhost.port", 8080);
+        ip = OraxenPlugin.get().getConfigsManager().getSettings().getString("Pack.upload.localhost.ip", "localhost");
         app = Javalin.create().start(port);
         uploadDir = OraxenPlugin.get().getResourcePack().getFile().getParent();
-        packUrl = "http://localhost:" + port + "/pack.zip";
+        packUrl = "http://" + ip + ":" + port + "/pack.zip";
         setupEndpoints();
         Logs.logSuccess("Local Javalin server started on port " + port);
     }
@@ -40,7 +42,7 @@ public class LocalHost implements HostingProvider {
         app.post("/upload", ctx -> {
             UploadedFile file = ctx.uploadedFile("pack.zip");
             if (file != null) {
-                Path path = Paths.get(uploadDir, file.filename());
+                Path path = Paths.get(uploadDir.replace(ip, "localhost"), file.filename());
                 try (InputStream inputStream = file.content()) {
                     Files.createDirectories(path.getParent());
                     Files.delete(path);
@@ -54,7 +56,7 @@ public class LocalHost implements HostingProvider {
             }
         });
         app.get("/pack.zip", ctx -> {
-            File file = new File(uploadDir, "pack.zip");
+            File file = new File(uploadDir.replace(ip, "localhost"), "pack.zip");
             try {
                 byte[] fileBytes = Files.readAllBytes(file.toPath());
                 ctx.result(fileBytes)
@@ -67,7 +69,7 @@ public class LocalHost implements HostingProvider {
     }
 
     public static void stop() {
-        app.stop();
+        if (app != null) app.stop();
     }
 
     @Override
