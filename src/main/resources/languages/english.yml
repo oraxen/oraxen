@@ -78,6 +78,9 @@ command:
     toggle_on: "<prefix><#55ffa4>Toggled '<hud_id>' on!"
     toggle_off: "<prefix><#fa4943>Toggled '<hud_id>' off!"
 
+  debug.toggle: "<prefix><#55ffa4>Debug mode is now <#43fa8c><state><#55ffa4>!"
+  version: "<prefix><#55ffa4>Oraxen version: <#43fa8c><version><#55ffa4>!"
+
 mechanics:
   not_enough_exp: "<prefix><#fa4943>You need more experience to do this"
   backpack_stacked: "<prefix><#fa4943>Cannot open stacked backpack"

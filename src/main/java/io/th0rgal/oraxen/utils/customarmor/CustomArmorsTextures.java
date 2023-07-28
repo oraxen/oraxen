@@ -196,9 +196,9 @@ public class CustomArmorsTextures {
      * @param prefix The prefix of the armor item
      * @param name   The name of the armor layer file
      */
-    private void fixArmorColors(String prefix, String name) {
+    private Color fixArmorColors(String prefix, String name) {
+        Color color = null;
         // No need to run for layer 1 and 2 so skip 2 :)
-        if (name.endsWith("_armor_layer_2.png")) return;
         for (String suffix : new String[]{"helmet", "chestplate", "leggings", "boots"}) {
             ItemBuilder builder = OraxenItems.getItemById(prefix + suffix);
             ItemMeta meta = builder != null ? builder.build().getItemMeta() : null;
@@ -219,42 +219,54 @@ public class CustomArmorsTextures {
             };
 
             if (missingArmor) {
-                Message.NO_ARMOR_ITEM.log(AdventureUtils.tagResolver("name", prefix + suffix),
-                        AdventureUtils.tagResolver("armor_layer_file", name));
-                continue;
+                if (name.endsWith("_1.png") && Set.of("helmet", "chestplate").contains(suffix)) {
+                    Message.NO_ARMOR_ITEM.log(AdventureUtils.tagResolver("name", prefix + suffix),
+                            AdventureUtils.tagResolver("armor_layer_file", name));
+                } else if (name.endsWith("_2.png") && Set.of("leggings", "boots").contains(suffix)) {
+                    Message.NO_ARMOR_ITEM.log(AdventureUtils.tagResolver("name", prefix + suffix),
+                            AdventureUtils.tagResolver("armor_layer_file", name));
+                }
             }
-            if (builder != null) {
-                // Regen ItemBuilder to make ItemUpdater fix items
+
+            if (builder != null && (!builder.hasColor() || shaderType == ShaderType.LESS_FANCY)) {
+                // If builder has no color or the shader-type is LESS_FANCY
+                // Then assign a color based on the armor ID
                 builder.setColor(Color.fromRGB(layers1.size() + 1));
                 builder.save();
             }
+
+            color = builder != null && builder.hasColor() ? builder.getColor() : null;
         }
+        return color;
     }
 
     private void addPixel(BufferedImage image, String name, String prefix, boolean isAnimated) {
-        fixArmorColors(prefix, name);
-        Color color = Color.fromRGB((name.contains("armor_layer_1") ? layers1 : layers2).size() + 1);
-        if (shaderType == ShaderType.FANCY) {
-            setPixel(image.getRaster(), 0, 0, color);
-            if (isAnimated)
-                setPixel(image.getRaster(), 1, 0, Color.fromRGB(image.getHeight() / (int) Settings.ARMOR_RESOLUTION.getValue(), getAnimatedArmorFramerate(), 1));
-        }
+        // Ensures armorColor is set. If no Color is specified, assigns one.
+        // If ShaderType = LESS_FANCY then it will assign a color regardless following armor-ID
+        Color armorColor = fixArmorColors(prefix, name);
+        if (armorColor != null) {
+            if (shaderType == ShaderType.FANCY) {
+                setPixel(image.getRaster(), 0, 0, armorColor);
+                if (isAnimated)
+                    setPixel(image.getRaster(), 1, 0, Color.fromRGB(image.getHeight() / (int) Settings.ARMOR_RESOLUTION.getValue(), getAnimatedArmorFramerate(), 1));
+            }
 
-        if (name.contains("armor_layer_1")) {
-            layers1.add(image);
-            layer1Width = shaderType == ShaderType.FANCY ? layer1Width + image.getWidth() : Math.max(layer1Width, image.getWidth());
-            layer1Height = shaderType == ShaderType.FANCY ? Math.max(layer1Height, image.getHeight()) : layer1Height + image.getHeight();
-        } else {
-            layers2.add(image);
-            layer2Width = shaderType == ShaderType.FANCY ? layer2Width + image.getWidth() : Math.max(layer2Width, image.getWidth());
-            layer2Height = shaderType == ShaderType.FANCY ? Math.max(layer2Height, image.getHeight()) : layer2Height + image.getHeight();
-        }
+            if (name.contains("armor_layer_1")) {
+                layers1.add(image);
+                layer1Width = shaderType == ShaderType.FANCY ? layer1Width + image.getWidth() : Math.max(layer1Width, image.getWidth());
+                layer1Height = shaderType == ShaderType.FANCY ? Math.max(layer1Height, image.getHeight()) : layer1Height + image.getHeight();
+            } else {
+                layers2.add(image);
+                layer2Width = shaderType == ShaderType.FANCY ? layer2Width + image.getWidth() : Math.max(layer2Width, image.getWidth());
+                layer2Height = shaderType == ShaderType.FANCY ? Math.max(layer2Height, image.getHeight()) : layer2Height + image.getHeight();
+            }
 
-        if (!isAnimated && image.getHeight() > getLayerHeight()) {
-            Logs.logError("The height of " + name + " is greater than " + getLayerHeight() + "px.");
-            Logs.logWarning("Since it is not an animated armor-file, this will potentially break other armor sets.");
-            Logs.logWarning("Adjust the " + Settings.ARMOR_RESOLUTION.getPath() + " setting to fix this issue.");
-            Logs.logWarning("If it is meant to be an animated armor-file, make sure it ends with _a.png or _a_e.png if emissive");
+            if (!isAnimated && image.getHeight() > getLayerHeight()) {
+                Logs.logError("The height of " + name + " is greater than " + getLayerHeight() + "px.");
+                Logs.logWarning("Since it is not an animated armor-file, this will potentially break other armor sets.");
+                Logs.logWarning("Adjust the " + Settings.ARMOR_RESOLUTION.getPath() + " setting to fix this issue.");
+                Logs.logWarning("If it is meant to be an animated armor-file, make sure it ends with _a.png or _a_e.png if emissive");
+            }
         }
     }
 

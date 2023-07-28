@@ -79,8 +79,10 @@ public class StringBlockMechanicListener implements Listener {
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
         if (mechanic == null) return;
         OraxenStringBlockInteractEvent oraxenEvent = new OraxenStringBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
+        io.th0rgal.oraxen.api.events.OraxenStringBlockInteractEvent deprecatedOraxenEvent = new io.th0rgal.oraxen.api.events.OraxenStringBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
         Bukkit.getPluginManager().callEvent(oraxenEvent);
-        if (oraxenEvent.isCancelled()) event.setCancelled(true);
+        Bukkit.getPluginManager().callEvent(deprecatedOraxenEvent);
+        if (oraxenEvent.isCancelled() || deprecatedOraxenEvent.isCancelled()) event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.MONITOR)
@@ -233,8 +235,10 @@ public class StringBlockMechanicListener implements Listener {
             StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
             if (stringBlockMechanic == null) return;
             OraxenStringBlockInteractEvent wireBlockInteractEvent = new OraxenStringBlockInteractEvent(stringBlockMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
+            io.th0rgal.oraxen.api.events.OraxenStringBlockInteractEvent deprecatedWireBlockInteractEvent = new io.th0rgal.oraxen.api.events.OraxenStringBlockInteractEvent(stringBlockMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
             OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockInteractEvent);
-            if (wireBlockInteractEvent.isCancelled()) {
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedWireBlockInteractEvent);
+            if (wireBlockInteractEvent.isCancelled() || deprecatedWireBlockInteractEvent.isCancelled()) {
                 event.setCancelled(true);
                 return;
             }
@@ -404,6 +408,7 @@ public class StringBlockMechanicListener implements Listener {
                                        final Block placedAgainst, final BlockFace face, final BlockData newBlock) {
         final Block target;
         final Material type = placedAgainst.getType();
+        final boolean waterloggedBefore = placedAgainst.getRelative(face).getType() == Material.WATER;
         if (BlockHelpers.isReplaceable(type))
             target = placedAgainst;
         else {
@@ -424,22 +429,25 @@ public class StringBlockMechanicListener implements Listener {
 
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
         final OraxenStringBlockPlaceEvent oraxenBlockPlaceEvent = new OraxenStringBlockPlaceEvent(mechanic, target, player, item, hand);
+        final OraxenStringBlockPlaceEvent deprecatedOraxenBlockPlaceEvent = new OraxenStringBlockPlaceEvent(mechanic, target, player, item, hand);
         Bukkit.getPluginManager().callEvent(blockPlaceEvent);
         Bukkit.getPluginManager().callEvent(oraxenBlockPlaceEvent);
+        Bukkit.getPluginManager().callEvent(deprecatedOraxenBlockPlaceEvent);
 
         Block blockAbove = target.getRelative(BlockFace.UP);
         if (mechanic.isTall()) {
             if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) {
                 blockPlaceEvent.setCancelled(true);
                 oraxenBlockPlaceEvent.setCancelled(true);
+                deprecatedOraxenBlockPlaceEvent.setCancelled(true);
             }
             else blockAbove.setType(Material.TRIPWIRE);
         }
 
-        if (player.getGameMode() == GameMode.ADVENTURE || BlockHelpers.correctAllBlockStates(target, player, face, item))
+        if (player.getGameMode() == GameMode.ADVENTURE || BlockHelpers.correctAllBlockStates(target, player, face, item, waterloggedBefore))
             blockPlaceEvent.setCancelled(true);
 
-        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled() || oraxenBlockPlaceEvent.isCancelled()) {
+        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled() || oraxenBlockPlaceEvent.isCancelled() || deprecatedOraxenBlockPlaceEvent.isCancelled()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
             return null;
         }

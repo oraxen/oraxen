@@ -77,6 +77,9 @@ command:
     no_hud: "<prefix><#fa4943>Não existe nenhuma HUD com o nome de '<hud_id>'!"
     toggle_on: "<prefix><#55ffa4>HUD '<hud_id>' ativada!"
     toggle_off: "<prefix><#fa4943>HUD '<hud_id>' desativada!"
+
+  debug.toggle: "<prefix><#55ffa4>Debug mode is now <#43fa8c><state><#55ffa4>!"
+  version: "<prefix><#55ffa4>Oraxen version: <#43fa8c><version><#55ffa4>!"
     
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Você precisa de mais experiência para fazer isso"

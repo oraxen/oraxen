@@ -33,23 +33,22 @@ public class CommandsManager {
         new CommandAPICommand("oraxen")
                 .withAliases("o", "oxn")
                 .withPermission("oraxen.command")
-                .withSubcommand(getDyeCommand())
-                .withSubcommand(getInvCommand())
-                .withSubcommand(getSimpleGiveCommand())
-                .withSubcommand(getGiveCommand())
-                .withSubcommand(getPackCommand())
-                .withSubcommand(getUpdateCommand())
-                .withSubcommand((new RepairCommand()).getRepairCommand())
-                .withSubcommand((new RecipesCommand()).getRecipesCommand())
-                .withSubcommand((new ReloadCommand()).getReloadCommand())
-                .withSubcommand((new DebugCommand()).getDebugCommand())
-                .withSubcommand((new ModelDataCommand()).getHighestModelDataCommand())
-                .withSubcommand((new GlyphCommand()).getGlyphCommand(commandsSection))
-                .withSubcommand((new ItemInfoCommand()).getItemInfoCommand())
-                .withSubcommand((new BlockInfoCommand()).getBlockInfoCommand())
-                .withSubcommand((new HudCommand()).getHudCommand())
-                .withSubcommand((new LogDumpCommand().getLogDumpCommand()))
-                .withSubcommand((new GestureCommand().getGestureCommand()))
+                .withSubcommands(getDyeCommand(), getInvCommand(), getSimpleGiveCommand(), getGiveCommand(),
+                        (new PackCommand()).getPackCommand(),
+                        (new UpdateCommand()).getUpdateCommand(),
+                        (new RepairCommand()).getRepairCommand(),
+                        (new RecipesCommand()).getRecipesCommand(),
+                        (new ReloadCommand()).getReloadCommand(),
+                        (new DebugCommand()).getDebugCommand(),
+                        (new ModelDataCommand()).getHighestModelDataCommand(),
+                        (new GlyphCommand()).getGlyphCommand(commandsSection),
+                        (new ItemInfoCommand()).getItemInfoCommand(),
+                        (new BlockInfoCommand()).getBlockInfoCommand(),
+                        (new HudCommand()).getHudCommand(),
+                        (new LogDumpCommand().getLogDumpCommand()),
+                        (new GestureCommand().getGestureCommand()),
+                        (new VersionCommand()).getVersionCommand(),
+                        (new AdminCommands()).getAdminCommand())
                 .executes((sender, args) -> {
                     Message.COMMAND_HELP.send(sender);
                 })
@@ -90,25 +89,6 @@ public class CommandsManager {
                     } else
                         Message.NOT_PLAYER.send(sender);
                 });
-    }
-
-    @SuppressWarnings("unchecked")
-    private CommandAPICommand getPackCommand() {
-        return new CommandAPICommand("pack")
-                .withPermission("oraxen.command.pack")
-                .withArguments(new TextArgument("action")
-                        .replaceSuggestions(ArgumentSuggestions.strings("send", "msg")))
-                .withArguments(new EntitySelectorArgument.ManyPlayers("targets"))
-                .executes((sender, args) -> {
-                    final Collection<Player> targets = (Collection<Player>) args.get(1);
-                    if (args.get(0).equals("msg"))
-                        for (final Player target : targets)
-                            Message.COMMAND_JOIN_MESSAGE.send(target, AdventureUtils.tagResolver("pack_url",
-                                    (OraxenPlugin.get().getUploadManager().getHostingProvider().getPackURL())));
-                    else for (final Player target : targets)
-                        OraxenPlugin.get().getUploadManager().getSender().sendPack(target);
-                });
-
     }
 
     private CommandAPICommand getInvCommand() {
@@ -191,45 +171,6 @@ public class CommandsManager {
                                 .send(sender, AdventureUtils.tagResolver("count", String.valueOf(targets.size())),
                                         AdventureUtils.tagResolver("amount", String.valueOf(1)),
                                         AdventureUtils.tagResolver("item", itemID));
-                });
-    }
-
-    @SuppressWarnings("unchecked")
-    private CommandAPICommand getUpdateCommand() {
-        return new CommandAPICommand("update")
-                .withPermission("oraxen.command.update")
-                .withArguments(new EntitySelectorArgument.ManyPlayers("targets"))
-                .withArguments(new TextArgument("type")
-                        .replaceSuggestions(ArgumentSuggestions.strings("hand", "offhand", "all")))
-                .executes((sender, args) -> {
-                    final Collection<Player> targets = (Collection<Player>) args.get(0);
-
-                    if ("hand".equals(args.get(1))) for (final Player player : targets) {
-                        player.getInventory().setItemInMainHand(
-                                ItemUpdater.updateItem(player.getInventory().getItemInMainHand()));
-                        Message.UPDATED_ITEMS.send(sender, AdventureUtils.tagResolver("amount", String.valueOf(1)),
-                                AdventureUtils.tagResolver("player", player.getDisplayName()));
-                    } else if ("offhand".equals(args.get(1))) for (final Player player : targets) {
-                        player.getInventory().setItemInOffHand(
-                                ItemUpdater.updateItem(player.getInventory().getItemInOffHand()));
-                        Message.UPDATED_ITEMS.send(sender, AdventureUtils.tagResolver("amount", String.valueOf(1)),
-                                AdventureUtils.tagResolver("player", player.getDisplayName()));
-                    } else if (sender.hasPermission("oraxen.command.update.all")) for (final Player player : targets) {
-                        int updated = 0;
-                        for (int i = 0; i < player.getInventory().getSize(); i++) {
-                            final ItemStack oldItem = player.getInventory().getItem(i);
-                            final ItemStack newItem = ItemUpdater.updateItem(oldItem);
-                            if (oldItem == null || oldItem.equals(newItem))
-                                continue;
-                            player.getInventory().setItem(i, newItem);
-                            updated++;
-                        }
-                        player.updateInventory();
-                        Message.UPDATED_ITEMS.send(sender, AdventureUtils.tagResolver("amount", String.valueOf(updated)),
-                                AdventureUtils.tagResolver("player", player.getDisplayName()));
-                    }
-                    else
-                        Message.NO_PERMISSION.send(sender, AdventureUtils.tagResolver("permission", "oraxen.command.update.all"));
                 });
     }
 }

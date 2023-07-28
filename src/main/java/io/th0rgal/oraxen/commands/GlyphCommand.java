@@ -20,7 +20,7 @@ import java.util.List;
 
 public class GlyphCommand {
 
-    public CommandAPICommand getGlyphCommand(ConfigurationSection commandsSection) {
+    CommandAPICommand getGlyphCommand(ConfigurationSection commandsSection) {
         ConfigurationSection emojiSection = commandsSection.getConfigurationSection("emoji_list");
         List<Glyph> emojiList = OraxenPlugin.get().getFontManager().getEmojis().stream().toList();
 

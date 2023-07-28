@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.drops.Loot;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -76,7 +77,7 @@ public class NoteBlockMechanic extends Mechanic {
         // hardness requires protocollib
         hardness = section.getInt("hardness", 1);
 
-        light = section.getInt("light", -1);
+        light = Math.min(section.getInt("light", -1), 15);
         clickActions = ClickAction.parseList(section);
         canIgnite = section.getBoolean("can_ignite", false);
         isFalling = section.getBoolean("is_falling", false);

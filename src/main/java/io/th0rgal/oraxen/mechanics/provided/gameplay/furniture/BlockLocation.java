@@ -1,11 +1,18 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import com.jeff_media.morepersistentdatatypes.datatypes.serializable.ConfigurationSerializableDataType;
 import org.bukkit.Location;
+import org.bukkit.Utility;
 import org.bukkit.World;
+import org.bukkit.configuration.serialization.ConfigurationSerializable;
+import org.bukkit.persistence.PersistentDataType;
+import org.jetbrains.annotations.NotNull;
 
+import java.util.HashMap;
 import java.util.Map;
 
-public class BlockLocation {
+public class BlockLocation implements ConfigurationSerializable {
+    public static PersistentDataType<byte[],BlockLocation> dataType = new ConfigurationSerializableDataType<>(BlockLocation.class);
 
     private int x;
     private int y;
@@ -78,5 +85,35 @@ public class BlockLocation {
 
     public int getZ() {
         return z;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return obj instanceof BlockLocation blockLocation && blockLocation.x == x && blockLocation.y == y && blockLocation.z == z;
+    }
+
+    @Override
+    @Utility
+    @NotNull
+    public Map<String, Object> serialize() {
+        Map<String, Object> data = new HashMap<String, Object>();
+        data.put("x", this.x);
+        data.put("y", this.y);
+        data.put("z", this.z);
+
+        return data;
+}
+
+    /**
+     * Required method for deserialization
+     *
+     * @param args map to deserialize
+     * @return deserialized location
+     * @throws IllegalArgumentException if the world don't exists
+     * @see ConfigurationSerializable
+     */
+    @NotNull
+    public static BlockLocation deserialize(@NotNull Map<String, Object> args) {
+        return new BlockLocation((int) args.get("x"), (int) args.get("y"), (int) args.get("z"));
     }
 }

@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 
 public class GestureCommand {
 
-    public CommandAPICommand getGestureCommand() {
+    CommandAPICommand getGestureCommand() {
         GestureManager gestureManager = OraxenPlugin.get().getGesturesManager();
         return new CommandAPICommand("gesture")
                 .withAliases("gestures", "g")

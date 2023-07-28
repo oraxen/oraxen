@@ -27,6 +27,7 @@ public class FurnitureFactory extends MechanicFactory {
         evolutionCheckDelay = section.getInt("evolution_check_delay");
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new FurnitureListener(this),
+                new FurnitureUpdater(),
                 new EvolutionListener(),
                 new JukeboxListener()
         );

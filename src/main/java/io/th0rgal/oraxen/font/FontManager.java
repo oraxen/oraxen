@@ -7,6 +7,7 @@ import com.google.gson.JsonPrimitive;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -87,6 +88,7 @@ public class FontManager {
     private void loadGlyphs(Collection<Glyph> glyphs) {
         verifyRequiredGlyphs();
         for (Glyph glyph : glyphs) {
+            if (glyph.getCharacter().isBlank()) continue;
             glyphMap.put(glyph.getName(), glyph);
             reverse.put(glyph.getCharacter().charAt(0), glyph.getName());
             for (final String placeholder : glyph.getPlaceholders())
@@ -122,8 +124,8 @@ public class FontManager {
             }
             // Check if file is equal to the resource
             else if (!Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
-                List<String> tempKeys = YamlConfiguration.loadConfiguration(tempFile).getKeys(false).stream().toList();
-                List<String> requiredKeys = YamlConfiguration.loadConfiguration(file).getKeys(false).stream().toList();
+                List<String> tempKeys = OraxenYaml.loadConfiguration(tempFile).getKeys(false).stream().toList();
+                List<String> requiredKeys = OraxenYaml.loadConfiguration(file).getKeys(false).stream().toList();
                 if (!new HashSet<>(requiredKeys).containsAll(tempKeys)) {
                     file.renameTo(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/" + file.getName() + ".old"));
                     OraxenPlugin.get().saveResource("glyphs/" + file.getName(), true);
