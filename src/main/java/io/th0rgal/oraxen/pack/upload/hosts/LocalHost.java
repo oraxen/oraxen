@@ -4,7 +4,9 @@ import io.javalin.Javalin;
 import io.javalin.http.UploadedFile;
 import io.javalin.util.JavalinLogger;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.bukkit.Bukkit;
 
 import javax.xml.bind.DatatypeConverter;
 import java.io.DataOutputStream;
@@ -19,6 +21,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Scanner;
 
 public class LocalHost implements HostingProvider {
     private static Javalin app;
@@ -29,8 +32,8 @@ public class LocalHost implements HostingProvider {
     public LocalHost() {
         JavalinLogger.enabled = false; // Disables Javalin Server start messages
         Logs.logInfo("<blue>Starting Javalin server for hosting ResourcePack locally...");
-        int port = OraxenPlugin.get().getConfigsManager().getSettings().getInt("Pack.upload.localhost.port", 8080);
-        ip = OraxenPlugin.get().getConfigsManager().getSettings().getString("Pack.upload.localhost.ip", "localhost");
+        int port = Settings.LOCALHOST_PORT.toInt();
+        ip = !Settings.LOCALHOST_IP.toString().equals("localhost") ? Settings.LOCALHOST_IP.toString() : !Bukkit.getIp().isEmpty() ? Bukkit.getIp() : getIp();
         app = Javalin.create().start(port);
         uploadDir = OraxenPlugin.get().getResourcePack().getFile().getParent();
         packUrl = "http://" + ip + ":" + port + "/pack.zip";
@@ -132,5 +135,20 @@ public class LocalHost implements HostingProvider {
     @Override
     public String getOriginalSHA1() {
         return DatatypeConverter.printHexBinary(getSHA1()).toLowerCase();
+    }
+
+    private static String getIp() {
+        try {
+            URL url = new URL("https://api.ipify.org");
+            InputStream stream = url.openStream();
+            Scanner s = new Scanner(stream, "UTF-8").useDelimiter("\\A");
+            String ip = s.next();
+            s.close();
+            stream.close();
+            return ip;
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "localhost";
+        }
     }
 }

@@ -83,6 +83,8 @@ public enum Settings {
     UPLOAD_OPTIONS("Pack.upload.options"),
 
     POLYMATH_SERVER("Pack.upload.polymath.server"),
+    LOCALHOST_PORT("Pack.upload.localhost.port"),
+    LOCALHOST_IP("Pack.upload.localhost.ip"),
 
     SEND_PACK("Pack.dispatch.send_pack"),
     SEND_ON_RELOAD("Pack.dispatch.send_on_reload"),
@@ -145,4 +147,7 @@ public enum Settings {
         return OraxenPlugin.get().getConfigsManager().getSettings().getConfigurationSection(path);
     }
 
+    public int toInt() {
+        return (int) getValue();
+    }
 }
