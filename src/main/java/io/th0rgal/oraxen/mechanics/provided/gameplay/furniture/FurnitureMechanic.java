@@ -151,9 +151,10 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
-        hitbox = hitboxSection != null
-                ? new FurnitureHitbox((float) hitboxSection.getDouble("width", 1.0), (float) hitboxSection.getDouble("height", 1.0))
-                : null;
+        if (hitboxSection != null) {
+            float width = (float) hitboxSection.getDouble("width", 1.0), height = (float) hitboxSection.getDouble("height", 1.0);
+            hitbox = width > 0 && height > 0 ? new FurnitureHitbox(width, height) : null;
+        } else hitbox = !hasBarriers() ? new FurnitureHitbox(1.0f, 1.0f) : null;
 
         ConfigurationSection seatSection = section.getConfigurationSection("seat");
         if (seatSection != null) {
