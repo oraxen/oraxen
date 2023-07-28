@@ -198,6 +198,7 @@ public class OraxenFurniture {
      * @param entity The furniture baseEntity to update
      */
     public static void updateFurniture(Entity entity) {
+        if (!entity.getLocation().isWorldLoaded() || !entity.getWorld().isChunkLoaded(entity.getLocation().getChunk())) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic == null) return;
         entity = mechanic.getBaseEntity(entity);
