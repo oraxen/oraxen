@@ -33,24 +33,22 @@ public class CommandsManager {
         new CommandAPICommand("oraxen")
                 .withAliases("o", "oxn")
                 .withPermission("oraxen.command")
-                .withSubcommand(getDyeCommand())
-                .withSubcommand(getInvCommand())
-                .withSubcommand(getSimpleGiveCommand())
-                .withSubcommand(getGiveCommand())
-                .withSubcommand((new PackCommand()).getPackCommand())
-                .withSubcommand((new UpdateCommand()).getUpdateCommand())
-                .withSubcommand((new RepairCommand()).getRepairCommand())
-                .withSubcommand((new RecipesCommand()).getRecipesCommand())
-                .withSubcommand((new ReloadCommand()).getReloadCommand())
-                .withSubcommand((new DebugCommand()).getDebugCommand())
-                .withSubcommand((new ModelDataCommand()).getHighestModelDataCommand())
-                .withSubcommand((new GlyphCommand()).getGlyphCommand(commandsSection))
-                .withSubcommand((new ItemInfoCommand()).getItemInfoCommand())
-                .withSubcommand((new BlockInfoCommand()).getBlockInfoCommand())
-                .withSubcommand((new HudCommand()).getHudCommand())
-                .withSubcommand((new LogDumpCommand().getLogDumpCommand()))
-                .withSubcommand((new GestureCommand().getGestureCommand()))
-                .withSubcommand((new VersionCommand()).getVersionCommand())
+                .withSubcommands(getDyeCommand(), getInvCommand(), getSimpleGiveCommand(), getGiveCommand(),
+                        (new PackCommand()).getPackCommand(),
+                        (new UpdateCommand()).getUpdateCommand(),
+                        (new RepairCommand()).getRepairCommand(),
+                        (new RecipesCommand()).getRecipesCommand(),
+                        (new ReloadCommand()).getReloadCommand(),
+                        (new DebugCommand()).getDebugCommand(),
+                        (new ModelDataCommand()).getHighestModelDataCommand(),
+                        (new GlyphCommand()).getGlyphCommand(commandsSection),
+                        (new ItemInfoCommand()).getItemInfoCommand(),
+                        (new BlockInfoCommand()).getBlockInfoCommand(),
+                        (new HudCommand()).getHudCommand(),
+                        (new LogDumpCommand().getLogDumpCommand()),
+                        (new GestureCommand().getGestureCommand()),
+                        (new VersionCommand()).getVersionCommand(),
+                        (new AdminCommands()).getAdminCommand())
                 .executes((sender, args) -> {
                     Message.COMMAND_HELP.send(sender);
                 })

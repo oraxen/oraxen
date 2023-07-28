@@ -3,8 +3,10 @@ package io.th0rgal.oraxen.commands;
 import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.arguments.BooleanArgument;
 import dev.jorel.commandapi.arguments.EntitySelectorArgument;
 import dev.jorel.commandapi.arguments.IntegerArgument;
+import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.config.Message;
@@ -18,6 +20,7 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.Chunk;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Rotation;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -70,7 +73,7 @@ public class UpdateCommand {
                 .executesPlayer((player, args) -> {
                     int radius = (int) args.getOptional("radius").orElse(10);
                     final Collection<Entity> targets = ((Collection<Entity>) args.getOptional("targets").orElse(player.getNearbyEntities(radius, radius, radius))).stream().filter(OraxenFurniture::isBaseEntity).toList();
-                    FurnitureUpdater.furnitureToUpdate.addAll(targets);
+                    for (Entity entity : targets) OraxenFurniture.updateFurniture(entity);
                     updateBrokenFurnitureBlocks(player, radius);
                 });
     }
@@ -104,23 +107,11 @@ public class UpdateCommand {
     }
 
     private static Set<Chunk> getChunksAroundPlayer(Player player, int radius) {
-        World world = player.getWorld();
-        Location playerLocation = player.getLocation();
-
-        int startX = playerLocation.getBlockX() - radius;
-        int startZ = playerLocation.getBlockZ() - radius;
-        int endX = playerLocation.getBlockX() + radius;
-        int endZ = playerLocation.getBlockZ() + radius;
-
+        Location loc = player.getLocation();
         Set<Chunk> chunks = new HashSet<>();
-
-        for (int x = startX; x <= endX; x++) {
-            for (int z = startZ; z <= endZ; z++) {
-                Location blockLocation = new Location(world, x, playerLocation.getBlockY(), z);
-                Chunk chunk = blockLocation.getChunk();
-                chunks.add(chunk);
-            }
-        }
+        for (int x = loc.getBlockX() - radius; x <= loc.getBlockX() + radius; x++)
+            for (int z = loc.getBlockZ() - radius; z <= loc.getBlockZ() + radius; z++)
+                chunks.add(new Location(player.getWorld(), x, loc.getBlockY(), z).getChunk());
 
         return chunks;
     }

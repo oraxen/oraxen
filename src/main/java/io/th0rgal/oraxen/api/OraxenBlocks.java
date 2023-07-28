@@ -32,11 +32,39 @@ import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic.STORAGE_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 
 public class OraxenBlocks {
+
+    /**
+     * Get all OraxenItem ID's that have either a NoteBlockMechanic or a StringBlockMechanic
+     * @return A set of all OraxenItem ID's that have either a NoteBlockMechanic or a StringBlockMechanic
+     */
+    public static Set<String> getBlockIDs() {
+        return Arrays.stream(OraxenItems.getItemNames()).filter(OraxenBlocks::isOraxenBlock).collect(Collectors.toSet());
+    }
+
+    /**
+     * Get all OraxenItem ID's that have a NoteBlockMechanic
+     * @return A set of all OraxenItem ID's that have a NoteBlockMechanic
+     */
+    public static Set<String> getNoteBlockIDs() {
+        return Arrays.stream(OraxenItems.getItemNames()).filter(OraxenBlocks::isOraxenNoteBlock).collect(Collectors.toSet());
+    }
+
+    /**
+     * Get all OraxenItem ID's that have a StringBlockMechanic
+     * @return A set of all OraxenItem ID's that have a StringBlockMechanic
+     */
+    public static Set<String> getStringBlockIDs() {
+        return Arrays.stream(OraxenItems.getItemNames()).filter(OraxenBlocks::isOraxenStringBlock).collect(Collectors.toSet());
+    }
 
     /**
      * Check if a block is an instance of an OraxenBlock

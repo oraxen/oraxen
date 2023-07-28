@@ -237,7 +237,7 @@ public class DuplicationHandler {
                     if (filePathToDelete.toFile().delete())
                         Logs.logSuccess("Deleted the imported <blue>" + Utils.removeParentDirs(name) + "</blue> and migrated it to its supported Oraxen config(s)");
                 } catch (Exception ignored) {
-                    Log.error("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");
+                    Logs.logError("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");
                 }
                 Logs.logSuccess("It is advised to restart your server to ensure that any new conflicts are detected.");
             }

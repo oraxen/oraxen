@@ -29,6 +29,7 @@ public class FurnitureUpdater implements Listener {
         if (furnitureUpdateTask != null) furnitureUpdateTask.cancel();
         furnitureUpdateTask = new FurnitureUpdateTask();
         int delay = (Settings.FURNITURE_UPDATE_DELAY.getValue() instanceof Integer integer) ? integer : 5;
+        if (delay <= 0) return;
         furnitureUpdateTask.runTaskTimer(OraxenPlugin.get(), 0, delay * 20L);
     }
 

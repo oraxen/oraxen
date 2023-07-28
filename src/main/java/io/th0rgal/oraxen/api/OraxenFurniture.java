@@ -29,8 +29,11 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.BARRIER_KEY;
@@ -42,6 +45,14 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMecha
 import static io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscListener.MUSIC_DISC_KEY;
 
 public class OraxenFurniture {
+
+    /**
+     * Gett all OraxenItem IDs that have a FurnitureMechanic
+     * @return a Set of all OraxenItem IDs that have a FurnitureMechanic
+     */
+    public static Set<String> getFurnitureIDs() {
+        return Arrays.stream(OraxenItems.getItemNames()).filter(OraxenFurniture::isFurniture).collect(Collectors.toSet());
+    }
 
     /**
      * Check if a block is an instance of a Furniture
