@@ -3,10 +3,13 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Display;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
+import org.jetbrains.annotations.NotNull;
 import org.joml.Vector3f;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public class DisplayEntityProperties {
     //private final Color glowColor;
@@ -21,10 +24,8 @@ public class DisplayEntityProperties {
     private final float displayWidth;
     private final float displayHeight;
     private final Vector3f scale;
-    private final boolean isInteractable;
 
     public DisplayEntityProperties() {
-        this.isInteractable = true;
         this.displayWidth = 0f;
         this.displayHeight = 0f;
         this.displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
@@ -38,7 +39,6 @@ public class DisplayEntityProperties {
 
     public DisplayEntityProperties(ConfigurationSection configSection) {
         String itemID = configSection.getParent().getParent().getParent().getName();
-        isInteractable = configSection.getBoolean("interactable", true);
         //glowColor = Utils.toColor(configSection.getString("glow_color", ""));
         viewRange = configSection.getInt("view_range");
         interpolationDuration = configSection.getInt("interpolation_duration");
@@ -150,7 +150,9 @@ public class DisplayEntityProperties {
         return displayWidth;
     }
 
-    public float getDisplayHeight() { return displayHeight; }
+    public float getDisplayHeight() {
+        return displayHeight;
+    }
 
     public boolean hasScale() {
         return scale != null;
@@ -160,7 +162,18 @@ public class DisplayEntityProperties {
         return scale;
     }
 
-    public boolean isInteractable() {
-        return isInteractable;
+    public boolean ensureSameDisplayProperties(@NotNull Entity entity) {
+        if (!(entity instanceof ItemDisplay itemDisplay)) return false;
+        itemDisplay.setItemDisplayTransform(displayTransform);
+        itemDisplay.setBillboard(Objects.requireNonNullElse(trackingRotation, Display.Billboard.FIXED));
+        itemDisplay.setBrightness(Objects.requireNonNullElse(brightness, new Display.Brightness(0,0)));
+        itemDisplay.setShadowRadius(Objects.requireNonNullElse(shadowRadius, 0f));
+        itemDisplay.setShadowStrength(Objects.requireNonNullElse(shadowStrength, 0f));
+        itemDisplay.setViewRange(Objects.requireNonNullElse(viewRange, 0));
+        itemDisplay.setInterpolationDuration(Objects.requireNonNullElse(interpolationDuration, 0));
+        itemDisplay.setInterpolationDelay(Objects.requireNonNullElse(interpolationDelay, 0));
+        itemDisplay.getTransformation().getScale().set(Objects.requireNonNullElse(scale, new Vector3f(1,1,1)));
+
+        return true;
     }
 }

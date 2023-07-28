@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
 import org.bukkit.Axis;
 import org.bukkit.Bukkit;
@@ -36,15 +35,19 @@ import org.bukkit.block.data.type.Bed;
 import org.bukkit.block.data.type.Chest;
 import org.bukkit.block.data.type.CoralWallFan;
 import org.bukkit.block.data.type.Door;
+import org.bukkit.block.data.type.HangingSign;
 import org.bukkit.block.data.type.Ladder;
 import org.bukkit.block.data.type.Lantern;
 import org.bukkit.block.data.type.Lectern;
 import org.bukkit.block.data.type.Repeater;
 import org.bukkit.block.data.type.Sapling;
+import org.bukkit.block.data.type.SculkVein;
 import org.bukkit.block.data.type.Slab;
 import org.bukkit.block.data.type.Stairs;
 import org.bukkit.block.data.type.TrapDoor;
 import org.bukkit.block.data.type.Tripwire;
+import org.bukkit.block.data.type.TripwireHook;
+import org.bukkit.block.data.type.WallHangingSign;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.BlockInventoryHolder;
@@ -70,13 +73,15 @@ public class BlockHelpers {
 
     public static void playCustomBlockSound(Location location, String sound, SoundCategory category, float volume, float pitch) {
         if (sound == null || location == null || location.getWorld() == null || category == null) return;
-        location.getWorld().playSound(location, sound, category, volume, pitch);
+        location.getWorld().playSound(location, validateReplacedSounds(sound), category, volume, pitch);
     }
 
     public static String validateReplacedSounds(String sound) {
         ConfigurationSection mechanics = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds");
         if (mechanics == null) return sound;
-        else if (sound.startsWith("block.wood") && mechanics.getBoolean("noteblock_and_block")) {
+
+        sound = sound.replace("minecraft:", "");
+        if (sound.startsWith("block.wood") && mechanics.getBoolean("noteblock_and_block")) {
             return sound.replace("block.wood", "required.wood");
         } else if (sound.startsWith("block.stone") && mechanics.getBoolean("stringblock_and_furniture")) {
                 return sound.replace("block.stone", "required.stone");
@@ -162,35 +167,30 @@ public class BlockHelpers {
         };
     }
 
-    public static boolean correctAllBlockStates(Block block, Player player, BlockFace face, ItemStack item) {
-        final BlockData data = block.getBlockData();
-        final BlockState state = block.getState();
-        final Material type = block.getType();
+    public static boolean correctAllBlockStates(Block block, Player player, BlockFace face, ItemStack item, boolean waterloggedBefore) {
+        BlockData data = block.getBlockData();
+        BlockState state = block.getState();
+        Material type = block.getType();
+        if (type == Material.SEAGRASS && !waterloggedBefore) return true;
         if (data instanceof Tripwire) return false;
         if (data instanceof Sapling && face != BlockFace.UP) return true;
         if (data instanceof Ladder && (face == BlockFace.UP || face == BlockFace.DOWN)) return true;
         if (type == Material.HANGING_ROOTS && face != BlockFace.DOWN) return true;
         if (type.toString().endsWith("TORCH") && face == BlockFace.DOWN) return true;
-        if ((state instanceof Sign || state instanceof Banner) && face == BlockFace.DOWN) return true;
+        if (data instanceof HangingSign && face == BlockFace.UP) return true;
+        if (((state instanceof Sign && !(data instanceof HangingSign)) || state instanceof Banner) && face == BlockFace.DOWN) return true;
         if (data instanceof Ageable) return !handleAgeableBlocks(block, face);
-        if (!(data instanceof Door) && (data instanceof Bisected || data instanceof Slab))
-            handleHalfBlocks(block, player);
+        if (!(data instanceof Door) && (data instanceof Bisected || data instanceof Slab)) handleHalfBlocks(block, player);
         if (data instanceof Rotatable) handleRotatableBlocks(block, player);
-        if (type.toString().contains("CORAL") && !type.toString().endsWith("CORAL_BLOCK") && face == BlockFace.DOWN)
-            return true;
-        if (type.toString().endsWith("CORAL") && block.getRelative(BlockFace.DOWN).getType() == Material.AIR)
-            return true;
-        if (type.toString().endsWith("_CORAL_FAN") && face != BlockFace.UP)
-            block.setType(Material.valueOf(type.toString().replace("_CORAL_FAN", "_CORAL_WALL_FAN")));
+        if (type.toString().contains("CORAL") && !type.toString().endsWith("CORAL_BLOCK") && face == BlockFace.DOWN) return true;
+        if (type.toString().endsWith("CORAL") && block.getRelative(BlockFace.DOWN).getType() == Material.AIR) return true;
+        if (type.toString().endsWith("_CORAL_FAN") && face != BlockFace.UP) block.setType(Material.valueOf(type.toString().replace("_CORAL_FAN", "_CORAL_WALL_FAN")));
         if (data instanceof Waterlogged) handleWaterlogged(block, face);
-        if ((data instanceof Bed || data instanceof Chest || data instanceof Bisected) &&
-                !(data instanceof Stairs) && !(data instanceof TrapDoor))
-            if (!handleDoubleBlocks(block, player)) return true;
-        if ((state instanceof Skull || state instanceof Sign || state instanceof Banner || type.toString().contains("TORCH")) && face != BlockFace.DOWN && face != BlockFace.UP)
-            handleWallAttachable(block, face);
+        if ((data instanceof Bed || data instanceof Chest || data instanceof Bisected) && !(data instanceof Stairs) && !(data instanceof TrapDoor)) if (!handleDoubleBlocks(block, player)) return true;
+        if ((state instanceof Skull || state instanceof Sign || state instanceof Banner || type.toString().contains("TORCH")) && face != BlockFace.DOWN && face != BlockFace.UP) handleWallAttachable(block, face);
 
-        if (!(data instanceof Stairs) && (data instanceof Directional || data instanceof FaceAttachable || data instanceof MultipleFacing || data instanceof Attachable)) {
-            if (data instanceof MultipleFacing && face == BlockFace.UP) return true;
+        if (!(data instanceof Stairs) && !(data instanceof HangingSign) && (data instanceof Directional || data instanceof FaceAttachable || data instanceof MultipleFacing || data instanceof Attachable)) {
+            if (!(data instanceof SculkVein) && data instanceof MultipleFacing && face == BlockFace.UP) return true;
             if (data instanceof CoralWallFan && face == BlockFace.DOWN) return true;
             handleDirectionalBlocks(block, face);
         }
@@ -232,8 +232,18 @@ public class BlockHelpers {
             block.setBlockData(repeater, false);
         }
 
-        if (block.getState() instanceof Sign sign)
-            player.openSign(sign);
+        if (data instanceof TripwireHook hook) {
+            if (block.getRelative(player.getFacing()).getType().isSolid())
+                hook.setFacing(player.getFacing().getOppositeFace());
+            else {
+                List<BlockFace> solidFaces = hook.getFaces().stream().filter(f -> block.getRelative(f).getType().isSolid()).toList();
+                if (solidFaces.isEmpty()) return true;
+                else hook.setFacing(solidFaces.get(0).getOppositeFace());
+            }
+            block.setBlockData(hook, false);
+        }
+
+        if (block.getState() instanceof Sign sign) player.openSign(sign);
 
         return false;
     }
@@ -254,14 +264,17 @@ public class BlockHelpers {
             block.setType(Material.valueOf(type.toString().replace("_BANNER", "_WALL_BANNER")));
         else if (type.toString().endsWith("TORCH"))
             block.setType(Material.valueOf(type.toString().replace("TORCH", "WALL_TORCH")));
+        else if (type.toString().endsWith("HANGING_SIGN"))
+            block.setType(Material.valueOf(type.toString().replace("_HANGING_SIGN", "_WALL_HANGING_SIGN")));
         else if (type.toString().endsWith("SIGN"))
             block.setType(Material.valueOf(type.toString().replace("_SIGN", "_WALL_SIGN")));
         else if (type.toString().endsWith("SKULL"))
             block.setType(Material.valueOf(type.toString().replace("_SKULL", "_WALL_SKULL")));
         else block.setType(Material.valueOf(type.toString().replace("_HEAD", "_WALL_HEAD")));
 
-        final Directional data = (Directional) Bukkit.createBlockData(block.getType());
-        data.setFacing(face);
+        final BlockData data = block.getBlockData();
+        if (data instanceof Directional directional) directional.setFacing(face);
+        if (data instanceof WallHangingSign hanging) hanging.setFacing(getWallHangingSignFacing(face.getOppositeFace()));
         block.setBlockData(data, false);
     }
 
@@ -366,7 +379,9 @@ public class BlockHelpers {
                 else if (face == BlockFace.DOWN) faceAttachable.setAttachedFace(CEILING);
                 else directional.setFacing(face);
             } else if (directional.getFaces().contains(face)) directional.setFacing(face);
-        } else if (data instanceof MultipleFacing multipleFacing) {
+        } else if (data instanceof SculkVein sculkVein)
+            sculkVein.setFace(face.getOppositeFace(), block.getRelative(face.getOppositeFace()).getType().isSolid());
+        else if (data instanceof MultipleFacing multipleFacing) {
             for (BlockFace blockFace : multipleFacing.getAllowedFaces())
                 multipleFacing.setFace(blockFace, block.getRelative(blockFace).getType().isSolid());
         } else if (data instanceof Attachable attachable)
@@ -435,6 +450,15 @@ public class BlockHelpers {
         return switch (face) {
             case NORTH -> BlockFace.EAST;
             case SOUTH -> BlockFace.WEST;
+            case WEST -> BlockFace.SOUTH;
+            default -> BlockFace.NORTH;
+        };
+    }
+
+    public static BlockFace getWallHangingSignFacing(BlockFace face) {
+        return switch (face) {
+            case NORTH -> BlockFace.WEST;
+            case SOUTH -> BlockFace.EAST;
             case WEST -> BlockFace.SOUTH;
             default -> BlockFace.NORTH;
         };

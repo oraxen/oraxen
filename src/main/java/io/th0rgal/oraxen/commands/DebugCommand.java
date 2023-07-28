@@ -1,48 +1,33 @@
 package io.th0rgal.oraxen.commands;
 
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import dev.jorel.commandapi.CommandAPICommand;
+import dev.jorel.commandapi.arguments.StringArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.utils.OS;
-import net.kyori.adventure.text.Component;
-import org.bukkit.Bukkit;
+import io.th0rgal.oraxen.config.ConfigsManager;
+import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.utils.AdventureUtils;
+import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.util.Map;
+import java.io.IOException;
 
 public class DebugCommand {
 
-    public CommandAPICommand getDebugCommand() {
+    CommandAPICommand getDebugCommand() {
         return new CommandAPICommand("debug")
                 .withPermission("oraxen.command.debug")
+                .withOptionalArguments(new StringArgument("toggle"))
                 .executes((sender, args) -> {
-
-                    JsonObject report = new JsonObject();
-                    OS system = OS.getOs();
-
-                    JsonObject operatingSystemJson = new JsonObject();
-                    operatingSystemJson.addProperty("name", system.getName());
-                    operatingSystemJson.addProperty("version", system.getVersion());
-                    operatingSystemJson.addProperty("platform_name", system.getPlatformName());
-                    operatingSystemJson.addProperty("arch", system.getArch());
-
-                    JsonObject pluginJson = new JsonObject();
-                    pluginJson.addProperty("version", OraxenPlugin.get().getDescription().getVersion());
-                    pluginJson.addProperty("user", "%%__USER__%%");
-                    pluginJson.addProperty("resource", "%%__RESOURCE__%%");
-                    pluginJson.addProperty("nonce", "%%__NONCE__%%");
-
-                    JsonObject minecraftJson = new JsonObject();
-                    minecraftJson.addProperty("name", Bukkit.getVersion());
-                    report.add("operating_system", operatingSystemJson);
-                    report.add("plugin", pluginJson);
-                    report.add("minecraft", minecraftJson);
-
-                    Component msg = Component.empty();
-                    for (Map.Entry<String, JsonElement> entry : report.entrySet()) {
-                        msg = msg.append(Component.text(entry.getKey())).append(Component.text(entry.getValue().toString()));
+                    ConfigsManager configsManager = OraxenPlugin.get().getConfigsManager();
+                    YamlConfiguration settings = configsManager.getSettings();
+                    boolean debugState = args.getOptional("toggle").isPresent() ? Boolean.parseBoolean(args.getOptional("toggle").get().toString()) : !settings.getBoolean("debug", true);
+                    settings.set("debug", debugState);
+                    try {
+                        settings.save(configsManager.getSettingsFile());
+                        String state = (debugState ? "enabled" : "disabled");
+                        Message.DEBUG_TOGGLE.send(sender, AdventureUtils.tagResolver("state", state));
+                    } catch (IOException e) {
+                        e.printStackTrace();
                     }
-                    OraxenPlugin.get().getAudience().sender(sender).sendMessage(msg);
                 });
     }
 

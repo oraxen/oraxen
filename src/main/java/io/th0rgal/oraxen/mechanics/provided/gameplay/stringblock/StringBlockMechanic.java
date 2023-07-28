@@ -39,7 +39,7 @@ public class StringBlockMechanic extends Mechanic {
         model = section.getString("model");
         customVariation = section.getInt("custom_variation");
         isTall = section.getBoolean("is_tall", false);
-        light = section.getInt("light", -1);
+        light = Math.min(section.getInt("light", -1), 15);
         hardness = section.getInt("hardness", 1);
 
         ConfigurationSection dropSection = section.getConfigurationSection("drop");

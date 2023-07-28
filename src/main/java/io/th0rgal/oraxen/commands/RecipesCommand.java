@@ -23,7 +23,7 @@ import org.bukkit.entity.Player;
 import java.util.List;
 
 public class RecipesCommand {
-    public CommandAPICommand getRecipesCommand() {
+    CommandAPICommand getRecipesCommand() {
         return new CommandAPICommand("recipes")
                 .withPermission("oraxen.command.recipes")
                 .withSubcommand(getShowCommand())

@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureUpdater;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -51,8 +52,10 @@ public class ReloadCommand {
             Logs.logInfo("Updating all placed furniture...");
             for (World world : Bukkit.getServer().getWorlds()) {
                 for (Entity entity : world.getEntities())
-                    if (OraxenFurniture.isFurniture(entity))
-                        ItemUpdater.furnitureToUpdate.add(entity);
+                    if (OraxenFurniture.isFurniture(entity) && !OraxenFurniture.isInteractionEntity(entity)) {
+                        Logs.debug("Updating furniture: " + entity.getType() + " " + entity.getUniqueId());
+                        FurnitureUpdater.furnitureToUpdate.add(entity);
+                    }
             }
         }
 
@@ -84,7 +87,7 @@ public class ReloadCommand {
         RecipesManager.reload();
     }
 
-    public CommandAPICommand getReloadCommand() {
+    CommandAPICommand getReloadCommand() {
         return new CommandAPICommand("reload")
                 .withAliases("rl")
                 .withPermission("oraxen.command.reload")

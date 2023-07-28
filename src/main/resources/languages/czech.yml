@@ -76,6 +76,14 @@ command:
     wrong_color: "<prefix><#fa4943>Barva nerozpoznána, zkus hexadecimální kód jako #FFFFFF!"
     failed: "<prefix><#fa4943>Nemůžeš změnit barvu tohoto předmětu!"
 
+  hud:
+    no_hud: "<prefix><#fa4943>There is no HUD by the name '<hud_id>'!"
+    toggle_on: "<prefix><#55ffa4>Toggled '<hud_id>' on!"
+    toggle_off: "<prefix><#fa4943>Toggled '<hud_id>' off!"
+
+  debug.toggle: "<prefix><#55ffa4>Debug mode is now <#43fa8c><state><#55ffa4>!"
+  version: "<prefix><#55ffa4>Oraxen version: <#43fa8c><version><#55ffa4>!"
+
 mechanics:
   not_enough_exp: "<prefix><#fa4943>Pro tohle potřebuješ více zkušeností"
   backpack_stacked: "<prefix><#fa4943>Cannot open stacked backpack"
