@@ -117,7 +117,6 @@ public class ConfigsManager {
 
         // check itemsFolder
         itemsFolder = new File(plugin.getDataFolder(), "items");
-        itemConfigs = getItemFiles();
         if (!itemsFolder.exists()) {
             itemsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
@@ -126,7 +125,6 @@ public class ConfigsManager {
 
         // check glyphsFolder
         glyphsFolder = new File(plugin.getDataFolder(), "glyphs");
-        glyphConfigs = getGlyphFiles();
         if (!glyphsFolder.exists()) {
             glyphsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
@@ -182,9 +180,10 @@ public class ConfigsManager {
             );
 
     public Collection<Glyph> parseGlyphConfigs() {
+        List<File> glyphFiles = getGlyphFiles();
         List<Glyph> output = new ArrayList<>();
         Map<String, Character> charPerGlyph = new HashMap<>();
-        for (File file : glyphConfigs) {
+        for (File file : glyphFiles) {
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
@@ -196,7 +195,7 @@ public class ConfigsManager {
             }
         }
 
-        for (File file : glyphConfigs) {
+        for (File file : glyphFiles) {
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             boolean fileChanged = false;
             for (String key : configuration.getKeys(false)) {
@@ -226,7 +225,7 @@ public class ConfigsManager {
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
 
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
-        for (File file : itemConfigs) {
+        for (File file : getItemFiles()) {
             parseMap.put(file, parseItemConfig(OraxenYaml.loadConfiguration(file), file));
         }
         return parseMap;
@@ -234,7 +233,7 @@ public class ConfigsManager {
 
     public void assignAllUsedModelDatas() {
         Map<Material, Map<Integer, String>> assignedModelDatas = new HashMap<>();
-        for (File file : itemConfigs) {
+        for (File file : getItemFiles()) {
             if (!file.exists()) continue;
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             // If file is empty, assume it was malformed and don't save the configuration
@@ -322,14 +321,10 @@ public class ConfigsManager {
         return map;
     }
 
-    private List<File> itemConfigs = new ArrayList<>();
-
     private List<File> getItemFiles() {
         if (itemsFolder == null || !itemsFolder.exists()) return new ArrayList<>();
         return FileUtils.listFiles(itemsFolder, new String[]{"yml"}, true).stream().filter(OraxenYaml::isValidYaml).sorted().toList();
     }
-
-    private List<File> glyphConfigs = new ArrayList<>();
 
     private List<File> getGlyphFiles() {
         if (glyphsFolder == null || !glyphsFolder.exists()) return new ArrayList<>();
