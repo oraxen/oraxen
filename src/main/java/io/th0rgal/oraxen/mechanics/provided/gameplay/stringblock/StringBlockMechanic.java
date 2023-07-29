@@ -64,7 +64,7 @@ public class StringBlockMechanic extends Mechanic {
 
         hardness = section.getInt("hardness", 1);
 
-        light = section.getInt("light", -1);
+        light = Math.min(section.getInt("light", -1), 15);
 
         ConfigurationSection randomPlaceSection = section.getConfigurationSection("random_place");
         if (randomPlaceSection != null) {

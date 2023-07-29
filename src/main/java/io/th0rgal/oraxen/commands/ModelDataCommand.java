@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ModelDataCommand {
-    public CommandAPICommand getHighestModelDataCommand() {
+    CommandAPICommand getHighestModelDataCommand() {
         return new CommandAPICommand("highest_modeldata")
                 .withAliases("h_md")
                 .withPermission("oraxen.command.debug")

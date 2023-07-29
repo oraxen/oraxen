@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.recipes.loaders.ShapelessLoader;
 import io.th0rgal.oraxen.recipes.loaders.SmokingLoader;
 import io.th0rgal.oraxen.recipes.loaders.StonecuttingLoader;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Keyed;
@@ -93,7 +94,7 @@ public class RecipesManager {
     }
 
     private static void registerConfigRecipes(File configFile) {
-        YamlConfiguration config = YamlConfiguration.loadConfiguration(configFile);
+        YamlConfiguration config = OraxenYaml.loadConfiguration(configFile);
         for (String recipeSetting : config.getKeys(false)) {
             if (!config.isConfigurationSection(recipeSetting))
                 continue;

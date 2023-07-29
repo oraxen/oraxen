@@ -152,6 +152,7 @@ public class Utils {
      */
     public static ItemStack editItemMeta(ItemStack itemStack, Consumer<ItemMeta> function) {
         ItemMeta meta = itemStack.getItemMeta();
+        if (meta == null) return itemStack;
         function.accept(meta);
         itemStack.setItemMeta(meta);
         return itemStack;
