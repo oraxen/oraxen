@@ -118,11 +118,10 @@ public class Drop {
                 itemMeta.setDisplayName(baseMeta.getDisplayName());
         });
 
-        if (!canDrop(itemInHand)) return;
-        if (!location.isWorldLoaded()) return;
-        assert itemInHand.getItemMeta() != null && location.getWorld() != null;
+        if (!canDrop(itemInHand) || !location.isWorldLoaded()) return;
+        assert location.getWorld() != null;
 
-        if (silktouch && itemInHand.getItemMeta().hasEnchant(Enchantment.SILK_TOUCH)) {
+        if (silktouch && itemInHand.hasItemMeta() && itemInHand.getItemMeta().hasEnchant(Enchantment.SILK_TOUCH)) {
             location.getWorld().dropItemNaturally(BlockHelpers.toCenterBlockLocation(location), baseItem);
         } else {
             // Drop all the items that aren't the furniture item
