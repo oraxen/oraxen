@@ -8,6 +8,35 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.0.1"
     id("net.minecrell.plugin-yml.bukkit") version "0.5.3" // Generates plugin.yml
+    id("io.papermc.paperweight.userdev") version "1.5.5" apply false
+}
+
+class NMSVersion(val nmsVersion: String, val serverVersion: String)
+infix fun String.toNms(that: String): NMSVersion = NMSVersion(this, that)
+val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
+    "v1_18_R1" toNms "1.18.1-R0.1-SNAPSHOT",
+    "v1_18_R2" toNms "1.18.2-R0.1-SNAPSHOT",
+    "v1_19_R1" toNms "1.19.2-R0.1-SNAPSHOT",
+    "v1_19_R2" toNms "1.19.3-R0.1-SNAPSHOT",
+    "v1_19_R3" toNms "1.19.4-R0.1-SNAPSHOT",
+    "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT"
+)
+
+SUPPORTED_VERSIONS.forEach {
+    project(":${it.nmsVersion}") {
+
+        apply(plugin = "java")
+        apply(plugin = "io.papermc.paperweight.userdev")
+
+        repositories {
+            maven("https://papermc.io/repo/repository/maven-public/") // Paper
+        }
+
+        dependencies {
+            implementation(project(":core"))
+            paperDevBundle(it.serverVersion)
+        }
+    }
 }
 
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
@@ -64,12 +93,7 @@ allprojects {
 
 dependencies {
     implementation(project(path = ":core"))
-    implementation(project(path = ":v1_18_R1", configuration = "reobf"))
-    implementation(project(path = ":v1_18_R2", configuration = "reobf"))
-    implementation(project(path = ":v1_19_R1", configuration = "reobf"))
-    implementation(project(path = ":v1_19_R2", configuration = "reobf"))
-    implementation(project(path = ":v1_19_R3", configuration = "reobf"))
-    implementation(project(path = ":v1_20_R1", configuration = "reobf"))
+    SUPPORTED_VERSIONS.forEach { implementation(project(path = ":${it.nmsVersion}", configuration = "reobf")) }
 }
 
 java {
@@ -100,12 +124,7 @@ tasks {
     }
 
     shadowJar {
-        dependsOn(":v1_18_R1:reobfJar")
-        dependsOn(":v1_18_R2:reobfJar")
-        dependsOn(":v1_19_R1:reobfJar")
-        dependsOn(":v1_19_R2:reobfJar")
-        dependsOn(":v1_19_R3:reobfJar")
-        dependsOn(":v1_20_R1:reobfJar")
+        SUPPORTED_VERSIONS.forEach { dependsOn(":${it.nmsVersion}:reobfJar") }
 
         //archiveClassifier = null
         relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
