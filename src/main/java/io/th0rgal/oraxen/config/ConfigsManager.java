@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FileUtils;
+import org.apache.maven.model.Model;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -236,15 +237,14 @@ public class ConfigsManager {
         for (File file : getItemFiles()) {
             if (!file.exists()) continue;
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
-            // If file is empty, assume it was malformed and don't save the configuration
+            boolean fileChanged = false;
 
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection itemSection = configuration.getConfigurationSection(key);
                 if (itemSection == null) continue;
                 ConfigurationSection packSection = itemSection.getConfigurationSection("Pack");
-                if (packSection == null) continue;
                 Material material = Material.matchMaterial(itemSection.getString("material", ""));
-                if (material == null) continue;
+                if (packSection == null || material == null) continue;
                 int modelData = packSection.getInt("custom_model_data", -1);
                 String model = getItemModelFromConfigurationSection(packSection);
                 if (modelData == -1) continue;
@@ -259,19 +259,21 @@ public class ConfigsManager {
                     } else {
                         Logs.logWarning("Removing custom model data from " + file.getName() + ": " + key);
                         packSection.set("custom_model_data", null);
+                        fileChanged = true;
                     }
                     Logs.newline();
                     continue;
                 }
+
                 assignedModelDatas.computeIfAbsent(material, k -> new HashMap<>()).put(modelData, model);
                 ModelData.DATAS.computeIfAbsent(material, k -> new HashMap<>()).put(key, modelData);
+            }
 
-                if (!configuration.getKeys(false).isEmpty()) {
-                    try {
-                        configuration.save(file);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
+            if (fileChanged) {
+                try {
+                    configuration.save(file);
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
             }
         }
@@ -302,11 +304,12 @@ public class ConfigsManager {
             try {
                 map.put(entry.getKey(), itemParser.buildItem());
             } catch (Exception e) {
-                map.put(entry.getKey(),
+                continue;
+                /*map.put(entry.getKey(),
                         errorItem.buildItem(String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD
                                 + e.getClass().getSimpleName() + ": " + ChatColor.RED + entry.getKey()));
                 Logs.logError("ERROR BUILDING ITEM \"" + entry.getKey() + "\"");
-                e.printStackTrace();
+                e.printStackTrace();*/
             }
             if (itemParser.isConfigUpdated())
                 configUpdated = true;
