@@ -145,7 +145,7 @@ public class FontEvents implements Listener {
         String displayName = clickedInv.getRenameText();
         ItemStack inputItem = clickedInv.getItem(0);
         ItemStack resultItem = clickedInv.getItem(2);
-        if (resultItem == null) return;
+        if (resultItem == null || !OraxenItems.exists(inputItem)) return;
 
         if (displayName != null) {
             displayName = AdventureUtils.parseLegacyThroughMiniMessage(displayName);
