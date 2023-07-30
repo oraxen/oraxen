@@ -76,7 +76,7 @@ public class ResourcePack {
         outputFiles = new HashMap<>();
     }
 
-    public void generate(final FontManager fontManager, final SoundManager soundManager) {
+    public void generate() {
         outputFiles.clear();
 
         customArmorsTextures = new CustomArmorsTextures((int) Settings.ARMOR_RESOLUTION.getValue());
@@ -115,7 +115,7 @@ public class ResourcePack {
 
         // Sorting items to keep only one with models (and generate it if needed)
         generatePredicates(extractTexturedItems());
-        generateFont(fontManager);
+        generateFont();
         if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardFiles();
         if (Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) CustomArmorsTextures.generateArmorShaderFiles();
@@ -129,9 +129,7 @@ public class ResourcePack {
 
         // zipping resourcepack
         try {
-            getFilesInFolder(packFolder, output,
-                    packFolder.getCanonicalPath(),
-                    packFolder.getName() + ".zip");
+            //getFilesInFolder(packFolder, output, packFolder.getCanonicalPath(), packFolder.getName() + ".zip");
 
             // needs to be ordered, forEach cannot be used
             File[] files = packFolder.listFiles();
@@ -180,7 +178,7 @@ public class ResourcePack {
             output.removeAll(newOutput);
         }
 
-        generateSound(soundManager, output);
+        generateSound(output);
 
         ZipUtils.writeZipFile(pack, output);
     }
@@ -426,9 +424,9 @@ public class ResourcePack {
         }
     }
 
-    private void generateFont(final FontManager fontManager) {
-        if (!fontManager.autoGenerate)
-            return;
+    private void generateFont() {
+        FontManager fontManager = OraxenPlugin.get().getFontManager();
+        if (!fontManager.autoGenerate) return;
         final JsonObject output = new JsonObject();
         final JsonArray providers = new JsonArray();
         for (final Glyph glyph : fontManager.getGlyphs()) {
@@ -444,7 +442,8 @@ public class ResourcePack {
         writeStringToVirtual("assets/minecraft/font", "default.json", output.toString());
     }
 
-    private void generateSound(final SoundManager soundManager, List<VirtualFile> output) {
+    private void generateSound(List<VirtualFile> output) {
+        SoundManager soundManager = OraxenPlugin.get().getSoundManager();
         if (!soundManager.isAutoGenerate()) return;
 
         List<VirtualFile> soundFiles = output.stream().filter(file -> file.getPath().equals("assets/minecraft/sounds.json")).toList();
@@ -534,36 +533,31 @@ public class ResourcePack {
         addOutputFiles(new VirtualFile(folder, name, new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8))));
     }
 
-    private void getAllFiles(final File directory, final Collection<VirtualFile> fileList,
-                             String newFolder,
-                             final String... blacklisted) {
-        final File[] files = directory.listFiles();
-        final List<String> blacklist = Arrays.asList(blacklisted);
+    private void getAllFiles(File dir, Collection<VirtualFile> fileList, String newFolder, String... excluded) {
+        final File[] files = dir.listFiles();
+        final List<String> blacklist = Arrays.asList(excluded);
         if (files != null) for (final File file : files) {
-            if (!blacklist.contains(file.getName()) && !file.isDirectory())
+            if (file.isDirectory()) getAllFiles(file, fileList, newFolder, excluded);
+            else if (!file.isDirectory() && !blacklist.contains(file.getName()))
                 readFileToVirtuals(fileList, file, newFolder);
-            if (file.isDirectory())
-                getAllFiles(file, fileList, newFolder, blacklisted);
         }
     }
 
-    private void getFilesInFolder(final File dir, final Collection<VirtualFile> fileList,
-                                  String newFolder,
-                                  final String... blacklisted) {
+    private void getFilesInFolder(File dir, Collection<VirtualFile> fileList, String newFolder, String... excluded) {
         final File[] files = dir.listFiles();
         if (files != null) for (final File file : files)
-            if (!file.isDirectory() && !Arrays.asList(blacklisted).contains(file.getName()))
+            if (!file.isDirectory() && !Arrays.asList(excluded).contains(file.getName()))
                 readFileToVirtuals(fileList, file, newFolder);
     }
 
-    private void readFileToVirtuals(final Collection<VirtualFile> fileList, File file, String newFolder) {
-        try {
-            final InputStream fis;
-            if (file.getName().endsWith(".json")) fis = processJsonFile(file);
-            else if (customArmorsTextures.registerImage(file)) return;
-            else fis = new FileInputStream(file);
+    private void readFileToVirtuals(final Collection<VirtualFile> output, File file, String newFolder) {
+        if (customArmorsTextures.registerImage(file)) return;
 
-            fileList.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder), file.getName(), fis));
+        try(FileInputStream fileInputStream = new FileInputStream(file)) {
+            VirtualFile virtualFile = new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder), file.getName(), null);
+            virtualFile.setInputStream(file.getName().endsWith(".json") ? processJsonFile(file) : fileInputStream);
+
+            output.add(virtualFile);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -610,8 +604,7 @@ public class ResourcePack {
     private String getZipFilePath(String path, String newFolder) throws IOException {
         // we want the zipEntry's path to be a relative path that is relative
         // to the directory being zipped, so chop off the rest of the path
-        if (newFolder.equals(packFolder.getCanonicalPath()))
-            return "";
+        if (newFolder.equals(packFolder.getCanonicalPath())) return "";
         String prefix = newFolder.isEmpty() ? newFolder : newFolder + "/";
         return prefix + path.substring(packFolder.getCanonicalPath().length() + 1);
     }

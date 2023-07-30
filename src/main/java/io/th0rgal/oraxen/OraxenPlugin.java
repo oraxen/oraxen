@@ -122,7 +122,7 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager.registerTask();
         hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
         pluginManager.registerEvents(new ItemUpdater(), this);
-        resourcePack.generate(fontManager, soundManager);
+        resourcePack.generate();
         RecipesManager.load(this);
         invManager = new InvManager();
         ArmorEquipEvent.registerListener(this);
