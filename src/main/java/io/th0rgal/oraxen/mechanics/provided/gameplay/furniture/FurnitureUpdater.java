@@ -35,6 +35,11 @@ public class FurnitureUpdater implements Listener {
 
     public static HashSet<Entity> furnitureToUpdate = new HashSet<>();
     public static FurnitureUpdateTask furnitureUpdateTask;
+
+    public static void cancelTask() {
+        if (furnitureUpdateTask != null) furnitureUpdateTask.cancel();
+    }
+
     public static class FurnitureUpdateTask extends BukkitRunnable {
 
         @Override

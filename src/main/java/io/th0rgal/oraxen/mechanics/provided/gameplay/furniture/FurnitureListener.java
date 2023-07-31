@@ -155,12 +155,11 @@ public class FurnitureListener implements Listener {
         ItemStack item = event.getItem();
         FurnitureMechanic mechanic = getMechanic(item, player, block);
 
-        if (mechanic == null) return;
+        if (mechanic == null || item == null || hand != EquipmentSlot.HAND) return;
+        if (block == null || !placedAgainst.canPlace(block.getBlockData())) return;
         if (event.useInteractedBlock() == Event.Result.DENY) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (item == null || hand != EquipmentSlot.HAND) return;
-        if (block == null || !placedAgainst.canPlace(block.getBlockData())) return;
         if (!player.isSneaking() && BlockHelpers.isInteractable(placedAgainst)) return;
 
         final BlockData currentBlockData = block.getBlockData();

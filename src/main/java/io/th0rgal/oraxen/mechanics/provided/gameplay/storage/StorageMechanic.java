@@ -335,7 +335,7 @@ public class StorageMechanic {
 
         gui.setCloseGuiAction(event -> {
             storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
-            if (hasCloseSound() && location.isWorldLoaded() && block.getWorld().isChunkLoaded(block.getChunk()))
+            if (hasCloseSound() && BlockHelpers.isLoaded(block.getLocation()))
                 Objects.requireNonNull(location.getWorld()).playSound(location, closeSound, volume, pitch);
             if (frame != null) playOpenAnimation(frame, closeAnimation);
         });
@@ -377,7 +377,7 @@ public class StorageMechanic {
                     storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents());
                 }
             }
-            if (hasCloseSound() && location.isWorldLoaded() && baseEntity.getWorld().isChunkLoaded(baseEntity.getLocation().getChunk()))
+            if (hasCloseSound() && BlockHelpers.isLoaded(baseEntity.getLocation()))
                 Objects.requireNonNull(location.getWorld()).playSound(location, closeSound, volume, pitch);
             playOpenAnimation(baseEntity, closeAnimation);
         });
