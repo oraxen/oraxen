@@ -234,6 +234,7 @@ public class OraxenBlocks {
             OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedNoteBlockBreakEvent);
             if (noteBlockBreakEvent.isCancelled() || deprecatedNoteBlockBreakEvent.isCancelled()) return;
         }
+
         if (mechanic.hasLight())
             WrappedLightAPI.removeBlockLight(block.getLocation());
         if (player != null && player.getGameMode() != GameMode.CREATIVE)
