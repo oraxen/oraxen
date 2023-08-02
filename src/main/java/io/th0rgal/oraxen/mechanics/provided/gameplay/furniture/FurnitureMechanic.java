@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
@@ -18,6 +19,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlaci
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
@@ -34,6 +36,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
@@ -52,6 +55,8 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -107,6 +112,17 @@ public class FurnitureMechanic extends Mechanic {
             if (OraxenPlugin.supportsDisplayEntities) list.add(ItemDisplay.class);
             return list;
         }
+
+        public static FurnitureType getType(String type) {
+            try {
+                return FurnitureType.valueOf(type);
+            } catch (IllegalArgumentException e) {
+                Logs.logError("Invalid furniture type: " + type + ", set in mechanics.yml.");
+                Logs.logWarning("Using default " + (OraxenPlugin.supportsDisplayEntities ? "DISPLAY_ENTITY" : "ITEM_FRAME"));
+                Logs.newline();
+                return OraxenPlugin.supportsDisplayEntities ? DISPLAY_ENTITY : ITEM_FRAME;
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
@@ -121,7 +137,10 @@ public class FurnitureMechanic extends Mechanic {
         light = Math.min(section.getInt("light", -1), 15);
 
         try {
-            String defaultEntityType = OraxenPlugin.supportsDisplayEntities ? FurnitureType.DISPLAY_ENTITY.name() : FurnitureType.ITEM_FRAME.name();
+            String defaultEntityType;
+            if (OraxenPlugin.supportsDisplayEntities)
+                defaultEntityType = Objects.requireNonNullElse(FurnitureFactory.defaultFurnitureType, FurnitureType.DISPLAY_ENTITY).name();
+            else defaultEntityType = FurnitureType.ITEM_FRAME.name();
             furnitureType = FurnitureType.valueOf(section.getString("type", defaultEntityType));
             if (furnitureType == FurnitureType.DISPLAY_ENTITY && !OraxenPlugin.supportsDisplayEntities) {
                 Logs.logError("Use of Display Entity on unsupported server version.");
@@ -135,6 +154,8 @@ public class FurnitureMechanic extends Mechanic {
             Logs.logWarning("Setting type to ITEM_FRAME for furniture: <gold>" + getItemID());
             furnitureType = FurnitureType.ITEM_FRAME;
         }
+
+        section.set("type", furnitureType.name());
 
         ConfigurationSection displayProperties = section.getConfigurationSection("display_entity_properties");
         displayEntityProperties = OraxenPlugin.supportsDisplayEntities
@@ -191,7 +212,6 @@ public class FurnitureMechanic extends Mechanic {
                 isRotatable = false;
             } else isRotatable = true;
         } else isRotatable = false;
-
     }
 
     public boolean isModelEngine() {
