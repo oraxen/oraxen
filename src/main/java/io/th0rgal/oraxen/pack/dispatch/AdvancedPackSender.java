@@ -1,12 +1,10 @@
 package io.th0rgal.oraxen.pack.dispatch;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolManager;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.wrappers.WrappedChatComponent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
+import io.th0rgal.oraxen.protocol.ProtocolInjector;
+import io.th0rgal.oraxen.protocol.packet.ResourcePackRequest;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import org.bukkit.Bukkit;
@@ -19,14 +17,14 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 public class AdvancedPackSender extends PackSender implements Listener {
 
-    private final ProtocolManager protocolManager;
-    private final WrappedChatComponent component;
+    private final ProtocolInjector protocolInjector;
+    private final String prompt;
 
     public AdvancedPackSender(HostingProvider hostingProvider) {
         super(hostingProvider);
-        protocolManager = OraxenPlugin.get().getProtocolManager();
-        component = WrappedChatComponent.fromJson(GsonComponentSerializer.gson()
-                .serialize(AdventureUtils.MINI_MESSAGE.deserialize(Settings.SEND_PACK_ADVANCED_MESSAGE.toString())));
+        protocolInjector = OraxenPlugin.get().getProtocolInjector();
+        prompt = GsonComponentSerializer.gson()
+                .serialize(AdventureUtils.MINI_MESSAGE.deserialize(Settings.SEND_PACK_ADVANCED_MESSAGE.toString()));
     }
 
     @Override
@@ -41,12 +39,9 @@ public class AdvancedPackSender extends PackSender implements Listener {
 
     @Override
     public void sendPack(Player player) {
-        PacketContainer handle = protocolManager.createPacket(PacketType.Play.Server.RESOURCE_PACK_SEND);
-        handle.getStrings().write(0, hostingProvider.getMinecraftPackURL());
-        handle.getStrings().write(1, hostingProvider.getOriginalSHA1());
-        handle.getBooleans().write(0, Settings.SEND_PACK_ADVANCED_MANDATORY.toBool());
-        handle.getChatComponents().write(0, component);
-        protocolManager.sendServerPacket(player, handle);
+        protocolInjector.sendPacket(player, new ResourcePackRequest(
+                hostingProvider.getMinecraftPackURL(), hostingProvider.getOriginalSHA1(),
+                Settings.SEND_PACK_ADVANCED_MANDATORY.toBool(), prompt));
     }
 
     @EventHandler(priority = EventPriority.NORMAL)

@@ -8,7 +8,6 @@ import com.ticxo.modelengine.api.model.ModeledEntity;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -29,7 +28,6 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Rotation;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
@@ -142,13 +140,11 @@ public class FurnitureMechanic extends Mechanic {
                 : null;
 
         barriers = new ArrayList<>();
-        if (CompatibilitiesManager.hasPlugin("ProtocolLib")) {
-            if (section.getBoolean("barrier", false))
-                barriers.add(new BlockLocation(0, 0, 0));
-            if (section.isList("barriers"))
-                for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
-                    barriers.add(new BlockLocation((Map<String, Object>) barrierObject));
-        }
+        if (section.getBoolean("barrier", false))
+            barriers.add(new BlockLocation(0, 0, 0));
+        if (section.isList("barriers"))
+            for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
+                barriers.add(new BlockLocation((Map<String, Object>) barrierObject));
 
         ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
         if (hitboxSection != null) {

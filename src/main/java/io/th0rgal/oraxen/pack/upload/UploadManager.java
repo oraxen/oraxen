@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.pack.upload;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenPackUploadEvent;
-import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.dispatch.AdvancedPackSender;
@@ -78,11 +77,11 @@ public class UploadManager {
                     AdventureUtils.tagResolver("delay", String.valueOf(System.currentTimeMillis() - time)));
 
             if (packSender == null) {
-                packSender = (CompatibilitiesManager.hasPlugin("ProtocolLib") && Settings.SEND_PACK_ADVANCED.toBool())
+                packSender = Settings.SEND_PACK_ADVANCED.toBool()
                         ? new AdvancedPackSender(hostingProvider) : new BukkitPackSender(hostingProvider);
             } else if (updatePackSender) {
                 packSender.unregister();
-                packSender = (CompatibilitiesManager.hasPlugin("ProtocolLib") && Settings.SEND_PACK_ADVANCED.toBool())
+                packSender = Settings.SEND_PACK_ADVANCED.toBool()
                         ? new AdvancedPackSender(hostingProvider) : new BukkitPackSender(hostingProvider);
             }
 

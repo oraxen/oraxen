@@ -28,7 +28,6 @@ repositories {
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
     maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
     maven("https://jitpack.io") // JitPack
-    maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
     maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
     maven("https://maven.elmakers.com/repository/") // EffectLib
@@ -47,7 +46,6 @@ dependencies {
 
     compileOnly("org.spigotmc:spigot-api:1.20-R0.1-SNAPSHOT")
     compileOnly("io.papermc.paper:paper-api:1.20-R0.1-SNAPSHOT") { exclude("net.kyori") }
-    compileOnly("com.comphenix.protocol:ProtocolLib:5.0.0")
     compileOnly("me.clip:placeholderapi:2.11.3")
     compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
     compileOnly("me.gabytm.util:actions-core:$actionsVersion")
@@ -62,6 +60,7 @@ dependencies {
     compileOnly("io.lumine:MythicLib:1.1.6")
     compileOnly("net.Indyuce:MMOItems:6.7.3")
     compileOnly("org.joml:joml:1.10.5") // Because pre 1.19.4 api does not have this in the server-jar
+    compileOnly("io.netty:netty-all:4.1.96.Final")
 
     implementation("dev.triumphteam:triumph-gui:3.1.5")
     implementation("org.bstats:bstats-bukkit:3.0.0")
@@ -145,7 +144,6 @@ bukkit {
     apiVersion = "1.18"
     authors = listOf("th0rgal", "boy0000")
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards")
-    depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
     libraries = listOf("org.springframework:spring-expression:6.0.6", "org.apache.httpcomponents:httpmime:4.5.13", "dev.jorel:commandapi-bukkit-shade:$commandApiVersion", "org.joml:joml:1.10.5")
     permissions.create("oraxen.command") {

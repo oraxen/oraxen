@@ -1,7 +1,5 @@
 package io.th0rgal.oraxen;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import com.ticxo.playeranimator.PlayerAnimatorImpl;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
@@ -24,6 +22,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureUpdater;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
+import io.th0rgal.oraxen.protocol.ProtocolInjector;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -35,7 +34,6 @@ import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
@@ -61,7 +59,7 @@ public class OraxenPlugin extends JavaPlugin {
     private InvManager invManager;
     private ResourcePack resourcePack;
     private ClickActionManager clickActionManager;
-    private ProtocolManager protocolManager;
+    private ProtocolInjector protocolInjector;
     public static boolean supportsDisplayEntities;
 
     public OraxenPlugin() {
@@ -98,13 +96,11 @@ public class OraxenPlugin extends JavaPlugin {
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
         final PluginManager pluginManager = Bukkit.getPluginManager();
-        if (pluginManager.isPluginEnabled("ProtocolLib")) {
-            protocolManager = ProtocolLibrary.getProtocolManager();
-            new BreakerSystem().registerListener();
-            if (Settings.FORMAT_INVENTORY_TITLES.toBool())
-                protocolManager.addPacketListener(new InventoryPacketListener());
-            protocolManager.addPacketListener(new TitlePacketListener());
-        } else Logs.logWarning("ProtocolLib is not on your server, some features will not work");
+        this.protocolInjector = new ProtocolInjector();
+        new BreakerSystem().registerListener();
+        if (Settings.FORMAT_INVENTORY_TITLES.toBool())
+            new InventoryPacketListener(protocolInjector).registerListener();
+        new TitlePacketListener(protocolInjector).registerListener();
         pluginManager.registerEvents(new CustomArmorListener(), this);
 
         resourcePack = new ResourcePack(this);
@@ -138,6 +134,7 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     private void postLoading() {
+        protocolInjector.inject();
         uploadManager = new UploadManager(this);
         uploadManager.uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
@@ -152,6 +149,7 @@ public class OraxenPlugin extends JavaPlugin {
         FurnitureFactory.unregisterEvolution();
 
         CompatibilitiesManager.disableCompatibilities();
+        protocolInjector.uninject();
         Message.PLUGIN_UNLOADED.log();
     }
 
@@ -162,8 +160,8 @@ public class OraxenPlugin extends JavaPlugin {
         HandlerList.unregisterAll(this);
     }
 
-    public ProtocolManager getProtocolManager() {
-        return protocolManager;
+    public ProtocolInjector getProtocolInjector() {
+        return protocolInjector;
     }
 
     public GestureManager getGesturesManager() {

@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.mechanics.provided.combat.lifeleech.LifeLeechMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.energyblast.EnergyBlastMechanicFactory;
@@ -99,8 +98,7 @@ public class MechanicsManager {
         registerFactory("bottledexp", BottledExpMechanicFactory::new);
         registerFactory("harvesting", HarvestingMechanicFactory::new);
         registerFactory("watering", WateringMechanicFactory::new);
-        if (CompatibilitiesManager.hasPlugin("ProtocolLib"))
-            registerFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
+        registerFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
     }
 
     /**
