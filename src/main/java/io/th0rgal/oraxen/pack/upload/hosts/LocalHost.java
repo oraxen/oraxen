@@ -34,9 +34,16 @@ public class LocalHost implements HostingProvider {
         Logs.logInfo("<blue>Starting Javalin server for hosting ResourcePack locally...");
         int port = Settings.LOCALHOST_PORT.toInt();
         ip = !Settings.LOCALHOST_IP.toString().equals("localhost") ? Settings.LOCALHOST_IP.toString() : !Bukkit.getIp().isEmpty() ? Bukkit.getIp() : getIp();
-        app = Javalin.create().start(port);
         uploadDir = OraxenPlugin.get().getResourcePack().getFile().getParent();
         packUrl = "http://" + ip + ":" + port + "/pack.zip";
+        try {
+            app = Javalin.create().start(port);
+        } catch (Exception e) {
+            Logs.logError("Error hosting ResourcePack locally: ");
+            Logs.logWarning(e.getMessage());
+            Logs.newline();
+            return;
+        }
         setupEndpoints();
         Logs.logSuccess("Local Javalin server started on port " + port);
     }
@@ -105,6 +112,8 @@ public class LocalHost implements HostingProvider {
             return responseCode == HttpURLConnection.HTTP_OK;
         } catch (IOException e) {
             Logs.logWarning("Error uploading pack to localhost: " + e.getMessage());
+            Logs.logWarning("Ensure this port is open and not blocked by firewalls etc.");
+            Logs.newline();
             return false;
         }
     }

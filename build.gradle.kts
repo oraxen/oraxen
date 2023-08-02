@@ -46,6 +46,7 @@ val javaxVersion = "2.4.0-b180830.0359"
 val javalinVersion = "5.6.1"
 val springVersion = "6.0.6"
 val jomlVersion = "1.10.5"
+val httpVersion = "4.5.13"
 dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"
 
@@ -62,12 +63,15 @@ dependencies {
     compileOnly("com.ticxo.modelengine:api:R3.1.5")
     compileOnly(files("libs/compile/BSP.jar"))
     compileOnly("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
-    compileOnly("io.lumine:MythicLib:1.1.6")
-    compileOnly("net.Indyuce:MMOItems:6.7.3")
+    compileOnly("org.apache.httpcomponents:httpclient:$httpVersion")
     compileOnly("io.javalin:javalin:$javalinVersion") // Javalin werbserver for LocalHost
     compileOnly("javax.xml.bind:jaxb-api:$javaxVersion") // Javalin werbserver for LocalHost
     compileOnly("org.springframework:spring-expression:$springVersion")
     compileOnly("org.joml:joml:$jomlVersion") // Because pre 1.19.4 api does not have this in the server-jar
+
+    compileOnly("io.lumine:MythicLib:1.1.6")
+    compileOnly("net.Indyuce:MMOItems:6.7.3")
+
 
     implementation("dev.triumphteam:triumph-gui:3.1.5")
     implementation("org.bstats:bstats-bukkit:3.0.0")
@@ -158,6 +162,7 @@ bukkit {
         "javax.xml.bind:jaxb-api:$javaxVersion",
         "dev.jorel:commandapi-bukkit-shade:$commandApiVersion",
         "org.joml:joml:$jomlVersion",
+        "org.apache.httpcomponents:httpclient:$httpVersion"
         )
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"

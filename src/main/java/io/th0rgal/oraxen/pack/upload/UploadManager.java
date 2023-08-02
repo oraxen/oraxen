@@ -20,10 +20,12 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 
+import java.io.IOException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Parameter;
 import java.nio.file.ProviderNotFoundException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Locale;
 
 public class UploadManager {
