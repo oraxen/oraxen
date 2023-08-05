@@ -92,6 +92,16 @@ public class StringBlockMechanicListener implements Listener {
         if (event.getSourceBlock() == event.getBlock()) return;
         event.setCancelled(true);
 
+        for (BlockFace f : BlockFace.values()) {
+            if (!f.isCartesian() || f.getModY() != 0 || f == BlockFace.SELF) continue; // Only take N/S/W/E
+            final Block changed = block.getRelative(f);
+            if (changed.getType() != Material.TRIPWIRE) continue;
+
+            final BlockData data = changed.getBlockData().clone();
+            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                    changed.setBlockData(data, false), 1L);
+        }
+
         // Stores the pre-change blockdata and applies it on next tick to prevent the block from updating
         final BlockData blockData = block.getBlockData().clone();
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
@@ -112,7 +122,7 @@ public class StringBlockMechanicListener implements Listener {
         if (placedBlock.getType() != Material.TRIPWIRE || OraxenItems.exists(event.getItemInHand()))
             return;
         // Placing string, meant for the first blockstate as invisible string
-        placedBlock.setBlockData(Bukkit.createBlockData(Material.TRIPWIRE), true);
+        placedBlock.setBlockData(Material.TRIPWIRE.createBlockData(), false);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
