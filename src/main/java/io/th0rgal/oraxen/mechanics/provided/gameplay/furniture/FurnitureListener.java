@@ -131,7 +131,8 @@ public class FurnitureListener implements Listener {
             int radius = radiusLimitation.getRadius();
             int amount = radiusLimitation.getAmount();
             if (block.getWorld().getNearbyEntities(block.getLocation(), radius, radius, radius).stream()
-                    .filter(e -> OraxenFurniture.isBaseEntity(e) && OraxenFurniture.getFurnitureMechanic(e).getItemID().equals(mechanic.getItemID()))
+                    .filter(OraxenFurniture::isBaseEntity)
+                    .filter(e -> OraxenFurniture.getFurnitureMechanic(e).getItemID().equals(mechanic.getItemID()))
                     .filter(e -> e.getLocation().distanceSquared(block.getLocation()) <= radius * radius)
                     .count() >= amount) {
                 event.setCancelled(true);
