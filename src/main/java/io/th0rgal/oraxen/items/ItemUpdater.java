@@ -121,8 +121,9 @@ public class ItemUpdater implements Listener {
             if (Settings.OVERRIDE_ITEM_LORE.toBool()) itemMeta.setLore(newMeta.getLore());
             else itemMeta.setLore(oldMeta.getLore());
 
-            // Attribute modifiers are only changable via config so no reason to check old
-            itemMeta.setAttributeModifiers(newMeta.getAttributeModifiers());
+            // Only change AttributeModifiers if the new item has some
+            if (newMeta.hasAttributeModifiers()) itemMeta.setAttributeModifiers(newMeta.getAttributeModifiers());
+            else itemMeta.setAttributeModifiers(oldMeta.getAttributeModifiers());
 
             // Transfer over durability from old item
             if (itemMeta instanceof Damageable damageable && oldMeta instanceof Damageable oldDmg) {
