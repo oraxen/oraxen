@@ -10,9 +10,7 @@ public class SimpleAura extends Aura {
 
     @Override
     protected void spawnParticles(Player player) {
-        player.spawnParticle(mechanic.particle, player.getLocation().add(
-                0, 1, 0
-        ), 2);
+        player.getWorld().spawnParticle(mechanic.particle, player.getLocation().add(0, 1, 0), 2);
     }
 
     @Override
