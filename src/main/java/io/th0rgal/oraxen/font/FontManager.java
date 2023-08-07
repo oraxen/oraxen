@@ -30,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 public class FontManager {
@@ -186,7 +187,7 @@ public class FontManager {
         return output.toString();
     }
 
-    private final Map<Player, List<String>> currentGlyphCompletions = new HashMap<>();
+    private final Map<UUID, List<String>> currentGlyphCompletions = new HashMap<>();
     public void sendGlyphTabCompletion(Player player) {
         List<String> completions = getGlyphByPlaceholderMap().values().stream()
                 .filter(Glyph::hasTabCompletion)
@@ -196,14 +197,14 @@ public class FontManager {
                 .toList();
 
         if (VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R3)) {
-            player.removeCustomChatCompletions(currentGlyphCompletions.getOrDefault(player, new ArrayList<>()));
+            player.removeCustomChatCompletions(currentGlyphCompletions.getOrDefault(player.getUniqueId(), new ArrayList<>()));
             player.addCustomChatCompletions(completions);
-            currentGlyphCompletions.put(player, completions);
+            currentGlyphCompletions.put(player.getUniqueId(), completions);
         }
     }
 
     public void clearGlyphTabCompletions(Player player) {
-        this.currentGlyphCompletions.remove(player);
+        this.currentGlyphCompletions.remove(player.getUniqueId());
     }
 
     public record GlyphBitMap(String texture, int rows, int columns, int ascent, int height) {
