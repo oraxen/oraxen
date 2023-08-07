@@ -38,6 +38,7 @@ public class CommandsManager {
                         (new DebugCommand()).getDebugCommand(),
                         (new ModelDataCommand()).getHighestModelDataCommand(),
                         (new GlyphCommand()).getGlyphCommand(),
+                        (new GlyphInfoCommand()).getGlyphInfoCommand(),
                         (new ItemInfoCommand()).getItemInfoCommand(),
                         (new BlockInfoCommand()).getBlockInfoCommand(),
                         (new HudCommand()).getHudCommand(),

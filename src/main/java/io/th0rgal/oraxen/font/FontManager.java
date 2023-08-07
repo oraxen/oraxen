@@ -16,6 +16,8 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -155,8 +157,24 @@ public class FontManager {
         return getFonts().stream().filter(font -> font.file().equals(file)).findFirst().orElse(null);
     }
 
-    public Glyph getGlyphFromName(final String name) {
-        return glyphMap.get(name) != null ? glyphMap.get(name) : glyphMap.get("required");
+    /**
+     * Get a Glyph from a given Glyph-ID
+     * @param id The Glyph-ID
+     * @return Returns the Glyph if it exists, otherwise the required Glyph
+     */
+    @NotNull
+    public Glyph getGlyphFromName(final String id) {
+        return glyphMap.get(id) != null ? glyphMap.get(id) : glyphMap.get("required");
+    }
+
+    /**
+     * Get a Glyph from a given Glyph-ID
+     * @param id The Glyph-ID
+     * @return Returns the Glyph if it exists, otherwise null
+     */
+    @Nullable
+    public Glyph getGlyphFromID(final String id) {
+        return glyphMap.get(id);
     }
 
     public Glyph getGlyphFromPlaceholder(final String word) {
