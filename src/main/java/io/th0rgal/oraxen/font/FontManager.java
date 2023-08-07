@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.font;
 
-import com.comphenix.protocol.ProtocolManager;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -13,7 +12,6 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
@@ -32,6 +30,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 public class FontManager {
@@ -44,7 +43,6 @@ public class FontManager {
     private final Map<Character, String> reverse;
     private final FontEvents fontEvents;
     private final Set<Font> fonts;
-    private final ProtocolManager protocolManager = OraxenPlugin.get().getProtocolManager();
 
     public FontManager(final ConfigsManager configsManager) {
         final Configuration fontConfiguration = configsManager.getFont();
@@ -204,7 +202,7 @@ public class FontManager {
         return output.toString();
     }
 
-    private final HashMap<Player, List<String>> currentGlyphCompletions = new HashMap<>();
+    private final Map<UUID, List<String>> currentGlyphCompletions = new HashMap<>();
     public void sendGlyphTabCompletion(Player player) {
         List<String> completions = getGlyphByPlaceholderMap().values().stream()
                 .filter(Glyph::hasTabCompletion)
@@ -214,10 +212,14 @@ public class FontManager {
                 .toList();
 
         if (VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R3)) {
-            player.removeCustomChatCompletions(currentGlyphCompletions.getOrDefault(player, new ArrayList<>()));
+            player.removeCustomChatCompletions(currentGlyphCompletions.getOrDefault(player.getUniqueId(), new ArrayList<>()));
             player.addCustomChatCompletions(completions);
-            currentGlyphCompletions.put(player, completions);
+            currentGlyphCompletions.put(player.getUniqueId(), completions);
         }
+    }
+
+    public void clearGlyphTabCompletions(Player player) {
+        this.currentGlyphCompletions.remove(player.getUniqueId());
     }
 
     public record GlyphBitMap(String texture, int rows, int columns, int ascent, int height) {
