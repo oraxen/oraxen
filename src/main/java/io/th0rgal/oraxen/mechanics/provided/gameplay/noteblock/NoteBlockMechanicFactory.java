@@ -8,6 +8,8 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripListener;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Instrument;
 import org.bukkit.Material;
@@ -15,7 +17,9 @@ import org.bukkit.Note;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +57,23 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
                 new LogStripListener()
         );
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockSoundListener());
+
+        if (VersionUtil.isPaperServer()) {
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPaperListener());
+            File paperConfig = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().getParent().getParent().resolve("config").resolve("paper-global.yml").toFile();
+            if (paperConfig.exists()) {
+                ConfigurationSection paperSection = YamlConfiguration.loadConfiguration(paperConfig).getConfigurationSection("block-updates");
+                if (paperSection != null && !paperSection.getBoolean("disable-noteblock-updates", false)) {
+                    Bukkit.getPluginManager().registerEvents(new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener(), OraxenPlugin.get());
+                    MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
+                    Logs.logError("Papers block.updates.disable-noteblock-updates is not enabled.");
+                    Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with noteblocks");
+                    Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");
+                    Logs.logWarning("You can enable this setting in ServerFolder/config/paper-global.yml");
+                    Logs.newline();
+                }
+            }
+        }
     }
 
     public static String getInstrumentName(int id) {
