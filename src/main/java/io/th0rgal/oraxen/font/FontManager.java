@@ -186,7 +186,7 @@ public class FontManager {
         return output.toString();
     }
 
-    private final HashMap<Player, List<String>> currentGlyphCompletions = new HashMap<>();
+    private final Map<Player, List<String>> currentGlyphCompletions = new HashMap<>();
     public void sendGlyphTabCompletion(Player player) {
         List<String> completions = getGlyphByPlaceholderMap().values().stream()
                 .filter(Glyph::hasTabCompletion)
@@ -200,6 +200,10 @@ public class FontManager {
             player.addCustomChatCompletions(completions);
             currentGlyphCompletions.put(player, completions);
         }
+    }
+
+    public void clearGlyphTabCompletions(Player player) {
+        this.currentGlyphCompletions.remove(player);
     }
 
     public record GlyphBitMap(String texture, int rows, int columns, int ascent, int height) {
