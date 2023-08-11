@@ -21,13 +21,11 @@ import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureUpdater;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.NoticeUtils;
 import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
@@ -133,8 +131,6 @@ public class OraxenPlugin extends JavaPlugin {
         } catch (Exception ignore) {
         }
         CompatibilitiesManager.enableNativeCompatibilities();
-        if (VersionUtil.isCompiled()) NoticeUtils.compileNotice();
-        if (VersionUtil.isLeaked()) NoticeUtils.leakNotice();
     }
 
     private void postLoading() {

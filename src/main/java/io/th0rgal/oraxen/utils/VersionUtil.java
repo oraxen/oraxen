@@ -37,7 +37,6 @@ public enum VersionUtil implements Comparable<VersionUtil> {
     UNKNOWN(-1);
 
     private final int value;
-    private static final boolean leaked = JarReader.checkIsLeaked();
 
     VersionUtil(int value) {
         this.value = value;
@@ -199,18 +198,4 @@ public enum VersionUtil implements Comparable<VersionUtil> {
     }
 
     private final static String manifest = JarReader.getManifestContent();
-
-    public static boolean isCompiled() {
-        List<String> split = Arrays.stream(manifest.split(":|\n")).map(String::trim).toList();
-        return Boolean.parseBoolean(split.get(split.indexOf("Compiled") + 1)) && !isValidCompiler();
-    }
-
-    public static boolean isLeaked() {
-        return leaked;
-    }
-
-    public static boolean isValidCompiler() {
-        List<String> split = Arrays.stream(manifest.split(":|\n")).map(String::trim).toList();
-        return Set.of("sivert", "thomas").contains(split.get(split.indexOf("Built-By") + 1).toLowerCase());
-    }
 }

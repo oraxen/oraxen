@@ -14,26 +14,6 @@ import static io.th0rgal.oraxen.utils.JarReader.StringPatternMatching.calculateS
 
 public class JarReader {
 
-    public static boolean checkIsLeaked() {
-        JarFile jarFile = OraxenPlugin.getJarFile();
-        if (jarFile == null) return false;
-        Enumeration<JarEntry> entries = jarFile.entries();
-
-        while (entries.hasMoreElements()) {
-            JarEntry entry = entries.nextElement();
-            String entryName = entry.getName();
-
-            if (!entryName.endsWith(".class")) continue;
-            if (entryName.contains("/")) continue;
-
-            entryName = entry.getName().substring(0, 10);
-
-            if (calculateStringSimilarity(entryName,"DirectLeaks") > 0.8) return true;
-            if (calculateStringSimilarity(entryName,"module-info") > 0.8) return true;
-        }
-        return false;
-    }
-
     public static String getManifestContent() {
         JarFile jarFile = OraxenPlugin.getJarFile();
         if (jarFile == null) return "";
