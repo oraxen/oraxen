@@ -6,10 +6,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Server;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
-
 public enum VersionUtil implements Comparable<VersionUtil> {
 
     v1_20_R1(21),
@@ -196,6 +192,4 @@ public enum VersionUtil implements Comparable<VersionUtil> {
 
         return value <= version.value;
     }
-
-    private final static String manifest = JarReader.getManifestContent();
 }
