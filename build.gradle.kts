@@ -118,15 +118,15 @@ tasks {
 
         manifest {
             attributes(
-                mapOf(
-                    "Built-By" to System.getProperty("user.name"),
-                    "Version" to pluginVersion,
-                    "Build-Timestamp" to SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss.SSSZ").format(Date.from(Instant.now())),
-                    "Created-By" to "Gradle ${gradle.gradleVersion}",
-                    "Build-Jdk" to "${System.getProperty("java.version")} ${System.getProperty("java.vendor")} ${System.getProperty("java.vm.version")}",
-                    "Build-OS" to "${System.getProperty("os.name")} ${System.getProperty("os.arch")} ${System.getProperty("os.version")}",
-                    "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
-                )
+                    mapOf(
+                            "Built-By" to System.getProperty("user.name"),
+                            "Version" to pluginVersion,
+                            "Build-Timestamp" to SimpleDateFormat("yyyy-MM-dd' 'HH:mm:ss.SSSZ").format(Date.from(Instant.now())),
+                            "Created-By" to "Gradle ${gradle.gradleVersion}",
+                            "Build-Jdk" to "${System.getProperty("java.version")} ${System.getProperty("java.vendor")} ${System.getProperty("java.vm.version")}",
+                            "Build-OS" to "${System.getProperty("os.name")} ${System.getProperty("os.arch")} ${System.getProperty("os.version")}",
+                            "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
+                    )
             )
         }
         archiveFileName.set("oraxen-${pluginVersion}.jar")
