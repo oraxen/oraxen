@@ -1,13 +1,23 @@
 package io.th0rgal.oraxen.recipes;
 
+import com.destroystokyo.paper.MaterialSetTag;
+import com.destroystokyo.paper.MaterialTags;
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
 import org.bukkit.inventory.ShapedRecipe;
 import org.bukkit.inventory.ShapelessRecipe;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
+import org.bukkit.material.Dye;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class CustomRecipe {
 
@@ -42,7 +52,7 @@ public class CustomRecipe {
     }
 
     public List<ItemStack> getIngredients() {
-        return ingredients;
+        return !ingredients.isEmpty() ? ingredients : new ArrayList<>();
     }
 
     public boolean isOrdered() {
@@ -55,13 +65,9 @@ public class CustomRecipe {
 
     @Override
     public boolean equals(Object object) {
-        if (object == null)
-            return false;
-        if (object == this)
-            return true;
-        if (object instanceof CustomRecipe customRecipe) {
-            return result.equals(customRecipe.result) && areEqual(ingredients, customRecipe.ingredients);
-        }
+        if (object == null) return false;
+        if (object == this) return true;
+        if (object instanceof CustomRecipe customRecipe) return result.equals(customRecipe.result) && areEqual(ingredients, customRecipe.ingredients);
         return false;
     }
 
@@ -126,5 +132,23 @@ public class CustomRecipe {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Checks if the recipe is a dye recipe
+     * This does not ensure the second ingredient is dyeable,
+     * only that the ingredient is not CustomArmor and therefore dyeable
+     */
+    public boolean isValidDyeRecipe() {
+        if (!isDyeRecipe()) return false;
+        List<ItemStack> items = ingredients.stream().filter(i -> i != null && !i.getType().toString().endsWith("_DYE")).toList();
+        if (items.size() != 1) return false;
+        ItemStack item = items.get(0);
+        if (item == null) return false;
+        return !OraxenItems.exists(item) || !item.hasItemMeta() || !(item.getItemMeta() instanceof LeatherArmorMeta) || item.getType() == Material.LEATHER_HORSE_ARMOR;
+    }
+
+    private boolean isDyeRecipe() {
+        return ingredients.stream().filter(Objects::nonNull).toList().size() == 2 && ingredients.stream().anyMatch(item -> item != null && item.getType().toString().endsWith("_DYE"));
     }
 }

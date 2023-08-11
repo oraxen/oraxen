@@ -20,7 +20,7 @@ public class HelixAura extends Aura {
         double x = radius * Math.cos(2 * y);
         double z = radius * Math.sin(2 * y);
         Location location = player.getLocation().clone().add(x / (1 + y * y * 0.75), y, z / (1 + y * y * 0.75));
-        player.spawnParticle(mechanic.particle, location, 0, 0, 0, 0, 1);
+        player.getWorld().spawnParticle(mechanic.particle, location, 0, 0, 0, 0, 1);
     }
 
     @Override

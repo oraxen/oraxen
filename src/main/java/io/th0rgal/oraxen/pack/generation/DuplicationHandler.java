@@ -365,16 +365,16 @@ public class DuplicationHandler {
     }
 
     private static void handleBowPulling(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, List<String>> pullingModels) {
-        for (JsonElement element : overrides) {
-            JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
-            if (predicate == null) continue;
-            if (!predicate.has("pulling")) continue;
+        for (JsonObject object : overrides.asList().stream().filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).toList()) {
+            if (object.get("predicate") == null || !object.get("predicate").isJsonObject()) continue;
+            JsonObject predicate = object.getAsJsonObject("predicate");
+            if (predicate == null || !predicate.has("pulling")) continue;
             int cmd = predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsInt() : 0;
-            String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
+            String modelPath = object.get("model").toString().replace("\\", "/");
             List<String> newPullingModels = pullingModels.getOrDefault(cmd, new ArrayList<>());
             newPullingModels.add(modelPath);
             pullingModels.put(cmd, newPullingModels);
-            overridesToRemove.add(element);
+            overridesToRemove.add(object);
         }
     }
     private static void handleCrossbowPulling(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> chargedModels) {
@@ -388,13 +388,14 @@ public class DuplicationHandler {
     }
 
     private static void handleExtraPredicates(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> predicateModels, String predicate) {
-        for (JsonElement element : overrides) {
-            JsonObject predicateObject = element.getAsJsonObject().get("predicate").getAsJsonObject();
+        for (JsonObject object : overrides.asList().stream().filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).toList()) {
+            if (object.get("predicate") == null || !object.get("predicate").isJsonObject()) continue;
+            JsonObject predicateObject = object.get("predicate").getAsJsonObject();
             if (predicateObject == null || !predicateObject.has(predicate)) continue;
             int cmd = predicateObject.has("custom_model_data") ? predicateObject.get("custom_model_data").getAsInt() : 0;
-            String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
+            String modelPath = object.get("model").getAsString().replace("\\", "/");
             predicateModels.putIfAbsent(cmd, modelPath);
-            overridesToRemove.add(element);
+            overridesToRemove.add(object);
         }
     }
 

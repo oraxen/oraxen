@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -33,6 +34,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -81,11 +83,12 @@ public class OraxenFurniture {
     public static boolean isBaseEntity(Entity entity) {
         if (entity == null) return false;
         FurnitureMechanic mechanic = getFurnitureMechanic(entity);
-        return mechanic != null && mechanic.getFurnitureEntityType() == entity.getType();
+        // Commented out as this breaks FurnitureUpdating when type is different
+        //return mechanic != null && mechanic.getFurnitureEntityType() == entity.getType();
+        return mechanic != null && (!OraxenPlugin.supportsDisplayEntities || entity.getType() != EntityType.INTERACTION);
     }
 
-    public static boolean isInteractionEntity(Entity entity) {
-        if (entity == null) return false;
+    public static boolean isInteractionEntity(@NotNull Entity entity) {
         FurnitureMechanic mechanic = getFurnitureMechanic(entity);
         return mechanic != null && OraxenPlugin.supportsDisplayEntities && entity.getType() == EntityType.INTERACTION;
     }
@@ -208,8 +211,8 @@ public class OraxenFurniture {
      *
      * @param entity The furniture baseEntity to update
      */
-    public static void updateFurniture(Entity entity) {
-        if (!entity.getLocation().isWorldLoaded() || !entity.getWorld().isChunkLoaded(entity.getLocation().getChunk())) return;
+    public static void updateFurniture(@NotNull Entity entity) {
+        if (!BlockHelpers.isLoaded(entity.getLocation())) return;
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
         if (mechanic == null) return;
         entity = mechanic.getBaseEntity(entity);

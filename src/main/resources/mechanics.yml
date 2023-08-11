@@ -74,8 +74,8 @@ stringblock:
     disable_vanilla_strings: false
     enabled: true
 
-# Only 1.16+
 furniture:
+  default_furniture_type: DISPLAY_ENTITY # DISPLAY_ENTITY, ITEM_FRAME, GLOW_ITEM_FRAME
   tool_types:
     - WOODEN
     - STONE

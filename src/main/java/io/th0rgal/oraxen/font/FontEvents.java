@@ -26,6 +26,7 @@ import org.bukkit.event.player.AsyncPlayerChatEvent;
 import org.bukkit.event.player.PlayerEditBookEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -145,7 +146,7 @@ public class FontEvents implements Listener {
         String displayName = clickedInv.getRenameText();
         ItemStack inputItem = clickedInv.getItem(0);
         ItemStack resultItem = clickedInv.getItem(2);
-        if (resultItem == null) return;
+        if (resultItem == null || !OraxenItems.exists(inputItem)) return;
 
         if (displayName != null) {
             displayName = AdventureUtils.parseLegacyThroughMiniMessage(displayName);
@@ -186,6 +187,11 @@ public class FontEvents implements Listener {
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
         manager.sendGlyphTabCompletion(event.getPlayer());
+    }
+
+    @EventHandler
+    public void onPlayerQuit(PlayerQuitEvent event) {
+        manager.clearGlyphTabCompletions(event.getPlayer());
     }
 
     public class SpigotChatHandler implements Listener {

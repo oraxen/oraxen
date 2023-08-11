@@ -92,6 +92,16 @@ public class StringBlockMechanicListener implements Listener {
         if (event.getSourceBlock() == event.getBlock()) return;
         event.setCancelled(true);
 
+        for (BlockFace f : BlockFace.values()) {
+            if (!f.isCartesian() || f.getModY() != 0 || f == BlockFace.SELF) continue; // Only take N/S/W/E
+            final Block changed = block.getRelative(f);
+            if (changed.getType() != Material.TRIPWIRE) continue;
+
+            final BlockData data = changed.getBlockData().clone();
+            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                    changed.setBlockData(data, false), 1L);
+        }
+
         // Stores the pre-change blockdata and applies it on next tick to prevent the block from updating
         final BlockData blockData = block.getBlockData().clone();
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
@@ -112,7 +122,7 @@ public class StringBlockMechanicListener implements Listener {
         if (placedBlock.getType() != Material.TRIPWIRE || OraxenItems.exists(event.getItemInHand()))
             return;
         // Placing string, meant for the first blockstate as invisible string
-        placedBlock.setBlockData(Bukkit.createBlockData(Material.TRIPWIRE), true);
+        placedBlock.setBlockData(Material.TRIPWIRE.createBlockData(), false);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -180,7 +190,7 @@ public class StringBlockMechanicListener implements Listener {
         final Player player = event.getPlayer();
         StringBlockMechanic mechanic = (StringBlockMechanic) factory.getMechanic(itemID);
 
-        if (mechanic == null) return;
+        if (mechanic == null || placedAgainst == null) return;
         if (!event.getPlayer().isSneaking() && BlockHelpers.isInteractable(placedAgainst)) return;
 
         if (item != null && item.getType().isBlock() && !factory.isNotImplementedIn(itemID)) {
@@ -227,32 +237,30 @@ public class StringBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInteract(final PlayerInteractEvent event) {
         final Block block = event.getClickedBlock();
-        if (event.getAction() == Action.RIGHT_CLICK_BLOCK
-                && block != null
-                && block.getType() == Material.TRIPWIRE) {
-            ItemStack clicked = event.getItem();
-            // Call the event
-            StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
-            if (stringBlockMechanic == null) return;
-            OraxenStringBlockInteractEvent wireBlockInteractEvent = new OraxenStringBlockInteractEvent(stringBlockMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
-            io.th0rgal.oraxen.api.events.OraxenStringBlockInteractEvent deprecatedWireBlockInteractEvent = new io.th0rgal.oraxen.api.events.OraxenStringBlockInteractEvent(stringBlockMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockInteractEvent);
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedWireBlockInteractEvent);
-            if (wireBlockInteractEvent.isCancelled() || deprecatedWireBlockInteractEvent.isCancelled()) {
-                event.setCancelled(true);
-                return;
-            }
+        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (block == null || block.getType() != Material.TRIPWIRE) return;
 
+        ItemStack clicked = event.getItem();
+        // Call the event
+        StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
+        if (stringBlockMechanic == null) return;
+        OraxenStringBlockInteractEvent wireBlockInteractEvent = new OraxenStringBlockInteractEvent(stringBlockMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
+        io.th0rgal.oraxen.api.events.OraxenStringBlockInteractEvent deprecatedWireBlockInteractEvent = new io.th0rgal.oraxen.api.events.OraxenStringBlockInteractEvent(stringBlockMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
+        OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockInteractEvent);
+        OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedWireBlockInteractEvent);
+        if (wireBlockInteractEvent.isCancelled() || deprecatedWireBlockInteractEvent.isCancelled()) {
             event.setCancelled(true);
-            if (clicked == null || clicked.getType().isInteractable()) return;
-
-            Material type = clicked.getType();
-            if (type == Material.LAVA_BUCKET) type = Material.LAVA;
-            else if (type == Material.WATER_BUCKET) type = Material.WATER;
-
-            if (type.isBlock())
-                makePlayerPlaceBlock(event.getPlayer(), event.getHand(), event.getItem(), block, event.getBlockFace(), Bukkit.createBlockData(type));
+            return;
         }
+
+        if (clicked == null || clicked.getType().isInteractable()) return;
+
+        Material type = clicked.getType();
+        if (type == Material.LAVA_BUCKET) type = Material.LAVA;
+        else if (type == Material.WATER_BUCKET) type = Material.WATER;
+
+        if (type.isBlock())
+            makePlayerPlaceBlock(event.getPlayer(), event.getHand(), event.getItem(), block, event.getBlockFace(), Bukkit.createBlockData(type));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

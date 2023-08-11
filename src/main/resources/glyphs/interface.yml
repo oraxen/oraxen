@@ -25,3 +25,8 @@ menu_items_overlay:
   texture: required/ui/menu_items_gems
   ascent: 37
   height: 256
+
+recipe_stonecutter:
+  texture: required/recipe_stonecutter
+  ascent: 40
+  height: 164

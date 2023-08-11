@@ -8,7 +8,6 @@ import com.ticxo.modelengine.api.model.ModeledEntity;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -22,14 +21,12 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
-import io.th0rgal.oraxen.utils.drops.Loot;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Rotation;
-import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
@@ -53,7 +50,6 @@ import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -106,21 +102,35 @@ public class FurnitureMechanic extends Mechanic {
             if (OraxenPlugin.supportsDisplayEntities) list.add(ItemDisplay.class);
             return list;
         }
+
+        public static FurnitureType getType(String type) {
+            try {
+                return FurnitureType.valueOf(type);
+            } catch (IllegalArgumentException e) {
+                Logs.logError("Invalid furniture type: " + type + ", set in mechanics.yml.");
+                Logs.logWarning("Using default " + (OraxenPlugin.supportsDisplayEntities ? "DISPLAY_ENTITY" : "ITEM_FRAME"));
+                Logs.newline();
+                return OraxenPlugin.supportsDisplayEntities ? DISPLAY_ENTITY : ITEM_FRAME;
+            }
+        }
     }
 
     @SuppressWarnings("unchecked")
     public FurnitureMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
-        super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY,
-                PersistentDataType.BYTE, (byte) 1));
+        super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY, PersistentDataType.BYTE, (byte) 1));
 
         hardness = section.getInt("hardness", 1);
-
         placedItemId = section.getString("item", null);
-
         modelEngineID = section.getString("modelengine_id", null);
+        farmlandRequired = section.getBoolean("farmland_required", false);
+        farmblockRequired = section.getBoolean("farmblock_required", false);
+        light = Math.min(section.getInt("light", -1), 15);
 
         try {
-            String defaultEntityType = OraxenPlugin.supportsDisplayEntities ? FurnitureType.DISPLAY_ENTITY.name() : FurnitureType.ITEM_FRAME.name();
+            String defaultEntityType;
+            if (OraxenPlugin.supportsDisplayEntities)
+                defaultEntityType = Objects.requireNonNullElse(FurnitureFactory.defaultFurnitureType, FurnitureType.DISPLAY_ENTITY).name();
+            else defaultEntityType = FurnitureType.ITEM_FRAME.name();
             furnitureType = FurnitureType.valueOf(section.getString("type", defaultEntityType));
             if (furnitureType == FurnitureType.DISPLAY_ENTITY && !OraxenPlugin.supportsDisplayEntities) {
                 Logs.logError("Use of Display Entity on unsupported server version.");
@@ -135,6 +145,8 @@ public class FurnitureMechanic extends Mechanic {
             furnitureType = FurnitureType.ITEM_FRAME;
         }
 
+        section.set("type", furnitureType.name());
+
         ConfigurationSection displayProperties = section.getConfigurationSection("display_entity_properties");
         displayEntityProperties = OraxenPlugin.supportsDisplayEntities
                 ? displayProperties != null
@@ -142,13 +154,11 @@ public class FurnitureMechanic extends Mechanic {
                 : null;
 
         barriers = new ArrayList<>();
-        if (CompatibilitiesManager.hasPlugin("ProtocolLib")) {
-            if (section.getBoolean("barrier", false))
-                barriers.add(new BlockLocation(0, 0, 0));
-            if (section.isList("barriers"))
-                for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
-                    barriers.add(new BlockLocation((Map<String, Object>) barrierObject));
-        }
+        if (section.getBoolean("barrier", false))
+            barriers.add(new BlockLocation(0, 0, 0));
+        if (section.isList("barriers"))
+            for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
+                barriers.add(new BlockLocation((Map<String, Object>) barrierObject));
 
         ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
         if (hitboxSection != null) {
@@ -165,50 +175,23 @@ public class FurnitureMechanic extends Mechanic {
         } else hasSeat = false;
 
         ConfigurationSection evoSection = section.getConfigurationSection("evolution");
-        if (evoSection != null) {
-            evolvingFurniture = new EvolvingFurniture(getItemID(), evoSection);
-            ((FurnitureFactory) getFactory()).registerEvolution();
-        } else evolvingFurniture = null;
+        evolvingFurniture = evoSection != null ? new EvolvingFurniture(getItemID(), evoSection) : null;
+        if (evolvingFurniture != null) ((FurnitureFactory) getFactory()).registerEvolution();
 
-        light = Math.min(section.getInt("light", -1), 15);
+        ConfigurationSection dropSection = section.getConfigurationSection("drop");
+        drop = dropSection != null ? Drop.createDrop(dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
 
-        farmlandRequired = section.getBoolean("farmland_required", false);
-        farmblockRequired = section.getBoolean("farmblock_required", false);
+        ConfigurationSection limitedPlacingSection = section.getConfigurationSection("limited_placing");
+        limitedPlacing = limitedPlacingSection != null ? new LimitedPlacing(limitedPlacingSection) : null;
 
-        List<Loot> loots = new ArrayList<>();
-        if (section.isConfigurationSection("drop")) {
-            ConfigurationSection drop = section.getConfigurationSection("drop");
-            if (drop != null) {
-                for (LinkedHashMap<String, Object> lootConfig : (List<LinkedHashMap<String, Object>>) drop.getList("loots", new ArrayList<>()))
-                    loots.add(new Loot(lootConfig));
+        ConfigurationSection storageSection = section.getConfigurationSection("storage");
+        storage = storageSection != null ? new StorageMechanic(storageSection) : null;
 
-                if (drop.isString("minimal_type")) {
-                    FurnitureFactory mechanic = (FurnitureFactory) mechanicFactory;
-                    List<String> bestTools = drop.isList("best_tools") ? drop.getStringList("best_tools") : new ArrayList<>();
-                    this.drop = new Drop(mechanic.toolTypes, loots, drop.getBoolean("silktouch"),
-                            drop.getBoolean("fortune"), getItemID(),
-                            drop.getString("minimal_type"),
-                            bestTools);
-                } else this.drop =
-                        new Drop(loots, drop.getBoolean("silktouch", false), drop.getBoolean("fortune", false), getItemID());
-            } else this.drop = new Drop(loots, false, false, getItemID());
-        } else drop = new Drop(loots, false, false, getItemID());
+        ConfigurationSection blockSoundsSection = section.getConfigurationSection("block_sounds");
+        blockSounds = blockSoundsSection != null ? new BlockSounds(blockSoundsSection) : null;
 
-        if (section.isConfigurationSection("limited_placing")) {
-            limitedPlacing = new LimitedPlacing(Objects.requireNonNull(section.getConfigurationSection("limited_placing")));
-        } else limitedPlacing = null;
-
-        if (section.isConfigurationSection("storage")) {
-            storage = new StorageMechanic(Objects.requireNonNull(section.getConfigurationSection("storage")));
-        } else storage = null;
-
-        if (section.isConfigurationSection("block_sounds")) {
-            blockSounds = new BlockSounds(Objects.requireNonNull(section.getConfigurationSection("block_sounds")));
-        } else blockSounds = null;
-
-        if (section.isConfigurationSection("jukebox")) {
-            jukebox = new JukeboxBlock(mechanicFactory, Objects.requireNonNull(section.getConfigurationSection("jukebox")));
-        } else jukebox = null;
+        ConfigurationSection jukeboxSection = section.getConfigurationSection("jukebox");
+        jukebox = jukeboxSection != null ? new JukeboxBlock(mechanicFactory, jukeboxSection) : null;
 
         clickActions = ClickAction.parseList(section);
 
@@ -219,7 +202,6 @@ public class FurnitureMechanic extends Mechanic {
                 isRotatable = false;
             } else isRotatable = true;
         } else isRotatable = false;
-
     }
 
     public boolean isModelEngine() {
@@ -604,7 +586,7 @@ public class FurnitureMechanic extends Mechanic {
         if (baseEntity == null) return;
         removeSubEntitiesOfFurniture(baseEntity);
         if (light != -1) WrappedLightAPI.removeBlockLight(baseEntity.getLocation());
-        baseEntity.remove();
+        if (!baseEntity.isDead()) baseEntity.remove();
     }
 
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
@@ -613,7 +595,7 @@ public class FurnitureMechanic extends Mechanic {
 
         if (OraxenPlugin.supportsDisplayEntities) {
             Interaction interaction = getInteractionEntity(baseEntity);
-            if (interaction != null) interaction.remove();
+            if (interaction != null && !interaction.isDead()) interaction.remove();
         }
     }
 
@@ -621,7 +603,7 @@ public class FurnitureMechanic extends Mechanic {
         ArmorStand seat = getSeat(location);
         if (seat != null) {
             seat.getPassengers().forEach(seat::removePassenger);
-            seat.remove();
+            if (!seat.isDead()) seat.remove();
         }
     }
 

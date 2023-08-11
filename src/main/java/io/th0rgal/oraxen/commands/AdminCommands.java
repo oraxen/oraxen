@@ -76,7 +76,7 @@ public class AdminCommands {
                         for (Block block : getBlocks(loc, radius, isRandom)) {
                             if (type.equals("remove")) OraxenFurniture.remove(block.getLocation(), null);
                             if (type.equals("place"))
-                                OraxenFurniture.place(block.getLocation(), "outdoor_rocks_big", Rotation.CLOCKWISE, null);
+                                OraxenFurniture.place(block.getLocation(), id, Rotation.CLOCKWISE, null);
                         }
                     }
                 });

@@ -17,6 +17,11 @@ public enum RemovedSettings {
     UPDATE_FURNITURE_ON_RELOAD("ItemUpdater.update_furniture_on_reload"),
     UPDATE_FURNITURE_ON_LOAD("ItemUpdater.update_furniture_on_load"),
     FURNITURE_UPDATE_DELAY("ItemUpdater.furniture_update_delay_in_seconds"),
+    FURNITURE_UPDATE_DELAY2("FurnitureUpdater.furniture_update_delay_in_seconds"),
+    UPDATE_FURNITURE_ON_LOAD2("FurnitureUpdater.update_furniture_on_load"),
+    UPDATE_FURNITURE_ON_RELOAD2("FurnitureUpdater.update_furniture_on_reload"),
+
+
     ;
 
     private final String path;

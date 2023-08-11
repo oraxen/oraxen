@@ -13,7 +13,6 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.Color;
-import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -27,9 +26,6 @@ import java.util.Map;
 public class CommandsManager {
 
     public void loadCommands() {
-        ConfigurationSection commandsSection =
-                OraxenPlugin.get().getConfigsManager().getSettings().getConfigurationSection("Plugin.commands");
-        if (commandsSection == null) return;
         new CommandAPICommand("oraxen")
                 .withAliases("o", "oxn")
                 .withPermission("oraxen.command")
@@ -41,7 +37,8 @@ public class CommandsManager {
                         (new ReloadCommand()).getReloadCommand(),
                         (new DebugCommand()).getDebugCommand(),
                         (new ModelDataCommand()).getHighestModelDataCommand(),
-                        (new GlyphCommand()).getGlyphCommand(commandsSection),
+                        (new GlyphCommand()).getGlyphCommand(),
+                        (new GlyphInfoCommand()).getGlyphInfoCommand(),
                         (new ItemInfoCommand()).getItemInfoCommand(),
                         (new BlockInfoCommand()).getBlockInfoCommand(),
                         (new HudCommand()).getHudCommand(),

@@ -19,6 +19,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -110,7 +111,7 @@ public class OraxenItems {
     }
 
     public static Map<File, Map<String, ItemBuilder>> getMap() {
-        return map;
+        return map != null ? map : new HashMap<>();
     }
 
     public static Map<String, ItemBuilder> getEntriesAsMap() {

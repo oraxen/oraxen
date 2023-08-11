@@ -47,34 +47,9 @@ public class NoteBlockMechanic extends Mechanic {
          * section used to configure the mechanic
          */
         super(mechanicFactory, section);
-        if (section.isString("model"))
-            model = section.getString("model");
 
+        model = section.getString("model");
         customVariation = section.getInt("custom_variation");
-
-        List<Loot> loots = new ArrayList<>();
-        if (section.isConfigurationSection("drop")) {
-            ConfigurationSection drop = section.getConfigurationSection("drop");
-            for (LinkedHashMap<String, Object> lootConfig : (List<LinkedHashMap<String, Object>>)
-                    drop.getList("loots"))
-                loots.add(new Loot(lootConfig));
-
-            if (drop.isString("minimal_type")) {
-                NoteBlockMechanicFactory mechanic = (NoteBlockMechanicFactory) mechanicFactory;
-                List<String> bestTools = drop.isList("best_tools")
-                        ? drop.getStringList("best_tools")
-                        : new ArrayList<>();
-                this.drop = new Drop(mechanic.toolTypes, loots, drop.getBoolean("silktouch"),
-                        drop.getBoolean("fortune"), getItemID(),
-                        drop.getString("minimal_type"),
-                        bestTools);
-            } else
-                this.drop = new Drop(loots, drop.getBoolean("silktouch"), drop.getBoolean("fortune"),
-                        getItemID());
-        } else
-            drop = new Drop(loots, false, false, getItemID());
-
-        // hardness requires protocollib
         hardness = section.getInt("hardness", 1);
 
         light = Math.min(section.getInt("light", -1), 15);
@@ -82,30 +57,27 @@ public class NoteBlockMechanic extends Mechanic {
         canIgnite = section.getBoolean("can_ignite", false);
         isFalling = section.getBoolean("is_falling", false);
 
-        if (section.isConfigurationSection("farmblock")) {
-            farmBlockDryout = new FarmBlockDryout(getItemID(), Objects.requireNonNull(section.getConfigurationSection("farmblock")));
-            ((NoteBlockMechanicFactory) getFactory()).registerFarmBlock();
-        } else farmBlockDryout = null;
+        ConfigurationSection dropSection = section.getConfigurationSection("drop");
+        drop = Drop.createDrop(dropSection, getItemID());
 
-        if (section.isConfigurationSection("logStrip")) {
-            logStripping = new LogStripping(Objects.requireNonNull(section.getConfigurationSection("logStrip")));
-        } else logStripping = null;
+        ConfigurationSection farmBlockSection = section.getConfigurationSection("farmblock");
+        farmBlockDryout = farmBlockSection != null ? new FarmBlockDryout(getItemID(), farmBlockSection) : null;
+        if (farmBlockDryout != null) ((NoteBlockMechanicFactory) getFactory()).registerFarmBlock();
 
-        if (section.isConfigurationSection("directional")) {
-            directionalBlock = new DirectionalBlock(Objects.requireNonNull(section.getConfigurationSection("directional")));
-        } else directionalBlock = null;
+        ConfigurationSection logStripSection = section.getConfigurationSection("logStrip");
+        logStripping = logStripSection != null ? new LogStripping(logStripSection) : null;
 
-        if (section.isConfigurationSection("limited_placing")) {
-            limitedPlacing = new LimitedPlacing(Objects.requireNonNull(section.getConfigurationSection("limited_placing")));
-        } else limitedPlacing = null;
+        ConfigurationSection directionalSection = section.getConfigurationSection("directional");
+        directionalBlock = directionalSection != null ? new DirectionalBlock(directionalSection) : null;
 
-        if (section.isConfigurationSection("storage")) {
-            storage = new StorageMechanic(Objects.requireNonNull(section.getConfigurationSection("storage")));
-        } else storage = null;
+        ConfigurationSection limitedPlacingSection = section.getConfigurationSection("limited_placing");
+        limitedPlacing = limitedPlacingSection != null ? new LimitedPlacing(limitedPlacingSection) : null;
 
-        if (section.isConfigurationSection("block_sounds")) {
-            blockSounds = new BlockSounds(Objects.requireNonNull(section.getConfigurationSection("block_sounds")));
-        } else blockSounds = null;
+        ConfigurationSection storageSection = section.getConfigurationSection("storage");
+        storage = storageSection != null ? new StorageMechanic(storageSection) : null;
+
+        ConfigurationSection blockSoundsSection = section.getConfigurationSection("block_sounds");
+        blockSounds = blockSoundsSection != null ? new BlockSounds(blockSoundsSection) : null;
     }
 
     public boolean hasLimitedPlacing() { return limitedPlacing != null; }

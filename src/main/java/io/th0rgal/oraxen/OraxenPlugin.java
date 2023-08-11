@@ -93,6 +93,7 @@ public class OraxenPlugin extends JavaPlugin {
         PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
+        supportsDisplayEntities = VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R3);
         reloadConfigs();
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
@@ -109,7 +110,6 @@ public class OraxenPlugin extends JavaPlugin {
 
         resourcePack = new ResourcePack(this);
         MechanicsManager.registerNativeMechanics();
-        supportsDisplayEntities = VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R3);
         //CustomBlockData.registerListener(this); //Handle this manually
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
@@ -148,7 +148,6 @@ public class OraxenPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         unregisterListeners();
-        FurnitureUpdater.furnitureUpdateTask.cancel();
         FurnitureFactory.unregisterEvolution();
 
         CompatibilitiesManager.disableCompatibilities();

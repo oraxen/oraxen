@@ -185,10 +185,8 @@ ItemUpdater:
 
 FurnitureUpdater:
   update_furniture: true
-  update_furniture_on_reload: true # If furniture should be updated on /oraxen reload items/all
-  update_furniture_on_load: true # If Oraxen should update the FurnitureItem whenever an entity is loaded
-  # If Oraxen should update the type if the config changes, i.e ITEM_FRAME -> DISPLAY_ENTITY
-  furniture_update_delay_in_seconds: 5 # Delay between each check for furniture to update
+  update_on_reload: false # If furniture should be updated on /oraxen reload items/all
+  update_on_load: false # If Oraxen should update the FurnitureItem whenever an entity is loaded
   experimental_furniture_type_update: false
   experimental_fix_broken_furniture: false # Attempts to fix furniture that is not placed/broken correctly
 
