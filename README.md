@@ -1,3 +1,7 @@
+# We're not affiliated with Oraxen, this is just a fork to optimize the plugin for our server.
+
+---
+
 <h1 align="center">
   <br>
   <img src="https://oraxen.com/logo.svg" alt="oraxen.com logo" width="256">
