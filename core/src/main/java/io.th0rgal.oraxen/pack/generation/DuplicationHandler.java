@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import io.lumine.mythic.utils.logging.Log;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -237,7 +238,7 @@ public class DuplicationHandler {
                     if (filePathToDelete.toFile().delete())
                         Logs.logSuccess("Deleted the imported <blue>" + Utils.removeParentDirs(name) + "</blue> and migrated it to its supported Oraxen config(s)");
                 } catch (Exception ignored) {
-                    Log.error("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");
+                    Logs.logError("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");
                 }
                 Logs.logSuccess("It is advised to restart your server to ensure that any new conflicts are detected.");
             }
@@ -365,16 +366,16 @@ public class DuplicationHandler {
     }
 
     private static void handleBowPulling(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, List<String>> pullingModels) {
-        for (JsonElement element : overrides) {
-            JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
-            if (predicate == null) continue;
-            if (!predicate.has("pulling")) continue;
+        for (JsonObject object : overrides.asList().stream().filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).toList()) {
+            if (object.get("predicate") == null || !object.get("predicate").isJsonObject()) continue;
+            JsonObject predicate = object.getAsJsonObject("predicate");
+            if (predicate == null || !predicate.has("pulling")) continue;
             int cmd = predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsInt() : 0;
-            String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
+            String modelPath = object.get("model").toString().replace("\\", "/");
             List<String> newPullingModels = pullingModels.getOrDefault(cmd, new ArrayList<>());
             newPullingModels.add(modelPath);
             pullingModels.put(cmd, newPullingModels);
-            overridesToRemove.add(element);
+            overridesToRemove.add(object);
         }
     }
     private static void handleCrossbowPulling(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> chargedModels) {
@@ -388,13 +389,14 @@ public class DuplicationHandler {
     }
 
     private static void handleExtraPredicates(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> predicateModels, String predicate) {
-        for (JsonElement element : overrides) {
-            JsonObject predicateObject = element.getAsJsonObject().get("predicate").getAsJsonObject();
+        for (JsonObject object : overrides.asList().stream().filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).toList()) {
+            if (object.get("predicate") == null || !object.get("predicate").isJsonObject()) continue;
+            JsonObject predicateObject = object.get("predicate").getAsJsonObject();
             if (predicateObject == null || !predicateObject.has(predicate)) continue;
             int cmd = predicateObject.has("custom_model_data") ? predicateObject.get("custom_model_data").getAsInt() : 0;
-            String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
+            String modelPath = object.get("model").getAsString().replace("\\", "/");
             predicateModels.putIfAbsent(cmd, modelPath);
-            overridesToRemove.add(element);
+            overridesToRemove.add(object);
         }
     }
 
@@ -410,7 +412,7 @@ public class DuplicationHandler {
             }
 
             JsonObject sounds = JsonParser.parseString(fileContent).getAsJsonObject();
-            YamlConfiguration soundYaml = YamlConfiguration.loadConfiguration(new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/sound.yml"));
+            YamlConfiguration soundYaml = OraxenYaml.loadConfiguration(new File(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "/sound.yml"));
             for (String id : sounds.keySet()) {
                 if (soundYaml.contains("sounds." + id)) {
                     Logs.logWarning("Sound " + id + " is already defined in sound.yml, skipping");
@@ -455,7 +457,7 @@ public class DuplicationHandler {
             }
         }
         try {
-            return YamlConfiguration.loadConfiguration(file);
+            return OraxenYaml.loadConfiguration(file);
         } catch (Exception e) {
             return null;
         }

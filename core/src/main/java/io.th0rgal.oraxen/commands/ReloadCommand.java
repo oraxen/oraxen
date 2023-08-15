@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureUpdater;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -24,15 +25,15 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.stream.Collectors;
+
 public class ReloadCommand {
 
     public static void reloadItems(@Nullable CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "items"));
         OraxenItems.loadItems();
 
-        if (!Settings.UPDATE_ITEMS.toBool()) return;
-
-        if (Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
+        if (Settings.UPDATE_ITEMS.toBool() && Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
             Logs.logInfo("Updating all items in player-inventories...");
             for (Player player : Bukkit.getServer().getOnlinePlayers()) {
                 PlayerInventory inventory = player.getInventory();
@@ -47,13 +48,10 @@ public class ReloadCommand {
             }
         }
 
-        if (Settings.UPDATE_FURNITURE_ON_RELOAD.toBool()) {
+        if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_RELOAD.toBool()) {
             Logs.logInfo("Updating all placed furniture...");
-            for (World world : Bukkit.getServer().getWorlds()) {
-                for (Entity entity : world.getEntities())
-                    if (OraxenFurniture.isFurniture(entity))
-                        ItemUpdater.furnitureToUpdate.add(entity);
-            }
+            for (World world : Bukkit.getServer().getWorlds())
+                world.getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(OraxenFurniture::updateFurniture);
         }
 
     }
@@ -84,7 +82,7 @@ public class ReloadCommand {
         RecipesManager.reload();
     }
 
-    public CommandAPICommand getReloadCommand() {
+    CommandAPICommand getReloadCommand() {
         return new CommandAPICommand("reload")
                 .withAliases("rl")
                 .withPermission("oraxen.command.reload")

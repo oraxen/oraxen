@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.mechanics.provided.farming.bigmining;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.Constants;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -58,6 +57,7 @@ public class BigMiningMechanicListener implements Listener {
                         continue;
                     breakBlock(player, tempLocation.getBlock(), item);
                 }
+        blocksToProcess = 0;
     }
 
     private void breakBlock(final Player player, final Block block, final ItemStack itemStack) {
@@ -68,7 +68,7 @@ public class BigMiningMechanicListener implements Listener {
         blocksToProcess += 1; // to avoid this method to call itself <- need other way to handle players using
         // the same tool at the same time
         final BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
-        Bukkit.getPluginManager().callEvent(blockBreakEvent);
+        //Bukkit.getPluginManager().callEvent(blockBreakEvent);
         if (!blockBreakEvent.isCancelled()) {
             if (blockBreakEvent.isDropItems())
                 block.breakNaturally(itemStack);

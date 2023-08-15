@@ -23,7 +23,7 @@ public class Logs {
     }
 
     public static void logInfo(String message) {
-        Component info = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><white>" + message + "</white>", AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
+        Component info = AdventureUtils.MINI_MESSAGE.deserialize("<prefix><blue>" + message + "</blue>", AdventureUtils.tagResolver("prefix", Message.PREFIX.toString()));
         OraxenPlugin.get().getAudience().console().sendMessage(info);
     }
 

@@ -182,9 +182,13 @@ ItemUpdater:
   override_renamed_items: false
   override_item_lore: false # If lore should be overriden, enable to ensure it is identical to the OraxenItem's lore
   update_items_on_reload: true # If Oraxen should update all the items of online players on /oraxen reload items/all
-  update_furniture_on_reload: true # If furniture should be updated on /oraxen reload items/all
-  update_furniture_on_load: true # If Oraxen should update the FurnitureItem whenever an entity is loaded
-  furniture_update_delay_in_seconds: 5 # Delay between each check for furniture to update
+
+FurnitureUpdater:
+  update_furniture: true
+  update_on_reload: false # If furniture should be updated on /oraxen reload items/all
+  update_on_load: false # If Oraxen should update the FurnitureItem whenever an entity is loaded
+  experimental_furniture_type_update: false
+  experimental_fix_broken_furniture: false # Attempts to fix furniture that is not placed/broken correctly
 
 Misc:
   # If this is set to true, Oraxen will reset recipes on reload. This might create conflicts with other plugins

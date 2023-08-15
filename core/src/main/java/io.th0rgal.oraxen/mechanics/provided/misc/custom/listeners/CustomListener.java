@@ -35,9 +35,7 @@ public abstract class CustomListener implements Listener {
     }
 
     public void perform(Player player, ItemStack itemStack) {
-        if (!clickAction.canRun(player)) {
-            return;
-        }
+        if (!clickAction.canRun(player)) return;
 
         final Timer playerTimer = timers.getTimer(player);
 

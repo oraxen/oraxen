@@ -13,6 +13,7 @@ public enum Settings {
     PLUGIN_LANGUAGE("Plugin.language"),
     KEEP_UP_TO_DATE("Plugin.keep_this_up_to_date"),
     REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),
+    SHOW_PERMISSION_EMOJIS("Plugin.only_show_emojis_with_permission"),
     GENERATE_DEFAULT_ASSETS("Plugin.generation.default_assets"),
     GENERATE_DEFAULT_CONFIGS("Plugin.generation.default_configs"),
     WORLDEDIT_NOTEBLOCKS("Plugin.worldedit.noteblock_mechanic"),
@@ -44,11 +45,15 @@ public enum Settings {
     // ItemUpdater
     UPDATE_ITEMS("ItemUpdater.update_items"),
     UPDATE_ITEMS_ON_RELOAD("ItemUpdater.update_items_on_reload"),
-    UPDATE_FURNITURE_ON_RELOAD("ItemUpdater.update_furniture_on_reload"),
-    UPDATE_FURNITURE_ON_LOAD("ItemUpdater.update_furniture_on_load"),
-    FURNITURE_UPDATE_DELAY("ItemUpdater.furniture_update_delay_in_seconds"),
     OVERRIDE_RENAMED_ITEMS("ItemUpdater.override_renamed_items"),
     OVERRIDE_ITEM_LORE("ItemUpdater.override_item_lore"),
+
+    // FurnitureUpdater
+    UPDATE_FURNITURE("FurnitureUpdater.update_furniture"),
+    UPDATE_FURNITURE_ON_RELOAD("FurnitureUpdater.update_on_reload"),
+    UPDATE_FURNITURE_ON_LOAD("FurnitureUpdater.update_on_load"),
+    EXPERIMENTAL_FURNITURE_TYPE_UPDATE("FurnitureUpdater.experimental_furniture_type_update"),
+    EXPERIMENTAL_FIX_BROKEN_FURNITURE("FurnitureUpdater.experimental_fix_broken_furniture"),
 
     //Misc
     RESET_RECIPES("Misc.reset_recipes"),

@@ -132,6 +132,7 @@ tasks {
         relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
         relocate("com.jeff_media.customblockdata", "io.th0rgal.oraxen.shaded.customblockdata")
         relocate("com.jeff_media.morepersistentdatatypes", "io.th0rgal.oraxen.shaded.morepersistentdatatypes")
+        relocate("com.jeff_media.persistentdataserializer", "io.th0rgal.oraxen.shaded.persistentdataserializer")
         relocate("com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.if")
         relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
         relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")

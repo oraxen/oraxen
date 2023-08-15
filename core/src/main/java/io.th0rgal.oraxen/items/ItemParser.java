@@ -200,7 +200,10 @@ public class ItemParser {
         if (mechanicsSection != null) for (String mechanicID : mechanicsSection.getKeys(false)) {
             MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
             if (factory != null) {
-                Mechanic mechanic = factory.parse(mechanicsSection.getConfigurationSection(mechanicID));
+                ConfigurationSection mechanicSection = mechanicsSection.getConfigurationSection(mechanicID);
+                if (mechanicSection == null) continue;
+                //if (mechanicID.equals("furniture") && !FurnitureFactory.setDefaultType(mechanicSection)) configUpdated = true;
+                Mechanic mechanic = factory.parse(mechanicSection);
                 // Apply item modifiers
                 for (Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers())
                     item = itemModifier.apply(item);

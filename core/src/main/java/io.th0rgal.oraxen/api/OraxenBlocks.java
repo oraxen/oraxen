@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -32,10 +33,38 @@ import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
 
+import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 
 public class OraxenBlocks {
+
+    /**
+     * Get all OraxenItem ID's that have either a NoteBlockMechanic or a StringBlockMechanic
+     * @return A set of all OraxenItem ID's that have either a NoteBlockMechanic or a StringBlockMechanic
+     */
+    public static Set<String> getBlockIDs() {
+        return Arrays.stream(OraxenItems.getItemNames()).filter(OraxenBlocks::isOraxenBlock).collect(Collectors.toSet());
+    }
+
+    /**
+     * Get all OraxenItem ID's that have a NoteBlockMechanic
+     * @return A set of all OraxenItem ID's that have a NoteBlockMechanic
+     */
+    public static Set<String> getNoteBlockIDs() {
+        return Arrays.stream(OraxenItems.getItemNames()).filter(OraxenBlocks::isOraxenNoteBlock).collect(Collectors.toSet());
+    }
+
+    /**
+     * Get all OraxenItem ID's that have a StringBlockMechanic
+     * @return A set of all OraxenItem ID's that have a StringBlockMechanic
+     */
+    public static Set<String> getStringBlockIDs() {
+        return Arrays.stream(OraxenItems.getItemNames()).filter(OraxenBlocks::isOraxenStringBlock).collect(Collectors.toSet());
+    }
 
     /**
      * Check if a block is an instance of an OraxenBlock
@@ -199,9 +228,10 @@ public class OraxenBlocks {
 
         if (player != null) {
             OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
+            io.th0rgal.oraxen.api.events.OraxenNoteBlockBreakEvent deprecatedNoteBlockBreakEvent = new io.th0rgal.oraxen.api.events.OraxenNoteBlockBreakEvent(mechanic, block, player);
             OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockBreakEvent);
-            if (noteBlockBreakEvent.isCancelled())
-                return;
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedNoteBlockBreakEvent);
+            if (noteBlockBreakEvent.isCancelled() || deprecatedNoteBlockBreakEvent.isCancelled()) return;
         }
 
         if (mechanic.hasLight())
@@ -222,10 +252,10 @@ public class OraxenBlocks {
 
         if (player != null) {
             OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
+            io.th0rgal.oraxen.api.events.OraxenStringBlockBreakEvent deprecatedWireBlockBreakEvent = new io.th0rgal.oraxen.api.events.OraxenStringBlockBreakEvent(mechanic, block, player);
             OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockBreakEvent);
-            if (wireBlockBreakEvent.isCancelled()) {
-                return;
-            }
+            OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedWireBlockBreakEvent);
+            if (wireBlockBreakEvent.isCancelled() || deprecatedWireBlockBreakEvent.isCancelled()) return;
         }
 
         if (mechanic.hasLight())

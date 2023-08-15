@@ -21,6 +21,7 @@ import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureUpdater;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
@@ -92,6 +93,7 @@ public class OraxenPlugin extends JavaPlugin {
         PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
+        supportsDisplayEntities = VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R3);
         reloadConfigs();
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
@@ -108,7 +110,6 @@ public class OraxenPlugin extends JavaPlugin {
 
         resourcePack = new ResourcePack(this);
         MechanicsManager.registerNativeMechanics();
-        supportsDisplayEntities = VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R3);
         //CustomBlockData.registerListener(this); //Handle this manually
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
@@ -147,7 +148,6 @@ public class OraxenPlugin extends JavaPlugin {
     @Override
     public void onDisable() {
         unregisterListeners();
-        ItemUpdater.furnitureUpdateTask.cancel();
         FurnitureFactory.unregisterEvolution();
 
         CompatibilitiesManager.disableCompatibilities();
@@ -175,10 +175,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     public void reloadConfigs() {
         configsManager = new ConfigsManager(this);
-        if (!configsManager.validatesConfig()) {
-            Logs.logError("unable to validate config");
-            getServer().getPluginManager().disablePlugin(this);
-        }
+        configsManager.validatesConfig();
     }
 
     public ConfigsManager getConfigsManager() {

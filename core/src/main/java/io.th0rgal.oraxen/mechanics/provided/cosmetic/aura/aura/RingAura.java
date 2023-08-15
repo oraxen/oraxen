@@ -13,7 +13,7 @@ public class RingAura extends Aura {
     protected void spawnParticles(Player player) {
         for (double i = 0; i < 25; i++) {
             double advancement = Math.PI * 2D * i / 25;
-            player.spawnParticle(mechanic.particle, player.getLocation().add(
+            player.getWorld().spawnParticle(mechanic.particle, player.getLocation().add(
                     0.5D * Math.cos(advancement), 2, 0.5D * Math.sin(advancement)
             ), 1, 0, 0, 0, 0);
         }
