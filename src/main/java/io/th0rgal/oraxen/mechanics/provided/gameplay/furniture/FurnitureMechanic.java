@@ -179,7 +179,7 @@ public class FurnitureMechanic extends Mechanic {
         if (evolvingFurniture != null) ((FurnitureFactory) getFactory()).registerEvolution();
 
         ConfigurationSection dropSection = section.getConfigurationSection("drop");
-        drop = dropSection != null ? Drop.createDrop(dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
+        drop = dropSection != null ? Drop.createDrop(FurnitureFactory.getInstance().toolTypes, dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
 
         ConfigurationSection limitedPlacingSection = section.getConfigurationSection("limited_placing");
         limitedPlacing = limitedPlacingSection != null ? new LimitedPlacing(limitedPlacingSection) : null;

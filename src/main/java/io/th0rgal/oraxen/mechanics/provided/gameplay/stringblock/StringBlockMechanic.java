@@ -43,7 +43,7 @@ public class StringBlockMechanic extends Mechanic {
         hardness = section.getInt("hardness", 1);
 
         ConfigurationSection dropSection = section.getConfigurationSection("drop");
-        drop = dropSection != null ? Drop.createDrop(dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
+        drop = dropSection != null ? Drop.createDrop(StringBlockMechanicFactory.getInstance().toolTypes, dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
 
         ConfigurationSection randomPlaceSection = section.getConfigurationSection("random_place");
         randomPlaceBlock = randomPlaceSection != null ? randomPlaceSection.getStringList("blocks") : new ArrayList<>();
