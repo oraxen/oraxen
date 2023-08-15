@@ -32,9 +32,9 @@ public class Drop {
     final String sourceID;
 
     @SuppressWarnings("unchecked")
-    public static Drop createDrop(@NotNull ConfigurationSection dropSection, String itemID) {
+    public static Drop createDrop(List<String> toolTypes, @NotNull ConfigurationSection dropSection, String itemID) {
         List<Loot> loots = ((List<LinkedHashMap<String, Object>>) dropSection.getList("loots", new ArrayList<>())).stream().map(Loot::new).toList();
-        return new Drop(StringBlockMechanicFactory.getInstance().toolTypes, loots, dropSection.getBoolean("silktouch"),
+        return new Drop(toolTypes, loots, dropSection.getBoolean("silktouch"),
                 dropSection.getBoolean("fortune"), itemID,
                 dropSection.getString("minimal_type", ""), dropSection.getStringList("best_tools"));
     }
