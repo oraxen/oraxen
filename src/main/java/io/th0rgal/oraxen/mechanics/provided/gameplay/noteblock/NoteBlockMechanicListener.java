@@ -157,10 +157,8 @@ public class NoteBlockMechanicListener implements Listener {
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
         if (mechanic == null) return;
         OraxenNoteBlockInteractEvent oraxenEvent = new OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
-        io.th0rgal.oraxen.api.events.OraxenNoteBlockInteractEvent deprecatedOraxenEvent = new io.th0rgal.oraxen.api.events.OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
         Bukkit.getPluginManager().callEvent(oraxenEvent);
-        Bukkit.getPluginManager().callEvent(deprecatedOraxenEvent);
-        if (oraxenEvent.isCancelled() || deprecatedOraxenEvent.isCancelled()) event.setCancelled(true);
+        if (oraxenEvent.isCancelled()) event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -246,11 +244,9 @@ public class NoteBlockMechanicListener implements Listener {
             mechanic = mechanic.getDirectional().getParentMechanic();
 
         OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(mechanic, player, item, hand, block, blockFace);
-        io.th0rgal.oraxen.api.events.OraxenNoteBlockInteractEvent deprecatednoteBlockInteractEvent = new io.th0rgal.oraxen.api.events.OraxenNoteBlockInteractEvent(mechanic, player, item, hand, block, blockFace);
         Bukkit.getPluginManager().callEvent(noteBlockInteractEvent);
-        Bukkit.getPluginManager().callEvent(deprecatednoteBlockInteractEvent);
         event.setUseInteractedBlock(Event.Result.DENY);
-        if (noteBlockInteractEvent.isCancelled() || deprecatednoteBlockInteractEvent.isCancelled()) event.setCancelled(true);
+        if (noteBlockInteractEvent.isCancelled()) event.setCancelled(true);
         if (item == null) return;
 
         Block relative = block.getRelative(blockFace);
@@ -550,10 +546,8 @@ public class NoteBlockMechanicListener implements Listener {
         // This method is ran for placing on custom blocks aswell, so this should not be called for vanilla blocks
         if (OraxenBlocks.isOraxenNoteBlock(target)) {
             final OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(OraxenBlocks.getNoteBlockMechanic(target), target, player, item, hand);
-            final io.th0rgal.oraxen.api.events.OraxenNoteBlockPlaceEvent deprecatedOraxenPlaceEvent = new io.th0rgal.oraxen.api.events.OraxenNoteBlockPlaceEvent(OraxenBlocks.getNoteBlockMechanic(target), target, player, item, hand);
             Bukkit.getPluginManager().callEvent(oraxenPlaceEvent);
-            Bukkit.getPluginManager().callEvent(deprecatedOraxenPlaceEvent);
-            if (oraxenPlaceEvent.isCancelled() || deprecatedOraxenPlaceEvent.isCancelled()) {
+            if (oraxenPlaceEvent.isCancelled()) {
                 target.setBlockData(curentBlockData); // false to cancel physic
                 return null;
             }

@@ -16,7 +16,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -32,7 +31,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
-
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -229,10 +227,8 @@ public class OraxenBlocks {
 
         if (player != null) {
             OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
-            io.th0rgal.oraxen.api.events.OraxenNoteBlockBreakEvent deprecatedNoteBlockBreakEvent = new io.th0rgal.oraxen.api.events.OraxenNoteBlockBreakEvent(mechanic, block, player);
             OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockBreakEvent);
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedNoteBlockBreakEvent);
-            if (noteBlockBreakEvent.isCancelled() || deprecatedNoteBlockBreakEvent.isCancelled()) return;
+            if (noteBlockBreakEvent.isCancelled()) return;
         }
 
         if (mechanic.hasLight())
@@ -253,10 +249,8 @@ public class OraxenBlocks {
 
         if (player != null) {
             OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
-            io.th0rgal.oraxen.api.events.OraxenStringBlockBreakEvent deprecatedWireBlockBreakEvent = new io.th0rgal.oraxen.api.events.OraxenStringBlockBreakEvent(mechanic, block, player);
             OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockBreakEvent);
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedWireBlockBreakEvent);
-            if (wireBlockBreakEvent.isCancelled() || deprecatedWireBlockBreakEvent.isCancelled()) return;
+            if (wireBlockBreakEvent.isCancelled()) return;
         }
 
         if (mechanic.hasLight())
