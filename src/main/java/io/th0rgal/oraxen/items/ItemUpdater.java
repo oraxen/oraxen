@@ -130,6 +130,8 @@ public class ItemUpdater implements Listener {
                 damageable.setDamage(oldDmg.getDamage());
             }
 
+            if (oldMeta.isUnbreakable()) itemMeta.setUnbreakable(true);
+
             if (itemMeta instanceof LeatherArmorMeta leatherMeta && oldMeta instanceof LeatherArmorMeta oldLeatherMeta && newMeta instanceof LeatherArmorMeta newLeatherMeta) {
                 // If it is not custom armor, keep color
                 if (oldItem.getType() == Material.LEATHER_HORSE_ARMOR) leatherMeta.setColor(oldLeatherMeta.getColor());
