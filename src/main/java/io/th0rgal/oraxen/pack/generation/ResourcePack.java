@@ -129,7 +129,8 @@ public class ResourcePack {
 
         // zipping resourcepack
         try {
-            //getFilesInFolder(packFolder, output, packFolder.getCanonicalPath(), packFolder.getName() + ".zip");
+            // Adds all non-directory root files
+            getFilesInFolder(packFolder, output, packFolder.getCanonicalPath(), packFolder.getName() + ".zip");
 
             // needs to be ordered, forEach cannot be used
             File[] files = packFolder.listFiles();
@@ -403,13 +404,11 @@ public class ResourcePack {
     }
 
     private void extractInPackIfNotExists(final JavaPlugin plugin, final File file) {
-        if (!file.exists())
-            plugin.saveResource("pack/" + file.getName(), true);
+        if (!file.exists()) plugin.saveResource("pack/" + file.getName(), true);
     }
 
     private void makeDirsIfNotExists(final File folder) {
-        if (!folder.exists())
-            folder.mkdirs();
+        if (!folder.exists()) folder.mkdirs();
     }
 
     private void generatePredicates(final Map<Material, List<ItemBuilder>> texturedItems) {
@@ -551,13 +550,13 @@ public class ResourcePack {
     }
 
     private void readFileToVirtuals(final Collection<VirtualFile> output, File file, String newFolder) {
-        if (customArmorsTextures.registerImage(file)) return;
+        try {
+            final InputStream fis;
+            if (file.getName().endsWith(".json")) fis = processJsonFile(file);
+            else if (customArmorsTextures.registerImage(file)) return;
+            else fis = new FileInputStream(file);
 
-        try(FileInputStream fileInputStream = new FileInputStream(file)) {
-            VirtualFile virtualFile = new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder), file.getName(), null);
-            virtualFile.setInputStream(file.getName().endsWith(".json") ? processJsonFile(file) : fileInputStream);
-
-            output.add(virtualFile);
+            output.add(new VirtualFile(getZipFilePath(file.getParentFile().getCanonicalPath(), newFolder), file.getName(), fis));
         } catch (IOException e) {
             e.printStackTrace();
         }
