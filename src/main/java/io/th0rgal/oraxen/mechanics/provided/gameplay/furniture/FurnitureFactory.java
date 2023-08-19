@@ -58,6 +58,10 @@ public class FurnitureFactory extends MechanicFactory {
         return mechanic;
     }
 
+    public static boolean isEnabled() {
+        return instance != null;
+    }
+
     public static FurnitureFactory getInstance() {
         return instance;
     }

@@ -151,6 +151,10 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         return BLOCK_PER_VARIATION.get(customVariation);
     }
 
+    public static boolean isEnabled() {
+        return instance != null;
+    }
+
     public static NoteBlockMechanicFactory getInstance() {
         return instance;
     }

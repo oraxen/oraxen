@@ -75,6 +75,10 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         return BLOCK_PER_VARIATION.get(customVariation);
     }
 
+    public static boolean isEnabled() {
+        return instance != null;
+    }
+
     public static StringBlockMechanicFactory getInstance() {
         return instance;
     }
