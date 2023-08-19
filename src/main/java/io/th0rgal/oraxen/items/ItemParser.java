@@ -83,21 +83,18 @@ public class ItemParser {
     }
 
     public ItemBuilder buildItem() {
-        return buildItem(section.contains("displayname") ? parseComponentDisplayName(section.getString("displayname")) : null);
-    }
-
-    public ItemBuilder buildItem(String name) {
         ItemBuilder item;
         if (usesCrucibleItems()) item = new ItemBuilder(crucibleItem);
         else if (usesMMOItems()) item = new ItemBuilder(mmoItem);
         else item = new ItemBuilder(type);
 
-        if (name != null)
-            item.setDisplayName(name);
         return applyConfig(item);
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
+
+        if (section.contains("displayname"))
+            item.setDisplayName(parseComponentDisplayName(section.getString("displayname")));
 
         if (section.contains("lore")) {
             List<String> lore = section.getStringList("lore");

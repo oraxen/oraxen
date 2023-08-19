@@ -11,8 +11,6 @@ import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FileUtils;
-import org.apache.maven.model.Model;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -304,12 +302,10 @@ public class ConfigsManager {
             try {
                 map.put(entry.getKey(), itemParser.buildItem());
             } catch (Exception e) {
-                continue;
-                /*map.put(entry.getKey(),
-                        errorItem.buildItem(String.valueOf(ChatColor.DARK_RED) + ChatColor.BOLD
-                                + e.getClass().getSimpleName() + ": " + ChatColor.RED + entry.getKey()));
+                map.put(entry.getKey(),
+                        errorItem.buildItem());
                 Logs.logError("ERROR BUILDING ITEM \"" + entry.getKey() + "\"");
-                e.printStackTrace();*/
+                e.printStackTrace();
             }
             if (itemParser.isConfigUpdated())
                 configUpdated = true;
