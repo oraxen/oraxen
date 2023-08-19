@@ -267,8 +267,8 @@ public class FurnitureListener implements Listener {
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, entity, player, entity.getLocation().getBlock());
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
         if (furnitureBreakEvent.isCancelled()) return;
-
-        OraxenFurniture.remove(entity, player);
+        entity.remove();
+        //OraxenFurniture.remove(entity, player);
     }
 
     //TODO This should take hardness into account.

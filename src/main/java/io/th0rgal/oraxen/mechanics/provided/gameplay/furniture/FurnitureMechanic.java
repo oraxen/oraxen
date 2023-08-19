@@ -377,7 +377,7 @@ public class FurnitureMechanic extends Mechanic {
         Entity baseEntity = location.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), entityClass, (entity) ->
                 setEntityData(entity, yaw, item, facing));
         if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
-            spawnModelEngineFurniture(baseEntity, yaw);
+            spawnModelEngineFurniture(baseEntity);
         }
 
         return baseEntity;
@@ -528,7 +528,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void spawnModelEngineFurniture(Entity entity, float yaw) {
+    void spawnModelEngineFurniture(Entity entity) {
         ModeledEntity modelEntity = ModelEngineAPI.getOrCreateModeledEntity(entity);
         ActiveModel activeModel = ModelEngineAPI.createActiveModel(ModelEngineAPI.getBlueprint(getModelEngineID()));
 
