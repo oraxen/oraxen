@@ -30,7 +30,12 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.*;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockFromToEvent;
+import org.bukkit.event.block.BlockPhysicsEvent;
+import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
@@ -90,8 +95,7 @@ public class StringBlockMechanicListener implements Listener {
             if (changed.getType() != Material.TRIPWIRE) continue;
 
             final BlockData data = changed.getBlockData().clone();
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                    changed.setBlockData(data, false), 1L);
+            OraxenPlugin.foliaLib.getImpl().runAtLocationLater(changed.getLocation(), () -> changed.setBlockData(data, false), 1L);
         }
     }
 
@@ -191,8 +195,7 @@ public class StringBlockMechanicListener implements Listener {
                 if (item.getType().toString().endsWith("SLAB")) continue;
 
                 makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), Bukkit.createBlockData(item.getType()));
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                        fixClientsideUpdate(placedAgainst.getLocation()), 1L);
+                OraxenPlugin.foliaLib.getImpl().runAtLocationLater(placedAgainst.getLocation(), () -> fixClientsideUpdate(placedAgainst.getLocation()), 1);
             }
         }
 
@@ -263,8 +266,7 @@ public class StringBlockMechanicListener implements Listener {
             if (block.getRelative(face).getType() == Material.TRIPWIRE) {
                 block.breakNaturally(player.getInventory().getItemInMainHand());
                 if (BlockHelpers.isReplaceable(blockAbove.getType())) blockAbove.breakNaturally();
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                        fixClientsideUpdate(block.getLocation()), 1);
+                OraxenPlugin.foliaLib.getImpl().runAtLocationLater(block.getLocation(), () -> fixClientsideUpdate(block.getLocation()), 1);
             }
         }
 

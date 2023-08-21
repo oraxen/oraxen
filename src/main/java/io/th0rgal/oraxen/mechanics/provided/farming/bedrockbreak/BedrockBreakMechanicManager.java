@@ -3,19 +3,16 @@ package io.th0rgal.oraxen.mechanics.provided.farming.bedrockbreak;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
-import org.bukkit.*;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Particle;
+import org.bukkit.Sound;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitScheduler;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class BedrockBreakMechanicManager {
-
-    private final Map<Location, BukkitScheduler> breakerPerLocation = new HashMap<>();
-
 
     public BedrockBreakMechanicManager(BedrockBreakMechanicFactory factory) {
         BreakerSystem.MODIFIERS.add(new HardnessModifier() {

@@ -14,7 +14,7 @@ plugins {
 }
 
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
-val pluginPath = project.findProperty("oraxen_plugin_path")
+val pluginPath = project.findProperty("oraxen_folia_plugin_path")
 val pluginVersion: String by project
 group = "io.th0rgal"
 version = pluginVersion
@@ -79,7 +79,7 @@ dependencies {
     implementation("com.ticxo:PlayerAnimator:R1.2.7")
     implementation("org.jetbrains:annotations:24.0.1") { isTransitive = false }
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
-    implementation("com.tcoded:FoliaLib:0.2.0")
+    implementation("com.tcoded:FoliaLib:0.2.5")
 }
 
 tasks {
@@ -134,7 +134,6 @@ tasks {
         }
         if (!compiled) exclude("io/th0rgal/oraxen/CompileNotice\$PrintNotice.class")
         archiveFileName.set("oraxen-${pluginVersion}.jar")
-        minimize()
     }
 
     compileJava.get().dependsOn(clean)
