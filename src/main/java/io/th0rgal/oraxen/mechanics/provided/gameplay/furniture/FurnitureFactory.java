@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxListener;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.List;
@@ -31,6 +32,7 @@ public class FurnitureFactory extends MechanicFactory {
         evolutionCheckDelay = section.getInt("evolution_check_delay");
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new FurnitureListener(this),
+                new FurnitureDamageListener(),
                 new FurnitureUpdater(),
                 new EvolutionListener(),
                 new JukeboxListener()

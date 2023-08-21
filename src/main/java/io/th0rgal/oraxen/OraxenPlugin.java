@@ -102,7 +102,8 @@ public class OraxenPlugin extends JavaPlugin {
         final PluginManager pluginManager = Bukkit.getPluginManager();
         if (pluginManager.isPluginEnabled("ProtocolLib")) {
             protocolManager = ProtocolLibrary.getProtocolManager();
-            new BreakerSystem().registerListener();
+            if (!VersionUtil.isFoliaServer()) new BreakerSystem().registerListener();
+            else Logs.logError("BreakerSystem is not supported on Folia servers yet");
             if (Settings.FORMAT_INVENTORY_TITLES.toBool())
                 protocolManager.addPacketListener(new InventoryPacketListener());
             protocolManager.addPacketListener(new TitlePacketListener());

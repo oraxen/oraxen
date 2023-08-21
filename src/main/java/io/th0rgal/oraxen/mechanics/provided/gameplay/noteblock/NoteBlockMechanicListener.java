@@ -12,8 +12,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
-import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.GameEvent;
@@ -65,10 +63,6 @@ import static io.th0rgal.oraxen.utils.BlockHelpers.getAnvilFacing;
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
 public class NoteBlockMechanicListener implements Listener {
-
-    public NoteBlockMechanicListener() {
-        BreakerSystem.MODIFIERS.add(getHardnessModifier());
-    }
 
     public static class NoteBlockMechanicPaperListener implements Listener {
 
@@ -466,48 +460,6 @@ public class NoteBlockMechanicListener implements Listener {
         OraxenBlocks.remove(blockAbove.getLocation(), null);
         blockAbove.getWorld().spawnFallingBlock(fallingLocation, fallingData);
         handleFallingOraxenBlockAbove(blockAbove);
-    }
-
-    private HardnessModifier getHardnessModifier() {
-        return new HardnessModifier() {
-
-            @Override
-            public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                if (block.getType() != Material.NOTE_BLOCK)
-                    return false;
-
-                NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
-                if (mechanic == null) return false;
-
-                if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
-                    mechanic = mechanic.getDirectional().getParentMechanic();
-
-                return mechanic.hasHardness();
-            }
-
-            @Override
-            public void breakBlock(final Player player, final Block block, final ItemStack tool) {
-                block.setType(Material.AIR);
-            }
-
-            @Override
-            public long getPeriod(final Player player, final Block block, final ItemStack tool) {
-                NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
-                if (mechanic == null) return 0;
-                if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
-                    mechanic = mechanic.getDirectional().getParentMechanic();
-
-                final long period = mechanic.getHardness();
-                double modifier = 1;
-                if (mechanic.getDrop().canDrop(tool)) {
-                    modifier *= 0.4;
-                    final int diff = mechanic.getDrop().getDiff(tool);
-                    if (diff >= 1)
-                        modifier *= Math.pow(0.9, diff);
-                }
-                return (long) (period * modifier);
-            }
-        };
     }
 
     public Block makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,

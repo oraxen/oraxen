@@ -54,6 +54,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         );
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new NoteBlockMechanicListener(),
+                new NoteBlockDamageListener(),
                 new LogStripListener()
         );
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockSoundListener());
