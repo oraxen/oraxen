@@ -24,7 +24,7 @@ java {
 repositories {
     mavenCentral()
 
-    maven("https://papermc.io/repo/repository/maven-public/") // Paper
+    maven("https://repo.papermc.io/repository/maven-public/") // Paper
     maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
     maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
     maven("https://jitpack.io") // JitPack
@@ -38,6 +38,7 @@ repositories {
     //maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
     maven("https://repo.mineinabyss.com/releases") // PlayerAnimator
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
+    maven("https://nexuslite.gcnt.net/repos/other/") // FoliaSchedulers
     maven("https://maven.enginehub.org/repo/")
     maven("https://nexuslite.gcnt.net/repos/other/") // FoliaLib
 }
@@ -46,8 +47,8 @@ val commandApiVersion = "9.0.3"
 dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"
 
-    compileOnly("org.spigotmc:spigot-api:1.20-R0.1-SNAPSHOT")
-    compileOnly("io.papermc.paper:paper-api:1.20-R0.1-SNAPSHOT") { exclude("net.kyori") }
+    compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT") { exclude("org.bukkit")}
+    compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT") { exclude("net.kyori") }
     compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
     compileOnly("me.clip:placeholderapi:2.11.3")
     compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")

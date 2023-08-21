@@ -25,8 +25,7 @@ public class GestureManager {
         gesturingPlayers = new HashMap<>();
         if (VersionUtil.isFoliaServer()) {
             Logs.logError("Folia server detected, disabling gestures");
-        }
-        if (Settings.GESTURES_ENABLED.toBool()) {
+        } else if (Settings.GESTURES_ENABLED.toBool()) {
             loadGestures();
             Bukkit.getPluginManager().registerEvents(new GestureListener(this), OraxenPlugin.get());
         }

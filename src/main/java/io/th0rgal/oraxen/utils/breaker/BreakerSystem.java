@@ -9,10 +9,10 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
+import com.tcoded.folialib.wrapper.task.WrappedTask;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
-import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureDamageEvent;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockDamageEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockDamageEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
@@ -41,22 +41,19 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitScheduler;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory.getBlockMechanic;
 
 public class BreakerSystem {
 
     public static final List<HardnessModifier> MODIFIERS = new ArrayList<>();
-    private final Map<Location, BukkitScheduler> breakerPerLocation = new HashMap<>();
+    private final Map<Location, WrappedTask> breakerPerLocation = new HashMap<>();
     private final List<Block> breakerPlaySound = new ArrayList<>();
     private final ProtocolManager protocolManager;
     private final PacketAdapter listener = new PacketAdapter(OraxenPlugin.get(),
@@ -104,44 +101,34 @@ public class BreakerSystem {
 
             final Location location = block.getLocation();
             if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
-                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
-                        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING,
-                                (int) (period * 11),
-                                Integer.MAX_VALUE,
-                                false, false, false)));
+                OraxenPlugin.foliaLib.getImpl().runAtEntity(player, () -> player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING,
+                        (int) (period * 11),
+                        Integer.MAX_VALUE,
+                        false, false, false)));
                 BlockSounds blockSounds = getBlockSounds(block);
                 if (blockSounds != null)
                     BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getHitVolume(), blockSounds.getHitPitch());
                 if (breakerPerLocation.containsKey(location))
-                    breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
+                    breakerPerLocation.get(location).cancel();
 
-                final BukkitScheduler scheduler = Bukkit.getScheduler();
                 // Cancellation state is being ignored.
                 // However still needs to be called for plugin support.
                 final PlayerInteractEvent playerInteractEvent =
                         new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK, player.getInventory().getItemInMainHand(), block, blockFace, EquipmentSlot.HAND);
-                scheduler.runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
+                OraxenPlugin.foliaLib.getImpl().runNextTick(() -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
 
                 // If the relevant damage event is cancelled, return
                 if (blockDamageEventCancelled(block, player)) return;
 
-                breakerPerLocation.put(location, scheduler);
                 final HardnessModifier modifier = triggeredModifier;
 
-                scheduler.runTaskTimer(OraxenPlugin.get(), new Consumer<>() {
+                breakerPerLocation.put(location, OraxenPlugin.foliaLib.getImpl().runAtLocationTimer(location, () -> {
                     int value = 0;
 
-                    @Override
-                    public void accept(final BukkitTask bukkitTask) {
-                        // Methods for sending multi-barrier block-breaks
+                    if (breakerPerLocation.containsKey(location))  {
                         final FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
                         final Entity furnitureBaseEntity = furnitureMechanic != null ? furnitureMechanic.getBaseEntity(block) : null;
                         final List<Location> furnitureBarrierLocations = furnitureMechanic != null && furnitureBaseEntity != null ? furnitureMechanic.getLocations(FurnitureMechanic.getFurnitureYaw(furnitureBaseEntity), furnitureBaseEntity.getLocation(), furnitureMechanic.getBarriers()) : Collections.singletonList(block.getLocation());
-
-                        if (!breakerPerLocation.containsKey(location)) {
-                            bukkitTask.cancel();
-                            return;
-                        }
 
                         if (item.getEnchantmentLevel(Enchantment.DIG_SPEED) >= 5)
                             value = 10;
@@ -165,9 +152,7 @@ public class BreakerSystem {
                             Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
                         } else breakerPlaySound.remove(block);
 
-                        Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
-                                player.removePotionEffect(PotionEffectType.SLOW_DIGGING));
-                        breakerPerLocation.remove(location);
+                        OraxenPlugin.foliaLib.getImpl().runAtEntity(player, () -> player.removePotionEffect(PotionEffectType.SLOW_DIGGING));
                         for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
                             if (entity instanceof Player viewer) {
                                 if (furnitureMechanic != null) {
@@ -176,11 +161,11 @@ public class BreakerSystem {
                                 } else sendBlockBreak(viewer, location, value);
                             }
                         }
-                        bukkitTask.cancel();
+                        breakerPerLocation.remove(location).cancel();
                     }
-                }, period, period);
+                }, period, period));
             } else {
-                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
+                OraxenPlugin.foliaLib.getImpl().runAtEntity(player, () -> {
                     player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
                     if (!ProtectionLib.canBreak(player, block.getLocation()))
                         player.sendBlockChange(block.getLocation(), block.getBlockData());
@@ -188,7 +173,7 @@ public class BreakerSystem {
                     for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
                         if (entity instanceof Player viewer)
                             sendBlockBreak(viewer, location, 10);
-                    breakerPerLocation.remove(location);
+                    breakerPerLocation.remove(location).cancel();
                 });
             }
         }
@@ -205,33 +190,19 @@ public class BreakerSystem {
                 NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
                 if (mechanic == null) return true;
                 OraxenNoteBlockDamageEvent event = new OraxenNoteBlockDamageEvent(mechanic, block, player);
-                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
-                    Bukkit.getPluginManager().callEvent(event);
-                });
+                OraxenPlugin.foliaLib.getImpl().runNextTick(() -> Bukkit.getPluginManager().callEvent(event));
                 return event.isCancelled();
             }
             case TRIPWIRE -> {
                 StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
                 if (mechanic == null) return true;
                 OraxenStringBlockDamageEvent event = new OraxenStringBlockDamageEvent(mechanic, block, player);
-                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
-                    Bukkit.getPluginManager().callEvent(event);
-                });
+                OraxenPlugin.foliaLib.getImpl().runNextTick(() -> Bukkit.getPluginManager().callEvent(event));
                 return event.isCancelled();
             }
             case BARRIER -> {
                 try {
-                    return Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
-                        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
-                        if (mechanic == null) return true;
-                        Entity baseEntity = mechanic.getBaseEntity(block);
-                        if (baseEntity == null) return true;
-                        OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block);
-                        Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
-                            Bukkit.getPluginManager().callEvent(event);
-                        });
-                        return event.isCancelled();
-                    }).get();
+                    return false; //return Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), ).get();
                 } catch (Exception e) {
                     return false;
                 }
@@ -255,8 +226,7 @@ public class BreakerSystem {
             BlockSounds blockSounds = getBlockSounds(block);
             if (blockSounds != null && blockSounds.hasHitSound())
                 BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getHitVolume(), blockSounds.getHitPitch());
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                    breakerPlaySound.remove(block), 3L);
+            OraxenPlugin.foliaLib.getImpl().runLater(() -> breakerPlaySound.remove(block), 3L);
         }
 
         protocolManager.sendServerPacket(player, packet);

@@ -58,7 +58,7 @@ public class WorldEditHandlers {
                     if (replacingMechanic instanceof StringBlockMechanic && !Settings.WORLDEDIT_STRINGBLOCKS.toBool()) return super.setBlock(pos, block);
                     if (replacingMechanic instanceof NoteBlockMechanic && !Settings.WORLDEDIT_NOTEBLOCKS.toBool()) return super.setBlock(pos, block);
 
-                    Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> OraxenBlocks.remove(loc, null));
+                    OraxenPlugin.foliaLib.getImpl().runAtLocation(loc, () -> OraxenBlocks.remove(loc, null));
                 }
 
                 return getExtent().setBlock(pos, block);

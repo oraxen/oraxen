@@ -68,9 +68,8 @@ public class StringBlockMechanicListener implements Listener {
                 if (changed.getType() != Material.TRIPWIRE) continue;
 
                 final BlockData data = changed.getBlockData().clone();
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                        changed.setBlockData(data, false), 1L);
-            }
+                OraxenPlugin.foliaLib.getImpl().runAtLocationLater(changed.getLocation(), () -> changed.setBlockData(data, false), 1L);
+        }
 
             // Stores the pre-change blockdata and applies it on next tick to prevent the block from updating
             final BlockData blockData = block.getBlockData().clone();
@@ -196,8 +195,7 @@ public class StringBlockMechanicListener implements Listener {
                 if (item.getType().toString().endsWith("SLAB")) continue;
 
                 makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), Bukkit.createBlockData(item.getType()));
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                        fixClientsideUpdate(placedAgainst.getLocation()), 1L);
+                OraxenPlugin.foliaLib.getImpl().runAtLocationLater(placedAgainst.getLocation(), () -> fixClientsideUpdate(placedAgainst.getLocation()), 1);
             }
         }
 
@@ -253,8 +251,7 @@ public class StringBlockMechanicListener implements Listener {
             if (block.getRelative(face).getType() == Material.TRIPWIRE) {
                 block.breakNaturally(player.getInventory().getItemInMainHand());
                 if (BlockHelpers.isReplaceable(blockAbove.getType())) blockAbove.breakNaturally();
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                        fixClientsideUpdate(block.getLocation()), 1);
+                OraxenPlugin.foliaLib.getImpl().runAtLocationLater(block.getLocation(), () -> fixClientsideUpdate(block.getLocation()), 1);
             }
         }
 

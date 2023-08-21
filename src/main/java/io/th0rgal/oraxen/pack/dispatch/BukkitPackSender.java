@@ -38,9 +38,7 @@ public class BukkitPackSender extends PackSender implements Listener {
             int delay = (int) Settings.SEND_PACK_DELAY.getValue();
             if (delay <= 0)
                 sendPack(event.getPlayer());
-            else Bukkit.getScheduler().runTaskLaterAsynchronously(OraxenPlugin.get(),
-                    () -> sendPack(event.getPlayer()),
-                    delay * 20L);
+            else OraxenPlugin.foliaLib.getImpl().runLater(() -> sendPack(event.getPlayer()), delay * 20L);
         }
     }
 }

@@ -7,7 +7,6 @@ import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import net.kyori.adventure.title.Title;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -29,14 +28,14 @@ public class PackReceiver implements Listener {
             case FAILED_DOWNLOAD -> new PackAction(Settings.RECEIVE_FAILED_ACTIONS.toConfigSection(), playerResolver);
             case SUCCESSFULLY_LOADED -> new PackAction(Settings.RECEIVE_LOADED_ACTIONS.toConfigSection(), playerResolver);
         };
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+        OraxenPlugin.foliaLib.getImpl().runLater(() -> {
             if (packAction.hasMessage())
                 sendMessage(event.getPlayer(), packAction.getMessageType(), packAction.getMessageContent());
             if (packAction.hasSound())
                 packAction.playSound(event.getPlayer(), event.getPlayer().getLocation());
 
             packAction.getCommandsParser().perform(event.getPlayer());
-        }, packAction.getDelay());
+        }, packAction.getDelay() > 0 ? packAction.getDelay() : 1);
     }
 
     private void sendMessage(Player receiver, String action, Component message) {

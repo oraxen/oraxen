@@ -11,15 +11,8 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitScheduler;
-
-import java.util.HashMap;
-import java.util.Map;
 
 public class BedrockBreakMechanicManager {
-
-    private final Map<Location, BukkitScheduler> breakerPerLocation = new HashMap<>();
-
 
     public BedrockBreakMechanicManager(BedrockBreakMechanicFactory factory) {
         BreakerSystem.MODIFIERS.add(new HardnessModifier() {

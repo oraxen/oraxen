@@ -12,20 +12,16 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureUpdater;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.Nullable;
-
-import java.util.stream.Collectors;
 
 public class ReloadCommand {
 
@@ -36,8 +32,8 @@ public class ReloadCommand {
         if (Settings.UPDATE_ITEMS.toBool() && Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
             Logs.logInfo("Updating all items in player-inventories...");
             for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-                PlayerInventory inventory = player.getInventory();
-                Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
+                OraxenPlugin.foliaLib.getImpl().runAtEntity(player, () -> {
+                    PlayerInventory inventory = player.getInventory();
                     for (int i = 0; i < inventory.getSize(); i++) {
                         ItemStack oldItem = inventory.getItem(i);
                         ItemStack newItem = ItemUpdater.updateItem(oldItem);
