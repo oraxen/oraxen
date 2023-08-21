@@ -9,10 +9,10 @@ plugins {
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.0.1"
-    id("net.minecrell.plugin-yml.bukkit") version "0.5.3" // Generates plugin.yml
+    id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
 }
 
-val pluginPath = project.findProperty("oraxen_plugin_path")
+val pluginPath = project.findProperty("oraxen_folia_plugin_path")
 val pluginVersion: String by project
 group = "io.th0rgal"
 version = pluginVersion
@@ -39,6 +39,7 @@ repositories {
     maven("https://repo.mineinabyss.com/releases") // PlayerAnimator
     maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
     maven("https://maven.enginehub.org/repo/")
+    maven("https://nexuslite.gcnt.net/repos/other/") // FoliaLib
 }
 
 val commandApiVersion = "9.0.3"
@@ -76,8 +77,9 @@ dependencies {
     implementation("gs.mclo:java:2.2.1")
     implementation("com.ticxo:PlayerAnimator:R1.2.7")
     implementation("org.jetbrains:annotations:24.0.1") { isTransitive = false }
-
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
+    implementation("com.tcoded:FoliaLib:0.2.5")
+
 }
 
 tasks {
@@ -115,6 +117,7 @@ tasks {
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
         relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
         relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
+        relocate("com.tcoded.folialib", "io.th0rgal.oraxen.shaded.folialib")
 
         manifest {
             attributes(
@@ -130,7 +133,6 @@ tasks {
             )
         }
         archiveFileName.set("oraxen-${pluginVersion}.jar")
-        minimize()
     }
 
     compileJava.get().dependsOn(clean)
@@ -144,6 +146,7 @@ bukkit {
     version = pluginVersion
     name = "Oraxen"
     apiVersion = "1.18"
+    foliaSupported = true
     authors = listOf("th0rgal", "boy0000")
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards")
     depend = listOf("ProtocolLib")

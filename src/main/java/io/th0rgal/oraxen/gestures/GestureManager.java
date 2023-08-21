@@ -5,6 +5,8 @@ import com.ticxo.playeranimator.api.animation.pack.AnimationPack;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -21,6 +23,9 @@ public class GestureManager {
 
     public GestureManager() {
         gesturingPlayers = new HashMap<>();
+        if (VersionUtil.isFoliaServer()) {
+            Logs.logError("Folia server detected, disabling gestures");
+        }
         if (Settings.GESTURES_ENABLED.toBool()) {
             loadGestures();
             Bukkit.getPluginManager().registerEvents(new GestureListener(this), OraxenPlugin.get());
