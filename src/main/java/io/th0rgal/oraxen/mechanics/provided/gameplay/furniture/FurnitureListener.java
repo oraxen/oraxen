@@ -151,13 +151,12 @@ public class FurnitureListener implements Listener {
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
         final EquipmentSlot hand = event.getHand();
-        assert placedAgainst != null;
         Block block = getTarget(placedAgainst, event.getBlockFace());
         ItemStack item = event.getItem();
         FurnitureMechanic mechanic = getMechanic(item, player, block);
 
         if (mechanic == null || item == null || hand != EquipmentSlot.HAND) return;
-        if (block == null || !placedAgainst.canPlace(block.getBlockData())) return;
+        if (block == null || placedAgainst == null || !placedAgainst.canPlace(block.getBlockData())) return;
         if (event.useInteractedBlock() == Event.Result.DENY) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
@@ -222,6 +221,7 @@ public class FurnitureListener implements Listener {
 
     private FurnitureMechanic getMechanic(ItemStack item, Player player, Block placed) {
         final String itemID = OraxenItems.getIdByItem(item);
+        if (placed == null || itemID == null) return null;
         if (factory.isNotImplementedIn(itemID) || BlockHelpers.isStandingInside(player, placed)) return null;
         if (!ProtectionLib.canBuild(player, placed.getLocation())) return null;
         if (OraxenFurniture.isFurniture(placed)) return null;
