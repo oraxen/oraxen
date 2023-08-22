@@ -2,13 +2,12 @@ package io.th0rgal.oraxen.utils.drops;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
@@ -75,7 +74,7 @@ public class Drop {
     }
 
     public boolean isTypeEnough(ItemStack itemInHand) {
-        if (!minimalType.isEmpty()) {
+        if (minimalType != null && !minimalType.isEmpty()) {
             String itemType = itemInHand == null ? "" : getItemType(itemInHand);
             return !itemType.isEmpty() && hierarchy.contains(itemType)
                     && (hierarchy.indexOf(itemType) >= hierarchy.indexOf(minimalType));
@@ -85,7 +84,7 @@ public class Drop {
     public boolean isToolEnough(ItemStack itemInHand) {
         if (!bestTools.isEmpty()) {
             String itemID = OraxenItems.getIdByItem(itemInHand);
-            String type = itemInHand == null ? "AIR" : itemInHand.getType().toString().toUpperCase();
+            String type = itemInHand == null ? Material.AIR.toString() : itemInHand.getType().toString().toUpperCase();
             if (itemID != null && bestTools.stream().anyMatch(itemID::equalsIgnoreCase)) return true;
             else if (bestTools.contains(type)) return true;
             else return bestTools.stream().anyMatch(toolName -> type.endsWith(toolName.toUpperCase()));
