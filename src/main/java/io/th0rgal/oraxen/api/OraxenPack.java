@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.api;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
+import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -28,6 +29,16 @@ public class OraxenPack {
                 Logs.logWarning("Failed to add file " + file.getName() + " to the resource pack");
             }
         }
+    }
+
+    public static File getPack() {
+        return OraxenPlugin.get().getResourcePack().getFile();
+    }
+
+    public static void uploadPack() {
+        UploadManager uploadManager = new UploadManager(OraxenPlugin.get());
+        OraxenPlugin.get().setUploadManager(uploadManager);
+        uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true, true);
     }
 
     public static void reloadPack() {

@@ -21,7 +21,6 @@ import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureUpdater;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
@@ -184,6 +183,10 @@ public class OraxenPlugin extends JavaPlugin {
 
     public UploadManager getUploadManager() {
         return uploadManager;
+    }
+
+    public void setUploadManager(final UploadManager uploadManager) {
+        this.uploadManager = uploadManager;
     }
 
     public FontManager getFontManager() {
