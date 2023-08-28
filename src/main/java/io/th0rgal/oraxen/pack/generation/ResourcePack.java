@@ -7,7 +7,6 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.api.events.OraxenPackGenerateEvent;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
@@ -119,8 +118,6 @@ public class ResourcePack {
         if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardFiles();
         if (Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) CustomArmorsTextures.generateArmorShaderFiles();
-
-        OraxenPlugin.get().getServer().getPluginManager().callEvent(new OraxenPackGenerateEvent());
 
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)
