@@ -137,8 +137,6 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     private void postLoading() {
-        uploadManager = new UploadManager(this);
-        uploadManager.uploadAsyncAndSendToPlayers(resourcePack);
         new Metrics(this, 5371);
         Bukkit.getScheduler().runTask(this, () ->
                 Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));

@@ -1,12 +1,9 @@
 package io.th0rgal.oraxen.pack.generation;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
+import com.google.gson.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
@@ -16,6 +13,7 @@ import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.gestures.GestureManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
+import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -33,23 +31,10 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -178,7 +163,15 @@ public class ResourcePack {
 
         generateSound(output);
 
-        ZipUtils.writeZipFile(pack, output);
+        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+            OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
+            Bukkit.getPluginManager().callEvent(event);
+            ZipUtils.writeZipFile(pack, event.getOutput());
+
+            UploadManager uploadManager = new UploadManager(OraxenPlugin.get());
+            OraxenPlugin.get().setUploadManager(uploadManager);
+            uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack());
+        });
     }
 
     private static Set<String> verifyPackFormatting(List<VirtualFile> output) {
