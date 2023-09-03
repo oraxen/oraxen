@@ -73,7 +73,7 @@ allprojects {
 
         compileOnly("org.spigotmc:spigot-api:1.20-R0.1-SNAPSHOT")
         compileOnly("io.papermc.paper:paper-api:1.20-R0.1-SNAPSHOT") { exclude("net.kyori") }
-        compileOnly("com.comphenix.protocol:ProtocolLib:5.0.0")
+        compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
         compileOnly("me.clip:placeholderapi:2.11.3")
         compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
         compileOnly("me.gabytm.util:actions-core:$actionsVersion")
@@ -158,6 +158,7 @@ tasks {
 
     compileJava.get().dependsOn(clean)
     build.get().dependsOn(shadowJar)
+    build.get().dependsOn(publishToMavenLocal)
 }
 
 bukkit {

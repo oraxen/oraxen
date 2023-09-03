@@ -58,7 +58,7 @@ public class NoteBlockMechanic extends Mechanic {
         isFalling = section.getBoolean("is_falling", false);
 
         ConfigurationSection dropSection = section.getConfigurationSection("drop");
-        drop = Drop.createDrop(dropSection, getItemID());
+        drop = dropSection != null ? Drop.createDrop(NoteBlockMechanicFactory.getInstance().toolTypes, dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
 
         ConfigurationSection farmBlockSection = section.getConfigurationSection("farmblock");
         farmBlockDryout = farmBlockSection != null ? new FarmBlockDryout(getItemID(), farmBlockSection) : null;

@@ -184,37 +184,6 @@ public class StorageMechanic {
         frameStorages.remove(baseEntity);
     }
 
-    @Deprecated(forRemoval = true, since = "1.154.0")
-    public void dropStorageContent(FurnitureMechanic mechanic, ItemFrame frame) {
-        StorageGui gui = frameStorages.get(frame);
-        PersistentDataContainer pdc = frame.getPersistentDataContainer();
-        // If shutdown the gui isn't saved and map is empty, so use pdc storage
-        ItemStack[] items = (frameStorages.containsKey(frame) && gui != null)
-                ? gui.getInventory().getContents() : pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
-        if (isShulker()) {
-            ItemStack defaultItem = OraxenItems.getItemById(mechanic.getItemID()).build();
-            ItemStack shulker = frame.getItem();
-            ItemMeta shulkerMeta = shulker.getItemMeta();
-
-            if (shulkerMeta != null) {
-                shulkerMeta.getPersistentDataContainer().set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, items);
-                shulkerMeta.setDisplayName(defaultItem.getItemMeta() != null ? defaultItem.getItemMeta().getDisplayName() : null);
-                shulker.setItemMeta(shulkerMeta);
-            }
-            frame.getWorld().dropItemNaturally(frame.getLocation(), shulker);
-        } else for (ItemStack item : items) {
-            if (item == null) continue;
-            frame.getWorld().dropItemNaturally(frame.getLocation(), item);
-        }
-
-        if (gui != null) {
-            HumanEntity[] players = gui.getInventory().getViewers().toArray(new HumanEntity[0]);
-            for (HumanEntity player : players) gui.close(player);
-        }
-        pdc.remove(STORAGE_KEY);
-        frameStorages.remove(frame);
-    }
-
     public int getRows() {
         return rows;
     }

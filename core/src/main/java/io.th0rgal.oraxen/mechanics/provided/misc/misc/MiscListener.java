@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.Levelled;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Horse;
@@ -28,11 +29,14 @@ import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.EntityTargetLivingEntityEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.EntityEquipment;
 import org.bukkit.inventory.HorseInventory;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.Damageable;
@@ -50,6 +54,30 @@ public class MiscListener implements Listener {
         this.factory = factory;
         if (VersionUtil.isPaperServer()) {
             OraxenPlugin.get().getServer().getPluginManager().registerEvents(new PaperOnlyListeners(factory), OraxenPlugin.get());
+        }
+    }
+
+    @EventHandler
+    public void onHopperCompost(InventoryMoveItemEvent event) {
+        Inventory source = event.getSource();
+        if (source.getType() != InventoryType.HOPPER || event.getDestination().getType() != InventoryType.COMPOSTER) return;
+        Block hopper = source.getLocation() != null ? source.getLocation().getBlock() : null;
+        if (hopper == null || hopper.getType() != Material.HOPPER) return;
+        Block composter = hopper.getRelative(BlockFace.DOWN);
+        if (composter.getType() != Material.COMPOSTER) return;
+        if (!(composter.getBlockData() instanceof Levelled levelled)) return;
+
+        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(event.getItem());
+        if (mechanic == null || !mechanic.isCompostable()) return;
+
+        if (levelled.getLevel() < levelled.getMaximumLevel()) {
+            if (Math.random() <= 0.65) levelled.setLevel(levelled.getLevel() + 1); // Same as wheat
+            composter.setBlockData(levelled);
+            composter.getWorld().playEffect(composter.getLocation(), Effect.COMPOSTER_FILL_ATTEMPT, 0, 1);
+
+            ItemStack item = event.getItem();
+            item.setAmount(item.getAmount() - 1);
+            event.setItem(item);
         }
     }
 

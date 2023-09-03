@@ -433,7 +433,9 @@ public class BlockHelpers {
             face = BlockFace.SOUTH;
         else if (Range.between(22.5, 67.5).contains(yaw) || Range.between(-337.5, -292.5).contains(yaw))
             face = BlockFace.WEST;
-        else if (Range.between(112.5, 157.5).contains(yaw) || Range.between(-292.5, -247.5).contains(yaw))
+        else if (Range.between(67.5, 112.5).contains(yaw) || Range.between(-292.5, -247.5).contains(yaw))
+            face = BlockFace.SOUTH_WEST;
+        else if (Range.between(112.5, 157.5).contains(yaw) || Range.between(-247.5, -202.5).contains(yaw))
             face = BlockFace.NORTH_WEST;
         else if (Range.between(157.5, 202.5).contains(yaw) || Range.between(-202.5, -157.5).contains(yaw))
             face = BlockFace.NORTH;
