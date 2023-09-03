@@ -8,6 +8,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.text.Component;
 import net.minecraft.nbt.CompoundTag;
@@ -249,7 +250,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
 
         private String returnFormattedString(JsonObject obj) {
-            return (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) ? AdventureUtils.parseJsonThroughMiniMessage(obj.toString()) : obj.toString();
+            return (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) ? Glyph.parseGlyphPlaceholders(AdventureUtils.parseJsonThroughMiniMessage(obj.toString())) : obj.toString();
         }
 
         private void transform(CompoundTag compound, Function<String, String> transformer) {

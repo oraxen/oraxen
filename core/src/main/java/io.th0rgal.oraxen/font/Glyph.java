@@ -19,7 +19,6 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -222,5 +221,16 @@ public class Glyph {
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
             Logs.logWarning("You should edit the code of all these glyphs to be unique.");
         }
+    }
+
+    public static String parseGlyphPlaceholders(String message) {
+        for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
+            for (String placeholder : glyph.getPlaceholders()) {
+                if (message.contains(placeholder)) {
+                    message = message.replace(placeholder, glyph.getCharacter());
+                }
+            }
+        }
+        return message;
     }
 }
