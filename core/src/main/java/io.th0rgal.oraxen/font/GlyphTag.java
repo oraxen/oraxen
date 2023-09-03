@@ -32,7 +32,7 @@ public class GlyphTag {
         Component glyphComponent = Component.text(glyph.getCharacter()).font(Key.key("default")).style(Style.empty());
         if (!args.hasNext() || !args.peek().value().equals("colorable"))
             glyphComponent = glyphComponent.color(NamedTextColor.WHITE);
-        return Tag.inserting(glyphComponent);
+        return Tag.selfClosingInserting(glyphComponent);
     }
 
     static @Nullable Emitable emit(final Component component) {

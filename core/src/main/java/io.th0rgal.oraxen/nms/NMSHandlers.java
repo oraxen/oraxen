@@ -2,12 +2,8 @@ package io.th0rgal.oraxen.nms;
 
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.font.GlyphTag;
-import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import net.kyori.adventure.text.minimessage.MiniMessage;
-import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -50,10 +46,5 @@ public class NMSHandlers {
                 throw new RuntimeException(e);
             }
         }
-    }
-
-    public static String parseJsonThroughLegacy(String message) {
-        message = AdventureUtils.MINI_MESSAGE.serialize(AdventureUtils.MINI_MESSAGE.deserialize(message));
-        return AdventureUtils.GSON_SERIALIZER.serialize(AdventureUtils.GSON_SERIALIZER.deserialize(message));
     }
 }

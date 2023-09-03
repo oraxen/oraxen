@@ -26,7 +26,7 @@ public class ShiftTag {
         } catch (final NumberFormatException ignored) {
         }
         String shift = OraxenPlugin.get().getFontManager().getShift(length);
-        return Tag.inserting(AdventureUtils.MINI_MESSAGE.deserialize(shift));
+        return Tag.selfClosingInserting(AdventureUtils.MINI_MESSAGE.deserialize(shift));
     }
 
     static @Nullable Emitable emit(final Component component) {

@@ -110,8 +110,8 @@ public class AdventureUtils {
         return GSON_SERIALIZER.deserialize(GSON_SERIALIZER.serialize(message).replaceAll("\\\\(?!u)(?!\")", ""));
     }
 
-    public static String parseJsonThroughLegacy(String message) {
-        return GSON_SERIALIZER.serialize(MINI_MESSAGE.deserialize(LEGACY_SERIALIZER.serialize(GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!\")", ""))).replaceAll("\\\\(?!u)(?!\")", "");
+    public static String parseJsonThroughMiniMessage(String message) {
+        return GSON_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!\")", ""))).replaceAll("\\\\(?!u)(?!\")", "");
     }
 
     /**
