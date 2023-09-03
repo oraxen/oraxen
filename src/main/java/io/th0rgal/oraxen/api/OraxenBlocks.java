@@ -16,7 +16,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -32,7 +31,6 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
-
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -130,7 +128,7 @@ public class OraxenBlocks {
      * @return true if the itemID has a StringBlockMechanic, otherwise false
      */
     public static boolean isOraxenStringBlock(String itemID) {
-        return !StringBlockMechanicFactory.getInstance().isNotImplementedIn(itemID);
+        return StringBlockMechanicFactory.isEnabled() && !StringBlockMechanicFactory.getInstance().isNotImplementedIn(itemID);
     }
 
     public static void place(String itemID, Location location) {
@@ -229,10 +227,8 @@ public class OraxenBlocks {
 
         if (player != null) {
             OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
-            io.th0rgal.oraxen.api.events.OraxenNoteBlockBreakEvent deprecatedNoteBlockBreakEvent = new io.th0rgal.oraxen.api.events.OraxenNoteBlockBreakEvent(mechanic, block, player);
             OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockBreakEvent);
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedNoteBlockBreakEvent);
-            if (noteBlockBreakEvent.isCancelled() || deprecatedNoteBlockBreakEvent.isCancelled()) return;
+            if (noteBlockBreakEvent.isCancelled()) return;
         }
 
         if (mechanic.hasLight())
@@ -253,10 +249,8 @@ public class OraxenBlocks {
 
         if (player != null) {
             OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
-            io.th0rgal.oraxen.api.events.OraxenStringBlockBreakEvent deprecatedWireBlockBreakEvent = new io.th0rgal.oraxen.api.events.OraxenStringBlockBreakEvent(mechanic, block, player);
             OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockBreakEvent);
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(deprecatedWireBlockBreakEvent);
-            if (wireBlockBreakEvent.isCancelled() || deprecatedWireBlockBreakEvent.isCancelled()) return;
+            if (wireBlockBreakEvent.isCancelled()) return;
         }
 
         if (mechanic.hasLight())
@@ -300,6 +294,7 @@ public class OraxenBlocks {
     }
 
     public static NoteBlockMechanic getNoteBlockMechanic(BlockData data) {
+        if (!NoteBlockMechanicFactory.isEnabled()) return null;
         if (!(data instanceof NoteBlock noteBlock)) return null;
         return NoteBlockMechanicFactory
                 .getBlockMechanic((noteBlock.getInstrument().getType()) * 25
@@ -307,6 +302,7 @@ public class OraxenBlocks {
     }
 
     public static NoteBlockMechanic getNoteBlockMechanic(Block block) {
+        if (!NoteBlockMechanicFactory.isEnabled()) return null;
         if (block.getType() != Material.NOTE_BLOCK) return null;
         final NoteBlock noteblock = (NoteBlock) block.getBlockData();
         return NoteBlockMechanicFactory
@@ -315,16 +311,19 @@ public class OraxenBlocks {
     }
 
     public static NoteBlockMechanic getNoteBlockMechanic(String itemID) {
+        if (!NoteBlockMechanicFactory.isEnabled()) return null;
         Mechanic mechanic = NoteBlockMechanicFactory.getInstance().getMechanic(itemID);
         return mechanic instanceof NoteBlockMechanic noteBlockMechanic ? noteBlockMechanic : null;
     }
 
     public static StringBlockMechanic getStringMechanic(BlockData blockData) {
+        if (!StringBlockMechanicFactory.isEnabled()) return null;
         if (!(blockData instanceof Tripwire tripwire)) return null;
         return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
     }
 
     public static StringBlockMechanic getStringMechanic(Block block) {
+        if (!StringBlockMechanicFactory.isEnabled()) return null;
         if (block.getType() == Material.TRIPWIRE) {
             final Tripwire tripwire = (Tripwire) block.getBlockData();
             return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
@@ -332,6 +331,7 @@ public class OraxenBlocks {
     }
 
     public static StringBlockMechanic getStringMechanic(String itemID) {
+        if (!StringBlockMechanicFactory.isEnabled()) return null;
         Mechanic mechanic = StringBlockMechanicFactory.getInstance().getMechanic(itemID);
         return mechanic instanceof StringBlockMechanic stringMechanic ? stringMechanic : null;
     }

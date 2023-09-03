@@ -179,7 +179,7 @@ public class FurnitureMechanic extends Mechanic {
         if (evolvingFurniture != null) ((FurnitureFactory) getFactory()).registerEvolution();
 
         ConfigurationSection dropSection = section.getConfigurationSection("drop");
-        drop = dropSection != null ? Drop.createDrop(dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
+        drop = dropSection != null ? Drop.createDrop(FurnitureFactory.getInstance().toolTypes, dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
 
         ConfigurationSection limitedPlacingSection = section.getConfigurationSection("limited_placing");
         limitedPlacing = limitedPlacingSection != null ? new LimitedPlacing(limitedPlacingSection) : null;
@@ -377,7 +377,7 @@ public class FurnitureMechanic extends Mechanic {
         Entity baseEntity = location.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), entityClass, (entity) ->
                 setEntityData(entity, yaw, item, facing));
         if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
-            spawnModelEngineFurniture(baseEntity, yaw);
+            spawnModelEngineFurniture(baseEntity);
         }
 
         return baseEntity;
@@ -528,7 +528,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void spawnModelEngineFurniture(Entity entity, float yaw) {
+    void spawnModelEngineFurniture(Entity entity) {
         ModeledEntity modelEntity = ModelEngineAPI.getOrCreateModeledEntity(entity);
         ActiveModel activeModel = ModelEngineAPI.createActiveModel(ModelEngineAPI.getBlueprint(getModelEngineID()));
 

@@ -64,7 +64,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
             if (paperConfig.exists()) {
                 ConfigurationSection paperSection = YamlConfiguration.loadConfiguration(paperConfig).getConfigurationSection("block-updates");
                 if (paperSection != null && !paperSection.getBoolean("disable-noteblock-updates", false)) {
-                    Bukkit.getPluginManager().registerEvents(new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener(), OraxenPlugin.get());
                     MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
                     Logs.logError("Papers block.updates.disable-noteblock-updates is not enabled.");
                     Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with noteblocks");
@@ -149,6 +148,10 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
     public static NoteBlockMechanic getBlockMechanic(int customVariation) {
         return BLOCK_PER_VARIATION.get(customVariation);
+    }
+
+    public static boolean isEnabled() {
+        return instance != null;
     }
 
     public static NoteBlockMechanicFactory getInstance() {
