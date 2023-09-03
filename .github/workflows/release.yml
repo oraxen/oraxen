@@ -3,30 +3,28 @@ on:
   push:
     branches:
       - master
+    tags:
+      - '*'
+
 jobs:
-  build:
+  release:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2.4.1
-      - name: Set up JDK 11
-        uses: actions/setup-java@v2.4.0
-        with:
-          java-version: '11'
-          distribution: 'adopt'
       - name: Check plugin version
+        id: version-check
         run: |
           version=$(sed -n "s/^pluginVersion=\(.*\)$/\1/p" gradle.properties)
-          commit_version=$(echo "${{ github.event.head_commit.message }}" | grep -oP '(?<=release: )[^ ]+')
           if [ "$version" != "$commit_version" ]; then
             echo "Plugin version does not match commit message"
-            exit 1
+            exit 0
           fi
-          echo "commit_version=$commit_version" >> $GITHUB_ENV
       - name: Create Release
+        if: needs.build.result == 'success' && steps.check-tag.outputs.tag_exists != '200'
         uses: ncipollo/release-action@v1
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ env.commit_version }}
-          name: ${{ env.commit_version }}
+          tag: ${{ github.ref }}
+          name: ${{ env.version }}
           body: ${{ github.event.head_commit.message }}
