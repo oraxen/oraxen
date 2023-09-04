@@ -246,7 +246,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
 
         private String returnFormattedString(JsonObject obj) {
-            return (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) ? Glyph.parseGlyphPlaceholders(AdventureUtils.parseJsonThroughMiniMessage(obj.toString())) : obj.toString();
+            return (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) ? Glyph.parseGlyphPlaceholders(supplier.get(), AdventureUtils.parseJsonThroughMiniMessage(obj.toString())) : obj.toString();
         }
 
         private void transform(CompoundTag compound, Function<String, String> transformer) {
