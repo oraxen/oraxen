@@ -226,7 +226,7 @@ public class Glyph {
     public static String parseGlyphPlaceholders(Player player, String message) {
         for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
             for (String placeholder : glyph.getPlaceholders()) {
-                if (message.contains(placeholder) && player.hasPermission(glyph.permission)) {
+                if (message.contains(placeholder) && (player == null || player.hasPermission(glyph.permission))) {
                     message = message.replace(placeholder, glyph.getCharacter());
                 }
             }

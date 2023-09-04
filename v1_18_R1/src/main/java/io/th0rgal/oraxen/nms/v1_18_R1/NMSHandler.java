@@ -1,14 +1,13 @@
 package io.th0rgal.oraxen.nms.v1_18_R1;
 
 import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.text.Component;
 import net.minecraft.nbt.CompoundTag;
@@ -219,7 +218,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             try {
                 JsonElement element = JsonParser.parseString(string);
                 if (element.isJsonObject())
-                    return super.writeUtf(returnFormattedString(element.getAsJsonObject()), maxLength);
+                    return super.writeUtf(NMSHandlers.returnFormattedString(element.getAsJsonObject(), supplier.get()), maxLength);
             } catch (Exception ignored) {
 
             }
@@ -233,9 +232,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 transform(compound, string -> {
                     try {
                         JsonElement element = JsonParser.parseString(string);
-                        if (element.isJsonObject()) {
-                            return returnFormattedString(element.getAsJsonObject());
-                        }
+                        if (element.isJsonObject())
+                            return NMSHandlers.returnFormattedString(element.getAsJsonObject(), supplier.get());
                     } catch (Exception ignored) {
                     }
                     return string;
@@ -243,10 +241,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             }
 
             return super.writeNbt(compound);
-        }
-
-        private String returnFormattedString(JsonObject obj) {
-            return (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) ? Glyph.parseGlyphPlaceholders(supplier.get(), AdventureUtils.parseJsonThroughMiniMessage(obj.toString())) : obj.toString();
         }
 
         private void transform(CompoundTag compound, Function<String, String> transformer) {
