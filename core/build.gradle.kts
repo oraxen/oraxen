@@ -6,12 +6,7 @@ plugins {
 
 dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"
-
     implementation("org.bstats:bstats-bukkit:3.0.0")
-    implementation("net.kyori:adventure-text-minimessage:4.14.0")
-    implementation("net.kyori:adventure-text-serializer-plain:4.14.0")
-    implementation("net.kyori:adventure-text-serializer-ansi:4.14.0")
-    implementation("net.kyori:adventure-platform-bukkit:4.3.0")
     implementation("dev.triumphteam:triumph-gui:3.1.5")
     implementation("com.github.oraxen:protectionlib:1.2.7")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.9")

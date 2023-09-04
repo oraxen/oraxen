@@ -43,6 +43,8 @@ val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").t
 val pluginPath = project.findProperty("oraxen_plugin_path")
 val pluginVersion: String by project
 val commandApiVersion = "9.0.3"
+val adventureVersion = "4.14.0"
+val platformVersion = "4.3.0"
 group = "io.th0rgal"
 version = pluginVersion
 
@@ -73,6 +75,10 @@ allprojects {
 
         compileOnly("org.spigotmc:spigot-api:1.20-R0.1-SNAPSHOT")
         compileOnly("io.papermc.paper:paper-api:1.20-R0.1-SNAPSHOT") { exclude("net.kyori") }
+        compileOnly("net.kyori:adventure-text-minimessage:$adventureVersion")
+        compileOnly("net.kyori:adventure-text-serializer-plain:$adventureVersion")
+        compileOnly("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
+        compileOnly("net.kyori:adventure-platform-bukkit:$platformVersion")
         compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
         compileOnly("me.clip:placeholderapi:2.11.3")
         compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
@@ -128,7 +134,6 @@ tasks {
 
         //archiveClassifier = null
         relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
-        relocate("net.kyori", "io.th0rgal.oraxen.shaded.kyori")
         relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
         relocate("com.jeff_media.customblockdata", "io.th0rgal.oraxen.shaded.customblockdata")
         relocate("com.jeff_media.morepersistentdatatypes", "io.th0rgal.oraxen.shaded.morepersistentdatatypes")
@@ -171,11 +176,20 @@ bukkit {
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards")
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
-    libraries = listOf("org.springframework:spring-expression:6.0.6", "org.apache.httpcomponents:httpmime:4.5.13", "dev.jorel:commandapi-bukkit-shade:$commandApiVersion", "org.joml:joml:1.10.5")
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE
     }
+    libraries = listOf(
+        "org.springframework:spring-expression:6.0.6",
+        "org.apache.httpcomponents:httpmime:4.5.13",
+        "dev.jorel:commandapi-bukkit-shade:$commandApiVersion",
+        "org.joml:joml:1.10.5",
+        "net.kyori:adventure-text-minimessage:$adventureVersion",
+        "net.kyori:adventure-text-serializer-plain:$adventureVersion",
+        "net.kyori:adventure-text-serializer-ansi:$adventureVersion",
+        "net.kyori:adventure-platform-bukkit:$platformVersion",
+    )
 }
 
 publishing {
