@@ -22,11 +22,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.player.AsyncPlayerChatEvent;
-import org.bukkit.event.player.PlayerEditBookEvent;
-import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerJoinEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.event.player.*;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
@@ -47,10 +43,12 @@ public class FontEvents implements Listener {
     public FontEvents(FontManager manager) {
         this.manager = manager;
         PluginManager pluginManager = OraxenPlugin.get().getServer().getPluginManager();
-        /*if (VersionUtil.isPaperServer()) {
-            pluginManager.registerEvents(new PaperChatHandler(), OraxenPlugin.get());
-        } else pluginManager.registerEvents(new SpigotChatHandler(), OraxenPlugin.get());*/
-        pluginManager.registerEvents(new SpigotChatHandler(), OraxenPlugin.get());
+        if (!Settings.USE_NMS_GLYPHS.toBool()) {
+            /*if (VersionUtil.isPaperServer()) {
+                pluginManager.registerEvents(new PaperChatHandler(), OraxenPlugin.get());
+            } else pluginManager.registerEvents(new SpigotChatHandler(), OraxenPlugin.get());*/
+            pluginManager.registerEvents(new SpigotChatHandler(), OraxenPlugin.get());
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

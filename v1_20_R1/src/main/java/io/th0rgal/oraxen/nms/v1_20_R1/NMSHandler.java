@@ -237,9 +237,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 transform(compound, string -> {
                     try {
                         JsonElement element = JsonParser.parseString(string);
-                        if (element.isJsonObject()) {
+                        if (element.isJsonObject())
                             return returnFormattedString(element.getAsJsonObject());
-                        }
                     } catch (Exception ignored) {
                     }
                     return string;
@@ -256,10 +255,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         private void transform(CompoundTag compound, Function<String, String> transformer) {
             for (String key : compound.getAllKeys()) {
                 Tag base = compound.get(key);
-                if (base instanceof CompoundTag) {
-                    transform((CompoundTag) base, transformer);
-                } else if (base instanceof ListTag) {
-                    transform((ListTag) base, transformer);
+                if (base instanceof CompoundTag tag) {
+                    transform(tag, transformer);
+                } else if (base instanceof ListTag listTag) {
+                    transform(listTag, transformer);
                 } else if (base instanceof StringTag) {
                     compound.put(key, StringTag.valueOf(transformer.apply(base.getAsString())));
                 }
@@ -269,10 +268,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         private void transform(ListTag list, Function<String, String> transformer) {
             List<Tag> objects = new ArrayList<>(list);
             for (Tag base : objects) {
-                if (base instanceof CompoundTag) {
-                    transform((CompoundTag) base, transformer);
-                } else if (base instanceof ListTag) {
-                    transform((ListTag) base, transformer);
+                if (base instanceof CompoundTag tag) {
+                    transform(tag, transformer);
+                } else if (base instanceof ListTag listTag) {
+                    transform(listTag, transformer);
                 } else if (base instanceof StringTag) {
                     String val = base.getAsString();
                     list.remove(base);
