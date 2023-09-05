@@ -1,16 +1,15 @@
 package io.th0rgal.oraxen.utils.inventories;
 
-import com.github.stefvanschie.inventoryframework.gui.GuiItem;
-import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
-import com.github.stefvanschie.inventoryframework.pane.PaginatedPane;
-import com.github.stefvanschie.inventoryframework.pane.StaticPane;
-import com.github.stefvanschie.inventoryframework.pane.util.Slot;
+import dev.triumphteam.gui.guis.Gui;
+import dev.triumphteam.gui.guis.GuiItem;
+import dev.triumphteam.gui.guis.PaginatedGui;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.ChatColor;
@@ -20,27 +19,23 @@ import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class ItemsView {
 
     private final YamlConfiguration settings = new ResourcesManager(OraxenPlugin.get()).getSettings();
-    ChestGui mainGui;
+    PaginatedGui mainGui;
 
-    public ChestGui create() {
-        final Map<File, ChestGui> files = new HashMap<>();
+    public PaginatedGui create() {
+        final Map<File, PaginatedGui> files = new HashMap<>();
         for (final File file : OraxenItems.getMap().keySet()) {
             final List<ItemBuilder> unexcludedItems = OraxenItems.getUnexcludedItems(file);
             if (!unexcludedItems.isEmpty())
                 files.put(file, createSubGUI(file.getName(), unexcludedItems));
         }
-        mainGui = new ChestGui((int) Settings.ORAXEN_INV_ROWS.getValue(), Settings.ORAXEN_INV_TITLE.toString());
-        final StaticPane filesPane = new StaticPane(0, 0, 9, mainGui.getRows());
+        mainGui = Gui.paginated().rows((int) Settings.ORAXEN_INV_ROWS.getValue()).title(Settings.ORAXEN_INV_TITLE.toComponent()).create();
+        mainGui.disableAllInteractions();
         int i = 0;
 
         Set<Integer> usedSlots = files.keySet().stream().map(e -> getItemStack(e).getRight()).filter(e -> e > -1).collect(Collectors.toSet());
@@ -49,13 +44,12 @@ public class ItemsView {
             Pair<ItemStack, Integer> itemSlotPair = getItemStack(entry.getKey());
             ItemStack itemStack = itemSlotPair.getLeft();
             int slot = itemSlotPair.getRight() > -1 ? itemSlotPair.getRight() : getUnusedSlot(i, usedSlots);
-            final GuiItem item = new GuiItem(itemStack, event -> entry.getValue().show(event.getWhoClicked()));
-            filesPane.addItem(item, Slot.fromXY(slot % 9, slot / 9));
+            final GuiItem item = new GuiItem(itemStack);
+            item.setAction(event -> entry.getValue().open(event.getWhoClicked()));
+            mainGui.setItem(slot, item);
             i++;
         }
 
-        mainGui.addPane(filesPane);
-        mainGui.setOnTopClick(event -> event.setCancelled(true));
         return mainGui;
     }
 
@@ -65,68 +59,38 @@ public class ItemsView {
         return slot;
     }
 
-    private ChestGui createSubGUI(final String fileName, final List<ItemBuilder> items) {
-        final int rows = Math.min((items.size() - 1) / 9 + 2, 6);
-        final ChestGui gui = new ChestGui(6, settings.getString(
-                String.format("oraxen_inventory.menu_layout.%s.title", Utils.removeExtension(fileName)), Settings.ORAXEN_INV_TITLE.toString())
-                .replace("<main_menu_title>", Settings.ORAXEN_INV_TITLE.toString()));
-        final PaginatedPane pane = new PaginatedPane(9, rows);
+    private PaginatedGui createSubGUI(final String fileName, final List<ItemBuilder> items) {
+        final PaginatedGui gui = Gui.paginated().rows(6).title(AdventureUtils.MINI_MESSAGE.deserialize(settings.getString(
+                        String.format("oraxen_inventory.menu_layout.%s.title", Utils.removeExtension(fileName)), Settings.ORAXEN_INV_TITLE.toString())
+                .replace("<main_menu_title>", Settings.ORAXEN_INV_TITLE.toString()))).create();
 
         for (int i = 0; i < (items.size() - 1) / 45 + 1; i++) {
             final List<ItemStack> itemStackList = extractPageItems(items, i);
-            final StaticPane staticPane = new StaticPane(9, Math.min((itemStackList.size() - 1) / 9 + 1, 5));
             for (int itemIndex = 0; itemIndex < itemStackList.size(); itemIndex++) {
-                final ItemStack oraxenItem = itemStackList.get(itemIndex);
-                staticPane.addItem(new GuiItem(oraxenItem,
-                                event -> event.getWhoClicked().getInventory().addItem(ItemUpdater.updateItem(oraxenItem))),
-                        itemIndex % 9, itemIndex / 9);
+                GuiItem guiItem = new GuiItem(itemStackList.get(itemIndex));
+                guiItem.setAction(e -> e.getWhoClicked().getInventory().addItem(ItemUpdater.updateItem(guiItem.getItemStack())));
+                gui.setItem(itemIndex, guiItem);
             }
-            pane.addPane(i, staticPane);
         }
 
-
         //page selection
-        final StaticPane back = new StaticPane(2, 5, 1, 1);
-        final StaticPane forward = new StaticPane(6, 5, 1, 1);
-        final StaticPane exit = new StaticPane(4, 5, 9, 1);
+        if (gui.getCurrentPageNum() > 1) {
+            gui.setItem(6, 2, new GuiItem((OraxenItems.exists("arrow_previous_icon")
+                    ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById("arrow_previous_icon"))
+                    .build(), event -> gui.previous()));
+        }
 
-        back.addItem(new GuiItem((OraxenItems.getItemById("arrow_previous_icon") == null
-                ? new ItemBuilder(Material.ARROW)
-                : OraxenItems.getItemById("arrow_previous_icon")).build(), event -> {
-            pane.setPage(pane.getPage() - 1);
+        if (gui.getPagesNum() > 1 && gui.getNextPageNum() != gui.getCurrentPageNum()) {
+            gui.setItem(6, 7, new GuiItem((OraxenItems.exists("arrow_next_icon")
+                    ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById("arrow_next_icon"))
+                    .build(), event -> gui.next()));
+        }
 
-            if (pane.getPage() == 0) back.setVisible(false);
+        gui.setItem(6, 5, new GuiItem((OraxenItems.exists("exit_icon")
+                ? new ItemBuilder(Material.BARRIER) : OraxenItems.getItemById("exit_icon"))
+                .build(), event -> mainGui.open(event.getWhoClicked())
+        ));
 
-            forward.setVisible(true);
-            gui.update();
-        }), 0, 0);
-
-        back.setVisible(false);
-
-        forward.addItem(new GuiItem((OraxenItems.getItemById("arrow_next_icon") == null
-                ? new ItemBuilder(Material.ARROW)
-                : OraxenItems.getItemById("arrow_next_icon")).build(), event -> {
-            pane.setPage(pane.getPage() + 1);
-            if (pane.getPage() == pane.getPages() - 1) forward.setVisible(false);
-
-            back.setVisible(true);
-            gui.update();
-        }), 0, 0);
-        if (pane.getPages() <= 1)
-            forward.setVisible(false);
-
-        exit.addItem(new GuiItem((OraxenItems.getItemById("exit_icon") == null
-                ? new ItemBuilder(Material.BARRIER)
-                : OraxenItems.getItemById("exit_icon"))
-                .build(), event ->
-                mainGui.show(event.getWhoClicked())
-        ), 0, 0);
-
-        gui.addPane(back);
-        gui.addPane(forward);
-        gui.addPane(exit);
-        gui.addPane(pane);
-        gui.setOnGlobalClick(event -> event.setCancelled(true));
         return gui;
     }
 

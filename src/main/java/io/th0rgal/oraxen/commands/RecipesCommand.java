@@ -7,14 +7,7 @@ import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
-import io.th0rgal.oraxen.recipes.builders.BlastingBuilder;
-import io.th0rgal.oraxen.recipes.builders.CampfireBuilder;
-import io.th0rgal.oraxen.recipes.builders.FurnaceBuilder;
-import io.th0rgal.oraxen.recipes.builders.RecipeBuilder;
-import io.th0rgal.oraxen.recipes.builders.ShapedBuilder;
-import io.th0rgal.oraxen.recipes.builders.ShapelessBuilder;
-import io.th0rgal.oraxen.recipes.builders.SmokingBuilder;
-import io.th0rgal.oraxen.recipes.builders.StonecuttingBuilder;
+import io.th0rgal.oraxen.recipes.builders.*;
 import io.th0rgal.oraxen.recipes.listeners.RecipesEventsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.apache.commons.lang3.ArrayUtils;
@@ -49,7 +42,7 @@ public class RecipesCommand {
                             Message.RECIPE_NO_RECIPE.send(sender);
                             return;
                         }
-                        OraxenPlugin.get().getInvManager().getRecipesShowcase(0, recipes).show(player);
+                        OraxenPlugin.get().getInvManager().getRecipesShowcase(0, recipes).open(player);
                     } else
                         Message.NOT_PLAYER.send(sender);
                 });

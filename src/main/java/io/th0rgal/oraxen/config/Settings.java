@@ -1,7 +1,9 @@
 package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -136,6 +138,10 @@ public enum Settings {
     @Override
     public String toString() {
         return (String) getValue();
+    }
+
+    public Component toComponent() {
+        return AdventureUtils.MINI_MESSAGE.deserialize(toString());
     }
 
     public Boolean toBool() {
