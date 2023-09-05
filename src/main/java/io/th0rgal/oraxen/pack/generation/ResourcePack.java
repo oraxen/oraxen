@@ -163,7 +163,7 @@ public class ResourcePack {
 
         generateSound(output);
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+        OraxenPlugin.foliaLib.getImpl().runNextTick(() -> {
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
             Bukkit.getPluginManager().callEvent(event);
             ZipUtils.writeZipFile(pack, event.getOutput());
