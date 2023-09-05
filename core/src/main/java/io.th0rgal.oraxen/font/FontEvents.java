@@ -203,7 +203,6 @@ public class FontEvents implements Listener {
             String message = format(event.getMessage(), event.getPlayer());
             if (format == null || message == null) event.setCancelled(true);
             else {
-                Logs.debug("format: " + format);
                 event.setFormat(format);
                 event.setMessage(message);
             }
@@ -211,7 +210,7 @@ public class FontEvents implements Listener {
     }
 
     private String format(String string, @Nullable Player player) {
-        string = AdventureUtils.parseLegacyThroughMiniMessage(string);
+        string = AdventureUtils.parseLegacyThroughMiniMessage(string, player);
         if (player != null) for (Character character : manager.getReverseMap().keySet()) {
             if (!string.contains(String.valueOf(character))) continue;
             Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
@@ -242,7 +241,7 @@ public class FontEvents implements Listener {
             if (!Settings.FORMAT_CHAT.toBool()) return;
 
             Player player = event.player();
-            Component message = AdventureUtils.parseMiniMessage(event.originalMessage());
+            Component message = AdventureUtils.parseMiniMessage(event.originalMessage(), GlyphTag.getResolverForPlayer(player));
             for (Character character : manager.getReverseMap().keySet()) {
                 if (!message.contains(Component.text(character))) continue;
 
@@ -258,6 +257,8 @@ public class FontEvents implements Listener {
                 message = message.replaceText(TextReplacementConfig.builder().match(entry.getKey())
                         .replacement(Component.text(entry.getValue().getCharacter()).color(NamedTextColor.WHITE)).build());
             }
+
+
 
             event.result(message);
         }

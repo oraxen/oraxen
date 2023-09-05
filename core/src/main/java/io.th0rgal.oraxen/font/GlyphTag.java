@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.font;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -28,8 +29,10 @@ public class GlyphTag {
     }
 
     static Tag create(final ArgumentQueue args, final Context ctx, Player player) throws ParsingException {
-        Glyph glyph = OraxenPlugin.get().getFontManager().getGlyphFromName(args.popOr("A glyph value is required").value());
-        Component glyphComponent = Component.text(glyph.getCharacter()).font(Key.key("default")).style(Style.empty());
+        String arg = args.popOr("A glyph value is required").value();
+        Glyph glyph = OraxenPlugin.get().getFontManager().getGlyphFromName(arg);
+        Logs.logError(String.valueOf(player == null || glyph.hasPermission(player)) + " : " + glyph.getName() + " : " + args);
+        Component glyphComponent = player == null || glyph.hasPermission(player) ? Component.text(glyph.getCharacter()).font(Key.key("default")).style(Style.empty()) : Component.text(arg);
         if (!args.hasNext() || !args.peek().value().equals("colorable"))
             glyphComponent = glyphComponent.color(NamedTextColor.WHITE);
         return Tag.selfClosingInserting(glyphComponent);

@@ -10,6 +10,7 @@ import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import org.bukkit.entity.Player;
 
 public class AdventureUtils {
 
@@ -28,6 +29,10 @@ public class AdventureUtils {
     public static final MiniMessage MINI_MESSAGE = MiniMessage.builder().tags(OraxenTagResolver).build();
 
     public static final MiniMessage MINI_MESSAGE_EMPTY = MiniMessage.builder().build();
+
+    public static MiniMessage MINI_MESSAGE_PLAYER(Player player) {
+        return MiniMessage.builder().tags(TagResolver.resolver(TagResolver.standard(), GlyphTag.getResolverForPlayer(player))).build();
+    }
 
     public static final GsonComponentSerializer GSON_SERIALIZER = GsonComponentSerializer.gson();
 
@@ -86,6 +91,11 @@ public class AdventureUtils {
         return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(LEGACY_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", "")));
     }
 
+    public static String parseLegacyThroughMiniMessage(String message, Player player) {
+        MiniMessage mm = player != null ? MINI_MESSAGE_PLAYER(player) : MINI_MESSAGE;
+        return LEGACY_SERIALIZER.serialize(mm.deserialize(mm.serialize(LEGACY_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", "")));
+    }
+
     public static String parseLegacyThroughMiniMessage(Component message) {
         return LEGACY_SERIALIZER.serialize(MINI_MESSAGE.deserialize(LEGACY_SERIALIZER.serialize(message).replaceAll("\\\\(?!u)(?!n)(?!\")", "")));
     }
@@ -112,6 +122,10 @@ public class AdventureUtils {
 
     public static String parseJsonThroughMiniMessage(String message) {
         return GSON_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", ""))).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+    }
+
+    public static String parseJsonThroughMiniMessage(String message, Player player) {
+        return GSON_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", ""), GlyphTag.getResolverForPlayer(player))).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
     }
 
     /**

@@ -4,9 +4,12 @@ package io.th0rgal.oraxen.nms;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.font.GlyphTag;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.entity.Player;
 
 import java.lang.reflect.InvocationTargetException;
@@ -53,6 +56,6 @@ public class NMSHandlers {
     }
 
     public static String returnFormattedString(JsonObject obj, Player player) {
-        return (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) ? Glyph.parseGlyphPlaceholders(player, AdventureUtils.parseJsonThroughMiniMessage(obj.toString())) : obj.toString();
+        return (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) ? Glyph.parseGlyphPlaceholders(player, AdventureUtils.parseJsonThroughMiniMessage(obj.toString(), player)) : obj.toString();
     }
 }
