@@ -34,7 +34,8 @@ public class ItemsView {
             if (!unexcludedItems.isEmpty())
                 files.put(file, createSubGUI(file.getName(), unexcludedItems));
         }
-        mainGui = Gui.paginated().rows((int) Settings.ORAXEN_INV_ROWS.getValue()).title(Settings.ORAXEN_INV_TITLE.toComponent()).create();
+        int rows = (int) Settings.ORAXEN_INV_ROWS.getValue();
+        mainGui = Gui.paginated().pageSize((rows - 1) * 9).rows(rows).title(Settings.ORAXEN_INV_TITLE.toComponent()).create();
         mainGui.disableAllInteractions();
         int i = 0;
 
@@ -50,6 +51,26 @@ public class ItemsView {
             i++;
         }
 
+        //page selection
+        if (mainGui.getPagesNum() > 1) {
+            if (mainGui.getPrevPageNum() != mainGui.getCurrentPageNum()) {
+                mainGui.setItem(6, 2, new GuiItem((OraxenItems.exists("arrow_previous_icon")
+                        ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById("arrow_previous_icon"))
+                        .build(), event -> mainGui.previous()));
+            }
+
+            if (mainGui.getNextPageNum() != mainGui.getCurrentPageNum()) {
+                mainGui.setItem(6, 7, new GuiItem((OraxenItems.exists("arrow_next_icon")
+                        ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById("arrow_next_icon"))
+                        .build(), event -> mainGui.next()));
+            }
+        }
+
+        mainGui.setItem(6, 5, new GuiItem((OraxenItems.exists("exit_icon")
+                ? new ItemBuilder(Material.BARRIER) : OraxenItems.getItemById("exit_icon"))
+                .build(), event -> event.getWhoClicked().closeInventory())
+        );
+
         return mainGui;
     }
 
@@ -60,30 +81,34 @@ public class ItemsView {
     }
 
     private PaginatedGui createSubGUI(final String fileName, final List<ItemBuilder> items) {
-        final PaginatedGui gui = Gui.paginated().rows(6).title(AdventureUtils.MINI_MESSAGE.deserialize(settings.getString(
+        final PaginatedGui gui = Gui.paginated().rows(6).pageSize(45).title(AdventureUtils.MINI_MESSAGE.deserialize(settings.getString(
                         String.format("oraxen_inventory.menu_layout.%s.title", Utils.removeExtension(fileName)), Settings.ORAXEN_INV_TITLE.toString())
                 .replace("<main_menu_title>", Settings.ORAXEN_INV_TITLE.toString()))).create();
+        gui.disableAllInteractions();
 
-        for (int i = 0; i < (items.size() - 1) / 45 + 1; i++) {
-            final List<ItemStack> itemStackList = extractPageItems(items, i);
-            for (int itemIndex = 0; itemIndex < itemStackList.size(); itemIndex++) {
-                GuiItem guiItem = new GuiItem(itemStackList.get(itemIndex));
-                guiItem.setAction(e -> e.getWhoClicked().getInventory().addItem(ItemUpdater.updateItem(guiItem.getItemStack())));
-                gui.setItem(itemIndex, guiItem);
-            }
+        for (ItemBuilder builder : items) {
+            if (builder == null) continue;
+            ItemStack itemStack = builder.build();
+            if (itemStack == null || itemStack.getType().isAir()) continue;
+
+            GuiItem guiItem = new GuiItem(itemStack);
+            guiItem.setAction(e -> e.getWhoClicked().getInventory().addItem(ItemUpdater.updateItem(guiItem.getItemStack())));
+            gui.addItem(guiItem);
         }
 
         //page selection
-        if (gui.getCurrentPageNum() > 1) {
-            gui.setItem(6, 2, new GuiItem((OraxenItems.exists("arrow_previous_icon")
-                    ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById("arrow_previous_icon"))
-                    .build(), event -> gui.previous()));
-        }
+        if (gui.getPagesNum() > 1) {
+            if (gui.getPrevPageNum() != gui.getCurrentPageNum()) {
+                gui.setItem(6, 2, new GuiItem((OraxenItems.getItemById("arrow_previous_icon") != null
+                        ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById("arrow_previous_icon"))
+                        .build(), event -> gui.previous()));
+            }
 
-        if (gui.getPagesNum() > 1 && gui.getNextPageNum() != gui.getCurrentPageNum()) {
-            gui.setItem(6, 7, new GuiItem((OraxenItems.exists("arrow_next_icon")
-                    ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById("arrow_next_icon"))
-                    .build(), event -> gui.next()));
+            if (gui.getNextPageNum() != gui.getCurrentPageNum()) {
+                gui.setItem(6, 7, new GuiItem((OraxenItems.exists("arrow_next_icon")
+                        ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById("arrow_next_icon"))
+                        .build(), event -> gui.next()));
+            }
         }
 
         gui.setItem(6, 5, new GuiItem((OraxenItems.exists("exit_icon")
