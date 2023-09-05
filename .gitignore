@@ -4,6 +4,10 @@ src/main/resources/pack/sounds
 src/main/resources/pack/models
 src/main/resources/pack/textures
 run/
+core/src/main/resources/pack/optifine
+core/src/main/resources/pack/sounds
+core/src/main/resources/pack/models
+core/src/main/resources/pack/textures
 
 # Macos
 .DS_Store
