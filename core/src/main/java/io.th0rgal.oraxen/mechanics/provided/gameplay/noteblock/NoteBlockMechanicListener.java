@@ -15,14 +15,7 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Bukkit;
-import org.bukkit.GameEvent;
-import org.bukkit.GameMode;
-import org.bukkit.Instrument;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.Sound;
-import org.bukkit.SoundCategory;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.BlockState;
@@ -37,14 +30,7 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockIgniteEvent;
-import org.bukkit.event.block.BlockPhysicsEvent;
-import org.bukkit.event.block.BlockPistonExtendEvent;
-import org.bukkit.event.block.BlockPistonRetractEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.block.NotePlayEvent;
+import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.inventory.ClickType;
@@ -55,11 +41,7 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.RayTraceResult;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.getAnvilFacing;
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
@@ -416,11 +398,10 @@ public class NoteBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingBlock(final BlockPlaceEvent event) {
         Block placed = event.getBlockPlaced();
-        if (placed.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_WOOD_PLACE) return;
-        if (OraxenBlocks.getNoteBlockMechanic(placed) != null || placed.getType() == Material.MUSHROOM_STEM) return;
+        if (placed.getType() != Material.NOTE_BLOCK) return;
+        if (OraxenBlocks.isOraxenNoteBlock(OraxenItems.getIdByItem(event.getItemInHand()))) return;
 
-        if (placed.getType() == Material.NOTE_BLOCK && !OraxenItems.exists(event.getItemInHand()))
-            placed.setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
+        placed.setBlockData(Bukkit.createBlockData(Material.NOTE_BLOCK), false);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
