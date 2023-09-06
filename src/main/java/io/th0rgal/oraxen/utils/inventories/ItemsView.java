@@ -51,24 +51,21 @@ public class ItemsView {
             i++;
         }
 
-        //page selection
         if (mainGui.getPagesNum() > 1) {
-            if (mainGui.getPrevPageNum() != mainGui.getCurrentPageNum()) {
-                mainGui.setItem(6, 2, new GuiItem((OraxenItems.exists("arrow_previous_icon")
-                        ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById("arrow_previous_icon"))
-                        .build(), event -> mainGui.previous()));
-            }
+            mainGui.setItem(6, 2, new GuiItem((OraxenItems.exists("arrow_previous_icon")
+                    ? new ItemBuilder(Material.ARROW).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<gray>Previous page"))
+                    : OraxenItems.getItemById("arrow_previous_icon")).build(), event -> mainGui.previous()
+            ));
 
-            if (mainGui.getNextPageNum() != mainGui.getCurrentPageNum()) {
-                mainGui.setItem(6, 7, new GuiItem((OraxenItems.exists("arrow_next_icon")
-                        ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById("arrow_next_icon"))
-                        .build(), event -> mainGui.next()));
-            }
+            mainGui.setItem(6, 8, new GuiItem((OraxenItems.exists("arrow_next_icon")
+                    ? new ItemBuilder(Material.ARROW).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<gray>Next page"))
+                    : OraxenItems.getItemById("arrow_next_icon")).build(), event -> mainGui.next()
+            ));
         }
 
         mainGui.setItem(6, 5, new GuiItem((OraxenItems.exists("exit_icon")
-                ? new ItemBuilder(Material.BARRIER) : OraxenItems.getItemById("exit_icon"))
-                .build(), event -> event.getWhoClicked().closeInventory())
+                ? new ItemBuilder(Material.BARRIER).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<red>Exit"))
+                : OraxenItems.getItemById("exit_icon")).build(), event -> event.getWhoClicked().closeInventory())
         );
 
         return mainGui;
@@ -96,33 +93,24 @@ public class ItemsView {
             gui.addItem(guiItem);
         }
 
-        //page selection
         if (gui.getPagesNum() > 1) {
-            if (gui.getPrevPageNum() != gui.getCurrentPageNum()) {
-                gui.setItem(6, 2, new GuiItem((OraxenItems.getItemById("arrow_previous_icon") != null
-                        ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById("arrow_previous_icon"))
-                        .build(), event -> gui.previous()));
-            }
+            gui.setItem(6, 2, new GuiItem((OraxenItems.exists("arrow_previous_icon")
+                    ? new ItemBuilder(Material.ARROW).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<gray>Previous page"))
+                    : OraxenItems.getItemById("arrow_previous_icon")).build(), event -> gui.previous()
+            ));
 
-            if (gui.getNextPageNum() != gui.getCurrentPageNum()) {
-                gui.setItem(6, 7, new GuiItem((OraxenItems.exists("arrow_next_icon")
-                        ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById("arrow_next_icon"))
-                        .build(), event -> gui.next()));
-            }
+            gui.setItem(6, 8, new GuiItem((OraxenItems.exists("arrow_next_icon")
+                    ? new ItemBuilder(Material.ARROW).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<gray>Next page"))
+                    : OraxenItems.getItemById("arrow_next_icon")).build(), event -> gui.next()
+            ));
         }
 
         gui.setItem(6, 5, new GuiItem((OraxenItems.exists("exit_icon")
-                ? new ItemBuilder(Material.BARRIER) : OraxenItems.getItemById("exit_icon"))
-                .build(), event -> mainGui.open(event.getWhoClicked())
+                ? new ItemBuilder(Material.BARRIER).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<red>Exit"))
+                : OraxenItems.getItemById("exit_icon")).build(), event -> mainGui.open(event.getWhoClicked())
         ));
 
         return gui;
-    }
-
-    private List<ItemStack> extractPageItems(final List<ItemBuilder> items, final int page) {
-        final List<ItemStack> output = new ArrayList<>();
-        for (int i = page * 45; i < (page + 1) * 45 && i < items.size(); i++) output.add(items.get(i).build());
-        return output;
     }
 
     private Pair<ItemStack, Integer> getItemStack(final File file) {
