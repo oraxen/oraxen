@@ -31,12 +31,12 @@ public class ThorMechanicListener implements Listener {
         String itemID = OraxenItems.getIdByItem(item);
         ThorMechanic mechanic = (ThorMechanic) factory.getMechanic(item);
         Block block = event.getClickedBlock();
-        Location location = block != null ? block.getLocation() : player.getLocation();
+        Location targetBlock = player.getTargetBlock(null, 50).getLocation();
 
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
         if (BlockHelpers.isInteractable(block) && event.useInteractedBlock() == Event.Result.ALLOW) return;
-        if (!ProtectionLib.canUse(player, location)) return;
+        if (!ProtectionLib.canUse(player, targetBlock)) return;
         if (factory.isNotImplementedIn(itemID)) return;
         if (mechanic == null) return;
 
@@ -49,8 +49,7 @@ public class ThorMechanicListener implements Listener {
         playerTimer.reset();
         mechanic.removeCharge(item);
         for (int i = 0; i < mechanic.getLightningBoltsAmount(); i++) {
-            Location target = event.getPlayer().getTargetBlock(null, 50).getLocation();
-            player.getWorld().strikeLightning(mechanic.getRandomizedLocation(target));
+            player.getWorld().strikeLightning(mechanic.getRandomizedLocation(targetBlock));
         }
 
     }

@@ -8,8 +8,11 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class BigMiningMechanicFactory extends MechanicFactory {
 
+    private final boolean callEvents;
+
     public BigMiningMechanicFactory(ConfigurationSection section) {
         super(section);
+        this.callEvents = section.getBoolean("call_events", true);
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new BigMiningMechanicListener(this));
     }
 
@@ -18,6 +21,10 @@ public class BigMiningMechanicFactory extends MechanicFactory {
         Mechanic mechanic = new BigMiningMechanic(this, itemMechanicConfiguration);
         addToImplemented(mechanic);
         return mechanic;
+    }
+
+    public boolean callEvents() {
+        return callEvents;
     }
 
 }

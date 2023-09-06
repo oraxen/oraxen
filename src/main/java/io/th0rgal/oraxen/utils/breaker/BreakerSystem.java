@@ -21,7 +21,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -206,23 +205,19 @@ public class BreakerSystem {
                 NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
                 if (mechanic == null) return true;
                 OraxenNoteBlockDamageEvent event = new OraxenNoteBlockDamageEvent(mechanic, block, player);
-                io.th0rgal.oraxen.api.events.OraxenNoteBlockDamageEvent deprecatedEvent = new io.th0rgal.oraxen.api.events.OraxenNoteBlockDamageEvent(mechanic, block, player);
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
                     Bukkit.getPluginManager().callEvent(event);
-                    Bukkit.getPluginManager().callEvent(deprecatedEvent);
                 });
-                return event.isCancelled() || deprecatedEvent.isCancelled();
+                return event.isCancelled();
             }
             case TRIPWIRE -> {
                 StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
                 if (mechanic == null) return true;
                 OraxenStringBlockDamageEvent event = new OraxenStringBlockDamageEvent(mechanic, block, player);
-                io.th0rgal.oraxen.api.events.OraxenStringBlockDamageEvent deprecatedEvent = new io.th0rgal.oraxen.api.events.OraxenStringBlockDamageEvent(mechanic, block, player);
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
                     Bukkit.getPluginManager().callEvent(event);
-                    Bukkit.getPluginManager().callEvent(deprecatedEvent);
                 });
-                return event.isCancelled() || deprecatedEvent.isCancelled();
+                return event.isCancelled();
             }
             case BARRIER -> {
                 try {
@@ -232,12 +227,10 @@ public class BreakerSystem {
                         Entity baseEntity = mechanic.getBaseEntity(block);
                         if (baseEntity == null) return true;
                         OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block);
-                        io.th0rgal.oraxen.api.events.OraxenFurnitureDamageEvent deprecatedEvent = new io.th0rgal.oraxen.api.events.OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block);
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
                             Bukkit.getPluginManager().callEvent(event);
-                            Bukkit.getPluginManager().callEvent(deprecatedEvent);
                         });
-                        return event.isCancelled() || deprecatedEvent.isCancelled();
+                        return event.isCancelled();
                     }).get();
                 } catch (Exception e) {
                     return false;
