@@ -21,7 +21,9 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerConnectionListener;
 import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_19_R2.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R2.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,6 +38,16 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private Map<Channel, ChannelHandler> encoder = Collections.synchronizedMap(new WeakHashMap<>());
     private Map<Channel, ChannelHandler> decoder = Collections.synchronizedMap(new WeakHashMap<>());
+
+    @Override
+    public ItemStack copyItemNBTTags(ItemStack oldItem, ItemStack newItem) {
+        CompoundTag oldTag = CraftItemStack.asNMSCopy(oldItem).getOrCreateTag();
+        net.minecraft.world.item.ItemStack newNmsItem = CraftItemStack.asNMSCopy(newItem);
+        CompoundTag newTag = newNmsItem.getOrCreateTag();
+        oldTag.getAllKeys().stream().filter(key -> !vanillaKeys.contains(key)).forEach(key -> newTag.put(key, oldTag.get(key)));
+        newNmsItem.setTag(newTag);
+        return newNmsItem.asBukkitCopy();
+    }
 
     public NMSHandler() {
         List<ConnectionProtocol> networkManagers;

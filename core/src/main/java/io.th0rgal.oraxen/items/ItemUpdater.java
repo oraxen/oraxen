@@ -4,6 +4,7 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import com.jeff_media.persistentdataserializer.PersistentDataSerializer;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.Material;
@@ -19,11 +20,7 @@ import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.MapMeta;
-import org.bukkit.inventory.meta.PotionMeta;
+import org.bukkit.inventory.meta.*;
 import org.bukkit.persistence.PersistentDataContainer;
 
 import java.util.Map;
@@ -96,8 +93,9 @@ public class ItemUpdater implements Listener {
         Optional<ItemBuilder> newItemBuilder = OraxenItems.getOptionalItemById(id);
         if (newItemBuilder.isEmpty() || newItemBuilder.get().getOraxenMeta().isNoUpdate()) return oldItem;
 
-        ItemStack newItem = newItemBuilder.get().build();
+        ItemStack newItem = NMSHandlers.getHandler().copyItemNBTTags(oldItem, newItemBuilder.get().build());;
         newItem.setAmount(oldItem.getAmount());
+
         Utils.editItemMeta(newItem, itemMeta -> {
             ItemMeta oldMeta = oldItem.getItemMeta();
             ItemMeta newMeta = newItem.getItemMeta();
