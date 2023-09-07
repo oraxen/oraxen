@@ -20,7 +20,6 @@ import org.bukkit.inventory.ItemStack;
 
 import java.io.File;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ItemsView {
 
@@ -37,19 +36,24 @@ public class ItemsView {
         int rows = (int) Settings.ORAXEN_INV_ROWS.getValue();
         mainGui = Gui.paginated().pageSize((rows - 1) * 9).rows(rows).title(Settings.ORAXEN_INV_TITLE.toComponent()).create();
         mainGui.disableAllInteractions();
-        int i = 0;
 
-        Set<Integer> usedSlots = files.keySet().stream().map(e -> getItemStack(e).getRight()).filter(e -> e > -1).collect(Collectors.toSet());
-
-        for (final var entry : files.entrySet()) {
-            Pair<ItemStack, Integer> itemSlotPair = getItemStack(entry.getKey());
-            ItemStack itemStack = itemSlotPair.getLeft();
-            int slot = itemSlotPair.getRight() > -1 ? itemSlotPair.getRight() : getUnusedSlot(i, usedSlots);
-            final GuiItem item = new GuiItem(itemStack);
-            item.setAction(event -> entry.getValue().open(event.getWhoClicked()));
-            mainGui.setItem(slot, item);
-            i++;
+        // Make a list of all slots to allow using mainGui.addItem easier
+        List<GuiItem> pageItems = new ArrayList<>(Collections.nCopies(files.size(), null));
+        // Make a list of all used slots to avoid using them later
+        for (Map.Entry<File, PaginatedGui> entry : files.entrySet()) {
+            int slot = getItemStack(entry.getKey()).getRight();
+            if (slot == -1) continue;
+            GuiItem guiItem = new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked()));
+            pageItems.add(slot, guiItem);
         }
+
+        // Add all items without a specified slot to the earliest available slot
+        for (Map.Entry<File, PaginatedGui> entry : files.entrySet()) {
+            if (getItemStack(entry.getKey()).getRight() != -1) continue;
+            pageItems.add(new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked())));
+        }
+
+        mainGui.addItem(pageItems.stream().filter(Objects::nonNull).toArray(GuiItem[]::new));
 
         if (mainGui.getPagesNum() > 1) {
             mainGui.setItem(6, 2, new GuiItem((OraxenItems.exists("arrow_previous_icon")
@@ -69,12 +73,6 @@ public class ItemsView {
         );
 
         return mainGui;
-    }
-
-    private int getUnusedSlot(int i, Set<Integer> usedSlots) {
-        int slot = usedSlots.contains(i) ? getUnusedSlot(i + 1, usedSlots) : i;
-        usedSlots.add(slot);
-        return slot;
     }
 
     private PaginatedGui createSubGUI(final String fileName, final List<ItemBuilder> items) {
@@ -136,10 +134,9 @@ public class ItemsView {
             }
         }
 
-        if (itemStack == null)
-            // avoid possible bug if isOraxenItems is available but can't be an itemstack
-            itemStack = new ItemBuilder(Material.PAPER).setDisplayName(ChatColor.GREEN + file.getName()).build();
-
-        return Pair.of(itemStack, settings.getInt(String.format("oraxen_inventory.menu_layout.%s.slot", Utils.removeExtension(file.getName())), -1) - 1);
+        // avoid possible bug if isOraxenItems is available but can't be an itemstack
+        if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).setDisplayName(ChatColor.GREEN + file.getName()).build();
+        int slot = settings.getInt(String.format("oraxen_inventory.menu_layout.%s.slot", Utils.removeExtension(file.getName())), -1) - 1;
+        return Pair.of(itemStack, Math.max(slot, -1));
     }
 }
