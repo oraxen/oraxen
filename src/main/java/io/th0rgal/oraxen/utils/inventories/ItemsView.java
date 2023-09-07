@@ -53,20 +53,20 @@ public class ItemsView {
 
         if (mainGui.getPagesNum() > 1) {
             mainGui.setItem(6, 2, new GuiItem((OraxenItems.exists("arrow_previous_icon")
-                    ? new ItemBuilder(Material.ARROW).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<gray>Previous page"))
-                    : OraxenItems.getItemById("arrow_previous_icon")).build(), event -> mainGui.previous()
-            ));
+                    ? OraxenItems.getItemById("arrow_previous_icon")
+                    : new ItemBuilder(Material.ARROW).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<gray>Previous page"))
+            ).build(), event -> mainGui.previous()));
 
             mainGui.setItem(6, 8, new GuiItem((OraxenItems.exists("arrow_next_icon")
-                    ? new ItemBuilder(Material.ARROW).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<gray>Next page"))
-                    : OraxenItems.getItemById("arrow_next_icon")).build(), event -> mainGui.next()
-            ));
+                    ? OraxenItems.getItemById("arrow_next_icon")
+                    : new ItemBuilder(Material.ARROW).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<gray>Next page"))
+            ).build(), event -> mainGui.previous()));
         }
 
         mainGui.setItem(6, 5, new GuiItem((OraxenItems.exists("exit_icon")
-                ? new ItemBuilder(Material.BARRIER).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<red>Exit"))
-                : OraxenItems.getItemById("exit_icon")).build(), event -> event.getWhoClicked().closeInventory())
-        );
+                ? OraxenItems.getItemById("exit_icon")
+                : new ItemBuilder(Material.BARRIER).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<red>Exit"))
+        ).build(), event -> event.getWhoClicked().closeInventory()));
 
         return mainGui;
     }
@@ -95,20 +95,20 @@ public class ItemsView {
 
         if (gui.getPagesNum() > 1) {
             gui.setItem(6, 2, new GuiItem((OraxenItems.exists("arrow_previous_icon")
-                    ? new ItemBuilder(Material.ARROW).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<gray>Previous page"))
-                    : OraxenItems.getItemById("arrow_previous_icon")).build(), event -> gui.previous()
-            ));
+                    ? OraxenItems.getItemById("arrow_previous_icon")
+                    : new ItemBuilder(Material.ARROW).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<gray>Previous page"))
+            ).build(), event -> gui.previous()));
 
             gui.setItem(6, 8, new GuiItem((OraxenItems.exists("arrow_next_icon")
-                    ? new ItemBuilder(Material.ARROW).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<gray>Next page"))
-                    : OraxenItems.getItemById("arrow_next_icon")).build(), event -> gui.next()
-            ));
+                    ? OraxenItems.getItemById("arrow_next_icon")
+                    : new ItemBuilder(Material.ARROW).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<gray>Next page"))
+            ).build(), event -> gui.previous()));
         }
 
         gui.setItem(6, 5, new GuiItem((OraxenItems.exists("exit_icon")
-                ? new ItemBuilder(Material.BARRIER).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<red>Exit"))
-                : OraxenItems.getItemById("exit_icon")).build(), event -> mainGui.open(event.getWhoClicked())
-        ));
+                ? OraxenItems.getItemById("exit_icon")
+                : new ItemBuilder(Material.BARRIER).setDisplayName(AdventureUtils.parseLegacyThroughMiniMessage("<red>Exit"))
+        ).build(), event -> mainGui.open(event.getWhoClicked())));
 
         return gui;
     }
