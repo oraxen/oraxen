@@ -50,8 +50,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return newNmsItem.asBukkitCopy();
     }
 
-    @SuppressWarnings("unchecked")
-    public NMSHandler() {
+    @Override
+    public void setupNmsGlyphs() {
         List<ConnectionProtocol> networkManagers;
         List<ChannelFuture> channelFutures;
 

@@ -49,8 +49,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return newNmsItem.asBukkitCopy();
     }
 
-    public NMSHandler() {
-        List<Connection> networkManagers = new ServerConnectionListener(MinecraftServer.getServer()).getConnections();
+    @Override
+    public void setupNmsGlyphs() {        List<Connection> networkManagers = new ServerConnectionListener(MinecraftServer.getServer()).getConnections();
         List<ChannelFuture> channelFutures;
 
         try {

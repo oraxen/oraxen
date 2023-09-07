@@ -4,13 +4,11 @@ package io.th0rgal.oraxen.nms;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
-import io.th0rgal.oraxen.font.GlyphTag;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.minimessage.MiniMessage;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -20,12 +18,10 @@ public class NMSHandlers {
     private static NMSHandler handler;
     private static String version;
 
+    @Nullable
     public static NMSHandler getHandler() {
-        if (handler != null) {
-            return handler;
-        } else {
-            setup();
-        }
+        if (handler != null) return handler;
+        else setup();
         return handler;
     }
 
@@ -39,18 +35,18 @@ public class NMSHandlers {
         String packageVersion = packageName.substring(packageName.lastIndexOf('.') + 1);
 
         for (VersionUtil selectedVersion : SUPPORTED_VERSION) {
-            if (!selectedVersion.toString().contains(packageVersion)) {
-                continue;
-            }
-            Logs.logSuccess("Version " + packageVersion + " has been detected.");
-            Logs.logSuccess("Oraxen will use the Glyph-NMSHandler for this version.");
+            if (!selectedVersion.toString().contains(packageVersion)) continue;
+
             version = packageVersion;
             try {
                 handler = (NMSHandler) Class.forName("io.th0rgal.oraxen.nms." + packageVersion + ".NMSHandler").getConstructor().newInstance();
+                Logs.logSuccess("Version " + packageVersion + " has been detected.");
+                Logs.logSuccess("Oraxen will use the NMSHandler for this version.");
                 return;
             } catch (ClassNotFoundException | InvocationTargetException | InstantiationException |
                      IllegalAccessException | NoSuchMethodException e) {
-                throw new RuntimeException(e);
+                Logs.logWarning("Oraxen does not support this version of Minecraft (" + packageVersion + ") yet.");
+                Logs.logWarning("NMS features will be disabled...");
             }
         }
     }

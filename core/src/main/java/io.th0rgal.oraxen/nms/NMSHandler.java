@@ -38,4 +38,5 @@ public interface NMSHandler {
             "ChargedProjectiles", "Charged", "DebugProperty", "Fireworks", "Explosion", "Flight",
             "map", "map_scale_direction", "map_to_lock", "Decorations", "SkullOwner", "Effects", "BlockEntityTag", "BlockStateTag");
 
+    void setupNmsGlyphs();
 }

@@ -24,16 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class FontManager {
@@ -71,20 +62,13 @@ public class FontManager {
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
 
-
-        // NMS version check
-        if (Settings.USE_NMS_GLYPHS.toBool()) {
-            if (!NMSHandlers.getHandler().getSupported()) {
-                Logs.logError("Oraxens NMS Glyph system does not support this version yet!");
-                Logs.logError("This will not be enabled");
-            } else {
-                NMSHandlers.setup();
-                Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
-                Logs.logSuccess("Disabling packet-based glyph systems");
-                Logs.newline();
-                OraxenPlugin.get().getProtocolManager().removePacketListener(new InventoryPacketListener());
-                OraxenPlugin.get().getProtocolManager().removePacketListener(new TitlePacketListener());
-            }
+        if (Settings.USE_NMS_GLYPHS.toBool() && NMSHandlers.getHandler() != null) {
+            NMSHandlers.getHandler().setupNmsGlyphs();
+            Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
+            Logs.logSuccess("Disabling packet-based glyph systems");
+            Logs.newline();
+            OraxenPlugin.get().getProtocolManager().removePacketListener(new InventoryPacketListener());
+            OraxenPlugin.get().getProtocolManager().removePacketListener(new TitlePacketListener());
         }
     }
 
