@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -47,6 +48,10 @@ public class ItemsView {
             int slot = itemSlotPair.getRight() > -1 ? itemSlotPair.getRight() : getUnusedSlot(i, usedSlots);
             final GuiItem item = new GuiItem(itemStack);
             item.setAction(event -> entry.getValue().open(event.getWhoClicked()));
+            if (slot > ((rows - 1) * 9) - 1) {
+                Logs.logError(AdventureUtils.parseLegacy("Slot for %s is higher than 45".formatted(item.getItemStack().getItemMeta().getDisplayName())));
+                continue;
+            }
             mainGui.setItem(slot, item);
             i++;
         }
