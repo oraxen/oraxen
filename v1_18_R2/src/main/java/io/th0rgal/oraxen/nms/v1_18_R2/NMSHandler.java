@@ -227,7 +227,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             try {
                 JsonElement element = JsonParser.parseString(string);
                 if (element.isJsonObject())
-                    return super.writeUtf(NMSHandlers.returnFormattedString(element.getAsJsonObject(), supplier.get()), maxLength);
+                    return super.writeUtf(NMSHandlers.formatJsonString(element.getAsJsonObject(), supplier.get()), maxLength);
             } catch (Exception ignored) {
 
             }
@@ -242,7 +242,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     try {
                         JsonElement element = JsonParser.parseString(string);
                         if (element.isJsonObject())
-                            return NMSHandlers.returnFormattedString(element.getAsJsonObject(), supplier.get());
+                            return NMSHandlers.formatJsonString(element.getAsJsonObject(), supplier.get());
                     } catch (Exception ignored) {
                     }
                     return string;
@@ -266,15 +266,15 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
 
         private void transform(ListTag list, Function<String, String> transformer) {
-            List<Tag> objects = new ArrayList<>(list);
-            for (Tag base : objects) {
+            for (Tag base : List.copyOf(list)) {
                 if (base instanceof CompoundTag tag) transform(tag, transformer);
                 else if (base instanceof ListTag listTag) transform(listTag, transformer);
                 else if (base instanceof StringTag) {
-                    if (base.getAsString().equals(transformer.apply(base.getAsString()))) continue;
+                    String transformed = transformer.apply(base.getAsString());
+                    if (base.getAsString().equals(transformed)) continue;
                     int index = list.indexOf(base);
-                    list.remove(base);
-                    list.add(index, StringTag.valueOf(transformer.apply(base.getAsString())));
+                    list.add(index, StringTag.valueOf(transformed));
+                    list.remove(index + 1);
                 }
             }
         }

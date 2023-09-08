@@ -152,8 +152,8 @@ public class Glyph {
         return output;
     }
 
-    public boolean hasPermission(final Player player) {
-        return permission == null || permission.isEmpty() || player.hasPermission(permission);
+    public boolean hasPermission(Player player) {
+        return player == null || permission == null || permission.isEmpty() || player.hasPermission(permission);
     }
 
     private final Set<String> materialNames = Arrays.stream(Material.values()).map(Material::name).collect(Collectors.toSet());
@@ -223,14 +223,18 @@ public class Glyph {
         }
     }
 
-    public static String parseGlyphPlaceholders(Player player, String message) {
+    public static String parsePlaceholders(Player player, String message) {
+        Glyph requiredGlyph = OraxenPlugin.get().getFontManager().getGlyphFromName("required");
         for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
-            for (String placeholder : glyph.getPlaceholders()) {
-                if (message.contains(placeholder) && (player == null || player.hasPermission(glyph.permission))) {
-                    message = message.replace(placeholder, glyph.getCharacter());
-                }
-            }
+            String glyphTag = "<glyph:" + glyph.getName() + ">";
+
+            message = message.replace(glyph.getCharacter(), glyph.hasPermission(player)
+                    ? glyphTag : Arrays.stream(glyph.placeholders).findFirst().orElse(requiredGlyph.getCharacter()));
+            for (String placeholder : glyph.placeholders)
+                if (message.contains(placeholder) && glyph.hasPermission(player))
+                    message = message.replace(placeholder, glyphTag);
         }
+
         return message;
     }
 }
