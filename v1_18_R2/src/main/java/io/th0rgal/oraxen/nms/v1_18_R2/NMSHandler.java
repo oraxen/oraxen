@@ -50,7 +50,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
-    public void setupNmsGlyphs() {        List<Connection> networkManagers = new ServerConnectionListener(MinecraftServer.getServer()).getConnections();
+    public void setupNmsGlyphs() {
+        List<Connection> networkManagers = MinecraftServer.getServer().getConnection().getConnections();
         List<ChannelFuture> channelFutures;
 
         try {
@@ -59,7 +60,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
             channelFutures = (List<ChannelFuture>) channelFutureField.get(MinecraftServer.getServer().getConnection());
         } catch (NoSuchFieldException | SecurityException | IllegalArgumentException | IllegalAccessException e1) {
-            networkManagers = new ArrayList<>();
             channelFutures = new ArrayList<>();
             e1.printStackTrace();
         }
@@ -67,13 +67,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         final List<ChannelFuture> futures = channelFutures;
 
         // Handle connected channels
-        List<Connection> finalNetworkManagers = networkManagers;
         ChannelInitializer<Channel> endInitProtocol = new ChannelInitializer<>() {
             @Override
             protected void initChannel(@NotNull Channel channel) {
                 try {
                     // This can take a while, so we need to stop the main thread from interfering
-                    synchronized (finalNetworkManagers) {
+                    synchronized (networkManagers) {
                         // Stop injecting channels
                         channel.eventLoop().submit(() -> inject(channel));
                     }
@@ -135,8 +134,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 }
             }.runTask(OraxenPlugin.get());
         }
-
-        OraxenPlugin.get().getServer().getOnlinePlayers().stream().map(player -> (Player) player).forEach(this::inject);
     }
 
     private void bind(List<ChannelFuture> channelFutures, ChannelInboundHandlerAdapter serverChannelHandler) {
@@ -271,11 +268,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         private void transform(ListTag list, Function<String, String> transformer) {
             List<Tag> objects = new ArrayList<>(list);
             for (Tag base : objects) {
-                if (base instanceof CompoundTag) {
-                    transform((CompoundTag) base, transformer);
-                } else if (base instanceof ListTag) {
-                    transform((ListTag) base, transformer);
-                } else if (base instanceof StringTag) {
+                if (base instanceof CompoundTag tag) transform(tag, transformer);
+                else if (base instanceof ListTag listTag) transform(listTag, transformer);
+                else if (base instanceof StringTag) {
+                    if (base.getAsString().equals(transformer.apply(base.getAsString()))) continue;
                     int index = list.indexOf(base);
                     list.remove(base);
                     list.add(index, StringTag.valueOf(transformer.apply(base.getAsString())));
