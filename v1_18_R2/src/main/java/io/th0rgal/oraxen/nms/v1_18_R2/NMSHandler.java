@@ -276,9 +276,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 } else if (base instanceof ListTag) {
                     transform((ListTag) base, transformer);
                 } else if (base instanceof StringTag) {
-                    String val = base.getAsString();
+                    int index = list.indexOf(base);
                     list.remove(base);
-                    list.add(StringTag.valueOf(transformer.apply(val)));
+                    list.add(index, StringTag.valueOf(transformer.apply(base.getAsString())));
                 }
             }
         }
