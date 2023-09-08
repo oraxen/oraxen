@@ -68,6 +68,8 @@ allprojects {
         maven("https://repo.mineinabyss.com/releases") // PlayerAnimator
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
         maven("https://maven.enginehub.org/repo/")
+
+        mavenLocal()
     }
 
     dependencies {
