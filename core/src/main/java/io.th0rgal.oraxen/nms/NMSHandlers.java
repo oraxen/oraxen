@@ -4,9 +4,9 @@ package io.th0rgal.oraxen.nms;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
-import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
 
@@ -42,6 +42,7 @@ public class NMSHandlers {
                 handler = (NMSHandler) Class.forName("io.th0rgal.oraxen.nms." + packageVersion + ".NMSHandler").getConstructor().newInstance();
                 Logs.logSuccess("Version " + packageVersion + " has been detected.");
                 Logs.logSuccess("Oraxen will use the NMSHandler for this version.");
+                Bukkit.getPluginManager().registerEvents(new NMSListeners(), OraxenPlugin.get());
                 return;
             } catch (ClassNotFoundException | InvocationTargetException | InstantiationException |
                      IllegalAccessException | NoSuchMethodException e) {
@@ -51,8 +52,19 @@ public class NMSHandlers {
         }
     }
 
-    public static String formatJsonString(JsonObject obj, Player player) {
+    public static String formatJsonString(JsonObject obj) {
         return (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate"))
-                ? AdventureUtils.parseJsonThroughMiniMessage(Glyph.parsePlaceholders(player, obj.toString()), player) : obj.toString();
+                ? Glyph.parsePlaceholders(obj.toString()) : obj.toString();
+    }
+
+    public static String verifyFor(Player player, String message) {
+        if (message != null && player != null) for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
+            String glyphTag = glyph.getGlyphTag();
+            // Escape all glyphs the player does not have permission for
+            if (!glyph.hasPermission(player)) {
+                message = message.replace(glyphTag, "g" + glyphTag);
+            }
+        }
+        return message;
     }
 }

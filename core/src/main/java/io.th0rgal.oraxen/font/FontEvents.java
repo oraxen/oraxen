@@ -196,7 +196,7 @@ public class FontEvents implements Listener {
     public class SpigotChatHandler implements Listener {
         @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
         public void onPlayerChat(AsyncPlayerChatEvent event) {
-            if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
+            if (!Settings.FORMAT_CHAT.toBool()) return;
 
             String format = format(event.getFormat(), null);
             String message = format(event.getMessage(), event.getPlayer());
@@ -206,29 +206,29 @@ public class FontEvents implements Listener {
                 event.setMessage(message);
             }
         }
-    }
 
-    private String format(String string, @Nullable Player player) {
-        string = AdventureUtils.parseLegacyThroughMiniMessage(string, player);
-        if (player != null) for (Character character : manager.getReverseMap().keySet()) {
-            if (!string.contains(String.valueOf(character))) continue;
-            Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
-            if (!glyph.hasPermission(player)) {
-                Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
-                return null;
+        private String format(String string, @Nullable Player player) {
+            string = AdventureUtils.parseLegacyThroughMiniMessage(string, player);
+            if (player != null) for (Character character : manager.getReverseMap().keySet()) {
+                if (!string.contains(String.valueOf(character))) continue;
+                Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
+                if (!glyph.hasPermission(player)) {
+                    Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
+                    return null;
+                }
             }
+
+
+            for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
+                String unicode = ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter());
+                if (player == null || entry.getValue().hasPermission(player))
+                    string = (manager.permsChatcolor == null)
+                            ? string.replace(entry.getKey(), unicode)
+                            : string.replace(entry.getKey(), unicode + PapiAliases.setPlaceholders(player, manager.permsChatcolor));
+            }
+
+            return string;
         }
-
-
-        for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-            String unicode = ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter());
-            if (player == null || entry.getValue().hasPermission(player))
-                string = (manager.permsChatcolor == null)
-                        ? string.replace(entry.getKey(), unicode)
-                        : string.replace(entry.getKey(), unicode + PapiAliases.setPlaceholders(player, manager.permsChatcolor));
-        }
-
-        return string;
     }
 
 
@@ -257,7 +257,14 @@ public class FontEvents implements Listener {
                         .replacement(Component.text(entry.getValue().getCharacter()).color(NamedTextColor.WHITE)).build());
             }
 
-
+            for (Glyph glyph : manager.getGlyphs()) {
+                if (!glyph.hasPermission(player)) {
+                    message = message.replaceText(TextReplacementConfig.builder().match(glyph.getGlyphTag())
+                            .replacement(Component.text("\\" + glyph.getGlyphTag())).build());
+                    message = message.replaceText(TextReplacementConfig.builder().match(glyph.getShortGlyphTag())
+                            .replacement(Component.text("\\" + glyph.getShortGlyphTag())).build());
+                }
+            }
 
             event.result(message);
         }

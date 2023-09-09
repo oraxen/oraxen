@@ -124,12 +124,13 @@ public class AdventureUtils {
     }
 
     public static String parseJsonThroughMiniMessage(String message) {
-        return GSON_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", ""))).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+        return GSON_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")(?!:)", ""))).replaceAll("\\\\(?!u)(?!n)(?!\")(?!:)", "");
     }
 
     public static String parseJsonThroughMiniMessage(String message, Player player) {
+        TagResolver resolver = TagResolver.resolver(GlyphTag.getResolverForPlayer(player), ShiftTag.RESOLVER, ShiftTag.RESOLVER_SHORT);
         Component component = GSON_SERIALIZER.deserialize(message.replaceAll("\\\\(?!u)(?!n)(?!\")", ""));
-        component = parseMiniMessage(component, GlyphTag.getResolverForPlayer(player));
+        component = MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(component).replaceAll("\\\\(?!u)(?!n)(?!\")", ""), resolver);
         if (player != null) component = GlobalTranslator.render(component, Locale.forLanguageTag(player.getLocale()));
         return GSON_SERIALIZER.serialize(component).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
     }

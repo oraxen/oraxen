@@ -7,13 +7,11 @@ import io.netty.channel.*;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.font.GlyphTag;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.text.Component;
-import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.StringTag;
-import net.minecraft.nbt.Tag;
+import net.minecraft.nbt.*;
 import net.minecraft.network.*;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
@@ -26,6 +24,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
@@ -220,7 +219,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         @NotNull
         @Override
         public FriendlyByteBuf writeComponent(@NotNull Component component) {
-            return super.writeComponent(AdventureUtils.parseMiniMessage(component));
+            return super.writeComponent(AdventureUtils.parseMiniMessage(component, GlyphTag.getResolverForPlayer(supplier.get())));
         }
 
         @Override
@@ -228,7 +227,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             try {
                 JsonElement element = JsonParser.parseString(string);
                 if (element.isJsonObject())
-                    return super.writeUtf(NMSHandlers.formatJsonString(element.getAsJsonObject(), supplier.get()), maxLength);
+                    return super.writeUtf(NMSHandlers.formatJsonString(element.getAsJsonObject()), maxLength);
             } catch (Exception ignored) {
 
             }
@@ -243,7 +242,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     try {
                         JsonElement element = JsonParser.parseString(string);
                         if (element.isJsonObject())
-                            return NMSHandlers.formatJsonString(element.getAsJsonObject(), supplier.get());
+                            return NMSHandlers.formatJsonString(element.getAsJsonObject());
                     } catch (Exception ignored) {
                     }
                     return string;
@@ -278,8 +277,15 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         @Override
         public @NotNull String readUtf(int i) {
-            String val = super.readUtf(i);
-            return supplier != null ? AdventureUtils.parseLegacy(val) : val;
+            return NMSHandlers.verifyFor(supplier.get(), super.readUtf(i));
+        }
+
+        @Override
+        public @Nullable CompoundTag readNbt(@NotNull NbtAccounter nbtAccounter) {
+            CompoundTag compound = super.readNbt(nbtAccounter);
+            if (compound != null) transform(compound, string -> NMSHandlers.verifyFor(supplier.get(), string));
+
+            return compound;
         }
     }
 

@@ -19,18 +19,22 @@ import javax.annotation.Nullable;
 public class GlyphTag {
 
     private static final String GLYPH = "glyph";
+    private static final String GLYPH_SHORT = "g";
 
     public static final TagResolver RESOLVER = SerializableResolver.claimingComponent(GLYPH, (ArgumentQueue args, Context ctx) -> create(args, ctx, null), GlyphTag::emit);
-    public static final TagResolver RESOLVER_SHORT = SerializableResolver.claimingComponent("g", (ArgumentQueue args, Context ctx) -> create(args, ctx, null), GlyphTag::emit);
+    public static final TagResolver RESOLVER_SHORT = SerializableResolver.claimingComponent(GLYPH_SHORT, (ArgumentQueue args, Context ctx) -> create(args, ctx, null), GlyphTag::emit);
 
     public static TagResolver getResolverForPlayer(Player player) {
-        return SerializableResolver.claimingComponent(GLYPH, (ArgumentQueue args, Context ctx) -> create(args, ctx, player), GlyphTag::emit);
+        return TagResolver.resolver(
+                SerializableResolver.claimingComponent(GLYPH, (ArgumentQueue args, Context ctx) -> create(args, ctx, player), GlyphTag::emit),
+                SerializableResolver.claimingComponent(GLYPH_SHORT, (ArgumentQueue args, Context ctx) -> create(args, ctx, player), GlyphTag::emit)
+        );
     }
 
     static Tag create(final ArgumentQueue args, final Context ctx, Player player) throws ParsingException {
         String arg = args.popOr("A glyph value is required").value();
         Glyph glyph = OraxenPlugin.get().getFontManager().getGlyphFromName(arg);
-        Component glyphComponent = player == null || glyph.hasPermission(player) ? Component.text(glyph.getCharacter()).font(Key.key("default")).style(Style.empty()) : Component.text(arg);
+        Component glyphComponent = player == null || glyph.hasPermission(player) ? Component.text(glyph.getCharacter()).font(Key.key("default")).style(Style.empty()) : Component.text(glyph.getGlyphTag());
         if (!args.hasNext() || !args.peek().value().equals("colorable"))
             glyphComponent = glyphComponent.color(NamedTextColor.WHITE);
         return Tag.selfClosingInserting(glyphComponent);
