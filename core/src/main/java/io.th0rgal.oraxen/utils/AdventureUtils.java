@@ -10,7 +10,10 @@ import net.kyori.adventure.text.serializer.ansi.ANSIComponentSerializer;
 import net.kyori.adventure.text.serializer.gson.GsonComponentSerializer;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
+import net.kyori.adventure.translation.GlobalTranslator;
 import org.bukkit.entity.Player;
+
+import java.util.Locale;
 
 public class AdventureUtils {
 
@@ -125,7 +128,10 @@ public class AdventureUtils {
     }
 
     public static String parseJsonThroughMiniMessage(String message, Player player) {
-        return GSON_SERIALIZER.serialize(MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(GSON_SERIALIZER.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", ""), GlyphTag.getResolverForPlayer(player))).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+        Component component = GSON_SERIALIZER.deserialize(message.replaceAll("\\\\(?!u)(?!n)(?!\")", ""));
+        component = parseMiniMessage(component, GlyphTag.getResolverForPlayer(player));
+        if (player != null) component = GlobalTranslator.render(component, Locale.forLanguageTag(player.getLocale()));
+        return GSON_SERIALIZER.serialize(component).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
     }
 
     /**
