@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.mechanics.provided.combat.lifeleech.LifeLeechMechanicFactory;
@@ -45,11 +46,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
 
 public class MechanicsManager {
@@ -101,6 +98,11 @@ public class MechanicsManager {
         registerFactory("watering", WateringMechanicFactory::new);
         if (CompatibilitiesManager.hasPlugin("ProtocolLib"))
             registerFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
+
+        Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
+            Bukkit.getPluginManager().callEvent(new OraxenNativeMechanicsRegisteredEvent());
+            return null;
+        });
     }
 
     /**
