@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlo
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripListener;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.lang3.Range;
 import org.bukkit.Bukkit;
 import org.bukkit.Instrument;
 import org.bukkit.Material;
@@ -180,6 +181,11 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     @Override
     public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
         NoteBlockMechanic mechanic = new NoteBlockMechanic(this, itemMechanicConfiguration);
+        if (!Range.between(0, 775).contains(mechanic.getCustomVariation())) {
+            Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 0 and 775!");
+            Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
+            return null;
+        }
         DirectionalBlock directional = mechanic.getDirectional();
         String modelName = mechanic.getModel(itemMechanicConfiguration.getParent().getParent());
 
