@@ -429,6 +429,8 @@ public class ResourcePack {
         }
         output.add("providers", providers);
         writeStringToVirtual("assets/minecraft/font", "default.json", output.toString());
+        if (Settings.FIX_FORCE_UNICODE_GLYPHS.toBool())
+            writeStringToVirtual("assets/minecraft/font", "uniform.json", output.toString());
     }
 
     private void generateSound(List<VirtualFile> output) {

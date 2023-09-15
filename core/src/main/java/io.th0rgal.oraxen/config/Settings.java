@@ -68,6 +68,7 @@ public enum Settings {
     //Pack
     GENERATE("Pack.generation.generate"),
     EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions"),
+    FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs"),
     GENERATE_ATLAS_FILE("Pack.generation.atlas.generate"),
     ATLAS_GENERATION_TYPE("Pack.generation.atlas.type"),
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
@@ -108,8 +109,7 @@ public enum Settings {
     // Inventory
     ORAXEN_INV_LAYOUT("oraxen_inventory.menu_layout"),
     ORAXEN_INV_ROWS("oraxen_inventory.menu_rows"),
-    ORAXEN_INV_TITLE("oraxen_inventory.main_menu_title"),
-    ;
+    ORAXEN_INV_TITLE("oraxen_inventory.main_menu_title");
 
     private final String path;
 

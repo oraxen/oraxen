@@ -32,6 +32,7 @@ Pack:
     generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
     # List of file extensions that will not be included in the final zipped ResourcePack
     excluded_file_extensions: []
+    fix_force_unicode_glyphs: true # Fixes glyphs not being shown when Force Unicode is enabled
     atlas:
       generate: true
       type: "SPRITE" # "SPRITE" or "DIRECTORY"
