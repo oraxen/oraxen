@@ -148,7 +148,9 @@ public class OraxenPlugin extends JavaPlugin {
     public void onDisable() {
         unregisterListeners();
         FurnitureFactory.unregisterEvolution();
-        for (Player player : Bukkit.getOnlinePlayers()) if (NMSHandlers.getHandler() != null) NMSHandlers.getHandler().uninject(player);
+        for (Player player : Bukkit.getOnlinePlayers())
+            if (NMSHandlers.getHandler() != null && Settings.USE_NMS_GLYPHS.toBool())
+                NMSHandlers.getHandler().uninject(player);
 
         CompatibilitiesManager.disableCompatibilities();
         Message.PLUGIN_UNLOADED.log();
