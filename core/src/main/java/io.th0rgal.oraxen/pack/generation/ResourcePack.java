@@ -195,9 +195,9 @@ public class ResourcePack {
         if (models.isEmpty() && !textures.isEmpty()) return Collections.emptySet();
 
         for (VirtualFile model : models) {
-            if (model.getPath().contains(" ") || !model.getPath().toLowerCase().equals(model.getPath())) {
+            if (!model.getPath().matches("[a-z0-9/._-]+")) {
                 Logs.logWarning("Found invalid model at <blue>" + model.getPath());
-                Logs.logError("Models cannot contain spaces or Capital Letters in the filepath or filename");
+                Logs.logError("Model-paths must only contain characters [a-z0-9/._-]");
                 malformedModels.add(model);
             }
 
@@ -242,10 +242,9 @@ public class ResourcePack {
         }
 
         for (VirtualFile texture : textures) {
-            if (texture.getPath().contains(" ") || !texture.getPath().toLowerCase().equals(texture.getPath())) {
-
+            if (!texture.getPath().matches("[a-z0-9/._-]+")) {
                 Logs.logWarning("Found invalid texture at <blue>" + texture.getPath());
-                Logs.logError("Textures cannot contain spaces or Capital Letters in the filepath or filename");
+                Logs.logError("Texture-paths must only contain characters [a-z0-9/._-]");
                 malformedTextures.add(texture);
             }
             if (!texture.getPath().matches(".*_layer_.*.png")) {
