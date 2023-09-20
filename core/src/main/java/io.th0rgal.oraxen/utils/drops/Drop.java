@@ -60,7 +60,7 @@ public class Drop {
     public String getItemType(ItemStack itemInHand) {
         String itemID = OraxenItems.getIdByItem(itemInHand);
         ItemTypeMechanicFactory factory = ItemTypeMechanicFactory.get();
-        if (factory.isNotImplementedIn(itemID)) {
+        if (factory == null || factory.isNotImplementedIn(itemID)) {
             String[] content = itemInHand.getType().toString().split("_");
             return content.length >= 2 ? content[0] : "";
         } else {
