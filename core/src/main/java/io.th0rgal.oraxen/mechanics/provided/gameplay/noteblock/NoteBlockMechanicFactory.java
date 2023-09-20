@@ -62,10 +62,10 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         if (VersionUtil.isPaperServer()) {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPaperListener());
             File paperConfig = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().getParent().getParent().resolve("config").resolve("paper-global.yml").toFile();
-            if (paperConfig.exists() && VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_20_R1)) {
-                ConfigurationSection paperSection = YamlConfiguration.loadConfiguration(paperConfig).getConfigurationSection("block-updates");
-                if (paperSection != null && !paperSection.getBoolean("disable-noteblock-updates", false)) {
-                    MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
+            ConfigurationSection paperSection = paperConfig.exists() ? YamlConfiguration.loadConfiguration(paperConfig).getConfigurationSection("block-updates") : null;
+            if (paperSection == null || !paperSection.getBoolean("disable-noteblock-updates", false)) {
+                MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
+                if (VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_20_R1)) {
                     Logs.logError("Papers block.updates.disable-noteblock-updates is not enabled.");
                     Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with noteblocks");
                     Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");

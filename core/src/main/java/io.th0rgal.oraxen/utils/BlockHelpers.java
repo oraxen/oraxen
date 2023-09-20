@@ -7,47 +7,14 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import org.apache.commons.lang3.Range;
-import org.bukkit.Axis;
-import org.bukkit.Bukkit;
-import org.bukkit.FluidCollisionMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.SoundCategory;
-import org.bukkit.Tag;
-import org.bukkit.World;
-import org.bukkit.block.Banner;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
+import org.bukkit.*;
 import org.bukkit.block.Sign;
-import org.bukkit.block.Skull;
-import org.bukkit.block.data.Ageable;
-import org.bukkit.block.data.Attachable;
-import org.bukkit.block.data.Bisected;
-import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.Directional;
-import org.bukkit.block.data.FaceAttachable;
-import org.bukkit.block.data.MultipleFacing;
-import org.bukkit.block.data.Orientable;
-import org.bukkit.block.data.Rotatable;
-import org.bukkit.block.data.Waterlogged;
+import org.bukkit.block.*;
+import org.bukkit.block.data.*;
 import org.bukkit.block.data.type.Bed;
 import org.bukkit.block.data.type.Chest;
-import org.bukkit.block.data.type.CoralWallFan;
-import org.bukkit.block.data.type.Door;
-import org.bukkit.block.data.type.HangingSign;
-import org.bukkit.block.data.type.Ladder;
-import org.bukkit.block.data.type.Lantern;
 import org.bukkit.block.data.type.Lectern;
-import org.bukkit.block.data.type.Repeater;
-import org.bukkit.block.data.type.Sapling;
-import org.bukkit.block.data.type.SculkVein;
-import org.bukkit.block.data.type.Slab;
-import org.bukkit.block.data.type.Stairs;
-import org.bukkit.block.data.type.TrapDoor;
-import org.bukkit.block.data.type.Tripwire;
-import org.bukkit.block.data.type.TripwireHook;
-import org.bukkit.block.data.type.WallHangingSign;
+import org.bukkit.block.data.type.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.BlockInventoryHolder;
@@ -177,8 +144,8 @@ public class BlockHelpers {
         if (data instanceof Ladder && (face == BlockFace.UP || face == BlockFace.DOWN)) return true;
         if (type == Material.HANGING_ROOTS && face != BlockFace.DOWN) return true;
         if (type.toString().endsWith("TORCH") && face == BlockFace.DOWN) return true;
-        if (data instanceof HangingSign && face == BlockFace.UP) return true;
-        if (((state instanceof Sign && !(data instanceof HangingSign)) || state instanceof Banner) && face == BlockFace.DOWN) return true;
+        if (type.toString().endsWith("HANGING_SIGN") && face == BlockFace.UP) return true;
+        if (((state instanceof Sign && !type.toString().endsWith("HANGING_SIGN")) || state instanceof Banner) && face == BlockFace.DOWN) return true;
         if (data instanceof Ageable) return !handleAgeableBlocks(block, face);
         if (!(data instanceof Door) && (data instanceof Bisected || data instanceof Slab)) handleHalfBlocks(block, player);
         if (data instanceof Rotatable) handleRotatableBlocks(block, player);
@@ -189,7 +156,7 @@ public class BlockHelpers {
         if ((data instanceof Bed || data instanceof Chest || data instanceof Bisected) && !(data instanceof Stairs) && !(data instanceof TrapDoor)) if (!handleDoubleBlocks(block, player)) return true;
         if ((state instanceof Skull || state instanceof Sign || state instanceof Banner || type.toString().contains("TORCH")) && face != BlockFace.DOWN && face != BlockFace.UP) handleWallAttachable(block, face);
 
-        if (!(data instanceof Stairs) && !(data instanceof HangingSign) && (data instanceof Directional || data instanceof FaceAttachable || data instanceof MultipleFacing || data instanceof Attachable)) {
+        if (!(data instanceof Stairs) && !type.toString().endsWith("HANGING_SIGN") && (data instanceof Directional || data instanceof FaceAttachable || data instanceof MultipleFacing || data instanceof Attachable)) {
             if (!(data instanceof SculkVein) && data instanceof MultipleFacing && face == BlockFace.UP) return true;
             if (data instanceof CoralWallFan && face == BlockFace.DOWN) return true;
             handleDirectionalBlocks(block, face);
@@ -274,7 +241,10 @@ public class BlockHelpers {
 
         final BlockData data = block.getBlockData();
         if (data instanceof Directional directional) directional.setFacing(face);
-        if (data instanceof WallHangingSign hanging) hanging.setFacing(getWallHangingSignFacing(face.getOppositeFace()));
+        if (data.getMaterial().toString().endsWith("WALL_HANGING_SIGN")) {
+            assert data instanceof WallHangingSign;
+            ((WallHangingSign) data).setFacing(getWallHangingSignFacing(face.getOppositeFace()));
+        }
         block.setBlockData(data, false);
     }
 
