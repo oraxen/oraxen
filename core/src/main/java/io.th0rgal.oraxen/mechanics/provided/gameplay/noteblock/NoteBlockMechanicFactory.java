@@ -62,7 +62,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         if (VersionUtil.isPaperServer()) {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPaperListener());
             File paperConfig = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().getParent().getParent().resolve("config").resolve("paper-global.yml").toFile();
-            if (paperConfig.exists()) {
+            if (paperConfig.exists() && VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_20_R1)) {
                 ConfigurationSection paperSection = YamlConfiguration.loadConfiguration(paperConfig).getConfigurationSection("block-updates");
                 if (paperSection != null && !paperSection.getBoolean("disable-noteblock-updates", false)) {
                     MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
