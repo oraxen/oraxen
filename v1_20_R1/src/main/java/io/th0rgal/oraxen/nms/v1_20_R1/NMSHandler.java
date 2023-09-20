@@ -12,16 +12,26 @@ import io.th0rgal.oraxen.font.GlyphTag;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.text.Component;
+import net.minecraft.core.BlockPos;
+import net.minecraft.core.Direction;
 import net.minecraft.nbt.*;
 import net.minecraft.network.*;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.server.MinecraftServer;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerConnectionListener;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_20_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
@@ -137,6 +147,30 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             }.runTask(OraxenPlugin.get());
         }
     }
+
+    @Override
+    public boolean correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack, Block block) {
+        BlockHitResult blockHitResult = getBlockHitResult(player, block);
+        if (blockHitResult == null) return false;
+        InteractionHand hand = slot == EquipmentSlot.HAND ? InteractionHand.MAIN_HAND : slot == EquipmentSlot.OFF_HAND ? InteractionHand.OFF_HAND : null;
+        if (hand == null) return false;
+
+        /*if (org.bukkit.Tag.STAIRS.isTagged(itemStack.getType()) || org.bukkit.Tag.SLABS.isTagged(itemStack.getType()))
+            BlockHelpers.handleHalfBlocks(block, player);
+        else */
+        return ((CraftItemStack) itemStack).handle.useOn(new UseOnContext(((CraftPlayer) player).getHandle(), hand, blockHitResult)).consumesAction();
+
+    }
+
+    @Override
+    public @Nullable BlockHitResult getBlockHitResult(Player player, Block block) {
+        ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+        if (serverPlayer == null) return null;
+        Direction direction = serverPlayer.getDirection().getOpposite();
+        Location location = player.getEyeLocation();
+        return new BlockHitResult(new Vec3(location.getX(), location.getY(), location.getZ()), direction, new BlockPos(block.getX(), block.getY(), block.getZ()), false);
+    }
+
 
     private void bind(List<ChannelFuture> channelFutures, ChannelInboundHandlerAdapter serverChannelHandler) {
         for (ChannelFuture future : channelFutures) {

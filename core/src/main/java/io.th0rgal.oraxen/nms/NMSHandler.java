@@ -1,8 +1,12 @@
 package io.th0rgal.oraxen.nms;
 
+import net.minecraft.world.phys.BlockHitResult;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 public interface NMSHandler {
@@ -39,4 +43,8 @@ public interface NMSHandler {
             "map", "map_scale_direction", "map_to_lock", "Decorations", "SkullOwner", "Effects", "BlockEntityTag", "BlockStateTag");
 
     void setupNmsGlyphs();
+
+    boolean correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack, Block block);
+
+    @Nullable BlockHitResult getBlockHitResult(Player player, Block block);
 }

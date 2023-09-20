@@ -426,7 +426,7 @@ public class StringBlockMechanicListener implements Listener {
             else blockAbove.setType(Material.TRIPWIRE);
         }
 
-        if (player.getGameMode() == GameMode.ADVENTURE || BlockHelpers.correctAllBlockStates(target, player, face, item, waterloggedBefore))
+        if (player.getGameMode() == GameMode.ADVENTURE || BlockHelpers.correctAllBlockStates(target, player, hand, face, item, waterloggedBefore))
             blockPlaceEvent.setCancelled(true);
 
         if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled() || oraxenBlockPlaceEvent.isCancelled()) {

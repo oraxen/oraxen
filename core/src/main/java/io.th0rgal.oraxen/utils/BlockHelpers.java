@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
 import org.bukkit.block.Sign;
@@ -18,6 +19,7 @@ import org.bukkit.block.data.type.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.BlockInventoryHolder;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BlockStateMeta;
@@ -134,7 +136,8 @@ public class BlockHelpers {
         };
     }
 
-    public static boolean correctAllBlockStates(Block block, Player player, BlockFace face, ItemStack item, boolean waterloggedBefore) {
+    public static boolean correctAllBlockStates(Block block, Player player, EquipmentSlot hand, BlockFace face, ItemStack item, boolean waterloggedBefore) {
+        if (NMSHandlers.getHandler() != null) return NMSHandlers.getHandler().correctBlockStates(player, hand, item, block);
         BlockData data = block.getBlockData();
         BlockState state = block.getState();
         Material type = block.getType();
@@ -299,7 +302,7 @@ public class BlockHelpers {
         return true;
     }
 
-    private static void handleHalfBlocks(Block block, Player player) {
+    public static void handleHalfBlocks(Block block, Player player) {
         final RayTraceResult eye = player.rayTraceBlocks(5.0, FluidCollisionMode.NEVER);
         final BlockData data = block.getBlockData();
         if (eye == null) return;
