@@ -8,7 +8,7 @@ dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"
     implementation("org.bstats:bstats-bukkit:3.0.0")
     implementation("dev.triumphteam:triumph-gui:3.1.5")
-    implementation("com.github.oraxen:protectionlib:1.3.4")
+    implementation("com.github.oraxen:protectionlib:1.3.5")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.9")
     implementation("com.jeff_media:CustomBlockData:2.2.0")
     implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
