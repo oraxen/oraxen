@@ -7,6 +7,7 @@ import io.netty.channel.*;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.GlyphTag;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -51,6 +52,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     public void setupNmsGlyphs() {
+        if (!Settings.USE_NMS_GLYPHS.toBool()) return;
         List<Connection> networkManagers = MinecraftServer.getServer().getConnection().getConnections();
         List<ChannelFuture> channelFutures;
 
@@ -83,7 +85,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         };
 
         // This is executed before Minecraft's channel handler
-        ChannelInitializer<Channel> beginInitProtocol = new ChannelInitializer<Channel>() {
+        ChannelInitializer<Channel> beginInitProtocol = new ChannelInitializer<>() {
             @Override
             protected void initChannel(Channel channel) throws Exception {
                 ChannelHandler handler = null;
@@ -148,6 +150,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     public void inject(Player player) {
+        if (player == null || !Settings.USE_NMS_GLYPHS.toBool()) return;
         Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
 
         inject(channel);
@@ -164,6 +167,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     public void uninject(Player player) {
+        if (player == null || !Settings.USE_NMS_GLYPHS.toBool()) return;
         Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
 
         uninject(channel);
