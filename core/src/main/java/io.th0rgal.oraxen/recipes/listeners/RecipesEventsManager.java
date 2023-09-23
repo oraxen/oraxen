@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.command.CommandSender;
@@ -12,18 +11,15 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.PrepareItemCraftEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.MerchantInventory;
 import org.bukkit.inventory.Recipe;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RecipesEventsManager implements Listener {
@@ -42,6 +38,18 @@ public class RecipesEventsManager implements Listener {
 
     public void registerEvents() {
         Bukkit.getPluginManager().registerEvents(instance, OraxenPlugin.get());
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onTrade(InventoryClickEvent event) {
+        Inventory inventory = event.getInventory();
+        if (!(inventory instanceof MerchantInventory merchantInventory)) return;
+        if (event.getSlot() != 2 || merchantInventory.getSelectedRecipe() == null) return;
+
+        String first = OraxenItems.getIdByItem(merchantInventory.getItem(0)), second = OraxenItems.getIdByItem(merchantInventory.getItem(1));
+        List<ItemStack> ingredients = merchantInventory.getSelectedRecipe().getIngredients();
+        String firstIngredient = OraxenItems.getIdByItem(ingredients.get(0)), secondIngredient = OraxenItems.getIdByItem(ingredients.get(1));
+        if (!Objects.equals(first, firstIngredient) || !Objects.equals(second, secondIngredient)) event.setCancelled(true);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
