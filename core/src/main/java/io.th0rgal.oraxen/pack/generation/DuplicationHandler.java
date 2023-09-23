@@ -4,7 +4,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.lumine.mythic.utils.logging.Log;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.OraxenYaml;
@@ -32,9 +31,6 @@ import java.util.zip.ZipOutputStream;
 public class DuplicationHandler {
 
     public static final String DUPLICATE_FILE_MERGE_NAME = "migrated_duplicates.yml";
-
-    public DuplicationHandler() {
-    }
 
     public static void mergeBaseItemFiles(List<VirtualFile> output) {
         Logs.logSuccess("Attempting to merge imported base-item json files");
@@ -292,10 +288,8 @@ public class DuplicationHandler {
 
     private static boolean migrateItemJson(String name) {
         String itemMaterial = Utils.removeExtensionOnly(Utils.removeParentDirs(name)).toUpperCase();
-        try {
-            Material.valueOf(itemMaterial);
-        } catch (IllegalArgumentException e) {
-            Logs.logWarning("Failed to migrate duplicate file-entry, could not find material");
+        if (Material.matchMaterial(itemMaterial) == null) {
+            Logs.logWarning("Failed to migrate duplicate file-entry, could not find a matching material for " + itemMaterial);
             return false;
         }
 
@@ -310,11 +304,13 @@ public class DuplicationHandler {
             return false;
         }
         Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "pack", name);
+        if (!path.toFile().exists()) path = Path.of(path.toString().replace("assets\\minecraft\\", ""));
         String fileContent;
         try {
             fileContent = Files.readString(path);
         } catch (IOException e) {
             Logs.logWarning("Failed to migrate duplicate file-entry, could not read file");
+            if (Settings.DEBUG.toBool()) e.printStackTrace();
             return false;
         }
 
