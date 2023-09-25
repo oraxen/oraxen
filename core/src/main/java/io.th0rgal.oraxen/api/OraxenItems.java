@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.api;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
@@ -16,16 +15,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataType;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
+import java.util.*;
 import java.util.Map.Entry;
-import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -36,19 +27,13 @@ public class OraxenItems {
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
     // configuration sections : their OraxenItem wrapper
     private static Map<File, Map<String, ItemBuilder>> map;
-    private static ConfigsManager configsManager;
     private static String[] items;
-
-    public static void loadItems(final ConfigsManager configsManager) {
-        OraxenItems.configsManager = configsManager;
-        loadItems();
-    }
 
     public static void loadItems() {
         ItemParser.MODEL_DATAS_BY_ID.clear();
         ModelData.DATAS.clear();
-        configsManager.assignAllUsedModelDatas();
-        map = configsManager.parseItemConfig();
+        OraxenPlugin.get().getConfigsManager().assignAllUsedModelDatas();
+        map = OraxenPlugin.get().getConfigsManager().parseItemConfig();
         final List<String> itemsList = new ArrayList<>();
         for (final Map<String, ItemBuilder> subMap : map.values())
             itemsList.addAll(subMap.keySet());
