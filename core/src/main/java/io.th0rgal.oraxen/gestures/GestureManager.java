@@ -5,15 +5,12 @@ import com.ticxo.playeranimator.api.animation.pack.AnimationPack;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class GestureManager {
@@ -21,7 +18,7 @@ public class GestureManager {
 
     public GestureManager() {
         gesturingPlayers = new HashMap<>();
-        if (Settings.GESTURES_ENABLED.toBool()) {
+        if (Settings.GESTURES_ENABLED.toBool() && !VersionUtil.isSupportedVersionOrNewer("1.20.2")) {
             loadGestures();
             Bukkit.getPluginManager().registerEvents(new GestureListener(this), OraxenPlugin.get());
         }

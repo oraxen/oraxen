@@ -91,7 +91,7 @@ public class OraxenPlugin extends JavaPlugin {
     public void onEnable() {
         CommandAPI.onEnable();
         ProtectionLib.init(this);
-        PlayerAnimatorImpl.initialize(this);
+        if (!VersionUtil.isSupportedVersionOrNewer("1.20.2")) PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
         supportsDisplayEntities = VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R3);
@@ -115,7 +115,7 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
-        gestureManager = new GestureManager();
+        gestureManager = !VersionUtil.isSupportedVersionOrNewer("1.20.2") ? new GestureManager() : null;
         OraxenItems.loadItems(configsManager);
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there

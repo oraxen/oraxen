@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Set;
 
 public enum VersionUtil implements Comparable<VersionUtil> {
+    v1_20_R2(6),
     v1_20_R1(5),
     v1_19_R3(4),
     v1_19_R2(3),
@@ -18,6 +19,14 @@ public enum VersionUtil implements Comparable<VersionUtil> {
     v1_18_R2(1),
     v1_18_R1(0),
     UNKNOWN(-1);
+
+    public static VersionUtil fromString(String version) {
+        try {
+            return valueOf((version.charAt(0) == 'v' ? "" : "v") + version.replace(".", "_").trim());
+        } catch (final IllegalArgumentException e) {
+            return VersionUtil.UNKNOWN;
+        }
+    }
 
     private final int value;
     private static final boolean leaked = JarReader.checkIsLeaked();
@@ -27,22 +36,12 @@ public enum VersionUtil implements Comparable<VersionUtil> {
     }
 
     /**
-     * @param server to get the version from
      * @return the version of the server
      * @throws IllegalArgumentException if server is null
      */
     @NotNull
-    public static VersionUtil getServerVersion(@NotNull Server server) {
-        Validate.notNull(server, "Server cannot be null");
-
-        String packageName = server.getClass().getPackage().getName();
-        String version = packageName.substring(packageName.lastIndexOf('.') + 1);
-
-        try {
-            return valueOf(version.trim());
-        } catch (final IllegalArgumentException e) {
-            return VersionUtil.UNKNOWN;
-        }
+    public static VersionUtil getServerVersion() {
+        return fromString(Bukkit.getBukkitVersion().split("-")[0]);
     }
 
     /**
@@ -70,8 +69,11 @@ public enum VersionUtil implements Comparable<VersionUtil> {
     }
 
     public static boolean isSupportedVersionOrNewer(VersionUtil serverVersion) {
-        VersionUtil currentVersion = VersionUtil.getServerVersion(Bukkit.getServer());
-        return currentVersion.value >= serverVersion.value;
+        return VersionUtil.getServerVersion().value >= serverVersion.value;
+    }
+
+    public static boolean isSupportedVersionOrNewer(String serverVersion) {
+        return VersionUtil.getServerVersion().value >= VersionUtil.fromString(serverVersion).value;
     }
 
     public static boolean isSupportedVersion(@NotNull VersionUtil serverVersion, @NotNull VersionUtil... supportedVersions) {

@@ -11,6 +11,7 @@ public enum UpdatedSettings {
     MERGE_FONTS("Plugin.experimental.merge_font_files", "Pack.import.merge_font_files"),
     GENERATE_ATLAS_FILE("Pack.generation.generate_atlas_file", "Pack.generation.atlas.generate"),
     AUTO_UPDATE_ITEMS("Misc.auto_update_items", "ItemUpdater.auto_update_items"),
+    USE_NMS_GLYPHS("Plugin.experimental.use_nms_glyphs", "Plugin.experimental.nms_glyphs"),
     ;
 
     private final String path;

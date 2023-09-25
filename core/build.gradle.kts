@@ -1,7 +1,7 @@
 
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "1.5.5"
+    id("io.papermc.paperweight.userdev") version "1.5.6"
 }
 
 dependencies {
@@ -18,7 +18,7 @@ dependencies {
     implementation("org.jetbrains:annotations:24.0.1") { isTransitive = false }
 
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
-    paperweight.paperDevBundle("1.20.1-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.20.2-R0.1-SNAPSHOT")
 }
 
 java {

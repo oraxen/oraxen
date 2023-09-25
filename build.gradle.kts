@@ -7,8 +7,8 @@ plugins {
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.0.1"
-    id("net.minecrell.plugin-yml.bukkit") version "0.5.3" // Generates plugin.yml
-    id("io.papermc.paperweight.userdev") version "1.5.5" apply false
+    id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
+    id("io.papermc.paperweight.userdev") version "1.5.6" apply false
 }
 
 class NMSVersion(val nmsVersion: String, val serverVersion: String)
@@ -19,7 +19,8 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
     "v1_19_R1" toNms "1.19.2-R0.1-SNAPSHOT",
     "v1_19_R2" toNms "1.19.3-R0.1-SNAPSHOT",
     "v1_19_R3" toNms "1.19.4-R0.1-SNAPSHOT",
-    "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT"
+    "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
+    "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT"
 )
 
 SUPPORTED_VERSIONS.forEach {
@@ -40,9 +41,9 @@ SUPPORTED_VERSIONS.forEach {
 }
 
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
-val pluginPath = project.findProperty("oraxen_plugin_path")
+val pluginPath = project.findProperty("oraxen_plugin_path")?.toString()
 val pluginVersion: String by project
-val commandApiVersion = "9.0.3"
+val commandApiVersion = "9.2.0-SNAPSHOT"
 val adventureVersion = "4.14.0"
 val platformVersion = "4.3.0"
 group = "io.th0rgal"
@@ -75,14 +76,14 @@ allprojects {
     dependencies {
         val actionsVersion = "1.0.0-SNAPSHOT"
 
-        compileOnly("org.spigotmc:spigot-api:1.20-R0.1-SNAPSHOT")
-        compileOnly("io.papermc.paper:paper-api:1.20-R0.1-SNAPSHOT") { exclude("net.kyori") }
+        compileOnly("org.spigotmc:spigot-api:1.20.2-R0.1-SNAPSHOT")
+        compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT") { exclude("net.kyori") }
         compileOnly("net.kyori:adventure-text-minimessage:$adventureVersion")
         compileOnly("net.kyori:adventure-text-serializer-plain:$adventureVersion")
         compileOnly("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
         compileOnly("net.kyori:adventure-platform-bukkit:$platformVersion")
         compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
-        compileOnly("me.clip:placeholderapi:2.11.3")
+        compileOnly("me.clip:placeholderapi:2.11.4")
         compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
         compileOnly("me.gabytm.util:actions-core:$actionsVersion")
         compileOnly("org.springframework:spring-expression:6.0.6")
@@ -92,7 +93,7 @@ allprojects {
         compileOnly("commons-io:commons-io:2.11.0")
         compileOnly("com.ticxo.modelengine:api:R3.1.5")
         compileOnly(files("../libs/compile/BSP.jar"))
-        compileOnly("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
+        implementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         compileOnly("io.lumine:MythicLib:1.1.6")
         compileOnly("net.Indyuce:MMOItems:6.7.3")
         compileOnly("org.joml:joml:1.10.5") // Because pre 1.19.4 api does not have this in the server-jar
@@ -128,7 +129,7 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.20.1")
+        minecraftVersion("1.20.2")
     }
 
     shadowJar {
@@ -146,6 +147,7 @@ tasks {
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
         relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
         relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
+        relocate("dev.jorel.commandapi", "io.th0rgal.oraxen.shaded.commandapi")
 
         manifest {
             attributes(
@@ -185,7 +187,7 @@ bukkit {
     libraries = listOf(
         "org.springframework:spring-expression:6.0.6",
         "org.apache.httpcomponents:httpmime:4.5.13",
-        "dev.jorel:commandapi-bukkit-shade:$commandApiVersion",
+        //"dev.jorel:commandapi-bukkit-shade:$commandApiVersion",
         "org.joml:joml:1.10.5",
         "net.kyori:adventure-text-minimessage:$adventureVersion",
         "net.kyori:adventure-text-serializer-plain:$adventureVersion",
