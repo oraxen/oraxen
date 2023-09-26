@@ -22,7 +22,12 @@ public enum VersionUtil implements Comparable<VersionUtil> {
 
     public static VersionUtil fromString(String version) {
         try {
-            return valueOf((version.charAt(0) == 'v' ? "" : "v") + version.replace(".", "_").trim());
+            String versionNumber = (version.charAt(0) == 'v' ? "" : "v") + version.replace(".", "_").trim();
+            if (!version.contains("_R")) {
+                char lastChar = versionNumber.charAt(versionNumber.length() - 1);
+                versionNumber = versionNumber.substring(0, versionNumber.length() - 1) + "R" + lastChar;
+            }
+            return valueOf(versionNumber);
         } catch (final IllegalArgumentException e) {
             return VersionUtil.UNKNOWN;
         }
