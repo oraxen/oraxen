@@ -176,8 +176,7 @@ public class BlockHelpers {
         }
 
         if (data instanceof Lantern lantern) {
-            if (face != BlockFace.DOWN) return true;
-            lantern.setHanging(true);
+            lantern.setHanging(face == BlockFace.DOWN);
             block.setBlockData(lantern, false);
         }
 
