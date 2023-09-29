@@ -248,13 +248,12 @@ public class ConfigsManager {
                         Logs.logWarning("Due to " + Settings.RETAIN_CUSTOM_MODEL_DATA.getPath() + " being enabled,");
                         Logs.logWarning("the model data will not removed from " + file.getName() + ": " + key + ".");
                         Logs.logWarning("There will still be a conflict which you need to solve yourself.");
-                        Logs.logWarning("Either reset the CustomModelData of this item, or change the CustomModelData of the conflicting item.");
+                        Logs.logWarning("Either reset the CustomModelData of this item, or change the CustomModelData of the conflicting item.", true);
                     } else {
-                        Logs.logWarning("Removing custom model data from " + file.getName() + ": " + key);
+                        Logs.logWarning("Removing custom model data from " + file.getName() + ": " + key, true);
                         packSection.set("custom_model_data", null);
                         fileChanged = true;
                     }
-                    Logs.newline();
                     continue;
                 }
 

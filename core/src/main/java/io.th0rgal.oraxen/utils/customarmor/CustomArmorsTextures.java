@@ -197,8 +197,7 @@ public class CustomArmorsTextures {
             if (!(meta instanceof LeatherArmorMeta) && builder != null && builder.build().getType().toString().toLowerCase().endsWith(suffix)) {
                 Logs.logError("Material of " + prefix + suffix + " is not a LeatherArmor material!");
                 Logs.logWarning("Custom Armor requires that the item is LeatherArmor");
-                Logs.logWarning("You can add fake armor values via AttributeModifiers");
-                Logs.newline();
+                Logs.logWarning("You can add fake armor values via AttributeModifiers", true);
             }
 
             boolean missingArmor = switch (suffix) {

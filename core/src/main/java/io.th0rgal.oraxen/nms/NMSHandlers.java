@@ -41,7 +41,7 @@ public class NMSHandlers {
             try {
                 handler = (NMSHandler) Class.forName("io.th0rgal.oraxen.nms." + packageVersion + ".NMSHandler").getConstructor().newInstance();
                 Logs.logSuccess("Version " + packageVersion + " has been detected.");
-                Logs.logSuccess("Oraxen will use the NMSHandler for this version.");
+                Logs.logInfo("Oraxen will use the NMSHandler for this version.");
                 Bukkit.getPluginManager().registerEvents(new NMSListeners(), OraxenPlugin.get());
                 return;
             } catch (ClassNotFoundException | InvocationTargetException | InstantiationException |

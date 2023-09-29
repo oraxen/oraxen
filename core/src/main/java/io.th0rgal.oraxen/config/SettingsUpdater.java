@@ -13,13 +13,16 @@ public class SettingsUpdater {
 
     public void handleSettingsUpdate() {
         YamlConfiguration settings = OraxenPlugin.get().getConfigsManager().getSettings();
+        String oldSettings = settings.saveToString();
 
         settings = updateKeys(settings, UpdatedSettings.toStringMap());
         settings = removeKeys(settings, RemovedSettings.toStringList());
 
+        if (settings.saveToString().equals(oldSettings)) return;
+
         try {
             settings.save(OraxenPlugin.get().getDataFolder().getAbsoluteFile().toPath().resolve("settings.yml").toFile());
-            Logs.logSuccess("Successfully updated settings.yml");
+            Logs.logSuccess("Successfully updated settings.yml", true);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -67,8 +67,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
                     Logs.logError("Papers block.updates.disable-tripwire-updates is not enabled.");
                     Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with tripwires");
                     Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");
-                    Logs.logWarning("You can enable this setting in ServerFolder/config/paper-global.yml");
-                    Logs.newline();
+                    Logs.logWarning("You can enable this setting in ServerFolder/config/paper-global.yml", true);
                 }
             }
         }

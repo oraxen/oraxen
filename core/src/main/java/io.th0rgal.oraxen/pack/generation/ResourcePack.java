@@ -230,8 +230,7 @@ public class ResourcePack {
                             if (!jsonTexture.startsWith("#") && !jsonTexture.startsWith("item/") && !jsonTexture.startsWith("block/") && !jsonTexture.startsWith("entity/")) {
                                 if (Material.matchMaterial(Utils.getFileNameOnly(jsonTexture).toUpperCase()) == null) {
                                     Logs.logWarning("Found invalid texture-path inside model-file <blue>" + model.getPath() + "</blue>: " + jsonTexture);
-                                    Logs.logWarning("Verify that you have a texture in said path.");
-                                    Logs.newline();
+                                    Logs.logWarning("Verify that you have a texture in said path.", true);
                                     malformedModels.add(model);
                                 }
                             }
@@ -271,12 +270,10 @@ public class ResourcePack {
             }
         }
 
-        Logs.newline();
         if (!malformedTextures.isEmpty() || !malformedModels.isEmpty()) {
             Logs.logError("Pack contains malformed texture(s) and/or model(s)");
-            Logs.logError("These need to be fixed, otherwise the resourcepack will be broken");
-        } else Logs.logSuccess("No broken models or textures were found in the resourcepack");
-        Logs.newline();
+            Logs.logError("These need to be fixed, otherwise the resourcepack will be broken", true);
+        } else Logs.logSuccess("No broken models or textures were found in the resourcepack", true);
 
         Set<String> malformedFiles = malformedTextures.stream().map(VirtualFile::getPath).collect(Collectors.toSet());
         malformedFiles.addAll(malformedModels.stream().map(VirtualFile::getPath).collect(Collectors.toSet()));

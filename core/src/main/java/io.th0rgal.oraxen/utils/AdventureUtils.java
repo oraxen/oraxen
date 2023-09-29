@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.font.GlyphTag;
 import io.th0rgal.oraxen.font.ShiftTag;
 import net.kyori.adventure.text.Component;
@@ -20,8 +21,12 @@ public class AdventureUtils {
     private AdventureUtils() {
     }
 
-    public static final TagResolver OraxenTagResolver =
-            TagResolver.resolver(TagResolver.standard(), GlyphTag.RESOLVER, GlyphTag.RESOLVER_SHORT, ShiftTag.RESOLVER, ShiftTag.RESOLVER_SHORT);
+    public static final MiniMessage MINI_MESSAGE_EMPTY = MiniMessage.builder().tags(TagResolver.resolver(TagResolver.standard(), TagResolver.resolver("prefix", Tag.selfClosingInserting(MiniMessage.miniMessage().deserialize(Message.PREFIX.toString()))))).build();
+
+    public static final TagResolver OraxenTagResolver = TagResolver.resolver(TagResolver.standard(),
+            GlyphTag.RESOLVER, GlyphTag.RESOLVER_SHORT, ShiftTag.RESOLVER, ShiftTag.RESOLVER_SHORT,
+            TagResolver.resolver("prefix", Tag.selfClosingInserting(MINI_MESSAGE_EMPTY.deserialize(Message.PREFIX.toString())))
+    );
 
     public static final LegacyComponentSerializer LEGACY_SERIALIZER =
             LegacyComponentSerializer.builder().hexColors().useUnusualXRepeatedCharacterHexFormat().build();
@@ -31,7 +36,6 @@ public class AdventureUtils {
 
     public static final MiniMessage MINI_MESSAGE = MiniMessage.builder().tags(OraxenTagResolver).build();
 
-    public static final MiniMessage MINI_MESSAGE_EMPTY = MiniMessage.builder().build();
 
     public static MiniMessage MINI_MESSAGE_PLAYER(Player player) {
         return MiniMessage.builder().tags(TagResolver.resolver(TagResolver.standard(), GlyphTag.getResolverForPlayer(player))).build();

@@ -71,8 +71,7 @@ public class FontManager {
                 useNmsGlyphs = true;
                 NMSHandlers.getHandler().setupNmsGlyphs();
                 Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
-                Logs.logSuccess("Disabling packet-based glyph systems");
-                Logs.newline();
+                Logs.logInfo("Disabling packet-based glyph systems", true);
                 OraxenPlugin.get().getProtocolManager().removePacketListener(new InventoryPacketListener());
                 OraxenPlugin.get().getProtocolManager().removePacketListener(new TitlePacketListener());
             }
