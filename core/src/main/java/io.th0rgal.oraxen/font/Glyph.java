@@ -8,7 +8,6 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.apache.commons.lang3.StringUtils;
@@ -237,9 +236,8 @@ public class Glyph {
      * @return The parsed JSON Object
      */
     public static String parsePlaceholders(String message) {
-        Component component = AdventureUtils.GSON_SERIALIZER.deserialize(message.replaceAll("\\\\", ""));
+        Component component = AdventureUtils.GSON_SERIALIZER.deserialize(message.replaceAll("\\\\(?!u)(?!n)(?!\")", ""));
         for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
-            if ((!glyph.name.contains("god") && !glyph.name.contains("farmer")) || ((TextComponent) component).content().equals("boy0000")) continue;
             Component glyphComponent = Component.text(glyph.getCharacter()).color(NamedTextColor.WHITE);
             // Format all non-escaped glyph-tags and raw unicodes
             component = component.replaceText(TextReplacementConfig.builder()

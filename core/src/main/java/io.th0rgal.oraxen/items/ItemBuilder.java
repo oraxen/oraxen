@@ -9,12 +9,7 @@ import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.OraxenYaml;
-import org.bukkit.Color;
-import org.bukkit.DyeColor;
-import org.bukkit.FireworkEffect;
-import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
-import org.bukkit.OfflinePlayer;
+import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -22,28 +17,14 @@ import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.FireworkEffectMeta;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.MapMeta;
-import org.bukkit.inventory.meta.PotionMeta;
-import org.bukkit.inventory.meta.SkullMeta;
-import org.bukkit.inventory.meta.TropicalFishBucketMeta;
+import org.bukkit.inventory.meta.*;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
+
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @SuppressWarnings("ALL")
 public class ItemBuilder {
@@ -203,7 +184,7 @@ public class ItemBuilder {
      * @return true if the ItemBuilder has color that is not default LeatherMetaColor
      */
     public boolean hasColor() {
-        return color != null && !color.equals(Color.fromRGB(160, 101, 64));
+        return color != null && !color.equals(Bukkit.getItemFactory().getDefaultLeatherColor());
     }
 
     public Color getColor() {
