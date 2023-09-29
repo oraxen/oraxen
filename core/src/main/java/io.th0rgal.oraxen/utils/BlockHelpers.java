@@ -23,6 +23,7 @@ import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -30,6 +31,7 @@ import org.bukkit.util.RayTraceResult;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 import static org.bukkit.block.data.FaceAttachable.AttachedFace.CEILING;
 import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
@@ -199,6 +201,12 @@ public class BlockHelpers {
         if (data instanceof Repeater repeater) {
             repeater.setFacing(player.getFacing().getOppositeFace());
             block.setBlockData(repeater, false);
+        }
+
+        if (block.getState() instanceof Banner banner && item.hasItemMeta() && item.getItemMeta() instanceof BannerMeta bannerItem) {
+            banner.setBaseColor(Objects.requireNonNullElse(DyeColor.getByWoolData(item.getData().getData()), bannerItem.getBaseColor()));
+            banner.setPatterns(bannerItem.getPatterns());
+            if (!banner.update(false, false)) return true;
         }
 
         if (data instanceof TripwireHook hook) {
