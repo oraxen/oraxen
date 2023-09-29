@@ -17,14 +17,10 @@ import com.sk89q.worldedit.session.ClipboardHolder;
 import com.sk89q.worldedit.world.block.BaseBlock;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
-import io.th0rgal.oraxen.api.OraxenFurniture;
-import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -62,19 +58,18 @@ public class WorldEditUtils {
 
             if (!input.startsWith("oraxen:") || input.endsWith(":")) return null;
             String id = input.split(":")[1].split("\\[")[0]; // Potential arguments
-            if (id.equals(input) || !OraxenItems.exists(id) || OraxenFurniture.isFurniture(id)) return null;
+            boolean hasArguments = input.contains("[");
+            if (id.equals(input) || !OraxenBlocks.isOraxenBlock(id)) return null;
 
-            BlockData blockData;
             NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(id);
-            StringBlockMechanic stringMechanic = OraxenBlocks.getStringMechanic(id);
+            BlockData blockData = OraxenBlocks.getOraxenBlockData(id);
+            if (blockData == null) return null;
 
-            if (Settings.WORLDEDIT_STRINGBLOCKS.toBool() && stringMechanic != null)
-                blockData = StringBlockMechanicFactory.createTripwireData(stringMechanic.getCustomVariation());
+            if (Settings.WORLDEDIT_STRINGBLOCKS.toBool() && OraxenBlocks.isOraxenStringBlock(id))
+                return BukkitAdapter.adapt(blockData).toBaseBlock();
             else if (Settings.WORLDEDIT_NOTEBLOCKS.toBool() && noteMechanic != null) {
-                blockData = parseNoteBlock(noteMechanic, input);
+                return BukkitAdapter.adapt(hasArguments ? parseNoteBlock(noteMechanic, input) : blockData).toBaseBlock();
             } else return null;
-
-            return BukkitAdapter.adapt(blockData).toBaseBlock();
         }
     }
 

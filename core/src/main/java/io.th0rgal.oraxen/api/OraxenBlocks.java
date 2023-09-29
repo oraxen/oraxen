@@ -145,6 +145,7 @@ public class OraxenBlocks {
      * @param itemID The ItemID of the OraxenBlock
      * @return The BlockData assosiated with the ItemID, can be null
      */
+    @Nullable
     public static BlockData getOraxenBlockData(String itemID) {
         if (isOraxenNoteBlock(itemID)) {
             return NoteBlockMechanicFactory.getInstance().createNoteBlockData(itemID);
