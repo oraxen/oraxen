@@ -4,6 +4,7 @@ import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.nms.NMSHandlers;
@@ -137,7 +138,8 @@ public class BlockHelpers {
     }
 
     public static boolean correctAllBlockStates(Block block, Player player, EquipmentSlot hand, BlockFace face, ItemStack item, boolean waterloggedBefore) {
-        if (NMSHandlers.getHandler() != null) return NMSHandlers.getHandler().correctBlockStates(player, hand, item, block);
+        if (NMSHandlers.getHandler() != null  && Settings.NMS_BLOCK_CORRECTION.toBool())
+            return NMSHandlers.getHandler().correctBlockStates(player, hand, item, block);
         BlockData data = block.getBlockData();
         BlockState state = block.getState();
         Material type = block.getType();

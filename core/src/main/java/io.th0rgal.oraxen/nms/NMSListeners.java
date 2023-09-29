@@ -9,7 +9,7 @@ public class NMSListeners implements Listener {
 
     @EventHandler
     public void onPlayerJoin(PlayerJoinEvent event) {
-        if (NMSHandlers.getHandler() != null && Settings.USE_NMS_GLYPHS.toBool())
+        if (NMSHandlers.getHandler() != null && Settings.NMS_GLYPHS.toBool())
             NMSHandlers.getHandler().inject(event.getPlayer());
     }
 }

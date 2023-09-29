@@ -63,7 +63,7 @@ public class FontManager {
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
 
-        if (Settings.USE_NMS_GLYPHS.toBool() && NMSHandlers.getHandler() != null) {
+        if (Settings.NMS_GLYPHS.toBool() && NMSHandlers.getHandler() != null) {
             if (VersionUtil.isSupportedVersionOrNewer("1.20.2")) {
                 useNmsGlyphs = false;
                 Logs.logWarning("NMS Glyphs are not supported on 1.20.2 and newer at the moment...");

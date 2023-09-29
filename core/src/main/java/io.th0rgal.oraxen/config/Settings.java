@@ -28,7 +28,8 @@ public enum Settings {
     FORMAT_BOOKS("Plugin.formatting.books"),
     VERIFY_PACK_FILES("Plugin.experimental.verify_pack_files"),
     EXCLUDE_MALFORMED_ATLAS("Plugin.experimental.exclude_malformed_from_atlas"),
-    USE_NMS_GLYPHS("Plugin.experimental.nms_glyphs"),
+    NMS_GLYPHS("Plugin.experimental.nms.glyphs"),
+    NMS_BLOCK_CORRECTION("Plugin.experimental.nms.block_correction"),
 
     // Config Tools
     CONFIGS_VERSION("configs_version"),

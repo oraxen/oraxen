@@ -25,7 +25,9 @@ Plugin:
   experimental:
     verify_pack_files: true # Checks all textures and models to make sure they abide by valid Resourcepack formatting
     exclude_malformed_from_atlas: true # If a texture is malformed, it will not be included in the atlas
-    nms_glyphs: false # Uses NMS to render glyphs instead of the default method
+    nms:
+      glyphs: false # Uses NMS to render glyphs instead of the default method
+      block_correction: false # Uses NMS to correct blocks placed against custom blocks
 
 Pack:
   generation:
