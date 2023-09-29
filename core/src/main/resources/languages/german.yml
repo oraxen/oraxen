@@ -1,5 +1,5 @@
 general:
-  prefix: "<gradient:#9055FF:#13E2DA>Oraxen <#282B3F>| "
+  prefix: "<gradient:#9055FF:#13E2DA>Oraxen <gray>| "
   no_permission: "<prefix><#fa4943>Dir fehlt die Erlaubnis <b><permission></b>, um dies zu tun!"
   work_in_progress: "<prefix><#facc43>Diese Funktion ist noch in Arbeit!"
   not_player: "<prefix><#fa4943>Dies kann man nur als Spieler tun!"
