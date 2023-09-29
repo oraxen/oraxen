@@ -45,7 +45,7 @@ val pluginPath = project.findProperty("oraxen_plugin_path")?.toString()
 val pluginVersion: String by project
 val commandApiVersion = "9.2.0-SNAPSHOT"
 val adventureVersion = "4.14.0"
-val platformVersion = "4.3.0"
+val platformVersion = "4.3.1"
 group = "io.th0rgal"
 version = pluginVersion
 
