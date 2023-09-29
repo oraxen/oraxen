@@ -30,7 +30,6 @@ import org.bukkit.util.RayTraceResult;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 import static org.bukkit.block.data.FaceAttachable.AttachedFace.CEILING;
 import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
@@ -192,10 +191,9 @@ public class BlockHelpers {
             block.setBlockData(data, false);
         }
 
-        if (state instanceof BlockInventoryHolder invHolder) {
-            Inventory inv = ((BlockInventoryHolder) ((BlockStateMeta) Objects.requireNonNull(item.getItemMeta())).getBlockState()).getInventory();
-            for (ItemStack i : inv)
-                if (i != null) invHolder.getInventory().addItem(i);
+        if (state instanceof BlockInventoryHolder invHolder && item.hasItemMeta() && item.getItemMeta() instanceof BlockStateMeta blockStateMeta) {
+            Inventory inv = ((BlockInventoryHolder) blockStateMeta.getBlockState()).getInventory();
+            invHolder.getInventory().setContents(inv.getContents());
         }
 
         if (data instanceof Repeater repeater) {
