@@ -14,13 +14,9 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
@@ -393,7 +389,6 @@ public class StringBlockMechanicListener implements Listener {
                                        final Block placedAgainst, final BlockFace face, final BlockData newBlock) {
         final Block target;
         final Material type = placedAgainst.getType();
-        final boolean waterloggedBefore = placedAgainst.getRelative(face).getType() == Material.WATER;
         if (BlockHelpers.isReplaceable(type))
             target = placedAgainst;
         else {
@@ -401,43 +396,37 @@ public class StringBlockMechanicListener implements Listener {
             if (!target.getType().isAir() && target.getType() != Material.WATER && target.getType() != Material.LAVA)
                 return null;
         }
-        if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
-            return null;
-
-        // determines the old information of the block
-        final BlockData curentBlockData = target.getBlockData();
-        target.setBlockData(newBlock, false);
-        final BlockState currentBlockState = target.getState();
+        if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation())) return null;
 
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(target);
         if (mechanic == null) return null;
 
-        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
+        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, hand);
         final OraxenStringBlockPlaceEvent oraxenBlockPlaceEvent = new OraxenStringBlockPlaceEvent(mechanic, target, player, item, hand);
-        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
-        Bukkit.getPluginManager().callEvent(oraxenBlockPlaceEvent);
 
         Block blockAbove = target.getRelative(BlockFace.UP);
         if (mechanic.isTall()) {
             if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) {
                 blockPlaceEvent.setCancelled(true);
                 oraxenBlockPlaceEvent.setCancelled(true);
-            }
-            else blockAbove.setType(Material.TRIPWIRE);
+            } else blockAbove.setType(Material.TRIPWIRE);
         }
+        if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
 
-        if (player.getGameMode() == GameMode.ADVENTURE || BlockHelpers.correctAllBlockStates(target, player, hand, face, item, waterloggedBefore))
-            blockPlaceEvent.setCancelled(true);
+        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
+        Bukkit.getPluginManager().callEvent(oraxenBlockPlaceEvent);
 
-        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled() || oraxenBlockPlaceEvent.isCancelled()) {
-            target.setBlockData(curentBlockData, false); // false to cancel physic
-            return null;
-        }
+        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled() || oraxenBlockPlaceEvent.isCancelled()) return null;
 
-        if (!player.getGameMode().equals(GameMode.CREATIVE))
-            item.setAmount(item.getAmount() - 1);
+        final String sound;
+        if (newBlock.getMaterial() == Material.WATER || newBlock.getMaterial() == Material.LAVA) {
+            if (newBlock.getMaterial() == Material.WATER) sound = "item.bucket.empty";
+            else sound = "item.bucket.empty_" + newBlock.getMaterial().toString().toLowerCase();
+        } else if (!OraxenBlocks.isOraxenBlock(target)) sound = target.getBlockData().getSoundGroup().getPlaceSound().getKey().toString();
+        else sound = null;
+        if (sound != null) BlockHelpers.playCustomBlockSound(target.getLocation(), sound, SoundCategory.BLOCKS, 0.8f, 0.8f);
 
-        return target;
+        return BlockHelpers.correctAllBlockStates(target, player, hand, face, item, newBlock) != null ? target : null;
     }
 
     public static void fixClientsideUpdate(Location loc) {

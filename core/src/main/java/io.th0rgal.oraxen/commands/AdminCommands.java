@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.Location;
-import org.bukkit.Rotation;
 import org.bukkit.block.Block;
 
 import java.util.*;
@@ -63,8 +62,7 @@ public class AdminCommands {
                         boolean isRandom = (boolean) args.getOptional("random").orElse(false);
                         for (Block block : getBlocks(loc, radius, isRandom)) {
                             if (type.equals("remove")) OraxenFurniture.remove(block.getLocation(), null);
-                            if (type.equals("place"))
-                                OraxenFurniture.place(block.getLocation(), id, Rotation.CLOCKWISE, null);
+                            if (type.equals("place")) OraxenFurniture.place(id, block.getLocation(), 0f, null);
                         }
                     }
                 });

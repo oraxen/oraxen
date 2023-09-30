@@ -56,7 +56,7 @@ public class BlockHelpers {
             return sound.replace("block.wood", "required.wood");
         } else if (sound.startsWith("block.stone") && mechanics.getBoolean("stringblock_and_furniture")) {
                 return sound.replace("block.stone", "required.stone");
-        }else return sound;
+        } else return sound;
     }
 
     public static Location toBlockLocation(Location location) {
@@ -138,33 +138,51 @@ public class BlockHelpers {
         };
     }
 
-    public static boolean correctAllBlockStates(Block block, Player player, EquipmentSlot hand, BlockFace face, ItemStack item, boolean waterloggedBefore) {
+    public static BlockData correctAllBlockStates(Block placedAgainst, Player player, EquipmentSlot hand, BlockFace face, ItemStack item, BlockData newData) {
+        Block target = placedAgainst.getRelative(face);
+        BlockData correctedData;
         if (NMSHandlers.getHandler() != null  && Settings.NMS_BLOCK_CORRECTION.toBool())
-            return NMSHandlers.getHandler().correctBlockStates(player, hand, item, block);
+            correctedData = NMSHandlers.getHandler().correctBlockStates(player, hand, item, placedAgainst, face);
+        else {
+            if (newData == null) return null;
+            // If not using NMS-method, the BlockData needs to be set beforehand
+            BlockData oldData = target.getBlockData();
+            target.setBlockData(newData);
+            correctedData = oldCorrectBlockData(placedAgainst.getRelative(face), player, face, item);
+            if (correctedData == null) target.setBlockData(oldData);
+        }
+
+        if (target.getState() instanceof Sign sign) player.openSign(sign);
+
+        return correctedData;
+    }
+
+    private static BlockData oldCorrectBlockData(Block block, Player player, BlockFace face, ItemStack item) {
         BlockData data = block.getBlockData();
         BlockState state = block.getState();
         Material type = block.getType();
-        if (type == Material.SEAGRASS && !waterloggedBefore) return true;
-        if (data instanceof Tripwire) return false;
-        if (data instanceof Sapling && face != BlockFace.UP) return true;
-        if (data instanceof Ladder && (face == BlockFace.UP || face == BlockFace.DOWN)) return true;
-        if (type == Material.HANGING_ROOTS && face != BlockFace.DOWN) return true;
-        if (type.toString().endsWith("TORCH") && face == BlockFace.DOWN) return true;
-        if (type.toString().endsWith("HANGING_SIGN") && face == BlockFace.UP) return true;
-        if (((state instanceof Sign && !type.toString().endsWith("HANGING_SIGN")) || state instanceof Banner) && face == BlockFace.DOWN) return true;
-        if (data instanceof Ageable) return !handleAgeableBlocks(block, face);
+
+        if (type == Material.SEAGRASS) return null;
+        if (data instanceof Tripwire) return data;
+        if (data instanceof Sapling && face != BlockFace.UP) return null;
+        if (data instanceof Ladder && (face == BlockFace.UP || face == BlockFace.DOWN)) return null;
+        if (type == Material.HANGING_ROOTS && face != BlockFace.DOWN) return null;
+        if (type.toString().endsWith("TORCH") && face == BlockFace.DOWN) return null;
+        if (type.toString().endsWith("HANGING_SIGN") && face == BlockFace.UP) return null;
+        if (((state instanceof Sign && !type.toString().endsWith("HANGING_SIGN")) || state instanceof Banner) && face == BlockFace.DOWN) return null;
+        if (data instanceof Ageable) return !handleAgeableBlocks(block, face) ? data : null;
         if (!(data instanceof Door) && (data instanceof Bisected || data instanceof Slab)) handleHalfBlocks(block, player);
         if (data instanceof Rotatable) handleRotatableBlocks(block, player);
-        if (type.toString().contains("CORAL") && !type.toString().endsWith("CORAL_BLOCK") && face == BlockFace.DOWN) return true;
-        if (type.toString().endsWith("CORAL") && block.getRelative(BlockFace.DOWN).getType() == Material.AIR) return true;
+        if (type.toString().contains("CORAL") && !type.toString().endsWith("CORAL_BLOCK") && face == BlockFace.DOWN) return null;
+        if (type.toString().endsWith("CORAL") && block.getRelative(BlockFace.DOWN).getType() == Material.AIR) return null;
         if (type.toString().endsWith("_CORAL_FAN") && face != BlockFace.UP) block.setType(Material.valueOf(type.toString().replace("_CORAL_FAN", "_CORAL_WALL_FAN")));
         if (data instanceof Waterlogged) handleWaterlogged(block, face);
-        if ((data instanceof Bed || data instanceof Chest || data instanceof Bisected) && !(data instanceof Stairs) && !(data instanceof TrapDoor)) if (!handleDoubleBlocks(block, player)) return true;
+        if ((data instanceof Bed || data instanceof Chest || data instanceof Bisected) && !(data instanceof Stairs) && !(data instanceof TrapDoor)) if (!handleDoubleBlocks(block, player)) return null;
         if ((state instanceof Skull || state instanceof Sign || state instanceof Banner || type.toString().contains("TORCH")) && face != BlockFace.DOWN && face != BlockFace.UP) handleWallAttachable(block, face);
 
         if (!(data instanceof Stairs) && !type.toString().endsWith("HANGING_SIGN") && (data instanceof Directional || data instanceof FaceAttachable || data instanceof MultipleFacing || data instanceof Attachable)) {
-            if (!(data instanceof SculkVein) && data instanceof MultipleFacing && face == BlockFace.UP) return true;
-            if (data instanceof CoralWallFan && face == BlockFace.DOWN) return true;
+            if (!(data instanceof SculkVein) && data instanceof MultipleFacing && face == BlockFace.UP) return null;
+            if (data instanceof CoralWallFan && face == BlockFace.DOWN) return null;
             handleDirectionalBlocks(block, face);
         }
 
@@ -173,24 +191,20 @@ public class BlockHelpers {
             else if (face == BlockFace.NORTH || face == BlockFace.SOUTH) orientable.setAxis(Axis.Z);
             else if (face == BlockFace.WEST || face == BlockFace.EAST) orientable.setAxis(Axis.X);
             else orientable.setAxis(Axis.Y);
-            block.setBlockData(orientable, false);
         }
 
         if (data instanceof Lantern lantern) {
             lantern.setHanging(face == BlockFace.DOWN);
-            block.setBlockData(lantern, false);
         }
 
         if (data instanceof Lectern lectern) {
-            ((Lectern) data).setFacing(player.getFacing().getOppositeFace());
-            block.setBlockData(lectern, false);
+            lectern.setFacing(player.getFacing().getOppositeFace());
         }
 
         if (type.toString().endsWith("ANVIL")) {
             if (face == BlockFace.UP || face == BlockFace.DOWN)
                 ((Directional) data).setFacing(getAnvilFacing(player.getFacing().getOppositeFace()));
             else ((Directional) data).setFacing(getAnvilFacing(face));
-            block.setBlockData(data, false);
         }
 
         if (state instanceof BlockInventoryHolder invHolder && item.hasItemMeta() && item.getItemMeta() instanceof BlockStateMeta blockStateMeta) {
@@ -200,13 +214,12 @@ public class BlockHelpers {
 
         if (data instanceof Repeater repeater) {
             repeater.setFacing(player.getFacing().getOppositeFace());
-            block.setBlockData(repeater, false);
         }
 
         if (block.getState() instanceof Banner banner && item.hasItemMeta() && item.getItemMeta() instanceof BannerMeta bannerItem) {
             banner.setBaseColor(Objects.requireNonNullElse(DyeColor.getByWoolData(item.getData().getData()), bannerItem.getBaseColor()));
             banner.setPatterns(bannerItem.getPatterns());
-            if (!banner.update(false, false)) return true;
+            if (!banner.update(false, false)) return null;
         }
 
         if (data instanceof TripwireHook hook) {
@@ -214,15 +227,12 @@ public class BlockHelpers {
                 hook.setFacing(player.getFacing().getOppositeFace());
             else {
                 List<BlockFace> solidFaces = hook.getFaces().stream().filter(f -> block.getRelative(f).getType().isSolid()).toList();
-                if (solidFaces.isEmpty()) return true;
+                if (solidFaces.isEmpty()) return null;
                 else hook.setFacing(solidFaces.get(0).getOppositeFace());
             }
-            block.setBlockData(hook, false);
         }
 
-        if (block.getState() instanceof Sign sign) player.openSign(sign);
-
-        return false;
+        return data;
     }
 
     private static void handleWaterlogged(Block block, BlockFace face) {
@@ -437,7 +447,7 @@ public class BlockHelpers {
         };
     }
 
-    public static BlockFace getWallHangingSignFacing(BlockFace face) {
+    private static BlockFace getWallHangingSignFacing(BlockFace face) {
         return switch (face) {
             case NORTH -> BlockFace.WEST;
             case SOUTH -> BlockFace.EAST;

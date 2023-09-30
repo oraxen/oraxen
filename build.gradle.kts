@@ -76,7 +76,6 @@ allprojects {
     dependencies {
         val actionsVersion = "1.0.0-SNAPSHOT"
 
-        compileOnly("org.spigotmc:spigot-api:1.20.2-R0.1-SNAPSHOT")
         compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT") { exclude("net.kyori") }
         compileOnly("net.kyori:adventure-text-minimessage:$adventureVersion")
         compileOnly("net.kyori:adventure-text-serializer-plain:$adventureVersion")

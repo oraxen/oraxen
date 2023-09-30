@@ -10,7 +10,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.BlockHelpers;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -25,12 +24,18 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerConnectionListener;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.context.BlockPlaceContext;
+import net.minecraft.world.item.context.DirectionalPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
-import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -53,7 +58,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private final Map<Channel, ChannelHandler> decoder = Collections.synchronizedMap(new WeakHashMap<>());
 
     @Override
-    public ItemStack copyItemNBTTags(ItemStack oldItem, ItemStack newItem) {
+    public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
         CompoundTag oldTag = CraftItemStack.asNMSCopy(oldItem).getOrCreateTag();
         net.minecraft.world.item.ItemStack newNmsItem = CraftItemStack.asNMSCopy(newItem);
         CompoundTag newTag = newNmsItem.getOrCreateTag();
@@ -62,27 +67,41 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return newNmsItem.asBukkitCopy();
     }
 
-    @Override
-    public boolean correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack, Block block) {
-        BlockHitResult blockHitResult = getBlockHitResult(player, block);
-        if (blockHitResult == null) return false;
+    @Nullable
+    public BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack, Block block, BlockFace blockFace) {
+        BlockHitResult hitResult = getBlockHitResult(player, block, blockFace);
         InteractionHand hand = slot == EquipmentSlot.HAND ? InteractionHand.MAIN_HAND : slot == EquipmentSlot.OFF_HAND ? InteractionHand.OFF_HAND : null;
-        if (hand == null) return false;
+        if (hitResult == null || hand == null) return null;
 
-        if (org.bukkit.Tag.STAIRS.isTagged(itemStack.getType()) || org.bukkit.Tag.SLABS.isTagged(itemStack.getType()))
-            BlockHelpers.handleHalfBlocks(block, player);
-        else ((CraftItemStack) itemStack).handle.useOn(new UseOnContext(((CraftPlayer) player).getHandle(), hand, blockHitResult), hand);
+        net.minecraft.world.item.ItemStack nmsStack = CraftItemStack.asNMSCopy(itemStack);
+        ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+        BlockPlaceContext placeContext = new BlockPlaceContext(new UseOnContext(serverPlayer, hand, hitResult));
 
-        return false;
+        if (!(nmsStack.getItem() instanceof BlockItem blockItem)) {
+            InteractionResultHolder<net.minecraft.world.item.ItemStack> result = nmsStack.getItem().use(serverPlayer.level, serverPlayer, hand);
+            if (result.getResult() == InteractionResult.CONSUME) player.getInventory().setItem(slot, result.getObject().asBukkitCopy());
+            return null;
+        }
+
+        // Shulker-Boxes are DirectionalPlace based unlike other directional-blocks
+        if (org.bukkit.Tag.SHULKER_BOXES.isTagged(itemStack.getType())) {
+            placeContext = new DirectionalPlaceContext(serverPlayer.level, hitResult.getBlockPos(), hitResult.getDirection(), nmsStack, hitResult.getDirection().getOpposite());
+        }
+
+        BlockPos pos = hitResult.getBlockPos();
+        InteractionResult result = blockItem.place(placeContext);
+        if (result == InteractionResult.FAIL) return null;
+        if (placeContext instanceof DirectionalPlaceContext && player.getGameMode() != org.bukkit.GameMode.CREATIVE) itemStack.setAmount(itemStack.getAmount() - 1);
+        return block.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ()).getBlockData();
     }
 
     @Override
-    public @Nullable BlockHitResult getBlockHitResult(Player player, Block block) {
-        ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
-        if (serverPlayer == null) return null;
-        Direction direction = serverPlayer.getDirection().getOpposite();
-        Location location = player.getEyeLocation();
-        return new BlockHitResult(new Vec3(location.getX(), location.getY(), location.getZ()), direction, new BlockPos(block.getX(), block.getY(), block.getZ()), false);
+    public @Nullable BlockHitResult getBlockHitResult(Player player, Block block, BlockFace blockFace) {
+        Vec3 vec3 = new Vec3(player.getEyeLocation().getX(), player.getEyeLocation().getY(), player.getEyeLocation().getZ());
+        Direction direction = Arrays.stream(Direction.values()).filter(d -> d.name().equals(blockFace.name())).findFirst().orElse(null);
+        if (direction == null) return null;
+        BlockPos blockPos = new BlockPos(block.getX(), block.getY(), block.getZ()).relative(direction);
+        return new BlockHitResult(vec3, direction.getOpposite(), blockPos, false);
     }
 
     @Override
@@ -173,15 +192,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
     }
 
-    private void bind(List<ChannelFuture> channelFutures, ChannelInboundHandlerAdapter serverChannelHandler) {
-        for (ChannelFuture future : channelFutures) {
-            future.channel().pipeline().addFirst(serverChannelHandler);
-        }
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            inject(player);
-        }
-    }
 
     @Override
     public void inject(Player player) {
@@ -243,6 +253,17 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             if (!(handler instanceof CustomPacketDecoder)) {
                 decoder.put(channel, channel.pipeline().replace("decoder", "decoder", new CustomPacketDecoder()));
             }
+        }
+    }
+
+
+    private void bind(List<ChannelFuture> channelFutures, ChannelInboundHandlerAdapter serverChannelHandler) {
+        for (ChannelFuture future : channelFutures) {
+            future.channel().pipeline().addFirst(serverChannelHandler);
+        }
+
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            inject(player);
         }
     }
 

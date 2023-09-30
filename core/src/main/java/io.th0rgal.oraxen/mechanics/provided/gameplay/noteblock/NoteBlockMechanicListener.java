@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockPlaceEvent;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
@@ -18,7 +19,6 @@ import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.BlockState;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.block.data.Levelled;
@@ -233,6 +233,7 @@ public class NoteBlockMechanicListener implements Listener {
         Block relative = block.getRelative(blockFace);
         Material type = item.getType();
         if (type == Material.AIR) return;
+
         if (type == Material.BUCKET && relative.getBlockData() instanceof Levelled levelled && levelled.getLevel() == levelled.getMaximumLevel()) {
             final Sound sound;
             if (relative.getType() == Material.WATER) sound = Sound.ITEM_BUCKET_FILL;
@@ -246,36 +247,44 @@ public class NoteBlockMechanicListener implements Listener {
             return;
         }
 
-        final boolean bucketCheck = type.toString().endsWith("_BUCKET");
-        final String bucketBlock = type.toString().replace("_BUCKET", "");
-        EntityType bucketEntity;
-        try {
-            bucketEntity = EntityType.valueOf(bucketBlock);
-        } catch (IllegalArgumentException e) {
-            bucketEntity = null;
-        }
+        if (!Settings.NMS_BLOCK_CORRECTION.toBool()) {
+            final boolean bucketCheck = type.toString().endsWith("_BUCKET");
+            final String bucketBlock = type.toString().replace("_BUCKET", "");
+            EntityType bucketEntity;
+            try {
+                bucketEntity = EntityType.valueOf(bucketBlock);
+            } catch (IllegalArgumentException e) {
+                bucketEntity = null;
+            }
 
-        if (bucketCheck && type != Material.MILK_BUCKET) {
-            if (bucketEntity == null)
-                type = Material.getMaterial(bucketBlock);
-            else {
-                type = Material.WATER;
-                player.getWorld().spawnEntity(relative.getLocation().add(0.5, 0.0, 0.5), bucketEntity);
+            if (bucketCheck && type != Material.MILK_BUCKET) {
+                if (bucketEntity == null)
+                    type = Material.getMaterial(bucketBlock);
+                else {
+                    type = Material.WATER;
+                    player.getWorld().spawnEntity(relative.getLocation().add(0.5, 0.0, 0.5), bucketEntity);
+                }
+            }
+
+            if (type != null && type.hasGravity() && relative.getRelative(BlockFace.DOWN).getType().isAir()) {
+                BlockData data = type.createBlockData();
+                if (type.toString().endsWith("ANVIL")) ((Directional) data).setFacing(getAnvilFacing(event.getBlockFace()));
+                BlockHelpers.playCustomBlockSound(relative.getLocation(), data.getSoundGroup().getPlaceSound().getKey().toString(), data.getSoundGroup().getVolume(), data.getSoundGroup().getPitch());
+                block.getWorld().spawnFallingBlock(BlockHelpers.toCenterBlockLocation(relative.getLocation()), data);
+                if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
+                return;
+            }
+        }
+        else {
+            if (type.toString().contains("_BUCKET")) {
+                if (type == Material.MILK_BUCKET) return;
+                else if (type == Material.LAVA_BUCKET) type = Material.LAVA;
+                else type = Material.WATER;
             }
         }
 
-        if (type == null) return;
-        if (type.hasGravity() && relative.getRelative(BlockFace.DOWN).getType().isAir()) {
-            BlockData data = type.createBlockData();
-            if (type.toString().endsWith("ANVIL")) ((Directional) data).setFacing(getAnvilFacing(event.getBlockFace()));
-            BlockHelpers.playCustomBlockSound(relative.getLocation(), data.getSoundGroup().getPlaceSound().getKey().toString(), data.getSoundGroup().getVolume(), data.getSoundGroup().getPitch());
-            block.getWorld().spawnFallingBlock(BlockHelpers.toCenterBlockLocation(relative.getLocation()), data);
-            if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-            return;
-        }
-        if (!type.isBlock()) return;
-
-        makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), Bukkit.createBlockData(type));
+        BlockData newData = type != null && type.isBlock() ? type.createBlockData() : null;
+        makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), newData);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -305,16 +314,8 @@ public class NoteBlockMechanicListener implements Listener {
         }
 
         BlockData data = NoteBlockMechanicFactory.createNoteBlockData(customVariation);
-        Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(), placedAgainst, face, data);
-        if (placedBlock != null) {
-            if (isFalling && face != BlockFace.DOWN && placedAgainst.getRelative(face).getRelative(BlockFace.DOWN).getType().isAir()) {
-                // We place it above first to see if all checks for placing pass
-                placedBlock.setType(Material.AIR, false);
-                Location spawnLoc = BlockHelpers.toCenterBlockLocation(placedAgainst.getRelative(face).getLocation());
-                player.getWorld().spawnFallingBlock(spawnLoc, data);
-            } //else OraxenBlocks.place(mechanic.getItemID(), placedBlock.getLocation());
-            event.setUseInteractedBlock(Event.Result.DENY);
-        }
+
+        makePlayerPlaceBlock(player, event.getHand(), event.getItem(), placedAgainst, face, data);
     }
 
     // If block is not a custom block, play the correct sound according to the below block or default
@@ -490,64 +491,43 @@ public class NoteBlockMechanicListener implements Listener {
         };
     }
 
-    public Block makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
-                                      final Block placedAgainst, final BlockFace face, final BlockData newBlock) {
+    public void makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
+                                     final Block placedAgainst, final BlockFace face, final BlockData newData) {
         final Block target;
         final String sound;
         final Material type = placedAgainst.getType();
-        final boolean waterloggedBefore = placedAgainst.getRelative(face).getType() == Material.WATER;
 
-        if (BlockHelpers.isReplaceable(type))
-            target = placedAgainst;
+        if (BlockHelpers.isReplaceable(type)) target = placedAgainst;
         else {
             target = placedAgainst.getRelative(face);
-            if (!target.getType().isAir() && !target.isLiquid() && target.getType() != Material.LIGHT) return null;
+            if (!target.getType().isAir() && !target.isLiquid() && target.getType() != Material.LIGHT) return;
         }
 
-        final BlockData curentBlockData = target.getBlockData();
-        target.setBlockData(newBlock);
-        final BlockState currentBlockState = target.getState();
         final NoteBlockMechanic againstMechanic = OraxenBlocks.getNoteBlockMechanic(placedAgainst);
+        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, hand);
 
-        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, hand);
-        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
-
-        if (BlockHelpers.correctAllBlockStates(target, player, hand, face, item, waterloggedBefore)) blockPlaceEvent.setCancelled(true);
-        if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
         if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions()))
             blockPlaceEvent.setCancelled(true);
         if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
             blockPlaceEvent.setCancelled(true);
-        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
-            target.setBlockData(curentBlockData);
-            return null;
-        }
+
+        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
+        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) return;
 
         // This method is ran for placing on custom blocks aswell, so this should not be called for vanilla blocks
-        if (OraxenBlocks.isOraxenNoteBlock(target)) {
-            final OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(OraxenBlocks.getNoteBlockMechanic(target), target, player, item, hand);
+        NoteBlockMechanic targetOraxen = OraxenBlocks.getNoteBlockMechanic(newData);
+        if (targetOraxen != null) {
+            final OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(targetOraxen, target, player, item, hand);
             Bukkit.getPluginManager().callEvent(oraxenPlaceEvent);
-            if (oraxenPlaceEvent.isCancelled()) {
-                target.setBlockData(curentBlockData); // false to cancel physic
-                return null;
-            }
+            if (oraxenPlaceEvent.isCancelled()) return;
+
+            OraxenBlocks.place(targetOraxen.getItemID(), target.getLocation());
+            if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
+            Utils.swingHand(player, hand);
+            return;
         }
 
-        if (newBlock.getMaterial() == Material.WATER || newBlock.getMaterial() == Material.LAVA) {
-            if (newBlock.getMaterial() == Material.WATER) sound = "item.bucket.empty";
-            else sound = "item.bucket.empty_" + newBlock.getMaterial().toString().toLowerCase();
-        } else if (!OraxenBlocks.isOraxenBlock(target)) sound = target.getBlockData().getSoundGroup().getPlaceSound().getKey().toString();
-        else sound = null;
-
-        if (!player.getGameMode().equals(GameMode.CREATIVE)) {
-            if (item.getType().toString().toLowerCase().contains("bucket")) item.setType(Material.BUCKET);
-            else item.setAmount(item.getAmount() - 1);
-        }
-
-        if (sound != null) BlockHelpers.playCustomBlockSound(target.getLocation(), sound, SoundCategory.BLOCKS, 0.8f, 0.8f);
-        Utils.swingHand(player, hand);
-
-        return target;
+        BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
     }
 
     // Used to determine what instrument to use when playing a note depending on below block

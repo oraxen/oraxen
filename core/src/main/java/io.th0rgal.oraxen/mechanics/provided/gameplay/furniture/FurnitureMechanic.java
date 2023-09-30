@@ -356,8 +356,8 @@ public class FurnitureMechanic extends Mechanic {
         } else item = placedItem;
         item.setAmount(1);
 
-        Entity baseEntity = location.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), entityClass, (entity) ->
-                setEntityData(entity, yaw, item, facing));
+        Entity baseEntity = location.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), entityClass);
+        setEntityData(baseEntity, yaw, item, facing);
         if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }

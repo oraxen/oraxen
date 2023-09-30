@@ -2,22 +2,17 @@ package io.th0rgal.oraxen.nms;
 
 import net.minecraft.world.phys.BlockHitResult;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import javax.annotation.Nullable;
 import java.util.Set;
 
 public interface NMSHandler {
-
-    void inject(Player player);
-
-    void uninject(Player player);
-
-    default boolean getSupported() {
-        return false;
-    }
 
     /**
      * Copies over all NBT-Tags from oldItem to newItem
@@ -28,7 +23,20 @@ public interface NMSHandler {
      * @param newItem The new ItemStack to copy the NBT-Tags to
      * @return The new ItemStack with the copied NBT-Tags
      */
-    ItemStack copyItemNBTTags(ItemStack oldItem, ItemStack newItem);
+    ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem);
+
+    /**
+     * Corrects the BlockData of a placed block.
+     * Mainly fired when placing a block against an OraxenNoteBlock due to vanilla behaviour requiring Sneaking
+     * @param player The player that placed the block
+     * @param slot The hand the player placed the block with
+     * @param itemStack The ItemStack the player placed the block with
+     * @param blockAgainst The block the player placed the block against
+     * @param blockFace The face of the block the player placed the block against
+     * @return The corrected BlockData
+     */
+    @Nullable BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack, Block blockAgainst, BlockFace blockFace);
+    @Nullable BlockHitResult getBlockHitResult(Player player, Block block, BlockFace blockFace);
 
     /**
      * Keys that are used by vanilla Minecraft and should therefore be skipped
@@ -44,7 +52,10 @@ public interface NMSHandler {
 
     void setupNmsGlyphs();
 
-    boolean correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack, Block block);
+    void inject(Player player);
+    void uninject(Player player);
 
-    @Nullable BlockHitResult getBlockHitResult(Player player, Block block);
+    default boolean getSupported() {
+        return false;
+    }
 }
