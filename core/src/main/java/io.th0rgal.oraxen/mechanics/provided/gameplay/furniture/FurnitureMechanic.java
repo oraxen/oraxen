@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBl
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.EntityUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
@@ -356,8 +357,7 @@ public class FurnitureMechanic extends Mechanic {
         } else item = placedItem;
         item.setAmount(1);
 
-        Entity baseEntity = location.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), entityClass);
-        setEntityData(baseEntity, yaw, item, facing);
+        Entity baseEntity = EntityUtils.spawnEntity(BlockHelpers.toCenterBlockLocation(location), entityClass, (e) -> setEntityData(e, yaw, item, facing));
         if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }
@@ -407,11 +407,12 @@ public class FurnitureMechanic extends Mechanic {
 
     private Interaction spawnInteractionEntity(Entity entity, Location location, float width, float height) {
         if (!OraxenPlugin.supportsDisplayEntities || width <= 0f || height <= 0f) return null;
-        Interaction interaction = entity.getWorld().spawn(BlockHelpers.toCenterBlockLocation(location), Interaction.class, (Interaction i) -> {
+        Interaction interaction = EntityUtils.spawnEntity(BlockHelpers.toCenterBlockLocation(location), Interaction.class, (i) -> {
             i.setInteractionWidth(width);
             i.setInteractionHeight(height);
             i.setPersistent(true);
         });
+
         PersistentDataContainer pdc = interaction.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, DataType.STRING, getItemID());
         pdc.set(BASE_ENTITY_KEY, DataType.UUID, entity.getUniqueId());
@@ -627,8 +628,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private UUID spawnSeat(Block target, float yaw) {
-        final ArmorStand seat = target.getWorld().spawn(target.getLocation()
-                .add(0.5, seatHeight - 1, 0.5), ArmorStand.class, (ArmorStand stand) -> {
+        final ArmorStand seat = EntityUtils.spawnEntity(target.getLocation().add(0.5, seatHeight - 1, 0.5), ArmorStand.class, (ArmorStand stand) -> {
             stand.setVisible(false);
             stand.setRotation(yaw, 0);
             stand.setInvulnerable(true);

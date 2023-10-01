@@ -64,7 +64,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         CompoundTag newTag = newNmsItem.getOrCreateTag();
         oldTag.getAllKeys().stream().filter(key -> !vanillaKeys.contains(key)).forEach(key -> newTag.put(key, oldTag.get(key)));
         newNmsItem.setTag(newTag);
-        return newNmsItem.asBukkitCopy();
+        return CraftItemStack.asBukkitCopy(newNmsItem);
     }
 
     @Override
@@ -80,7 +80,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         if (!(nmsStack.getItem() instanceof BlockItem blockItem)) {
             InteractionResultHolder<net.minecraft.world.item.ItemStack> result = nmsStack.getItem().use(serverPlayer.level(), serverPlayer, hand);
-            if (result.getResult() == InteractionResult.CONSUME) player.getInventory().setItem(slot, result.getObject().asBukkitCopy());
+            if (result.getResult() == InteractionResult.CONSUME) player.getInventory().setItem(slot, CraftItemStack.asBukkitCopy(result.getObject()));
             return null;
         }
 

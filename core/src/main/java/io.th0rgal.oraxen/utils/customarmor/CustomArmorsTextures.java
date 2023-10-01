@@ -142,6 +142,11 @@ public class CustomArmorsTextures {
             OraxenPlugin.get().getLogger().warning("Error while reading " + name + ": " + e.getMessage());
             return false;
         }
+        if (original == null) {
+            OraxenPlugin.get().getLogger().warning("Error while reading " + name + ": Image is null");
+            return false;
+        }
+
         BufferedImage image = initLayer(original);
 
         boolean isAnimated = name.endsWith("_a.png");

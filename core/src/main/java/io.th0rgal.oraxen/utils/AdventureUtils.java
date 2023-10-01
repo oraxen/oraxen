@@ -21,7 +21,7 @@ public class AdventureUtils {
     private AdventureUtils() {
     }
 
-    public static final MiniMessage MINI_MESSAGE_EMPTY = MiniMessage.builder().tags(TagResolver.resolver(TagResolver.standard(), TagResolver.resolver("prefix", Tag.selfClosingInserting(MiniMessage.miniMessage().deserialize(Message.PREFIX.toString()))))).build();
+    public static final MiniMessage MINI_MESSAGE_EMPTY = MiniMessage.miniMessage();
 
     public static final TagResolver OraxenTagResolver = TagResolver.resolver(TagResolver.standard(),
             GlyphTag.RESOLVER, GlyphTag.RESOLVER_SHORT, ShiftTag.RESOLVER, ShiftTag.RESOLVER_SHORT,
