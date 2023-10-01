@@ -207,6 +207,7 @@ if (pluginPath != null) {
             dependsOn(shadowJar, jar)
             from(defaultPath)
             into(pluginPath)
+            doLast { println("Copied to plugin directory $pluginPath") }
         }
 
         // Create individual copy tasks for each destination
