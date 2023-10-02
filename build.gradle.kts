@@ -9,6 +9,7 @@ plugins {
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
     id("io.papermc.paperweight.userdev") version "1.5.6" apply false
     id("com.mineinabyss.conventions.publication")
+    id("com.mineinabyss.conventions.autoversion")
 }
 
 class NMSVersion(val nmsVersion: String, val serverVersion: String)
