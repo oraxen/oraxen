@@ -113,9 +113,8 @@ public class FurnitureListener implements Listener {
         LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
         Block belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN);
 
-        if (limitedPlacing.isNotPlacableOn(block, blockFace)) {
-            event.setCancelled(true);
-        } else if (limitedPlacing.isRadiusLimited()) {
+        if (limitedPlacing.isNotPlacableOn(block, blockFace)) event.setCancelled(true);
+        else if (limitedPlacing.isRadiusLimited()) {
             LimitedPlacing.RadiusLimitation radiusLimitation = limitedPlacing.getRadiusLimitation();
             int radius = radiusLimitation.getRadius();
             int amount = radiusLimitation.getAmount();
@@ -123,16 +122,11 @@ public class FurnitureListener implements Listener {
                     .filter(OraxenFurniture::isBaseEntity)
                     .filter(e -> OraxenFurniture.getFurnitureMechanic(e).getItemID().equals(mechanic.getItemID()))
                     .filter(e -> e.getLocation().distanceSquared(block.getLocation()) <= radius * radius)
-                    .count() >= amount) {
-                event.setCancelled(true);
-            }
-        } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW) {
-            if (!limitedPlacing.checkLimitedMechanic(belowPlaced))
-                event.setCancelled(true);
-        } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.DENY) {
-            if (limitedPlacing.checkLimitedMechanic(belowPlaced))
-                event.setCancelled(true);
-        }
+                    .count() >= amount) event.setCancelled(true);
+        } else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.ALLOW)
+            if (!limitedPlacing.checkLimitedMechanic(belowPlaced)) event.setCancelled(true);
+        else if (limitedPlacing.getType() == LimitedPlacing.LimitedPlacingType.DENY)
+            if (limitedPlacing.checkLimitedMechanic(belowPlaced)) event.setCancelled(true);
     }
 
     @EventHandler(ignoreCancelled = true, priority = EventPriority.NORMAL)
@@ -257,7 +251,7 @@ public class FurnitureListener implements Listener {
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, entity, player, entity.getLocation().getBlock());
         OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
         if (furnitureBreakEvent.isCancelled()) return;
-        OraxenFurniture.remove(entity, player);
+        OraxenFurniture.remove(entity, player, furnitureBreakEvent.getDrop());
     }
 
     //TODO This should take hardness into account.
@@ -280,7 +274,7 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        OraxenFurniture.remove(block.getLocation(), player);
+        OraxenFurniture.remove(block.getLocation(), player, furnitureBreakEvent.getDrop());
         event.setDropItems(false);
     }
 

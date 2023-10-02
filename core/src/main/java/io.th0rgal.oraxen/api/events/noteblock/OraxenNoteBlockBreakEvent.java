@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.api.events.noteblock;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -13,6 +14,7 @@ public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
     private final NoteBlockMechanic mechanic;
     private final Player player;
     private final Block block;
+    private Drop drop;
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
@@ -20,6 +22,7 @@ public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
         this.mechanic = mechanic;
         this.block = block;
         this.player = player;
+        this.drop = mechanic.getDrop();
         this.isCancelled = false;
     }
 
@@ -45,6 +48,22 @@ public class OraxenNoteBlockBreakEvent extends Event implements Cancellable {
     @NotNull
     public Block getBlock() {
         return block;
+    }
+
+    /**
+     * @return The drop of the block
+     */
+    @NotNull
+    public Drop getDrop() {
+        return drop;
+    }
+
+    /**
+     * Set the drop of the block
+     * @param drop the new drop
+     */
+    public void setDrop(Drop drop) {
+        this.drop = drop;
     }
 
     @Override

@@ -229,12 +229,13 @@ public class OraxenBlocks {
             OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
             OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockBreakEvent);
             if (noteBlockBreakEvent.isCancelled()) return;
+
+            if (player.getGameMode() != GameMode.CREATIVE)
+                noteBlockBreakEvent.getDrop().spawns(block.getLocation(), player.getInventory().getItemInMainHand());
         }
 
         if (mechanic.hasLight())
             WrappedLightAPI.removeBlockLight(block.getLocation());
-        if (player != null && player.getGameMode() != GameMode.CREATIVE)
-            mechanic.getDrop().spawns(block.getLocation(), player.getInventory().getItemInMainHand());
         if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             mechanic.getStorage().dropStorageContent(block);
         }
@@ -251,14 +252,15 @@ public class OraxenBlocks {
             OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
             OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockBreakEvent);
             if (wireBlockBreakEvent.isCancelled()) return;
+
+            if (player.getGameMode() != GameMode.CREATIVE)
+                wireBlockBreakEvent.getDrop().spawns(block.getLocation(), item);
         }
 
         if (mechanic.hasLight())
             WrappedLightAPI.removeBlockLight(block.getLocation());
         if (mechanic.isTall())
             block.getRelative(BlockFace.UP).setType(Material.AIR, false);
-        if (player != null && player.getGameMode() != GameMode.CREATIVE)
-            mechanic.getDrop().spawns(block.getLocation(), item);
         block.setType(Material.AIR, false);
         final Block blockAbove = block.getRelative(BlockFace.UP);
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {

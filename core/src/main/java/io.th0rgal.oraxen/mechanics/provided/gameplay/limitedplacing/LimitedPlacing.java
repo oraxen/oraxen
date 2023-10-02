@@ -56,8 +56,7 @@ public class LimitedPlacing {
         oraxenBlocks =  getLimitedOraxenBlocks(section.getStringList("oraxen_blocks"));
 
         ConfigurationSection radiusSection = section.getConfigurationSection("radius_limitation");
-        if (radiusSection != null) radiusLimitation = new RadiusLimitation(radiusSection);
-        else radiusLimitation = null;
+        radiusLimitation = radiusSection != null ? new RadiusLimitation(radiusSection) : null;
     }
 
     public boolean isRadiusLimited() {
@@ -95,7 +94,9 @@ public class LimitedPlacing {
         //TODO isBlock better check perhaps?
         if (wall && block.getType().isSolid()) return false;
         if (floor && (blockFace == BlockFace.UP || blockBelow.getType().isSolid())) return false;
-        return !roof || (blockFace != BlockFace.DOWN && !blockAbove.getType().isSolid());
+        if (roof && blockFace == BlockFace.DOWN) return false;
+        if (roof && blockAbove.getType().isSolid()) return false;
+        return false;
     }
 
     public List<Material> getLimitedBlocks() {
