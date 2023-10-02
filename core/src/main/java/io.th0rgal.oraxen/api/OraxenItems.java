@@ -65,6 +65,10 @@ public class OraxenItems {
         return getOptionalItemById(id).orElse(null);
     }
 
+    public static ItemBuilder getBuilderByItem(ItemStack item) {
+        return getItemById(getIdByItem(item));
+    }
+
     public static List<ItemBuilder> getUnexcludedItems() {
         return itemStream().filter(item -> !item.getOraxenMeta().isExcludedFromInventory())
                 .toList();
