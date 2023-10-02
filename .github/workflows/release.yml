@@ -1,17 +1,19 @@
 name: Create Release
+
 on:
   push:
     branches:
       - master
-    tags:
-      - '*'
+      - develop
 
 jobs:
   release:
     runs-on: ubuntu-latest
+    if: success() && github.ref == 'refs/heads/master'
     steps:
       - name: Checkout code
         uses: actions/checkout@v2.4.1
+
       - name: Check plugin version
         id: version-check
         run: |
@@ -20,6 +22,7 @@ jobs:
             echo "Plugin version does not match commit message"
             exit 0
           fi
+
       - name: Create Release
         if: needs.build.result == 'success' && steps.check-tag.outputs.tag_exists != '200'
         uses: ncipollo/release-action@v1
@@ -28,3 +31,25 @@ jobs:
           tag: ${{ github.ref }}
           name: ${{ env.version }}
           body: ${{ github.event.head_commit.message }}
+
+  prerelease:
+    runs-on: ubuntu-latest
+    if: success() && github.ref == 'refs/heads/develop'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2.4.1
+
+      - name: Determine Version
+        id: prerelease-version
+        run: |
+          version=$(sed -n "s/^pluginVersion=\(.*\)$/\1/p" gradle.properties)
+          echo "::set-output name=prerelease_version::${version}"
+
+      - name: Create Prerelease
+        uses: ncipollo/release-action@v1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag: snapshot
+          name: ${{ steps.prerelease-version.outputs.prerelease_version }}
+          prerelease: true
+          allowUpdates: true

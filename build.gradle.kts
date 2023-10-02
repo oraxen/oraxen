@@ -4,82 +4,114 @@ import java.util.*
 
 plugins {
     id("java")
-    id("idea")
-    id("eclipse")
     id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.0.1"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
+    id("io.papermc.paperweight.userdev") version "1.5.6" apply false
 }
 
-val pluginPath = project.findProperty("oraxen_folia_plugin_path")
+class NMSVersion(val nmsVersion: String, val serverVersion: String)
+infix fun String.toNms(that: String): NMSVersion = NMSVersion(this, that)
+val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
+    "v1_18_R1" toNms "1.18.1-R0.1-SNAPSHOT",
+    "v1_18_R2" toNms "1.18.2-R0.1-SNAPSHOT",
+    "v1_19_R1" toNms "1.19.2-R0.1-SNAPSHOT",
+    "v1_19_R2" toNms "1.19.3-R0.1-SNAPSHOT",
+    "v1_19_R3" toNms "1.19.4-R0.1-SNAPSHOT",
+    "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
+    "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT"
+)
+
+SUPPORTED_VERSIONS.forEach {
+    project(":${it.nmsVersion}") {
+
+        apply(plugin = "java")
+        apply(plugin = "io.papermc.paperweight.userdev")
+
+        repositories {
+            maven("https://papermc.io/repo/repository/maven-public/") // Paper
+        }
+
+        dependencies {
+            implementation(project(":core"))
+            paperDevBundle(it.serverVersion)
+        }
+    }
+}
+
+val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
+val pluginPath = project.findProperty("oraxen_plugin_path")?.toString()
+val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
+val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
+val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
+val commandApiVersion = "9.2.0"
+val adventureVersion = "4.14.0"
+val platformVersion = "4.3.1"
 group = "io.th0rgal"
 version = pluginVersion
 
+allprojects {
+    apply(plugin = "java")
+    repositories {
+        mavenCentral()
+
+        maven("https://papermc.io/repo/repository/maven-public/") // Paper
+        maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
+        maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
+        maven("https://jitpack.io") // JitPack
+        maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
+        maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
+        maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
+        maven("https://maven.elmakers.com/repository/") // EffectLib
+        maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
+        maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
+        maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
+        //maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
+        maven("https://repo.mineinabyss.com/releases") // PlayerAnimator
+        maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
+        maven("https://maven.enginehub.org/repo/")
+        maven("https://nexuslite.gcnt.net/repos/other/") // FoliaLib
+
+        mavenLocal()
+    }
+
+    dependencies {
+        val actionsVersion = "1.0.0-SNAPSHOT"
+
+        compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
+        compileOnly("net.kyori:adventure-text-minimessage:$adventureVersion")
+        compileOnly("net.kyori:adventure-text-serializer-plain:$adventureVersion")
+        compileOnly("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
+        compileOnly("net.kyori:adventure-platform-bukkit:$platformVersion")
+        compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
+        compileOnly("me.clip:placeholderapi:2.11.4")
+        compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
+        compileOnly("me.gabytm.util:actions-core:$actionsVersion")
+        compileOnly("org.springframework:spring-expression:6.0.6")
+        compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
+        compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
+        compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
+        compileOnly("commons-io:commons-io:2.11.0")
+        compileOnly("com.ticxo.modelengine:api:R3.1.5")
+        compileOnly(files("../libs/compile/BSP.jar"))
+        compileOnly("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
+        compileOnly("io.lumine:MythicLib:1.1.6")
+        compileOnly("net.Indyuce:MMOItems:6.7.3")
+        compileOnly("org.joml:joml:1.10.5") // Because pre 1.19.4 api does not have this in the server-jar
+
+        implementation("com.tcoded:FoliaLib:0.2.5")
+    }
+}
+
+dependencies {
+    implementation(project(path = ":core"))
+    SUPPORTED_VERSIONS.forEach { implementation(project(path = ":${it.nmsVersion}", configuration = "reobf")) }
+}
+
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
-}
-
-repositories {
-    mavenCentral()
-
-    maven("https://repo.papermc.io/repository/maven-public/") // Paper
-    maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
-    maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
-    maven("https://jitpack.io") // JitPack
-    maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
-    maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
-    maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
-    maven("https://maven.elmakers.com/repository/") // EffectLib
-    maven("https://hub.jeff-media.com/nexus/repository/jeff-media-public/") // CustomBlockData
-    maven("https://repo.triumphteam.dev/snapshots") // actions-code, actions-spigot
-    maven("https://mvn.lumine.io/repository/maven-public/") { metadataSources { artifact() } }// MythicMobs
-    //maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
-    maven("https://repo.mineinabyss.com/releases") // PlayerAnimator
-    maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
-    maven("https://nexuslite.gcnt.net/repos/other/") // FoliaSchedulers
-    maven("https://maven.enginehub.org/repo/")
-    maven("https://nexuslite.gcnt.net/repos/other/") // FoliaLib
-}
-
-val commandApiVersion = "9.1.0"
-dependencies {
-    val actionsVersion = "1.0.0-SNAPSHOT"
-
-    //compileOnly("org.spigotmc:spigot-api:1.20.1-R0.1-SNAPSHOT") { exclude("org.bukkit")}
-    compileOnly("io.papermc.paper:paper-api:1.20.1-R0.1-SNAPSHOT") { exclude("net.kyori") }
-    compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
-    compileOnly("me.clip:placeholderapi:2.11.3")
-    compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
-    compileOnly("me.gabytm.util:actions-core:$actionsVersion")
-    compileOnly("org.springframework:spring-expression:6.0.6")
-    compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
-    compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
-    compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
-    compileOnly("commons-io:commons-io:2.11.0")
-    compileOnly("com.ticxo.modelengine:api:R3.1.5")
-    compileOnly(files("libs/compile/BSP.jar"))
-    compileOnly("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
-    compileOnly("io.lumine:MythicLib:1.1.6")
-    compileOnly("net.Indyuce:MMOItems:6.7.3")
-    compileOnly("org.joml:joml:1.10.5") // Because pre 1.19.4 api does not have this in the server-jar
-
-    implementation("dev.triumphteam:triumph-gui:3.1.5")
-    implementation("org.bstats:bstats-bukkit:3.0.0")
-    implementation("com.github.oraxen:protectionlib:1.3.2")
-    implementation("net.kyori:adventure-text-minimessage:4.14.0")
-    implementation("net.kyori:adventure-text-serializer-plain:4.14.0")
-    implementation("net.kyori:adventure-platform-bukkit:4.3.0")
-    implementation("com.jeff_media:CustomBlockData:2.2.0")
-    implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
-    implementation("com.jeff_media:PersistentDataSerializer:1.0-SNAPSHOT")
-    implementation("gs.mclo:java:2.2.1")
-    implementation("com.ticxo:PlayerAnimator:R1.2.7")
-    implementation("org.jetbrains:annotations:24.0.1") { isTransitive = false }
-    implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
-    implementation("com.tcoded:FoliaLib:0.2.5")
-
 }
 
 tasks {
@@ -102,15 +134,18 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.20.1")
+        minecraftVersion("1.20.2")
     }
 
     shadowJar {
+        SUPPORTED_VERSIONS.forEach { dependsOn(":${it.nmsVersion}:reobfJar") }
+
+        //archiveClassifier = null
         relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
-        relocate("net.kyori", "io.th0rgal.oraxen.shaded.kyori")
         relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
         relocate("com.jeff_media.customblockdata", "io.th0rgal.oraxen.shaded.customblockdata")
         relocate("com.jeff_media.morepersistentdatatypes", "io.th0rgal.oraxen.shaded.morepersistentdatatypes")
+        relocate("com.jeff_media.persistentdataserializer", "io.th0rgal.oraxen.shaded.persistentdataserializer")
         relocate("com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.if")
         relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
         relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
@@ -151,11 +186,20 @@ bukkit {
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards")
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
-    libraries = listOf("org.springframework:spring-expression:6.0.6", "org.apache.httpcomponents:httpmime:4.5.13", "dev.jorel:commandapi-bukkit-shade:$commandApiVersion", "org.joml:joml:1.10.5")
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE
     }
+    libraries = listOf(
+        "org.springframework:spring-expression:6.0.6",
+        "org.apache.httpcomponents:httpmime:4.5.13",
+        "dev.jorel:commandapi-bukkit-shade:$commandApiVersion",
+        "org.joml:joml:1.10.5",
+        "net.kyori:adventure-text-minimessage:$adventureVersion",
+        "net.kyori:adventure-text-serializer-plain:$adventureVersion",
+        "net.kyori:adventure-text-serializer-ansi:$adventureVersion",
+        "net.kyori:adventure-platform-bukkit:$platformVersion",
+    )
 }
 
 publishing {
@@ -168,15 +212,45 @@ publishing {
 
 if (pluginPath != null) {
     tasks {
-        register<Copy>("copyJar") {
+        val defaultPath = findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar")
+        // Define the main copy task
+        val copyJarTask = register<Copy>("copyJar") {
             this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
             dependsOn(shadowJar, jar)
-            from(findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar"))
+            from(defaultPath)
             into(pluginPath)
-            doLast {
-                println("Copied to plugin directory $pluginPath")
-            }
+            doLast { println("Copied to plugin directory $pluginPath") }
         }
-        named<DefaultTask>("build").get().dependsOn("copyJar")
+
+        // Create individual copy tasks for each destination
+        val copyToDevPluginPathTask = register<Copy>("copyToDevPluginPath") {
+            dependsOn(shadowJar, jar)
+            from(defaultPath)
+            devPluginPath?.let { into(it) }
+            doLast { println("Copied to plugin directory $devPluginPath") }
+        }
+
+        val copyToFoliaPluginPathTask = register<Copy>("copyToFoliaPluginPath") {
+            dependsOn(shadowJar, jar)
+            from(defaultPath)
+            foliaPluginPath?.let { into(it) }
+            doLast { println("Copied to plugin directory $foliaPluginPath") }
+        }
+
+        val copyToSpigotPluginPathTask = register<Copy>("copyToSpigotPluginPath") {
+            dependsOn(shadowJar, jar)
+            from(defaultPath)
+            spigotPluginPath?.let { into(it) }
+            doLast { println("Copied to plugin directory $spigotPluginPath") }
+        }
+
+        // Make the build task depend on all individual copy tasks
+        named<DefaultTask>("build").get().dependsOn(
+            copyJarTask,
+            copyToDevPluginPathTask,
+            copyToFoliaPluginPathTask,
+            copyToSpigotPluginPathTask
+        )
     }
 }
+
