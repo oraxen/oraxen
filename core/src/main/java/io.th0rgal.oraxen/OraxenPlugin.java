@@ -21,7 +21,6 @@ import io.th0rgal.oraxen.gestures.GestureManager;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
@@ -33,7 +32,6 @@ import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
-import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -105,8 +103,9 @@ public class OraxenPlugin extends JavaPlugin {
         final PluginManager pluginManager = Bukkit.getPluginManager();
         if (pluginManager.isPluginEnabled("ProtocolLib")) {
             protocolManager = ProtocolLibrary.getProtocolManager();
-            if (!VersionUtil.isFoliaServer()) new BreakerSystem().registerListener();
-            else Logs.logError("BreakerSystem is not supported on Folia servers yet");
+            // Swapped for individual BlockDamageListener's
+            /*if (!VersionUtil.isFoliaServer()) new BreakerSystem().registerListener();
+            else Logs.logError("BreakerSystem is not supported on Folia servers yet");*/
             if (Settings.FORMAT_INVENTORY_TITLES.toBool())
                 protocolManager.addPacketListener(new InventoryPacketListener());
             protocolManager.addPacketListener(new TitlePacketListener());

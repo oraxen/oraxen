@@ -66,7 +66,7 @@ public class StringBlockMechanicListener implements Listener {
 
             // Stores the pre-change blockdata and applies it on next tick to prevent the block from updating
             final BlockData blockData = block.getBlockData().clone();
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable -> {
+            OraxenPlugin.foliaLib.getImpl().runAtLocationLater(block.getLocation(), () -> {
                 if (block.getType().isAir()) return;
                 block.setBlockData(blockData, false);
             }, 1L);
