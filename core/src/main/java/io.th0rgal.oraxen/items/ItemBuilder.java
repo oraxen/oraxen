@@ -151,8 +151,12 @@ public class ItemBuilder {
         return this;
     }
 
+    public boolean hasLores() {
+        return lore != null && !lore.isEmpty();
+    }
+
     public List<String> getLore() {
-        return lore;
+        return lore != null ? lore : new ArrayList<>();
     }
 
     public ItemBuilder setLore(final List<String> lore) {
