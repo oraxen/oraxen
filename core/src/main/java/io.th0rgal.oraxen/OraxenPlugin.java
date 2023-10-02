@@ -139,6 +139,7 @@ public class OraxenPlugin extends JavaPlugin {
         CompatibilitiesManager.enableNativeCompatibilities();
         if (VersionUtil.isCompiled()) NoticeUtils.compileNotice();
         if (VersionUtil.isLeaked()) NoticeUtils.leakNotice();
+        if (VersionUtil.isFoliaServer()) NoticeUtils.foliaNotice();
     }
 
     private void postLoading() {
