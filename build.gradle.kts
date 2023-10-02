@@ -4,11 +4,12 @@ import java.util.*
 
 plugins {
     id("java")
-    id("maven-publish")
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.0.1"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
     id("io.papermc.paperweight.userdev") version "1.5.6" apply false
+    alias(libs.plugins.mia.publication)
+    alias(libs.plugins.mia.autoversion)
 }
 
 class NMSVersion(val nmsVersion: String, val serverVersion: String)
@@ -31,6 +32,7 @@ SUPPORTED_VERSIONS.forEach {
 
         repositories {
             maven("https://papermc.io/repo/repository/maven-public/") // Paper
+            maven("https://repo.mineinabyss.com/releases")
         }
 
         dependencies {
@@ -195,14 +197,6 @@ bukkit {
         "net.kyori:adventure-text-serializer-ansi:$adventureVersion",
         "net.kyori:adventure-platform-bukkit:$platformVersion",
     )
-}
-
-publishing {
-    publications {
-        register<MavenPublication>("maven") {
-            from(components.getByName("java"))
-        }
-    }
 }
 
 if (pluginPath != null) {

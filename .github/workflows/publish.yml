@@ -1,0 +1,25 @@
+name: Publish
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+    paths-ignore:
+      - '**.md'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: oraxen/publish-action@master
+        with:
+          maven-metadata-url: https://repo.mineinabyss.com/releases/io/th0rgal/oraxen/maven-metadata.xml
+          pages-path: build/dokka/htmlMultiModule/
+          dokka: dokkaHtmlMultiModule
+          maven-username: ${{ secrets.MAVEN_USERNAME }}
+          maven-password: ${{ secrets.MAVEN_PASSWORD }}
+          release-files: |
+            ${{ github.workspace }}/publish/*.jar
