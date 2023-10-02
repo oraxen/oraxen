@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -33,6 +34,7 @@ public class OraxenFurniture {
 
     /**
      * Gett all OraxenItem IDs that have a FurnitureMechanic
+     *
      * @return a Set of all OraxenItem IDs that have a FurnitureMechanic
      */
     public static Set<String> getFurnitureIDs() {
@@ -128,6 +130,18 @@ public class OraxenFurniture {
      * @return true if the Furniture was removed, false otherwise
      */
     public static boolean remove(@NotNull Location location, @Nullable Player player) {
+        return remove(location, player, null);
+    }
+
+    /**
+     * Removes Furniture at a given location, optionally by a player
+     *
+     * @param location The location to remove the Furniture
+     * @param player   The player who removed the Furniture, can be null
+     * @param drop     The drop of the furniture, if null the default drop will be used
+     * @return true if the Furniture was removed, false otherwise
+     */
+    public static boolean remove(@NotNull Location location, @Nullable Player player, @Nullable Drop drop) {
         if (!FurnitureFactory.isEnabled()) return false;
         if (!location.isWorldLoaded()) return false;
         assert location.getWorld() != null;
@@ -145,7 +159,7 @@ public class OraxenFurniture {
 
         if (player != null) {
             if (player.getGameMode() != GameMode.CREATIVE)
-                mechanic.getDrop().furnitureSpawns(baseEntity, itemStack);
+                (drop != null ? drop : mechanic.getDrop()).furnitureSpawns(baseEntity, itemStack);
             StorageMechanic storage = mechanic.getStorage();
             if (storage != null && (storage.isStorage() || storage.isShulker()))
                 storage.dropStorageContent(mechanic, baseEntity);
@@ -165,6 +179,18 @@ public class OraxenFurniture {
      * @return true if the Furniture was removed, false otherwise
      */
     public static boolean remove(Entity baseEntity, @Nullable Player player) {
+        return remove(baseEntity, player, null);
+    }
+
+    /**
+     * Removes Furniture at a given Entity, optionally by a player and with an altered Drop
+     *
+     * @param baseEntity The entity at which the Furniture should be removed
+     * @param player     The player who removed the Furniture, can be null
+     * @param drop       The drop of the furniture, if null the default drop will be used
+     * @return true if the Furniture was removed, false otherwise
+     */
+    public static boolean remove(Entity baseEntity, @Nullable Player player, @Nullable Drop drop) {
         if (!FurnitureFactory.isEnabled() || baseEntity == null) return false;
         FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
         if (mechanic == null) return false;
@@ -176,7 +202,7 @@ public class OraxenFurniture {
         if (player != null) {
             ItemStack itemStack = player.getInventory().getItemInMainHand();
             if (player.getGameMode() != GameMode.CREATIVE)
-                mechanic.getDrop().furnitureSpawns(baseEntity, itemStack);
+                (drop != null ? drop : mechanic.getDrop()).furnitureSpawns(baseEntity, itemStack);
             StorageMechanic storage = mechanic.getStorage();
             if (storage != null && (storage.isStorage() || storage.isShulker()))
                 storage.dropStorageContent(mechanic, baseEntity);

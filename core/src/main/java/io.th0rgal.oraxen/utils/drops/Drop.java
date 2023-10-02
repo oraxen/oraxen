@@ -11,6 +11,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.jetbrains.annotations.NotNull;
@@ -57,6 +58,10 @@ public class Drop {
         this.bestTools = new ArrayList<>();
     }
 
+    public static Drop emptyDrop() {
+        return new Drop(new ArrayList<>(), false, false, "");
+    }
+
     public String getItemType(ItemStack itemInHand) {
         String itemID = OraxenItems.getIdByItem(itemInHand);
         ItemTypeMechanicFactory factory = ItemTypeMechanicFactory.get();
@@ -97,6 +102,11 @@ public class Drop {
 
     public List<Loot> getLoots() {
         return loots;
+    }
+
+    public void setLoots(List<Loot> loots) {
+        this.loots.clear();
+        this.loots.addAll(loots);
     }
 
     public void spawns(Location location, ItemStack itemInHand) {
@@ -149,5 +159,25 @@ public class Drop {
 
     private void dropLoot(List<Loot> loots, Location location, int fortuneMultiplier) {
         for (Loot loot : loots) loot.dropNaturally(location, fortuneMultiplier);
+    }
+
+    /**
+     * Get the loots that will drop based on a given Player
+     * @param player the player that triggered this drop
+     * @return the loots that will drop
+     */
+    public List<Loot> getLootToDrop(Player player) {
+        ItemStack itemInHand = player.getInventory().getItemInMainHand();
+        int fortuneMultiplier = getFortuneMultiplier(itemInHand);
+        List<Loot> droppedLoots = new ArrayList<>();
+        for (Loot loot : loots) {
+            ItemStack item = loot.getItem(fortuneMultiplier);
+
+            if (!canDrop(itemInHand) || item == null) continue;
+            if (ThreadLocalRandom.current().nextInt(loot.getProbability()) != 0) continue;
+
+            droppedLoots.add(loot);
+        }
+        return droppedLoots;
     }
 }

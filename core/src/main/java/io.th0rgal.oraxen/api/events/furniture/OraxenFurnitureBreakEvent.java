@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.api.events.furniture;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -17,6 +18,7 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
     private final Block block;
     private final Player player;
     private final Entity baseEntity;
+    private Drop drop;
     private static final HandlerList HANDLERS = new HandlerList();
 
     public OraxenFurnitureBreakEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Entity baseEntity, @NotNull final Player player, @Nullable final Block block) {
@@ -24,6 +26,7 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
         this.mechanic = mechanic;
         this.player = player;
         this.baseEntity = baseEntity;
+        this.drop = mechanic.getDrop();
     }
 
     /**
@@ -58,6 +61,23 @@ public class OraxenFurnitureBreakEvent extends Event implements Cancellable {
     public Entity getBaseEntity() {
         return baseEntity;
     }
+
+    /**
+     * @return The drop of the furniture
+     */
+    @NotNull
+    public Drop getDrop() {
+        return drop;
+    }
+
+    /**
+     * Set the drop of the furniture
+    * @param drop the new drop
+    */
+    public void setDrop(@NotNull final Drop drop) {
+        this.drop = drop;
+    }
+
 
     @Override
     public boolean isCancelled() {
