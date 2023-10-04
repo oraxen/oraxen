@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
@@ -60,6 +61,16 @@ public class CustomArmorsTextures {
             shaderType = ShaderType.FANCY;
         }
         //this.layer1Height = resolution * HEIGHT_RATIO;
+    }
+
+    public static boolean isSameArmorType(ItemStack firstItem, ItemStack secondItem) {
+        return Objects.equals(getArmorNameFromItem(firstItem), getArmorNameFromItem(secondItem));
+    }
+    public static String getArmorNameFromItem(ItemStack item) {
+        return getArmorNameFromId(OraxenItems.getIdByItem(item));
+    }
+    public static String getArmorNameFromId(String itemId) {
+        return StringUtils.substringBeforeLast(itemId, "_");
     }
 
     public boolean registerImage(File file) {

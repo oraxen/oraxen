@@ -3,8 +3,9 @@
 commands:
   enabled: false
 
-armorpotioneffects:
+armor_effects:
   enabled: true
+  delay_in_ticks: 20
 
 consumable:
   enabled: true

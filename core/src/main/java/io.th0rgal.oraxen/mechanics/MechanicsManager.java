@@ -26,7 +26,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.repair.RepairMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.misc.armorpotioneffects.ArmorPotionEffectsMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.misc.armor_effects.ArmorEffectsFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.commands.CommandsMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.consumable.ConsumableMechanicFactory;
@@ -56,7 +56,7 @@ public class MechanicsManager {
 
     public static void registerNativeMechanics() {
         // misc
-        registerFactory("armorpotioneffects", ArmorPotionEffectsMechanicFactory::new);
+        registerFactory("armor_effects", ArmorEffectsFactory::new);
         registerFactory("consumablepotioneffects", ConsumablePotionEffectsMechanicFactory::new);
         registerFactory("soulbound", SoulBoundMechanicFactory::new);
         registerFactory("itemtype", ItemTypeMechanicFactory::new);
