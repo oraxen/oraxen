@@ -22,6 +22,7 @@ public enum Message {
     PACK_UPLOADED("general.pack_uploaded"),
     PACK_REGENERATED("general.pack_regenerated"),
     UPDATING_CONFIG("general.updating_config"),
+    REMOVING_CONFIG("general.removing_config"),
     CONFIGS_VALIDATION_FAILED("general.configs_validation_failed"),
     REPAIRED_ITEMS("general.repaired_items"),
     CANNOT_BE_REPAIRED("general.cannot_be_repaired"),

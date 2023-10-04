@@ -156,6 +156,13 @@ public class ConfigsManager {
                 configuration.set(key, defaultConfiguration.get(key));
             }
         }
+
+        for (String key : configuration.getKeys(false)) if (removedYamlKeys.contains(key)) {
+                updated = true;
+                Message.REMOVING_CONFIG.log(AdventureUtils.tagResolver("option", key));
+                configuration.set(key, null);
+        }
+
         if (updated)
             try {
                 configuration.save(configurationFile);
@@ -171,6 +178,11 @@ public class ConfigsManager {
             List.of(
                     "oraxen_inventory.menu_layout",
                     "Misc.armor_equip_event_bypass"
+            );
+
+    private final List<String> removedYamlKeys =
+            List.of(
+                    "armorpotioneffects"
             );
 
     public Collection<Glyph> parseGlyphConfigs() {

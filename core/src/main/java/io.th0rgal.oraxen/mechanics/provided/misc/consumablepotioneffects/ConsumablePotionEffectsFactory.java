@@ -6,11 +6,11 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import org.bukkit.configuration.ConfigurationSection;
 
-public class ConsumablePotionEffectsMechanicFactory extends MechanicFactory {
+public class ConsumablePotionEffectsFactory extends MechanicFactory {
 
-    public ConsumablePotionEffectsMechanicFactory(ConfigurationSection section) {
+    public ConsumablePotionEffectsFactory(ConfigurationSection section) {
         super(section);
-        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new ConsumablePotionEffectsMechanicListener(this));
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new ConsumablePotionEffectsListener(this));
     }
 
     @Override

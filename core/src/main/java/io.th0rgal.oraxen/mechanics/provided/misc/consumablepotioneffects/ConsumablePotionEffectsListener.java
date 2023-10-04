@@ -6,11 +6,11 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.ItemStack;
 
-public class ConsumablePotionEffectsMechanicListener implements Listener {
+public class ConsumablePotionEffectsListener implements Listener {
 
-    private final ConsumablePotionEffectsMechanicFactory factory;
+    private final ConsumablePotionEffectsFactory factory;
 
-    public ConsumablePotionEffectsMechanicListener(ConsumablePotionEffectsMechanicFactory factory) {
+    public ConsumablePotionEffectsListener(ConsumablePotionEffectsFactory factory) {
         this.factory = factory;
     }
 
