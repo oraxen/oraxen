@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.font;
 
 import io.papermc.paper.event.player.AsyncChatDecorateEvent;
+import io.papermc.paper.event.player.AsyncChatEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
@@ -44,7 +45,12 @@ public class FontEvents implements Listener {
 
     public FontEvents(FontManager manager) {
         this.manager = manager;
-        Bukkit.getPluginManager().registerEvents(VersionUtil.isPaperServer() ? new PaperChatHandler() : new SpigotChatHandler(), OraxenPlugin.get());
+        Bukkit.getPluginManager().registerEvents(
+                VersionUtil.isPaperServer() ?
+                        VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R1) ?
+                                new PaperChatHandler() : new LegacyPaperChatHandler()
+                        : new SpigotChatHandler()
+                , OraxenPlugin.get());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -239,34 +245,52 @@ public class FontEvents implements Listener {
         public void onPlayerChat(AsyncChatDecorateEvent event) {
             if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
 
-            Player player = event.player();
-            Component message = AdventureUtils.parseMiniMessage(event.originalMessage(), GlyphTag.getResolverForPlayer(player));
-            for (Character character : manager.getReverseMap().keySet()) {
-                if (!message.contains(Component.text(character))) continue;
-
-                Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
-                if (!glyph.hasPermission(player)) {
-                    Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-
-            for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-                message = message.replaceText(TextReplacementConfig.builder().match(entry.getKey())
-                        .replacement(Component.text(entry.getValue().getCharacter()).color(NamedTextColor.WHITE)).build());
-            }
-
-            for (Glyph glyph : manager.getGlyphs()) {
-                if (!glyph.hasPermission(player)) {
-                    message = message.replaceText(TextReplacementConfig.builder().match(glyph.getGlyphTag())
-                            .replacement(Component.text("\\" + glyph.getGlyphTag())).build());
-                    message = message.replaceText(TextReplacementConfig.builder().match(glyph.getShortGlyphTag())
-                            .replacement(Component.text("\\" + glyph.getShortGlyphTag())).build());
-                }
-            }
-
-            event.result(message);
+            Component result = format(event.originalMessage(), event.player());
+            if (result == null) event.setCancelled(true);
+            else event.result(result);
         }
     }
+
+    public class LegacyPaperChatHandler implements Listener {
+
+        @EventHandler
+        public void onPlayerChat(AsyncChatEvent event) {
+            if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
+
+            Component result = format(event.originalMessage(), event.getPlayer());
+            if (result == null) event.setCancelled(true);
+            else event.message(result);
+        }
+    }
+
+    private Component format(Component originalMessage, Player player) {
+        Component message = AdventureUtils.parseMiniMessage(originalMessage, GlyphTag.getResolverForPlayer(player));
+        for (Character character : manager.getReverseMap().keySet()) {
+            if (!message.contains(Component.text(character))) continue;
+
+            Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
+            if (!glyph.hasPermission(player)) {
+                Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
+                return null;
+            }
+        }
+
+        for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
+            message = message.replaceText(TextReplacementConfig.builder().match(entry.getKey())
+                    .replacement(Component.text(entry.getValue().getCharacter()).color(NamedTextColor.WHITE)).build());
+        }
+
+        for (Glyph glyph : manager.getGlyphs()) {
+            if (!glyph.hasPermission(player)) {
+                message = message.replaceText(TextReplacementConfig.builder().match(glyph.getGlyphTag())
+                        .replacement(Component.text("\\" + glyph.getGlyphTag())).build());
+                message = message.replaceText(TextReplacementConfig.builder().match(glyph.getShortGlyphTag())
+                        .replacement(Component.text("\\" + glyph.getShortGlyphTag())).build());
+            }
+        }
+
+        return message;
+    }
+
+
 }
