@@ -16,10 +16,7 @@ import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.sound.CustomSound;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.VirtualFile;
-import io.th0rgal.oraxen.utils.ZipUtils;
+import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
@@ -101,7 +98,8 @@ public class ResourcePack {
         generatePredicates(extractTexturedItems());
         generateFont();
         if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
-        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardFiles();
+        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardHideNumbers();
+        if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) generateScoreboardHideBackground();
         if (Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) CustomArmorsTextures.generateArmorShaderFiles();
 
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
@@ -657,10 +655,14 @@ public class ResourcePack {
             "th_th", "tl_ph", "tlh_aa", "tok", "tr_tr", "tt_ru", "uk_ua", "val_es",
             "vec_it", "vi_vn", "yi_de", "yo_ng", "zh_cn", "zh_hk", "zh_tw", "zlm_arab"));
 
-    private void generateScoreboardFiles() {
-        Map<String, String> scoreboardShaderFiles = Map.of("assets/minecraft/shaders/core/rendertype_text.json", getScoreboardJson(), "assets/minecraft/shaders/core/rendertype_text.vsh", getScoreboardVsh());
-        for (Map.Entry<String, String> entry : scoreboardShaderFiles.entrySet())
-            writeStringToVirtual(StringUtils.removeEnd(Utils.getParentDirs(entry.getKey()), "/"), Utils.removeParentDirs(entry.getKey()), entry.getValue());
+    private void generateScoreboardHideNumbers() {
+        writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
+        writeStringToVirtual("assets/minecraft/shaders/post/", "deferred_text.vsh", getScoreboardVsh());
+    }
+
+    private void generateScoreboardHideBackground() {
+        String fileName = VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_20_R1) ? "rendertype_gui.vsh" : "position_color.fsh";
+        writeStringToVirtual("assets/minecraft/shaders/core/", fileName, getScoreboardBackground());
     }
 
     private String getScoreboardVsh() {
@@ -735,5 +737,70 @@ public class ResourcePack {
                      ]
                  }
                 """;
+    }
+
+    private String getScoreboardBackground() {
+        if (VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_20_R1))
+            return """
+                    #version 150
+                                        
+                    in vec3 Position;
+                    in vec4 Color;
+                                        
+                    uniform mat4 ModelViewMat;
+                    uniform mat4 ProjMat;
+                                        
+                    out vec4 vertexColor;
+                                        
+                    void main() {
+                    	gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
+                                        
+                    	vertexColor = Color;
+                    	
+                    	//Isolating Scoreboard Display
+                    	if(gl_Position.y > -0.5 && gl_Position.y < 0.85 && gl_Position.x > 0.0 && gl_Position.x <= 1.0 && Position.z == 0.0) {
+                    		//vertexColor = vec4(vec3(0.0,0.0,1.0),1.0); // Debugger
+                    		vertexColor.a = 0.0;
+                    	}
+                    	else {
+                        	//vertexColor = vec4(vec3(1.0,0.0,0.0),1.0);
+                    	}
+                    }
+                    """;
+        else return """
+                #version 150
+                                
+                in vec4 vertexColor;
+                                
+                uniform vec4 ColorModulator;
+                                
+                out vec4 fragColor;
+                                
+                bool isgray(vec4 a) {
+                    return a.r == 0 && a.g == 0 && a.b == 0 && a.a < 0.3 && a.a > 0.29;
+                }
+                                
+                bool isdarkgray(vec4 a) {
+                	return a.r == 0 && a.g == 0 && a.b == 0 && a.a == 0.4;
+                }
+                                
+                void main() {
+                                
+                    vec4 color = vertexColor;
+                	
+                    if (color.a == 0.0) {
+                        discard;
+                    }
+                	
+                    fragColor = color * ColorModulator;
+                	
+                	if(isgray(fragColor)){
+                		discard;
+                	}
+                	if(isdarkgray(fragColor)){
+                		discard;
+                	}
+                }
+                // Made by Reytz#9806 for minecraft 1.18.2""";
     }
 }

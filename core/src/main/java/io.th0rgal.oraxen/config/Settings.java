@@ -65,6 +65,7 @@ public enum Settings {
     BOW_DISPLAY("Misc.bow_display"),
     CROSSBOW_DISPLAY("Misc.crossbow_display"),
     HIDE_SCOREBOARD_NUMBERS("Misc.hide_scoreboard_numbers"),
+    HIDE_SCOREBOARD_BACKGROUND("Misc.hide_scoreboard_background"),
 
     //Pack
     GENERATE("Pack.generation.generate"),

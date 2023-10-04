@@ -203,6 +203,8 @@ Misc:
 
   # This will hide the red numbers on the side of scoreboards
   hide_scoreboard_numbers: false
+  # This will hide the background of scoreboards
+  hide_scoreboard_background: false
 
   # Whether Oraxen should register emoji tab completions with unicode characters
   unicode_completions: true
