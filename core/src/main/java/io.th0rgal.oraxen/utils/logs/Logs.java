@@ -32,7 +32,7 @@ public class Logs {
 
     public static void logInfo(String message, boolean newline) {
         Component info = AdventureUtils.MINI_MESSAGE_EMPTY.deserialize("<prefix><#529ced>" + message + "</#529ced>", PrefixResolver);
-        OraxenPlugin.get().getAudience().console().sendMessage(newline ? info.appendNewline() : info);
+        OraxenPlugin.get().getAudience().console().sendMessage(newline ? info.append(Component.newline()) : info);
     }
 
     public static void logSuccess(String message) {
@@ -41,7 +41,7 @@ public class Logs {
 
     public static void logSuccess(String message, boolean newline) {
         Component success = AdventureUtils.MINI_MESSAGE_EMPTY.deserialize("<prefix><#55ffa4>" + message + "</#55ffa4>", PrefixResolver);
-        OraxenPlugin.get().getAudience().console().sendMessage(newline ? success.appendNewline() : success);
+        OraxenPlugin.get().getAudience().console().sendMessage(newline ? success.append(Component.newline()) : success);
     }
 
     public static void logError(String message) {
@@ -50,7 +50,7 @@ public class Logs {
 
     public static void logError(String message, boolean newline) {
         Component error = AdventureUtils.MINI_MESSAGE_EMPTY.deserialize("<prefix><#e73f34>" + message + "</#e73f34>", PrefixResolver);
-        OraxenPlugin.get().getAudience().console().sendMessage(newline ? error.appendNewline() : error);
+        OraxenPlugin.get().getAudience().console().sendMessage(newline ? error.append(Component.newline()) : error);
     }
 
     public static void logWarning(String message) {
@@ -59,7 +59,7 @@ public class Logs {
 
     public static void logWarning(String message, boolean newline) {
         Component warning = AdventureUtils.MINI_MESSAGE_EMPTY.deserialize("<prefix><#f9f178>" + message + "</#f9f178>", PrefixResolver);
-        OraxenPlugin.get().getAudience().console().sendMessage(newline ? warning.appendNewline() : warning);
+        OraxenPlugin.get().getAudience().console().sendMessage(newline ? warning.append(Component.newline()) : warning);
     }
 
     public static void newline() {
