@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
+import io.th0rgal.oraxen.items.ItemTemplate;
 import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -231,9 +232,7 @@ public class ConfigsManager {
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
 
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
-        for (File file : getItemFiles()) {
-            parseMap.put(file, parseItemConfig(OraxenYaml.loadConfiguration(file), file));
-        }
+        for (File file : getItemFiles()) parseMap.put(file, parseItemConfig(OraxenYaml.loadConfiguration(file), file));
         return parseMap;
     }
 
@@ -283,6 +282,17 @@ public class ConfigsManager {
         }
     }
 
+    public void parseAllItemTemplates() {
+        for (File file : getItemFiles()) {
+            if (!file.exists()) continue;
+            YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
+            for (String key : configuration.getKeys(false)) {
+                ConfigurationSection itemSection = configuration.getConfigurationSection(key);
+                if (itemSection != null && itemSection.isBoolean("template")) new ItemTemplate(itemSection);
+            }
+        }
+    }
+
     private String getItemModelFromConfigurationSection(ConfigurationSection packSection) {
         String model = packSection.getString("model", "");
         if (model.isEmpty() && packSection.getBoolean("generate_model", false)) {
@@ -294,10 +304,10 @@ public class ConfigsManager {
     public Map<String, ItemBuilder> parseItemConfig(YamlConfiguration config, File itemFile) {
         Map<String, ItemParser> parseMap = new LinkedHashMap<>();
         ItemParser errorItem = new ItemParser(Settings.ERROR_ITEM.toConfigSection());
-        for (String itemSectionName : config.getKeys(false)) {
-            ConfigurationSection itemSection = config.getConfigurationSection(itemSectionName);
-            if (itemSection == null) continue;
-            parseMap.put(itemSectionName, new ItemParser(itemSection));
+        for (String itemKey : config.getKeys(false)) {
+            ConfigurationSection itemSection = config.getConfigurationSection(itemKey);
+            if (itemSection == null || ItemTemplate.isTemplate(itemKey)) continue;
+            parseMap.put(itemKey, new ItemParser(itemSection));
         }
         boolean configUpdated = false;
         // because we must have parse all the items before building them to be able to
@@ -336,5 +346,4 @@ public class ConfigsManager {
         if (glyphsFolder == null || !glyphsFolder.exists()) return new ArrayList<>();
         return FileUtils.listFiles(glyphsFolder, new String[]{"yml"}, true).stream().filter(OraxenYaml::isValidYaml).sorted().toList();
     }
-
 }

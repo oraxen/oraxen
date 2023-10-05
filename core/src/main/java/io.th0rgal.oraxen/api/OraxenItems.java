@@ -22,8 +22,6 @@ import java.util.stream.Stream;
 
 public class OraxenItems {
 
-    private OraxenItems() {}
-
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
     // configuration sections : their OraxenItem wrapper
     private static Map<File, Map<String, ItemBuilder>> map;
@@ -33,6 +31,7 @@ public class OraxenItems {
         ItemParser.MODEL_DATAS_BY_ID.clear();
         ModelData.DATAS.clear();
         OraxenPlugin.get().getConfigsManager().assignAllUsedModelDatas();
+        OraxenPlugin.get().getConfigsManager().parseAllItemTemplates();
         map = OraxenPlugin.get().getConfigsManager().parseItemConfig();
         final List<String> itemsList = new ArrayList<>();
         for (final Map<String, ItemBuilder> subMap : map.values())

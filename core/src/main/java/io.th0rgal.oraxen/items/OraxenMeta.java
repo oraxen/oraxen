@@ -139,8 +139,9 @@ public class OraxenMeta {
         this.modelName = modelName;
     }
 
-    public void setNoUpdate(boolean noUpdate) {
+    public OraxenMeta setNoUpdate(boolean noUpdate) {
         this.noUpdate = noUpdate;
+        return this;
     }
 
     public void setDisableEnchanting(boolean disableEnchanting) { this.disableEnchanting = disableEnchanting; }

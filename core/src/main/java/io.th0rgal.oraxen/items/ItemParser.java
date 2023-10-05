@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.items;
 
-import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
@@ -22,11 +22,7 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.function.Function;
 
 public class ItemParser {
@@ -38,10 +34,13 @@ public class ItemParser {
     private Material type;
     private WrappedMMOItem mmoItem;
     private WrappedCrucibleItem crucibleItem;
+    private ItemParser templateItem;
     private boolean configUpdated = false;
 
     public ItemParser(ConfigurationSection section) {
         this.section = section;
+
+        if (section.isString("template")) templateItem = ItemTemplate.getParserTemplate(section.getString("template"));
 
         ConfigurationSection crucibleSection = section.getConfigurationSection("crucible");
         ConfigurationSection mmoSection = section.getConfigurationSection("mmoitem");
@@ -49,7 +48,11 @@ public class ItemParser {
             crucibleItem = new WrappedCrucibleItem(crucibleSection);
         else if (mmoSection != null)
             mmoItem = new WrappedMMOItem(mmoSection);
-        else type = Material.getMaterial(section.getString("material", "PAPER"));
+        else {
+            Material material = Material.getMaterial(section.getString("material", ""));
+            if (material == null) material = usesTemplate() ? templateItem.type : Material.PAPER;
+            type = material;
+        }
 
         oraxenMeta = new OraxenMeta();
         if (section.isConfigurationSection("Pack")) {
@@ -70,7 +73,12 @@ public class ItemParser {
         return type == null && mmoItem == null && crucibleItem != null;
     }
 
+    public boolean usesTemplate() {
+        return templateItem != null;
+    }
+
     private String parseComponentDisplayName(String miniString) {
+        if (miniString.isEmpty()) return miniString;
         Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
         // If it has no formatting, set color to WHITE to prevent Italic
         return AdventureUtils.LEGACY_SERIALIZER.serialize(component.colorIfAbsent(NamedTextColor.WHITE));
@@ -84,32 +92,24 @@ public class ItemParser {
 
     public ItemBuilder buildItem() {
         ItemBuilder item;
+
         if (usesCrucibleItems()) item = new ItemBuilder(crucibleItem);
         else if (usesMMOItems()) item = new ItemBuilder(mmoItem);
         else item = new ItemBuilder(type);
 
-        return applyConfig(item);
+        // If item has a template, apply the template ontop of the builder made above
+        return applyConfig(usesTemplate() ? templateItem.applyConfig(item) : item);
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
+        item.setDisplayName(parseComponentDisplayName(section.getString("displayname", "")));
 
-        if (section.contains("displayname"))
-            item.setDisplayName(parseComponentDisplayName(section.getString("displayname")));
-
-        if (section.contains("lore")) {
-            List<String> lore = section.getStringList("lore");
-            lore.replaceAll(this::parseComponentLore);
-            item.setLore(lore);
-        }
-
-        if (section.contains("durability"))
-            item.setDurability((short) section.getInt("durability"));
-        if (section.contains("unbreakable"))
-            item.setUnbreakable(section.getBoolean("unbreakable", false));
-        if (section.contains("unstackable"))
-            item.setUnstackable(section.getBoolean("unstackable", false));
-        if (section.contains("color"))
-            item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
+        //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
+        if (section.contains("lore")) item.setLore(section.getStringList("lore").stream().map(this::parseComponentLore).toList());
+        if (section.contains("durability")) item.setDurability((short) section.getInt("durability"));
+        if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));
+        if (section.contains("unstackable")) item.setUnstackable(section.getBoolean("unstackable", false));
+        if (section.contains("color")) item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
 
         parseMiscOptions(item);
         parseVanillaSections(item);
@@ -124,8 +124,8 @@ public class ItemParser {
         oraxenMeta.setExcludedFromInventory(section.getBoolean("excludeFromInventory", false));
         oraxenMeta.setExcludedFromCommands(section.getBoolean("excludeFromCommands", false));
 
-        if (!section.contains("injectID") || section.getBoolean("injectId"))
-            item.setCustomTag(new NamespacedKey(OraxenPlugin.get(), "id"), PersistentDataType.STRING, section.getName());
+        if (section.getBoolean("injectId", true))
+            item.setCustomTag(OraxenItems.ITEM_ID, PersistentDataType.STRING, section.getName());
     }
 
     @SuppressWarnings({"unchecked", "deprecation"})

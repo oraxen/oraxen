@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
@@ -22,6 +23,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.util.*;
@@ -70,7 +72,7 @@ public class ItemBuilder {
         this(wrapped.build());
     }
 
-    public ItemBuilder(final ItemStack itemStack) {
+    public ItemBuilder(@NotNull final ItemStack itemStack) {
 
         this.itemStack = itemStack;
 
@@ -134,6 +136,10 @@ public class ItemBuilder {
 
     }
 
+    public Material getType() {
+        return type;
+    }
+
     public ItemBuilder setType(final Material type) {
         this.type = type;
         return this;
@@ -144,6 +150,10 @@ public class ItemBuilder {
             amount = type.getMaxStackSize();
         this.amount = amount;
         return this;
+    }
+
+    public String getDisplayName() {
+        return displayName != null ? displayName : AdventureUtils.MINI_MESSAGE.serialize(itemStack.displayName());
     }
 
     public ItemBuilder setDisplayName(final String displayName) {
@@ -238,6 +248,11 @@ public class ItemBuilder {
 
     public <T, Z> void addCustomTag(NamespacedKey key, PersistentDataType<T, Z> type, Z value) {
         persistentDataContainer.set(key, type, value);
+    }
+
+    public ItemBuilder removeCustomTag(NamespacedKey key) {
+        persistentDataContainer.remove(key);
+        return this;
     }
 
     public ItemBuilder setCustomModelData(final int customModelData) {
