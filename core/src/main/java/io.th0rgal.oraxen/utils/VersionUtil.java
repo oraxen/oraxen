@@ -10,34 +10,33 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
-public enum VersionUtil implements Comparable<VersionUtil> {
-    v1_20_R2(6),
-    v1_20_R1(5),
-    v1_19_R3(4),
-    v1_19_R2(3),
-    v1_19_R1(2),
-    v1_18_R2(1),
-    v1_18_R1(0),
-    UNKNOWN(-1);
+public enum VersionUtil {
+    v1_20_R2( 6, "1.20.2"),
+    v1_20_R1( 5, "1.20", "1.20.1"),
+    v1_19_R3( 4, "1.19.4"),
+    v1_19_R2( 3, "1.19.3"),
+    v1_19_R1( 2, "1.19", "1.19.1", "1.19.2"),
+    v1_18_R2( 1, "1.18.2"),
+    v1_18_R1( 0, "1.18", "1.18.1"),
+    UNKNOWN(-1, "UNKNOWN");
 
     public static VersionUtil fromString(String version) {
-        try {
-            String versionNumber = (version.charAt(0) == 'v' ? "" : "v") + version.replace(".", "_").trim();
-            if (!version.contains("_R")) {
-                char lastChar = versionNumber.charAt(versionNumber.length() - 1);
-                versionNumber = versionNumber.substring(0, versionNumber.length() - 1) + "R" + lastChar;
-            }
-            return valueOf(versionNumber);
-        } catch (final IllegalArgumentException e) {
-            return VersionUtil.UNKNOWN;
-        }
+        for (VersionUtil v : values()) if (v.matches(version)) return v;
+        return UNKNOWN;
     }
 
     private final int value;
+    private final String[] versionStrings;
     private static final boolean leaked = JarReader.checkIsLeaked();
 
-    VersionUtil(int value) {
+    VersionUtil(int value, String... versionStrings) {
+        this.versionStrings = versionStrings;
         this.value = value;
+    }
+
+    public boolean matches(String versionString) {
+        for (String v : versionStrings) if (v.equals(versionString)) return true;
+        return false;
     }
 
     /**
@@ -46,7 +45,7 @@ public enum VersionUtil implements Comparable<VersionUtil> {
      */
     @NotNull
     public static VersionUtil getServerVersion() {
-        return fromString(Bukkit.getBukkitVersion().split("-")[0]);
+        return fromString(Bukkit.getServer().getMinecraftVersion());
     }
 
     /**
@@ -83,9 +82,7 @@ public enum VersionUtil implements Comparable<VersionUtil> {
 
     public static boolean isSupportedVersion(@NotNull VersionUtil serverVersion, @NotNull VersionUtil... supportedVersions) {
         for (VersionUtil version : supportedVersions) {
-            if (version == serverVersion) {
-                return true;
-            }
+            if (version.equals(serverVersion)) return true;
         }
 
         Logs.logWarning(String.format("The Server version which you are running is unsupported, you are running version '%s'.", serverVersion));

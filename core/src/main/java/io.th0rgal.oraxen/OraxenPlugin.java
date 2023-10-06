@@ -94,7 +94,7 @@ public class OraxenPlugin extends JavaPlugin {
         if (!VersionUtil.isSupportedVersionOrNewer("1.20.2")) PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
-        supportsDisplayEntities = VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_19_R3);
+        supportsDisplayEntities = VersionUtil.isSupportedVersionOrNewer("1.19.4");
         reloadConfigs();
 
         if (Settings.KEEP_UP_TO_DATE.toBool())

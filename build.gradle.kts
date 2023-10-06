@@ -5,7 +5,7 @@ import java.util.*
 plugins {
     id("java")
     //id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("xyz.jpenilla.run-paper") version "2.0.1"
+    id("xyz.jpenilla.run-paper") version "2.2.0"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
     id("io.papermc.paperweight.userdev") version "1.5.6" apply false
     id("com.mineinabyss.conventions.publication")
@@ -134,7 +134,7 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.18.2")
+        minecraftVersion("1.19.3")
     }
 
     shadowJar {

@@ -661,7 +661,7 @@ public class ResourcePack {
     }
 
     private void generateScoreboardHideBackground() {
-        String fileName = VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_20_R1) ? "rendertype_gui.vsh" : "position_color.fsh";
+        String fileName = VersionUtil.isSupportedVersionOrNewer("1.20.1") ? "rendertype_gui.vsh" : "position_color.fsh";
         writeStringToVirtual("assets/minecraft/shaders/core/", fileName, getScoreboardBackground());
     }
 
@@ -740,7 +740,7 @@ public class ResourcePack {
     }
 
     private String getScoreboardBackground() {
-        if (VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_20_R1))
+        if (VersionUtil.isSupportedVersionOrNewer("1.20.1"))
             return """
                     #version 150
                                         

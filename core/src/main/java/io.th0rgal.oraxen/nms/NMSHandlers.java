@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -31,22 +32,21 @@ public class NMSHandlers {
 
     public static void setup() {
         if (handler != null) return;
-        final String packageName = OraxenPlugin.get().getServer().getClass().getPackage().getName();
-        String packageVersion = packageName.substring(packageName.lastIndexOf('.') + 1);
+        String serverVersion = StringUtils.substringBefore(Bukkit.getServer().getBukkitVersion(), "-");
 
         for (VersionUtil selectedVersion : SUPPORTED_VERSION) {
-            if (!selectedVersion.toString().contains(packageVersion)) continue;
+            if (!selectedVersion.matches(serverVersion)) continue;
 
-            version = packageVersion;
+            version = selectedVersion.name();
             try {
-                handler = (NMSHandler) Class.forName("io.th0rgal.oraxen.nms." + packageVersion + ".NMSHandler").getConstructor().newInstance();
-                Logs.logSuccess("Version " + packageVersion + " has been detected.");
+                handler = (NMSHandler) Class.forName("io.th0rgal.oraxen.nms." + version + ".NMSHandler").getConstructor().newInstance();
+                Logs.logSuccess("Version " + version + " has been detected.");
                 Logs.logInfo("Oraxen will use the NMSHandler for this version.");
                 Bukkit.getPluginManager().registerEvents(new NMSListeners(), OraxenPlugin.get());
                 return;
             } catch (ClassNotFoundException | InvocationTargetException | InstantiationException |
                      IllegalAccessException | NoSuchMethodException e) {
-                Logs.logWarning("Oraxen does not support this version of Minecraft (" + packageVersion + ") yet.");
+                Logs.logWarning("Oraxen does not support this version of Minecraft (" + version + ") yet.");
                 Logs.logWarning("NMS features will be disabled...");
             }
         }

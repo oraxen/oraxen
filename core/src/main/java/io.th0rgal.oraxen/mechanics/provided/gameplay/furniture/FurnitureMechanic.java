@@ -461,7 +461,7 @@ public class FurnitureMechanic extends Mechanic {
         // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
         float pitch;
         float alterYaw;
-        if (VersionUtil.isSupportedVersionOrNewer(VersionUtil.v1_20_R1)) {
+        if (VersionUtil.isSupportedVersionOrNewer("1.20.1")) {
             pitch = isFixed && hasLimitedPlacing() && (limitedPlacing.isFloor() || limitedPlacing.isRoof()) ? -90 : 0;
             alterYaw = yaw;
         } else {
