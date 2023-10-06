@@ -474,7 +474,7 @@ public class FurnitureMechanic extends Mechanic {
                 // Add .9 to raise the item up due to pitch change
                 : limitedPlacing.isRoof() ? BlockHelpers.toCenterBlockLocation(itemDisplay.getLocation()).add(0, 0.9, 0)
                 : BlockHelpers.toCenterBlockLocation(itemDisplay.getLocation());
-        itemDisplay.teleport(fixedLocation);
+        EntityUtils.teleport(fixedLocation, itemDisplay);
         itemDisplay.setTransformation(transform);
         itemDisplay.setRotation(alterYaw, pitch);
     }

@@ -2,12 +2,32 @@ package io.th0rgal.oraxen.utils;
 
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.entity.Entity;
+import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
 
 public class EntityUtils {
     private static Method spawnMethod;
+
+    public void teleport(@NotNull Location location, @NotNull Entity entity, PlayerTeleportEvent.TeleportCause cause) {
+        if (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer() && VersionUtil.isSupportedVersionOrNewer("1.19.4")) {
+            entity.teleportAsync(location, cause);
+        } else entity.teleport(location);
+    }
+
+    /**
+     * Teleports an entity to the given location
+     * Uses teleportAsync on 1.19.4+ Paper/Folia servers and teleport on all other servers
+     * @param location The location to teleport the entity to
+     * @param entity The entity to teleport
+     */
+    public static void teleport(@NotNull Location location, @NotNull Entity entity) {
+        if (VersionUtil.isSupportedVersionOrNewer("1.19.4") && (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer())) {
+            entity.teleportAsync(location);
+        } else entity.teleport(location);
+    }
 
     static {
         try {
