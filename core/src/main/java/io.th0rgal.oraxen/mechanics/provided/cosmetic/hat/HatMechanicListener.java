@@ -17,11 +17,7 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerInteractAtEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.inventory.EntityEquipment;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.*;
 
 public class HatMechanicListener implements Listener {
 
@@ -37,10 +33,8 @@ public class HatMechanicListener implements Listener {
         ItemStack item = player.getInventory().getItemInMainHand();
         if (!(event.getRightClicked() instanceof ArmorStand armorStand)) return;
         EntityEquipment equipment = armorStand.getEquipment();
-        if (equipment == null || equipment.getHelmet() == null) return;
-        PlayerArmorStandManipulateEvent armorStandEvent = new PlayerArmorStandManipulateEvent(player, armorStand, item, equipment.getHelmet(), EquipmentSlot.HEAD, EquipmentSlot.HAND);
-        Bukkit.getPluginManager().callEvent(armorStandEvent);
-        if (armorStandEvent.isCancelled()) return;
+        if (equipment.getHelmet() == null) return;
+        if (!new PlayerArmorStandManipulateEvent(player, armorStand, item, equipment.getHelmet(), EquipmentSlot.HEAD, EquipmentSlot.HAND).isCancelled()) return;
 
         if (item.getType() == Material.AIR) {
             if (event.getClickedPosition().getY() < 1.55) return; // Did not click head
@@ -76,9 +70,7 @@ public class HatMechanicListener implements Listener {
         if (inventory.getHelmet() != null) return;
 
         event.setCancelled(true);
-        final ArmorEquipEvent armorEquipEvent = ArmorEquipEvent.OraxenHatEquipEvent(player, null, item);
-        Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
-        if (armorEquipEvent.isCancelled()) return;
+        if (!ArmorEquipEvent.OraxenHatEquipEvent(player, null, item).callEvent()) return;
 
         final ItemStack helmet = item.clone();
         helmet.setAmount(1);
@@ -114,9 +106,7 @@ public class HatMechanicListener implements Listener {
                 itemID = OraxenItems.getIdByItem(currentItem);
                 if (factory.isNotImplementedIn(itemID)) return;
 
-                final ArmorEquipEvent armorEquipEvent = ArmorEquipEvent.OraxenHatEquipEvent(player, currentItem, cursor);
-                Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
-                if (armorEquipEvent.isCancelled())
+                if (!ArmorEquipEvent.OraxenHatEquipEvent(player, currentItem, cursor).callEvent())
                     e.setCancelled(true);
             }
         } else {

@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.farming.bottledexp;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -39,8 +38,7 @@ public class BottledExpMechanicListener implements Listener {
             player.setLevel(0);
             player.setExp(0);
 
-            PlayerItemDamageEvent itemDamageEvent = new PlayerItemDamageEvent(player, item, factory.getDurabilityCost());
-            Bukkit.getPluginManager().callEvent(itemDamageEvent);
+            new PlayerItemDamageEvent(player, item, factory.getDurabilityCost()).callEvent();
         }
         else Message.NOT_ENOUGH_EXP.send(player);
     }

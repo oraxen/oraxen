@@ -22,11 +22,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.Bukkit;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
@@ -44,11 +40,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Consumer;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory.getBlockMechanic;
@@ -156,13 +148,9 @@ public class BreakerSystem {
 
                         if (value++ < 10) return;
 
-                        final BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
-                        Bukkit.getPluginManager().callEvent(blockBreakEvent);
-
-                        if (!blockBreakEvent.isCancelled() && ProtectionLib.canBreak(player, block.getLocation())) {
+                        if (new BlockBreakEvent(block, player).callEvent() && ProtectionLib.canBreak(player, block.getLocation())) {
                             modifier.breakBlock(player, block, item);
-                            PlayerItemDamageEvent playerItemDamageEvent = new PlayerItemDamageEvent(player, item, 1);
-                            Bukkit.getPluginManager().callEvent(playerItemDamageEvent);
+                            new PlayerItemDamageEvent(player, item, 1).callEvent();
                         } else breakerPlaySound.remove(block);
 
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
@@ -205,18 +193,14 @@ public class BreakerSystem {
                 NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
                 if (mechanic == null) return true;
                 OraxenNoteBlockDamageEvent event = new OraxenNoteBlockDamageEvent(mechanic, block, player);
-                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
-                    Bukkit.getPluginManager().callEvent(event);
-                });
+                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(event));
                 return event.isCancelled();
             }
             case TRIPWIRE -> {
                 StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
                 if (mechanic == null) return true;
                 OraxenStringBlockDamageEvent event = new OraxenStringBlockDamageEvent(mechanic, block, player);
-                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
-                    Bukkit.getPluginManager().callEvent(event);
-                });
+                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(event));
                 return event.isCancelled();
             }
             case BARRIER -> {
@@ -227,9 +211,7 @@ public class BreakerSystem {
                         Entity baseEntity = mechanic.getBaseEntity(block);
                         if (baseEntity == null) return true;
                         OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block);
-                        Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
-                            Bukkit.getPluginManager().callEvent(event);
-                        });
+                        Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> Bukkit.getPluginManager().callEvent(event));
                         return event.isCancelled();
                     }).get();
                 } catch (Exception e) {

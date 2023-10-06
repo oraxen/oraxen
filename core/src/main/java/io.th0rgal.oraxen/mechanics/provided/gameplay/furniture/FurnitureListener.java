@@ -17,7 +17,10 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
-import org.bukkit.*;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
+import org.bukkit.Rotation;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
@@ -177,9 +180,7 @@ public class FurnitureListener implements Listener {
         Utils.swingHand(player, event.getHand());
 
         final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, block, baseEntity, player, item, hand);
-        Bukkit.getPluginManager().callEvent(furniturePlaceEvent);
-
-        if (furniturePlaceEvent.isCancelled()) {
+        if (!furniturePlaceEvent.callEvent()) {
             OraxenFurniture.remove(baseEntity, null);
             block.setBlockData(currentBlockData);
             return;
@@ -249,8 +250,7 @@ public class FurnitureListener implements Listener {
         if (entity == null) return;
         if (!ProtectionLib.canBreak(player, entity.getLocation())) return;
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, entity, player, entity.getLocation().getBlock());
-        OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
-        if (furnitureBreakEvent.isCancelled()) return;
+        if (!furnitureBreakEvent.callEvent()) return;
         OraxenFurniture.remove(entity, player, furnitureBreakEvent.getDrop());
     }
 
@@ -268,8 +268,7 @@ public class FurnitureListener implements Listener {
         if (baseEntity == null) return;
 
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, baseEntity, player, block);
-        OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureBreakEvent);
-        if (furnitureBreakEvent.isCancelled()) {
+        if (!furnitureBreakEvent.callEvent()) {
             event.setCancelled(true);
             return;
         }
@@ -335,8 +334,7 @@ public class FurnitureListener implements Listener {
         }
 
         ItemStack itemInHand = hand == EquipmentSlot.HAND ? player.getInventory().getItemInMainHand() : player.getInventory().getItemInOffHand();
-        OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, itemInHand, hand);
-        OraxenPlugin.get().getServer().getPluginManager().callEvent(furnitureInteractEvent);
+        new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, itemInHand, hand).callEvent();
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -355,8 +353,7 @@ public class FurnitureListener implements Listener {
         final Entity baseEntity = mechanic.getBaseEntity(block);
         if (baseEntity == null) return;
 
-        final OraxenFurnitureInteractEvent furnitureInteractEvent = new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), hand, block, event.getBlockFace());
-        Bukkit.getPluginManager().callEvent(furnitureInteractEvent);
+        new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), hand, block, event.getBlockFace()).callEvent();
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)

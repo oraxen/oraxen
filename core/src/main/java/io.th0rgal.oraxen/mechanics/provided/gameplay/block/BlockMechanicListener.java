@@ -20,11 +20,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.Action;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockIgniteEvent;
-import org.bukkit.event.block.BlockPhysicsEvent;
-import org.bukkit.event.block.BlockPlaceEvent;
+import org.bukkit.event.block.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
 
@@ -136,8 +132,7 @@ public class BlockMechanicListener implements Listener {
         target.setBlockData(newBlockData); // false to cancel physic
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, event.getHand());
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
-        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
-        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) {
+        if (!blockPlaceEvent.callEvent() || !blockPlaceEvent.canBuild()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
             return;
         }
@@ -158,8 +153,7 @@ public class BlockMechanicListener implements Listener {
         BlockMechanic mechanic = OraxenBlocks.getBlockMechanic(block);
         if (mechanic == null || !mechanic.canIgnite()) return;
         if (item.getType() != Material.FLINT_AND_STEEL && item.getType() != Material.FIRE_CHARGE) return;
-        BlockIgniteEvent igniteEvent = new BlockIgniteEvent(block, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, event.getPlayer());
-        Bukkit.getPluginManager().callEvent(igniteEvent);
+        new BlockIgniteEvent(block, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, event.getPlayer()).callEvent();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

@@ -107,9 +107,9 @@ public class StringBlockMechanicListener implements Listener {
         if (event.getClickedBlock().getType() != Material.NOTE_BLOCK) return;
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
         if (mechanic == null) return;
-        OraxenStringBlockInteractEvent oraxenEvent = new OraxenStringBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
-        Bukkit.getPluginManager().callEvent(oraxenEvent);
-        if (oraxenEvent.isCancelled()) event.setCancelled(true);
+
+        if (!new OraxenStringBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace()).callEvent())
+            event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
@@ -225,15 +225,15 @@ public class StringBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onInteract(final PlayerInteractEvent event) {
         final Block block = event.getClickedBlock();
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        EquipmentSlot hand = event.getHand();
+        if (hand == null || event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (block == null || block.getType() != Material.TRIPWIRE) return;
 
         // Call the event
         StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
         if (stringBlockMechanic == null) return;
-        OraxenStringBlockInteractEvent wireBlockInteractEvent = new OraxenStringBlockInteractEvent(stringBlockMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
-        OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockInteractEvent);
-        if (wireBlockInteractEvent.isCancelled()) event.setUseInteractedBlock(Event.Result.DENY);
+        if (!new OraxenStringBlockInteractEvent(stringBlockMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace()).callEvent())
+            event.setUseInteractedBlock(Event.Result.DENY);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -413,10 +413,7 @@ public class StringBlockMechanicListener implements Listener {
         }
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
 
-        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
-        Bukkit.getPluginManager().callEvent(oraxenBlockPlaceEvent);
-
-        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled() || oraxenBlockPlaceEvent.isCancelled()) return null;
+        if (!blockPlaceEvent.callEvent() || !blockPlaceEvent.canBuild() || !oraxenBlockPlaceEvent.callEvent()) return null;
 
         final String sound;
         if (newBlock.getMaterial() == Material.WATER || newBlock.getMaterial() == Material.LAVA) {

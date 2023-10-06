@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.utils.armorequipevent;
 
-import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event.Result;
@@ -9,19 +8,11 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.PlayerDeathEvent;
-import org.bukkit.event.inventory.ClickType;
-import org.bukkit.event.inventory.InventoryAction;
-import org.bukkit.event.inventory.InventoryClickEvent;
-import org.bukkit.event.inventory.InventoryDragEvent;
-import org.bukkit.event.inventory.InventoryType;
+import org.bukkit.event.inventory.*;
 import org.bukkit.event.inventory.InventoryType.SlotType;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerItemBreakEvent;
-import org.bukkit.inventory.EntityEquipment;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.Inventory;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.PlayerInventory;
+import org.bukkit.inventory.*;
 
 import java.util.List;
 import java.util.Objects;
@@ -70,11 +61,8 @@ public class ArmorListener implements Listener {
             if (newArmorType != null) {
                 boolean equipping = event.getRawSlot() != newArmorType.getSlot();
                 if (newArmorType.equals(ArmorType.HELMET) && (equipping == isEmpty(event.getWhoClicked().getInventory().getHelmet())) || newArmorType.equals(ArmorType.CHESTPLATE) && (equipping == isEmpty(event.getWhoClicked().getInventory().getChestplate())) || newArmorType.equals(ArmorType.LEGGINGS) && (equipping ? isEmpty(event.getWhoClicked().getInventory().getLeggings()) : !isEmpty(event.getWhoClicked().getInventory().getLeggings())) || newArmorType.equals(ArmorType.BOOTS) && (equipping ? isEmpty(event.getWhoClicked().getInventory().getBoots()) : !isEmpty(event.getWhoClicked().getInventory().getBoots()))) {
-                    ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent((Player) event.getWhoClicked(), ArmorEquipEvent.EquipMethod.SHIFT_CLICK, newArmorType, equipping ? null : event.getCurrentItem(), equipping ? event.getCurrentItem() : null);
-                    Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
-                    if (armorEquipEvent.isCancelled()) {
+                    if (!new ArmorEquipEvent((Player) event.getWhoClicked(), ArmorEquipEvent.EquipMethod.SHIFT_CLICK, newArmorType, equipping ? null : event.getCurrentItem(), equipping ? event.getCurrentItem() : null).callEvent())
                         event.setCancelled(true);
-                    }
                 }
             }
         } else {
@@ -112,11 +100,8 @@ public class ArmorListener implements Listener {
                 ArmorEquipEvent.EquipMethod method = ArmorEquipEvent.EquipMethod.PICK_DROP;
                 if (event.getAction().equals(InventoryAction.HOTBAR_SWAP) || numberkey)
                     method = ArmorEquipEvent.EquipMethod.HOTBAR_SWAP;
-                ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent((Player) event.getWhoClicked(), method, newArmorType, oldArmorPiece, newArmorPiece);
-                Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
-                if (armorEquipEvent.isCancelled()) {
+                if (!new ArmorEquipEvent((Player) event.getWhoClicked(), method, newArmorType, oldArmorPiece, newArmorPiece).callEvent())
                     event.setCancelled(true);
-                }
             }
         }
     }
@@ -144,9 +129,8 @@ public class ArmorListener implements Listener {
         if (newArmorType == ArmorType.LEGGINGS && !isEmpty(equipment.getLeggings())) return;
         if (newArmorType == ArmorType.BOOTS && !isEmpty(equipment.getBoots())) return;
 
-        ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent(event.getPlayer(), ArmorEquipEvent.EquipMethod.HOTBAR, ArmorType.matchType(event.getItem()), null, event.getItem());
-        Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
-        if (armorEquipEvent.isCancelled()) event.setCancelled(true);
+        if (!new ArmorEquipEvent(event.getPlayer(), ArmorEquipEvent.EquipMethod.HOTBAR, ArmorType.matchType(event.getItem()), null, event.getItem()).callEvent())
+            event.setCancelled(true);
     }
 
     static boolean isEmpty(ItemStack item) {
@@ -207,9 +191,7 @@ public class ArmorListener implements Listener {
         ArmorType type = ArmorType.matchType(event.getOldCursor());
         if (event.getRawSlots().isEmpty()) return;// Idk if this will ever happen
         if (type != null && type.getSlot() == event.getRawSlots().stream().findFirst().orElse(0)) {
-            ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent((Player) event.getWhoClicked(), ArmorEquipEvent.EquipMethod.DRAG, type, null, event.getOldCursor());
-            Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
-            if (armorEquipEvent.isCancelled()) {
+            if (!new ArmorEquipEvent((Player) event.getWhoClicked(), ArmorEquipEvent.EquipMethod.DRAG, type, null, event.getOldCursor()).callEvent()) {
                 event.setResult(Result.DENY);
                 event.setCancelled(true);
             }
@@ -219,24 +201,21 @@ public class ArmorListener implements Listener {
     @EventHandler
     public void onBreak(PlayerItemBreakEvent event) {
         ArmorType type = ArmorType.matchType(event.getBrokenItem());
-        if (type != null) {
-            Player p = event.getPlayer();
-            ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent(p, ArmorEquipEvent.EquipMethod.BROKE, type, event.getBrokenItem(), null);
-            Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
-            if (armorEquipEvent.isCancelled()) {
-                ItemStack i = event.getBrokenItem().clone();
-                i.setAmount(1);
-                i.setDurability((short) (i.getDurability() - 1));
-                if (type.equals(ArmorType.HELMET)) {
-                    p.getInventory().setHelmet(i);
-                } else if (type.equals(ArmorType.CHESTPLATE)) {
-                    p.getInventory().setChestplate(i);
-                } else if (type.equals(ArmorType.LEGGINGS)) {
-                    p.getInventory().setLeggings(i);
-                } else if (type.equals(ArmorType.BOOTS)) {
-                    p.getInventory().setBoots(i);
-                }
-            }
+        Player player = event.getPlayer();
+        if (type == null) return;
+        if (new ArmorEquipEvent(player, ArmorEquipEvent.EquipMethod.BROKE, type, event.getBrokenItem(), null).callEvent()) return;
+
+        ItemStack i = event.getBrokenItem().clone();
+        i.setAmount(1);
+        i.setDurability((short) (i.getDurability() - 1));
+        if (type.equals(ArmorType.HELMET)) {
+            player.getInventory().setHelmet(i);
+        } else if (type.equals(ArmorType.CHESTPLATE)) {
+            player.getInventory().setChestplate(i);
+        } else if (type.equals(ArmorType.LEGGINGS)) {
+            player.getInventory().setLeggings(i);
+        } else if (type.equals(ArmorType.BOOTS)) {
+            player.getInventory().setBoots(i);
         }
     }
 
@@ -245,10 +224,8 @@ public class ArmorListener implements Listener {
         Player p = event.getEntity();
         if (event.getKeepInventory()) return;
         for (ItemStack i : p.getInventory().getArmorContents()) {
-            if (!isEmpty(i)) {
-                Bukkit.getServer().getPluginManager().callEvent(new ArmorEquipEvent(p, ArmorEquipEvent.EquipMethod.DEATH, ArmorType.matchType(i), i, null));
-                // No way to cancel a death event.
-            }
+            if (isEmpty(i)) continue;
+            new ArmorEquipEvent(p, ArmorEquipEvent.EquipMethod.DEATH, ArmorType.matchType(i), i, null).callEvent();
         }
     }
 
