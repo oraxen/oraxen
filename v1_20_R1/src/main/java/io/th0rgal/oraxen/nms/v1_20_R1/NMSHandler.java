@@ -6,11 +6,13 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
+import io.papermc.paper.configuration.GlobalConfiguration;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.GlyphTag;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -54,6 +56,16 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private final Map<Channel, ChannelHandler> encoder = Collections.synchronizedMap(new WeakHashMap<>());
     private final Map<Channel, ChannelHandler> decoder = Collections.synchronizedMap(new WeakHashMap<>());
+
+    @Override
+    public boolean tripwireUpdatesDisabled() {
+        return VersionUtil.isPaperServer() && VersionUtil.matchesServer("1.20.1")  && GlobalConfiguration.get().blockUpdates.disableTripwireUpdates;
+    }
+
+    @Override
+    public boolean noteblockUpdatesDisabled() {
+        return VersionUtil.isPaperServer() && VersionUtil.matchesServer("1.20.1") && GlobalConfiguration.get().blockUpdates.disableNoteblockUpdates;
+    }
 
 
     @Override

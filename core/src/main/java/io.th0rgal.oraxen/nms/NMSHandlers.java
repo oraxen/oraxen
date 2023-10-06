@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
@@ -15,7 +14,7 @@ import java.lang.reflect.InvocationTargetException;
 
 public class NMSHandlers {
 
-    private static final VersionUtil[] SUPPORTED_VERSION = VersionUtil.values();
+    private static final VersionUtil.NMSVersion[] SUPPORTED_VERSION = VersionUtil.NMSVersion.values();
     private static NMSHandler handler;
     private static String version;
 
@@ -32,10 +31,9 @@ public class NMSHandlers {
 
     public static void setup() {
         if (handler != null) return;
-        String serverVersion = StringUtils.substringBefore(Bukkit.getServer().getBukkitVersion(), "-");
 
-        for (VersionUtil selectedVersion : SUPPORTED_VERSION) {
-            if (!selectedVersion.matches(serverVersion)) continue;
+        for (VersionUtil.NMSVersion selectedVersion : SUPPORTED_VERSION) {
+            if (!VersionUtil.NMSVersion.matchesServer(selectedVersion)) continue;
 
             version = selectedVersion.name();
             try {
@@ -66,5 +64,13 @@ public class NMSHandlers {
             }
         }
         return message;
+    }
+
+    public static boolean isTripwireUpdatesDisabled() {
+        return handler != null && handler.tripwireUpdatesDisabled();
+    }
+
+    public static boolean isNoteblockUpdatesDisabled() {
+        return handler != null && handler.noteblockUpdatesDisabled();
     }
 }

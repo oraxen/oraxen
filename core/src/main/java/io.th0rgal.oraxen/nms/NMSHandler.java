@@ -1,9 +1,13 @@
 package io.th0rgal.oraxen.nms;
 
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.OraxenYaml;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import net.minecraft.world.phys.BlockHitResult;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -13,6 +17,17 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 
 public interface NMSHandler {
+
+    @Nullable
+    ConfigurationSection paperSection = OraxenYaml.loadConfiguration(OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().getParent().getParent().resolve("config").resolve("paper-global.yml").toFile()).getConfigurationSection("block-updates");
+
+    default boolean noteblockUpdatesDisabled() {
+        return VersionUtil.isPaperServer() && paperSection != null && paperSection.getBoolean("disable-noteblock-updates", false);
+    }
+
+    default boolean tripwireUpdatesDisabled() {
+        return VersionUtil.isPaperServer() && paperSection != null && paperSection.getBoolean("disable-tripwire-updates", false);
+    }
 
     /**
      * Copies over all NBT-Tags from oldItem to newItem

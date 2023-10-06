@@ -5,9 +5,10 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingTask;
-import io.th0rgal.oraxen.utils.OraxenYaml;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
@@ -19,7 +20,6 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.io.File;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -59,12 +59,11 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener(this), new SaplingListener());
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockSoundListener());
         if (VersionUtil.isPaperServer()) {
-            File paperConfig = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().getParent().getParent().resolve("config").resolve("paper-global.yml").toFile();
-            if (paperConfig.exists()) {
-                ConfigurationSection paperSection = OraxenYaml.loadConfiguration(paperConfig).getConfigurationSection("block-updates");
-                if (paperSection != null && !paperSection.getBoolean("disable-tripwire-updates", false)) {
-                    MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener.StringBlockMechanicPhysicsListener());
-                    Logs.logError("Papers block.updates.disable-tripwire-updates is not enabled.");
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPaperListener());
+            if (!NMSHandlers.isTripwireUpdatesDisabled()) {
+                MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener.StringBlockMechanicPhysicsListener());
+                if (VersionUtil.isSupportedVersionOrNewer("1.20.1")) {
+                    Logs.logError("Papers block-updates.disable-tripwire-updates is not enabled.");
                     Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with tripwires");
                     Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");
                     Logs.logWarning("You can enable this setting in ServerFolder/config/paper-global.yml", true);
