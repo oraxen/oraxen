@@ -137,9 +137,8 @@ public class NoteBlockMechanicListener implements Listener {
         if (event.getClickedBlock().getType() != Material.NOTE_BLOCK) return;
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
         if (mechanic == null) return;
-        OraxenNoteBlockInteractEvent oraxenEvent = new OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
-        Bukkit.getPluginManager().callEvent(oraxenEvent);
-        if (oraxenEvent.isCancelled()) event.setCancelled(true);
+        if (!new OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace()).callEvent())
+            event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -224,10 +223,8 @@ public class NoteBlockMechanicListener implements Listener {
         if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentMechanic();
 
-        OraxenNoteBlockInteractEvent noteBlockInteractEvent = new OraxenNoteBlockInteractEvent(mechanic, player, item, hand, block, blockFace);
-        Bukkit.getPluginManager().callEvent(noteBlockInteractEvent);
         event.setUseInteractedBlock(Event.Result.DENY);
-        if (noteBlockInteractEvent.isCancelled()) event.setCancelled(true);
+        if (!new OraxenNoteBlockInteractEvent(mechanic, player, item, hand, block, blockFace).callEvent()) event.setCancelled(true);
         if (item == null) return;
 
         Block relative = block.getRelative(blockFace);
@@ -381,8 +378,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (!mechanic.canIgnite()) return;
         if (item.getType() != Material.FLINT_AND_STEEL && item.getType() != Material.FIRE_CHARGE) return;
 
-        BlockIgniteEvent igniteEvent = new BlockIgniteEvent(block, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, event.getPlayer());
-        Bukkit.getPluginManager().callEvent(igniteEvent);
+        new BlockIgniteEvent(block, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, event.getPlayer()).callEvent();
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -511,17 +507,19 @@ public class NoteBlockMechanicListener implements Listener {
         if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
             blockPlaceEvent.setCancelled(true);
 
-        Bukkit.getPluginManager().callEvent(blockPlaceEvent);
-        if (!blockPlaceEvent.canBuild() || blockPlaceEvent.isCancelled()) return;
+        if (!blockPlaceEvent.callEvent() || !blockPlaceEvent.canBuild()) return;
 
-        // This method is ran for placing on custom blocks aswell, so this should not be called for vanilla blocks
+        // This method is run for placing on custom blocks aswell, so this should not be called for vanilla blocks
         NoteBlockMechanic targetOraxen = OraxenBlocks.getNoteBlockMechanic(newData);
         if (targetOraxen != null) {
-            final OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(targetOraxen, target, player, item, hand);
-            Bukkit.getPluginManager().callEvent(oraxenPlaceEvent);
-            if (oraxenPlaceEvent.isCancelled()) return;
-
+            BlockData oldData = target.getBlockData();
             OraxenBlocks.place(targetOraxen.getItemID(), target.getLocation());
+
+            if (!new OraxenNoteBlockPlaceEvent(targetOraxen, target, player, item, hand).callEvent()) {
+                target.setBlockData(oldData);
+                return;
+            }
+
             if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
             Utils.swingHand(player, hand);
             return;
