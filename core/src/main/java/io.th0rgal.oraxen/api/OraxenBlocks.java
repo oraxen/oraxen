@@ -244,6 +244,7 @@ public class OraxenBlocks {
     }
 
     private static void removeStringBlock(Block block, @Nullable Player player) {
+
         StringBlockMechanic mechanic = getStringMechanic(block);
         ItemStack item = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
         if (mechanic == null) return;

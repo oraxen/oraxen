@@ -197,9 +197,6 @@ public class StringBlockMechanicListener implements Listener {
             }
         }
 
-        if (factory.isNotImplementedIn(itemID)) return;
-
-
         int customVariation = mechanic.getCustomVariation();
         if (mechanic.hasRandomPlace()) {
             List<String> randomList = mechanic.getRandomPlaceBlock();
@@ -247,7 +244,8 @@ public class StringBlockMechanicListener implements Listener {
             if (face == BlockFace.SELF && !face.isCartesian()) continue;
             if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
             if (block.getRelative(face).getType() == Material.TRIPWIRE) {
-                block.breakNaturally(player.getInventory().getItemInMainHand());
+                if (player.getGameMode() != GameMode.CREATIVE) block.breakNaturally(player.getInventory().getItemInMainHand());
+                else block.setType(Material.AIR);
                 if (BlockHelpers.isReplaceable(blockAbove.getType())) blockAbove.breakNaturally();
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
                         fixClientsideUpdate(block.getLocation()), 1);
@@ -386,7 +384,7 @@ public class StringBlockMechanicListener implements Listener {
     }
 
     private Block makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
-                                       final Block placedAgainst, final BlockFace face, final BlockData newBlock) {
+                                       final Block placedAgainst, final BlockFace face, final BlockData newData) {
         final Block target;
         final Material type = placedAgainst.getType();
         if (BlockHelpers.isReplaceable(type))
@@ -397,8 +395,7 @@ public class StringBlockMechanicListener implements Listener {
                 return null;
         }
         if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation())) return null;
-
-        StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(target);
+        StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(newData);
         if (mechanic == null) return null;
 
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, hand);
@@ -412,18 +409,17 @@ public class StringBlockMechanicListener implements Listener {
             } else blockAbove.setType(Material.TRIPWIRE);
         }
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
-
         if (!blockPlaceEvent.callEvent() || !blockPlaceEvent.canBuild() || !oraxenBlockPlaceEvent.callEvent()) return null;
 
         final String sound;
-        if (newBlock.getMaterial() == Material.WATER || newBlock.getMaterial() == Material.LAVA) {
-            if (newBlock.getMaterial() == Material.WATER) sound = "item.bucket.empty";
-            else sound = "item.bucket.empty_" + newBlock.getMaterial().toString().toLowerCase();
+        if (newData.getMaterial() == Material.WATER || newData.getMaterial() == Material.LAVA) {
+            if (newData.getMaterial() == Material.WATER) sound = "item.bucket.empty";
+            else sound = "item.bucket.empty_" + newData.getMaterial().toString().toLowerCase();
         } else if (!OraxenBlocks.isOraxenBlock(target)) sound = target.getBlockData().getSoundGroup().getPlaceSound().getKey().toString();
         else sound = null;
         if (sound != null) BlockHelpers.playCustomBlockSound(target.getLocation(), sound, SoundCategory.BLOCKS, 0.8f, 0.8f);
 
-        return BlockHelpers.correctAllBlockStates(target, player, hand, face, item, newBlock) != null ? target : null;
+        return BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData) != null ? target : null;
     }
 
     public static void fixClientsideUpdate(Location loc) {

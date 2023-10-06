@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingTask;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
@@ -17,7 +18,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.util.Arrays;
@@ -61,7 +61,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         if (VersionUtil.isPaperServer()) {
             File paperConfig = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().getParent().getParent().resolve("config").resolve("paper-global.yml").toFile();
             if (paperConfig.exists()) {
-                ConfigurationSection paperSection = YamlConfiguration.loadConfiguration(paperConfig).getConfigurationSection("block-updates");
+                ConfigurationSection paperSection = OraxenYaml.loadConfiguration(paperConfig).getConfigurationSection("block-updates");
                 if (paperSection != null && !paperSection.getBoolean("disable-tripwire-updates", false)) {
                     MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener.StringBlockMechanicPhysicsListener());
                     Logs.logError("Papers block.updates.disable-tripwire-updates is not enabled.");
