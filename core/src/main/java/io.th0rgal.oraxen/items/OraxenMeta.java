@@ -23,6 +23,8 @@ public class OraxenMeta {
     private String fireworkTexture;
     private String castModel;
     private String castTexture;
+    private List<String> damagedModels;
+    private List<String> damagedTextures;
     private List<String> layers;
     private Map<String, String> layersMap;
     private String parentModel;
@@ -50,52 +52,59 @@ public class OraxenMeta {
         return excludedFromCommands;
     }
 
-    public void setPackInfos(ConfigurationSection configurationSection) {
+    public void setPackInfos(ConfigurationSection section) {
         this.hasPackInfos = true;
-        this.modelName = readModelName(configurationSection, "model");
-        this.blockingModel = readModelName(configurationSection, "blocking_model");
-        this.castModel = readModelName(configurationSection, "cast_model");
-        this.chargedModel = readModelName(configurationSection, "charged_model");
-        this.fireworkModel = readModelName(configurationSection, "firework_model");
-        this.pullingModels = configurationSection.isList("pulling_models")
-                ? configurationSection.getStringList("pulling_models") : null;
+        this.modelName = readModelName(section, "model");
+        this.blockingModel = readModelName(section, "blocking_model");
+        this.castModel = readModelName(section, "cast_model");
+        this.chargedModel = readModelName(section, "charged_model");
+        this.fireworkModel = readModelName(section, "firework_model");
+        this.pullingModels = section.isList("pulling_models")
+                ? section.getStringList("pulling_models") : null;
+        this.damagedModels = section.isList("damaged_models")
+                ? section.getStringList("damaged_models") : null;
 
         // By adding the textures to pullingModels aswell,
         // we can use the same code for both pullingModels
         // and pullingTextures to add to the base-bow file predicates
-        if (pullingModels == null && configurationSection.isList("pulling_textures")) {
-            pullingTextures = configurationSection.getStringList("pulling_textures").stream().map(texture -> texture.replace(".png", "")).toList();
+        if (pullingModels == null && section.isList("pulling_textures")) {
+            pullingTextures = section.getStringList("pulling_textures").stream().map(texture -> texture.replace(".png", "")).toList();
             pullingModels = pullingTextures;
         }
 
-        if (chargedModel == null && configurationSection.isString("charged_texture")) {
-            chargedTexture = configurationSection.getString("charged_texture").replace(".png", "");
+        if (chargedModel == null && section.isString("charged_texture")) {
+            chargedTexture = section.getString("charged_texture").replace(".png", "");
             chargedModel = chargedTexture;
         }
 
-        if (fireworkModel == null && configurationSection.isString("firework_texture")) {
-            fireworkTexture = configurationSection.getString("firework_texture").replace(".png", "");
+        if (fireworkModel == null && section.isString("firework_texture")) {
+            fireworkTexture = section.getString("firework_texture").replace(".png", "");
             fireworkModel = fireworkTexture;
         }
 
-        if (castModel == null && configurationSection.isString("cast_texture")) {
-            castTexture = configurationSection.getString("cast_texture").replace(".png", "");
+        if (castModel == null && section.isString("cast_texture")) {
+            castTexture = section.getString("cast_texture").replace(".png", "");
             castModel = castTexture;
         }
 
-        if (blockingModel == null && configurationSection.isString("blocking_texture")) {
-            blockingTexture = configurationSection.getString("blocking_texture").replace(".png", "");
+        if (blockingModel == null && section.isString("blocking_texture")) {
+            blockingTexture = section.getString("blocking_texture").replace(".png", "");
             blockingModel = blockingTexture;
         }
 
-        if (configurationSection.isList("textures")) {
-            this.layers = configurationSection.getStringList("textures");
+        if (damagedModels == null && section.isList("damaged_textures")) {
+            damagedTextures = section.getStringList("damaged_textures").stream().map(texture -> texture.replace(".png", "")).toList();
+            damagedModels = damagedTextures;
+        }
+
+        if (section.isList("textures")) {
+            this.layers = section.getStringList("textures");
             List<String> layers = new ArrayList<>();
             this.layers.forEach(layer -> layers.add(this.layers.indexOf(layer), layer.replace(".png", "")));
             this.layers = layers;
         }
-        else if (configurationSection.isConfigurationSection("textures")) {
-            ConfigurationSection texturesSection = configurationSection.getConfigurationSection("textures");
+        else if (section.isConfigurationSection("textures")) {
+            ConfigurationSection texturesSection = section.getConfigurationSection("textures");
             assert texturesSection != null;
             Map<String, String> layersMap = new HashMap<>();
             texturesSection.getKeys(false).forEach(key -> layersMap.put(key, texturesSection.getString(key).replace(".png", "")));
@@ -103,9 +112,9 @@ public class OraxenMeta {
         }
 
         // If not specified, check if a model or texture is set
-        this.generate_model = configurationSection.getBoolean("generate_model", getModelName().isEmpty());
-        this.generatedModelPath = configurationSection.getString("generated_model_path", "");
-        this.parentModel = configurationSection.getString("parent_model", "item/generated");
+        this.generate_model = section.getBoolean("generate_model", getModelName().isEmpty());
+        this.generatedModelPath = section.getString("generated_model_path", "");
+        this.parentModel = section.getString("parent_model", "item/generated");
     }
 
     // this might not be a very good function name
@@ -250,6 +259,22 @@ public class OraxenMeta {
 
     public List<String> getPullingTextures() {
         return pullingTextures;
+    }
+
+    public boolean hasDamagedModels() {
+        return damagedModels != null && !damagedModels.isEmpty();
+    }
+
+    public List<String> getDamagedModels() {
+        return damagedModels;
+    }
+
+    public boolean hasDamagedTextures() {
+        return damagedTextures != null && !damagedTextures.isEmpty();
+    }
+
+    public List<String> getDamagedTextures() {
+        return damagedTextures;
     }
 
     public boolean hasLayers() {

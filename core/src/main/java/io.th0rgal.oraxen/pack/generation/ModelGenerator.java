@@ -53,29 +53,12 @@ public class ModelGenerator {
             }
         }
 
-        // Generates pulling models based on the provided textures
-        if (oraxenMeta.hasPullingTextures()) {
-            PredicatesGenerator.generatePullingModels(oraxenMeta);
-        }
-
-        // Generates blocking models based on the provided textures
-        if (oraxenMeta.hasBlockingTexture()) {
-            PredicatesGenerator.generateBlockingModels(oraxenMeta);
-        }
-
-        // Generates charged models based on the provided textures
-        if (oraxenMeta.hasChargedTexture()) {
-            PredicatesGenerator.generateChargedModels(oraxenMeta);
-        }
-
-        if (oraxenMeta.hasCastTexture()) {
-            PredicatesGenerator.generateCastModels(oraxenMeta);
-        }
-
-        if (oraxenMeta.hasFireworkModel()) {
-            PredicatesGenerator.generateFireworkModels(oraxenMeta);
-        }
-
+        if (oraxenMeta.hasPullingTextures()) PredicatesGenerator.generatePullingModels(oraxenMeta);
+        if (oraxenMeta.hasBlockingTexture()) PredicatesGenerator.generateBlockingModels(oraxenMeta);
+        if (oraxenMeta.hasChargedTexture()) PredicatesGenerator.generateChargedModels(oraxenMeta);
+        if (oraxenMeta.hasCastTexture()) PredicatesGenerator.generateCastModels(oraxenMeta);
+        if (oraxenMeta.hasFireworkModel()) PredicatesGenerator.generateFireworkModels(oraxenMeta);
+        if (oraxenMeta.hasDamagedModels()) PredicatesGenerator.generateDamageModels(oraxenMeta);
 
         json.add("textures", textures);
 

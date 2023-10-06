@@ -115,18 +115,28 @@ public class PredicatesGenerator {
             }
             if (oraxenMeta.hasPullingModels()) {
                 final List<String> pullingModels = oraxenMeta.getPullingModels();
-                for (float i = 0; i < pullingModels.size(); i++) {
+                for (int i = 0; i <= pullingModels.size(); i++) {
+                    if (i == 0) continue;
                     final JsonObject predicate = new JsonObject();
                     predicate.addProperty("pulling", 1);
-                    if (i != 0)
-                        predicate.addProperty("pull", i / pullingModels.size());
-                    overrides.add(getOverride(predicate, "custom_model_data", customModelData, pullingModels.get((int) i)));
+                    predicate.addProperty("pull", Math.min((float) i / pullingModels.size(), 0.99f));
+                    overrides.add(getOverride(predicate, "custom_model_data", customModelData, pullingModels.get(i - 1)));
                 }
             }
             if (oraxenMeta.hasCastModel()) {
                 final JsonObject predicate = new JsonObject();
                 predicate.addProperty("cast", 1);
                 overrides.add(getOverride(predicate, "custom_model_data", customModelData, oraxenMeta.getCastModel()));
+            }
+            if (oraxenMeta.hasDamagedModels()) {
+                final List<String> damagedModels = oraxenMeta.getDamagedModels();
+                for (int i = 0; i <= damagedModels.size(); i++) {
+                    if (i == 0) continue;
+                    final JsonObject predicate = new JsonObject();
+                    predicate.addProperty("damaged", 1);
+                    predicate.addProperty("damage", Math.min((float) i / damagedModels.size(), 0.99f));
+                    overrides.add(getOverride(predicate, "custom_model_data", customModelData, damagedModels.get(i - 1)));
+                }
             }
 
         }
@@ -188,6 +198,19 @@ public class PredicatesGenerator {
         json.add("textures", textureJson);
         ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(Utils.getParentDirs(oraxenMeta.getCastTexture())),
                 Utils.getFileNameOnly(oraxenMeta.getCastTexture()) + ".json", json.toString());
+    }
+
+    public static void generateDamageModels(OraxenMeta oraxenMeta) {
+        if (!oraxenMeta.hasDamagedTextures()) return;
+        for (String texture : oraxenMeta.getDamagedTextures()) {
+            final JsonObject json = new JsonObject();
+            json.addProperty("parent", oraxenMeta.getParentModel());
+            final JsonObject textureJson = new JsonObject();
+            textureJson.addProperty("layer0", texture);
+            json.add("textures", textureJson);
+            ResourcePack.writeStringToVirtual(OraxenMeta.getModelPath(Utils.getParentDirs(texture)),
+                    Utils.getFileNameOnly(texture) + ".json", json.toString());
+        }
     }
 
     private JsonObject getOverride(final String property, final int propertyValue, final String model) {

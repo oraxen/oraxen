@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.io.FileUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -30,7 +31,10 @@ import java.util.zip.ZipOutputStream;
 
 public class DuplicationHandler {
 
-    public static final String DUPLICATE_FILE_MERGE_NAME = "migrated_duplicates.yml";
+    public static final String DUPLICATE_FILE_FOLDER = "migrated_duplicates/";
+    public static File getDuplicateItemFile(Material material) {
+        return OraxenPlugin.get().getDataFolder().toPath().resolve("items").resolve(DUPLICATE_FILE_FOLDER + "duplicate_" + material.name().toLowerCase() + ".yml").toFile();
+    }
 
     public static void mergeBaseItemFiles(List<VirtualFile> output) {
         Logs.logSuccess("Attempting to merge imported base-item json files");
@@ -212,6 +216,7 @@ public class DuplicationHandler {
         return charList;
     }
 
+    private static final String DUPLICATE_LINE_STRING = "// This file was recognized as a duplicate and was migrated into its relevant config(s)";
     /**
      * Check if the file already exists in the zip file
      */
@@ -220,19 +225,27 @@ public class DuplicationHandler {
         try {
             out.putNextEntry(entry);
         } catch (IOException e) {
+            File duplicateFile;
+            Path packFolder = OraxenPlugin.get().getDataFolder().toPath().resolve("pack");
+            if (packFolder.resolve(name).toFile().exists()) duplicateFile = packFolder.resolve(name).toFile();
+            else duplicateFile = packFolder.resolve(name.replace("assets/minecraft/", "")).toFile();
+            List<String> lines = null;
+            try {
+                lines = FileUtils.readLines(duplicateFile, StandardCharsets.UTF_8);
+            } catch (IOException ex) {
+                if (Settings.DEBUG.toBool()) ex.printStackTrace();
+            }
+            if (lines != null && lines.get(0).equals(DUPLICATE_LINE_STRING)) return;
+
             Logs.logWarning("Duplicate file detected: <blue>" + name + "</blue> - Attempting to migrate it");
             if (!Settings.MERGE_DUPLICATES.toBool()) {
                 Logs.logError("Not attempting to migrate duplicate file as <#22b14c>" + Settings.MERGE_DUPLICATES.getPath() + "</#22b14c> is disabled in settings.yml", true);
             } else if (attemptToMigrateDuplicate(name)) {
                 Logs.logSuccess("Duplicate file fixed:<blue> " + name);
                 try {
-                    Path filePathToDelete;
-                    Path packFolder = OraxenPlugin.get().getDataFolder().toPath().resolve("pack");
-                    if (packFolder.resolve(name).toFile().exists()) filePathToDelete = packFolder.resolve(name);
-                    else filePathToDelete = packFolder.resolve(name.replace("assets/minecraft/", ""));
-
-                    if (filePathToDelete.toFile().delete())
-                        Logs.logSuccess("Deleted the imported <blue>" + Utils.removeParentDirs(name) + "</blue> and migrated it to its supported Oraxen config(s)");
+                    if (lines == null) lines = FileUtils.readLines(duplicateFile, StandardCharsets.UTF_8);
+                    lines.add(0, DUPLICATE_LINE_STRING);
+                    FileUtils.writeLines(duplicateFile, lines);
                 } catch (Exception ignored) {
                     Logs.logError("Failed to delete the imported <blue>" + Utils.removeParentDirs(name) + "</blue> after migrating it");
                 }
@@ -286,9 +299,10 @@ public class DuplicationHandler {
     }
 
     private static boolean migrateItemJson(String name) {
-        String itemMaterial = Utils.removeExtensionOnly(Utils.removeParentDirs(name)).toUpperCase();
-        if (Material.matchMaterial(itemMaterial) == null) {
-            Logs.logWarning("Failed to migrate duplicate file-entry, could not find a matching material for " + itemMaterial);
+        String materialName = Utils.removeExtensionOnly(Utils.removeParentDirs(name)).toUpperCase();
+        Material material = Material.getMaterial(materialName);
+        if (material == null) {
+            Logs.logWarning("Failed to migrate duplicate file-entry, could not find a matching material for " + materialName);
             return false;
         }
 
@@ -297,9 +311,9 @@ public class DuplicationHandler {
             return false;
         }
 
-        YamlConfiguration migratedYaml = loadMigrateItemYaml();
+        YamlConfiguration migratedYaml = loadMigrateItemYaml(material);
         if (migratedYaml == null) {
-            Logs.logWarning("Failed to migrate duplicate file-entry, failed to load items/migrated_duplicates.yml");
+            Logs.logWarning("Failed to migrate duplicate file-entry, failed to load " + DuplicationHandler.getDuplicateItemFile(material).getPath());
             return false;
         }
         Path path = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath(), "pack", name);
@@ -320,12 +334,14 @@ public class DuplicationHandler {
         Map<Integer, String> chargedModels = new HashMap<>();
         Map<Integer, String> blockingModels = new HashMap<>();
         Map<Integer, String> castModels = new HashMap<>();
+        Map<Integer, List<String>> damagedModels = new HashMap<>();
         List<JsonElement> overridesToRemove = new ArrayList<>();
         if (overrides != null) {
             handleBowPulling(overrides, overridesToRemove, pullingModels);
             handleCrossbowPulling(overrides, overridesToRemove, chargedModels);
             handleShieldBlocking(overrides, overridesToRemove, blockingModels);
             handleFishingRodCast(overrides, overridesToRemove, castModels);
+            handleDamaged(overrides, overridesToRemove, damagedModels);
 
             for (JsonElement element : overridesToRemove) overrides.remove(element);
 
@@ -337,12 +353,13 @@ public class DuplicationHandler {
                 int cmd = predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsInt() : 0;
 
 
-                migratedYaml.set(id + ".material", itemMaterial);
+                migratedYaml.set(id + ".material", materialName);
                 migratedYaml.set(id + ".excludeFromInventory", true);
                 migratedYaml.set(id + ".excludeFromCommands", true);
                 migratedYaml.set(id + ".Pack.generate_model", false);
                 migratedYaml.set(id + ".Pack.model", modelPath);
                 if (pullingModels.containsKey(cmd)) migratedYaml.set(id + ".Pack.pulling_models", pullingModels.get(cmd));
+                if (damagedModels.containsKey(cmd)) migratedYaml.set(id + ".Pack.damaged_models", damagedModels.get(cmd));
                 if (chargedModels.containsKey(cmd)) migratedYaml.set(id + ".Pack.charged_model", chargedModels.get(cmd));
                 if (blockingModels.containsKey(cmd)) migratedYaml.set(id + ".Pack.blocking_model", blockingModels.get(cmd));
                 if (castModels.containsKey(cmd)) migratedYaml.set(id + ".Pack.cast_model", castModels.get(cmd));
@@ -351,9 +368,10 @@ public class DuplicationHandler {
         }
 
         try {
-            migratedYaml.save(new File(OraxenPlugin.get().getDataFolder(), "/items/migrated_duplicates.yml"));
+            migratedYaml.save(DuplicationHandler.getDuplicateItemFile(material));
         } catch (IOException e) {
             Logs.logWarning("Failed to migrate duplicate file-entry, could not save migrated_duplicates.yml");
+            if (Settings.DEBUG.toBool()) e.printStackTrace();
             return false;
         }
 
@@ -361,18 +379,24 @@ public class DuplicationHandler {
     }
 
     private static void handleBowPulling(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, List<String>> pullingModels) {
+        handleExtraListPredicates(overrides, overridesToRemove, pullingModels, "pulling");
+    }
+    private static void handleDamaged(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, List<String>> damagedModels) {
+        handleExtraListPredicates(overrides, overridesToRemove, damagedModels, "damaged");
+    }
+
+    private static void handleExtraListPredicates(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, List<String>> predicateModels, String predicate) {
         for (JsonObject object : overrides.asList().stream().filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).toList()) {
             if (object.get("predicate") == null || !object.get("predicate").isJsonObject()) continue;
-            JsonObject predicate = object.getAsJsonObject("predicate");
-            if (predicate == null || !predicate.has("pulling")) continue;
-            int cmd = predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsInt() : 0;
-            String modelPath = object.get("model").toString().replace("\\", "/");
-            List<String> newPullingModels = pullingModels.getOrDefault(cmd, new ArrayList<>());
-            newPullingModels.add(modelPath);
-            pullingModels.put(cmd, newPullingModels);
+            JsonObject predicateObject = object.get("predicate").getAsJsonObject();
+            if (predicateObject == null || !predicateObject.has(predicate)) continue;
+            int cmd = predicateObject.has("custom_model_data") ? predicateObject.get("custom_model_data").getAsInt() : 0;
+            String modelPath = object.get("model").getAsString().replace("\\", "/");
+            predicateModels.computeIfAbsent(cmd, k -> new ArrayList<>()).add(modelPath);
             overridesToRemove.add(object);
         }
     }
+
     private static void handleCrossbowPulling(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> chargedModels) {
         handleExtraPredicates(overrides, overridesToRemove, chargedModels, "charged");
     }
@@ -441,20 +465,69 @@ public class DuplicationHandler {
         return true;
     }
 
-    private static YamlConfiguration loadMigrateItemYaml() {
+    private static YamlConfiguration loadMigrateItemYaml(Material material) {
 
-        File file = OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().resolve("items").resolve(DUPLICATE_FILE_MERGE_NAME).toFile();
+        File file = DuplicationHandler.getDuplicateItemFile(material);
+        if (!file.getParentFile().exists()) file.getParentFile().mkdirs();
         if (!file.exists()) {
             try {
                 file.createNewFile();
             } catch (IOException e) {
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
                 return null;
             }
         }
         try {
             return OraxenYaml.loadConfiguration(file);
         } catch (Exception e) {
+            if (Settings.DEBUG.toBool()) e.printStackTrace();
             return null;
+        }
+    }
+
+    public static void convertOldMigrateItemConfig() {
+        File oldMigrateConfigFile = OraxenPlugin.get().getDataFolder().toPath().resolve("items/migrated_duplicates.yml").toFile();
+        if (!oldMigrateConfigFile.exists()) return;
+        YamlConfiguration oldMigrateConfig = OraxenYaml.loadConfiguration(oldMigrateConfigFile);
+        Logs.logInfo("Attempting to convert migrated_duplicates.yml into new format");
+
+        Map<String, List<String>> oldMigrateConfigsSorted = new HashMap<>();
+        for (String key : oldMigrateConfig.getKeys(false)) {
+            String material = oldMigrateConfig.getString(key + ".material").toLowerCase();
+            oldMigrateConfigsSorted.computeIfAbsent(material, k -> new ArrayList<>()).add(key);
+        }
+
+        for (Map.Entry<String, List<String>> entry : oldMigrateConfigsSorted.entrySet()) {
+            String material = entry.getKey();
+            List<String> itemIds = entry.getValue();
+
+            File newMigrateConfigFile = OraxenPlugin.get().getDataFolder().toPath().resolve("items/migrated_duplicates/duplicate_" + material + ".yml").toFile();
+            if (!newMigrateConfigFile.getParentFile().exists()) newMigrateConfigFile.getParentFile().mkdirs();
+            if (!newMigrateConfigFile.exists()) {
+                try {
+                    newMigrateConfigFile.createNewFile();
+                } catch (IOException e) {
+                    if (Settings.DEBUG.toBool()) e.printStackTrace();
+                    continue;
+                }
+            }
+
+            YamlConfiguration newMigrateConfig = OraxenYaml.loadConfiguration(newMigrateConfigFile);
+            for (String oldKey : itemIds) {
+                newMigrateConfig.set(oldKey, oldMigrateConfig.get(oldKey));
+            }
+            try {
+                newMigrateConfig.save(newMigrateConfigFile);
+            } catch (IOException e) {
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
+            }
+        }
+
+        try {
+            Files.delete(oldMigrateConfigFile.toPath());
+            Logs.logSuccess("Successfully converted migrated_duplicates.yml into new format");
+        } catch (IOException e) {
+            if (Settings.DEBUG.toBool()) e.printStackTrace();
         }
     }
 }
