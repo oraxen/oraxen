@@ -15,10 +15,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.Evolvin
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
-import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.EntityUtils;
-import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
@@ -513,16 +510,10 @@ public class FurnitureMechanic extends Mechanic {
 
     void spawnModelEngineFurniture(Entity entity) {
         ModeledEntity modelEntity = ModelEngineAPI.getOrCreateModeledEntity(entity);
-        ActiveModel activeModel = ModelEngineAPI.createActiveModel(ModelEngineAPI.getBlueprint(getModelEngineID()));
-
-        modelEntity.addModel(activeModel, false);
+        ActiveModel activeModel = ModelEngineAPI.createActiveModel(getModelEngineID());
+        ModelEngineUtils.addModel(modelEntity, activeModel, false);
+        ModelEngineUtils.setRotationLock(modelEntity, true);
         modelEntity.setBaseEntityVisible(false);
-        modelEntity.setModelRotationLock(true);
-
-        if (OraxenPlugin.supportsDisplayEntities && entity instanceof ItemDisplay itemDisplay)
-            itemDisplay.setItemStack(new ItemStack(Material.AIR));
-        else if (entity instanceof ItemFrame itemFrame)
-            itemFrame.setItem(new ItemStack(Material.AIR), false);
     }
 
     public static ItemStack getFurnitureItem(Entity entity) {
