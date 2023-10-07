@@ -52,11 +52,15 @@ public class AdventureUtils {
      * @return The original string, serialized and deserialized through MiniMessage
      */
     public static String parseMiniMessage(String message) {
-        return MINI_MESSAGE.serialize(MINI_MESSAGE.deserialize(message));
+        return MINI_MESSAGE.serialize(MINI_MESSAGE.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
     }
 
     public static String parseMiniMessage(String message, TagResolver tagResolver) {
-        return MINI_MESSAGE.serialize(MINI_MESSAGE.deserialize(message, tagResolver));
+        return MINI_MESSAGE.serialize(MINI_MESSAGE.deserialize(message, tagResolver)).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+    }
+
+    public static String parseMiniMessage(String message, Player player) {
+        return MINI_MESSAGE_EMPTY.serialize(MINI_MESSAGE_PLAYER(player).deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
     }
 
     /**
@@ -64,11 +68,15 @@ public class AdventureUtils {
      * @return The original component, serialized and deserialized through MiniMessage
      */
     public static Component parseMiniMessage(Component message) {
-        return MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(message));
+        return MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(message).replaceAll("\\\\(?!u)(?!n)(?!\")", ""));
     }
 
     public static Component parseMiniMessage(Component message, TagResolver tagResolver) {
-        return MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(message), tagResolver);
+        return MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(message).replaceAll("\\\\(?!u)(?!n)(?!\")", ""), tagResolver);
+    }
+
+    public static Component parseMiniMessage(Component message, Player player) {
+        return MINI_MESSAGE_PLAYER(player).deserialize(MINI_MESSAGE_EMPTY.serialize(message).replaceAll("\\\\(?!u)(?!n)(?!\")", ""));
     }
 
     /**

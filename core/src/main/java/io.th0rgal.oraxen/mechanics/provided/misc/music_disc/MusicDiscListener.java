@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.sound.Sound;
 import net.kyori.adventure.text.Component;
+import net.kyori.adventure.text.minimessage.tag.resolver.Placeholder;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -53,7 +54,7 @@ public class MusicDiscListener implements Listener {
         if (!playing) return;
         player.swingMainHand();
         Component message = AdventureUtils.MINI_MESSAGE.deserialize(Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(),
-                TagResolver.builder().resolvers(AdventureUtils.OraxenTagResolver, AdventureUtils.tagResolver("disc", AdventureUtils.parseLegacy(itemStack.getItemMeta().getDisplayName()))).build());
+                AdventureUtils.tagResolver("disc", AdventureUtils.parseLegacy(itemStack.getItemMeta().getDisplayName())));
         OraxenPlugin.get().getAudience().player(player).sendActionBar(message);
         event.setCancelled(true);
     }

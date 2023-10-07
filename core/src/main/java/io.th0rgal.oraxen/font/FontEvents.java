@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.font;
 
+import io.papermc.paper.chat.ChatRenderer;
 import io.papermc.paper.event.player.AsyncChatDecorateEvent;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
@@ -10,10 +11,13 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -30,14 +34,17 @@ import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BookMeta;
 import org.bukkit.persistence.PersistentDataType;
+import org.checkerframework.checker.units.qual.A;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Map;
 
+import static io.th0rgal.oraxen.font.GlyphTag.GLYPH;
+import static io.th0rgal.oraxen.font.GlyphTag.glyphTag;
 import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
-import static io.th0rgal.oraxen.utils.AdventureUtils.MINI_MESSAGE;
-import static io.th0rgal.oraxen.utils.AdventureUtils.MINI_MESSAGE_EMPTY;
+import static io.th0rgal.oraxen.utils.AdventureUtils.*;
 
 public class FontEvents implements Listener {
 
@@ -46,10 +53,7 @@ public class FontEvents implements Listener {
     public FontEvents(FontManager manager) {
         this.manager = manager;
         Bukkit.getPluginManager().registerEvents(
-                VersionUtil.isPaperServer() ?
-                        VersionUtil.isSupportedVersionOrNewer("1.19.1") ?
-                                new PaperChatHandler() : new LegacyPaperChatHandler()
-                        : new SpigotChatHandler()
+                VersionUtil.isPaperServer() ? new PaperChatHandler() : new SpigotChatHandler()
                 , OraxenPlugin.get());
     }
 
@@ -213,6 +217,12 @@ public class FontEvents implements Listener {
             }
         }
 
+        /**
+         * Formats a string with glyphs and placeholders
+         * @param string The string to format
+         * @param player The player to check permissions for, if null it parses the string without checking permissions
+         * @return The formatted string, or null if the player doesn't have permission for a glyph
+         */
         private String format(String string, @Nullable Player player) {
             string = AdventureUtils.parseLegacyThroughMiniMessage(string, player);
             if (player != null) for (Character character : manager.getReverseMap().keySet()) {
@@ -241,32 +251,51 @@ public class FontEvents implements Listener {
     @SuppressWarnings("UnstableApiUsage")
     public class PaperChatHandler implements Listener {
 
-        @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+        @EventHandler(priority = EventPriority.LOWEST)
         public void onPlayerChat(AsyncChatDecorateEvent event) {
             if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
 
             Component result = format(event.originalMessage(), event.player());
-            if (result == null) event.setCancelled(true);
-            else event.result(result);
+            event.result(result != null ? result : Component.empty());
         }
-    }
 
-    public class LegacyPaperChatHandler implements Listener {
-
-        @EventHandler
-        public void onPlayerChat(AsyncChatEvent event) {
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        public void onPlayerChat2(AsyncChatDecorateEvent event) {
             if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
 
-            Component result = format(event.originalMessage(), event.getPlayer());
-            if (result == null) event.setCancelled(true);
-            else event.message(result);
+            Component result = format(event.result(), null);
+            event.result(result != null ? result : Component.empty());
         }
+
     }
 
-    private Component format(Component originalMessage, Player player) {
-        Component message = AdventureUtils.parseMiniMessage(originalMessage, GlyphTag.getResolverForPlayer(player));
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onPlayerChat(AsyncChatEvent event) {
+        if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs() || !VersionUtil.isPaperServer()) return;
+        // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
+        Component message = VersionUtil.isSupportedVersionOrNewer("1.19.1") ? event.message() : format(event.message(), event.getPlayer());
+        message = message != null ? message : Component.empty();
+        if (!message.equals(Component.empty())) return;
+
+        event.viewers().clear();
+        event.setCancelled(true);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST)
+    public void onPlayerChat2(AsyncChatEvent event) {
+        if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs() || !VersionUtil.isPaperServer()) return;
+        // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
+        Component message = VersionUtil.isSupportedVersionOrNewer("1.19.1") ? event.message() : format(event.originalMessage(), event.getPlayer());
+        message = message != null ? message : Component.empty();
+        if (!message.equals(Component.empty())) return;
+
+        event.viewers().clear();
+        event.setCancelled(true);
+    }
+
+    private Component format(Component message, Player player) {
         for (Character character : manager.getReverseMap().keySet()) {
-            if (!message.contains(Component.text(character))) continue;
+            if (!MINI_MESSAGE.serialize(message).contains(character.toString())) continue;
 
             Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
             if (!glyph.hasPermission(player)) {
@@ -275,22 +304,15 @@ public class FontEvents implements Listener {
             }
         }
 
-        for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-            message = message.replaceText(TextReplacementConfig.builder().match(entry.getKey())
-                    .replacement(Component.text(entry.getValue().getCharacter()).color(NamedTextColor.WHITE)).build());
-        }
-
         for (Glyph glyph : manager.getGlyphs()) {
-            if (!glyph.hasPermission(player)) {
-                message = message.replaceText(TextReplacementConfig.builder().match(glyph.getGlyphTag())
-                        .replacement(Component.text("\\" + glyph.getGlyphTag())).build());
-                message = message.replaceText(TextReplacementConfig.builder().match(glyph.getShortGlyphTag())
-                        .replacement(Component.text("\\" + glyph.getShortGlyphTag())).build());
+            for (String placeholder : glyph.getPlaceholders()) {
+                if (!glyph.hasPermission(player)) continue;
+                message = message.replaceText(TextReplacementConfig.builder().matchLiteral(placeholder)
+                        .replacement(Component.text(glyph.getCharacter()).color(NamedTextColor.WHITE)).build());
             }
         }
 
-        return message;
+        return AdventureUtils.parseMiniMessage(message, player);
     }
-
 
 }

@@ -15,21 +15,17 @@ import javax.annotation.Nullable;
 
 public class ShiftTag {
     private static final String SHIFT = "shift";
+    private static final String SHIFT_SHORT = "s";
 
-    public static final TagResolver RESOLVER = SerializableResolver.claimingComponent(SHIFT, ShiftTag::create, ShiftTag::emit);
-    public static final TagResolver RESOLVER_SHORT = SerializableResolver.claimingComponent("s", ShiftTag::create, ShiftTag::emit);
+    public static final TagResolver RESOLVER = TagResolver.resolver(SHIFT, (args, ctx) -> shiftTag(args));
+    public static final TagResolver RESOLVER_SHORT = TagResolver.resolver(SHIFT_SHORT, (args, ctx) -> shiftTag(args));
 
-    static Tag create(final ArgumentQueue args, final Context ctx) throws ParsingException {
+    private static Tag shiftTag(final ArgumentQueue args) {
         int length = 0;
         try {
             length = Integer.parseInt(args.popOr("A shift value is required").value());
         } catch (final NumberFormatException ignored) {
         }
-        String shift = OraxenPlugin.get().getFontManager().getShift(length);
-        return Tag.selfClosingInserting(AdventureUtils.MINI_MESSAGE.deserialize(shift));
-    }
-
-    static @Nullable Emitable emit(final Component component) {
-        return null;
+        return Tag.selfClosingInserting(Component.text(OraxenPlugin.get().getFontManager().getShift(length)));
     }
 }

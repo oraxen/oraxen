@@ -58,8 +58,7 @@ public class JukeboxListener implements Listener {
         }
 
         if (displayName != null) {
-            Component message = AdventureUtils.MINI_MESSAGE.deserialize(Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(),
-                    TagResolver.builder().resolvers(AdventureUtils.OraxenTagResolver, AdventureUtils.tagResolver("disc", displayName)).build());
+            Component message = AdventureUtils.MINI_MESSAGE.deserialize(Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(), AdventureUtils.tagResolver("disc", displayName));
             OraxenPlugin.get().getAudience().player(player).sendActionBar(message);
         }
 

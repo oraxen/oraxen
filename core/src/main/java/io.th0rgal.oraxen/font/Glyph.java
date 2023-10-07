@@ -272,10 +272,10 @@ public class Glyph {
      * Useful to easily get the MiniMessage-tag for a glyph
      */
     public String getGlyphTag() {
-        return "<glyph:" + name + ">";
+        return '<' + "glyph;" + name + '>';
     }
 
     public String getShortGlyphTag() {
-        return "<g:" + name + ">";
+        return "<g:" + name + '>';
     }
 }

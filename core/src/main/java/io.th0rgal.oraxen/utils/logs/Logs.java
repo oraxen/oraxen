@@ -9,6 +9,7 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Field;
 
@@ -70,6 +71,6 @@ public class Logs {
     public static void debug(Object object, String prefix) { if ( Settings.DEBUG.toBool()) Bukkit.broadcastMessage(prefix + object); }
     public static <T> T debugVal(T object) { if ( Settings.DEBUG.toBool()) Bukkit.broadcastMessage(String.valueOf(object)); return object; }
     public static <T> T debugVal(T object, String prefix) { if ( Settings.DEBUG.toBool()) Bukkit.broadcastMessage(prefix + object); return object; }
-    public static void debug(Component component) { if ( Settings.DEBUG.toBool()) OraxenPlugin.get().getAudience().console().sendMessage(component); }
+    public static void debug(Component component) { if ( Settings.DEBUG.toBool()) OraxenPlugin.get().getAudience().console().sendMessage(component != null ? component : Component.text("null")); }
 
 }
