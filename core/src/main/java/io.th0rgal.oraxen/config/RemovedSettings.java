@@ -20,8 +20,7 @@ public enum RemovedSettings {
     FURNITURE_UPDATE_DELAY2("FurnitureUpdater.furniture_update_delay_in_seconds"),
     UPDATE_FURNITURE_ON_LOAD2("FurnitureUpdater.update_furniture_on_load"),
     UPDATE_FURNITURE_ON_RELOAD2("FurnitureUpdater.update_furniture_on_reload"),
-
-
+    SEND_PACK_ADVANCED("Pack.dispatch.send_pack_advanced"),
     ;
 
     private final String path;

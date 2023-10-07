@@ -13,6 +13,8 @@ public enum UpdatedSettings {
     AUTO_UPDATE_ITEMS("Misc.auto_update_items", "ItemUpdater.auto_update_items"),
     USE_NMS_GLYPHS("Plugin.experimental.nms_glyphs", "Plugin.experimental.nms.glyphs"),
     USE_NMS_GLYPHS2("Plugin.experimental.use_nms_glyphs", "Plugin.experimental.nms.glyphs"),
+    SEND_PACK_ADVANCED_MANDATORY("Pack.dispatch.send_pack_advanced.mandatory", "Pack.dispatch.mandatory"),
+    SEND_PACK_ADVANCED_MESSAGE("Pack.dispatch.send_pack_advanced.message", "Pack.dispatch.prompt"),
     ;
 
     private final String path;
