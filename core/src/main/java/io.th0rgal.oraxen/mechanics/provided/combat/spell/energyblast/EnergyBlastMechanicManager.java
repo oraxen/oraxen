@@ -127,9 +127,9 @@ public class EnergyBlastMechanicManager implements Listener {
                 playerLoc.add(dir);
                 for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, radius, radius, radius))
                     if (entity instanceof LivingEntity livingEntity && entity != player) {
-                        EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, mechanic.getDamage());
-                        if (event.callEvent()) continue;
-                        entity.setLastDamageCause(event);
+                        EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(player, livingEntity, EntityDamageEvent.DamageCause.MAGIC, mechanic.getDamage());
+                        if (livingEntity.isDead() || !event.callEvent()) continue;
+                        livingEntity.setLastDamageCause(event);
                         livingEntity.damage(mechanic.getDamage(), player);
                     }
 

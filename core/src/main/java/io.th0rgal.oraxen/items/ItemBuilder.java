@@ -5,6 +5,7 @@ import com.google.common.collect.Multimap;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
@@ -69,6 +70,10 @@ public class ItemBuilder {
     }
 
     public ItemBuilder(WrappedCrucibleItem wrapped) {
+        this(wrapped.build());
+    }
+
+    public ItemBuilder(WrappedEcoItem wrapped) {
         this(wrapped.build());
     }
 

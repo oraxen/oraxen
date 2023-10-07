@@ -27,6 +27,20 @@ public class WrappedMMOItem {
         tier = section.isString("tier") ? MMOItems.plugin.getTiers().getOrThrow(section.getString("tier")) : null;
     }
 
+    public WrappedMMOItem(Type type, String id, int level, ItemTier tier) {
+        this.type = type;
+        this.id = id;
+        this.level = level;
+        this.tier = tier;
+    }
+
+    public WrappedMMOItem(Type type, String id) {
+        this.type = type;
+        this.id = id;
+        this.level = 1;
+        this.tier = null;
+    }
+
     private MMOItemTemplate getTemplate() {
         return MMOItems.plugin.getTemplates().getTemplateOrThrow(type, id);
     }

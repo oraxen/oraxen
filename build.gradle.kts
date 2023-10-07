@@ -63,7 +63,6 @@ allprojects {
         maven("https://papermc.io/repo/repository/maven-public/") // Paper
         maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
         maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
-        maven("https://jitpack.io") // JitPack
         maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
         maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
@@ -74,7 +73,9 @@ allprojects {
         //maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
         maven("https://repo.mineinabyss.com/releases") // PlayerAnimator
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
+        maven("https://repo.auxilor.io/repository/maven-public/") // EcoItems
         maven("https://maven.enginehub.org/repo/")
+        maven("https://jitpack.io") // JitPack
 
         mavenLocal()
     }
@@ -103,6 +104,9 @@ allprojects {
         compileOnly("io.lumine:MythicLib:1.1.6")
         compileOnly("net.Indyuce:MMOItems:6.7.3")
         compileOnly("org.joml:joml:1.10.5") // Because pre 1.19.4 api does not have this in the server-jar
+        compileOnly("com.willfp:EcoItems:5.23.0")
+        compileOnly("com.willfp:eco:6.65.5")
+        compileOnly("com.willfp:libreforge:4.36.0")
     }
 }
 

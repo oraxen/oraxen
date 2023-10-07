@@ -11,6 +11,10 @@ public class WrappedCrucibleItem {
         id = section.getString("id");
     }
 
+    public WrappedCrucibleItem(String id) {
+        this.id = id;
+    }
+
     public ItemStack build() {
         return MythicCrucible.core().getItemManager().getItemStack(id);
     }

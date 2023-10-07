@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
@@ -34,6 +35,7 @@ public class ItemParser {
     private Material type;
     private WrappedMMOItem mmoItem;
     private WrappedCrucibleItem crucibleItem;
+    private WrappedEcoItem ecoItem;
     private ItemParser templateItem;
     private boolean configUpdated = false;
 
@@ -44,10 +46,13 @@ public class ItemParser {
 
         ConfigurationSection crucibleSection = section.getConfigurationSection("crucible");
         ConfigurationSection mmoSection = section.getConfigurationSection("mmoitem");
+        ConfigurationSection ecoItemSection = section.getConfigurationSection("ecoitem");
         if (crucibleSection != null)
             crucibleItem = new WrappedCrucibleItem(crucibleSection);
         else if (mmoSection != null)
             mmoItem = new WrappedMMOItem(mmoSection);
+        else if (ecoItemSection != null)
+            ecoItem = new WrappedEcoItem(ecoItemSection);
         else {
             Material material = Material.getMaterial(section.getString("material", ""));
             if (material == null) material = usesTemplate() ? templateItem.type : Material.PAPER;
@@ -66,11 +71,15 @@ public class ItemParser {
     }
 
     public boolean usesMMOItems() {
-        return type == null && crucibleItem == null && mmoItem != null;
+        return type == null && crucibleItem == null && ecoItem == null  && mmoItem != null;
     }
 
     public boolean usesCrucibleItems() {
-        return type == null && mmoItem == null && crucibleItem != null;
+        return type == null && mmoItem == null && ecoItem == null && crucibleItem != null;
+    }
+
+    public boolean usesEcoItems() {
+        return type == null && mmoItem == null && crucibleItem == null && ecoItem != null;
     }
 
     public boolean usesTemplate() {
@@ -95,6 +104,7 @@ public class ItemParser {
 
         if (usesCrucibleItems()) item = new ItemBuilder(crucibleItem);
         else if (usesMMOItems()) item = new ItemBuilder(mmoItem);
+        else if (usesEcoItems()) item = new ItemBuilder(ecoItem);
         else item = new ItemBuilder(type);
 
         // If item has a template, apply the template ontop of the builder made above

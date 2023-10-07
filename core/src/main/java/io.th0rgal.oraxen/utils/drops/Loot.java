@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.utils.drops;
 
 import io.lumine.mythiccrucible.MythicCrucible;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
+import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import net.Indyuce.mmoitems.MMOItems;
 import org.bukkit.Location;
@@ -47,12 +49,13 @@ public class Loot {
             String itemId = config.get("oraxen_item").toString();
             itemStack = OraxenItems.getItemById(itemId).build();
         } else if (config.containsKey("crucible_item")) {
-            String crucibleID = config.get("crucible_item").toString();
-            itemStack = MythicCrucible.core().getItemManager().getItemStack(crucibleID);
+            itemStack = new WrappedCrucibleItem(config.get("crucible_item").toString()).build();
         } else if (config.containsKey("mmoitems_id") && config.containsKey("mmoitems_type")) {
             String type = config.get("mmoitems_type").toString();
             String id = config.get("mmoitems_id").toString();
             itemStack = MMOItems.plugin.getItem(type, id);
+        } else if (config.containsKey("ecoitem")) {
+            itemStack = new WrappedEcoItem(config.get("ecoitem").toString()).build();
         } else if (config.containsKey("minecraft_type")) {
             String itemType = config.get("minecraft_type").toString();
             Material material = Material.getMaterial(itemType);
