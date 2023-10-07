@@ -26,8 +26,6 @@ public enum Settings {
     FORMAT_SIGNS("Plugin.formatting.signs"),
     FORMAT_CHAT("Plugin.formatting.chat"),
     FORMAT_BOOKS("Plugin.formatting.books"),
-    VERIFY_PACK_FILES("Plugin.experimental.verify_pack_files"),
-    EXCLUDE_MALFORMED_ATLAS("Plugin.experimental.exclude_malformed_from_atlas"),
     NMS_GLYPHS("Plugin.experimental.nms.glyphs"),
     NMS_BLOCK_CORRECTION("Plugin.experimental.nms.block_correction"),
 
@@ -71,7 +69,9 @@ public enum Settings {
     GENERATE("Pack.generation.generate"),
     EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions"),
     FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs"),
+    VERIFY_PACK_FILES("Pack.generation.verify_pack_files"),
     GENERATE_ATLAS_FILE("Pack.generation.atlas.generate"),
+    EXCLUDE_MALFORMED_ATLAS("Pack.generation.atlas.exclude_malformed_from_atlas"),
     ATLAS_GENERATION_TYPE("Pack.generation.atlas.type"),
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
     ARMOR_RESOLUTION("Pack.generation.armor_resolution"),

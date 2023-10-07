@@ -15,6 +15,8 @@ public enum UpdatedSettings {
     USE_NMS_GLYPHS2("Plugin.experimental.use_nms_glyphs", "Plugin.experimental.nms.glyphs"),
     SEND_PACK_ADVANCED_MANDATORY("Pack.dispatch.send_pack_advanced.mandatory", "Pack.dispatch.mandatory"),
     SEND_PACK_ADVANCED_MESSAGE("Pack.dispatch.send_pack_advanced.message", "Pack.dispatch.prompt"),
+    VERIFY_PACK_FILES("Plugin.experimental.verify_pack_files", "Pack.generation.verify_pack_files"),
+    EXCLUDE_MALFORMED_ATLAS("Plugin.experimental.exclude_malformed_from_atlas", "Pack.generation.atlas.exclude_malformed_from_atlas"),
     ;
 
     private final String path;
