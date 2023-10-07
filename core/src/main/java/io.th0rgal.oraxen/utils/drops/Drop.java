@@ -61,6 +61,12 @@ public class Drop {
     public static Drop emptyDrop() {
         return new Drop(new ArrayList<>(), false, false, "");
     }
+    public static Drop emptyDrop(List<Loot> loots) {
+        return new Drop(loots, false, false, "");
+    }
+    public static Drop clone(Drop drop, List<Loot> newLoots) {
+        return new Drop(drop.hierarchy, newLoots, drop.silktouch, drop.fortune, drop.sourceID, drop.minimalType, drop.bestTools);
+    }
 
     public String getItemType(ItemStack itemInHand) {
         String itemID = OraxenItems.getIdByItem(itemInHand);
@@ -100,13 +106,38 @@ public class Drop {
         return (minimalType == null) ? 0 : hierarchy.indexOf(getItemType(item)) - hierarchy.indexOf(minimalType);
     }
 
+    public boolean isSilktouch() {
+        return silktouch;
+    }
+
+    public boolean isFortune() {
+        return fortune;
+    }
+
+    public String getSourceID() {
+        return sourceID;
+    }
+
+    public String getMinimalType() {
+        return minimalType;
+    }
+
+    public List<String> getBestTools() {
+        return bestTools;
+    }
+
+    public List<String> getHierarchy() {
+        return hierarchy;
+    }
+
     public List<Loot> getLoots() {
         return loots;
     }
 
-    public void setLoots(List<Loot> loots) {
+    public Drop setLoots(List<Loot> loots) {
         this.loots.clear();
         this.loots.addAll(loots);
+        return this;
     }
 
     public void spawns(Location location, ItemStack itemInHand) {

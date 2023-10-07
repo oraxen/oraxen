@@ -8,8 +8,11 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class SmeltingMechanicFactory extends MechanicFactory {
 
+    private static SmeltingMechanicFactory instance;
+
     public SmeltingMechanicFactory(ConfigurationSection section) {
         super(section);
+        instance = this;
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new SmeltingMechanicListener(this));
     }
 
@@ -18,6 +21,10 @@ public class SmeltingMechanicFactory extends MechanicFactory {
         Mechanic mechanic = new SmeltingMechanic(this, itemMechanicConfiguration);
         addToImplemented(mechanic);
         return mechanic;
+    }
+
+    public static SmeltingMechanicFactory getInstance() {
+        return instance;
     }
 
 }
