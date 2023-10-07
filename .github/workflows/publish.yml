@@ -1,25 +1,21 @@
-name: Publish
-
+name: Publish project to Maven repository
+# OR, publish per each commit
 on:
   push:
-    branches:
-      - master
-      - develop
-    paths-ignore:
-      - '**.md'
-
+    branches: [ master, develop ]
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - uses: oraxen/publish-action@master
+      - uses: actions/checkout@v2
+      - name: Set up JDK
+        uses: actions/setup-java@v1
         with:
-          maven-metadata-url: https://repo.mineinabyss.com/releases/io/th0rgal/oraxen/maven-metadata.xml
-          pages-path: build/dokka/htmlMultiModule/
-          dokka: dokkaHtmlMultiModule
-          maven-username: ${{ secrets.MAVEN_USERNAME }}
-          maven-password: ${{ secrets.MAVEN_PASSWORD }}
-          release-files: |
-            ${{ github.workspace }}/publish/*.jar
+          java-version: 17
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+      - name: Publish with Gradle
+        run: ./gradlew core:build core:publish
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }} # token name
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }} # token secret (password)
