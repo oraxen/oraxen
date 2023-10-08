@@ -1,7 +1,7 @@
 # MISCELLANEOUS
 
 commands:
-  enabled: false
+  enabled: true
 
 armor_effects:
   enabled: true
