@@ -110,7 +110,7 @@ public class OraxenPlugin extends JavaPlugin {
         pluginManager.registerEvents(new CustomArmorListener(), this);
         NMSHandlers.setup();
 
-        resourcePack = new ResourcePack(this);
+        resourcePack = new ResourcePack();
         MechanicsManager.registerNativeMechanics();
         //CustomBlockData.registerListener(this); //Handle this manually
         hudManager = new HudManager(configsManager);

@@ -234,7 +234,7 @@ public class CustomArmorsTextures {
                 }
             }
 
-            boolean duplicateColor = allSpecifiedArmorColors.entrySet().stream().filter(e-> builder != null && e.getValue() == builder.getColor().asRGB()).toList().size() >= 2;
+            boolean duplicateColor = allSpecifiedArmorColors.entrySet().stream().filter(e-> builder != null && builder.hasColor() && e.getValue() == builder.getColor().asRGB()).toList().size() >= 2;
             if (builder != null && (!builder.hasColor() || duplicateColor  || shaderType == ShaderType.LESS_FANCY)) {
                 // If builder has no color or the shader-type is LESS_FANCY
                 // Then assign a color based on the armor ID

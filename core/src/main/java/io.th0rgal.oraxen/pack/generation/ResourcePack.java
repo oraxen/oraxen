@@ -42,16 +42,10 @@ public class ResourcePack {
     private Map<String, Collection<Consumer<File>>> packModifiers;
     private static Map<String, VirtualFile> outputFiles;
     private CustomArmorsTextures customArmorsTextures;
-    private File packFolder;
-    private File pack;
-    JavaPlugin plugin;
+    private static File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
+    private File pack = new File(packFolder, packFolder.getName() + ".zip");
 
-    public ResourcePack(final JavaPlugin plugin) {
-        this.plugin = plugin;
-        clear();
-    }
-
-    public void clear() {
+    public ResourcePack() {
         // we use maps to avoid duplicate
         packModifiers = new HashMap<>();
         outputFiles = new HashMap<>();
@@ -61,21 +55,10 @@ public class ResourcePack {
         outputFiles.clear();
 
         customArmorsTextures = new CustomArmorsTextures((int) Settings.ARMOR_RESOLUTION.getValue());
-        packFolder = new File(plugin.getDataFolder(), "pack");
-        makeDirsIfNotExists(packFolder);
-        makeDirsIfNotExists(new File(packFolder, "assets"));
-        pack = new File(packFolder, packFolder.getName() + ".zip");
-        File assetsFolder = new File(packFolder, "assets");
-        File modelsFolder = new File(packFolder, "models");
-        File fontFolder = new File(packFolder, "font");
-        File optifineFolder = new File(packFolder, "optifine");
-        File langFolder = new File(packFolder, "lang");
-        File textureFolder = new File(packFolder, "textures");
-        File soundFolder = new File(packFolder, "sounds");
+        makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
 
-        if (Settings.GENERATE_DEFAULT_ASSETS.toBool())
-            extractFolders(!modelsFolder.exists(), !textureFolder.exists(), !langFolder.exists(), !fontFolder.exists(),
-                    !soundFolder.exists(), !assetsFolder.exists(), !optifineFolder.exists());
+
+        if (Settings.GENERATE_DEFAULT_ASSETS.toBool()) extractDefaultFolders();
         extractRequired();
 
         if (!Settings.GENERATE.toBool()) return;
@@ -91,8 +74,8 @@ public class ResourcePack {
             e.printStackTrace();
         }
 
-        extractInPackIfNotExists(plugin, new File(packFolder, "pack.mcmeta"));
-        extractInPackIfNotExists(plugin, new File(packFolder, "pack.png"));
+        extractInPackIfNotExists(new File(packFolder, "pack.mcmeta"));
+        extractInPackIfNotExists(new File(packFolder, "pack.png"));
 
         // Sorting items to keep only one with models (and generate it if needed)
         generatePredicates(extractTexturedItems());
@@ -161,7 +144,7 @@ public class ResourcePack {
 
         generateSound(output);
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(plugin, () -> {
+        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
             event.callEvent();
             ZipUtils.writeZipFile(pack, event.getOutput());
@@ -285,18 +268,21 @@ public class ResourcePack {
         return "assets/" + namespace + "/textures/" + texturePath;
     }
 
-    private void extractFolders(boolean extractModels, boolean extractTextures,
-                                boolean extractLang, boolean extractFonts, boolean extractSounds, boolean extractAssets, boolean extractOptifine) {
-        if (!extractModels && !extractTextures && !extractLang && !extractAssets && !extractOptifine && !extractFonts && !extractSounds)
-            return;
+    private void extractDefaultFolders() {
+        boolean assetsFolder = new File(packFolder, "assets").exists();
+        boolean modelsFolder = new File(packFolder, "models").exists();
+        boolean fontFolder = new File(packFolder, "font").exists();
+        boolean optifineFolder = new File(packFolder, "optifine").exists();
+        boolean langFolder = new File(packFolder, "lang").exists();
+        boolean textureFolder = new File(packFolder, "textures").exists();
+        boolean soundFolder = new File(packFolder, "sounds").exists();
 
         final ZipInputStream zip = ResourcesManager.browse();
         try {
             ZipEntry entry = zip.getNextEntry();
             final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
             while (entry != null) {
-                extract(entry, extractModels, extractTextures,
-                        extractLang, extractFonts, extractSounds, extractAssets, extractOptifine, resourcesManager);
+                extract(entry, resourcesManager);
                 entry = zip.getNextEntry();
             }
             zip.closeEntry();
@@ -324,18 +310,16 @@ public class ResourcePack {
         }
     }
 
-    private void extract(ZipEntry entry, boolean extractModels, boolean extractTextures,
-                         boolean extractLang, boolean extractFonts,
-                         boolean extractSounds, boolean extractAssets,
-                         boolean extractOptifine, ResourcesManager resourcesManager) {
+    private void extract(ZipEntry entry, ResourcesManager resourcesManager) {
         final String name = entry.getName();
-        final boolean isSuitable = (extractModels && name.startsWith("pack/models"))
-                || (extractTextures && name.startsWith("pack/textures"))
-                || (extractLang && name.startsWith("pack/lang"))
-                || (extractFonts && name.startsWith("pack/font"))
-                || (extractSounds && name.startsWith("pack/sounds"))
-                || (extractAssets && name.startsWith("/pack/assets"))
-                || (extractOptifine && name.startsWith("pack/optifine"));
+        boolean extractAssets = new File(packFolder, "assets").exists() && name.startsWith("pack/assets");
+        boolean extractModels = new File(packFolder, "models").exists() && name.startsWith("pack/models");
+        boolean extractTextures = new File(packFolder, "textures").exists() && name.startsWith("pack/textures");
+        boolean extractLang = new File(packFolder, "lang").exists() && name.startsWith("pack/lang");
+        boolean extractFonts = new File(packFolder, "font").exists() && name.startsWith("pack/font");
+        boolean extractSounds = new File(packFolder, "sounds").exists() && name.startsWith("pack/sounds");
+        boolean extractOptifine = new File(packFolder, "optifine").exists() && name.startsWith("pack/optifine");
+        final boolean isSuitable = (extractAssets || extractModels || extractTextures || extractLang || extractFonts || extractSounds || extractOptifine);
         resourcesManager.extractFileIfTrue(entry, isSuitable);
     }
 
@@ -387,12 +371,13 @@ public class ResourcePack {
         return pack;
     }
 
-    private void extractInPackIfNotExists(final JavaPlugin plugin, final File file) {
-        if (!file.exists()) plugin.saveResource("pack/" + file.getName(), true);
+    private void extractInPackIfNotExists(final File file) {
+        if (!file.exists()) OraxenPlugin.get().saveResource("pack/" + file.getName(), true);
     }
 
-    private void makeDirsIfNotExists(final File folder) {
-        if (!folder.exists()) folder.mkdirs();
+    private void makeDirsIfNotExists(final File... folders) {
+        for (final File folder : folders)
+            if (!folder.exists()) folder.mkdirs();
     }
 
     private void generatePredicates(final Map<Material, List<ItemBuilder>> texturedItems) {
@@ -600,7 +585,7 @@ public class ResourcePack {
         File globalLangFile = new File(packFolder, "lang/global.json");
         JsonObject globalLang = new JsonObject();
         String content = "";
-        if (!globalLangFile.exists()) plugin.saveResource("pack/lang/global.json", false);
+        if (!globalLangFile.exists()) OraxenPlugin.get().saveResource("pack/lang/global.json", false);
 
         try {
             content = Files.readString(globalLangFile.toPath(), StandardCharsets.UTF_8);

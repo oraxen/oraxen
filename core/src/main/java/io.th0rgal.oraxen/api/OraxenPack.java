@@ -42,10 +42,9 @@ public class OraxenPack {
     }
 
     public static void reloadPack() {
-        OraxenPlugin oraxen = OraxenPlugin.get();
-        oraxen.setFontManager(new FontManager(oraxen.getConfigsManager()));
-        oraxen.setSoundManager(new SoundManager(oraxen.getConfigsManager().getSound()));
-        oraxen.getResourcePack().generate();
-        oraxen.getUploadManager().uploadAsyncAndSendToPlayers(oraxen.getResourcePack(), true, true);
+        OraxenPlugin.get().setFontManager(new FontManager(OraxenPlugin.get().getConfigsManager()));
+        OraxenPlugin.get().setSoundManager(new SoundManager(OraxenPlugin.get().getConfigsManager().getSound()));
+        OraxenPlugin.get().getResourcePack().generate();
+        OraxenPlugin.get().getUploadManager().uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true, true);
     }
 }
