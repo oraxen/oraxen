@@ -50,6 +50,7 @@ Pack:
     excluded_file_extensions: []
     verify_pack_files: true # Checks all textures and models to make sure they abide by valid Resourcepack formatting
     fix_force_unicode_glyphs: true # Fixes glyphs not being shown when Force Unicode is enabled
+    texture_slicer: true # Slices default-texture overrides into new 1.20.2 format
     atlas:
       exclude_malformed_from_atlas: true # If a texture is malformed, it will not be included in the atlas
       generate: true

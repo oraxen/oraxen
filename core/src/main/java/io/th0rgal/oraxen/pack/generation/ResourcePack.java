@@ -83,6 +83,7 @@ public class ResourcePack {
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardHideNumbers();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) generateScoreboardHideBackground();
         if (Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) CustomArmorsTextures.generateArmorShaderFiles();
+        if (Settings.TEXTURE_SLICER.toBool()) PackSlicer.slicePackFiles();
 
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
             for (Consumer<File> packModifier : packModifiers)
@@ -368,6 +369,10 @@ public class ResourcePack {
 
     public File getFile() {
         return pack;
+    }
+
+    public File getPackFolder() {
+        return packFolder;
     }
 
     private void extractInPackIfNotExists(final File file) {
