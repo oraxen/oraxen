@@ -44,11 +44,7 @@ public class BedrockBreakMechanicManager {
                 if (mechanic.bernouilliTest())
                     world.dropItemNaturally(loc, new ItemStack(Material.BEDROCK));
 
-                world.playSound(loc, Sound.ENTITY_WITHER_BREAK_BLOCK, 1F, 0.05F);
-                world.spawnParticle(Particle.BLOCK_CRACK,
-                        loc, 25, 0.5D, 0.5D, 0.5D,
-                        block.getBlockData());
-                block.breakNaturally();
+                block.breakNaturally(true);
             }
 
             @Override

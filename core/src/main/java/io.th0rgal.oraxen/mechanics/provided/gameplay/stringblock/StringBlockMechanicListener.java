@@ -244,9 +244,9 @@ public class StringBlockMechanicListener implements Listener {
             if (face == BlockFace.SELF && !face.isCartesian()) continue;
             if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
             if (block.getRelative(face).getType() == Material.TRIPWIRE) {
-                if (player.getGameMode() != GameMode.CREATIVE) block.breakNaturally(player.getInventory().getItemInMainHand());
+                if (player.getGameMode() != GameMode.CREATIVE) block.breakNaturally(player.getInventory().getItemInMainHand(), true);
                 else block.setType(Material.AIR);
-                if (BlockHelpers.isReplaceable(blockAbove.getType())) blockAbove.breakNaturally();
+                if (BlockHelpers.isReplaceable(blockAbove.getType())) blockAbove.breakNaturally(true);
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
                         fixClientsideUpdate(block.getLocation()), 1);
             }

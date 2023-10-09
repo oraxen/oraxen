@@ -66,12 +66,10 @@ public class BigMiningMechanicListener implements Listener {
             return;
         blocksToProcess += 1; // to avoid this method to call itself <- need other way to handle players using
         // the same tool at the same time
-        final BlockBreakEvent blockBreakEvent = new BlockBreakEvent(block, player);
-        if (factory.callEvents() && new BlockBreakEvent(block, player).callEvent()) {
-            if (blockBreakEvent.isDropItems())
-                block.breakNaturally(itemStack);
-            else block.setType(Material.AIR);
-        }
+        final BlockBreakEvent event = new BlockBreakEvent(block, player);
+        if (!factory.callEvents() || !event.callEvent()) return;
+        if (event.isDropItems()) block.breakNaturally(itemStack, true);
+        else block.setType(Material.AIR);
     }
 
     /*
