@@ -39,11 +39,11 @@ import java.util.zip.ZipInputStream;
 
 public class ResourcePack {
 
-    private Map<String, Collection<Consumer<File>>> packModifiers;
+    private final Map<String, Collection<Consumer<File>>> packModifiers;
     private static Map<String, VirtualFile> outputFiles;
     private CustomArmorsTextures customArmorsTextures;
-    private static File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
-    private File pack = new File(packFolder, packFolder.getName() + ".zip");
+    private static final File packFolder = new File(OraxenPlugin.get().getDataFolder(), "pack");
+    private final File pack = new File(packFolder, packFolder.getName() + ".zip");
 
     public ResourcePack() {
         // we use maps to avoid duplicate

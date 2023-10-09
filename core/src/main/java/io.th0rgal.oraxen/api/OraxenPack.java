@@ -45,6 +45,5 @@ public class OraxenPack {
         OraxenPlugin.get().setFontManager(new FontManager(OraxenPlugin.get().getConfigsManager()));
         OraxenPlugin.get().setSoundManager(new SoundManager(OraxenPlugin.get().getConfigsManager().getSound()));
         OraxenPlugin.get().getResourcePack().generate();
-        OraxenPlugin.get().getUploadManager().uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true, true);
     }
 }
