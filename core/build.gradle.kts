@@ -95,9 +95,9 @@ class PublishData(private val project: Project) {
     fun getRepository(): String = type.repo
 
     enum class Type(private val append: String, val repo: String, private val addCommit: Boolean) {
-        RELEASE("", "http://5.135.152.216:8081/releases/", false),
-        DEV("-DEV", "http://5.135.152.216:8081/development/", true),
-        SNAPSHOT("-SNAPSHOT", "http://5.135.152.216:8081/snapshots/", true);
+        RELEASE("", "http://repo.oraxen.com:8080/releases/", false),
+        DEV("-DEV", "http://repo.oraxen.com:8080/development/", true),
+        SNAPSHOT("-SNAPSHOT", "http://repo.oraxen.com:8080/snapshots/", true);
 
         fun append(name: String, appendCommit: Boolean, commitHash: String): String =
             name.plus(append).plus(if (appendCommit && addCommit) "-".plus(commitHash) else "")
