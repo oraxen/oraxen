@@ -26,7 +26,7 @@ public class OraxenItems {
     public static final NamespacedKey ITEM_ID = new NamespacedKey(OraxenPlugin.get(), "id");
     // configuration sections : their OraxenItem wrapper
     private static Map<File, Map<String, ItemBuilder>> map;
-    private static String[] items;
+    private static Set<String> items;
 
     public static void loadItems() {
         ItemParser.MODEL_DATAS_BY_ID.clear();
@@ -35,10 +35,9 @@ public class OraxenItems {
         OraxenPlugin.get().getConfigsManager().parseAllItemTemplates();
         DuplicationHandler.convertOldMigrateItemConfig();
         map = OraxenPlugin.get().getConfigsManager().parseItemConfig();
-        final List<String> itemsList = new ArrayList<>();
+        items = new HashSet<>();
         for (final Map<String, ItemBuilder> subMap : map.values())
-            itemsList.addAll(subMap.keySet());
-        items = itemsList.toArray(new String[0]);
+            items.addAll(subMap.keySet());
     }
 
     public static String getIdByItem(final ItemBuilder item) {
@@ -51,11 +50,11 @@ public class OraxenItems {
     }
 
     public static boolean exists(final String itemId) {
-        return entryStream().anyMatch(entry -> entry.getKey().equals(itemId));
+        return items.contains(itemId);
     }
 
     public static boolean exists(final ItemStack itemStack) {
-        return entryStream().anyMatch(entry -> entry.getKey().equals(OraxenItems.getIdByItem(itemStack)));
+        return items.contains(OraxenItems.getIdByItem(itemStack));
     }
 
     public static Optional<ItemBuilder> getOptionalItemById(final String id) {
@@ -142,7 +141,7 @@ public class OraxenItems {
     }
 
     public static String[] getItemNames() {
-        return Arrays.stream(items).filter(item -> {
+        return items.stream().filter(item -> {
             ItemBuilder builder = OraxenItems.getItemById(item);
             return builder != null && builder.hasOraxenMeta() && !builder.getOraxenMeta().isExcludedFromCommands();
         }).toArray(String[]::new);
