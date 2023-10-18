@@ -246,7 +246,7 @@ public class FontEvents implements Listener {
 
         @EventHandler(priority = EventPriority.LOWEST)
         public void onPlayerChat(AsyncChatDecorateEvent event) {
-            if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
+            if (!Settings.FORMAT_CHAT.toBool()) return;
 
             Component result = format(event.originalMessage(), event.player());
             event.result(result != null ? result : Component.empty());
@@ -254,7 +254,7 @@ public class FontEvents implements Listener {
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
         public void onPlayerChat2(AsyncChatDecorateEvent event) {
-            if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
+            if (!Settings.FORMAT_CHAT.toBool()) return;
 
             Component result = format(event.result(), null);
             event.result(result != null ? result : Component.empty());
@@ -264,7 +264,7 @@ public class FontEvents implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onPlayerChat(AsyncChatEvent event) {
-        if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs() || !VersionUtil.isPaperServer()) return;
+        if (!Settings.FORMAT_CHAT.toBool() || !VersionUtil.isPaperServer()) return;
         // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
         Component message = VersionUtil.isSupportedVersionOrNewer("1.19.1") ? event.message() : format(event.message(), event.getPlayer());
         message = message != null ? message : Component.empty();
@@ -276,7 +276,7 @@ public class FontEvents implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onPlayerChat2(AsyncChatEvent event) {
-        if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs() || !VersionUtil.isPaperServer()) return;
+        if (!Settings.FORMAT_CHAT.toBool() || !VersionUtil.isPaperServer()) return;
         // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
         Component message = VersionUtil.isSupportedVersionOrNewer("1.19.1") ? event.message() : format(event.originalMessage(), event.getPlayer());
         message = message != null ? message : Component.empty();

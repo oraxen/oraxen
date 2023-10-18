@@ -22,6 +22,7 @@ import net.minecraft.nbt.*;
 import net.minecraft.network.*;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerConnectionListener;
@@ -47,6 +48,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -398,7 +400,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         private Player player;
 
         @Override
-        protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) {
+        protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws IOException {
+            final ByteBuf bufCopy = msg.copy();
             if (msg.readableBytes() == 0) return;
 
             Attribute<ConnectionProtocol.CodecData<?>> attribute = ctx.channel().attr(Connection.ATTRIBUTE_SERVERBOUND_PROTOCOL);
@@ -408,14 +411,17 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             Packet<?> packet = codecData.createPacket(packetID, dataSerializer);
 
             if (packet == null) {
-                Logs.logError("Bad packet id " + packetID);
-            } else {
-                if (dataSerializer.readableBytes() > 0) {
-                    Logs.logError("Packet " + packetID + " (" + packet.getClass().getSimpleName() + ") was larger than I expected, found " + dataSerializer.readableBytes() + " bytes extra whilst reading packet " + packetID);
-                }
-                out.add(packet);
-                ProtocolSwapHandler.swapProtocolIfNeeded(attribute, packet);
+                throw new IOException("Bad packet id " + packetID);
             }
+
+            if (dataSerializer.readableBytes() > 0) {
+                throw new IOException("Packet " + packetID + " " + packet + " was larger than expected, found " + dataSerializer.readableBytes() + " bytes extra whiløst reading the packet " + packetID);
+            } else if (packet instanceof ClientboundPlayerChatPacket) {
+                FriendlyByteBuf serializer = new FriendlyByteBuf(bufCopy);
+                serializer.readVarInt();
+                packet = codecData.createPacket(packetID, serializer);
+            }
+            out.add(packet);
         }
 
         protected void setPlayer(Player player) {
