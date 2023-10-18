@@ -268,14 +268,6 @@ public class ResourcePack {
     }
 
     private void extractDefaultFolders() {
-        boolean assetsFolder = new File(packFolder, "assets").exists();
-        boolean modelsFolder = new File(packFolder, "models").exists();
-        boolean fontFolder = new File(packFolder, "font").exists();
-        boolean optifineFolder = new File(packFolder, "optifine").exists();
-        boolean langFolder = new File(packFolder, "lang").exists();
-        boolean textureFolder = new File(packFolder, "textures").exists();
-        boolean soundFolder = new File(packFolder, "sounds").exists();
-
         final ZipInputStream zip = ResourcesManager.browse();
         try {
             ZipEntry entry = zip.getNextEntry();

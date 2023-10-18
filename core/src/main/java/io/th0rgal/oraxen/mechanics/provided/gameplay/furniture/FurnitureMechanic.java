@@ -512,7 +512,7 @@ public class FurnitureMechanic extends Mechanic {
         ModeledEntity modelEntity = ModelEngineAPI.getOrCreateModeledEntity(entity);
         ActiveModel activeModel = ModelEngineAPI.createActiveModel(getModelEngineID());
         ModelEngineUtils.addModel(modelEntity, activeModel, false);
-        ModelEngineUtils.setRotationLock(modelEntity, true);
+        ModelEngineUtils.setRotationLock(modelEntity, false);
         modelEntity.setBaseEntityVisible(false);
     }
 
