@@ -303,13 +303,13 @@ public class ResourcePack {
 
     private void extract(ZipEntry entry, ResourcesManager resourcesManager) {
         final String name = entry.getName();
-        boolean extractAssets = new File(packFolder, "assets").exists() && name.startsWith("pack/assets");
-        boolean extractModels = new File(packFolder, "models").exists() && name.startsWith("pack/models");
-        boolean extractTextures = new File(packFolder, "textures").exists() && name.startsWith("pack/textures");
-        boolean extractLang = new File(packFolder, "lang").exists() && name.startsWith("pack/lang");
-        boolean extractFonts = new File(packFolder, "font").exists() && name.startsWith("pack/font");
-        boolean extractSounds = new File(packFolder, "sounds").exists() && name.startsWith("pack/sounds");
-        boolean extractOptifine = new File(packFolder, "optifine").exists() && name.startsWith("pack/optifine");
+        boolean extractAssets = !new File(packFolder, "assets").exists() && name.startsWith("pack/assets");
+        boolean extractModels = !new File(packFolder, "models").exists() && name.startsWith("pack/models");
+        boolean extractTextures = !new File(packFolder, "textures").exists() && name.startsWith("pack/textures");
+        boolean extractLang = !new File(packFolder, "lang").exists() && name.startsWith("pack/lang");
+        boolean extractFonts = !new File(packFolder, "font").exists() && name.startsWith("pack/font");
+        boolean extractSounds = !new File(packFolder, "sounds").exists() && name.startsWith("pack/sounds");
+        boolean extractOptifine = !new File(packFolder, "optifine").exists() && name.startsWith("pack/optifine");
         final boolean isSuitable = (extractAssets || extractModels || extractTextures || extractLang || extractFonts || extractSounds || extractOptifine);
         resourcesManager.extractFileIfTrue(entry, isSuitable);
     }
