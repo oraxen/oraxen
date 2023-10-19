@@ -498,14 +498,13 @@ public class ItemBuilder {
             final ItemStack clone = built.clone();
             clone.setAmount(max);
             if (unstackable) handleUnstackable(clone);
-            ItemUpdater.updateItem(clone);
-            output[index] = clone;
+            output[index] = ItemUpdater.updateItem(clone);
         }
         if (rest != 0) {
             ItemStack clone = built.clone();
             clone.setAmount(rest);
             if (unstackable) handleUnstackable(clone);
-            output[iterations] = clone;
+            output[iterations] = ItemUpdater.updateItem(clone);
         }
         return output;
     }
