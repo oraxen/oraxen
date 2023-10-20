@@ -354,12 +354,21 @@ public class FurnitureMechanic extends Mechanic {
         } else item = placedItem;
         item.setAmount(1);
 
-        Entity baseEntity = EntityUtils.spawnEntity(BlockHelpers.toCenterBlockLocation(location), entityClass, (e) -> setEntityData(e, yaw, item, facing));
+        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location), entityClass, (e) -> setEntityData(e, yaw, item, facing));
         if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }
 
         return baseEntity;
+    }
+
+    //TODO Account for limitedPlacing differences
+    private Location correctedSpawnLocation(Location baseLocation) {
+        Location correctedLocation = BlockHelpers.toCenterBlockLocation(baseLocation);
+        if (furnitureType != FurnitureType.DISPLAY_ENTITY || !hasDisplayEntityProperties()) return correctedLocation;
+        if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE) return correctedLocation;
+        float scale = displayEntityProperties.hasScale() ? displayEntityProperties.getScale().y() : 1;
+        return correctedLocation.add(0, 0.5 * scale, 0);
     }
 
     private void setEntityData(Entity entity, float yaw, ItemStack item, BlockFace facing) {
@@ -465,13 +474,6 @@ public class FurnitureMechanic extends Mechanic {
             pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
             alterYaw = yaw - 180;
         }
-        //TODO isWall will be put of the wall slightly. Fixing this is annoying as it is direction relative
-        Location fixedLocation = !isFixed || !hasLimitedPlacing() || limitedPlacing.isWall()
-                ? BlockHelpers.toCenterLocation(itemDisplay.getLocation())
-                // Add .9 to raise the item up due to pitch change
-                : limitedPlacing.isRoof() ? BlockHelpers.toCenterBlockLocation(itemDisplay.getLocation()).add(0, 0.9, 0)
-                : BlockHelpers.toCenterBlockLocation(itemDisplay.getLocation());
-        EntityUtils.teleport(fixedLocation, itemDisplay);
         itemDisplay.setTransformation(transform);
         itemDisplay.setRotation(alterYaw, pitch);
     }
