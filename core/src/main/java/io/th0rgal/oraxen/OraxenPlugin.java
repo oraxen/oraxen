@@ -22,8 +22,8 @@ import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.nms.NMSHandlers;
-import io.th0rgal.oraxen.pack.OraxenPackGenerator;
-import io.th0rgal.oraxen.pack.OraxenPackServer;
+import io.th0rgal.oraxen.pack.PackGenerator;
+import io.th0rgal.oraxen.pack.PackServer;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -62,8 +62,8 @@ public class OraxenPlugin extends JavaPlugin {
     private SoundManager soundManager;
     private InvManager invManager;
     private ResourcePack resourcePack;
-    private OraxenPackGenerator packGenerator;
-    private OraxenPackServer packServer;
+    private PackGenerator packGenerator;
+    private PackServer packServer;
     private ClickActionManager clickActionManager;
     private ProtocolManager protocolManager;
     public static boolean supportsDisplayEntities;
@@ -129,9 +129,9 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
         pluginManager.registerEvents(new ItemUpdater(), this);
         //resourcePack.generate();
-        packGenerator = new OraxenPackGenerator();
+        packGenerator = new PackGenerator();
         packGenerator.generatePack();
-        packServer = new OraxenPackServer();
+        packServer = new PackServer();
         packServer.start();
         RecipesManager.load(this);
         invManager = new InvManager();
@@ -231,7 +231,7 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     public ResourcePack getResourcePack() {
-        if (resourcePack == null) new OraxenPackGenerator().generatePack();
+        if (resourcePack == null) new PackGenerator().generatePack();
         return resourcePack;
     }
 
@@ -239,11 +239,11 @@ public class OraxenPlugin extends JavaPlugin {
         this.resourcePack = resourcePack;
     }
 
-    public OraxenPackGenerator getPackGenerator() {
+    public PackGenerator getPackGenerator() {
         return packGenerator;
     }
 
-    public OraxenPackServer getPackServer() {
+    public PackServer getPackServer() {
         return packServer;
     }
 

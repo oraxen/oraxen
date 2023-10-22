@@ -10,12 +10,12 @@ import team.unnamed.creative.server.ResourcePackServer;
 
 import java.io.IOException;
 
-public class OraxenPackServer {
+public class PackServer {
     private static ResourcePackServer packServer;
     private final String ip = "127.0.0.1";
     private final int port = 8080;
 
-    public OraxenPackServer() {
+    public PackServer() {
 
 
         try {
