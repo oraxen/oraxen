@@ -18,8 +18,10 @@ public class OraxenPackGenerator {
     }
 
     public void generatePack() {
-        MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().getDataFolder().toPath().resolve("pack").toFile());
-        //MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().getDataFolder().toPath().resolve("pack.zip").toFile(), resourcePack);
+        MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile());
+        resourcePack.unknownFiles().remove("token.secret");
+        resourcePack.unknownFiles().remove("DefaultPack.zip");
+        MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().packPath().resolve("pack.zip").toFile(), resourcePack);
         builtPack = MinecraftResourcePackWriter.minecraft().build(resourcePack);
     }
 
