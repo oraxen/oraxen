@@ -13,14 +13,14 @@ public class OraxenPackGenerator {
 
     public OraxenPackGenerator() {
         OraxenPackDownloader.downloadPack();
-        resourcePack = ResourcePack.resourcePack();
+        resourcePack = MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile());
         OraxenPlugin.get().setResourcePack(resourcePack);
     }
 
     public void generatePack() {
-        MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile());
         resourcePack.unknownFiles().remove("token.secret");
         resourcePack.unknownFiles().remove("DefaultPack.zip");
+        resourcePack.unknownFiles().remove("pack.zip");
         MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().packPath().resolve("pack.zip").toFile(), resourcePack);
         builtPack = MinecraftResourcePackWriter.minecraft().build(resourcePack);
     }
