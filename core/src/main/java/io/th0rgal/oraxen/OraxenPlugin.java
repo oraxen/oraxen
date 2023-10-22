@@ -126,15 +126,15 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager.registerTask();
         hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
         pluginManager.registerEvents(new ItemUpdater(), this);
-        //resourcePack.generate();
-        packGenerator = new PackGenerator();
-        packGenerator.generatePack();
-        packServer = new PackServer();
-        packServer.start();
         RecipesManager.load(this);
         invManager = new InvManager();
         ArmorEquipEvent.registerListener(this);
         new CommandsManager().loadCommands();
+
+        packGenerator = new PackGenerator();
+        packGenerator.generatePack();
+        packServer = new PackServer();
+        packServer.start();
         postLoading();
         try {
             Message.PLUGIN_LOADED.log(AdventureUtils.tagResolver("os", OS.getOs().getPlatformName()));
