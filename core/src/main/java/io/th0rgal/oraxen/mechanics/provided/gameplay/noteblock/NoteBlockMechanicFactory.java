@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
-import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -11,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStrip
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
 import org.apache.commons.lang3.Range;
 import org.bukkit.Bukkit;
 import org.bukkit.Instrument;
@@ -19,6 +19,9 @@ import org.bukkit.Note;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
+import team.unnamed.creative.blockstate.BlockState;
+import team.unnamed.creative.blockstate.MultiVariant;
+import team.unnamed.creative.blockstate.Variant;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,7 +31,7 @@ import java.util.Objects;
 public class NoteBlockMechanicFactory extends MechanicFactory {
 
     public static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
-    private static JsonObject variants;
+    private final Map<String, MultiVariant> variants = new HashMap<>();
     private static NoteBlockMechanicFactory instance;
     public final List<String> toolTypes;
     private boolean farmBlock;
@@ -39,8 +42,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public NoteBlockMechanicFactory(ConfigurationSection section) {
         super(section);
         instance = this;
-        variants = new JsonObject();
-        variants.add("instrument=harp,powered=false", getModelJson("block/note_block"));
+        variants.put("instrument=harp,powered=false", getModelJson("block/note_block"));
         toolTypes = section.getStringList("tool_types");
         farmBlockCheckDelay = section.getInt("farmblock_check_delay");
         farmBlock = false;
@@ -48,10 +50,12 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
-        OraxenPlugin.get().getResourcePack().addModifiers(getMechanicID(), packFolder ->
-                OraxenPlugin.get().getResourcePack().writeStringToVirtual(
-                        "assets/minecraft/blockstates", "note_block.json", getBlockstateContent())
-        );
+        BlockState noteState = OraxenPlugin.get().getResourcePack().blockState(Key.key("minecraft:note_block"));
+        if (noteState != null) {
+            noteState.variants().putAll(variants);
+        } else noteState = getBlockState();
+
+        OraxenPlugin.get().getResourcePack().blockState(noteState);
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new NoteBlockMechanicListener(),
                 new LogStripListener()
@@ -93,45 +97,44 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         };
     }
 
-    public static JsonObject getModelJson(String modelName) {
-        JsonObject content = new JsonObject();
-        content.addProperty("model", modelName);
-
-        return content;
+    public static MultiVariant getModelJson(String modelName) {
+        modelName = modelName.startsWith("minecraft:") ? modelName : "minecraft:" + modelName;
+        return MultiVariant.of(Variant.builder().model(Key.key(modelName)).build());
     }
 
-    public static JsonObject getDirectionalModelJson(String modelName, NoteBlockMechanic mechanic, NoteBlockMechanic parentMechanic) {
+    public static MultiVariant getDirectionalModelJson(String modelName, NoteBlockMechanic mechanic, NoteBlockMechanic parentMechanic) {
         String itemId = mechanic.getItemID();
-        JsonObject content = new JsonObject();
         DirectionalBlock parent = parentMechanic.getDirectional();
+        Variant.Builder variantBuilder = Variant.builder();
         String subBlockModel = mechanic.getDirectional().getDirectionalModel(mechanic);
-        content.addProperty("model", subBlockModel != null ? subBlockModel : modelName);
+        subBlockModel = subBlockModel != null ? subBlockModel : modelName;
+        subBlockModel = subBlockModel.startsWith("minecraft:") ? subBlockModel : "minecraft:" + subBlockModel;
+        variantBuilder.model(Key.key(subBlockModel));
         // If subModel is specified and is different from parent we don't want to rotate it
-        if (subBlockModel != null && !Objects.equals(subBlockModel, modelName)) return content;
+        if (!Objects.equals(subBlockModel, modelName)) return MultiVariant.of(variantBuilder.build());
 
-        if (Objects.equals(parent.getYBlock(), itemId))
-            return content;
+        if (Objects.equals(parent.getYBlock(), itemId)) return MultiVariant.of(variantBuilder.build());
         else if (Objects.equals(parent.getXBlock(), itemId)) {
-            content.addProperty("x", 90);
-            content.addProperty("z", 90);
+            variantBuilder.x(90);
+            //content.addProperty("z", 90);
         } else if (Objects.equals(parent.getZBlock(), itemId)) {
-            content.addProperty("y", 90);
-            content.addProperty("x", 90);
+            variantBuilder.x(90);
+            variantBuilder.y(90);
         } else if (Objects.equals(parent.getNorthBlock(), itemId))
-            return content;
+            return MultiVariant.of(variantBuilder.build());
         else if (Objects.equals(parent.getEastBlock(), itemId)) {
-            content.addProperty("y", 90);
+            variantBuilder.y(90);
         } else if (Objects.equals(parent.getSouthBlock(), itemId))
-            content.addProperty("y", 180);
+            variantBuilder.y(180);
         else if (Objects.equals(parent.getWestBlock(), itemId)) {
-            content.addProperty("z", 90);
-            content.addProperty("y", 270);
+            //content.addProperty("z", 90);
+            variantBuilder.y(270);
         } else if (Objects.equals(parent.getUpBlock(), itemId))
-            content.addProperty("y", 270);
+            variantBuilder.y(270);
         else if (Objects.equals(parent.getDownBlock(), itemId))
-            content.addProperty("x", 180);
+            variantBuilder.x(180);
 
-        return content;
+        return MultiVariant.of(variantBuilder.build());
     }
 
     public static String getBlockstateVariantName(int id) {
@@ -168,10 +171,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         block.setBlockData(createNoteBlockData(noteBlockMechanic.getCustomVariation()), false);
     }
 
-    private String getBlockstateContent() {
-        JsonObject noteblock = new JsonObject();
-        noteblock.add("variants", variants);
-        return noteblock.toString();
+    private BlockState getBlockState() {
+        return BlockState.of(Key.key("minecraft:note_block"), variants);
     }
 
     @Override
@@ -188,10 +189,10 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         if (mechanic.isDirectional() && !directional.isParentBlock()) {
             NoteBlockMechanic parentMechanic = directional.getParentMechanic();
             modelName = (parentMechanic.getModel(itemMechanicConfiguration.getParent().getParent()));
-            variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
+            variants.put(getBlockstateVariantName(mechanic.getCustomVariation()),
                     getDirectionalModelJson(modelName, mechanic, parentMechanic));
         } else {
-            variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
+            variants.put(getBlockstateVariantName(mechanic.getCustomVariation()),
                     getModelJson(modelName));
         }
 

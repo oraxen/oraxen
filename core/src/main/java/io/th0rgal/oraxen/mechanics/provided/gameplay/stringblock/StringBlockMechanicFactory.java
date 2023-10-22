@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
-import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -11,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.Sapling
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
 import org.apache.commons.lang3.Range;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
@@ -19,6 +19,9 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.configuration.ConfigurationSection;
+import team.unnamed.creative.blockstate.BlockState;
+import team.unnamed.creative.blockstate.MultiVariant;
+import team.unnamed.creative.blockstate.Variant;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -28,7 +31,7 @@ import java.util.Map;
 public class StringBlockMechanicFactory extends MechanicFactory {
 
     public static final Map<Integer, StringBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
-    private static JsonObject variants;
+    private final Map<String, MultiVariant> variants = new HashMap<>();
     private static StringBlockMechanicFactory instance;
     public final List<String> toolTypes;
     private boolean sapling;
@@ -40,8 +43,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     public StringBlockMechanicFactory(ConfigurationSection section) {
         super(section);
         instance = this;
-        variants = new JsonObject();
-        variants.add("east=false,west=false,south=false,north=false,attached=false,disarmed=false,powered=false", getModelJson("block/barrier"));
+        variants.put("east=false,west=false,south=false,north=false,attached=false,disarmed=false,powered=false", getModelJson("block/barrier"));
         toolTypes = section.getStringList("tool_types");
         saplingGrowthCheckDelay = section.getInt("sapling_growth_check_delay");
         sapling = false;
@@ -50,12 +52,10 @@ public class StringBlockMechanicFactory extends MechanicFactory {
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
-        OraxenPlugin.get().getResourcePack().addModifiers(getMechanicID(),
-                packFolder ->
-                        OraxenPlugin.get().getResourcePack()
-                                .writeStringToVirtual("assets/minecraft/blockstates",
-                                        "tripwire.json", getBlockstateContent())
-        );
+        BlockState tripwireState = OraxenPlugin.get().getResourcePack().blockState(Key.key("minecraft:tripwire"));
+        tripwireState = tripwireState != null ? tripwireState : BlockState.of(Key.key("minecraft:tripwire"), variants);
+        OraxenPlugin.get().getResourcePack().blockState(tripwireState);
+
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener(this), new SaplingListener());
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockSoundListener());
         if (VersionUtil.isPaperServer()) {
@@ -72,10 +72,9 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         }
     }
 
-    public static JsonObject getModelJson(String modelName) {
-        JsonObject content = new JsonObject();
-        content.addProperty("model", modelName);
-        return content;
+    public static MultiVariant getModelJson(String modelName) {
+        modelName = modelName.startsWith("minecraft:") ? modelName : "minecraft:" + modelName;
+        return MultiVariant.of(Variant.builder().model(Key.key(modelName)).build());
     }
 
     public static String getBlockstateVariantName(int id) {
@@ -113,22 +112,15 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         block.setBlockData(createTripwireData(stringBlockMechanic.getCustomVariation()), false);
     }
 
-    private String getBlockstateContent() {
-        JsonObject tripwire = new JsonObject();
-        tripwire.add("variants", variants);
-        return tripwire.toString();
-    }
-
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        StringBlockMechanic mechanic = new StringBlockMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        StringBlockMechanic mechanic = new StringBlockMechanic(this, section);
         if (!Range.between(1, 127).contains(mechanic.getCustomVariation())) {
             Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and 127!");
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
         }
-        variants.add(getBlockstateVariantName(mechanic.getCustomVariation()),
-                getModelJson(mechanic.getModel(itemMechanicConfiguration.getParent()
-                        .getParent())));
+        variants.put(getBlockstateVariantName(mechanic.getCustomVariation()),
+                getModelJson(mechanic.getModel(section.getParent().getParent())));
         BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;

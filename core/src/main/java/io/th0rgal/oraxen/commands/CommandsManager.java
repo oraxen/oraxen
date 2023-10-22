@@ -41,7 +41,8 @@ public class CommandsManager {
                         (new LogDumpCommand().getLogDumpCommand()),
                         (new GestureCommand().getGestureCommand()),
                         (new VersionCommand()).getVersionCommand(),
-                        (new AdminCommands()).getAdminCommand())
+                        (new AdminCommands()).getAdminCommand(),
+                        (new NewPackCommand()).getNewPackCommand())
                 .executes((sender, args) -> {
                     Message.COMMAND_HELP.send(sender);
                 })
