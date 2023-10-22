@@ -12,13 +12,18 @@ public class OraxenPackGenerator {
     BuiltResourcePack builtPack;
 
     public OraxenPackGenerator() {
+        OraxenPackDownloader.downloadPack();
         resourcePack = ResourcePack.resourcePack();
         OraxenPlugin.get().setResourcePack(resourcePack);
     }
 
     public void generatePack() {
         MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().getDataFolder().toPath().resolve("pack").toFile());
-        MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().getDataFolder().toPath().resolve("pack.zip").toFile(), resourcePack);
+        //MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().getDataFolder().toPath().resolve("pack.zip").toFile(), resourcePack);
         builtPack = MinecraftResourcePackWriter.minecraft().build(resourcePack);
+    }
+
+    public BuiltResourcePack getBuiltPack() {
+        return builtPack;
     }
 }

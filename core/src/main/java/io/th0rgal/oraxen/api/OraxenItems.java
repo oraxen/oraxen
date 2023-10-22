@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.bukkit.Material;
@@ -33,7 +32,6 @@ public class OraxenItems {
         ModelData.DATAS.clear();
         OraxenPlugin.get().getConfigsManager().assignAllUsedModelDatas();
         OraxenPlugin.get().getConfigsManager().parseAllItemTemplates();
-        DuplicationHandler.convertOldMigrateItemConfig();
         map = OraxenPlugin.get().getConfigsManager().parseItemConfig();
         items = new HashSet<>();
         for (final Map<String, ItemBuilder> subMap : map.values())

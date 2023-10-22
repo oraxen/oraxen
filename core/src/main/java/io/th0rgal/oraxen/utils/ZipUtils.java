@@ -1,59 +1,57 @@
 package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
+import io.th0rgal.oraxen.OraxenPlugin;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.attribute.FileTime;
-import java.util.List;
-import java.util.zip.Deflater;
+import java.nio.file.Path;
 import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
+import java.util.zip.ZipInputStream;
 
 public class ZipUtils {
 
-    private ZipUtils() {
-    }
-
-    public static void writeZipFile(final File outputFile,
-                                    final List<VirtualFile> fileList) {
-
-        try (final FileOutputStream fos = new FileOutputStream(outputFile);
-             final ZipOutputStream zos = new ZipOutputStream(fos, StandardCharsets.UTF_8)) {
-            final int compressionLevel = Deflater.class.getDeclaredField(Settings.COMPRESSION.toString()).getInt(null);
-            zos.setLevel(compressionLevel);
-            zos.setComment(Settings.COMMENT.toString());
-            for (final VirtualFile file : fileList) {
-                addToZip(file.getPath(), file.getInputStream(), zos);
+    public static void extractDefaultZipPack() {
+        Path destDirectory = OraxenPlugin.get().getDataFolder().toPath().resolve("pack");
+        String zipFilePath = OraxenPlugin.get().getDataFolder().toPath().resolve("pack/DefaultPack.zip").toString();
+        try {
+            File destDir = destDirectory.toFile();
+            // Create destination directory if it doesn't exist
+            if (!destDir.exists()) {
+                destDir.mkdirs();
             }
 
-        } catch (final IOException | NoSuchFieldException | IllegalAccessException ex) {
-            ex.printStackTrace();
-        }
-    }
+            byte[] buffer = new byte[1024];
+            ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFilePath));
+            ZipEntry entry = zipInputStream.getNextEntry();
 
-    public static void addToZip(String zipFilePath, final InputStream fis, ZipOutputStream zos) throws IOException {
-        final ZipEntry zipEntry = new ZipEntry(zipFilePath);
-        zipEntry.setLastModifiedTime(FileTime.fromMillis(0L));
-        DuplicationHandler.checkForDuplicate(zos, zipEntry);
+            while (entry != null) {
+                String filePath = destDirectory + File.separator + entry.getName();
 
-        final byte[] bytes = new byte[1024];
-        int length;
-        try (fis) {
-            while ((length = fis.read(bytes)) >= 0)
-                zos.write(bytes, 0, length);
-        } catch (IOException ignored) {
-        } finally {
-            zos.closeEntry();
-            if (Settings.PROTECTION.toBool()) {
-                zipEntry.setCrc(bytes.length);
-                zipEntry.setSize(new BigInteger(bytes).mod(BigInteger.valueOf(Long.MAX_VALUE)).longValue());
+                // If the entry is a directory, create the directory
+                if (entry.isDirectory()) {
+                    File dir = new File(filePath);
+                    dir.mkdirs();
+                } else {
+                    // If the entry is a file, extract it
+                    FileOutputStream fos = new FileOutputStream(filePath);
+                    int len;
+                    while ((len = zipInputStream.read(buffer)) > 0) {
+                        fos.write(buffer, 0, len);
+                    }
+                    fos.close();
+                }
+                zipInputStream.closeEntry();
+                entry = zipInputStream.getNextEntry();
             }
+
+            zipInputStream.close();
+            System.out.println("ZIP folder extracted successfully.");
+
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Error extracting ZIP folder.");
         }
     }
 }
