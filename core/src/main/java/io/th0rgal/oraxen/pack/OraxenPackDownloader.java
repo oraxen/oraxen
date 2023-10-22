@@ -1,7 +1,10 @@
 package io.th0rgal.oraxen.pack;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.OraxenYaml;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.ZipUtils;
+import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.BufferedInputStream;
 import java.io.FileOutputStream;
@@ -15,10 +18,13 @@ import java.util.Base64;
 public class OraxenPackDownloader {
 
     public static void downloadPack() {
-        String fileUrl = "http://repo.oraxen.com:8080/private/OraxenPack.zip";
-        String username = "boy";
-        String password = "8d/RFJR5S0vA3wZQ3xQfsXipFMJWCkmNSnVYTwXsJ5ZgPfjeefWN6tuDVpZgQsLW";
-        Path zipPath = OraxenPlugin.get().getDataFolder().toPath().resolve("pack/DefaultPack.zip");
+        OraxenPlugin.get().saveResource("pack/token.secret", true);
+        if (VersionUtil.isCompiled() || VersionUtil.isLeaked()) return;
+        YamlConfiguration accessYaml = OraxenYaml.loadConfiguration(OraxenPlugin.get().packPath().resolve("token.secret").toFile());
+        String fileUrl = "http://repo.oraxen.com:8080/private/DefaultPack.zip";
+        String username = accessYaml.getString("username");
+        String password = accessYaml.getString("password");
+        Path zipPath = OraxenPlugin.get().packPath().resolve("DefaultPack.zip");
 
         try {
             URL url = new URL(fileUrl);

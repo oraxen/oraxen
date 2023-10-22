@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.logs.Logs;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -13,8 +14,11 @@ import java.util.zip.ZipInputStream;
 public class ZipUtils {
 
     public static void extractDefaultZipPack() {
-        Path destDirectory = OraxenPlugin.get().getDataFolder().toPath().resolve("pack");
-        String zipFilePath = OraxenPlugin.get().getDataFolder().toPath().resolve("pack/DefaultPack.zip").toString();
+        Path destDirectory = OraxenPlugin.get().packPath();
+        String zipFilePath = destDirectory.resolve("DefaultPack.zip").toString();
+        File[] assets = destDirectory.resolve("assets").toFile().listFiles();
+        if (assets != null && assets.length > 0) return;
+        Logs.logInfo("Extracting default assets...");
         try {
             File destDir = destDirectory.toFile();
             // Create destination directory if it doesn't exist
@@ -47,11 +51,9 @@ public class ZipUtils {
             }
 
             zipInputStream.close();
-            System.out.println("ZIP folder extracted successfully.");
 
         } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Error extracting ZIP folder.");
+            Logs.logWarning(e.getMessage());
         }
     }
 }

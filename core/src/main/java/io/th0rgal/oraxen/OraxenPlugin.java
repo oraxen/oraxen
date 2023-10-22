@@ -45,6 +45,7 @@ import org.jetbrains.annotations.Nullable;
 import team.unnamed.creative.ResourcePack;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.jar.JarFile;
 
 public class OraxenPlugin extends JavaPlugin {
@@ -89,6 +90,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+
         CommandAPI.onEnable();
         ProtectionLib.init(this);
         if (!VersionUtil.atOrAbove("1.20.3")) PlayerAnimatorImpl.initialize(this);
@@ -151,6 +153,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (packServer != null) packServer.stop();
         unregisterListeners();
         FurnitureFactory.unregisterEvolution();
         for (Player player : Bukkit.getOnlinePlayers())
@@ -168,8 +171,8 @@ public class OraxenPlugin extends JavaPlugin {
         HandlerList.unregisterAll(this);
     }
 
-    public ResourcesManager getResourceManager() {
-        return resourceManager;
+    public Path packPath() {
+        return getDataFolder().toPath().resolve("pack");
     }
 
     public ProtocolManager getProtocolManager() {
