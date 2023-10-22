@@ -24,13 +24,12 @@ public class LogDumpCommand {
         return new CommandAPICommand("dump_log")
                 .withPermission("oraxen.command.dumplog")
                 .executes((sender, args) -> {
-                    String packUrl = OraxenPlugin.get().getUploadManager().getHostingProvider().getPackURL();
                     String logfile;
 
                     try {
                         Logs.logError(OraxenPlugin.get().getDataFolder().getAbsoluteFile().getParentFile().getParentFile().toPath().resolve("logs/latest.log").toString());
                         Path path = OraxenPlugin.get().getDataFolder().getAbsoluteFile().getParentFile().getParentFile().toPath().resolve("logs/latest.log");
-                        logfile = Files.readString(path).replace(packUrl, "[REDACTED]");
+                        logfile = Files.readString(path);
                     } catch (Exception e) {
                         Logs.logError("Failed to read latest.log, is it missing?");
                         if (Settings.DEBUG.toBool()) e.printStackTrace();
