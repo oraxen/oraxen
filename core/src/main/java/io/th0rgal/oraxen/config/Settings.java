@@ -25,6 +25,7 @@ public enum Settings {
     FORMAT_SIGNS("Plugin.formatting.signs"),
     FORMAT_CHAT("Plugin.formatting.chat"),
     FORMAT_BOOKS("Plugin.formatting.books"),
+    NMS_BLOCK_CORRECTION("Plugin.experimental.nms.block_correction"),
 
     // WorldEdit
     WORLDEDIT_NOTEBLOCKS("WorldEdit.noteblock_mechanic"),
@@ -49,6 +50,10 @@ public enum Settings {
     SKIPPED_MODEL_DATA_NUMBERS("ConfigsTools.skipped_model_data_numbers"),
     ERROR_ITEM("ConfigsTools.error_item"),
 
+    SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list.only_show_emojis_with_permission"),
+    UNICODE_COMPLETIONS("Glyphs.unicode_completions"),
+    NMS_GLYPHS("Glyphs.nms_glyphs"),
+
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
     CUSTOM_ARMOR_SHADER_TYPE("CustomArmor.shader_type"),
     GESTURES_ENABLED("Gestures.enabled"),
@@ -72,10 +77,6 @@ public enum Settings {
     //Misc
     RESET_RECIPES("Misc.reset_recipes"),
     ADD_RECIPES_TO_BOOK("Misc.add_recipes_to_book"),
-    ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass"),
-    SHIELD_DISPLAY("Misc.shield_display"),
-    BOW_DISPLAY("Misc.bow_display"),
-    CROSSBOW_DISPLAY("Misc.crossbow_display"),
     HIDE_SCOREBOARD_NUMBERS("Misc.hide_scoreboard_numbers"),
     HIDE_SCOREBOARD_BACKGROUND("Misc.hide_scoreboard_background"),
 
@@ -84,10 +85,6 @@ public enum Settings {
     EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions"),
     FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs"),
     VERIFY_PACK_FILES("Pack.generation.verify_pack_files"),
-    GENERATE_ATLAS_FILE("Pack.generation.atlas.generate"),
-    TEXTURE_SLICER("Pack.generation.texture_slicer"),
-    EXCLUDE_MALFORMED_ATLAS("Pack.generation.atlas.exclude_malformed_from_atlas"),
-    ATLAS_GENERATION_TYPE("Pack.generation.atlas.type"),
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
     ARMOR_RESOLUTION("Pack.generation.armor_resolution"),
     ANIMATED_ARMOR_FRAMERATE("Pack.generation.animated_armor_framerate"),
@@ -97,16 +94,11 @@ public enum Settings {
     COMPRESSION("Pack.generation.compression"),
     PROTECTION("Pack.generation.protection"),
     COMMENT("Pack.generation.comment"),
-    MERGE_DUPLICATE_FONTS("Pack.import.merge_duplicate_fonts"),
-    MERGE_DUPLICATES("Pack.import.merge_duplicates"),
-    RETAIN_CUSTOM_MODEL_DATA("Pack.import.retain_custom_model_data"),
-    MERGE_ITEM_MODELS("Pack.import.merge_item_base_models"),
 
-    UPLOAD_TYPE("Pack.upload.type"),
-    UPLOAD("Pack.upload.enabled"),
-    UPLOAD_OPTIONS("Pack.upload.options"),
-
-    POLYMATH_SERVER("Pack.upload.polymath.server"),
+    PACK_SERVER_ENABLED("Pack.server.enabled"),
+    PACK_SERVER_IP("Pack.server.upload_ip"),
+    PACK_SERVER_PORT("Pack.server.upload_port"),
+    PACK_SERVER_ADDRESS("Pack.server.download_address"),
     POLYMATH_SECRET("Pack.upload.polymath.secret"),
 
     SEND_PACK("Pack.dispatch.send_pack"),
@@ -148,17 +140,21 @@ public enum Settings {
     }
 
     public Object getValue() {
-        return OraxenPlugin.get().getConfigsManager().getSettings().get(path);
+        return OraxenPlugin.get().configsManager().getSettings().get(path);
     }
     public void setValue(Object value) { setValue(value, true); }
     public void setValue(Object value, boolean save) {
-        YamlConfiguration settingFile = OraxenPlugin.get().getConfigsManager().getSettings();
+        YamlConfiguration settingFile = OraxenPlugin.get().configsManager().getSettings();
         settingFile.set(path, value);
         try {
             if (save) settingFile.save(OraxenPlugin.get().getDataFolder().toPath().resolve("settings.yml").toFile());
         } catch (Exception e) {
             Logs.logError("Failed to apply changes to settings.yml");
         }
+    }
+
+    public String toString(String optionalDefault) {
+        return getValue() == null ? optionalDefault : (String) getValue();
     }
 
     @Override
@@ -170,16 +166,36 @@ public enum Settings {
         return AdventureUtils.MINI_MESSAGE.deserialize(getValue().toString());
     }
 
+    public Integer toInt() {
+        return toInt(-1);
+    }
+
+    /**
+     * @param optionalDefault value to return if the path is not an integer
+     * @return the value of the path as an int, or the default value if the path is not found
+     */
+    public Integer toInt(int optionalDefault) {
+        try {
+            return Integer.parseInt(getValue().toString());
+        } catch (NumberFormatException e) {
+            return optionalDefault;
+        }
+    }
+
+    public Boolean toBool(boolean defaultValue) {
+        return getValue() == null ? defaultValue : (Boolean) getValue();
+    }
+
     public Boolean toBool() {
         return (Boolean) getValue();
     }
 
     public List<String> toStringList() {
-        return OraxenPlugin.get().getConfigsManager().getSettings().getStringList(path);
+        return OraxenPlugin.get().configsManager().getSettings().getStringList(path);
     }
 
     public ConfigurationSection toConfigSection() {
-        return OraxenPlugin.get().getConfigsManager().getSettings().getConfigurationSection(path);
+        return OraxenPlugin.get().configsManager().getSettings().getConfigurationSection(path);
     }
 
 }

@@ -64,7 +64,7 @@ public class ItemUpdater implements Listener {
         ItemBuilder builder = OraxenItems.getItemById(id);
         if (builder == null || !builder.hasOraxenMeta()) return;
 
-        if (builder.getOraxenMeta().isDisableEnchanting()) {
+        if (builder.getOraxenMeta().disableEnchanting()) {
             event.setCancelled(true);
         }
     }
@@ -77,7 +77,7 @@ public class ItemUpdater implements Listener {
         ItemBuilder builder = OraxenItems.getItemById(id);
         if (builder == null || !builder.hasOraxenMeta()) return;
 
-        if (builder.getOraxenMeta().isDisableEnchanting()) {
+        if (builder.getOraxenMeta().disableEnchanting()) {
             if (result == null || item == null) return;
             if (!result.getEnchantments().equals(item.getEnchantments()))
                 event.setResult(null);
@@ -98,7 +98,7 @@ public class ItemUpdater implements Listener {
         });
 
         Optional<ItemBuilder> optionalBuilder = OraxenItems.getOptionalItemById(id);
-        if (optionalBuilder.isEmpty() || optionalBuilder.get().getOraxenMeta().isNoUpdate()) return oldItem;
+        if (optionalBuilder.isEmpty() || optionalBuilder.get().getOraxenMeta().noUpdate()) return oldItem;
         ItemBuilder newItemBuilder = optionalBuilder.get();
 
         ItemStack newItem = NMSHandlers.getHandler() != null ? NMSHandlers.getHandler().copyItemNBTTags(oldItem, newItemBuilder.build()) : newItemBuilder.build();

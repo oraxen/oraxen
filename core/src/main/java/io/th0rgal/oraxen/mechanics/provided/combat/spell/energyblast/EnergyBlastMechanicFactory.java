@@ -13,8 +13,8 @@ public class EnergyBlastMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new EnergyBlastMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new EnergyBlastMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }

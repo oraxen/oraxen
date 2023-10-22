@@ -63,8 +63,8 @@ public class ReloadCommand {
     public static void reloadHud(@Nullable CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "hud"));
         OraxenPlugin.get().reloadConfigs();
-        HudManager hudManager = new HudManager(OraxenPlugin.get().getConfigsManager());
-        OraxenPlugin.get().setHudManager(hudManager);
+        HudManager hudManager = new HudManager(OraxenPlugin.get().configsManager());
+        OraxenPlugin.get().hudManager(hudManager);
         hudManager.loadHuds(hudManager.getHudConfigSection());
         hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
         hudManager.reregisterEvents();
@@ -73,7 +73,7 @@ public class ReloadCommand {
 
     public static void reloadGestures(@Nullable CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "gestures"));
-        OraxenPlugin.get().getGesturesManager().reload();
+        OraxenPlugin.get().gestureManager().reload();
     }
 
     public static void reloadRecipes(@Nullable CommandSender sender) {
@@ -105,7 +105,7 @@ public class ReloadCommand {
                         }
                     }
                     for (Player player : Bukkit.getOnlinePlayers()) {
-                        OraxenPlugin.get().getFontManager().sendGlyphTabCompletion(player);
+                        OraxenPlugin.get().fontManager().sendGlyphTabCompletion(player);
                     }
                 });
     }

@@ -18,10 +18,10 @@ import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.new_pack.PackGenerator;
+import io.th0rgal.oraxen.new_pack.PackServer;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
-import io.th0rgal.oraxen.pack.generation.ResourcePack;
-import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -43,8 +43,10 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
+import team.unnamed.creative.ResourcePack;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.jar.JarFile;
 
 public class OraxenPlugin extends JavaPlugin {
@@ -54,12 +56,13 @@ public class OraxenPlugin extends JavaPlugin {
     private ConfigsManager configsManager;
     private ResourcesManager resourceManager;
     private BukkitAudiences audience;
-    private UploadManager uploadManager;
     private FontManager fontManager;
     private HudManager hudManager;
     private SoundManager soundManager;
     private InvManager invManager;
     private ResourcePack resourcePack;
+    private PackGenerator packGenerator;
+    private PackServer packServer;
     private ClickActionManager clickActionManager;
     private ProtocolManager protocolManager;
     public static boolean supportsDisplayEntities;
@@ -88,13 +91,18 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        VersionUtil.isPremium();
         CommandAPI.onEnable();
         ProtectionLib.init(this);
-        if (!VersionUtil.atOrAbove("1.20.3")) PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
+        reloadConfigs();
+        if (!VersionUtil.isSupportedVersionOrNewer("1.20.2")) PlayerAnimatorImpl.initialize(this);
         clickActionManager = new ClickActionManager(this);
         supportsDisplayEntities = VersionUtil.atOrAbove("1.19.4");
-        reloadConfigs();
+        hudManager = new HudManager(configsManager);
+        fontManager = new FontManager(configsManager);
+        soundManager = new SoundManager(configsManager.getSound());
+        gestureManager = new GestureManager();
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
@@ -108,15 +116,9 @@ public class OraxenPlugin extends JavaPlugin {
         } else Logs.logWarning("ProtocolLib is not on your server, some features will not work");
         pluginManager.registerEvents(new CustomArmorListener(), this);
         NMSHandlers.setup();
+        packGenerator = new PackGenerator();
 
-        resourceManager = new ResourcesManager(this);
-        resourcePack = new ResourcePack();
         MechanicsManager.registerNativeMechanics();
-        //CustomBlockData.registerListener(this); //Handle this manually
-        hudManager = new HudManager(configsManager);
-        fontManager = new FontManager(configsManager);
-        soundManager = new SoundManager(configsManager.getSound());
-        if (!VersionUtil.atOrAbove("1.20.3")) gestureManager = new GestureManager();
         OraxenItems.loadItems();
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there
@@ -124,11 +126,14 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager.registerTask();
         hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
         pluginManager.registerEvents(new ItemUpdater(), this);
-        resourcePack.generate();
         RecipesManager.load(this);
         invManager = new InvManager();
         ArmorEquipEvent.registerListener(this);
         new CommandsManager().loadCommands();
+
+        packGenerator.generatePack();
+        packServer = new PackServer();
+        packServer.start();
         postLoading();
         try {
             Message.PLUGIN_LOADED.log(AdventureUtils.tagResolver("os", OS.getOs().getPlatformName()));
@@ -147,6 +152,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onDisable() {
+        if (packServer != null) packServer.stop();
         unregisterListeners();
         FurnitureFactory.unregisterEvolution();
         for (Player player : Bukkit.getOnlinePlayers())
@@ -163,19 +169,19 @@ public class OraxenPlugin extends JavaPlugin {
         HandlerList.unregisterAll(this);
     }
 
-    public ResourcesManager getResourceManager() {
-        return resourceManager;
+    public Path packPath() {
+        return getDataFolder().toPath().resolve("pack");
     }
 
-    public ProtocolManager getProtocolManager() {
+    public ProtocolManager protocolManager() {
         return protocolManager;
     }
 
-    public GestureManager getGesturesManager() {
+    public GestureManager gestureManager() {
         return gestureManager;
     }
 
-    public BukkitAudiences getAudience() {
+    public BukkitAudiences audience() {
         return audience;
     }
 
@@ -184,55 +190,60 @@ public class OraxenPlugin extends JavaPlugin {
         configsManager.validatesConfig();
     }
 
-    public ConfigsManager getConfigsManager() {
+    public ConfigsManager configsManager() {
         return configsManager;
     }
 
-    public UploadManager getUploadManager() {
-        return uploadManager;
-    }
-
-    public void setUploadManager(final UploadManager uploadManager) {
-        this.uploadManager = uploadManager;
-    }
-
-    public FontManager getFontManager() {
+    public FontManager fontManager() {
         return fontManager;
     }
 
-    public void setFontManager(final FontManager fontManager) {
+    public void fontManager(final FontManager fontManager) {
         this.fontManager.unregisterEvents();
         this.fontManager = fontManager;
         fontManager.registerEvents();
     }
 
-    public HudManager getHudManager() {
+    public HudManager hudManager() {
         return hudManager;
     }
 
-    public void setHudManager(final HudManager hudManager) {
+    public void hudManager(final HudManager hudManager) {
         this.hudManager.unregisterEvents();
         this.hudManager = hudManager;
         hudManager.registerEvents();
     }
 
-    public SoundManager getSoundManager() {
+    public SoundManager soundManager() {
         return soundManager;
     }
 
-    public void setSoundManager(final SoundManager soundManager) {
+    public void soundManager(final SoundManager soundManager) {
         this.soundManager = soundManager;
     }
 
-    public InvManager getInvManager() {
+    public InvManager invManager() {
         return invManager;
     }
 
-    public ResourcePack getResourcePack() {
+    public ResourcePack resourcePack() {
+        if (resourcePack == null) resourcePack = ResourcePack.resourcePack();
         return resourcePack;
     }
 
-    public ClickActionManager getClickActionManager() {
+    public void resourcePack(ResourcePack resourcePack) {
+        this.resourcePack = resourcePack;
+    }
+
+    public PackGenerator packGenerator() {
+        return packGenerator;
+    }
+
+    public PackServer packServer() {
+        return packServer;
+    }
+
+    public ClickActionManager clickActionManager() {
         return clickActionManager;
     }
 }

@@ -14,8 +14,8 @@ public class ConsumablePotionEffectsFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new ConsumablePotionEffectsMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new ConsumablePotionEffectsMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }

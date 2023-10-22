@@ -209,3 +209,4 @@ local.properties
 .sts4-cache/
 
 # Based on gitignore.io work
+/core/src/main/resources/pack/token.secret

@@ -5,8 +5,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockBreakEvent;
 import io.th0rgal.oraxen.mechanics.Mechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
@@ -311,7 +309,6 @@ public class OraxenBlocks {
                 switch (location.getBlock().getType()) {
                     case NOTE_BLOCK -> getNoteBlockMechanic(location.getBlock());
                     case TRIPWIRE -> getStringMechanic(location.getBlock());
-                    case MUSHROOM_STEM -> getBlockMechanic(location.getBlock());
                     default -> null;
                 };
     }
@@ -368,12 +365,5 @@ public class OraxenBlocks {
     public static StringBlockMechanic getStringMechanic(String itemID) {
         if (!StringBlockMechanicFactory.isEnabled()) return null;
         return StringBlockMechanicFactory.getInstance().getMechanic(itemID);
-    }
-
-    @org.jetbrains.annotations.Nullable
-    public static BlockMechanic getBlockMechanic(Block block) {
-        if (block.getType() == Material.MUSHROOM_STEM) {
-            return BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(block));
-        } else return null;
     }
 }

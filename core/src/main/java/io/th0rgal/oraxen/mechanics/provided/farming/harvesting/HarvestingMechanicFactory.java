@@ -13,8 +13,8 @@ public class HarvestingMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new HarvestingMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new HarvestingMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }

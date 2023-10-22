@@ -14,8 +14,8 @@ public class LifeLeechMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new LifeLeechMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new LifeLeechMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }

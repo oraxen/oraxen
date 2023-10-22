@@ -19,7 +19,7 @@ import java.util.List;
 public class GlyphCommand {
 
     public CommandAPICommand getGlyphCommand() {
-        List<Glyph> emojiList = OraxenPlugin.get().getFontManager().getEmojis().stream().toList();
+        List<Glyph> emojiList = OraxenPlugin.get().fontManager().emojis().stream().toList();
 
         return new CommandAPICommand("emojis")
                 .withPermission("oraxen.command.emojis").withPermission("oraxen.command.emoji")
@@ -43,7 +43,7 @@ public class GlyphCommand {
                             s = p * 256 + i + 1;
                             if (emojis.size() < s) break pageLoop;
                             Glyph emoji = (emojis.get(p * 256 + i));
-                            String[] placeholders = emoji.getPlaceholders();
+                            String[] placeholders = emoji.placeholders();
                             String finalString = "";
                             String permissionMessage = "";
                             for (String placeholder : placeholders) {
@@ -59,14 +59,14 @@ public class GlyphCommand {
                                 }
                             }
 
-                            pages = pages.append(AdventureUtils.MINI_MESSAGE.deserialize("<glyph:" + emoji.getName() + ">")
-                                    .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, String.valueOf(emoji.getCharacter())))
+                            pages = pages.append(AdventureUtils.MINI_MESSAGE.deserialize("<glyph:" + emoji.name() + ">")
+                                    .clickEvent(ClickEvent.clickEvent(ClickEvent.Action.SUGGEST_COMMAND, String.valueOf(emoji.character())))
                                     .hoverEvent(HoverEvent.hoverEvent(HoverEvent.Action.SHOW_TEXT, Component.text(finalString + permissionMessage))));
                         }
                     }
 
                     Book book = Book.book(Component.text("Glyph Book"), Component.text("Oraxen"), pages);
-                    OraxenPlugin.get().getAudience().player(player).openBook(book);
+                    OraxenPlugin.get().audience().player(player).openBook(book);
                 });
     }
 }

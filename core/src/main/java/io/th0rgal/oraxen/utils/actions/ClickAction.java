@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.utils.actions;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import me.gabytm.util.actions.actions.Action;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -34,7 +33,7 @@ public class ClickAction {
         final List<String> conditions = (List<String>) config.getOrDefault("conditions", Collections.emptyList());
 
         final List<Action<Player>> actions =
-                OraxenPlugin.get().getClickActionManager().parse(Player.class, (List<String>) config.getOrDefault("actions", Collections.emptyList()));
+                OraxenPlugin.get().clickActionManager().parse(Player.class, (List<String>) config.getOrDefault("actions", Collections.emptyList()));
 
         // If the action doesn't have any actions, return null
         return actions.isEmpty() ? null : new ClickAction(conditions, actions);
@@ -42,7 +41,7 @@ public class ClickAction {
 
     public static ClickAction from(final ConfigurationSection config) {
         final List<String> conditions = config.getStringList("conditions");
-        final List<Action<Player>> actions = OraxenPlugin.get().getClickActionManager().parse(Player.class, config.getStringList("actions"));
+        final List<Action<Player>> actions = OraxenPlugin.get().clickActionManager().parse(Player.class, config.getStringList("actions"));
 
         // If the action doesn't have any actions, return null
         if (actions.isEmpty()) {
@@ -95,7 +94,7 @@ public class ClickAction {
     }
 
     public void performActions(final Player player) {
-        OraxenPlugin.get().getClickActionManager().run(player, actions, false);
+        OraxenPlugin.get().clickActionManager().run(player, actions, false);
     }
 
 }

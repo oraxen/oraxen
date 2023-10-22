@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.event.HoverEvent;
@@ -19,15 +19,10 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.Nullable;
+import team.unnamed.creative.font.FontProvider;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -44,12 +39,13 @@ public class Glyph {
     private final boolean isEmoji;
     private final boolean tabcomplete;
     private final Character character;
-    private String texture;
+    private Key texture;
     private final int ascent;
     private final int height;
     private final String permission;
     private final String[] placeholders;
     private final BitMapEntry bitmapEntry;
+    private final Key font;
 
     public final Pattern baseRegex;
     public final Pattern escapedRegex;
@@ -85,10 +81,10 @@ public class Glyph {
 
         ConfigurationSection bitmapSection = glyphSection.getConfigurationSection("bitmap");
         bitmapEntry = bitmapSection != null ? new BitMapEntry(bitmapSection.getString("id"), bitmapSection.getInt("row"), bitmapSection.getInt("column")) : null;
-        ascent = getBitMap() != null ? getBitMap().ascent() : glyphSection.getInt("ascent", 8);
-        height = getBitMap() != null ? getBitMap().height() : glyphSection.getInt("height", 8);
-        texture = getBitMap() != null ? getBitMap().texture() : glyphSection.getString("texture", "required/exit_icon.png");
-        if (!texture.endsWith(".png")) texture += ".png";
+        ascent = bitmap() != null ? bitmap().ascent() : glyphSection.getInt("ascent", 8);
+        height = bitmap() != null ? bitmap().height() : glyphSection.getInt("height", 8);
+        texture = bitmap() != null ? bitmap().texture() : Key.key(glyphSection.getString("texture", "required/exit_icon").replaceAll("^(?!.*\\.png$)", "") + ".png");
+        font = bitmap() != null ? bitmap().font() : Key.key(glyphSection.getString("font", "minecraft:default"));
     }
 
     public record BitMapEntry(String id, int row, int column) {
@@ -110,7 +106,7 @@ public class Glyph {
         return FontManager.getGlyphBitMap(getBitmapId()) != null;
     }
 
-    public FontManager.GlyphBitMap getBitMap() {
+    public FontManager.GlyphBitMap bitmap() {
         return FontManager.getGlyphBitMap(getBitmapId());
     }
 
@@ -118,35 +114,35 @@ public class Glyph {
         return fileChanged;
     }
 
-    public String getName() {
+    public String name() {
         return name;
     }
 
-    public String getCharacter() {
+    public String character() {
         return character != null ? character.toString() : "";
     }
 
-    public String getTexture() {
+    public Key texture() {
         return texture;
     }
 
-    public void setTexture(String texture) {
-        this.texture = (texture.endsWith(".png")) ? texture : texture + ".png";
+    public void texture(Key texture) {
+        this.texture = texture;
     }
 
-    public int getAscent() {
+    public int ascent() {
         return ascent;
     }
 
-    public int getHeight() {
+    public int height() {
         return height;
     }
 
-    public String getPermission() {
+    public String permission() {
         return permission;
     }
 
-    public String[] getPlaceholders() {
+    public String[] placeholders() {
         return placeholders;
     }
 
@@ -161,13 +157,22 @@ public class Glyph {
     public JsonObject toJson() {
         final JsonObject output = new JsonObject();
         final JsonArray chars = new JsonArray();
-        chars.add(getCharacter());
+        chars.add(character());
         output.add("chars", chars);
-        output.addProperty("file", texture);
+        output.addProperty("file", texture.asString());
         output.addProperty("ascent", ascent);
         output.addProperty("height", height);
         output.addProperty("type", "bitmap");
         return output;
+    }
+
+    public FontProvider fontProvider() {
+        return FontProvider.bitMap()
+                .file(texture)
+                .ascent(ascent)
+                .height(height)
+                .characters(List.of(character.toString()))
+                .build();
     }
 
     public boolean hasPermission(Player player) {
@@ -176,7 +181,7 @@ public class Glyph {
 
     private final Set<String> materialNames = Arrays.stream(Material.values()).map(Material::name).collect(Collectors.toSet());
 
-    public void verifyGlyph(List<Glyph> glyphs) {
+    /*public void verifyGlyph(List<Glyph> glyphs) {
         // Return on first run as files aren't generated yet
         Path packFolder = Path.of(OraxenPlugin.get().getDataFolder().getAbsolutePath()).resolve("pack");
         if (!packFolder.toFile().exists()) return;
@@ -191,7 +196,7 @@ public class Glyph {
                 textureFile = packFolder.resolve("assets/minecraft/" + texturePath).toFile();
         } else textureFile = packFolder.resolve(texturePath.replace("assets/minecraft/", "")).toFile();
 
-        Map<Glyph, Boolean> sameCharMap = glyphs.stream().filter(g -> !g.name.equals(name) && !g.getCharacter().isBlank() && g.character.equals(character)).collect(Collectors.toMap(g -> g, g -> true));
+        Map<Glyph, Boolean> sameCharMap = glyphs.stream().filter(g -> !g.name.equals(name) && !g.character().isBlank() && g.character.equals(character)).collect(Collectors.toMap(g -> g, g -> true));
         // Check if the texture is a vanilla item texture and therefore not in oraxen, but the vanilla pack
         boolean isMinecraftNamespace = !texture.contains(":") || texture.split(":")[0].equals("minecraft");
         String textureName = textureFile.getName().split("\\.")[0].toUpperCase();
@@ -205,39 +210,78 @@ public class Glyph {
         }
 
         if (height < ascent) {
-            this.setTexture("required/exit_icon");
+            this.texture("required/exit_icon");
             Logs.logError("The ascent is bigger than the height for " + name + ". This will break all your glyphs.");
             Logs.logWarning("It has been temporarily set to a placeholder image. You should edit this in the glyph config.");
         } else if (!isVanillaTexture && (!textureFile.exists() || image == null)) {
-            this.setTexture("required/exit_icon");
+            this.texture("required/exit_icon");
             Logs.logError("The texture specified for " + name + " does not exist. This will break all your glyphs.");
             Logs.logWarning("It has been temporarily set to a placeholder image. You should edit this in the glyph config.");
         } else if (hasUpperCase) {
-            this.setTexture("required/exit_icon");
+            this.texture("required/exit_icon");
             Logs.logError("The filename specified for " + name + " contains capital letters.");
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
             Logs.logWarning("You should edit this in the glyph config and your textures filename.");
         } else if (texturePath.contains(" ")) {
-            this.setTexture("required/exit_icon");
+            this.texture("required/exit_icon");
             Logs.logError("The filename specified for " + name + " contains spaces.");
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
             Logs.logWarning("You should replace spaces with _ in your filename and glyph config.");
         } else if (texturePath.contains("//")) {
-            this.setTexture("required/exit_icon");
+            this.texture("required/exit_icon");
             Logs.logError("The filename specified for " + name + " contains double slashes.");
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
             Logs.logWarning("You should make sure that the texture-path you have specified is correct.");
         } else if (!isVanillaTexture && !isBitMap() && (image.getHeight() > 256 || image.getWidth() > 256)) {
-            this.setTexture("required/exit_icon");
+            this.texture("required/exit_icon");
             Logs.logError("The texture specified for " + name + " is larger than the supported size.");
             Logs.logWarning("The maximum image size is 256x256. Anything bigger will break all your glyphs.");
             Logs.logWarning("It has been temporarily set to a placeholder-image. You should edit this in the glyph config.");
         } else if (Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool() && !sameCharMap.isEmpty()) {
-            this.setTexture("required/exit_icon");
-            Logs.logError(name + " code is the same as " + sameCharMap.keySet().stream().map(Glyph::getName).collect(Collectors.joining(", ")) + ".");
+            this.texture("required/exit_icon");
+            Logs.logError(name + " code is the same as " + sameCharMap.keySet().stream().map(Glyph::name).collect(Collectors.joining(", ")) + ".");
             Logs.logWarning("This will break all your glyphs. It has been temporarily set to a placeholder image.");
             Logs.logWarning("You should edit the code of all these glyphs to be unique.");
         }
+    }*/
+
+    /**
+     * Parses all glyph-tags and raw unicodes in a message to their formatted variant
+     * Relies on NMSHandler#verifyFor to escape all glyphs that the player doesn't have permission for
+     *
+     * @param element The JSON Object to parse
+     * @return The parsed JSON Object
+     */
+    public static JsonObject parsePlaceholders(JsonElement element) {
+        Component component = AdventureUtils.GSON_SERIALIZER.deserializeFromTree(element);
+        for (Glyph glyph : OraxenPlugin.get().fontManager().glyphs()) {
+            Component glyphComponent = Component.text().content(glyph.character()).color(NamedTextColor.WHITE).build();
+            // Format all non-escaped glyph-tags and raw unicodes
+            component = component.replaceText(TextReplacementConfig.builder()
+                    .match(Pattern.compile("(?<!\\\\)(" + glyph.character() + "|" + glyph.getGlyphTag() + ")"))
+                    .replacement(glyphComponent).build());
+
+            for (String placeholder : glyph.placeholders) {
+                component = component.replaceText(TextReplacementConfig.builder()
+                        .match(Pattern.compile("(?<!\\\\)" + placeholder))
+                        .replacement(glyph.character()).build());
+
+                // Replace all escaped glyphs with their non-formatted variant
+                component = component.replaceText(TextReplacementConfig.builder()
+                        .match(Pattern.compile("\\\\(" + placeholder + "|" + glyph.character() + ")"))
+                        .replacement(glyphComponent)
+                        .build());
+            }
+
+            // Replace all escaped glyph-tags with their non-formatted variant
+            component = component.replaceText(TextReplacementConfig.builder()
+                    .match(Pattern.compile("\\\\" + glyph.getGlyphTag()))
+                    .replacement(glyph.getGlyphTag())
+                    .build());
+        }
+
+        component = AdventureUtils.MINI_MESSAGE.deserialize(AdventureUtils.MINI_MESSAGE.serialize(component));
+        return AdventureUtils.GSON_SERIALIZER.serializeToTree(component).getAsJsonObject();
     }
 
     /**
@@ -263,5 +307,9 @@ public class Glyph {
         Component hoverComponent = AdventureUtils.MINI_MESSAGE.deserialize(hoverText, hoverResolver);
         if (hoverText.isEmpty() || hoverComponent == Component.empty()) return null;
         return HoverEvent.showText(hoverComponent);
+    }
+
+    public Key font() {
+        return font;
     }
 }

@@ -10,13 +10,12 @@ plugins {
     id("io.papermc.paperweight.userdev") version "1.5.11" apply false
     alias(libs.plugins.shadowjar)
     alias(libs.plugins.mia.publication)
+    alias(libs.plugins.mia.copyjar)
 }
 
 class NMSVersion(val nmsVersion: String, val serverVersion: String)
 infix fun String.toNms(that: String): NMSVersion = NMSVersion(this, that)
 val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
-    "v1_18_R1" toNms "1.18.1-R0.1-SNAPSHOT",
-    "v1_18_R2" toNms "1.18.2-R0.1-SNAPSHOT",
     "v1_19_R1" toNms "1.19.2-R0.1-SNAPSHOT",
     "v1_19_R2" toNms "1.19.3-R0.1-SNAPSHOT",
     "v1_19_R3" toNms "1.19.4-R0.1-SNAPSHOT",
@@ -45,7 +44,7 @@ SUPPORTED_VERSIONS.forEach {
 }
 
 val compiled = (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
-val pluginPath = project.findProperty("oraxen_plugin_path")?.toString()
+val pluginPath = project.findProperty("oraxen2_plugin_path")?.toString()
 val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
@@ -79,6 +78,7 @@ allprojects {
         maven("https://repo.oraxen.com/releases")
         maven("https://repo.oraxen.com/snapshots")
         maven("https://jitpack.io") // JitPack
+        maven("https://repo.unnamed.team/repository/unnamed-public/") // Creative
         maven("https://nexus.phoenixdevt.fr/repository/maven-public/") // MMOItems
         maven("https://repo.codemc.org/repository/maven-public/") // BlockLocker
 
@@ -141,6 +141,10 @@ java {
 
 tasks {
 
+    copyJar {
+        destPath.set(project.findProperty("oraxen2_plugin_path")?.toString())
+    }
+
     compileJava {
         options.encoding = Charsets.UTF_8.name()
         options.release.set(17)
@@ -185,7 +189,9 @@ tasks {
                     "Created-By" to "Gradle ${gradle.gradleVersion}",
                     "Build-Jdk" to "${System.getProperty("java.version")} ${System.getProperty("java.vendor")} ${System.getProperty("java.vm.version")}",
                     "Build-OS" to "${System.getProperty("os.name")} ${System.getProperty("os.arch")} ${System.getProperty("os.version")}",
-                    "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
+                    "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean(),
+                    "authUsr" to (project.findProperty("oraxenUsername")?.toString() ?: ""),
+                    "authPw" to (project.findProperty("oraxenPassword")?.toString() ?: "")
                 )
             )
         }
@@ -194,6 +200,7 @@ tasks {
     }
 
     compileJava.get().dependsOn(clean)
+    copyJar.get().dependsOn(jar)
     build.get().dependsOn(shadowJar)
     build.get().dependsOn(publishToMavenLocal)
 }
@@ -203,7 +210,7 @@ bukkit {
     main = "io.th0rgal.oraxen.OraxenPlugin"
     version = pluginVersion
     name = "Oraxen"
-    apiVersion = "1.18"
+    apiVersion = "1.19"
     authors = listOf("th0rgal", "boy0000")
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards", "HuskClaims")
     depend = listOf("ProtocolLib")
@@ -225,48 +232,3 @@ bukkit {
         "gs.mclo:java:2.2.1",
     )
 }
-
-if (pluginPath != null) {
-    tasks {
-        val defaultPath = findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar")
-        // Define the main copy task
-        val copyJarTask = register<Copy>("copyJar") {
-            this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
-            dependsOn(shadowJar, jar)
-            from(defaultPath)
-            into(pluginPath)
-            doLast { println("Copied to plugin directory $pluginPath") }
-        }
-
-        // Create individual copy tasks for each destination
-        val copyToDevPluginPathTask = register<Copy>("copyToDevPluginPath") {
-            dependsOn(shadowJar, jar)
-            from(defaultPath)
-            devPluginPath?.let { into(it) }
-            doLast { println("Copied to plugin directory $devPluginPath") }
-        }
-
-        val copyToFoliaPluginPathTask = register<Copy>("copyToFoliaPluginPath") {
-            dependsOn(shadowJar, jar)
-            from(defaultPath)
-            foliaPluginPath?.let { into(it) }
-            doLast { println("Copied to plugin directory $foliaPluginPath") }
-        }
-
-        val copyToSpigotPluginPathTask = register<Copy>("copyToSpigotPluginPath") {
-            dependsOn(shadowJar, jar)
-            from(defaultPath)
-            spigotPluginPath?.let { into(it) }
-            doLast { println("Copied to plugin directory $spigotPluginPath") }
-        }
-
-        // Make the build task depend on all individual copy tasks
-        named<DefaultTask>("build").get().dependsOn(
-            copyJarTask,
-            copyToDevPluginPathTask,
-            copyToFoliaPluginPathTask,
-            copyToSpigotPluginPathTask
-        )
-    }
-}
-

@@ -109,7 +109,7 @@ public class FontEvents implements Listener {
 
                 Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
                 if (!glyph.hasPermission(event.getPlayer())) {
-                    Message.NO_PERMISSION.send(event.getPlayer(), AdventureUtils.tagResolver("permission", glyph.getPermission()));
+                    Message.NO_PERMISSION.send(event.getPlayer(), AdventureUtils.tagResolver("permission", glyph.permission()));
                     event.setCancelled(true);
                 }
             }
@@ -131,12 +131,9 @@ public class FontEvents implements Listener {
             if (i == 0) continue;
 
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-                String unicode = String.valueOf(entry.getValue().getCharacter());
+                String unicode = String.valueOf(entry.getValue().character());
                 if (entry.getValue().hasPermission(player))
-                    page = (manager.permsChatcolor == null)
-                            ? page.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
-                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK)
-                            : page.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(player, manager.permsChatcolor))
+                    page = page.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
                             .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK);
                 meta.setPage(i, AdventureUtils.parseLegacy(page));
             }
@@ -150,7 +147,7 @@ public class FontEvents implements Listener {
 
         // Open fake book and deny opening of original book to avoid needing to format the original book
         event.setUseItemInHand(Event.Result.DENY);
-        OraxenPlugin.get().getAudience().player(player).openBook(book);
+        OraxenPlugin.get().audience().player(player).openBook(book);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -167,18 +164,15 @@ public class FontEvents implements Listener {
 
                 Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
                 if (!glyph.hasPermission(player)) {
-                    Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
+                    Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.permission()));
                     event.setCancelled(true);
                 }
             }
 
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
-                String unicode = String.valueOf(entry.getValue().getCharacter());
+                String unicode = String.valueOf(entry.getValue().character());
                 if (entry.getValue().hasPermission(player))
-                    line = (manager.permsChatcolor == null)
-                            ? line.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
-                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK)
-                            : line.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(player, manager.permsChatcolor))
+                    line = line.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
                             .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK);
             }
             event.setLine(i, AdventureUtils.parseLegacy(line));
@@ -203,20 +197,16 @@ public class FontEvents implements Listener {
                 Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
                 if (!glyph.hasPermission(player)) {
                     Glyph required = manager.getGlyphFromName("required");
-                    String replacement = required.hasPermission(player) ? String.valueOf(required.getCharacter()) : "";
-                    Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
+                    String replacement = required.hasPermission(player) ? String.valueOf(required.character()) : "";
+                    Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.permission()));
                     displayName = displayName.replace(String.valueOf(character), replacement);
                 }
             }
 
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
                 if (entry.getValue().hasPermission(player))
-                    displayName = (manager.permsChatcolor == null)
-                            ? displayName.replace(entry.getKey(),
-                            String.valueOf(entry.getValue().getCharacter()))
-                            : displayName.replace(entry.getKey(),
-                            ChatColor.WHITE + String.valueOf(entry.getValue().getCharacter())
-                                    + PapiAliases.setPlaceholders(player, manager.permsChatcolor));
+                    displayName = displayName.replace(entry.getKey(),
+                            String.valueOf(entry.getValue().character()));
             }
         }
 
@@ -269,7 +259,7 @@ public class FontEvents implements Listener {
                 if (!component.content().contains(String.valueOf(character))) continue;
                 Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
                 if (!glyph.hasPermission(player)) {
-                    Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
+                    Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.permission()));
                     return null;
                 }
             }

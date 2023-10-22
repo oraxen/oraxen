@@ -21,7 +21,7 @@ public class OraxenPlayerModel extends PlayerModel {
 
     public void stopAnimation(QuitMethod quitMethod) {
         isPlaying = quitMethod == null || this.quitMethod != quitMethod;
-        OraxenPlugin.get().getGesturesManager().removePlayerFromGesturing(getPlayer());
+        OraxenPlugin.get().gestureManager().removePlayerFromGesturing(getPlayer());
         getPlayer().setInvisible(false);
     }
 

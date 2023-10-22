@@ -20,7 +20,7 @@ public class ItemInfoCommand {
                 .withArguments(new StringArgument("itemid").replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())))
                 .executes((commandSender, args) -> {
                     String argument = (String) args.get("itemid");
-                    Audience audience = OraxenPlugin.get().getAudience().sender(commandSender);
+                    Audience audience = OraxenPlugin.get().audience().sender(commandSender);
                     if (argument.equals("all")) {
                         for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
                             sendItemInfo(audience, entry.getValue(), entry.getKey());
@@ -36,9 +36,9 @@ public class ItemInfoCommand {
 
     private void sendItemInfo(Audience sender, ItemBuilder builder, String itemId) {
         sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>ItemID: <aqua>" + itemId));
-        sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_green>CustomModelData: <green>" + builder.getOraxenMeta().getCustomModelData()));
+        sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_green>CustomModelData: <green>" + builder.getOraxenMeta().customModelData()));
         sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_green>Material: <green>" + builder.getReferenceClone().getType()));
-        sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_green>Model Name: <green>" + builder.getOraxenMeta().getModelName()));
+        sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_green>Model Name: <green>" + builder.getOraxenMeta().modelKey().asString()));
         Logs.newline();
     }
 }

@@ -1,11 +1,21 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.new_pack.PackGenerator;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.BufferedInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.file.Path;
 import java.util.*;
 
 public class VersionUtil {
@@ -123,6 +133,29 @@ public class VersionUtil {
     private static final boolean leaked = JarReader.checkIsLeaked();
     public static boolean isLeaked() {
         return leaked;
+    }
+
+    public static boolean isPremium() {
+        List<String> split = Arrays.stream(manifest.split(":|\n")).map(String::trim).toList();
+        return testConnection(split.get(split.indexOf("packUser") + 1), split.get(split.indexOf("packPass") + 1));
+    }
+
+    private static boolean testConnection(String usr, String pwd) {
+            String fileUrl = "https://repo.oraxen.com/assets/defaultPack/DefaultPack.zip";
+
+            try {
+                URL url = new URL(fileUrl);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+
+                String auth = usr + ":" + pwd;
+                String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
+                connection.setRequestProperty("Authorization", "Basic " + encodedAuth);
+
+                connection.connect();
+                return connection.getResponseCode() == 200;
+            } catch (IOException e) {
+                return false;
+            }
     }
 
     public static boolean isValidCompiler() {

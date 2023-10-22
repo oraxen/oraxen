@@ -19,7 +19,7 @@ public class ModelDataCommand {
                 .executes((sender, args) -> {
                     Map<Material, Integer> itemMap = new HashMap<>();
                     for (ItemBuilder builder : OraxenItems.getItems()) {
-                        int currentModelData = builder.getOraxenMeta().getCustomModelData();
+                        int currentModelData = builder.getOraxenMeta().customModelData();
                         Material type = builder.build().getType();
 
                         if (currentModelData != 0) itemMap.putIfAbsent(type, currentModelData);
@@ -32,7 +32,7 @@ public class ModelDataCommand {
                         String message = (ChatColor.DARK_AQUA + entry.getKey().name() + ": " + ChatColor.DARK_GREEN + entry.getValue().toString() + "\n");
                         report = report.append(Component.text(message));
                     }
-                    OraxenPlugin.get().getAudience().sender(sender).sendMessage(report);
+                    OraxenPlugin.get().audience().sender(sender).sendMessage(report);
                 });
     }
 }

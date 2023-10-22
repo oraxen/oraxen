@@ -1,9 +1,16 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.new_pack.ModelGenerator;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
+import team.unnamed.creative.model.Model;
+import team.unnamed.creative.model.ModelTexture;
+import team.unnamed.creative.model.ModelTextures;
+import team.unnamed.creative.texture.Texture;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -13,29 +20,23 @@ import java.util.Map;
 public class OraxenMeta {
 
     private int customModelData;
-    private String modelName;
-    private String blockingModel;
-    private String blockingTexture;
-    private List<String> pullingModels;
-    private List<String> pullingTextures;
-    private String chargedModel;
-    private String chargedTexture;
-    private String fireworkModel;
-    private String fireworkTexture;
-    private String castModel;
-    private String castTexture;
-    private List<String> damagedModels;
-    private List<String> damagedTextures;
-    private List<String> layers;
-    private Map<String, String> layersMap;
-    private String parentModel;
-    private String generatedModelPath;
-    private boolean generate_model;
+    private Key modelKey;
+    private Key blockingModel;
+    private List<Key> pullingModels;
+    private Key chargedModel;
+    private Key fireworkModel;
+    private Key castModel;
+    private List<Key> damagedModels;
+    private List<ModelTexture> textureLayers;
+    private Map<String, ModelTexture> textureVariables;
+    private ModelTextures modelTextures;
+    private Key parentModel;
     private boolean hasPackInfos = false;
     private boolean excludedFromInventory = false;
     private boolean excludedFromCommands = false;
     private boolean noUpdate = false;
     private boolean disableEnchanting = false;
+    private boolean generateModel = false;
 
     public void setExcludedFromInventory(boolean excluded) {
         this.excludedFromInventory = excluded;
@@ -55,62 +56,49 @@ public class OraxenMeta {
 
     public void setPackInfos(ConfigurationSection section) {
         this.hasPackInfos = true;
-        this.modelName = readModelName(section, "model");
+        this.modelKey = readModelName(section, "model");
         this.blockingModel = readModelName(section, "blocking_model");
         this.castModel = readModelName(section, "cast_model");
         this.chargedModel = readModelName(section, "charged_model");
         this.fireworkModel = readModelName(section, "firework_model");
-        this.pullingModels = section.isList("pulling_models")
-                ? section.getStringList("pulling_models") : null;
-        this.damagedModels = section.isList("damaged_models")
-                ? section.getStringList("damaged_models") : null;
+        this.pullingModels = section.getStringList("pulling_models").stream().map(s -> Key.key(s.replace(".png", ""))).toList();
+        this.damagedModels = section.getStringList("damaged_models").stream().map(s -> Key.key(s.replace(".png", ""))).toList();
 
         // By adding the textures to pullingModels aswell,
         // we can use the same code for both pullingModels
         // and pullingTextures to add to the base-bow file predicates
-        if (pullingModels == null && section.isList("pulling_textures")) {
-            pullingTextures = section.getStringList("pulling_textures").stream().map(texture -> texture.replace(".png", "")).toList();
-            pullingModels = pullingTextures;
-        }
+        if (pullingModels.isEmpty()) pullingModels = section.getStringList("pulling_textures").stream().map(t -> Key.key(t.replace(".png", ""))).toList();
+        if (damagedModels == null) damagedModels = section.getStringList("damaged_textures").stream().map(t -> Key.key(t.replace(".png", ""))).toList();
 
-        if (chargedModel == null && section.isString("charged_texture")) {
-            chargedTexture = section.getString("charged_texture").replace(".png", "");
-            chargedModel = chargedTexture;
-        }
+        if (chargedModel == null) chargedModel = Key.key(section.getString("charged_texture", "").replace(".png", ""));
+        if (fireworkModel == null) fireworkModel = Key.key(section.getString("firework_texture", "").replace(".png", ""));
+        if (castModel == null) castModel = Key.key(section.getString("cast_texture", "").replace(".png", ""));
+        if (blockingModel == null) blockingModel = Key.key(section.getString("blocking_texture", "").replace(".png", ""));
 
-        if (fireworkModel == null && section.isString("firework_texture")) {
-            fireworkTexture = section.getString("firework_texture").replace(".png", "");
-            fireworkModel = fireworkTexture;
-        }
-
-        if (castModel == null && section.isString("cast_texture")) {
-            castTexture = section.getString("cast_texture").replace(".png", "");
-            castModel = castTexture;
-        }
-
-        if (blockingModel == null && section.isString("blocking_texture")) {
-            blockingTexture = section.getString("blocking_texture").replace(".png", "");
-            blockingModel = blockingTexture;
-        }
-
-        if (damagedModels == null && section.isList("damaged_textures")) {
-            damagedTextures = section.getStringList("damaged_textures").stream().map(texture -> texture.replace(".png", "")).toList();
-            damagedModels = damagedTextures;
-        }
-
-        if (section.isList("textures")) {
-            this.layers = section.getStringList("textures");
-            List<String> layers = new ArrayList<>();
-            this.layers.forEach(layer -> layers.add(this.layers.indexOf(layer), layer.replace(".png", "")));
-            this.layers = layers;
-        }
-        else if (section.isConfigurationSection("textures")) {
+        ConfigurationSection textureSection = section.getConfigurationSection("textures");
+        if (textureSection != null) {
             ConfigurationSection texturesSection = section.getConfigurationSection("textures");
             assert texturesSection != null;
-            Map<String, String> layersMap = new HashMap<>();
-            texturesSection.getKeys(false).forEach(key -> layersMap.put(key, texturesSection.getString(key).replace(".png", "")));
-            this.layersMap = layersMap;
+            Map<String, ModelTexture> variables = new HashMap<>();
+            texturesSection.getKeys(false).forEach(key -> variables.put(key, ModelTexture.ofKey(Key.key(texturesSection.getString(key).replace(".png", "")))));
+            this.textureVariables = variables;
         }
+        else if (section.isList("textures")) this.textureLayers = section.getStringList("textures").stream().map(t -> ModelTexture.ofKey(Key.key(t.replace(".png", "")))).toList();
+        else if (section.isString("textures")) this.textureLayers = List.of(ModelTexture.ofKey(Key.key(section.getString("textures").replace(".png", ""))));
+        else if (section.isString("texture")) this.textureLayers = List.of(ModelTexture.ofKey(Key.key(section.getString("texture").replace(".png", ""))));
+
+        this.textureVariables = textureVariables != null ? textureVariables : new HashMap<>();
+        this.textureLayers = textureLayers != null ? textureLayers : new ArrayList<>();
+
+        this.modelTextures = ModelTextures.builder()
+                .particle(textureVariables.get("particle"))
+                .variables(textureVariables)
+                .layers(textureLayers)
+                .build();
+
+        this.parentModel = Key.key(section.getString("parent_model", "item/generated"));
+        this.generateModel = section.getString("model") == null;
+    }
 
         // If not specified, check if a model or texture is set
         this.generate_model = section.getBoolean("generate_model", modelName.isEmpty());
@@ -122,10 +110,14 @@ public class OraxenMeta {
             Logs.logWarning("This will generate a malformed model!");
         }
 
+    private void correctModelTextures() {
+        if (parentModel.asString().startsWith("block/")) {
+
+        }
     }
 
     // this might not be a very good function name
-    private String readModelName(ConfigurationSection configSection, String configString) {
+    private Key readModelName(ConfigurationSection configSection, String configString) {
         String modelName = configSection.getString(configString);
         List<String> textures = configSection.getStringList("textures");
         ConfigurationSection parent = configSection.getParent();
@@ -133,9 +125,9 @@ public class OraxenMeta {
                 ? Utils.getParentDirs(textures.stream().findFirst().get()) + parent.getName() : null;
 
         if (modelName == null && configString.equals("model") && parent != null)
-            return parent.getName();
+            return Key.key(parent.getName());
         else if (modelName != null)
-            return modelName.replace(".json", "");
+            return Key.key(modelName.replace(".json", ""));
         else return null;
     }
 
@@ -143,184 +135,87 @@ public class OraxenMeta {
         return hasPackInfos;
     }
 
-    public OraxenMeta setCustomModelData(int customModelData) {
-        this.customModelData = customModelData;
-        return this;
-    }
-
-    public int getCustomModelData() {
+    public int customModelData() {
         return customModelData;
     }
 
-    public OraxenMeta setModelName(String modelName) {
-        this.modelName = modelName;
-        return this;
+    public void customModelData(int customModelData) {
+        this.customModelData = customModelData;
     }
 
-    public OraxenMeta setNoUpdate(boolean noUpdate) {
-        this.noUpdate = noUpdate;
-        return this;
+    public void modelKey(Key modelKey) {
+        this.modelKey = modelKey;
     }
 
-    public void setDisableEnchanting(boolean disableEnchanting) { this.disableEnchanting = disableEnchanting; }
-
-    public String getModelName() {
-        return modelName;
-    }
-
-    public String getModelPath() {
-        String[] pathElements = generatedModelPath.split(":");
-        String path;
-        if (pathElements.length > 1)
-            path = "assets/" + pathElements[0] + "/models/" + pathElements[1];
-        else
-            path = "assets/minecraft/models/" + pathElements[0];
-        if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
-        return path;
-    }
-
-    public static String getModelPath(String model) {
-        String[] pathElements = model.split(":");
-        String path;
-        if (pathElements.length > 1)
-            path = "assets/" + pathElements[0] + "/models/" + pathElements[1];
-        else
-            path = "assets/minecraft/models/" + pathElements[0];
-        if (path.endsWith("/")) path = path.substring(0, path.length() - 1);
-        return path;
+    public Key modelKey() {
+        return modelKey;
     }
 
     public boolean hasBlockingModel() {
-        return blockingModel != null;
+        return blockingModel != null && !blockingModel.value().isEmpty();
     }
 
-    public String getBlockingModel() {
+    public Key blockingModel() {
         return blockingModel;
     }
 
-    public boolean hasBlockingTexture() {
-        return blockingTexture != null;
-    }
-
-    public String getBlockingTexture() {
-        return blockingTexture;
-    }
-
     public boolean hasCastModel() {
-        return castModel != null;
+        return castModel != null && !castModel.value().isEmpty();
     }
 
-    public String getCastModel() {
+    public Key castModel() {
         return castModel;
     }
 
-    public boolean hasCastTexture() {
-        return castTexture != null;
-    }
-
-    public String getCastTexture() {
-        return castTexture;
-    }
-
     public boolean hasChargedModel() {
-        return chargedModel != null;
+        return chargedModel != null && !chargedModel.value().isEmpty();
     }
 
-    public String getChargedModel() {
+    public Key chargedModel() {
         return chargedModel;
     }
 
-    public boolean hasChargedTexture() {
-        return chargedTexture != null;
-    }
-
-    public String getChargedTexture() {
-        return chargedTexture;
-    }
-
     public boolean hasFireworkModel() {
-        return fireworkModel != null;
+        return fireworkModel != null && !fireworkModel.value().isEmpty();
     }
 
-    public String getFireworkModel() {
+    public Key fireworkModel() {
         return fireworkModel;
     }
 
-    public boolean hasFireworkTexture() {
-        return fireworkTexture != null;
-    }
-
-    public String getFireworkTexture() {
-        return fireworkTexture;
-    }
-
-    public boolean hasPullingModels() {
-        return pullingModels != null && !pullingModels.isEmpty();
-    }
-
-    public List<String> getPullingModels() {
+    public List<Key> pullingModels() {
         return pullingModels;
     }
 
-    public boolean hasPullingTextures() {
-        return pullingTextures != null && !pullingTextures.isEmpty();
-    }
-
-    public List<String> getPullingTextures() {
-        return pullingTextures;
-    }
-
-    public boolean hasDamagedModels() {
-        return damagedModels != null && !damagedModels.isEmpty();
-    }
-
-    public List<String> getDamagedModels() {
+    public List<Key> damagedModels() {
         return damagedModels;
     }
 
-    public boolean hasDamagedTextures() {
-        return damagedTextures != null && !damagedTextures.isEmpty();
+    public ModelTextures modelTextures() {
+        return modelTextures;
     }
 
-    public List<String> getDamagedTextures() {
-        return damagedTextures;
-    }
-
-    public boolean hasLayers() {
-        return layers != null && !layers.isEmpty();
-    }
-
-    public List<String> getLayers() {
-        return layers;
-    }
-
-    public boolean hasLayersMap() {
-        return layersMap != null && !layersMap.isEmpty();
-    }
-
-    public Map<String, String> getLayersMap() {
-        return layersMap;
-    }
-
-    public String getParentModel() {
+    public Key parentModelKey() {
         return parentModel;
     }
 
-    public String getGeneratedModelPath() {
-        if (generatedModelPath.isEmpty())
-            return generatedModelPath;
-        return generatedModelPath + (generatedModelPath.endsWith("/") ? "" : "/");
-    }
-
     public boolean shouldGenerateModel() {
-        return generate_model;
+        return generateModel;
     }
 
-    public boolean isNoUpdate() {
+    public boolean noUpdate() {
         return noUpdate;
     }
 
-    public boolean isDisableEnchanting() { return disableEnchanting; }
+    public void noUpdate(boolean noUpdate) {
+        this.noUpdate = noUpdate;
+    }
+
+
+    public boolean disableEnchanting() { return disableEnchanting; }
+
+    public void disableEnchanting(boolean disableEnchanting) { this.disableEnchanting = disableEnchanting; }
+
 
 }
 

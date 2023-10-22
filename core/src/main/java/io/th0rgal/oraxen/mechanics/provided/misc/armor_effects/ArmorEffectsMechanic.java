@@ -61,7 +61,7 @@ public class ArmorEffectsMechanic extends Mechanic {
                 if (armorEffect.requiresFullSet()) {
                     boolean hasFullSet = ArmorEffectsMechanic.ARMOR_SLOTS.stream().filter(s -> s != armorSlot).allMatch(slot -> {
                         ItemStack armor = player.getInventory().getItem(slot);
-                        return armor != null && CustomArmorsTextures.isSameArmorType(armorPiece, armor);
+                        return armor != null /*&& CustomArmorsTextures.isSameArmorType(armorPiece, armor)*/;
                     });
 
                     if (hasFullSet) finalArmorEffects.add(armorEffect.getEffect());
