@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.ZipUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.BufferedInputStream;
@@ -15,15 +16,15 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.util.Base64;
 
-public class OraxenPackDownloader {
+public class PackDownloader {
 
-    public static void downloadPack() {
+    public static void downloadDefaultPack() {
         OraxenPlugin.get().saveResource("pack/token.secret", true);
         if (VersionUtil.isCompiled() || VersionUtil.isLeaked()) return;
         YamlConfiguration accessYaml = OraxenYaml.loadConfiguration(OraxenPlugin.get().packPath().resolve("token.secret").toFile());
         String fileUrl = "http://repo.oraxen.com:8080/private/DefaultPack.zip";
-        String username = accessYaml.getString("username");
-        String password = accessYaml.getString("password");
+        String username = accessYaml.getString("username", "");
+        String password = accessYaml.getString("password", "");
         Path zipPath = OraxenPlugin.get().packPath().resolve("DefaultPack.zip");
 
         try {
@@ -49,8 +50,7 @@ public class OraxenPackDownloader {
             }
             ZipUtils.extractDefaultZipPack();
         } catch (IOException e) {
-            e.printStackTrace();
-            System.out.println("Error downloading the file.");
+            Logs.logError("Failed to download Oraxen pack");
         }
     }
 }

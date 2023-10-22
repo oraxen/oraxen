@@ -6,13 +6,13 @@ import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter;
 
-public class OraxenPackGenerator {
+public class PackGenerator {
 
     ResourcePack resourcePack;
     BuiltResourcePack builtPack;
 
-    public OraxenPackGenerator() {
-        OraxenPackDownloader.downloadPack();
+    public PackGenerator() {
+        PackDownloader.downloadDefaultPack();
         resourcePack = MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile());
         OraxenPlugin.get().setResourcePack(resourcePack);
     }
