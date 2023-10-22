@@ -267,13 +267,20 @@ public class ResourcePack {
         return "assets/" + namespace + "/textures/" + texturePath;
     }
 
+    private final boolean extractAssets = !new File(packFolder, "assets").exists();
+    private final boolean extractModels = !new File(packFolder, "models").exists();
+    private final boolean extractFonts = !new File(packFolder, "font").exists();
+    private final boolean extractOptifine = !new File(packFolder, "optifine").exists();
+    private final boolean extractLang = !new File(packFolder, "lang").exists();
+    private final boolean extractTextures = !new File(packFolder, "textures").exists();
+    private final boolean extractSounds = !new File(packFolder, "sounds").exists();
     private void extractDefaultFolders() {
         final ZipInputStream zip = ResourcesManager.browse();
         try {
             ZipEntry entry = zip.getNextEntry();
             final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
             while (entry != null) {
-                extract(entry, resourcesManager);
+                extract(entry, resourcesManager, isSuitable(entry.getName()));
                 entry = zip.getNextEntry();
             }
             zip.closeEntry();
@@ -281,6 +288,17 @@ public class ResourcePack {
         } catch (final IOException ex) {
             ex.printStackTrace();
         }
+    }
+
+    private boolean isSuitable(String entryName) {
+        String name = StringUtils.substringAfter(entryName, "pack/").split("/")[0];
+        if (name.equals("textures") && extractTextures) return true;
+        if (name.equals("models") && extractModels) return true;
+        if (name.equals("font") && extractFonts) return true;
+        if (name.equals("optifine") && extractOptifine) return true;
+        if (name.equals("lang") && extractLang) return true;
+        if (name.equals("sounds") && extractSounds) return true;
+        return name.equals("assets") && extractAssets;
     }
 
     private void extractRequired() {
@@ -301,16 +319,8 @@ public class ResourcePack {
         }
     }
 
-    private void extract(ZipEntry entry, ResourcesManager resourcesManager) {
+    private void extract(ZipEntry entry, ResourcesManager resourcesManager, boolean isSuitable) {
         final String name = entry.getName();
-        boolean extractAssets = !new File(packFolder, "assets").exists() && name.startsWith("pack/assets");
-        boolean extractModels = !new File(packFolder, "models").exists() && name.startsWith("pack/models");
-        boolean extractTextures = !new File(packFolder, "textures").exists() && name.startsWith("pack/textures");
-        boolean extractLang = !new File(packFolder, "lang").exists() && name.startsWith("pack/lang");
-        boolean extractFonts = !new File(packFolder, "font").exists() && name.startsWith("pack/font");
-        boolean extractSounds = !new File(packFolder, "sounds").exists() && name.startsWith("pack/sounds");
-        boolean extractOptifine = !new File(packFolder, "optifine").exists() && name.startsWith("pack/optifine");
-        final boolean isSuitable = (extractAssets || extractModels || extractTextures || extractLang || extractFonts || extractSounds || extractOptifine);
         resourcesManager.extractFileIfTrue(entry, isSuitable);
     }
 
