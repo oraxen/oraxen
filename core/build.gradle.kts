@@ -26,13 +26,18 @@ dependencies {
     implementation("gs.mclo:java:2.2.1")
     implementation("com.ticxo:PlayerAnimator:R1.2.8") { isChanging = true }
     implementation("org.jetbrains:annotations:24.0.1") { isTransitive = false }
+    implementation("team.unnamed:creative-api:1.1.1-SNAPSHOT")
+    implementation("team.unnamed:creative-serializer-minecraft:1.1.1-SNAPSHOT")
+    implementation("team.unnamed:creative-server:1.1.1-SNAPSHOT")
 
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
 }
 
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor(0, "seconds")
+tasks {
+    shadowJar {
+        relocate("team.unnamed", "io.th0rgal.oraxen.shaded.unnamed")
+    }
 }
 
 java {
