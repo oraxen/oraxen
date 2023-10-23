@@ -21,6 +21,7 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.world.GenericGameEvent;
+import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
@@ -31,6 +32,15 @@ import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.*;
 
 public class NoteBlockSoundListener implements Listener {
     private final Map<Location, BukkitTask> breakerPlaySound = new HashMap<>();
+
+    @EventHandler
+    public void onWorldUnload(WorldUnloadEvent event) {
+        for (Map.Entry<Location, BukkitTask> entry : breakerPlaySound.entrySet()) {
+            if (entry.getKey().isWorldLoaded() || entry.getValue().isCancelled()) continue;
+            entry.getValue().cancel();
+            breakerPlaySound.remove(entry.getKey());
+        }
+    }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingWood(final BlockPlaceEvent event) {

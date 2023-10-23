@@ -21,6 +21,7 @@ import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.world.GenericGameEvent;
+import org.bukkit.event.world.WorldUnloadEvent;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
@@ -32,6 +33,15 @@ import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.*;
 public class FurnitureSoundListener implements Listener {
 
     private final Map<Location, BukkitTask> breakerPlaySound = new HashMap<>();
+
+    @EventHandler
+    public void onWorldUnload(WorldUnloadEvent event) {
+        for (Map.Entry<Location, BukkitTask> entry : breakerPlaySound.entrySet()) {
+            if (entry.getKey().isWorldLoaded() || entry.getValue().isCancelled()) continue;
+            entry.getValue().cancel();
+            breakerPlaySound.remove(entry.getKey());
+        }
+    }
 
     // Play sound due to furniture/barrier custom sound replacing stone
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
