@@ -14,7 +14,6 @@ import io.th0rgal.oraxen.font.GlyphTag;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -177,8 +176,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                         @Override
                         protected void initChannel(@NotNull Channel ch) throws Exception {
                             initChannel.invoke(initializer, ch);
-
-                            inject(ch);
+                            channel.eventLoop().submit(() -> inject(channel));
                         }
                     };
                     original.set(handler, miniInit);
@@ -213,7 +211,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         if (player == null || !Settings.NMS_GLYPHS.toBool()) return;
         Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
 
-        inject(channel);
+        channel.eventLoop().submit(() -> inject(channel));
 
         for (Map.Entry<String, ChannelHandler> entry : channel.pipeline()) {
             ChannelHandler handler = entry.getValue();

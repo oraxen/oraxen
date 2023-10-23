@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.font;
 
 
 import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
@@ -232,18 +233,18 @@ public class Glyph {
     /**
      * Parses all glyph-tags and raw unicodes in a message to their formatted variant
      * Relies on NMSHandler#verifyFor to escape all glyphs that the player doesn't have permission for
-     * @param message The JSON Object to parse
+     * @param element The JSON Object to parse
      * @return The parsed JSON Object
      */
-    public static String parsePlaceholders(String message) {
-        Component component = AdventureUtils.GSON_SERIALIZER.deserialize(message.replaceAll("\\\\(?!u)(?!n)(?!\")", ""));
+    public static JsonObject parsePlaceholders(JsonElement element) {
+        Component component = AdventureUtils.GSON_SERIALIZER.deserializeFromTree(element);
         for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
-            Component glyphComponent = Component.text(glyph.getCharacter()).color(NamedTextColor.WHITE);
+            Component glyphComponent = Component.text().content(glyph.getCharacter()).color(NamedTextColor.WHITE).build();
             // Format all non-escaped glyph-tags and raw unicodes
             component = component.replaceText(TextReplacementConfig.builder()
-                    .match(Pattern.compile("(?<!\\\\)" + glyph.getCharacter()))
-                    .match(Pattern.compile("(?<!\\\\)" + glyph.getGlyphTag()))
+                    .match(Pattern.compile("(?<!\\\\)(" + glyph.getCharacter() + "|" + glyph.getGlyphTag() + ")"))
                     .replacement(glyphComponent).build());
+
             for (String placeholder : glyph.placeholders) {
                 component = component.replaceText(TextReplacementConfig.builder()
                         .match(Pattern.compile("(?<!\\\\)" + placeholder))
@@ -251,8 +252,7 @@ public class Glyph {
 
                 // Replace all escaped glyphs with their non-formatted variant
                 component = component.replaceText(TextReplacementConfig.builder()
-                        .match(Pattern.compile("\\\\" + placeholder))
-                        .match(Pattern.compile("\\\\" + glyph.getCharacter()))
+                        .match(Pattern.compile("\\\\(" + placeholder + "|" + glyph.getCharacter() + ")"))
                         .replacement(glyphComponent)
                         .build());
             }
@@ -265,7 +265,7 @@ public class Glyph {
         }
 
         component = AdventureUtils.MINI_MESSAGE.deserialize(AdventureUtils.MINI_MESSAGE.serialize(component));
-        return AdventureUtils.GSON_SERIALIZER.serialize(component).replace("\\", "");
+        return AdventureUtils.GSON_SERIALIZER.serializeToTree(component).getAsJsonObject();
     }
 
     /**

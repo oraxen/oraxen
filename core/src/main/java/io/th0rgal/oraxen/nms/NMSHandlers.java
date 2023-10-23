@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
@@ -50,18 +51,16 @@ public class NMSHandlers {
         }
     }
 
-    public static String formatJsonString(JsonObject obj) {
-        return (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate"))
-                ? Glyph.parsePlaceholders(obj.toString()) : obj.toString();
+    public static String formatJsonString(@NotNull JsonObject obj) {
+        return (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) ?
+               Glyph.parsePlaceholders(obj).toString() : obj.toString();
     }
 
     public static String verifyFor(Player player, String message) {
         if (message != null && player != null) for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
             String glyphTag = glyph.getGlyphTag();
             // Escape all glyphs the player does not have permission for
-            if (!glyph.hasPermission(player)) {
-                message = message.replace(glyphTag, "g" + glyphTag);
-            }
+            if (!glyph.hasPermission(player)) message = message.replace(glyphTag, "g" + glyphTag);
         }
         return message;
     }

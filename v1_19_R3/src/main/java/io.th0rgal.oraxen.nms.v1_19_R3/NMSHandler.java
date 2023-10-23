@@ -165,8 +165,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                         @Override
                         protected void initChannel(@NotNull Channel ch) throws Exception {
                             initChannel.invoke(initializer, ch);
-
-                            inject(ch);
+                            channel.eventLoop().submit(() -> inject(channel));
                         }
                     };
                     original.set(handler, miniInit);
@@ -200,7 +199,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         if (player == null || !Settings.NMS_GLYPHS.toBool()) return;
         Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
 
-        inject(channel);
+        channel.eventLoop().submit(() -> inject(channel));
 
         for (Map.Entry<String, ChannelHandler> entry : channel.pipeline()) {
             ChannelHandler handler = entry.getValue();
