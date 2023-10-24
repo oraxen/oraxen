@@ -74,6 +74,8 @@ allprojects {
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
         maven("https://repo.auxilor.io/repository/maven-public/") // EcoItems
         maven("https://maven.enginehub.org/repo/")
+        maven("https://repo.oraxen.com/releases")
+        maven("https://repo.oraxen.com/snapshots")
         maven("https://jitpack.io") // JitPack
 
         mavenLocal()
