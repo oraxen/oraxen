@@ -59,7 +59,6 @@ publishing {
 
             url = uri(publishData.getRepository())
             name = "oraxen"
-            this.isAllowInsecureProtocol = true
         }
     }
 }
@@ -90,14 +89,14 @@ class PublishData(private val project: Project) {
         type.append(getVersionString(), appendCommit, getCheckedOutGitCommitHash())
 
     private fun getVersionString(): String =
-        (rootProject.version as String).replace("-SNAPSHOT", "").replace("-DEV", "")
+        (rootProject.version as String).removeSuffix("-SNAPSHOT").removeSuffix("-DEV")
 
     fun getRepository(): String = type.repo
 
     enum class Type(private val append: String, val repo: String, private val addCommit: Boolean) {
-        RELEASE("", "http://repo.oraxen.com:8080/releases/", false),
-        DEV("-DEV", "http://repo.oraxen.com:8080/development/", true),
-        SNAPSHOT("-SNAPSHOT", "http://repo.oraxen.com:8080/snapshots/", true);
+        RELEASE("", "https://repo.oraxen.com/releases/", false),
+        DEV("-DEV", "https://repo.oraxen.com/development/", true),
+        SNAPSHOT("-SNAPSHOT", "https://repo.oraxen.com/snapshots/", true);
 
         fun append(name: String, appendCommit: Boolean, commitHash: String): String =
             name.plus(append).plus(if (appendCommit && addCommit) "-".plus(commitHash) else "")
