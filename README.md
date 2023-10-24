@@ -44,6 +44,18 @@ increase oraxen features.
 - Automatically update configurations when you update the plugin
 - Handle configuration errors
 
+## Contributing
+If you want to contribute to Oraxen, you can do so by creating a pull request.\
+You should make a pull-request to the `develop` branch.\
+1. Fork Oraxen on GitHub
+2. Clone your forked repository (`git clone`)
+3. Create your feature branch (`git checkout -b my-feature`)
+4. Commit your changes (`git commit -am 'Add my feature'`)
+5. Push to the branch (`git push origin my-feature`)
+6. Create a new Pull Request to the `develop` branch
+7. Wait for your pull request to be reviewed and merged
+8. Celebrate your contribution!
+
 ## API
 
 Oraxen's API is primarily found in these four classes:
