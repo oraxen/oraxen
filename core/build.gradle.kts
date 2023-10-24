@@ -16,7 +16,7 @@ dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"
     implementation("org.bstats:bstats-bukkit:3.0.0")
     implementation("dev.triumphteam:triumph-gui:3.1.5") { exclude("net.kyori") }
-    implementation("com.github.oraxen:protectionlib:1.3.5")
+    implementation("io.th0rgal:protectionlib:1.3.6")
     implementation("com.github.stefvanschie.inventoryframework:IF:0.10.9")
     implementation("com.jeff-media:custom-block-data:2.2.2")
     implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
