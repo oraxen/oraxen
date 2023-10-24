@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.event.player.PlayerTeleportEvent;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,6 +13,14 @@ import java.lang.reflect.Method;
 @SuppressWarnings({"unchecked", "unused", "deprecation"})
 public class EntityUtils {
     private static Method spawnMethod;
+
+    public static boolean isFixed(ItemDisplay itemDisplay) {
+        return itemDisplay.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+    }
+
+    public static boolean isNone(ItemDisplay itemDisplay) {
+        return itemDisplay.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.NONE;
+    }
 
     public void teleport(@NotNull Location location, @NotNull Entity entity, PlayerTeleportEvent.TeleportCause cause) {
         if (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer() && VersionUtil.isSupportedVersionOrNewer("1.19.4")) {

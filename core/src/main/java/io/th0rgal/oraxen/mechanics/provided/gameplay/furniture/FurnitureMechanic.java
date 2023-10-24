@@ -398,16 +398,16 @@ public class FurnitureMechanic extends Mechanic {
             float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
             float height = hasHitbox() ? hitbox.height : displayEntityProperties.getDisplayHeight();
             Interaction interaction = spawnInteractionEntity(itemDisplay, location, width, height);
+            Location barrierLoc = EntityUtils.isNone(itemDisplay) && displayEntityProperties.hasScale()
+                            ? location.clone().subtract(0, 0.5 * displayEntityProperties.getScale().y(), 0) : location;
 
-            if (hasBarriers()) setBarrierHitbox(entity, location, yaw, false);
+            if (hasBarriers()) setBarrierHitbox(entity, barrierLoc, yaw, false);
             else if (hasSeat() && interaction != null) {
                 UUID seatUuid = spawnSeat(location.getBlock(), hasSeatYaw ? seatYaw : yaw);
                 interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
             }
-            if (light != -1) {
-                WrappedLightAPI.createBlockLight(location, light);
-            }
+            if (light != -1) WrappedLightAPI.createBlockLight(location, light);
         }
     }
 
