@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.pack.upload.hosts;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -32,7 +33,7 @@ public class Polymath implements HostingProvider {
             HttpPost request = new HttpPost(serverAddress + "upload");
 
             HttpEntity httpEntity = MultipartEntityBuilder
-                    .create().addTextBody("id", "%%__USER__%%")
+                    .create().addTextBody("id", Settings.POLYMATH_SECRET.toString())
                     .addBinaryBody("pack", resourcePack)
                     .build();
 

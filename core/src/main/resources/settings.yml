@@ -95,6 +95,7 @@ Pack:
     type: polymath #transfer.sh or polymath
     polymath:
       server: atlas.oraxen.com # you can also host your own polymath instance
+      secret: "oraxen" # change this if you host your own polymath to limit access to resource pack uploading
 
   dispatch:
     send_pack: true
