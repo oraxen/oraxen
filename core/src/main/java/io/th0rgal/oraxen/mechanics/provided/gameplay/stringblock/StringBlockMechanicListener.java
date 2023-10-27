@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
@@ -96,6 +97,26 @@ public class StringBlockMechanicListener implements Listener {
         public void onEnteringTripwire(EntityInsideBlockEvent event) {
             if (event.getBlock().getType() == Material.TRIPWIRE)
                 event.setCancelled(true);
+        }
+
+        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+        public void onBreak(BlockBreakEvent event) {
+            final Block block = event.getBlock();
+            final Block blockAbove = block.getRelative(BlockFace.UP);
+            final Player player = event.getPlayer();
+
+            for (BlockFace face : BlockFace.values()) {
+                if (face == BlockFace.SELF && !face.isCartesian()) continue;
+                if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
+                if (block.getType() == Material.BARRIER && OraxenFurniture.isFurniture(block)) break;
+                if (block.getRelative(face).getType() == Material.TRIPWIRE) {
+                    if (player.getGameMode() != GameMode.CREATIVE) block.breakNaturally(player.getInventory().getItemInMainHand(), true);
+                    else block.setType(Material.AIR);
+                    if (BlockHelpers.isReplaceable(blockAbove.getType())) blockAbove.breakNaturally(true);
+                    Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
+                            fixClientsideUpdate(block.getLocation()), 1);
+                }
+            }
         }
     }
 
@@ -239,18 +260,6 @@ public class StringBlockMechanicListener implements Listener {
         final Block blockAbove = block.getRelative(BlockFace.UP);
         final Block blockBelow = block.getRelative(BlockFace.DOWN);
         final Player player = event.getPlayer();
-
-        for (BlockFace face : BlockFace.values()) {
-            if (face == BlockFace.SELF && !face.isCartesian()) continue;
-            if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
-            if (block.getRelative(face).getType() == Material.TRIPWIRE) {
-                if (player.getGameMode() != GameMode.CREATIVE) block.breakNaturally(player.getInventory().getItemInMainHand(), true);
-                else block.setType(Material.AIR);
-                if (BlockHelpers.isReplaceable(blockAbove.getType())) blockAbove.breakNaturally(true);
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                        fixClientsideUpdate(block.getLocation()), 1);
-            }
-        }
 
         if (block.getType() == Material.TRIPWIRE) {
             StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(blockBelow);
