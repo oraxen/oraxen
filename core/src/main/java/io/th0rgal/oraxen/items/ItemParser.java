@@ -47,12 +47,11 @@ public class ItemParser {
         ConfigurationSection crucibleSection = section.getConfigurationSection("crucible");
         ConfigurationSection mmoSection = section.getConfigurationSection("mmoitem");
         ConfigurationSection ecoItemSection = section.getConfigurationSection("ecoitem");
-        if (crucibleSection != null)
-            crucibleItem = new WrappedCrucibleItem(crucibleSection);
-        else if (mmoSection != null)
-            mmoItem = new WrappedMMOItem(mmoSection);
-        else if (ecoItemSection != null)
-            ecoItem = new WrappedEcoItem(ecoItemSection);
+        if (crucibleSection != null) crucibleItem = new WrappedCrucibleItem(crucibleSection);
+        else if (section.isString("crucible_id")) crucibleItem = new WrappedCrucibleItem(section.getString("crucible_id"));
+        else if (ecoItemSection != null) ecoItem = new WrappedEcoItem(ecoItemSection);
+        else if (section.isString("ecoitem_id")) ecoItem = new WrappedEcoItem(section.getString("ecoitem_id"));
+        else if (mmoSection != null) mmoItem = new WrappedMMOItem(mmoSection);
         else {
             Material material = Material.getMaterial(section.getString("material", ""));
             if (material == null) material = usesTemplate() ? templateItem.type : Material.PAPER;
