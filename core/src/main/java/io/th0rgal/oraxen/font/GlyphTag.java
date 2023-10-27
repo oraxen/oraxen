@@ -31,8 +31,7 @@ public class GlyphTag {
         boolean colorable = args.hasNext() && (args.peek().value().equals("colorable") || args.peek().value().equals("c"));
         Component glyphComponent = Component.text(glyph.getCharacter()).font(Key.key("default")).style(Style.empty());
 
-        glyphComponent = colorable ? glyphComponent.color(NamedTextColor.WHITE) : glyphComponent;
-        glyphComponent = glyph.hasPermission(player) ? glyphComponent : Component.text(glyph.getGlyphTag());
+        glyphComponent = glyph.hasPermission(player) ? glyphComponent.color(colorable ? null : NamedTextColor.WHITE) : Component.text().content(glyph.getGlyphTag()).build();
         return Tag.selfClosingInserting(glyphComponent);
     }
 }
