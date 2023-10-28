@@ -10,6 +10,7 @@ general:
   pack_uploaded: "<prefix><#55ffa4>材質包上傳至 <url> 用時 <delay> 毫秒"
   pack_regenerated: "<prefix><#55ffa4>材質包重新生成成功"
   updating_config: "<prefix><#facc43>未找到配置選項 \"<option>\"， 新增中！"
+  removing_config: Configuration option \"<option>\" has been marked for removal, removing it!"
   configs_validation_failed: "<prefix><#fa4943>配置檔案驗證失敗，外掛將自動禁用！"
   repaired_items: "<prefix><#55ffa4><amount> 個物品已成功修復！"
   cannot_be_repaired: "<prefix><#fa4943>此物品無法被修復！"

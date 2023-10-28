@@ -20,6 +20,7 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.*;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerConnectionListener;
@@ -164,8 +165,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                         @Override
                         protected void initChannel(@NotNull Channel ch) throws Exception {
                             initChannel.invoke(initializer, ch);
-
-                            inject(ch);
+                            channel.eventLoop().submit(() -> inject(channel));
                         }
                     };
                     original.set(handler, miniInit);
@@ -199,7 +199,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         if (player == null || !Settings.NMS_GLYPHS.toBool()) return;
         Channel channel = ((CraftPlayer) player).getHandle().connection.connection.channel;
 
-        inject(channel);
+        channel.eventLoop().submit(() -> inject(channel));
 
         for (Map.Entry<String, ChannelHandler> entry : channel.pipeline()) {
             ChannelHandler handler = entry.getValue();
@@ -383,11 +383,13 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         @Override
         protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
+            final ByteBuf bufCopy = msg.copy();
             if (msg.readableBytes() == 0) return;
 
             CustomDataSerializer dataSerializer = new CustomDataSerializer(() -> player, msg);
             int packetID = dataSerializer.readVarInt();
-            Packet<?> packet = ctx.channel().attr(Connection.ATTRIBUTE_PROTOCOL).get().createPacket(PacketFlow.SERVERBOUND, packetID, dataSerializer);
+            ConnectionProtocol protocol = ctx.channel().attr(Connection.ATTRIBUTE_PROTOCOL).get();
+            Packet<?> packet = protocol.createPacket(PacketFlow.SERVERBOUND, packetID, dataSerializer);
 
             if (packet == null) {
                 throw new IOException("Bad packet id " + packetID);
@@ -395,6 +397,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
             if (dataSerializer.readableBytes() > 0) {
                 throw new IOException("Packet " + packetID + " " + packet + " was larger than expected, found " + dataSerializer.readableBytes() + " bytes extra whiløst reading the packet " + packetID);
+            } else if (packet instanceof ClientboundPlayerChatPacket) {
+                FriendlyByteBuf serializer = new FriendlyByteBuf(bufCopy);
+                serializer.readVarInt();
+                packet = protocol.createPacket(PacketFlow.SERVERBOUND, packetID, serializer);
             }
             out.add(packet);
         }

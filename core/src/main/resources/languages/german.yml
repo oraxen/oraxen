@@ -10,6 +10,7 @@ general:
   pack_uploaded: "<prefix><#55ffa4>Ressourcenpack auf Url <url> in <delay> ms hochgeladen"
   pack_regenerated: "<prefix><#55ffa4>Ressourcenpack erfolgreich regeneriert"
   updating_config: "<prefix><#facc43>Konfigurationsoption \"<option>\" nicht gefunden, wird hinzugefügt!"
+  removing_config: "<prefix><#facc43>Die Konfigurationsoption \"<option>" wurde zum Entfernen markiert, entfernen Sie sie!"
   configs_validation_failed: "<prefix><#fa4943>Validierung der Konfigurationen ist fehlgeschlagen, Plugin wurde automatisch deaktiviert!"
   repaired_items: "<prefix><#55ffa4><amount> Item(s) wurden erfolgreich repariert!"
   cannot_be_repaired: "<prefix><#fa4943>Dieses Item kann nicht repariert werden!"

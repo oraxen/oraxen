@@ -4,11 +4,12 @@ import java.util.*
 
 plugins {
     id("java")
-    id("maven-publish")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("xyz.jpenilla.run-paper") version "2.0.1"
+    //id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("xyz.jpenilla.run-paper") version "2.2.0"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
     id("io.papermc.paperweight.userdev") version "1.5.6" apply false
+    alias(libs.plugins.shadowjar)
+    alias(libs.plugins.mia.publication)
 }
 
 class NMSVersion(val nmsVersion: String, val serverVersion: String)
@@ -31,6 +32,7 @@ SUPPORTED_VERSIONS.forEach {
 
         repositories {
             maven("https://papermc.io/repo/repository/maven-public/") // Paper
+            maven("https://repo.mineinabyss.com/releases")
         }
 
         dependencies {
@@ -60,7 +62,6 @@ allprojects {
         maven("https://papermc.io/repo/repository/maven-public/") // Paper
         maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
         maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
-        maven("https://jitpack.io") // JitPack
         maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
         maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
@@ -71,7 +72,11 @@ allprojects {
         //maven("https://mvn.lumine.io/repository/maven/") // PlayerAnimator
         maven("https://repo.mineinabyss.com/releases") // PlayerAnimator
         maven("https://s01.oss.sonatype.org/content/repositories/snapshots") // commandAPI snapshots
+        maven("https://repo.auxilor.io/repository/maven-public/") // EcoItems
         maven("https://maven.enginehub.org/repo/")
+        maven("https://repo.oraxen.com/releases")
+        maven("https://repo.oraxen.com/snapshots")
+        maven("https://jitpack.io") // JitPack
 
         mavenLocal()
     }
@@ -93,12 +98,16 @@ allprojects {
         compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
         compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
         compileOnly("commons-io:commons-io:2.11.0")
-        compileOnly("com.ticxo.modelengine:api:R3.1.5")
+        compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.1")
+        compileOnly("com.ticxo.modelengine:api:R3.1.8")
         compileOnly(files("../libs/compile/BSP.jar"))
         compileOnly("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
         compileOnly("io.lumine:MythicLib:1.1.6")
         compileOnly("net.Indyuce:MMOItems:6.7.3")
         compileOnly("org.joml:joml:1.10.5") // Because pre 1.19.4 api does not have this in the server-jar
+        compileOnly("com.willfp:EcoItems:5.23.0")
+        compileOnly("com.willfp:eco:6.65.5")
+        compileOnly("com.willfp:libreforge:4.36.0")
     }
 }
 
@@ -131,7 +140,7 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.20.2")
+        minecraftVersion("1.20")
     }
 
     shadowJar {
@@ -178,7 +187,7 @@ bukkit {
     name = "Oraxen"
     apiVersion = "1.18"
     authors = listOf("th0rgal", "boy0000")
-    softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards")
+    softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards")
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
     permissions.create("oraxen.command") {
@@ -197,14 +206,6 @@ bukkit {
     )
 }
 
-publishing {
-    publications {
-        register<MavenPublication>("maven") {
-            from(components.getByName("java"))
-        }
-    }
-}
-
 if (pluginPath != null) {
     tasks {
         val defaultPath = findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar")
@@ -214,6 +215,7 @@ if (pluginPath != null) {
             dependsOn(shadowJar, jar)
             from(defaultPath)
             into(pluginPath)
+            doLast { println("Copied to plugin directory $pluginPath") }
         }
 
         // Create individual copy tasks for each destination

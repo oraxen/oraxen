@@ -1,10 +1,11 @@
 # MISCELLANEOUS
 
 commands:
-  enabled: false
-
-armorpotioneffects:
   enabled: true
+
+armor_effects:
+  enabled: true
+  delay_in_ticks: 20
 
 consumable:
   enabled: true
