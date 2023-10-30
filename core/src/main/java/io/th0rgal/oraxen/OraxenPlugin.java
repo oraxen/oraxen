@@ -116,7 +116,7 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
-        gestureManager = !VersionUtil.isSupportedVersionOrNewer("1.20.2") ? new GestureManager() : null;
+        gestureManager = new GestureManager();
         OraxenItems.loadItems();
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there
