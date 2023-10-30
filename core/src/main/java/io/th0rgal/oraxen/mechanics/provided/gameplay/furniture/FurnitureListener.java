@@ -13,6 +13,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlaci
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
@@ -180,7 +181,7 @@ public class FurnitureListener implements Listener {
         Utils.swingHand(player, event.getHand());
 
         final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, block, baseEntity, player, item, hand);
-        if (!furniturePlaceEvent.callEvent()) {
+        if (!EventUtils.callEvent(furniturePlaceEvent)) {
             OraxenFurniture.remove(baseEntity, null);
             block.setBlockData(currentBlockData);
             return;
@@ -250,7 +251,7 @@ public class FurnitureListener implements Listener {
         if (entity == null) return;
         if (!ProtectionLib.canBreak(player, entity.getLocation())) return;
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, entity, player, entity.getLocation().getBlock());
-        if (!furnitureBreakEvent.callEvent()) return;
+        if (!EventUtils.callEvent(furnitureBreakEvent)) return;
         OraxenFurniture.remove(entity, player, furnitureBreakEvent.getDrop());
     }
 
@@ -268,7 +269,7 @@ public class FurnitureListener implements Listener {
         if (baseEntity == null) return;
 
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, baseEntity, player, block);
-        if (!furnitureBreakEvent.callEvent()) {
+        if (!EventUtils.callEvent(furnitureBreakEvent)) {
             event.setCancelled(true);
             return;
         }
@@ -334,7 +335,7 @@ public class FurnitureListener implements Listener {
         }
 
         ItemStack itemInHand = hand == EquipmentSlot.HAND ? player.getInventory().getItemInMainHand() : player.getInventory().getItemInOffHand();
-        new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, itemInHand, hand).callEvent();
+        EventUtils.callEvent(new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, itemInHand, hand));
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -353,7 +354,7 @@ public class FurnitureListener implements Listener {
         final Entity baseEntity = mechanic.getBaseEntity(block);
         if (baseEntity == null) return;
 
-        new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), hand, block, event.getBlockFace()).callEvent();
+        EventUtils.callEvent(new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), hand, block, event.getBlockFace()));
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)

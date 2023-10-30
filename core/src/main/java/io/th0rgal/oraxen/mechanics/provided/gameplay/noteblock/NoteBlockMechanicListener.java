@@ -11,11 +11,11 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlaci
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -138,7 +138,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (event.getClickedBlock().getType() != Material.NOTE_BLOCK) return;
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
         if (mechanic == null) return;
-        if (!new OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace()).callEvent())
+        if (!EventUtils.callEvent(new OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace())))
             event.setCancelled(true);
     }
 
@@ -225,7 +225,7 @@ public class NoteBlockMechanicListener implements Listener {
             mechanic = mechanic.getDirectional().getParentMechanic();
 
         event.setUseInteractedBlock(Event.Result.DENY);
-        if (!new OraxenNoteBlockInteractEvent(mechanic, player, item, hand, block, blockFace).callEvent()) event.setCancelled(true);
+        if (!EventUtils.callEvent(new OraxenNoteBlockInteractEvent(mechanic, player, item, hand, block, blockFace))) event.setCancelled(true);
         if (item == null) return;
 
         Block relative = block.getRelative(blockFace);
@@ -379,7 +379,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (!mechanic.canIgnite()) return;
         if (item.getType() != Material.FLINT_AND_STEEL && item.getType() != Material.FIRE_CHARGE) return;
 
-        new BlockIgniteEvent(block, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, event.getPlayer()).callEvent();
+        EventUtils.callEvent(new BlockIgniteEvent(block, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, event.getPlayer()));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -508,7 +508,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
             blockPlaceEvent.setCancelled(true);
 
-        if (!blockPlaceEvent.callEvent() || !blockPlaceEvent.canBuild()) return;
+        if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) return;
 
         // This method is run for placing on custom blocks aswell, so this should not be called for vanilla blocks
         NoteBlockMechanic targetOraxen = OraxenBlocks.getNoteBlockMechanic(newData);
@@ -516,7 +516,7 @@ public class NoteBlockMechanicListener implements Listener {
             BlockData oldData = target.getBlockData();
             OraxenBlocks.place(targetOraxen.getItemID(), target.getLocation());
 
-            if (!new OraxenNoteBlockPlaceEvent(targetOraxen, target, player, item, hand).callEvent()) {
+            if (!EventUtils.callEvent(new OraxenNoteBlockPlaceEvent(targetOraxen, target, player, item, hand))) {
                 target.setBlockData(oldData);
                 return;
             }

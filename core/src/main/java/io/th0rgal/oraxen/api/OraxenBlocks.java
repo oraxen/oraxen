@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.EventUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -227,8 +228,7 @@ public class OraxenBlocks {
 
         if (player != null) {
             OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(noteBlockBreakEvent);
-            if (noteBlockBreakEvent.isCancelled()) return;
+            if (!EventUtils.callEvent(noteBlockBreakEvent)) return;
 
             if (player.getGameMode() != GameMode.CREATIVE)
                 noteBlockBreakEvent.getDrop().spawns(block.getLocation(), player.getInventory().getItemInMainHand());
@@ -251,8 +251,7 @@ public class OraxenBlocks {
 
         if (player != null) {
             OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
-            OraxenPlugin.get().getServer().getPluginManager().callEvent(wireBlockBreakEvent);
-            if (wireBlockBreakEvent.isCancelled()) return;
+            if (!EventUtils.callEvent(wireBlockBreakEvent)) return;
 
             if (player.getGameMode() != GameMode.CREATIVE)
                 wireBlockBreakEvent.getDrop().spawns(block.getLocation(), item);

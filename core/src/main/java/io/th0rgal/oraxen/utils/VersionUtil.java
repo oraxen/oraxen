@@ -22,10 +22,10 @@ public class VersionUtil {
         UNKNOWN;
 
         public static boolean matchesServer(String version) {
-            return getNMSVersion(Bukkit.getMinecraftVersion()).equals(getNMSVersion(version));
+            return getNMSVersion(getMinecraftVersion()).equals(getNMSVersion(version));
         }
         public static boolean matchesServer(NMSVersion version) {
-            return version != UNKNOWN && getNMSVersion(Bukkit.getMinecraftVersion()).equals(version);
+            return version != UNKNOWN && getNMSVersion(getMinecraftVersion()).equals(version);
         }
     }
 
@@ -51,11 +51,11 @@ public class VersionUtil {
     }
 
     public static boolean matchesServer(String server) {
-        return server.equals(Bukkit.getMinecraftVersion());
+        return server.equals(getMinecraftVersion());
     }
 
     public static boolean isSupportedVersionOrNewer(String versionString) {
-        int serverValue = getVersionValue(Bukkit.getMinecraftVersion());
+        int serverValue = getVersionValue(getMinecraftVersion());
         return getVersionValue(versionString) <= serverValue;
     }
 
@@ -137,5 +137,10 @@ public class VersionUtil {
     public static boolean isValidCompiler() {
         List<String> split = Arrays.stream(manifest.split(":|\n")).map(String::trim).toList();
         return Set.of("sivert", "thomas").contains(split.get(split.indexOf("Built-By") + 1).toLowerCase());
+    }
+
+    public static String getMinecraftVersion() {
+        if (isPaperServer()) return Bukkit.getMinecraftVersion();
+        else return Bukkit.getVersion().split("MC: ")[1].split("\\)")[0];
     }
 }

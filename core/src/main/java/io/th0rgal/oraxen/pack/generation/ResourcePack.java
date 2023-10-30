@@ -145,7 +145,7 @@ public class ResourcePack {
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
-            event.callEvent();
+            EventUtils.callEvent(event);
             ZipUtils.writeZipFile(pack, event.getOutput());
 
             UploadManager uploadManager = new UploadManager(OraxenPlugin.get());

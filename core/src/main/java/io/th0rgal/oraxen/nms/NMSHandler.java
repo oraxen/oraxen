@@ -19,7 +19,7 @@ import java.util.Set;
 public interface NMSHandler {
 
     @Nullable
-    ConfigurationSection paperSection = OraxenYaml.loadConfiguration(OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().getParent().getParent().resolve("config").resolve("paper-global.yml").toFile()).getConfigurationSection("block-updates");
+    ConfigurationSection paperSection = VersionUtil.isPaperServer() ? OraxenYaml.loadConfiguration(OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().getParent().getParent().resolve("config").resolve("paper-global.yml").toFile()).getConfigurationSection("block-updates") : null;
 
     default boolean noteblockUpdatesDisabled() {
         return VersionUtil.isPaperServer() && paperSection != null && paperSection.getBoolean("disable-noteblock-updates", false);

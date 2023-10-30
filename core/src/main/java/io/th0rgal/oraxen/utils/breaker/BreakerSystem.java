@@ -20,6 +20,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
@@ -148,9 +149,9 @@ public class BreakerSystem {
 
                         if (value++ < 10) return;
 
-                        if (new BlockBreakEvent(block, player).callEvent() && ProtectionLib.canBreak(player, block.getLocation())) {
+                        if (EventUtils.callEvent(new BlockBreakEvent(block, player)) && ProtectionLib.canBreak(player, block.getLocation())) {
                             modifier.breakBlock(player, block, item);
-                            new PlayerItemDamageEvent(player, item, 1).callEvent();
+                            EventUtils.callEvent(new PlayerItemDamageEvent(player, item, 1));
                         } else breakerPlaySound.remove(block);
 
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->

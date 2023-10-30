@@ -2,8 +2,8 @@ package io.th0rgal.oraxen.mechanics.provided.cosmetic.hat;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
-import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
@@ -70,7 +70,7 @@ public class HatMechanicListener implements Listener {
         if (inventory.getHelmet() != null) return;
 
         event.setCancelled(true);
-        if (!ArmorEquipEvent.OraxenHatEquipEvent(player, null, item).callEvent()) return;
+        if (!EventUtils.callEvent(ArmorEquipEvent.OraxenHatEquipEvent(player, null, item))) return;
 
         final ItemStack helmet = item.clone();
         helmet.setAmount(1);
@@ -106,7 +106,7 @@ public class HatMechanicListener implements Listener {
                 itemID = OraxenItems.getIdByItem(currentItem);
                 if (factory.isNotImplementedIn(itemID)) return;
 
-                if (!ArmorEquipEvent.OraxenHatEquipEvent(player, currentItem, cursor).callEvent())
+                if (!EventUtils.callEvent(ArmorEquipEvent.OraxenHatEquipEvent(player, currentItem, cursor)))
                     e.setCancelled(true);
             }
         } else {
@@ -118,8 +118,7 @@ public class HatMechanicListener implements Listener {
 
             if (currentItem == null || currentItem.getType() == Material.AIR) {
                 final ArmorEquipEvent armorEquipEvent = ArmorEquipEvent.OraxenHatEquipEvent(player, currentItem, clone);
-                Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
-                if (armorEquipEvent.isCancelled()) return;
+                if (!EventUtils.callEvent(armorEquipEvent)) return;
 
                 e.setCancelled(true);
                 player.getInventory().setHelmet(armorEquipEvent.getNewArmorPiece());
