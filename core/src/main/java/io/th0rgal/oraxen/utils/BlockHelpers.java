@@ -146,6 +146,8 @@ public class BlockHelpers {
             target.setBlockData(newData);
             correctedData = oldCorrectBlockData(placedAgainst.getRelative(face), player, face, item);
             if (correctedData == null) target.setBlockData(oldData);
+            if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
+            Utils.swingHand(player, hand);
         }
 
         if (target.getState() instanceof Sign sign) player.openSign(sign);

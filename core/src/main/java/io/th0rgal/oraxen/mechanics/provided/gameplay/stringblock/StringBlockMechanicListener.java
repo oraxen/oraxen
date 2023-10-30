@@ -396,13 +396,13 @@ public class StringBlockMechanicListener implements Listener {
                                        final Block placedAgainst, final BlockFace face, final BlockData newData) {
         final Block target;
         final Material type = placedAgainst.getType();
-        if (BlockHelpers.isReplaceable(type))
-            target = placedAgainst;
+        if (BlockHelpers.isReplaceable(type)) target = placedAgainst;
         else {
             target = placedAgainst.getRelative(face);
             if (!target.getType().isAir() && target.getType() != Material.WATER && target.getType() != Material.LAVA)
                 return null;
         }
+
         if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation())) return null;
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(newData);
         if (mechanic == null) return null;
