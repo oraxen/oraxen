@@ -2,6 +2,9 @@ package io.th0rgal.oraxen.mechanics.provided.misc.food;
 
 import io.lumine.mythiccrucible.MythicCrucible;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
+import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
+import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -70,9 +73,11 @@ public class FoodMechanic extends Mechanic {
         } else if (section.isString("oraxen_item"))
             replacementItem = OraxenItems.getItemById(section.getString("oraxen_item")).build();
         else if (section.isString("crucible_item"))
-            replacementItem = MythicCrucible.core().getItemManager().getItemStack(section.getString("crucible_item"));
+            replacementItem = new WrappedCrucibleItem(section.getString("crucible_item")).build();
         else if (section.isString("mmoitems_id") && section.isString("mmoitems_type"))
             replacementItem = MMOItems.plugin.getItem(section.getString("mmoitems_type"), section.getString("mmoitems_id"));
+        else if (section.isString("ecoitem_id"))
+            replacementItem = new WrappedEcoItem(section.getString("ecoitem_id")).build();
         else replacementItem = null;
     }
 
