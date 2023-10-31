@@ -52,11 +52,10 @@ public class ItemParser {
         else if (ecoItemSection != null) ecoItem = new WrappedEcoItem(ecoItemSection);
         else if (section.isString("ecoitem_id")) ecoItem = new WrappedEcoItem(section.getString("ecoitem_id"));
         else if (mmoSection != null) mmoItem = new WrappedMMOItem(mmoSection);
-        else {
-            Material material = Material.getMaterial(section.getString("material", ""));
-            if (material == null) material = usesTemplate() ? templateItem.type : Material.PAPER;
-            type = material;
-        }
+
+        Material material = Material.getMaterial(section.getString("material", ""));
+        if (material == null) material = usesTemplate() ? templateItem.type : Material.PAPER;
+        type = material;
 
         oraxenMeta = new OraxenMeta();
         if (section.isConfigurationSection("Pack")) {
@@ -70,15 +69,15 @@ public class ItemParser {
     }
 
     public boolean usesMMOItems() {
-        return type == null && crucibleItem == null && ecoItem == null  && mmoItem != null;
+        return crucibleItem == null && ecoItem == null  && mmoItem != null && mmoItem.build() != null;
     }
 
     public boolean usesCrucibleItems() {
-        return type == null && mmoItem == null && ecoItem == null && crucibleItem != null;
+        return mmoItem == null && ecoItem == null && crucibleItem != null && crucibleItem.build() != null;
     }
 
     public boolean usesEcoItems() {
-        return type == null && mmoItem == null && crucibleItem == null && ecoItem != null;
+        return mmoItem == null && crucibleItem == null && ecoItem != null && ecoItem.build() != null;
     }
 
     public boolean usesTemplate() {
