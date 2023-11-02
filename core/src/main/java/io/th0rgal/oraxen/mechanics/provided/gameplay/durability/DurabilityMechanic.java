@@ -34,24 +34,19 @@ public class DurabilityMechanic extends Mechanic {
 
     public void changeDurability(ItemStack item, int amount) {
         DurabilityMechanic durabilityMechanic = this;
-        AtomicBoolean check = new AtomicBoolean(false);
 
         Utils.editItemMeta(item, (itemMeta) -> {
             PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
-            check.set(pdc.has(DurabilityMechanic.DURABILITY_KEY, PersistentDataType.INTEGER));
 
-            if (check.get()) {
-                if(!(itemMeta instanceof Damageable damageable)) {
-                    check.set(true);
-                    return;
-                }
+            if (pdc.has(DurabilityMechanic.DURABILITY_KEY, PersistentDataType.INTEGER)) {
+                if(!(itemMeta instanceof Damageable damageable)) return;
 
                 int baseMaxDurab = item.getType().getMaxDurability();
                 int realMaxDurab = durabilityMechanic.getItemMaxDurability(); // because int rounded values suck
                 int realDurabRemain = pdc.getOrDefault(DURABILITY_KEY, PersistentDataType.INTEGER, realMaxDurab);
 
                 // If item was max durab before damage, set the fake one
-                if (damageable.getDamage() != 0 && realDurabRemain == realMaxDurab) {
+                if (damageable.hasDamage() && realDurabRemain == realMaxDurab) {
                     pdc.set(DURABILITY_KEY, PersistentDataType.INTEGER,
                             (int) (realMaxDurab - (((double) damageable.getDamage() / (double) baseMaxDurab) * realMaxDurab)));
                     item.setItemMeta(itemMeta);
@@ -67,6 +62,5 @@ public class DurabilityMechanic extends Mechanic {
                 }
             }
         });
-        check.get();
     }
 }

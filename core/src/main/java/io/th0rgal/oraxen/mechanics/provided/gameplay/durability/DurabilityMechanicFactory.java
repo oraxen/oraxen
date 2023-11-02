@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 
 public class DurabilityMechanicFactory extends MechanicFactory {
 
@@ -25,5 +26,15 @@ public class DurabilityMechanicFactory extends MechanicFactory {
 
     public static DurabilityMechanicFactory get() {
         return instance;
+    }
+
+    @Override
+    public DurabilityMechanic getMechanic(String itemId) {
+        return (DurabilityMechanic) super.getMechanic(itemId);
+    }
+
+    @Override
+    public DurabilityMechanic getMechanic(ItemStack itemStack) {
+        return (DurabilityMechanic) super.getMechanic(itemStack);
     }
 }
