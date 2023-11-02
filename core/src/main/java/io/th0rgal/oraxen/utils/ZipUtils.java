@@ -1,12 +1,14 @@
 package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.pack.PackGenerator;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -14,20 +16,20 @@ import java.util.zip.ZipInputStream;
 public class ZipUtils {
 
     public static void extractDefaultZipPack() {
-        Path destDirectory = OraxenPlugin.get().packPath();
-        String zipFilePath = destDirectory.resolve("DefaultPack.zip").toString();
+        Path destDirectory = PackGenerator.packImports.resolve("DefaultPack").toFile().toPath();
+        File zipFile = PackGenerator.packImports.resolve("DefaultPack.zip").toFile();
+        if (!zipFile.exists()) return;
+
         File[] assets = destDirectory.resolve("assets").toFile().listFiles();
         if (assets != null && assets.length > 0) return;
         Logs.logInfo("Extracting default assets...");
         try {
             File destDir = destDirectory.toFile();
             // Create destination directory if it doesn't exist
-            if (!destDir.exists()) {
-                destDir.mkdirs();
-            }
+            Files.createDirectory(destDirectory);
 
             byte[] buffer = new byte[1024];
-            ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFilePath));
+            ZipInputStream zipInputStream = new ZipInputStream(new FileInputStream(zipFile));
             ZipEntry entry = zipInputStream.getNextEntry();
 
             while (entry != null) {

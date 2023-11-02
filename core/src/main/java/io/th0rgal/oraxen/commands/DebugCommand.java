@@ -17,7 +17,7 @@ public class DebugCommand {
                 .withPermission("oraxen.command.debug")
                 .withOptionalArguments(new StringArgument("toggle"))
                 .executes((sender, args) -> {
-                    ConfigsManager configsManager = OraxenPlugin.get().getConfigsManager();
+                    ConfigsManager configsManager = OraxenPlugin.get().configsManager();
                     YamlConfiguration settings = configsManager.getSettings();
                     boolean debugState = args.getOptional("toggle").isPresent() ? Boolean.parseBoolean(args.getOptional("toggle").get().toString()) : !settings.getBoolean("debug", true);
                     settings.set("debug", debugState);

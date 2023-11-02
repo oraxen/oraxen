@@ -62,8 +62,8 @@ public class ReloadCommand {
     public static void reloadHud(@Nullable CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "hud"));
         OraxenPlugin.get().reloadConfigs();
-        HudManager hudManager = new HudManager(OraxenPlugin.get().getConfigsManager());
-        OraxenPlugin.get().setHudManager(hudManager);
+        HudManager hudManager = new HudManager(OraxenPlugin.get().configsManager());
+        OraxenPlugin.get().hudManager(hudManager);
         hudManager.loadHuds(hudManager.getHudConfigSection());
         hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
         hudManager.reregisterEvents();
@@ -72,7 +72,7 @@ public class ReloadCommand {
 
     public static void reloadGestures(@Nullable CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "gestures"));
-        OraxenPlugin.get().getGesturesManager().reload();
+        OraxenPlugin.get().gestureManager().reload();
     }
 
     public static void reloadRecipes(@Nullable CommandSender sender) {
@@ -91,7 +91,7 @@ public class ReloadCommand {
                         case "HUD" -> reloadHud(sender);
                         case "ITEMS" -> {
                             reloadItems(sender);
-                            OraxenPlugin.get().getInvManager().regen();
+                            OraxenPlugin.get().invManager().regen();
                         }
                         case "PACK" -> reloadPack(sender);
                         case "RECIPES" -> reloadRecipes(sender);
@@ -104,11 +104,11 @@ public class ReloadCommand {
                             reloadPack(sender);
                             reloadHud(sender);
                             reloadRecipes(sender);
-                            OraxenPlugin.get().getInvManager().regen();
+                            OraxenPlugin.get().invManager().regen();
                         }
                     }
                     for (Player player : Bukkit.getOnlinePlayers()) {
-                        OraxenPlugin.get().getFontManager().sendGlyphTabCompletion(player);
+                        OraxenPlugin.get().fontManager().sendGlyphTabCompletion(player);
                     }
                 });
     }

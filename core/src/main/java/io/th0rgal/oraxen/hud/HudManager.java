@@ -40,7 +40,7 @@ public class HudManager {
     }
 
     public ConfigurationSection getHudConfigSection() {
-        return OraxenPlugin.get().getConfigsManager().getHud().getConfigurationSection("huds");
+        return OraxenPlugin.get().configsManager().getHud().getConfigurationSection("huds");
     }
 
     public void registerEvents() {
@@ -95,7 +95,7 @@ public class HudManager {
     }
 
     public void disableHud(final Player player) {
-        OraxenPlugin.get().getAudience().player(player).sendActionBar(Component.empty());
+        OraxenPlugin.get().audience().player(player).sendActionBar(Component.empty());
     }
 
     public void enableHud(final Player player, Hud hud) {
@@ -104,7 +104,7 @@ public class HudManager {
         String hudDisplay = parsedHudDisplays.get(hud);
         hudDisplay = translatePlaceholdersForHudDisplay(player, hudDisplay);
         hudDisplay = AdventureUtils.parseLegacy(hudDisplay);
-        OraxenPlugin.get().getAudience().player(player).sendActionBar(AdventureUtils.MINI_MESSAGE.deserialize(hudDisplay));
+        OraxenPlugin.get().audience().player(player).sendActionBar(AdventureUtils.MINI_MESSAGE.deserialize(hudDisplay));
     }
 
     public void registerTask() {

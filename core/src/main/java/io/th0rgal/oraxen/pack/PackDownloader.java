@@ -25,7 +25,7 @@ public class PackDownloader {
         String fileUrl = "http://repo.oraxen.com:8080/private/DefaultPack.zip";
         String username = accessYaml.getString("username", "");
         String password = accessYaml.getString("password", "");
-        Path zipPath = OraxenPlugin.get().packPath().resolve("DefaultPack.zip");
+        Path zipPath = PackGenerator.packImports.resolve("DefaultPack.zip");
 
         try {
             URL url = new URL(fileUrl);

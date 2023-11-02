@@ -237,7 +237,7 @@ public class Glyph {
      */
     public static String parsePlaceholders(String message) {
         Component component = AdventureUtils.GSON_SERIALIZER.deserialize(message.replaceAll("\\\\(?!u)(?!n)(?!\")", ""));
-        for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
+        for (Glyph glyph : OraxenPlugin.get().fontManager().getGlyphs()) {
             Component glyphComponent = Component.text(glyph.getCharacter()).color(NamedTextColor.WHITE);
             // Format all non-escaped glyph-tags and raw unicodes
             component = component.replaceText(TextReplacementConfig.builder()

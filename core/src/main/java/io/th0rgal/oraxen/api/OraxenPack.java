@@ -7,8 +7,8 @@ import io.th0rgal.oraxen.sound.SoundManager;
 public class OraxenPack {
 
     public static void reloadPack() {
-        OraxenPlugin.get().setFontManager(new FontManager(OraxenPlugin.get().getConfigsManager()));
-        OraxenPlugin.get().setSoundManager(new SoundManager(OraxenPlugin.get().getConfigsManager().getSound()));
-        OraxenPlugin.get().getPackGenerator().generatePack();
+        OraxenPlugin.get().fontManager(new FontManager(OraxenPlugin.get().configsManager()));
+        OraxenPlugin.get().soundManager(new SoundManager(OraxenPlugin.get().configsManager().getSound()));
+        OraxenPlugin.get().packGenerator().generatePack();
     }
 }

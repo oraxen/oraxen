@@ -123,11 +123,11 @@ public enum Settings {
     }
 
     public Object getValue() {
-        return OraxenPlugin.get().getConfigsManager().getSettings().get(path);
+        return OraxenPlugin.get().configsManager().getSettings().get(path);
     }
     public void setValue(Object value) { setValue(value, true); }
     public void setValue(Object value, boolean save) {
-        YamlConfiguration settingFile = OraxenPlugin.get().getConfigsManager().getSettings();
+        YamlConfiguration settingFile = OraxenPlugin.get().configsManager().getSettings();
         settingFile.set(path, value);
         try {
             if (save) settingFile.save(OraxenPlugin.get().getDataFolder().toPath().resolve("settings.yml").toFile());
@@ -146,11 +146,11 @@ public enum Settings {
     }
 
     public List<String> toStringList() {
-        return OraxenPlugin.get().getConfigsManager().getSettings().getStringList(path);
+        return OraxenPlugin.get().configsManager().getSettings().getStringList(path);
     }
 
     public ConfigurationSection toConfigSection() {
-        return OraxenPlugin.get().getConfigsManager().getSettings().getConfigurationSection(path);
+        return OraxenPlugin.get().configsManager().getSettings().getConfigurationSection(path);
     }
 
 }

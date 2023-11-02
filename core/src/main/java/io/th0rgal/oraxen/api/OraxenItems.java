@@ -30,9 +30,9 @@ public class OraxenItems {
     public static void loadItems() {
         ItemParser.MODEL_DATAS_BY_ID.clear();
         ModelData.DATAS.clear();
-        OraxenPlugin.get().getConfigsManager().assignAllUsedModelDatas();
-        OraxenPlugin.get().getConfigsManager().parseAllItemTemplates();
-        map = OraxenPlugin.get().getConfigsManager().parseItemConfig();
+        OraxenPlugin.get().configsManager().assignAllUsedModelDatas();
+        OraxenPlugin.get().configsManager().parseAllItemTemplates();
+        map = OraxenPlugin.get().configsManager().parseItemConfig();
         items = new HashSet<>();
         for (final Map<String, ItemBuilder> subMap : map.values())
             items.addAll(subMap.keySet());

@@ -46,16 +46,16 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         toolTypes = section.getStringList("tool_types");
         farmBlockCheckDelay = section.getInt("farmblock_check_delay");
         farmBlock = false;
-        customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("noteblock_and_block", true);
+        customSounds = OraxenPlugin.get().configsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("noteblock_and_block", true);
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
-        BlockState noteState = OraxenPlugin.get().getResourcePack().blockState(Key.key("minecraft:note_block"));
+        BlockState noteState = OraxenPlugin.get().resourcePack().blockState(Key.key("minecraft:note_block"));
         if (noteState != null) {
             noteState.variants().putAll(variants);
         } else noteState = getBlockState();
 
-        OraxenPlugin.get().getResourcePack().blockState(noteState);
+        OraxenPlugin.get().resourcePack().blockState(noteState);
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new NoteBlockMechanicListener(),
                 new LogStripListener()

@@ -15,7 +15,7 @@ import org.bukkit.entity.Player;
 public class GestureCommand {
 
     CommandAPICommand getGestureCommand() {
-        GestureManager gestureManager = OraxenPlugin.get().getGesturesManager();
+        GestureManager gestureManager = OraxenPlugin.get().gestureManager();
 
         return new CommandAPICommand("gesture")
                 .withAliases("gestures", "g")
@@ -26,7 +26,7 @@ public class GestureCommand {
                 )
                 .executes((sender, args) -> {
                     if (!Settings.GESTURES_ENABLED.toBool()) {
-                        OraxenPlugin.get().getAudience().sender(sender).sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>Gestures are not enabled!"));
+                        OraxenPlugin.get().audience().sender(sender).sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>Gestures are not enabled!"));
                         return;
                     }
                     String gesture = (String) args.get("gesture");

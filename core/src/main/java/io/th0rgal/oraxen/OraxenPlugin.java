@@ -177,15 +177,15 @@ public class OraxenPlugin extends JavaPlugin {
         return getDataFolder().toPath().resolve("pack");
     }
 
-    public ProtocolManager getProtocolManager() {
+    public ProtocolManager protocolManager() {
         return protocolManager;
     }
 
-    public GestureManager getGesturesManager() {
+    public GestureManager gestureManager() {
         return gestureManager;
     }
 
-    public BukkitAudiences getAudience() {
+    public BukkitAudiences audience() {
         return audience;
     }
 
@@ -194,60 +194,60 @@ public class OraxenPlugin extends JavaPlugin {
         configsManager.validatesConfig();
     }
 
-    public ConfigsManager getConfigsManager() {
+    public ConfigsManager configsManager() {
         return configsManager;
     }
 
-    public FontManager getFontManager() {
+    public FontManager fontManager() {
         return fontManager;
     }
 
-    public void setFontManager(final FontManager fontManager) {
+    public void fontManager(final FontManager fontManager) {
         this.fontManager.unregisterEvents();
         this.fontManager = fontManager;
         fontManager.registerEvents();
     }
 
-    public HudManager getHudManager() {
+    public HudManager hudManager() {
         return hudManager;
     }
 
-    public void setHudManager(final HudManager hudManager) {
+    public void hudManager(final HudManager hudManager) {
         this.hudManager.unregisterEvents();
         this.hudManager = hudManager;
         hudManager.registerEvents();
     }
 
-    public SoundManager getSoundManager() {
+    public SoundManager soundManager() {
         return soundManager;
     }
 
-    public void setSoundManager(final SoundManager soundManager) {
+    public void soundManager(final SoundManager soundManager) {
         this.soundManager = soundManager;
     }
 
-    public InvManager getInvManager() {
+    public InvManager invManager() {
         return invManager;
     }
 
-    public ResourcePack getResourcePack() {
+    public ResourcePack resourcePack() {
         if (resourcePack == null) new PackGenerator().generatePack();
         return resourcePack;
     }
 
-    public void setResourcePack(team.unnamed.creative.ResourcePack resourcePack) {
+    public void resourcePack(team.unnamed.creative.ResourcePack resourcePack) {
         this.resourcePack = resourcePack;
     }
 
-    public PackGenerator getPackGenerator() {
+    public PackGenerator packGenerator() {
         return packGenerator;
     }
 
-    public PackServer getPackServer() {
+    public PackServer packServer() {
         return packServer;
     }
 
-    public ClickActionManager getClickActionManager() {
+    public ClickActionManager clickActionManager() {
         return clickActionManager;
     }
 }

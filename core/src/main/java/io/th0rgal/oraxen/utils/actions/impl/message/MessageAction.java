@@ -20,7 +20,7 @@ public class MessageAction extends Action<Player> {
     @Override
     public void run(@NotNull Player player, @NotNull Context<Player> context) {
         final Component message = LegacyComponentSerializer.legacySection().deserialize(getMeta().getParsedData(player, context));
-        OraxenPlugin.get().getAudience().player(player).sendMessage(message);
+        OraxenPlugin.get().audience().player(player).sendMessage(message);
     }
 
 }

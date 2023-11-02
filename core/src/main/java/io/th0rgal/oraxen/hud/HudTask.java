@@ -9,7 +9,7 @@ import java.util.List;
 
 public class HudTask extends BukkitRunnable {
 
-    private final HudManager manager = OraxenPlugin.get().getHudManager();
+    private final HudManager manager = OraxenPlugin.get().hudManager();
 
     private List<? extends Player> hudEnabledPlayers() {
         return Bukkit.getOnlinePlayers().stream().filter(manager::getHudStateForPlayer).toList();

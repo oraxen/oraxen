@@ -29,7 +29,7 @@ public class AdminCommands {
                 .executesPlayer((player, args) -> {
                     String id = (String) args.get("block");
                     if (!OraxenBlocks.isOraxenBlock(id)) {
-                        OraxenPlugin.get().getAudience().player(player).sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>Unknown OraxenBlock: <yellow>" + id));
+                        OraxenPlugin.get().audience().player(player).sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>Unknown OraxenBlock: <yellow>" + id));
                     } else {
                         Location loc = (Location) args.getOptional("location").orElse(player.getLocation());
                         String type = (String) args.get("type");
@@ -54,7 +54,7 @@ public class AdminCommands {
                 .executesPlayer((player, args) -> {
                     String id = (String) args.get("furniture");
                     if (!OraxenFurniture.isFurniture(id))
-                        OraxenPlugin.get().getAudience().player(player).sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>Unknown Furniture: <yellow>" + id));
+                        OraxenPlugin.get().audience().player(player).sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>Unknown Furniture: <yellow>" + id));
                     else {
                         Location loc = (Location) args.getOptional("location").orElse(player.getLocation());
                         int radius = (int) args.getOptional("radius").orElse(0);

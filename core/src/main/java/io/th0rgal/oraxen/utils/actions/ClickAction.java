@@ -36,7 +36,7 @@ public class ClickAction {
         final Object actionsObject = config.get("actions");
         final List<Action<Player>> actions = (actionsObject == null) ?
                 Collections.emptyList() :
-                OraxenPlugin.get().getClickActionManager().parse(Player.class, (List<String>) actionsObject);
+                OraxenPlugin.get().clickActionManager().parse(Player.class, (List<String>) actionsObject);
 
         // If the action doesn't have any actions, return null
         if (actions.isEmpty()) {
@@ -48,7 +48,7 @@ public class ClickAction {
 
     public static ClickAction from(final ConfigurationSection config) {
         final List<String> conditions = config.getStringList("conditions");
-        final List<Action<Player>> actions = OraxenPlugin.get().getClickActionManager().parse(Player.class, config.getStringList("actions"));
+        final List<Action<Player>> actions = OraxenPlugin.get().clickActionManager().parse(Player.class, config.getStringList("actions"));
 
         // If the action doesn't have any actions, return null
         if (actions.isEmpty()) {
@@ -115,7 +115,7 @@ public class ClickAction {
     }
 
     public void performActions(final Player player) {
-        OraxenPlugin.get().getClickActionManager().run(player, actions, false);
+        OraxenPlugin.get().clickActionManager().run(player, actions, false);
     }
 
 }

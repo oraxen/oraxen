@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 
 public class HudCommand {
 
-    private final HudManager manager = OraxenPlugin.get().getHudManager();
+    private final HudManager manager = OraxenPlugin.get().hudManager();
 
     CommandAPICommand getHudCommand() {
         return new CommandAPICommand("hud")

@@ -58,7 +58,7 @@ public class JukeboxListener implements Listener {
 
         if (displayName != null) {
             Component message = AdventureUtils.MINI_MESSAGE.deserialize(Message.MECHANICS_JUKEBOX_NOW_PLAYING.toString(), AdventureUtils.tagResolver("disc", displayName));
-            OraxenPlugin.get().getAudience().player(player).sendActionBar(message);
+            OraxenPlugin.get().audience().player(player).sendActionBar(message);
         }
 
         event.setCancelled(true);
@@ -111,7 +111,7 @@ public class JukeboxListener implements Listener {
         baseEntity.getWorld().getNearbyEntities(loc, 32, 32, 32).stream()
                 .filter(entity -> entity instanceof Player)
                 .map(entity -> (Player) entity)
-                .forEach(p -> OraxenPlugin.get().getAudience().player(p).stopSound(Sound.sound(getSongFromDisc(item), Sound.Source.RECORD, jukebox.getVolume(), jukebox.getPitch())));
+                .forEach(p -> OraxenPlugin.get().audience().player(p).stopSound(Sound.sound(getSongFromDisc(item), Sound.Source.RECORD, jukebox.getVolume(), jukebox.getPitch())));
         baseEntity.getWorld().dropItemNaturally(loc, item);
         pdc.remove(MUSIC_DISC_KEY);
         return true;

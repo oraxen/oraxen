@@ -19,6 +19,6 @@ public class ShiftTag {
             length = Integer.parseInt(args.popOr("A shift value is required").value());
         } catch (final NumberFormatException ignored) {
         }
-        return Tag.selfClosingInserting(Component.text(OraxenPlugin.get().getFontManager().getShift(length)));
+        return Tag.selfClosingInserting(Component.text(OraxenPlugin.get().fontManager().getShift(length)));
     }
 }
