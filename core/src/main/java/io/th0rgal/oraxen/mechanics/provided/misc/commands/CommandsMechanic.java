@@ -18,7 +18,7 @@ public class CommandsMechanic extends Mechanic {
     public CommandsMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
 
-        commandsParser = new CommandsParser(section);
+        commandsParser = new CommandsParser(section, null);
 
         if (section.isBoolean("one_usage"))
             oneUsage = section.getBoolean("one_usage");
