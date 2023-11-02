@@ -32,7 +32,7 @@ public class ModelDataCommand {
                         String message = (ChatColor.DARK_AQUA + entry.getKey().name() + ": " + ChatColor.DARK_GREEN + entry.getValue().toString() + "\n");
                         report = report.append(Component.text(message));
                     }
-                    OraxenPlugin.get().getAudience().sender(sender).sendMessage(report);
+                    OraxenPlugin.get().audience().sender(sender).sendMessage(report);
                 });
     }
 }

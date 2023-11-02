@@ -15,11 +15,11 @@ public class GlyphInfoCommand {
     CommandAPICommand getGlyphInfoCommand() {
         return new CommandAPICommand("glyphinfo")
                 .withPermission("oraxen.command.glyphinfo")
-                .withArguments(new StringArgument("glyphid").replaceSuggestions(ArgumentSuggestions.strings(OraxenPlugin.get().getFontManager().getGlyphs().stream().map(Glyph::getName).toList())))
+                .withArguments(new StringArgument("glyphid").replaceSuggestions(ArgumentSuggestions.strings(OraxenPlugin.get().fontManager().getGlyphs().stream().map(Glyph::getName).toList())))
                 .executes(((sender, args) -> {
                     String glyphId = (String) args.get("glyphid");
-                    Glyph glyph = OraxenPlugin.get().getFontManager().getGlyphFromID(glyphId);
-                    Audience audience = OraxenPlugin.get().getAudience().sender(sender);
+                    Glyph glyph = OraxenPlugin.get().fontManager().getGlyphFromID(glyphId);
+                    Audience audience = OraxenPlugin.get().audience().sender(sender);
                     if (glyph == null) {
                         audience.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>No glyph found with glyph-id <i><dark_red>" + glyphId));
                     } else {

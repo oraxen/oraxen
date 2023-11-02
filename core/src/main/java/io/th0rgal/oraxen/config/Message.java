@@ -90,14 +90,14 @@ public enum Message {
 
     @Override
     public String toString() {
-        return OraxenPlugin.get().getConfigsManager().getLanguage().getString(path);
+        return OraxenPlugin.get().configsManager().getLanguage().getString(path);
     }
 
     public void send(final CommandSender sender, final TagResolver... placeholders) {
         if (sender == null) return;
-        String lang = OraxenPlugin.get().getConfigsManager().getLanguage().getString(path);
+        String lang = OraxenPlugin.get().configsManager().getLanguage().getString(path);
         if (lang == null) return;
-        OraxenPlugin.get().getAudience().sender(sender).sendMessage(
+        OraxenPlugin.get().audience().sender(sender).sendMessage(
                 AdventureUtils.MINI_MESSAGE.deserialize(lang, TagResolver.resolver(placeholders))
         );
     }

@@ -19,7 +19,7 @@ import java.util.List;
 public class GlyphCommand {
 
     public CommandAPICommand getGlyphCommand() {
-        List<Glyph> emojiList = OraxenPlugin.get().getFontManager().getEmojis().stream().toList();
+        List<Glyph> emojiList = OraxenPlugin.get().fontManager().getEmojis().stream().toList();
 
         return new CommandAPICommand("emojis")
                 .withPermission("oraxen.command.emojis").withPermission("oraxen.command.emoji")
@@ -66,7 +66,7 @@ public class GlyphCommand {
                     }
 
                     Book book = Book.book(Component.text("Glyph Book"), Component.text("Oraxen"), pages);
-                    OraxenPlugin.get().getAudience().player(player).openBook(book);
+                    OraxenPlugin.get().audience().player(player).openBook(book);
                 });
     }
 }

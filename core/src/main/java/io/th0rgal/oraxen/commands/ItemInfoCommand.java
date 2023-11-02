@@ -20,7 +20,7 @@ public class ItemInfoCommand {
                 .withArguments(new StringArgument("itemid").replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())))
                 .executes((commandSender, args) -> {
                     String argument = (String) args.get("itemid");
-                    Audience audience = OraxenPlugin.get().getAudience().sender(commandSender);
+                    Audience audience = OraxenPlugin.get().audience().sender(commandSender);
                     if (argument.equals("all")) {
                         for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
                             sendItemInfo(audience, entry.getValue(), entry.getKey());

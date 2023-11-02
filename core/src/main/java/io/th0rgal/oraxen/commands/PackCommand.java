@@ -32,7 +32,7 @@ public class PackCommand {
                 .executes((sender, args) -> {
                     final Collection<Player> targets = (Collection<Player>) args.getOptional("targets").orElse(sender instanceof Player ? sender : null);
                     if (targets != null) for (final Player target : targets)
-                        OraxenPlugin.get().getPackServer().sendPack(target);
+                        OraxenPlugin.get().packServer().sendPack(target);
                 });
     }
 

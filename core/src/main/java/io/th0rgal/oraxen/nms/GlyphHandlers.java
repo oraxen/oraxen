@@ -6,19 +6,15 @@ import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.translation.GlobalTranslator;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,7 +33,7 @@ public class GlyphHandlers {
 
         // Replace raw unicode usage of non-permissed Glyphs with random font
         // This will always show a white square
-        for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
+        for (Glyph glyph : OraxenPlugin.get().fontManager().getGlyphs()) {
             if (glyph.hasPermission(player)) continue;
 
             component = component.replaceText(
@@ -67,7 +63,7 @@ public class GlyphHandlers {
     private static Component transformGlyphs(Component component, boolean isUtf) {
         String serialized = AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component);
 
-        for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
+        for (Glyph glyph : OraxenPlugin.get().fontManager().getGlyphs()) {
             Matcher matcher = glyph.baseRegex.matcher(serialized);
             while (matcher.find()) {
                 component = component.replaceText(

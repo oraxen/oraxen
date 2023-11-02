@@ -16,7 +16,7 @@ public class HudEvents implements Listener {
 
     @EventHandler
     public void onJoin(final PlayerJoinEvent event) {
-        HudManager hudManager = OraxenPlugin.get().getHudManager();
+        HudManager hudManager = OraxenPlugin.get().hudManager();
         final Player player = event.getPlayer();
         final PersistentDataContainer pdc = player.getPersistentDataContainer();
         Hud hud = hudManager.getActiveHudForPlayer(player) != null
@@ -36,7 +36,7 @@ public class HudEvents implements Listener {
     public void onEnterWater(final EntityAirChangeEvent event) {
         if (event.getEntityType() != EntityType.PLAYER) return;
 
-        HudManager hudManager = OraxenPlugin.get().getHudManager();
+        HudManager hudManager = OraxenPlugin.get().hudManager();
         Player player = (Player) event.getEntity();
         Hud hud = hudManager.getActiveHudForPlayer(player);
 
@@ -52,7 +52,7 @@ public class HudEvents implements Listener {
 
     @EventHandler
     public void onGameModeChange(final PlayerGameModeChangeEvent event) {
-        HudManager hudManager = OraxenPlugin.get().getHudManager();
+        HudManager hudManager = OraxenPlugin.get().hudManager();
         Player player = event.getPlayer();
         Hud hud = hudManager.getActiveHudForPlayer(player);
         if (hud == null) return;

@@ -17,7 +17,7 @@ import java.util.List;
 
 public class RecipesView {
 
-    private final FontManager fontManager = OraxenPlugin.get().getFontManager();
+    private final FontManager fontManager = OraxenPlugin.get().fontManager();
     final String menuTexture = ChatColor.WHITE +
             fontManager.getShift(-7) +
             fontManager.getGlyphFromName("menu_recipe").getCharacter();

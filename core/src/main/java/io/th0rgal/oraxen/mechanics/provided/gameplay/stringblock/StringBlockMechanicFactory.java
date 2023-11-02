@@ -47,14 +47,14 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         toolTypes = section.getStringList("tool_types");
         saplingGrowthCheckDelay = section.getInt("sapling_growth_check_delay");
         sapling = false;
-        customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("stringblock_and_furniture", true);
+        customSounds = OraxenPlugin.get().configsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("stringblock_and_furniture", true);
         disableVanillaString = section.getBoolean("disable_vanilla_strings", true);
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
-        BlockState tripwireState = OraxenPlugin.get().getResourcePack().blockState(Key.key("minecraft:tripwire"));
+        BlockState tripwireState = OraxenPlugin.get().resourcePack().blockState(Key.key("minecraft:tripwire"));
         tripwireState = tripwireState != null ? tripwireState : BlockState.of(Key.key("minecraft:tripwire"), variants);
-        OraxenPlugin.get().getResourcePack().blockState(tripwireState);
+        OraxenPlugin.get().resourcePack().blockState(tripwireState);
 
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener(this), new SaplingListener());
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockSoundListener());

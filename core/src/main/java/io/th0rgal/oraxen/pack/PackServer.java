@@ -19,7 +19,7 @@ public class PackServer {
 
 
         try {
-            packServer = ResourcePackServer.builder().address(ip, port).pack(OraxenPlugin.get().getPackGenerator().builtPack).build();
+            packServer = ResourcePackServer.builder().address(ip, port).pack(OraxenPlugin.get().packGenerator().builtPack).build();
         } catch (IOException e) {
             Logs.logError("Failed to start Oraxen pack-server");
             if (Settings.DEBUG.toBool()) Logs.logWarning(e.getMessage());
@@ -27,7 +27,7 @@ public class PackServer {
     }
 
     public void sendPack(Player player) {
-        String hash = OraxenPlugin.get().getPackGenerator().builtPack.hash();
+        String hash = OraxenPlugin.get().packGenerator().builtPack.hash();
         String url = "http://" + ip + ":" + port + "/" + hash + ".zip";
         player.setResourcePack(url, hash, false, null);
     }

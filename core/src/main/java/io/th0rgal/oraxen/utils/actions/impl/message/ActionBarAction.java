@@ -20,7 +20,7 @@ public class ActionBarAction extends Action<Player> {
     @Override
     public void run(@NotNull Player player, @NotNull Context<Player> context) {
         final Component message = LegacyComponentSerializer.legacySection().deserialize(getMeta().getParsedData(player, context));
-        OraxenPlugin.get().getAudience().player(player).sendActionBar(message);
+        OraxenPlugin.get().audience().player(player).sendActionBar(message);
     }
 
 }
