@@ -42,7 +42,7 @@ public class OraxenExpansion extends PlaceholderExpansion {
         final Glyph glyph = plugin.fontManager().getGlyphFromName(params);
 
         if (params.equals("pack_hash"))
-            return plugin.packGenerator().getBuiltPack().hash();
+            return plugin.packGenerator().builtPack().hash();
         else return glyph.getCharacter();
     }
 }
