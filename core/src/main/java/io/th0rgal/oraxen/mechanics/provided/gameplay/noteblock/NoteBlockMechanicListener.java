@@ -157,9 +157,8 @@ public class NoteBlockMechanicListener implements Listener {
         LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
         Block belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN);
 
-        if (limitedPlacing.isNotPlacableOn(block, blockFace)) {
-            event.setCancelled(true);
-        } else if (limitedPlacing.isRadiusLimited()) {
+        if (limitedPlacing.isNotPlacableOn(block, blockFace)) event.setCancelled(true);
+        else if (limitedPlacing.isRadiusLimited()) {
             LimitedPlacing.RadiusLimitation radiusLimitation = limitedPlacing.getRadiusLimitation();
             int rad = radiusLimitation.getRadius();
             int amount = radiusLimitation.getAmount();
