@@ -213,11 +213,7 @@ public class ItemParser {
                 if (mechanicSection == null) continue;
                 //if (mechanicID.equals("furniture") && !FurnitureFactory.setDefaultType(mechanicSection)) configUpdated = true;
                 Mechanic mechanic = factory.parse(mechanicSection);
-                if (mechanic instanceof FurnitureMechanic furnitureMechanic)
-                    if (section.getName().equals("table")) {
-                        Logs.debug(mechanicsSection.getConfigurationSection(mechanicID).getBoolean("barrier"));
-                    }
-                    // Apply item modifiers
+                // Apply item modifiers
                 for (Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers())
                     item = itemModifier.apply(item);
             }

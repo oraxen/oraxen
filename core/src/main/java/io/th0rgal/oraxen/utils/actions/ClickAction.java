@@ -54,14 +54,10 @@ public class ClickAction {
 
     @SuppressWarnings("unchecked")
     public static List<ClickAction> parseList(final ConfigurationSection section) {
-        if (section.getParent().getParent().getName().contains("table")) Logs.logError("parseList");
-        // The section doesn't contain clickActions, we can just return an empty list
-        if (!section.isList("clickActions")) return Collections.emptyList();
-
-        final List<LinkedHashMap<String, Object>> list = (List<LinkedHashMap<String, Object>>) section.getList("clickActions");
+        final List<LinkedHashMap<String, Object>> list = (List<LinkedHashMap<String, Object>>) section.getList("clickActions", Collections.emptyList());
 
         // Return an empty list if the clickActions list is null / empty
-        if (list == null || list.isEmpty()) return Collections.emptyList();
+        if (list.isEmpty()) return Collections.emptyList();
 
         final List<ClickAction> clickActions = new ArrayList<>(list.size());
 

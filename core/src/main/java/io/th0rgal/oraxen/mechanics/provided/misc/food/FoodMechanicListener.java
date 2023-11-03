@@ -37,7 +37,7 @@ public class FoodMechanicListener implements Listener {
         if (itemID == null || factory.isNotImplementedIn(itemID)) return;
         FoodMechanic mechanic = (FoodMechanic) factory.getMechanic(itemID);
         event.setCancelled(true);
-        Logs.debug(mechanic.hasEffects());
+
         if (player.getGameMode() != GameMode.CREATIVE) {
             if (mechanic.hasReplacement())
                 inventory.setItemInMainHand(mechanic.getReplacement());
