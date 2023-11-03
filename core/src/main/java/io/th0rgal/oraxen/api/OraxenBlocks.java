@@ -312,18 +312,21 @@ public class OraxenBlocks {
                         + noteblock.getNote().getId() + (noteblock.isPowered() ? 400 : 0) - 26);
     }
 
+    @org.jetbrains.annotations.Nullable
     public static NoteBlockMechanic getNoteBlockMechanic(String itemID) {
         if (!NoteBlockMechanicFactory.isEnabled()) return null;
         Mechanic mechanic = NoteBlockMechanicFactory.getInstance().getMechanic(itemID);
         return mechanic instanceof NoteBlockMechanic noteBlockMechanic ? noteBlockMechanic : null;
     }
 
+    @org.jetbrains.annotations.Nullable
     public static StringBlockMechanic getStringMechanic(BlockData blockData) {
         if (!StringBlockMechanicFactory.isEnabled()) return null;
         if (!(blockData instanceof Tripwire tripwire)) return null;
         return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
     }
 
+    @org.jetbrains.annotations.Nullable
     public static StringBlockMechanic getStringMechanic(Block block) {
         if (!StringBlockMechanicFactory.isEnabled()) return null;
         if (block.getType() == Material.TRIPWIRE) {
@@ -332,12 +335,13 @@ public class OraxenBlocks {
         } else return null;
     }
 
+    @org.jetbrains.annotations.Nullable
     public static StringBlockMechanic getStringMechanic(String itemID) {
         if (!StringBlockMechanicFactory.isEnabled()) return null;
-        Mechanic mechanic = StringBlockMechanicFactory.getInstance().getMechanic(itemID);
-        return mechanic instanceof StringBlockMechanic stringMechanic ? stringMechanic : null;
+        return StringBlockMechanicFactory.getInstance().getMechanic(itemID);
     }
 
+    @org.jetbrains.annotations.Nullable
     public static BlockMechanic getBlockMechanic(Block block) {
         if (block.getType() == Material.MUSHROOM_STEM) {
             return BlockMechanicFactory.getBlockMechanic(BlockMechanic.getCode(block));

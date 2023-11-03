@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripListener;
@@ -19,6 +20,7 @@ import org.bukkit.Note;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 import java.util.List;
@@ -198,6 +200,16 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
+    }
+
+    @Override
+    public NoteBlockMechanic getMechanic(String itemID) {
+        return (NoteBlockMechanic) super.getMechanic(itemID);
+    }
+
+    @Override
+    public NoteBlockMechanic getMechanic(ItemStack itemStack) {
+        return (NoteBlockMechanic) super.getMechanic(itemStack);
     }
 
     /**
