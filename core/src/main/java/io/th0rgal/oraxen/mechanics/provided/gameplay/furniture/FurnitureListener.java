@@ -53,7 +53,7 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureM
 
 public class FurnitureListener implements Listener {
 
-    public FurnitureListener(final MechanicFactory factory) {
+    public FurnitureListener() {
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 

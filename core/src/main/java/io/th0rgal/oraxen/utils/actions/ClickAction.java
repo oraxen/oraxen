@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils.actions;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import me.gabytm.util.actions.actions.Action;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -30,20 +31,13 @@ public class ClickAction {
 
     @SuppressWarnings("unchecked")
     private static ClickAction from(final LinkedHashMap<String, Object> config) {
-        final Object conditionsObject = config.get("conditions");
-        final List<String> conditions = (conditionsObject == null) ? Collections.emptyList() : (List<String>) conditionsObject;
+        final List<String> conditions = (List<String>) config.getOrDefault("conditions", Collections.emptyList());
 
-        final Object actionsObject = config.get("actions");
-        final List<Action<Player>> actions = (actionsObject == null) ?
-                Collections.emptyList() :
-                OraxenPlugin.get().getClickActionManager().parse(Player.class, (List<String>) actionsObject);
+        final List<Action<Player>> actions =
+                OraxenPlugin.get().getClickActionManager().parse(Player.class, (List<String>) config.getOrDefault("actions", Collections.emptyList()));
 
         // If the action doesn't have any actions, return null
-        if (actions.isEmpty()) {
-            return null;
-        }
-
-        return new ClickAction(conditions, actions);
+        return actions.isEmpty() ? null : new ClickAction(conditions, actions);
     }
 
     public static ClickAction from(final ConfigurationSection config) {
@@ -60,17 +54,14 @@ public class ClickAction {
 
     @SuppressWarnings("unchecked")
     public static List<ClickAction> parseList(final ConfigurationSection section) {
+        if (section.getParent().getParent().getName().contains("table")) Logs.logError("parseList");
         // The section doesn't contain clickActions, we can just return an empty list
-        if (!section.isList("clickActions")) {
-            return Collections.emptyList();
-        }
+        if (!section.isList("clickActions")) return Collections.emptyList();
 
         final List<LinkedHashMap<String, Object>> list = (List<LinkedHashMap<String, Object>>) section.getList("clickActions");
 
         // Return an empty list if the clickActions list is null / empty
-        if (list == null || list.isEmpty()) {
-            return Collections.emptyList();
-        }
+        if (list == null || list.isEmpty()) return Collections.emptyList();
 
         final List<ClickAction> clickActions = new ArrayList<>(list.size());
 
@@ -78,22 +69,15 @@ public class ClickAction {
         for (final LinkedHashMap<String, Object> actionConfig : list) {
             final ClickAction clickAction = ClickAction.from(actionConfig);
 
-            if (clickAction != null) {
-                clickActions.add(clickAction);
-            }
+            if (clickAction != null) clickActions.add(clickAction);
         }
 
         return clickActions;
     }
 
     public boolean canRun(final Player player) {
-        if (conditions.isEmpty()) {
-            return true;
-        }
-
-        if (actions.isEmpty()) {
-            return false;
-        }
+        if (conditions.isEmpty()) return true;
+        if (actions.isEmpty()) return false;
 
         final StandardEvaluationContext context = new StandardEvaluationContext(player);
         context.setVariable("player", player);

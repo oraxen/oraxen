@@ -37,6 +37,7 @@ import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactor
 import io.th0rgal.oraxen.mechanics.provided.misc.misc.MiscMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.soulbound.SoulBoundMechanicFactory;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -151,7 +152,11 @@ public class MechanicsManager {
     public static void registerListeners(final JavaPlugin plugin, String mechanicId, final Listener... listeners) {
         for (final Listener listener : listeners)
             Bukkit.getPluginManager().registerEvents(listener, plugin);
-        MECHANICS_LISTENERS.put(mechanicId, Arrays.stream(listeners).toList());
+        MECHANICS_LISTENERS.compute(mechanicId, (key, value) -> {
+            if (value == null) value = new ArrayList<>();
+            value.addAll(Arrays.asList(listeners));
+            return value;
+        });
     }
 
     public static void unloadListeners() {
@@ -160,7 +165,7 @@ public class MechanicsManager {
     }
 
     public static void unloadListeners(String mechanicId) {
-        for (Listener listener : MECHANICS_LISTENERS.remove(mechanicId))
+        for (final Listener listener : MECHANICS_LISTENERS.remove(mechanicId))
             HandlerList.unregisterAll(listener);
 
     }
