@@ -53,6 +53,9 @@ public interface NMSHandler {
     @Nullable BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack, Block blockAgainst, BlockFace blockFace);
     @Nullable BlockHitResult getBlockHitResult(Player player, Block block, BlockFace blockFace);
 
+    /**Removes mineable/axe tag from noteblocks for custom blocks */
+    void customBlockDefaultTools(Player player);
+
     /**
      * Keys that are used by vanilla Minecraft and should therefore be skipped
      * Some are accessed through API methods, others are just used internally

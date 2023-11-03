@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripListener;
@@ -37,6 +36,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     private static FarmBlockTask farmBlockTask;
     public final int farmBlockCheckDelay;
     public final boolean customSounds;
+    private final boolean removeMineableTag;
 
     public NoteBlockMechanicFactory(ConfigurationSection section) {
         super(section);
@@ -47,6 +47,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         farmBlockCheckDelay = section.getInt("farmblock_check_delay");
         farmBlock = false;
         customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("noteblock_and_block", true);
+        removeMineableTag = section.getBoolean("remove_mineable_tag", false);
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
@@ -155,6 +156,10 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
     public static NoteBlockMechanicFactory getInstance() {
         return instance;
+    }
+
+    public boolean removeMineableTag() {
+        return removeMineableTag;
     }
 
 

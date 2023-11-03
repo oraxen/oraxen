@@ -14,21 +14,34 @@ import io.th0rgal.oraxen.font.GlyphTag;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import it.unimi.dsi.fastutil.Pair;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
+import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.*;
 import net.minecraft.network.*;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerConnectionListener;
+import net.minecraft.tags.BlockTags;
+import net.minecraft.tags.TagNetworkSerialization;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.item.BlockItem;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.DirectionalPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
@@ -48,7 +61,9 @@ import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
@@ -116,6 +131,43 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         if (direction == null) return null;
         BlockPos blockPos = new BlockPos(block.getX(), block.getY(), block.getZ()).relative(direction);
         return new BlockHitResult(vec3, direction.getOpposite(), blockPos, false);
+    }
+
+    @Override
+    public void customBlockDefaultTools(Player player) {
+        if (player instanceof CraftPlayer craftPlayer) {
+            TagNetworkSerialization.NetworkPayload payload = createPayload();
+            if (payload == null) return;
+            ClientboundUpdateTagsPacket packet = new ClientboundUpdateTagsPacket(Map.of(Registries.BLOCK, payload));
+            craftPlayer.getHandle().connection.send(packet);
+        }
+    }
+
+    private TagNetworkSerialization.NetworkPayload createPayload() {
+        Constructor<?> constructor = Arrays.stream(TagNetworkSerialization.NetworkPayload.class.getDeclaredConstructors()).findFirst().orElse(null);
+        if (constructor == null) return null;
+        constructor.setAccessible(true);
+        try {
+            return (TagNetworkSerialization.NetworkPayload) constructor.newInstance(tagRegistryMap);
+        } catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    private final Map<ResourceLocation, IntList> tagRegistryMap = createTagRegistryMap();
+
+    private static Map<ResourceLocation, IntList> createTagRegistryMap() {
+        return BuiltInRegistries.BLOCK.getTags().map(pair -> {
+            IntArrayList list = new IntArrayList(pair.getSecond().size());
+            if (pair.getFirst().location() == BlockTags.MINEABLE_WITH_AXE.location()) {
+                pair.getSecond().stream()
+                        .filter(block -> !block.value().getDescriptionId().endsWith("note_block"))
+                        .forEach(block -> list.add(BuiltInRegistries.BLOCK.getId(block.value())));
+            }
+
+            return Map.of(pair.getFirst().location(), list);
+        }).collect(HashMap::new, Map::putAll, Map::putAll);
     }
 
     @Override

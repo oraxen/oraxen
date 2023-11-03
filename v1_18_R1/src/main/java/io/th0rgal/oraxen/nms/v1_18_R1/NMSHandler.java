@@ -105,6 +105,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     @Override
+    public void customBlockDefaultTools(Player player) {
+        // Too different cant be asked
+    }
+
+    @Override
     public void setupNmsGlyphs() {
         if (!Settings.NMS_GLYPHS.toBool()) return;
         List<Connection> networkManagers = MinecraftServer.getServer().getConnection().getConnections();
