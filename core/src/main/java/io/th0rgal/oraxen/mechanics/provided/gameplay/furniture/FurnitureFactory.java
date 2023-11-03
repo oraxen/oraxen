@@ -85,4 +85,14 @@ public class FurnitureFactory extends MechanicFactory {
             evolutionTask.cancel();
     }
 
+    @Override
+    public FurnitureMechanic getMechanic(String itemID) {
+        return (FurnitureMechanic) super.getMechanic(itemID);
+    }
+
+    @Override
+    public FurnitureMechanic getMechanic(org.bukkit.inventory.ItemStack itemStack) {
+        return (FurnitureMechanic) super.getMechanic(itemStack);
+    }
+
 }

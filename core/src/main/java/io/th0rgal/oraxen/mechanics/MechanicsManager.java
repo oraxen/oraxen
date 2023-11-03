@@ -107,15 +107,16 @@ public class MechanicsManager {
 
     /**
      * Register a new MechanicFactory
+     *
      * @param mechanicId the id of the mechanic
-     * @param factory the MechanicFactory of the mechanic
-     * @param enabled if the mechanic should be enabled by default or not
+     * @param factory    the MechanicFactory of the mechanic
+     * @param enabled    if the mechanic should be enabled by default or not
      */
     public static void registerMechanicFactory(String mechanicId, MechanicFactory factory, boolean enabled) {
         if (enabled) FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
     }
 
-    public static void  unregisterMechanicFactory(String mechanicId) {
+    public static void unregisterMechanicFactory(String mechanicId) {
         FACTORIES_BY_MECHANIC_ID.remove(mechanicId);
         unloadListeners(mechanicId);
     }
@@ -123,7 +124,8 @@ public class MechanicsManager {
     /**
      * This method is deprecated and will be removed in a future release.<br>
      * Use {@link #registerMechanicFactory(String, MechanicFactory, boolean)} instead.
-     * @param mechanicId the id of the mechanic
+     *
+     * @param mechanicId  the id of the mechanic
      * @param constructor the constructor of the mechanic
      */
     @Deprecated(forRemoval = true, since = "1.158.0")
@@ -132,28 +134,23 @@ public class MechanicsManager {
     }
 
     private static void registerFactory(final String mechanicId, final FactoryConstructor constructor) {
-        final Entry<File, YamlConfiguration> mechanicsEntry = new ResourcesManager(OraxenPlugin.get()).getMechanicsEntry();
+        final Entry<File, YamlConfiguration> mechanicsEntry = OraxenPlugin.get().getResourceManager().getMechanicsEntry();
         final YamlConfiguration mechanicsConfig = mechanicsEntry.getValue();
         final boolean updated = false;
-        if (mechanicsConfig.getKeys(false).contains(mechanicId)) {
-            final ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicId);
-            if (factorySection.getBoolean("enabled")) {
-                final MechanicFactory factory = constructor.create(factorySection);
-                FACTORIES_BY_MECHANIC_ID.put(mechanicId, factory);
-            }
+        ConfigurationSection factorySection = mechanicsConfig.getConfigurationSection(mechanicId);
+        if (factorySection != null && factorySection.getBoolean("enabled"))
+            FACTORIES_BY_MECHANIC_ID.put(mechanicId, constructor.create(factorySection));
+
+        try {
+            if (updated) mechanicsConfig.save(mechanicsEntry.getKey());
+        } catch (final IOException e) {
+            e.printStackTrace();
         }
-        if (updated)
-            try {
-                mechanicsConfig.save(mechanicsEntry.getKey());
-            } catch (final IOException e) {
-                e.printStackTrace();
-            }
     }
 
     public static void registerListeners(final JavaPlugin plugin, String mechanicId, final Listener... listeners) {
-        for (final Listener listener : listeners) {
+        for (final Listener listener : listeners)
             Bukkit.getPluginManager().registerEvents(listener, plugin);
-        }
         MECHANICS_LISTENERS.put(mechanicId, Arrays.stream(listeners).toList());
     }
 

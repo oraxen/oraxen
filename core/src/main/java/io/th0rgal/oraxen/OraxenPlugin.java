@@ -9,10 +9,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.commands.CommandsManager;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
-import io.th0rgal.oraxen.config.ConfigsManager;
-import io.th0rgal.oraxen.config.Message;
-import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.config.SettingsUpdater;
+import io.th0rgal.oraxen.config.*;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
 import io.th0rgal.oraxen.font.packets.TitlePacketListener;
@@ -38,6 +35,7 @@ import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
+import net.minecraft.server.packs.resources.ResourceManager;
 import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
@@ -54,6 +52,7 @@ public class OraxenPlugin extends JavaPlugin {
     private static OraxenPlugin oraxen;
     private static GestureManager gestureManager;
     private ConfigsManager configsManager;
+    private ResourcesManager resourceManager;
     private BukkitAudiences audience;
     private UploadManager uploadManager;
     private FontManager fontManager;
@@ -110,6 +109,7 @@ public class OraxenPlugin extends JavaPlugin {
         pluginManager.registerEvents(new CustomArmorListener(), this);
         NMSHandlers.setup();
 
+        resourceManager = new ResourcesManager(this);
         resourcePack = new ResourcePack();
         MechanicsManager.registerNativeMechanics();
         //CustomBlockData.registerListener(this); //Handle this manually
@@ -162,6 +162,10 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager.unregisterEvents();
         MechanicsManager.unloadListeners();
         HandlerList.unregisterAll(this);
+    }
+
+    public ResourcesManager getResourceManager() {
+        return resourceManager;
     }
 
     public ProtocolManager getProtocolManager() {

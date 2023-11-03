@@ -115,7 +115,7 @@ public class ConfigsManager {
         if (!itemsFolder.exists()) {
             itemsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
+                OraxenPlugin.get().getResourceManager().extractConfigsInFolder("items", "yml");
         }
 
         // check glyphsFolder
@@ -123,8 +123,8 @@ public class ConfigsManager {
         if (!glyphsFolder.exists()) {
             glyphsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                new ResourcesManager(plugin).extractConfigsInFolder("glyphs", "yml");
-            else new ResourcesManager(plugin).extractConfiguration("glyphs/interface.yml");
+                OraxenPlugin.get().getResourceManager().extractConfigsInFolder("glyphs", "yml");
+            else OraxenPlugin.get().getResourceManager().extractConfiguration("glyphs/interface.yml");
         }
 
         // check schematicsFolder
@@ -132,7 +132,7 @@ public class ConfigsManager {
         if (!schematicsFolder.exists()) {
             schematicsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                new ResourcesManager(plugin).extractConfigsInFolder("schematics", "schem");
+                OraxenPlugin.get().getResourceManager().extractConfigsInFolder("schematics", "schem");
         }
 
         // check gestures
@@ -140,7 +140,7 @@ public class ConfigsManager {
         if (!gesturesFolder.exists()) {
             gesturesFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                new ResourcesManager(plugin).extractConfigsInFolder("gestures", "yml");
+                OraxenPlugin.get().getResourceManager().extractConfigsInFolder("gestures", "yml");
         }
 
     }
@@ -230,9 +230,8 @@ public class ConfigsManager {
     }
 
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
-
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
-        for (File file : getItemFiles()) parseMap.put(file, parseItemConfig(OraxenYaml.loadConfiguration(file), file));
+        for (File file : getItemFiles()) parseMap.put(file, parseItemConfig(file));
         return parseMap;
     }
 
@@ -301,7 +300,8 @@ public class ConfigsManager {
         return model;
     }
 
-    public Map<String, ItemBuilder> parseItemConfig(YamlConfiguration config, File itemFile) {
+    public Map<String, ItemBuilder> parseItemConfig(File itemFile) {
+        YamlConfiguration config = OraxenYaml.loadConfiguration(itemFile);
         Map<String, ItemParser> parseMap = new LinkedHashMap<>();
         ItemParser errorItem = new ItemParser(Settings.ERROR_ITEM.toConfigSection());
         for (String itemKey : config.getKeys(false)) {

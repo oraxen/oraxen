@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -52,11 +53,7 @@ import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureM
 
 public class FurnitureListener implements Listener {
 
-    private final MechanicFactory factory;
-
-
     public FurnitureListener(final MechanicFactory factory) {
-        this.factory = factory;
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
@@ -207,11 +204,11 @@ public class FurnitureListener implements Listener {
     private FurnitureMechanic getMechanic(ItemStack item, Player player, Block placed) {
         final String itemID = OraxenItems.getIdByItem(item);
         if (placed == null || itemID == null) return null;
-        if (factory.isNotImplementedIn(itemID) || BlockHelpers.isStandingInside(player, placed)) return null;
+        if (FurnitureFactory.getInstance().isNotImplementedIn(itemID) || BlockHelpers.isStandingInside(player, placed)) return null;
         if (!ProtectionLib.canBuild(player, placed.getLocation())) return null;
         if (OraxenFurniture.isFurniture(placed)) return null;
 
-        return (FurnitureMechanic) factory.getMechanic(itemID);
+        return FurnitureFactory.getInstance().getMechanic(item);
     }
 
     private Rotation getRotation(final double yaw, final boolean restricted) {

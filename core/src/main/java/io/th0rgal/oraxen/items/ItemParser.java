@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.items;
 
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
@@ -8,8 +9,10 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
@@ -32,7 +35,7 @@ public class ItemParser {
 
     private final OraxenMeta oraxenMeta;
     private final ConfigurationSection section;
-    private Material type;
+    private final Material type;
     private WrappedMMOItem mmoItem;
     private WrappedCrucibleItem crucibleItem;
     private WrappedEcoItem ecoItem;
@@ -204,12 +207,17 @@ public class ItemParser {
         ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
         if (mechanicsSection != null) for (String mechanicID : mechanicsSection.getKeys(false)) {
             MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
+
             if (factory != null) {
                 ConfigurationSection mechanicSection = mechanicsSection.getConfigurationSection(mechanicID);
                 if (mechanicSection == null) continue;
                 //if (mechanicID.equals("furniture") && !FurnitureFactory.setDefaultType(mechanicSection)) configUpdated = true;
                 Mechanic mechanic = factory.parse(mechanicSection);
-                // Apply item modifiers
+                if (mechanic instanceof FurnitureMechanic furnitureMechanic)
+                    if (section.getName().equals("table")) {
+                        Logs.debug(mechanicsSection.getConfigurationSection(mechanicID).getBoolean("barrier"));
+                    }
+                    // Apply item modifiers
                 for (Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers())
                     item = itemModifier.apply(item);
             }
