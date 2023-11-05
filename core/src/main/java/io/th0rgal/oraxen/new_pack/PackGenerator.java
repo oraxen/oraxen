@@ -2,9 +2,13 @@ package io.th0rgal.oraxen.new_pack;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.gestures.GestureManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import team.unnamed.creative.BuiltResourcePack;
@@ -38,8 +42,10 @@ public class PackGenerator {
     public void generatePack() {
         resourcePack = MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile());
         addGlyphFiles();
+        if (Settings.GESTURES_ENABLED.toBool()) addGestureFiles();
+        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
+        if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
         addImportPacks();
-
 
         OraxenPlugin.get().resourcePack(resourcePack);
         resourcePack.removeUnknownFile("token.secret");
@@ -54,24 +60,46 @@ public class PackGenerator {
     }
 
     private void addGlyphFiles() {
-
-        Map<Key, List<Glyph>> fontGlyphs = new HashMap<>();
-        for (Glyph glyph : OraxenPlugin.get().fontManager().emojis()) {
-            fontGlyphs.compute(glyph.font(), (key, glyphs) -> {
-                if (glyphs == null) glyphs = new ArrayList<>();
-                glyphs.add(glyph);
-                return glyphs;
+        Map<Key, List<FontProvider>> fontGlyphs = new HashMap<>();
+        for (Glyph glyph : OraxenPlugin.get().fontManager().glyphs()) {
+            if (glyph.hasBitmap()) fontGlyphs.compute(glyph.font(), (key, providers) -> {
+                if (providers == null) providers = new ArrayList<>();
+                providers.add(glyph.fontProvider());
+                return providers;
             });
         }
 
-        for (Map.Entry<Key, List<Glyph>> entry : fontGlyphs.entrySet()) {
-            if (entry.getValue().isEmpty()) continue;
-            List<FontProvider> providers = new ArrayList<>();
-            for (Glyph glyph : entry.getValue()) {
-                if (glyph.hasBitmap()) providers.add(glyph.fontProvider());
-            }
-            resourcePack.font(Font.font(entry.getKey(), providers));
+        for (FontManager.GlyphBitMap glyphBitMap : FontManager.glyphBitMaps.values()) {
+            fontGlyphs.compute(glyphBitMap.font(), (key, providers) -> {
+                if (providers == null) providers = new ArrayList<>();
+                providers.add(glyphBitMap.fontProvider());
+                return providers;
+            });
         }
+
+        for (Map.Entry<Key, List<FontProvider>> entry : fontGlyphs.entrySet()) {
+            if (entry.getValue().isEmpty()) continue;
+            resourcePack.font(Font.font(entry.getKey(), entry.getValue()));
+        }
+    }
+
+    private void addGestureFiles() {
+        GestureManager gestureManager = OraxenPlugin.get().gestureManager();
+        resourcePack.model(GestureManager.Skull.skullModel());
+        resourcePack.unknownFile("assets/minecraft/shaders/core/rendertype_entity_translucent.vsh", gestureManager.shaderVsh());
+        resourcePack.unknownFile("assets/minecraft/shaders/core/rendertype_entity_translucent.fsh", gestureManager.shaderFsh());
+        resourcePack.unknownFile("assets/minecraft/shaders/core/rendertype_entity_translucent.json", gestureManager.shaderJson());
+    }
+
+    private void hideScoreboardNumbers() {
+        resourcePack.unknownFile("assets/minecraft/shaders/core/rendertype_text.json", ShaderUtils.ScoreboardNumbers.json());
+        resourcePack.unknownFile("assets/minecraft/shaders/post/deferred_text.vsh", ShaderUtils.ScoreboardNumbers.vsh());
+    }
+
+    private void hideScoreboardBackground() {
+        String fileName = VersionUtil.isSupportedVersionOrNewer("1.20.1") ? "rendertype_gui.vsh" : "position_color.fsh";
+        Writable writable = VersionUtil.isSupportedVersionOrNewer("1.20.1") ? ShaderUtils.ScoreboardBackground.modernFile() : ShaderUtils.ScoreboardBackground.legacyFile();
+        resourcePack.unknownFile("assets/minecraft/shaders/core/" + fileName, writable);
     }
 
     private void addImportPacks() {

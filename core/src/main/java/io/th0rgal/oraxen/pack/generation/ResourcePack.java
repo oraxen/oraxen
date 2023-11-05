@@ -644,6 +644,7 @@ public class ResourcePack {
         writeStringToVirtual("assets/minecraft/shaders/core/", fileName, getScoreboardBackground());
     }
 
+    @Deprecated(forRemoval = true, since = "2.0")
     private String getScoreboardVsh() {
         return """
                 #version 150
@@ -684,7 +685,7 @@ public class ResourcePack {
                  }
                 """;
     }
-
+    @Deprecated(forRemoval = true, since = "2.0")
     private String getScoreboardJson() {
         return """
                 {
@@ -717,69 +718,8 @@ public class ResourcePack {
                  }
                 """;
     }
-
+    @Deprecated(forRemoval = true, since = "2.0")
     private String getScoreboardBackground() {
-        if (VersionUtil.isSupportedVersionOrNewer("1.20.1"))
-            return """
-                    #version 150
-                                        
-                    in vec3 Position;
-                    in vec4 Color;
-                                        
-                    uniform mat4 ModelViewMat;
-                    uniform mat4 ProjMat;
-                                        
-                    out vec4 vertexColor;
-                                        
-                    void main() {
-                    	gl_Position = ProjMat * ModelViewMat * vec4(Position, 1.0);
-                                        
-                    	vertexColor = Color;
-                    	
-                    	//Isolating Scoreboard Display
-                    	if(gl_Position.y > -0.5 && gl_Position.y < 0.85 && gl_Position.x > 0.0 && gl_Position.x <= 1.0 && Position.z == 0.0) {
-                    		//vertexColor = vec4(vec3(0.0,0.0,1.0),1.0); // Debugger
-                    		vertexColor.a = 0.0;
-                    	}
-                    	else {
-                        	//vertexColor = vec4(vec3(1.0,0.0,0.0),1.0);
-                    	}
-                    }
-                    """;
-        else return """
-                #version 150
-                                
-                in vec4 vertexColor;
-                                
-                uniform vec4 ColorModulator;
-                                
-                out vec4 fragColor;
-                                
-                bool isgray(vec4 a) {
-                    return a.r == 0 && a.g == 0 && a.b == 0 && a.a < 0.3 && a.a > 0.29;
-                }
-                                
-                bool isdarkgray(vec4 a) {
-                	return a.r == 0 && a.g == 0 && a.b == 0 && a.a == 0.4;
-                }
-                                
-                void main() {
-                                
-                    vec4 color = vertexColor;
-                	
-                    if (color.a == 0.0) {
-                        discard;
-                    }
-                	
-                    fragColor = color * ColorModulator;
-                	
-                	if(isgray(fragColor)){
-                		discard;
-                	}
-                	if(isdarkgray(fragColor)){
-                		discard;
-                	}
-                }
-                // Made by Reytz#9806 for minecraft 1.18.2""";
+
     }
 }
