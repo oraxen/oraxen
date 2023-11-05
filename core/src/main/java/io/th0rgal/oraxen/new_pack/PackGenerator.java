@@ -50,7 +50,7 @@ public class PackGenerator {
         OraxenPlugin.get().resourcePack(resourcePack);
 
         addItemPackFiles();
-        //addGlyphFiles();
+        addGlyphFiles();
         if (Settings.GESTURES_ENABLED.toBool()) addGestureFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
@@ -185,16 +185,6 @@ public class PackGenerator {
     private void addItemPackFiles() {
         ModelGenerator.generateBaseItemModels();
         ModelGenerator.generateItemModels();
-        generateAtlasFile();
-    }
-
-
-
-    private void generateAtlasFile() {
-        List<AtlasSource> sources = new ArrayList<>();
-        for (Collection<ModelTexture> textures : resourcePack.models().stream().map(Model::textures).map(m -> m.variables().values()).collect(Collectors.toSet()))
-         for (ModelTexture texture : textures)
-             sources.add(AtlasSource.single(texture.key()));
-        resourcePack.atlas(Atlas.atlas(Atlas.BLOCKS, sources));
+        AtlasGenerator.generateAtlasFile();
     }
 }

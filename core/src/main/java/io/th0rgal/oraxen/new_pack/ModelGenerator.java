@@ -1,10 +1,10 @@
 package io.th0rgal.oraxen.new_pack;
 
-import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Material;
 import team.unnamed.creative.model.Model;
@@ -34,7 +34,7 @@ public class ModelGenerator {
         for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
             OraxenMeta oraxenMeta = itemBuilder.getOraxenMeta();
             if (oraxenMeta == null || !oraxenMeta.hasPackInfos() || !oraxenMeta.shouldGenerateModel()) continue;
-            OraxenPlugin.get().resourcePack().model(oraxenMeta.model());
+            OraxenPlugin.get().resourcePack().model(ModelGenerator.generateModelBuilder(oraxenMeta).build());
         }
     }
 
@@ -42,17 +42,6 @@ public class ModelGenerator {
         return Model.model()
                 .key(oraxenMeta.modelKey())
                 .parent(oraxenMeta.parentModelKey())
-                .textures(modelTextures(oraxenMeta));
-    }
-
-    private static ModelTextures modelTextures(OraxenMeta oraxenMeta) {
-        Map<String, ModelTexture> variables = oraxenMeta.getLayersMap().entrySet().stream().map(e -> Map.entry(e.getKey(), ModelTexture.ofKey(e.getValue())))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        ModelTexture particle = variables.remove("particle");
-
-        return ModelTextures.builder()
-                .particle(particle)
-                .variables(variables)
-                .build();
+                .textures(oraxenMeta.modelTextures());
     }
 }
