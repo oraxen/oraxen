@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.items;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.new_pack.ModelGenerator;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.configuration.ConfigurationSection;
 import team.unnamed.creative.model.Model;
@@ -34,6 +35,7 @@ public class OraxenMeta {
     private boolean excludedFromCommands = false;
     private boolean noUpdate = false;
     private boolean disableEnchanting = false;
+    private boolean generateModel = false;
 
     public void setExcludedFromInventory(boolean excluded) {
         this.excludedFromInventory = excluded;
@@ -94,6 +96,13 @@ public class OraxenMeta {
                 .build();
 
         this.parentModel = Key.key(section.getString("parent_model", "item/generated"));
+        this.generateModel = section.getString("model") == null;
+    }
+
+    private void correctModelTextures() {
+        if (parentModel.asString().startsWith("block/")) {
+
+        }
     }
 
     // this might not be a very good function name
@@ -180,7 +189,7 @@ public class OraxenMeta {
     }
 
     public boolean shouldGenerateModel() {
-        return modelKey == null;
+        return generateModel;
     }
 
     public boolean noUpdate() {
