@@ -85,18 +85,21 @@ public class OraxenPlugin extends JavaPlugin {
     @Override
     public void onLoad() {
         CommandAPI.onLoad(new CommandAPIBukkitConfig(this).silentLogs(true));
+        reloadConfigs();
     }
 
     @Override
     public void onEnable() {
-
         CommandAPI.onEnable();
         ProtectionLib.init(this);
         //if (!VersionUtil.atOrAbove("1.20.3")) PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
         supportsDisplayEntities = VersionUtil.atOrAbove("1.19.4");
-        reloadConfigs();
+        hudManager = new HudManager(configsManager);
+        fontManager = new FontManager(configsManager);
+        soundManager = new SoundManager(configsManager.getSound());
+        gestureManager = new GestureManager();
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
@@ -111,13 +114,7 @@ public class OraxenPlugin extends JavaPlugin {
         pluginManager.registerEvents(new CustomArmorListener(), this);
         NMSHandlers.setup();
 
-        //resourcePack = new ResourcePack();
         MechanicsManager.registerNativeMechanics();
-        //CustomBlockData.registerListener(this); //Handle this manually
-        hudManager = new HudManager(configsManager);
-        fontManager = new FontManager(configsManager);
-        soundManager = new SoundManager(configsManager.getSound());
-        if (!VersionUtil.atOrAbove("1.20.3")) gestureManager = new GestureManager();
         OraxenItems.loadItems();
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there

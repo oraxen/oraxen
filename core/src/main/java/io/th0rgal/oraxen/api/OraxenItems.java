@@ -135,7 +135,7 @@ public class OraxenItems {
     }
 
     public static Stream<Entry<String, ItemBuilder>> entryStream() {
-        return map.values().stream().flatMap(map -> map.entrySet().stream());
+        return map == null ? Stream.empty() : map.values().stream().flatMap(map -> map.entrySet().stream());
     }
 
     public static String[] getItemNames() {

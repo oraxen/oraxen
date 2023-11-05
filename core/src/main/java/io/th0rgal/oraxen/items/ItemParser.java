@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.items;
 
-import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
@@ -9,10 +8,8 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
@@ -67,7 +64,7 @@ public class ItemParser {
             assert packSection != null;
             if (packSection.isInt("custom_model_data"))
                 MODEL_DATAS_BY_ID.put(section.getName(),
-                        new ModelData(type, oraxenMeta.getModelName(), packSection.getInt("custom_model_data")));
+                        new ModelData(type, oraxenMeta.modelKey(), packSection.getInt("custom_model_data")));
         }
     }
 
@@ -130,8 +127,8 @@ public class ItemParser {
     }
 
     private void parseMiscOptions(ItemBuilder item) {
-        oraxenMeta.setNoUpdate(section.getBoolean("no_auto_update", false));
-        oraxenMeta.setDisableEnchanting(section.getBoolean("disable_enchanting", false));
+        oraxenMeta.noUpdate(section.getBoolean("no_auto_update", false));
+        oraxenMeta.disableEnchanting(section.getBoolean("disable_enchanting", false));
         oraxenMeta.setExcludedFromInventory(section.getBoolean("excludeFromInventory", false));
         oraxenMeta.setExcludedFromCommands(section.getBoolean("excludeFromCommands", false));
 
@@ -224,13 +221,13 @@ public class ItemParser {
             if (MODEL_DATAS_BY_ID.containsKey(section.getName())) {
                 customModelData = MODEL_DATAS_BY_ID.get(section.getName()).getModelData();
             } else {
-                customModelData = ModelData.generateId(oraxenMeta.getModelName(), type);
+                customModelData = ModelData.generateId(oraxenMeta.modelKey(), type);
                 configUpdated = true;
                 if (!Settings.DISABLE_AUTOMATIC_MODEL_DATA.toBool())
                     section.getConfigurationSection("Pack").set("custom_model_data", customModelData);
             }
             item.setCustomModelData(customModelData);
-            oraxenMeta.setCustomModelData(customModelData);
+            oraxenMeta.customModelData(customModelData);
         }
     }
 

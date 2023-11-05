@@ -1,18 +1,11 @@
 package io.th0rgal.oraxen.commands;
 
 import dev.jorel.commandapi.CommandAPICommand;
-import dev.jorel.commandapi.arguments.ArgumentSuggestions;
-import dev.jorel.commandapi.arguments.BooleanArgument;
 import dev.jorel.commandapi.arguments.EntitySelectorArgument;
-import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.config.ResourcesManager;
 import org.bukkit.entity.Player;
 
-import java.io.IOException;
 import java.util.Collection;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class PackCommand {
 
@@ -20,8 +13,7 @@ public class PackCommand {
     CommandAPICommand getPackCommand() {
         return new CommandAPICommand("pack")
                 .withPermission("oraxen.command.pack")
-                .withSubcommand(sendPackCommand())
-                .withSubcommand(extractDefaultPackContent());
+                .withSubcommand(sendPackCommand());
 
     }
 
@@ -34,32 +26,5 @@ public class PackCommand {
                     if (targets != null) for (final Player target : targets)
                         OraxenPlugin.get().packServer().sendPack(target);
                 });
-    }
-
-    private CommandAPICommand extractDefaultPackContent() {
-        return new CommandAPICommand("extract_default")
-                .withOptionalArguments(new TextArgument("folder").replaceSuggestions(ArgumentSuggestions.strings("all", "textures", "models", "sounds")))
-                .withOptionalArguments(new BooleanArgument("override"))
-                .executes((sender, args) -> {
-                    final String type = (String) args.getOptional("folder").orElse("all");
-                    final ZipInputStream zip = ResourcesManager.browse();
-                    try {
-                        ZipEntry entry = zip.getNextEntry();
-                        while (entry != null) {
-                            extract(entry, type, OraxenPlugin.get().getResourceManager(), (Boolean) args.getOptional("override").orElse(false));
-                            entry = zip.getNextEntry();
-                        }
-                        zip.closeEntry();
-                        zip.close();
-                    } catch (final IOException ex) {
-                        ex.printStackTrace();
-                    }
-
-                });
-    }
-
-    private void extract(ZipEntry entry, String type, ResourcesManager resourcesManager, boolean override) {
-        if (!entry.getName().startsWith("pack/" + (type.equals("all") ? "" : type))) return;
-        resourcesManager.extractFileIfTrue(entry, !OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists() || override);
     }
 }
