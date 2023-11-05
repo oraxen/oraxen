@@ -56,7 +56,7 @@ public class NMSHandlers {
     }
 
     public static String verifyFor(Player player, String message) {
-        if (message != null && player != null) for (Glyph glyph : OraxenPlugin.get().fontManager().getGlyphs()) {
+        if (message != null && player != null) for (Glyph glyph : OraxenPlugin.get().fontManager().glyphs()) {
             String glyphTag = glyph.getGlyphTag();
             // Escape all glyphs the player does not have permission for
             if (!glyph.hasPermission(player)) {

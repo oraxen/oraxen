@@ -43,6 +43,6 @@ public class OraxenExpansion extends PlaceholderExpansion {
 
         if (params.equals("pack_hash"))
             return plugin.packGenerator().builtPack().hash();
-        else return glyph.getCharacter();
+        else return glyph.character();
     }
 }
