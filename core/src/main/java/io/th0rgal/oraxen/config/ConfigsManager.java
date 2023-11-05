@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -211,7 +212,7 @@ public class ConfigsManager {
                 Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key), character);
                 if (glyph.isFileChanged())
                     fileChanged = true;
-                glyph.verifyGlyph(output);
+                //glyph.verifyGlyph(output);
                 output.add(glyph);
             }
             if (fileChanged && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
@@ -234,7 +235,7 @@ public class ConfigsManager {
     }
 
     public void assignAllUsedModelDatas() {
-        Map<Material, Map<Integer, String>> assignedModelDatas = new HashMap<>();
+        Map<Material, Map<Integer, Key>> assignedModelDatas = new HashMap<>();
         for (File file : getItemFiles()) {
             if (!file.exists()) continue;
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
@@ -247,7 +248,7 @@ public class ConfigsManager {
                 Material material = Material.getMaterial(itemSection.getString("material", ""));
                 if (packSection == null || material == null) continue;
                 int modelData = packSection.getInt("custom_model_data", -1);
-                String model = getItemModelFromConfigurationSection(packSection);
+                Key model = getItemModelFromConfigurationSection(packSection);
                 if (modelData == -1) continue;
                 if (assignedModelDatas.containsKey(material) && assignedModelDatas.get(material).containsKey(modelData)) {
                     if (assignedModelDatas.get(material).get(modelData).equals(model)) continue;
@@ -266,7 +267,7 @@ public class ConfigsManager {
                 }
 
                 assignedModelDatas.computeIfAbsent(material, k -> new HashMap<>()).put(modelData, model);
-                ModelData.DATAS.computeIfAbsent(material, k -> new HashMap<>()).put(key, modelData);
+                ModelData.DATAS.computeIfAbsent(material, k -> new HashMap<>()).put(Key.key(key), modelData);
             }
 
             if (fileChanged) {
@@ -290,12 +291,12 @@ public class ConfigsManager {
         }
     }
 
-    private String getItemModelFromConfigurationSection(ConfigurationSection packSection) {
+    private Key getItemModelFromConfigurationSection(ConfigurationSection packSection) {
         String model = packSection.getString("model", "");
         if (model.isEmpty() && packSection.getBoolean("generate_model", false)) {
             model = packSection.getParent().getName();
         }
-        return model;
+        return Key.key(model);
     }
 
     public Map<String, ItemBuilder> parseItemConfig(YamlConfiguration config, File itemFile) {

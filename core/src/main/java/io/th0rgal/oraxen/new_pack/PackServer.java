@@ -16,10 +16,8 @@ public class PackServer {
     private final int port = 8080;
 
     public PackServer() {
-
-
         try {
-            packServer = ResourcePackServer.builder().address(ip, port).pack(OraxenPlugin.get().packGenerator().builtPack).build();
+            packServer = ResourcePackServer.server().address(ip, port).pack(OraxenPlugin.get().packGenerator().builtPack).build();
         } catch (IOException e) {
             Logs.logError("Failed to start Oraxen pack-server");
             if (Settings.DEBUG.toBool()) Logs.logWarning(e.getMessage());

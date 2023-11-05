@@ -11,15 +11,19 @@ import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
+import org.bukkit.Material;
 import team.unnamed.creative.BuiltResourcePack;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.Atlas;
+import team.unnamed.creative.atlas.AtlasSource;
 import team.unnamed.creative.base.Writable;
 import team.unnamed.creative.font.Font;
 import team.unnamed.creative.font.FontProvider;
 import team.unnamed.creative.lang.Language;
 import team.unnamed.creative.metadata.pack.PackMeta;
 import team.unnamed.creative.model.Model;
+import team.unnamed.creative.model.ModelTexture;
+import team.unnamed.creative.model.ModelTextures;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter;
 import team.unnamed.creative.sound.SoundRegistry;
@@ -27,6 +31,7 @@ import team.unnamed.creative.sound.SoundRegistry;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PackGenerator {
 
@@ -42,13 +47,15 @@ public class PackGenerator {
 
     public void generatePack() {
         resourcePack = MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile());
-        addGlyphFiles();
+        OraxenPlugin.get().resourcePack(resourcePack);
+
+        addItemPackFiles();
+        //addGlyphFiles();
         if (Settings.GESTURES_ENABLED.toBool()) addGestureFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
         addImportPacks();
 
-        OraxenPlugin.get().resourcePack(resourcePack);
         resourcePack.removeUnknownFile("token.secret");
         resourcePack.removeUnknownFile("pack.zip");
 
@@ -111,7 +118,7 @@ public class PackGenerator {
                 mergePack(MinecraftResourcePackReader.minecraft().readFromDirectory(file));
             }
             else if (file.getName().endsWith(".zip")) {
-                Logs.logInfo("Importing pack " + file.getName() + "...");
+                Logs.logInfo("Importing zipped pack " + file.getName() + "...");
                 mergePack(MinecraftResourcePackReader.minecraft().readFromZipFile(file));
             }
             else {
@@ -166,7 +173,7 @@ public class PackGenerator {
         return builtPack;
     }
 
-    private void generateDefaultPaths() {
+    private static void generateDefaultPaths() {
         packImports.toFile().mkdirs();
         assetsFolder.resolve("minecraft/textures").toFile().mkdirs();
         assetsFolder.resolve("minecraft/models").toFile().mkdirs();
@@ -176,10 +183,18 @@ public class PackGenerator {
     }
 
     private void addItemPackFiles() {
-        for (ItemBuilder builder : OraxenItems.getItems()) {
-            if (builder == null || !builder.hasOraxenMeta()) continue;
-            OraxenMeta meta = builder.getOraxenMeta();
-            if (meta.getCustomModelData() == 0) return;
-        }
+        ModelGenerator.generateBaseItemModels();
+        ModelGenerator.generateItemModels();
+        generateAtlasFile();
+    }
+
+
+
+    private void generateAtlasFile() {
+        List<AtlasSource> sources = new ArrayList<>();
+        for (Collection<ModelTexture> textures : resourcePack.models().stream().map(Model::textures).map(m -> m.variables().values()).collect(Collectors.toSet()))
+         for (ModelTexture texture : textures)
+             sources.add(AtlasSource.single(texture.key()));
+        resourcePack.atlas(Atlas.atlas(Atlas.BLOCKS, sources));
     }
 }

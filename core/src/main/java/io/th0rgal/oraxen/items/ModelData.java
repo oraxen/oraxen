@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.config.Settings;
+import net.kyori.adventure.key.Key;
 import org.bukkit.Material;
 
 import java.util.*;
@@ -10,12 +11,12 @@ public class ModelData {
     public static final int STARTING_CMD = 1000;
     private final Material type;
     private final int modelData;
-    public static final Map<Material, Map<String, Integer>> DATAS = new HashMap<>();
+    public static final Map<Material, Map<Key, Integer>> DATAS = new HashMap<>();
 
-    public ModelData(Material type, String model, int modelData) {
+    public ModelData(Material type, Key model, int modelData) {
         this.type = type;
         this.modelData = modelData;
-        Map<String, Integer> usedModelDatas = DATAS.getOrDefault(type, new HashMap<>());
+        Map<Key, Integer> usedModelDatas = DATAS.getOrDefault(type, new HashMap<>());
         usedModelDatas.put(model, modelData);
         DATAS.put(type, usedModelDatas);
     }
@@ -28,8 +29,8 @@ public class ModelData {
         return modelData;
     }
 
-    public static int generateId(String model, Material type) {
-        Map<String, Integer> usedModelDatas;
+    public static int generateId(Key model, Material type) {
+        Map<Key, Integer> usedModelDatas;
         if (!DATAS.containsKey(type) && !getSkippedCustomModelData().contains(STARTING_CMD)) {
             usedModelDatas = new HashMap<>();
             usedModelDatas.put(model, STARTING_CMD);

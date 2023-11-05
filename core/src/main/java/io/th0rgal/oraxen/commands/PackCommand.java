@@ -20,8 +20,7 @@ public class PackCommand {
     CommandAPICommand getPackCommand() {
         return new CommandAPICommand("pack")
                 .withPermission("oraxen.command.pack")
-                .withSubcommand(sendPackCommand())
-                .withSubcommand(extractDefaultPackContent());
+                .withSubcommand(sendPackCommand());
 
     }
 
@@ -34,33 +33,5 @@ public class PackCommand {
                     if (targets != null) for (final Player target : targets)
                         OraxenPlugin.get().packServer().sendPack(target);
                 });
-    }
-
-    private CommandAPICommand extractDefaultPackContent() {
-        return new CommandAPICommand("extract_default")
-                .withOptionalArguments(new TextArgument("folder").replaceSuggestions(ArgumentSuggestions.strings("all", "textures", "models", "sounds")))
-                .withOptionalArguments(new BooleanArgument("override"))
-                .executes((sender, args) -> {
-                    final String type = (String) args.getOptional("folder").orElse("all");
-                    final ZipInputStream zip = ResourcesManager.browse();
-                    try {
-                        ZipEntry entry = zip.getNextEntry();
-                        final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
-                        while (entry != null) {
-                            extract(entry, type, resourcesManager, (Boolean) args.getOptional("override").orElse(false));
-                            entry = zip.getNextEntry();
-                        }
-                        zip.closeEntry();
-                        zip.close();
-                    } catch (final IOException ex) {
-                        ex.printStackTrace();
-                    }
-
-                });
-    }
-
-    private void extract(ZipEntry entry, String type, ResourcesManager resourcesManager, boolean override) {
-        if (!entry.getName().startsWith("pack/" + (type.equals("all") ? "" : type))) return;
-        resourcesManager.extractFileIfTrue(entry, !OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists() || override);
     }
 }
