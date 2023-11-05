@@ -39,13 +39,13 @@ public class PackGenerator {
     public void generatePack() {
         resourcePack = MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile());
         OraxenPlugin.get().resourcePack(resourcePack);
+        addImportPacks();
 
         addItemPackFiles();
         addGlyphFiles();
         if (Settings.GESTURES_ENABLED.toBool()) addGestureFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
-        addImportPacks();
 
         resourcePack.removeUnknownFile("token.secret");
         resourcePack.removeUnknownFile("pack.zip");

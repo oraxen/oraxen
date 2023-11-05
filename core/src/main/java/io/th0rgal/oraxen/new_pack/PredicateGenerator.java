@@ -1,18 +1,36 @@
 package io.th0rgal.oraxen.new_pack;
 
 import com.google.common.collect.Lists;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Material;
-import team.unnamed.creative.model.ItemOverride;
-import team.unnamed.creative.model.ItemPredicate;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.PotionMeta;
+import team.unnamed.creative.model.*;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 
 public class PredicateGenerator {
+
+    public static Model.Builder generateBaseModelBuilder(Material material) {
+        Key modelKey = PredicateGenerator.vanillaModelKey(material);
+        ModelTextures modelTextures = PredicateGenerator.vanillaModelTextures(material);
+
+
+
+        return Model.model().key(modelKey).parent(PredicateGenerator.parentModel(material))
+                .textures(modelTextures)
+                .guiLight(material == Material.SHIELD ? Model.GuiLight.FRONT : null)
+                .overrides(generateBaseModelOverrides(material));
+    }
 
     /**
      * Generates the base model overrides for the given material
@@ -24,6 +42,23 @@ public class PredicateGenerator {
     public static List<ItemOverride> generateBaseModelOverrides(Material material) {
         List<ItemOverride> overrides = Lists.newArrayList();
         List<ItemBuilder> itemBuilders = OraxenItems.getItems().stream().filter(i -> i.getType() == material).toList();
+
+        switch (material) {
+            case SHIELD -> overrides.add(ItemOverride.of(Key.key("item/shield_blocking"), ItemPredicate.blocking()));
+            case BOW -> {
+                overrides.add(ItemOverride.of(Key.key("item/bow_pulling_0"), ItemPredicate.pulling()));
+                overrides.add(ItemOverride.of(Key.key("item/bow_pulling_1"), ItemPredicate.pulling(), ItemPredicate.pull(0.65f)));
+                overrides.add(ItemOverride.of(Key.key("item/bow_pulling_2"), ItemPredicate.pulling(), ItemPredicate.pull(0.9f)));
+            }
+            case CROSSBOW -> {
+                overrides.add(ItemOverride.of(Key.key("item/crossbow_pulling_0"), ItemPredicate.pulling()));
+                overrides.add(ItemOverride.of(Key.key("item/crossbow_pulling_1"), ItemPredicate.pulling(), ItemPredicate.pull(0.65f)));
+                overrides.add(ItemOverride.of(Key.key("item/crossbow_pulling_2"), ItemPredicate.pulling(), ItemPredicate.pull(0.9f)));
+
+                overrides.add(ItemOverride.of(Key.key("item/crossbow_arrow"), ItemPredicate.charged()));
+                overrides.add(ItemOverride.of(Key.key("item/crossbow_firework"), ItemPredicate.firework()));
+            }
+        }
 
         for (ItemBuilder itemBuilder : itemBuilders) {
             if (itemBuilder == null) continue;
@@ -59,8 +94,18 @@ public class PredicateGenerator {
         return Key.key(getVanillaModelName(material));
     }
 
-    public static Key vanillaTextureKey(Material material) {
-        return Key.key(getVanillaTextureName(material, false));
+    //TODO Replicate old PredicatesGenerator logic
+    public static ModelTextures vanillaModelTextures(Material material) {
+        ModelTextures.of(
+
+        )
+        Key baseKey = Key.key(getVanillaTextureName(material, false));
+        List<Key> textures = Lists.newArrayList(ModelTextures);
+        ItemMeta exampleMeta = new ItemStack(material).getItemMeta();
+        if (exampleMeta instanceof PotionMeta) {
+            textures.add(baseKey)
+        }
+        return ;
     }
 
     public static String getVanillaModelName(final Material material) {
@@ -72,5 +117,18 @@ public class PredicateGenerator {
             if (material.isBlock()) return "block/" + material.toString().toLowerCase(Locale.ENGLISH);
             else if (material == Material.CROSSBOW) return "item/crossbow_standby";
         return "item/" + material.toString().toLowerCase(Locale.ENGLISH);
+    }
+
+    private static final String[] tools = new String[]{"PICKAXE", "SWORD", "HOE", "AXE", "SHOVEL"};
+    public static Key parentModel(final Material material) {
+        if (material.isBlock())
+            return Key.key("block/cube_all");
+        if (Arrays.stream(tools).anyMatch(tool -> material.toString().contains(tool)))
+            return Key.key("item/handheld");
+        if (material == Material.FISHING_ROD)
+            return Key.key("item/handheld_rod");
+        if (material == Material.SHIELD)
+            return Key.key("builtin/entity");
+        return Key.key("item/generated");
     }
 }
