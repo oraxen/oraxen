@@ -6,8 +6,13 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import team.unnamed.creative.base.Writable;
+import team.unnamed.creative.model.ItemOverride;
+import team.unnamed.creative.model.ItemPredicate;
+import team.unnamed.creative.model.Model;
 
 import java.io.File;
 import java.util.*;
@@ -103,6 +108,7 @@ public class GestureManager {
         );
     }
 
+    @Deprecated(forRemoval = true, since = "2.0")
     public String getSkullJson() {
         return """
                 {
@@ -121,6 +127,41 @@ public class GestureManager {
                  }""";
     }
 
+    public static class Skull {
+        public static Model skullModel() {
+            return Model.model().overrides(overrides()).parent(skullParent()).build();
+        }
+
+
+        private static Key skullParent() { return Key.key("minecraft:item/template_skull"); }
+        private static List<ItemOverride> overrides() {
+            return List.of(
+                    ItemOverride.of(Key.key("minecraft:required/player/head"), ItemPredicate.customModelData(1)),
+                    ItemOverride.of(Key.key("minecraft:required/player/norm/right_shoulder"), ItemPredicate.customModelData(2)),
+                    ItemOverride.of(Key.key("minecraft:required/player/norm/left_shoulder"), ItemPredicate.customModelData(3)),
+                    ItemOverride.of(Key.key("minecraft:required/player/norm/arm"), ItemPredicate.customModelData(4)),
+                    ItemOverride.of(Key.key("minecraft:required/player/slim/right_shoulder"), ItemPredicate.customModelData(5)),
+                    ItemOverride.of(Key.key("minecraft:required/player/slim/left_shoulder"), ItemPredicate.customModelData(6)),
+                    ItemOverride.of(Key.key("minecraft:required/player/slim/arm"), ItemPredicate.customModelData(7)),
+                    ItemOverride.of(Key.key("minecraft:required/player/body"), ItemPredicate.customModelData(8)),
+                    ItemOverride.of(Key.key("minecraft:required/player/leg"), ItemPredicate.customModelData(9))
+            );
+        }
+    }
+
+    public Writable shaderVsh() {
+        return Writable.stringUtf8(getShaderVsh());
+    }
+
+    public Writable shaderFsh() {
+        return Writable.stringUtf8(getShaderFsh());
+    }
+
+    public Writable shaderJson() {
+        return Writable.stringUtf8(getShaderJson());
+    }
+
+    @Deprecated(forRemoval = true, since = "2.0")
     public String getShaderFsh() {
         return """
                 #version 150
@@ -173,7 +214,7 @@ public class GestureManager {
                 }
                 """;
     }
-
+    @Deprecated(forRemoval = true, since = "2.0")
     public String getShaderVsh() {
         return """
                 #version 150
@@ -387,7 +428,7 @@ public class GestureManager {
                                 
                 """;
     }
-
+    @Deprecated(forRemoval = true, since = "2.0")
     public String getShaderJson() {
         return """
                 {

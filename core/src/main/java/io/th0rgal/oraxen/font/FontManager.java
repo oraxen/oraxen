@@ -20,6 +20,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import team.unnamed.creative.font.BitMapFontProvider;
+import team.unnamed.creative.font.FontProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -48,8 +50,8 @@ public class FontManager {
             glyphBitMaps = bitmapSection.getKeys(false).stream().collect(HashMap::new, (map, key) -> {
                 final ConfigurationSection section = bitmapSection.getConfigurationSection(key);
                 if (section != null) {
-                    map.put(key, new GlyphBitMap(
-                            section.getString("texture"), section.getInt("rows"), section.getInt("columns"),
+                    map.put(key, new GlyphBitMap(Key.key(section.getString("font")), Key.key(section.getString("texture")),
+                            section.getInt("rows"), section.getInt("columns"),
                             section.getInt("ascent", 8), section.getInt("height", 8)));
                 }
             }, HashMap::putAll);
@@ -146,6 +148,7 @@ public class FontManager {
 
     /**
      * Get a Glyph from a given Glyph-ID
+     *
      * @param id The Glyph-ID
      * @return Returns the Glyph if it exists, otherwise the required Glyph
      */
@@ -156,6 +159,7 @@ public class FontManager {
 
     /**
      * Get a Glyph from a given Glyph-ID
+     *
      * @param id The Glyph-ID
      * @return Returns the Glyph if it exists, otherwise null
      */
@@ -192,6 +196,7 @@ public class FontManager {
     }
 
     private final Map<UUID, List<String>> currentGlyphCompletions = new HashMap<>();
+
     public void sendGlyphTabCompletion(Player player) {
         List<String> completions = getGlyphByPlaceholderMap().values().stream()
                 .filter(Glyph::hasTabCompletion)
@@ -211,7 +216,26 @@ public class FontManager {
         this.currentGlyphCompletions.remove(player.getUniqueId());
     }
 
-    public record GlyphBitMap(Key texture, int rows, int columns, int ascent, int height) {
+    public record GlyphBitMap(Key font, Key texture, int rows, int columns, int ascent, int height) {
+
+        public BitMapFontProvider fontProvider() {
+            List<Glyph> bitmapGlyphs = OraxenPlugin.get().fontManager().glyphs().stream().filter(Glyph::hasBitmap).filter(g -> g.bitmap() != null && g.bitmap().equals(this)).toList();
+            List<String> charMap = new ArrayList<>(rows());
+
+            for (int i = 1; i <= rows(); i++) {
+                int currentRow = i;
+                List<Glyph> glyphsInRow = bitmapGlyphs.stream().filter(g -> g.getBitmapEntry().row() == currentRow).toList();
+                StringBuilder charRow = new StringBuilder();
+                for (int j = 1; j <= columns(); j++) {
+                    int currentColumn = j;
+                    Glyph glyph = glyphsInRow.stream().filter(g -> g.getBitmapEntry().column() == currentColumn).findFirst().orElse(null);
+                    charRow.append(glyph != null ? glyph.character() : Glyph.WHITESPACE_GLYPH);
+                }
+                charMap.set(i - 1, charRow.toString());
+            }
+
+            return FontProvider.bitMap(texture, ascent, height, charMap);
+        }
 
         public JsonObject toJson() {
             JsonObject json = new JsonObject();
