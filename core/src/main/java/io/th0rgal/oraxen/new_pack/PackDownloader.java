@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.pack;
+package io.th0rgal.oraxen.new_pack;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.OraxenYaml;
