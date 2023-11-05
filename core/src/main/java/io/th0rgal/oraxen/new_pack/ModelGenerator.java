@@ -10,7 +10,6 @@ import team.unnamed.creative.model.Model;
 import team.unnamed.creative.model.ModelTexture;
 import team.unnamed.creative.model.ModelTextures;
 
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public class ModelGenerator {
@@ -33,7 +32,7 @@ public class ModelGenerator {
         for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
             OraxenMeta oraxenMeta = itemBuilder.getOraxenMeta();
             if (oraxenMeta == null || !oraxenMeta.hasPackInfos() || !oraxenMeta.shouldGenerateModel()) continue;
-            OraxenPlugin.get().resourcePack().model(oraxenMeta.model());
+            OraxenPlugin.get().resourcePack().model(ModelGenerator.generateModelBuilder(oraxenMeta).build());
         }
     }
 
@@ -41,17 +40,6 @@ public class ModelGenerator {
         return Model.model()
                 .key(oraxenMeta.modelKey())
                 .parent(oraxenMeta.parentModelKey())
-                .textures(modelTextures(oraxenMeta));
-    }
-
-    private static ModelTextures modelTextures(OraxenMeta oraxenMeta) {
-        Map<String, ModelTexture> variables = oraxenMeta.getLayersMap().entrySet().stream().map(e -> Map.entry(e.getKey(), ModelTexture.ofKey(e.getValue())))
-                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        ModelTexture particle = variables.remove("particle");
-
-        return ModelTextures.builder()
-                .particle(particle)
-                .variables(variables)
-                .build();
+                .textures(oraxenMeta.modelTextures());
     }
 }

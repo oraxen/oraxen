@@ -1,12 +1,11 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.new_pack.ModelGenerator;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.configuration.ConfigurationSection;
-import team.unnamed.creative.model.Model;
+import team.unnamed.creative.model.ModelTexture;
+import team.unnamed.creative.model.ModelTextures;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,10 +22,10 @@ public class OraxenMeta {
     private Key fireworkModel;
     private Key castModel;
     private List<Key> damagedModels;
-    private List<Key> layers;
-    private Map<String, Key> layersMap;
+    private List<ModelTexture> textureLayers;
+    private Map<String, ModelTexture> textureVariables;
+    private ModelTextures modelTextures;
     private Key parentModel;
-    private boolean generate_model;
     private boolean hasPackInfos = false;
     private boolean excludedFromInventory = false;
     private boolean excludedFromCommands = false;
@@ -74,27 +73,24 @@ public class OraxenMeta {
         if (textureSection != null) {
             ConfigurationSection texturesSection = section.getConfigurationSection("textures");
             assert texturesSection != null;
-            Map<String, Key> layersMap = new HashMap<>();
-            texturesSection.getKeys(false).forEach(key -> layersMap.put(key, Key.key(texturesSection.getString(key))));
-            this.layersMap = layersMap;
+            Map<String, ModelTexture> variables = new HashMap<>();
+            texturesSection.getKeys(false).forEach(key -> variables.put(key, ModelTexture.ofKey(Key.key(texturesSection.getString(key)))));
+            this.textureVariables = variables;
         }
-        else if (section.isList("textures")) this.layers = section.getStringList("textures").stream().map(Key::key).toList();
-        else if (section.isString("textures")) this.layers = List.of(Key.key(section.getString("textures")));
-        else if (section.isString("texture")) this.layers = List.of(Key.key(section.getString("texture")));
-        else {
-            this.layers = new ArrayList<>();
-            this.layersMap = new HashMap<>();
-        }
+        else if (section.isList("textures")) this.textureLayers = section.getStringList("textures").stream().map(Key::key).map(ModelTexture::ofKey).toList();
+        else if (section.isString("textures")) this.textureLayers = List.of(ModelTexture.ofKey(Key.key(section.getString("textures"))));
+        else if (section.isString("texture")) this.textureLayers = List.of(ModelTexture.ofKey(Key.key(section.getString("texture"))));
 
-        // If not specified, check if a model or texture is set
-        this.generate_model = section.getBoolean("generate_model", modelKey.asString().isEmpty());
+        this.textureVariables = textureVariables != null ? textureVariables : new HashMap<>();
+        this.textureLayers = textureLayers != null ? textureLayers : new ArrayList<>();
+
+        this.modelTextures = ModelTextures.builder()
+                .particle(textureVariables.get("particle"))
+                .variables(textureVariables)
+                .layers(textureLayers)
+                .build();
+
         this.parentModel = Key.key(section.getString("parent_model", "item/generated"));
-
-        if (generate_model && !modelKey.asString().matches("^[a-z0-9-_]+$")) {
-            Logs.logWarning("Item " + section.getParent().getName() + " is set to generate a model, but ItemID does not adhere to [a-z0-9-_]!");
-            Logs.logWarning("This will generate a malformed model!");
-        }
-
     }
 
     // this might not be a very good function name
@@ -126,10 +122,6 @@ public class OraxenMeta {
 
     public void modelKey(Key modelKey) {
         this.modelKey = modelKey;
-    }
-
-    public Model model() {
-        return ModelGenerator.generateModelBuilder(this).build();
     }
 
     public Key modelKey() {
@@ -176,8 +168,8 @@ public class OraxenMeta {
         return damagedModels;
     }
 
-    public Map<String, Key> getLayersMap() {
-        return layersMap;
+    public ModelTextures modelTextures() {
+        return modelTextures;
     }
 
     public Key parentModelKey() {
@@ -185,7 +177,7 @@ public class OraxenMeta {
     }
 
     public boolean shouldGenerateModel() {
-        return generate_model;
+        return modelKey == null;
     }
 
     public boolean noUpdate() {

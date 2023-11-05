@@ -229,7 +229,7 @@ public class OraxenPlugin extends JavaPlugin {
         return resourcePack;
     }
 
-    public void resourcePack(team.unnamed.creative.ResourcePack resourcePack) {
+    public void resourcePack(ResourcePack resourcePack) {
         this.resourcePack = resourcePack;
     }
 
