@@ -2,27 +2,26 @@ package io.th0rgal.oraxen.pack;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
 import team.unnamed.creative.BuiltResourcePack;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.Atlas;
 import team.unnamed.creative.base.Writable;
 import team.unnamed.creative.font.Font;
+import team.unnamed.creative.font.FontProvider;
 import team.unnamed.creative.lang.Language;
 import team.unnamed.creative.metadata.pack.PackMeta;
-import team.unnamed.creative.model.ItemOverride;
 import team.unnamed.creative.model.Model;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter;
 import team.unnamed.creative.sound.SoundRegistry;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PackGenerator {
 
@@ -38,16 +37,41 @@ public class PackGenerator {
 
     public void generatePack() {
         resourcePack = MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile());
+        addGlyphFiles();
         addImportPacks();
+
+
         OraxenPlugin.get().resourcePack(resourcePack);
         resourcePack.removeUnknownFile("token.secret");
         resourcePack.removeUnknownFile("pack.zip");
+
         for (Map.Entry<String, Writable> entry : new HashSet<>(resourcePack.unknownFiles().entrySet()))
             if (entry.getKey().startsWith("imports/")) resourcePack.removeUnknownFile(entry.getKey());
 
         MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().packPath().resolve("pack.zip").toFile(), resourcePack);
 
         builtPack = MinecraftResourcePackWriter.minecraft().build(resourcePack);
+    }
+
+    private void addGlyphFiles() {
+
+        Map<Key, List<Glyph>> fontGlyphs = new HashMap<>();
+        for (Glyph glyph : OraxenPlugin.get().fontManager().emojis()) {
+            fontGlyphs.compute(glyph.font(), (key, glyphs) -> {
+                if (glyphs == null) glyphs = new ArrayList<>();
+                glyphs.add(glyph);
+                return glyphs;
+            });
+        }
+
+        for (Map.Entry<Key, List<Glyph>> entry : fontGlyphs.entrySet()) {
+            if (entry.getValue().isEmpty()) continue;
+            List<FontProvider> providers = new ArrayList<>();
+            for (Glyph glyph : entry.getValue()) {
+                if (glyph.hasBitmap()) providers.add(glyph.fontProvider());
+            }
+            resourcePack.font(Font.font(entry.getKey(), providers));
+        }
     }
 
     private void addImportPacks() {

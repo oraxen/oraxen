@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
@@ -92,10 +93,10 @@ public class FontManager {
     private void loadGlyphs(Collection<Glyph> glyphs) {
         verifyRequiredGlyphs();
         for (Glyph glyph : glyphs) {
-            if (glyph.getCharacter().isBlank()) continue;
-            glyphMap.put(glyph.getName(), glyph);
-            reverse.put(glyph.getCharacter().charAt(0), glyph.getName());
-            for (final String placeholder : glyph.getPlaceholders())
+            if (glyph.character().isBlank()) continue;
+            glyphMap.put(glyph.name(), glyph);
+            reverse.put(glyph.character().charAt(0), glyph.name());
+            for (final String placeholder : glyph.placeholders())
                 glyphByPlaceholder.put(placeholder, glyph);
         }
     }
@@ -130,11 +131,11 @@ public class FontManager {
         tempFile.delete();
     }
 
-    public final Collection<Glyph> getGlyphs() {
+    public final Collection<Glyph> glyphs() {
         return glyphMap.values();
     }
 
-    public final Collection<Glyph> getEmojis() {
+    public final Collection<Glyph> emojis() {
         return glyphMap.values().stream().filter(Glyph::isEmoji).toList();
     }
 
@@ -179,7 +180,7 @@ public class FontManager {
         }
         while (length > 0) {
             int biggestPower = Integer.highestOneBit(length);
-            output.append(getGlyphFromName(prefix + biggestPower).getCharacter());
+            output.append(getGlyphFromName(prefix + biggestPower).character());
             length -= biggestPower;
         }
         return output.toString();
@@ -190,8 +191,8 @@ public class FontManager {
         List<String> completions = getGlyphByPlaceholderMap().values().stream()
                 .filter(Glyph::hasTabCompletion)
                 .flatMap(glyph -> Settings.UNICODE_COMPLETIONS.toBool()
-                        ? Stream.of(glyph.getCharacter())
-                        : Arrays.stream(glyph.getPlaceholders()))
+                        ? Stream.of(glyph.character())
+                        : Arrays.stream(glyph.placeholders()))
                 .toList();
 
         if (VersionUtil.atOrAbove("1.19.4")) {
@@ -205,13 +206,13 @@ public class FontManager {
         this.currentGlyphCompletions.remove(player.getUniqueId());
     }
 
-    public record GlyphBitMap(String texture, int rows, int columns, int ascent, int height) {
+    public record GlyphBitMap(Key texture, int rows, int columns, int ascent, int height) {
 
-        public JsonObject toJson(FontManager fontManager) {
+        public JsonObject toJson() {
             JsonObject json = new JsonObject();
             JsonArray chars = new JsonArray();
 
-            List<Glyph> bitmapGlyphs = fontManager.getGlyphs().stream().filter(Glyph::hasBitmap).filter(g -> g.getBitMap() != null && g.getBitMap().equals(this)).toList();
+            List<Glyph> bitmapGlyphs = OraxenPlugin.get().fontManager().glyphs().stream().filter(Glyph::hasBitmap).filter(g -> g.bitmap() != null && g.bitmap().equals(this)).toList();
 
             for (int i = 1; i <= rows(); i++) {
                 int currentRow = i;
@@ -220,7 +221,7 @@ public class FontManager {
                 for (int j = 1; j <= columns(); j++) {
                     int currentColumn = j;
                     Glyph glyph = glyphsInRow.stream().filter(g -> g.getBitmapEntry().column() == currentColumn).findFirst().orElse(null);
-                    charRow.append(glyph != null ? glyph.getCharacter() : Glyph.WHITESPACE_GLYPH);
+                    charRow.append(glyph != null ? glyph.character() : Glyph.WHITESPACE_GLYPH);
                 }
                 chars.add(""); // Add row
                 chars.set(i - 1, new JsonPrimitive(charRow.toString()));
@@ -230,7 +231,7 @@ public class FontManager {
             json.addProperty("type", "bitmap");
             json.addProperty("ascent", ascent);
             json.addProperty("height", height);
-            json.addProperty("file", texture.endsWith(".png") ? texture : texture + ".png");
+            json.addProperty("file", texture.asString());
 
             return json;
         }
