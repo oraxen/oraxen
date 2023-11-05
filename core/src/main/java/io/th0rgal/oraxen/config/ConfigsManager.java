@@ -45,7 +45,7 @@ public class ConfigsManager {
         this.plugin = plugin;
         defaultMechanics = extractDefault("mechanics.yml");
         defaultSettings = extractDefault("settings.yml");
-        defaultFont = extractDefault("font.yml");
+        defaultFont = extractDefault("bitmaps.yml");
         defaultSound = extractDefault("sound.yml");
         defaultLanguage = extractDefault("languages/english.yml");
         defaultHud = extractDefault("hud.yml");
@@ -101,7 +101,7 @@ public class ConfigsManager {
         ResourcesManager tempManager = new ResourcesManager(OraxenPlugin.get());
         mechanics = validate(tempManager, "mechanics.yml", defaultMechanics);
         settings = validate(tempManager, "settings.yml", defaultSettings);
-        font = validate(tempManager, "font.yml", defaultFont);
+        font = validate(tempManager, "bitmaps.yml", defaultFont);
         hud = validate(tempManager, "hud.yml", defaultHud);
         sound = validate(tempManager, "sound.yml", defaultSound);
         File languagesFolder = new File(plugin.getDataFolder(), "languages");
@@ -181,9 +181,7 @@ public class ConfigsManager {
             );
 
     private final List<String> removedYamlKeys =
-            List.of(
-                    "armorpotioneffects"
-            );
+            List.of("armorpotioneffects");
 
     public Collection<Glyph> parseGlyphConfigs() {
         List<File> glyphFiles = getGlyphFiles();

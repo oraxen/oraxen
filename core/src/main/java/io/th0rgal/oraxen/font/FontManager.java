@@ -36,7 +36,6 @@ public class FontManager {
     private final Map<String, Glyph> glyphByPlaceholder;
     private final Map<Character, String> reverse;
     private final FontEvents fontEvents;
-    private final Set<Font> fonts;
     private final boolean useNmsGlyphs;
 
     public FontManager(final ConfigsManager configsManager) {
@@ -58,10 +57,7 @@ public class FontManager {
         glyphByPlaceholder = new HashMap<>();
         reverse = new HashMap<>();
         fontEvents = new FontEvents(this);
-        fonts = new HashSet<>();
         loadGlyphs(configsManager.parseGlyphConfigs());
-        if (fontConfiguration.isConfigurationSection("fonts"))
-            loadFonts(fontConfiguration.getConfigurationSection("fonts"));
 
         if (Settings.NMS_GLYPHS.toBool() && NMSHandlers.getHandler() != null) {
             useNmsGlyphs = true;
@@ -104,19 +100,6 @@ public class FontManager {
         }
     }
 
-    private void loadFonts(final ConfigurationSection section) {
-        for (final String fontName : section.getKeys(false)) {
-            final ConfigurationSection fontSection = section.getConfigurationSection(fontName);
-            fonts.add(new Font(fontSection.getString("type"),
-                    fontSection.getString("file"),
-                    (float) fontSection.getDouble("shift_x"),
-                    (float) fontSection.getDouble("shift_y"),
-                    (float) fontSection.getDouble("size"),
-                    (float) fontSection.getDouble("oversample")
-            ));
-        }
-    }
-
     private void verifyRequiredGlyphs() {
         // Ensure shifts.yml exists as it is required
         checkYamlKeys(new File(OraxenPlugin.get().getDataFolder() + "/glyphs/shifts.yml"));
@@ -153,14 +136,6 @@ public class FontManager {
 
     public final Collection<Glyph> getEmojis() {
         return glyphMap.values().stream().filter(Glyph::isEmoji).toList();
-    }
-
-    public final Collection<Font> getFonts() {
-        return fonts;
-    }
-
-    public Font getFontFromFile(String file) {
-        return getFonts().stream().filter(font -> font.file().equals(file)).findFirst().orElse(null);
     }
 
     /**
