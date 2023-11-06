@@ -341,15 +341,11 @@ oraxen_inventory:
       slot: 8
       icon: weed_leaf
       title: "<main_menu_title><#44C886><glyph:menu_items_overlay:colorable>"
-    skins:
-      slot: 9
-      icon: wood_sword
-      title: "<main_menu_title><#C48E40><glyph:menu_items_overlay:colorable>"
     tools:
-      slot: 10
+      slot: 9
       icon: iron_serpe
       title: "<main_menu_title><#FFFFFF><glyph:menu_items_overlay:colorable>"
     weapons:
-      slot: 11
+      slot: 10
       icon: energy_crystal_sword
       title: "<main_menu_title><#2FB6FF><glyph:menu_items_overlay:colorable>"
