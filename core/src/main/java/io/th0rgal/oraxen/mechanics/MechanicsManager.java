@@ -10,8 +10,6 @@ import io.th0rgal.oraxen.mechanics.provided.combat.spell.thor.ThorMechanicFactor
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.witherskull.WitherSkullMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.AuraMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.hat.HatMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.cosmetic.skin.SkinMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.cosmetic.skinnable.SkinnableMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.bedrockbreak.BedrockBreakMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.bigmining.BigMiningMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.bottledexp.BottledExpMechanicFactory;
@@ -79,8 +77,6 @@ public class MechanicsManager {
         // cosmetic
         registerFactory("aura", AuraMechanicFactory::new);
         registerFactory("hat", HatMechanicFactory::new);
-        registerFactory("skin", SkinMechanicFactory::new);
-        registerFactory("skinnable", SkinnableMechanicFactory::new);
 
         // combat
         registerFactory("thor", ThorMechanicFactory::new);
