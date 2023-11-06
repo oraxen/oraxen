@@ -19,6 +19,7 @@ import io.th0rgal.oraxen.mechanics.provided.farming.bottledexp.BottledExpMechani
 import io.th0rgal.oraxen.mechanics.provided.farming.harvesting.HarvestingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.smelting.SmeltingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.watering.WateringMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
@@ -74,6 +75,7 @@ public class MechanicsManager {
         registerFactory("noteblock", NoteBlockMechanicFactory::new);
         registerFactory("stringblock", StringBlockMechanicFactory::new);
         registerFactory("furniture", FurnitureFactory::new);
+        registerFactory("custom_block", CustomBlockFactory::new);
 
         // cosmetic
         registerFactory("aura", AuraMechanicFactory::new);

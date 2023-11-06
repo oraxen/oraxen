@@ -24,8 +24,8 @@ public class ArmorEffectsFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection configurationSection) {
-        Mechanic mechanic = new ArmorEffectsMechanic(this, configurationSection);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new ArmorEffectsMechanic(this, section);
         addToImplemented(mechanic);
         if (armorEffectTask != null) armorEffectTask.cancel();
         armorEffectTask = new ArmorEffectsTask();

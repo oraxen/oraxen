@@ -14,8 +14,8 @@ public class AuraMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new AuraMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new AuraMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }

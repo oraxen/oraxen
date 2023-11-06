@@ -176,19 +176,19 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        NoteBlockMechanic mechanic = new NoteBlockMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        NoteBlockMechanic mechanic = new NoteBlockMechanic(this, section);
         if (!Range.between(0, 775).contains(mechanic.getCustomVariation())) {
             Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 0 and 775!");
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
             return null;
         }
         DirectionalBlock directional = mechanic.getDirectional();
-        String modelName = mechanic.getModel(itemMechanicConfiguration.getParent().getParent());
+        String modelName = mechanic.getModel(section.getParent().getParent());
 
         if (mechanic.isDirectional() && !directional.isParentBlock()) {
             NoteBlockMechanic parentMechanic = directional.getParentMechanic();
-            modelName = (parentMechanic.getModel(itemMechanicConfiguration.getParent().getParent()));
+            modelName = (parentMechanic.getModel(section.getParent().getParent()));
             variants.put(getBlockstateVariantName(mechanic.getCustomVariation()),
                     getDirectionalModelJson(modelName, mechanic, parentMechanic));
         } else {
