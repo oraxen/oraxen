@@ -32,7 +32,7 @@ public class DurabilityMechanic extends Mechanic {
         return itemDurability;
     }
 
-    public void changeDurability(ItemStack item, int amount) {
+    public boolean changeDurability(ItemStack item, int amount) {
         DurabilityMechanic durabilityMechanic = this;
         AtomicBoolean check = new AtomicBoolean(false);
 
@@ -67,6 +67,6 @@ public class DurabilityMechanic extends Mechanic {
                 }
             }
         });
-        check.get();
+        return check.get();
     }
 }
