@@ -17,8 +17,8 @@ public class RepairMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new RepairMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new RepairMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }

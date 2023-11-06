@@ -13,8 +13,8 @@ public class SoulBoundMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new SoulBoundMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new SoulBoundMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }

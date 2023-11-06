@@ -28,8 +28,8 @@ public class BigMiningMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new BigMiningMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new BigMiningMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }

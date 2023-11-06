@@ -13,8 +13,8 @@ public class FireballMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new FireballMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new FireballMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }

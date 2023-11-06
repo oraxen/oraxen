@@ -13,8 +13,8 @@ public class SkinMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new SkinMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new SkinMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }

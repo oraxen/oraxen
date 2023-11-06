@@ -28,7 +28,7 @@ public abstract class MechanicFactory {
         return this.section;
     }
 
-    public abstract Mechanic parse(ConfigurationSection itemMechanicConfiguration);
+    public abstract Mechanic parse(ConfigurationSection section);
 
     protected void addToImplemented(Mechanic mechanic) {
         mechanicByItem.put(mechanic.getItemID(), mechanic);

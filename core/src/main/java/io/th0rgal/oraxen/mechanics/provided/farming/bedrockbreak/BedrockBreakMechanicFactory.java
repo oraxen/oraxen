@@ -17,8 +17,8 @@ public class BedrockBreakMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new BedrockBreakMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new BedrockBreakMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }

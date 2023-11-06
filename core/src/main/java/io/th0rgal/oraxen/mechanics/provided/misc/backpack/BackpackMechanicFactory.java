@@ -14,8 +14,8 @@ public class BackpackMechanicFactory extends MechanicFactory {
         }
 
         @Override
-        public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-            Mechanic mechanic = new BackpackMechanic(this, itemMechanicConfiguration);
+        public Mechanic parse(ConfigurationSection section) {
+            Mechanic mechanic = new BackpackMechanic(this, section);
             addToImplemented(mechanic);
             return mechanic;
         }
