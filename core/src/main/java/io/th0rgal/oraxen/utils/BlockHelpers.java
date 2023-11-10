@@ -60,15 +60,23 @@ public class BlockHelpers {
     }
 
     public static Location toBlockLocation(Location location) {
-        return location.toBlockLocation();
+        Location blockLoc = location.clone();
+        blockLoc.setX(location.getBlockX());
+        blockLoc.setY(location.getBlockY());
+        blockLoc.setZ(location.getBlockZ());
+        return blockLoc;
     }
 
     public static Location toCenterLocation(Location location) {
-        return location.toCenterLocation();
+        Location centerLoc = location.clone();
+        centerLoc.setX(location.getBlockX() + 0.5);
+        centerLoc.setY(location.getBlockY() + 0.5);
+        centerLoc.setZ(location.getBlockZ() + 0.5);
+        return centerLoc;
     }
 
     public static Location toCenterBlockLocation(Location location) {
-        return location.toCenterLocation().subtract(0,0.5,0);
+        return toCenterLocation(location).subtract(0,0.5,0);
     }
 
     public static boolean isStandingInside(final Player player, final Block block) {
