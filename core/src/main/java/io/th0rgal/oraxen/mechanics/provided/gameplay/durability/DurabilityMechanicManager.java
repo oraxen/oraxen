@@ -17,7 +17,7 @@ public class DurabilityMechanicManager implements Listener {
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemDamaged(PlayerItemDamageEvent event) {
-        DurabilityMechanic mechanic = (DurabilityMechanic) factory.getMechanic(OraxenItems.getIdByItem(event.getItem()));
+        DurabilityMechanic mechanic = factory.getMechanic(event.getItem());
         if (mechanic == null) return;
         if (mechanic.changeDurability(event.getItem(), -event.getDamage())) {
             event.setDamage(0);

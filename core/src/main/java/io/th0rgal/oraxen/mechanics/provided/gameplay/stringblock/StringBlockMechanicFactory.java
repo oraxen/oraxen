@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingTask;
@@ -19,6 +20,7 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -88,6 +90,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
                 + ",powered=" + (((id >> 6) & 1) == 1 ? "true" : "false");
     }
 
+    @org.jetbrains.annotations.Nullable
     public static StringBlockMechanic getBlockMechanic(int customVariation) {
         return BLOCK_PER_VARIATION.get(customVariation);
     }
@@ -132,6 +135,16 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
+    }
+
+    @Override
+    public StringBlockMechanic getMechanic(String itemID) {
+        return (StringBlockMechanic) super.getMechanic(itemID);
+    }
+
+    @Override
+    public StringBlockMechanic getMechanic(ItemStack itemStack) {
+        return (StringBlockMechanic) super.getMechanic(itemStack);
     }
 
     public static int getCode(final Tripwire blockData) {

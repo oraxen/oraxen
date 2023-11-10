@@ -29,6 +29,7 @@ public class ReloadCommand {
     public static void reloadItems(@Nullable CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "items"));
         OraxenItems.loadItems();
+        OraxenPlugin.get().getInvManager().regen();
         Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
 
         if (Settings.UPDATE_ITEMS.toBool() && Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
@@ -89,10 +90,7 @@ public class ReloadCommand {
                 .executes((sender, args) -> {
                     switch (((String) args.get("type")).toUpperCase()) {
                         case "HUD" -> reloadHud(sender);
-                        case "ITEMS" -> {
-                            reloadItems(sender);
-                            OraxenPlugin.get().getInvManager().regen();
-                        }
+                        case "ITEMS" -> reloadItems(sender);
                         case "PACK" -> reloadPack(sender);
                         case "RECIPES" -> reloadRecipes(sender);
                         case "CONFIGS" -> OraxenPlugin.get().reloadConfigs();
@@ -104,7 +102,6 @@ public class ReloadCommand {
                             reloadPack(sender);
                             reloadHud(sender);
                             reloadRecipes(sender);
-                            OraxenPlugin.get().getInvManager().regen();
                         }
                     }
                     for (Player player : Bukkit.getOnlinePlayers()) {

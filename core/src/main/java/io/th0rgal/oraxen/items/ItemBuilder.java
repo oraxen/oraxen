@@ -77,7 +77,7 @@ public class ItemBuilder {
         this(wrapped.build());
     }
 
-    public ItemBuilder(@NotNull final ItemStack itemStack) {
+    public ItemBuilder(@NotNull ItemStack itemStack) {
 
         this.itemStack = itemStack;
 

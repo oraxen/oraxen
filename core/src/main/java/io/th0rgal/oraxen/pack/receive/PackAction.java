@@ -42,7 +42,7 @@ public class PackAction {
             }
         }
 
-        commandsParser = new CommandsParser(configurationSection.getConfigurationSection("commands"));
+        commandsParser = new CommandsParser(configurationSection.getConfigurationSection("commands"), tagResolver);
     }
 
     public int getDelay() {

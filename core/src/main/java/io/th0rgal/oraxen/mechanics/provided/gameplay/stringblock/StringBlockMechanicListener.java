@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -129,7 +130,7 @@ public class StringBlockMechanicListener implements Listener {
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
         if (mechanic == null) return;
 
-        if (!new OraxenStringBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace()).callEvent())
+        if (!EventUtils.callEvent(new OraxenStringBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace())))
             event.setCancelled(true);
     }
 
@@ -166,9 +167,8 @@ public class StringBlockMechanicListener implements Listener {
         LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
         Block belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN);
 
-        if (limitedPlacing.isNotPlacableOn(block, blockFace)) {
-            event.setCancelled(true);
-        } else if (limitedPlacing.isRadiusLimited()) {
+        if (limitedPlacing.isNotPlacableOn(block, blockFace)) event.setCancelled(true);
+        else if (limitedPlacing.isRadiusLimited()) {
             LimitedPlacing.RadiusLimitation radiusLimitation = limitedPlacing.getRadiusLimitation();
             int rad = radiusLimitation.getRadius();
             int amount = radiusLimitation.getAmount();
@@ -250,7 +250,7 @@ public class StringBlockMechanicListener implements Listener {
         // Call the event
         StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
         if (stringBlockMechanic == null) return;
-        if (!new OraxenStringBlockInteractEvent(stringBlockMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace()).callEvent())
+        if (!EventUtils.callEvent(new OraxenStringBlockInteractEvent(stringBlockMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace())))
             event.setUseInteractedBlock(Event.Result.DENY);
     }
 
@@ -396,13 +396,13 @@ public class StringBlockMechanicListener implements Listener {
                                        final Block placedAgainst, final BlockFace face, final BlockData newData) {
         final Block target;
         final Material type = placedAgainst.getType();
-        if (BlockHelpers.isReplaceable(type))
-            target = placedAgainst;
+        if (BlockHelpers.isReplaceable(type)) target = placedAgainst;
         else {
             target = placedAgainst.getRelative(face);
             if (!target.getType().isAir() && target.getType() != Material.WATER && target.getType() != Material.LAVA)
                 return null;
         }
+
         if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation())) return null;
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(newData);
         if (mechanic == null) return null;
@@ -418,7 +418,7 @@ public class StringBlockMechanicListener implements Listener {
             } else blockAbove.setType(Material.TRIPWIRE);
         }
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
-        if (!blockPlaceEvent.callEvent() || !blockPlaceEvent.canBuild() || !oraxenBlockPlaceEvent.callEvent()) return null;
+        if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild() || !EventUtils.callEvent(oraxenBlockPlaceEvent)) return null;
 
         final String sound;
         if (newData.getMaterial() == Material.WATER || newData.getMaterial() == Material.LAVA) {

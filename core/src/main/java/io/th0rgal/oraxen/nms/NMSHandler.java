@@ -19,7 +19,7 @@ import java.util.Set;
 public interface NMSHandler {
 
     @Nullable
-    ConfigurationSection paperSection = OraxenYaml.loadConfiguration(OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().getParent().getParent().resolve("config").resolve("paper-global.yml").toFile()).getConfigurationSection("block-updates");
+    ConfigurationSection paperSection = VersionUtil.isPaperServer() ? OraxenYaml.loadConfiguration(OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().getParent().getParent().resolve("config").resolve("paper-global.yml").toFile()).getConfigurationSection("block-updates") : null;
 
     default boolean noteblockUpdatesDisabled() {
         return VersionUtil.isPaperServer() && paperSection != null && paperSection.getBoolean("disable-noteblock-updates", false);
@@ -52,6 +52,9 @@ public interface NMSHandler {
      */
     @Nullable BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack, Block blockAgainst, BlockFace blockFace);
     @Nullable BlockHitResult getBlockHitResult(Player player, Block block, BlockFace blockFace);
+
+    /**Removes mineable/axe tag from noteblocks for custom blocks */
+    void customBlockDefaultTools(Player player);
 
     /**
      * Keys that are used by vanilla Minecraft and should therefore be skipped

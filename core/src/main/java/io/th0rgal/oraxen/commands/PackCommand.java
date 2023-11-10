@@ -59,9 +59,8 @@ public class PackCommand {
                     final ZipInputStream zip = ResourcesManager.browse();
                     try {
                         ZipEntry entry = zip.getNextEntry();
-                        final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
                         while (entry != null) {
-                            extract(entry, type, resourcesManager, (Boolean) args.getOptional("override").orElse(false));
+                            extract(entry, type, OraxenPlugin.get().getResourceManager(), (Boolean) args.getOptional("override").orElse(false));
                             entry = zip.getNextEntry();
                         }
                         zip.closeEntry();

@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.items;
 
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
 import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
@@ -8,8 +9,10 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
@@ -32,7 +35,7 @@ public class ItemParser {
 
     private final OraxenMeta oraxenMeta;
     private final ConfigurationSection section;
-    private Material type;
+    private final Material type;
     private WrappedMMOItem mmoItem;
     private WrappedCrucibleItem crucibleItem;
     private WrappedEcoItem ecoItem;
@@ -52,11 +55,10 @@ public class ItemParser {
         else if (ecoItemSection != null) ecoItem = new WrappedEcoItem(ecoItemSection);
         else if (section.isString("ecoitem_id")) ecoItem = new WrappedEcoItem(section.getString("ecoitem_id"));
         else if (mmoSection != null) mmoItem = new WrappedMMOItem(mmoSection);
-        else {
-            Material material = Material.getMaterial(section.getString("material", ""));
-            if (material == null) material = usesTemplate() ? templateItem.type : Material.PAPER;
-            type = material;
-        }
+
+        Material material = Material.getMaterial(section.getString("material", ""));
+        if (material == null) material = usesTemplate() ? templateItem.type : Material.PAPER;
+        type = material;
 
         oraxenMeta = new OraxenMeta();
         if (section.isConfigurationSection("Pack")) {
@@ -70,15 +72,15 @@ public class ItemParser {
     }
 
     public boolean usesMMOItems() {
-        return type == null && crucibleItem == null && ecoItem == null  && mmoItem != null;
+        return crucibleItem == null && ecoItem == null  && mmoItem != null && mmoItem.build() != null;
     }
 
     public boolean usesCrucibleItems() {
-        return type == null && mmoItem == null && ecoItem == null && crucibleItem != null;
+        return mmoItem == null && ecoItem == null && crucibleItem != null && crucibleItem.build() != null;
     }
 
     public boolean usesEcoItems() {
-        return type == null && mmoItem == null && crucibleItem == null && ecoItem != null;
+        return mmoItem == null && crucibleItem == null && ecoItem != null && ecoItem.build() != null;
     }
 
     public boolean usesTemplate() {
@@ -205,6 +207,7 @@ public class ItemParser {
         ConfigurationSection mechanicsSection = section.getConfigurationSection("Mechanics");
         if (mechanicsSection != null) for (String mechanicID : mechanicsSection.getKeys(false)) {
             MechanicFactory factory = MechanicsManager.getMechanicFactory(mechanicID);
+
             if (factory != null) {
                 ConfigurationSection mechanicSection = mechanicsSection.getConfigurationSection(mechanicID);
                 if (mechanicSection == null) continue;

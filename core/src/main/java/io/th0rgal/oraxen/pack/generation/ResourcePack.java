@@ -145,7 +145,7 @@ public class ResourcePack {
 
         Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
-            event.callEvent();
+            EventUtils.callEvent(event);
             ZipUtils.writeZipFile(pack, event.getOutput());
 
             UploadManager uploadManager = new UploadManager(OraxenPlugin.get());
@@ -278,9 +278,8 @@ public class ResourcePack {
         final ZipInputStream zip = ResourcesManager.browse();
         try {
             ZipEntry entry = zip.getNextEntry();
-            final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
             while (entry != null) {
-                extract(entry, resourcesManager, isSuitable(entry.getName()));
+                extract(entry, OraxenPlugin.get().getResourceManager(), isSuitable(entry.getName()));
                 entry = zip.getNextEntry();
             }
             zip.closeEntry();
@@ -305,10 +304,9 @@ public class ResourcePack {
         final ZipInputStream zip = ResourcesManager.browse();
         try {
             ZipEntry entry = zip.getNextEntry();
-            final ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
             while (entry != null) {
                 if (entry.getName().startsWith("pack/textures/models/armor/leather_layer_") || entry.getName().startsWith("pack/textures/required") || entry.getName().startsWith("pack/models/required")) {
-                    resourcesManager.extractFileIfTrue(entry, !OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists());
+                    OraxenPlugin.get().getResourceManager().extractFileIfTrue(entry, !OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists());
                 }
                 entry = zip.getNextEntry();
             }
