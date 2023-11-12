@@ -74,7 +74,10 @@ Pack:
   generation:
     generate: true # Unlike Plugin.generation.default_assets, this will enable/disable all pack generation
     # List of file extensions that will not be included in the final zipped ResourcePack
-    excluded_file_extensions: []
+    # ".json", ".png", ".mcmeta" are ignored if added below
+    excluded_file_extensions:
+      - ".zip"
+      - ".bbmodel"
     verify_pack_files: true # Checks all textures and models to make sure they abide by valid Resourcepack formatting
     fix_force_unicode_glyphs: true # Fixes glyphs not being shown when Force Unicode is enabled
     auto_generated_models_follow_texture_path: false

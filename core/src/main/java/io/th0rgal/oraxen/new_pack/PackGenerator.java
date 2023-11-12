@@ -57,6 +57,8 @@ public class PackGenerator {
         for (Map.Entry<String, Writable> entry : new HashSet<>(resourcePack.unknownFiles().entrySet()))
             if (entry.getKey().startsWith("imports/")) resourcePack.removeUnknownFile(entry.getKey());
 
+        removeExcludedFileExtensions();
+
         MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().packPath().resolve("pack.zip").toFile(), resourcePack);
 
         builtPack = MinecraftResourcePackWriter.minecraft().build(resourcePack);
@@ -189,5 +191,16 @@ public class PackGenerator {
         ModelGenerator.generateBaseItemModels();
         ModelGenerator.generateItemModels();
         AtlasGenerator.generateAtlasFile();
+    }
+
+    private final static Set<String> ignoredExtensions = new HashSet<>(Arrays.asList(".json", ".png", ".mcmeta"));
+    private void removeExcludedFileExtensions() {
+        for (String extension : Settings.EXCLUDED_FILE_EXTENSIONS.toStringList()) {
+            extension = extension.startsWith(".") ? extension : "." + extension;
+            if (ignoredExtensions.contains(extension)) continue;
+            for (Map.Entry<String, Writable> entry : new HashSet<>(resourcePack.unknownFiles().entrySet())) {
+                if (entry.getKey().endsWith(extension)) resourcePack.removeUnknownFile(entry.getKey());
+            }
+        }
     }
 }
