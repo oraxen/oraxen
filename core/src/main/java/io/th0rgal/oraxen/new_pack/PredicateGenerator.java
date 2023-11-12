@@ -10,6 +10,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import team.unnamed.creative.base.Vector3Float;
 import team.unnamed.creative.model.*;
 
 import java.util.Arrays;
@@ -26,6 +27,7 @@ public class PredicateGenerator {
         return Model.model().key(modelKey).parent(PredicateGenerator.parentModel(material))
                 .textures(modelTextures)
                 .guiLight(material == Material.SHIELD ? Model.GuiLight.FRONT : null)
+                .display(generateBaseModelDisplay(material))
                 .overrides(generateBaseModelOverrides(material));
     }
 
@@ -36,7 +38,7 @@ public class PredicateGenerator {
      * @param material the material to generate the overrides for
      * @return the generated overrides
      */
-    public static List<ItemOverride> generateBaseModelOverrides(Material material) {
+    private static List<ItemOverride> generateBaseModelOverrides(Material material) {
         List<ItemOverride> overrides = Lists.newArrayList();
         List<ItemBuilder> itemBuilders = OraxenItems.getItems().stream().filter(i -> i.getType() == material).toList();
 
@@ -126,5 +128,35 @@ public class PredicateGenerator {
         if (material == Material.SHIELD)
             return Key.key("builtin/entity");
         return Key.key("item/generated");
+    }
+
+    private static Map<ItemTransform.Type, ItemTransform> generateBaseModelDisplay(Material material) {
+        Map<ItemTransform.Type, ItemTransform> display = new HashMap<>();
+
+        switch (material) {
+            case SHIELD -> {
+                display.put(ItemTransform.Type.THIRDPERSON_LEFTHAND, ItemTransform.transform(new Vector3Float(0, 90, 0), new Vector3Float(10, 6, 12), new Vector3Float(1,1,1)));
+                display.put(ItemTransform.Type.THIRDPERSON_RIGHTHAND, ItemTransform.transform(new Vector3Float(0, 90, 0), new Vector3Float(10, 6, -4), new Vector3Float(1,1,1)));
+                display.put(ItemTransform.Type.FIRSTPERSON_LEFTHAND, ItemTransform.transform(new Vector3Float(0, 180, 5), new Vector3Float(10, 0, -10), new Vector3Float(1.25f,1.25f,1.25f)));
+                display.put(ItemTransform.Type.FIRSTPERSON_RIGHTHAND, ItemTransform.transform(new Vector3Float(0, 180, 5), new Vector3Float(-10, 2, -10), new Vector3Float(1.25f,1.25f,1.25f)));
+                display.put(ItemTransform.Type.GUI, ItemTransform.transform(new Vector3Float(15, -25, -5), new Vector3Float(2, 3, 0), new Vector3Float(0.65f,0.65f,0.65f)));
+                display.put(ItemTransform.Type.FIXED, ItemTransform.transform(new Vector3Float(0, 180, 0), new Vector3Float(-4.5f, 4.5f, -5), new Vector3Float(0.55f,0.55f,0.55f)));
+                display.put(ItemTransform.Type.GROUND, ItemTransform.transform(new Vector3Float(0, 0, 0), new Vector3Float(2, 4, 2), new Vector3Float(0.25f,0.25f,0.25f)));
+            }
+            case BOW -> {
+                display.put(ItemTransform.Type.THIRDPERSON_LEFTHAND, ItemTransform.transform(new Vector3Float(-80, -280, 40), new Vector3Float(-1, -2, 2.5f), new Vector3Float(0.9f, 0.9f, 0.9f)));
+                display.put(ItemTransform.Type.THIRDPERSON_RIGHTHAND, ItemTransform.transform(new Vector3Float(-80, 260, -40), new Vector3Float(-1, -2, 2.5f), new Vector3Float(0.9f, 0.9f, 0.9f)));
+                display.put(ItemTransform.Type.FIRSTPERSON_LEFTHAND, ItemTransform.transform(new Vector3Float(0, 90, -25), new Vector3Float(1.13f, 3.2f, 1.13f), new Vector3Float(0.68f, 0.68f, 0.68f)));
+                display.put(ItemTransform.Type.FIRSTPERSON_RIGHTHAND, ItemTransform.transform(new Vector3Float(0, -90, 25), new Vector3Float(1.13f, 3.2f, 1.13f), new Vector3Float(0.68f, 0.68f, 0.68f)));
+            }
+            case CROSSBOW -> {
+                display.put(ItemTransform.Type.THIRDPERSON_LEFTHAND, ItemTransform.transform(new Vector3Float(-90, 0, 30), new Vector3Float(2, 0.1f, -3), new Vector3Float(0.9f, 0.9f, 0.9f)));
+                display.put(ItemTransform.Type.THIRDPERSON_RIGHTHAND, ItemTransform.transform(new Vector3Float(-90, 0, -60), new Vector3Float(2, 0.1f, -3), new Vector3Float(0.9f, 0.9f, 0.9f)));
+                display.put(ItemTransform.Type.FIRSTPERSON_LEFTHAND, ItemTransform.transform(new Vector3Float(-90, 0, 35), new Vector3Float(1.13f, 3.2f, 1.13f), new Vector3Float(0.68f, 0.68f, 0.68f)));
+                display.put(ItemTransform.Type.FIRSTPERSON_RIGHTHAND, ItemTransform.transform(new Vector3Float(-90, 0, -55), new Vector3Float(1.13f, 3.2f, 1.13f), new Vector3Float(0.68f, 0.68f, 0.68f)));
+            }
+        }
+
+        return display;
     }
 }
