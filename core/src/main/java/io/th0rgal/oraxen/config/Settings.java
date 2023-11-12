@@ -13,7 +13,6 @@ public enum Settings {
     PLUGIN_LANGUAGE("Plugin.language"),
     KEEP_UP_TO_DATE("Plugin.keep_this_up_to_date"),
     REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),
-    SHOW_PERMISSION_EMOJIS("Plugin.commands.emoji_list.only_show_emojis_with_permission"),
     GENERATE_DEFAULT_ASSETS("Plugin.generation.default_assets"),
     GENERATE_DEFAULT_CONFIGS("Plugin.generation.default_configs"),
     WORLDEDIT_NOTEBLOCKS("Plugin.worldedit.noteblock_mechanic"),
@@ -27,7 +26,6 @@ public enum Settings {
     FORMAT_CHAT("Plugin.formatting.chat"),
     SPIGOT_CHAT_FORMATTING("Plugin.experimental.spigot_chat_formatting"),
     FORMAT_BOOKS("Plugin.formatting.books"),
-    NMS_GLYPHS("Plugin.experimental.nms.glyphs"),
 
     // Config Tools
     CONFIGS_VERSION("configs_version"),
@@ -36,6 +34,10 @@ public enum Settings {
     DISABLE_AUTOMATIC_GLYPH_CODE("ConfigsTools.disable_automatic_glyph_code"),
     SKIPPED_MODEL_DATA_NUMBERS("ConfigsTools.skipped_model_data_numbers"),
     ERROR_ITEM("ConfigsTools.error_item"),
+
+    SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list.only_show_emojis_with_permission"),
+    UNICODE_COMPLETIONS("Glyphs.unicode_completions"),
+    NMS_GLYPHS("Glyphs.nms_glyphs"),
 
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
     CUSTOM_ARMOR_SHADER_TYPE("CustomArmor.shader_type"),
@@ -60,7 +62,6 @@ public enum Settings {
     //Misc
     RESET_RECIPES("Misc.reset_recipes"),
     ADD_RECIPES_TO_BOOK("Misc.add_recipes_to_book"),
-    UNICODE_COMPLETIONS("Misc.unicode_completions"),
     HIDE_SCOREBOARD_NUMBERS("Misc.hide_scoreboard_numbers"),
     HIDE_SCOREBOARD_BACKGROUND("Misc.hide_scoreboard_background"),
 
