@@ -50,7 +50,8 @@ public class FontManager {
             glyphBitMaps = bitmapSection.getKeys(false).stream().collect(HashMap::new, (map, key) -> {
                 final ConfigurationSection section = bitmapSection.getConfigurationSection(key);
                 if (section != null) {
-                    map.put(key, new GlyphBitMap(Key.key(section.getString("font")), Key.key(section.getString("texture")),
+                    map.put(key, new GlyphBitMap(Key.key(section.getString("font", "minecraft:default")),
+                            Key.key(section.getString("texture", "").replaceAll("^(?!.*\\.png$)", "") + ".png"),
                             section.getInt("rows"), section.getInt("columns"),
                             section.getInt("ascent", 8), section.getInt("height", 8)));
                 }
