@@ -87,10 +87,7 @@ public class FontEvents implements Listener {
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
                 String unicode = String.valueOf(entry.getValue().character());
                 if (entry.getValue().hasPermission(player))
-                    page = (manager.permsChatcolor == null)
-                            ? page.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
-                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK)
-                            : page.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(player, manager.permsChatcolor))
+                    page = page.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
                             .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK);
                 meta.setPage(i, AdventureUtils.parseLegacy(page));
             }
@@ -129,10 +126,7 @@ public class FontEvents implements Listener {
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
                 String unicode = String.valueOf(entry.getValue().character());
                 if (entry.getValue().hasPermission(player))
-                    line = (manager.permsChatcolor == null)
-                            ? line.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
-                            .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK)
-                            : line.replace(entry.getKey(), ChatColor.WHITE + unicode + PapiAliases.setPlaceholders(player, manager.permsChatcolor))
+                    line = line.replace(entry.getKey(), ChatColor.WHITE + unicode + ChatColor.BLACK)
                             .replace(unicode, ChatColor.WHITE + unicode + ChatColor.BLACK);
             }
             event.setLine(i, AdventureUtils.parseLegacy(line));
@@ -165,12 +159,8 @@ public class FontEvents implements Listener {
 
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
                 if (entry.getValue().hasPermission(player))
-                    displayName = (manager.permsChatcolor == null)
-                            ? displayName.replace(entry.getKey(),
-                            String.valueOf(entry.getValue().character()))
-                            : displayName.replace(entry.getKey(),
-                            ChatColor.WHITE + String.valueOf(entry.getValue().character())
-                                    + PapiAliases.setPlaceholders(player, manager.permsChatcolor));
+                    displayName = displayName.replace(entry.getKey(),
+                            String.valueOf(entry.getValue().character()));
             }
         }
 
@@ -231,9 +221,7 @@ public class FontEvents implements Listener {
             for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet()) {
                 String unicode = ChatColor.WHITE + String.valueOf(entry.getValue().character());
                 if (player == null || entry.getValue().hasPermission(player))
-                    string = (manager.permsChatcolor == null)
-                            ? string.replace(entry.getKey(), unicode)
-                            : string.replace(entry.getKey(), unicode + PapiAliases.setPlaceholders(player, manager.permsChatcolor));
+                    string = string.replace(entry.getKey(), unicode);
             }
 
             return string;
