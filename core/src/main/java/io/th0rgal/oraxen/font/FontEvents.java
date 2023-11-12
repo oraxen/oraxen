@@ -289,7 +289,7 @@ public class FontEvents implements Listener {
             for (String placeholder : glyph.placeholders()) {
                 if (!glyph.hasPermission(player)) continue;
                 message = message.replaceText(TextReplacementConfig.builder().matchLiteral(placeholder)
-                        .replacement(Component.text(glyph.character()).color(NamedTextColor.WHITE)).build());
+                        .replacement(Component.text(glyph.character()).font(glyph.font()).color(NamedTextColor.WHITE)).build());
             }
         }
 

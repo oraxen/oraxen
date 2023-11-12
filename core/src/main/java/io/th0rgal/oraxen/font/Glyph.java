@@ -80,7 +80,7 @@ public class Glyph {
         ascent = bitmap() != null ? bitmap().ascent() : glyphSection.getInt("ascent", 8);
         height = bitmap() != null ? bitmap().height() : glyphSection.getInt("height", 8);
         texture = bitmap() != null ? bitmap().texture() : Key.key(glyphSection.getString("texture", "required/exit_icon").replaceAll("^(?!.*\\.png$)", "") + ".png");
-        font = Key.key(glyphSection.getString("font", "minecraft:default"));
+        font = bitmap() != null ? bitmap().font() : Key.key(glyphSection.getString("font", "minecraft:default"));
     }
 
     public record BitMapEntry(String id, int row, int column) {
