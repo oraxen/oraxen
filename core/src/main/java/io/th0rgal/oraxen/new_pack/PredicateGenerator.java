@@ -1,30 +1,27 @@
 package io.th0rgal.oraxen.new_pack;
 
 import com.google.common.collect.Lists;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
 import team.unnamed.creative.model.*;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
 
 public class PredicateGenerator {
 
     public static Model.Builder generateBaseModelBuilder(Material material) {
         Key modelKey = PredicateGenerator.vanillaModelKey(material);
         ModelTextures modelTextures = PredicateGenerator.vanillaModelTextures(material);
-
-
 
         return Model.model().key(modelKey).parent(PredicateGenerator.parentModel(material))
                 .textures(modelTextures)
@@ -91,32 +88,31 @@ public class PredicateGenerator {
     }
 
     public static Key vanillaModelKey(Material material) {
-        return Key.key(getVanillaModelName(material));
-    }
-
-    //TODO Replicate old PredicatesGenerator logic
-    public static ModelTextures vanillaModelTextures(Material material) {
-        ModelTextures.of(
-
-        )
-        Key baseKey = Key.key(getVanillaTextureName(material, false));
-        List<Key> textures = Lists.newArrayList(ModelTextures);
-        ItemMeta exampleMeta = new ItemStack(material).getItemMeta();
-        if (exampleMeta instanceof PotionMeta) {
-            textures.add(baseKey)
-        }
-        return ;
-    }
-
-    public static String getVanillaModelName(final Material material) {
         return getVanillaTextureName(material, true);
     }
 
-    public static String getVanillaTextureName(final Material material, final boolean model) {
+    public static ModelTextures vanillaModelTextures(Material material) {
+        Key baseKey = getVanillaTextureName(material, false);
+        List<ModelTexture> layers = Lists.newArrayList();
+        Map<String, ModelTexture> variables = new HashMap<>();
+        ItemMeta exampleMeta = new ItemStack(material).getItemMeta();
+
+        if (exampleMeta instanceof PotionMeta) {
+            variables.put("layer0", ModelTexture.ofKey(Key.key("potion" + "_overlay")));
+            variables.put("layer1", ModelTexture.ofKey(baseKey));
+        } else if (exampleMeta instanceof LeatherArmorMeta && material != Material.LEATHER_HORSE_ARMOR) {
+            variables.put("layer0", ModelTexture.ofKey(baseKey));
+            variables.put("layer1", ModelTexture.ofKey(Key.key(baseKey.asString() + "_overlay")));
+        } else variables.put("layer0", ModelTexture.ofKey(baseKey));
+
+        return ModelTextures.builder().variables(variables).layers(layers).build();
+    }
+
+    public static Key getVanillaTextureName(final Material material, final boolean model) {
         if (!model)
-            if (material.isBlock()) return "block/" + material.toString().toLowerCase(Locale.ENGLISH);
-            else if (material == Material.CROSSBOW) return "item/crossbow_standby";
-        return "item/" + material.toString().toLowerCase(Locale.ENGLISH);
+            if (material.isBlock()) return Key.key("block/" + material.toString().toLowerCase());
+            else if (material == Material.CROSSBOW) return Key.key("item/crossbow_standby");
+        return Key.key("item/" + material.toString().toLowerCase());
     }
 
     private static final String[] tools = new String[]{"PICKAXE", "SWORD", "HOE", "AXE", "SHOVEL"};
