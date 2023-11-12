@@ -29,11 +29,8 @@ public class ArmorListener implements Listener {
 
     private final List<Material> blockedMaterials;
 
-    public ArmorListener(List<String> blockedMaterialNames) {
-        this.blockedMaterials = blockedMaterialNames.stream()
-                .map(Material::getMaterial)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
+    public ArmorListener(List<Material> blockedMaterials) {
+        this.blockedMaterials = blockedMaterials;
     }
     //Event Priority is highest because other plugins might cancel the events before we check.
 

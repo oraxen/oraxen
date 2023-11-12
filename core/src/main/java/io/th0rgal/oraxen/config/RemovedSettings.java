@@ -28,6 +28,8 @@ public enum RemovedSettings {
     GENERATE_ATLAS_FILE("Pack.generation.atlas.generate"),
     EXCLUDE_MALFORMED_ATLAS("Pack.generation.atlas.exclude_malformed_from_atlas"),
     ATLAS_GENERATION_TYPE("Pack.generation.atlas.type"),
+    ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass"),
+
 
     NMS_BLOCK_CORRECTION("Plugin.experimental.nms.block_correction"),
     ;
