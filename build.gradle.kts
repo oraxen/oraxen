@@ -108,7 +108,7 @@ allprojects {
         compileOnly("com.willfp:eco:6.65.5")
         compileOnly("com.willfp:libreforge:4.36.0")
 
-        implementation("com.tcoded:FoliaLib:0.2.5")
+        implementation("com.tcoded:FoliaLib:0.3.1")
     }
 }
 

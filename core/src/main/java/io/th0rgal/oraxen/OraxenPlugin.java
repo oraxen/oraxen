@@ -3,6 +3,7 @@ package io.th0rgal.oraxen;
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
 import com.tcoded.folialib.FoliaLib;
+import com.tcoded.folialib.impl.ServerImplementation;
 import com.ticxo.playeranimator.PlayerAnimatorImpl;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
@@ -48,6 +49,7 @@ import team.unnamed.creative.ResourcePack;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.function.Consumer;
 import java.util.jar.JarFile;
 
 public class OraxenPlugin extends JavaPlugin {
@@ -150,7 +152,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     private void postLoading() {
         new Metrics(this, 5371);
-        foliaLib.getImpl().runNextTick(() -> Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
+        foliaLib.getImpl().runNextTick((w) -> Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
     }
 
     @Override

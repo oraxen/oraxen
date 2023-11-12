@@ -43,10 +43,10 @@ public class EfficiencyMechanicListener implements Listener {
                     type = EnumWrappers.PlayerDigType.SWAP_HELD_ITEMS;
                 }
                 if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK)
-                    OraxenPlugin.foliaLib.getImpl().runAtEntity(player, () ->
+                    OraxenPlugin.foliaLib.getImpl().runAtEntity(player, (w) ->
                             player.addPotionEffect(new PotionEffect(
                                     mechanic.getType(), 20 * 60 * 5, mechanic.getAmount() - 1, false, false, false)));
-                else OraxenPlugin.foliaLib.getImpl().runAtEntity(player, () ->
+                else OraxenPlugin.foliaLib.getImpl().runAtEntity(player, (w) ->
                         player.removePotionEffect(mechanic.getType()));
             }
         };

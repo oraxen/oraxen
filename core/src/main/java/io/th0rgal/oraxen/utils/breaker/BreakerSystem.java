@@ -68,7 +68,7 @@ public class BreakerSystem {
                     BlockFace.valueOf(dataDirection.read(0).name()) :
                     BlockFace.UP;
 
-            OraxenPlugin.foliaLib.getImpl().runAtLocation(block.getLocation(), () -> {
+            OraxenPlugin.foliaLib.getImpl().runAtLocation(block.getLocation(), (w) -> {
                 HardnessModifier triggeredModifier = null;
 
                 for (final HardnessModifier modifier : MODIFIERS) {
@@ -91,7 +91,7 @@ public class BreakerSystem {
 
                 final Location location = block.getLocation();
                 if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
-                    OraxenPlugin.foliaLib.getImpl().runAtEntity(player, () -> player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING,
+                    OraxenPlugin.foliaLib.getImpl().runAtEntity(player, (ww) -> player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING,
                             (int) (period * 11),
                             Integer.MAX_VALUE,
                             false, false, false)));
@@ -105,7 +105,7 @@ public class BreakerSystem {
                     // However still needs to be called for plugin support.
                     final PlayerInteractEvent playerInteractEvent =
                             new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK, player.getInventory().getItemInMainHand(), block, blockFace, EquipmentSlot.HAND);
-                    OraxenPlugin.foliaLib.getImpl().runNextTick(() -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
+                    OraxenPlugin.foliaLib.getImpl().runNextTick((ww) -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
 
                     // If the relevant damage event is cancelled, return
                     if (blockDamageEventCancelled(block, player)) return;
@@ -138,7 +138,7 @@ public class BreakerSystem {
                                 new PlayerItemDamageEvent(player, item, 1).callEvent();
                             } else breakerPlaySound.remove(block);
 
-                            OraxenPlugin.foliaLib.getImpl().runAtEntity(player, () -> player.removePotionEffect(PotionEffectType.SLOW_DIGGING));
+                            OraxenPlugin.foliaLib.getImpl().runAtEntity(player, (ww) -> player.removePotionEffect(PotionEffectType.SLOW_DIGGING));
                             for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
                                 if (entity instanceof Player viewer) {
                                     if (furnitureMechanic != null) {
@@ -151,7 +151,7 @@ public class BreakerSystem {
                         }
                     }, period, period));
                 } else {
-                    OraxenPlugin.foliaLib.getImpl().runAtEntity(player, () -> {
+                    OraxenPlugin.foliaLib.getImpl().runAtEntity(player, (ww) -> {
                         player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
                         if (!ProtectionLib.canBreak(player, block.getLocation()))
                             player.sendBlockChange(block.getLocation(), block.getBlockData());
@@ -177,14 +177,14 @@ public class BreakerSystem {
                 NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
                 if (mechanic == null) return true;
                 OraxenNoteBlockDamageEvent event = new OraxenNoteBlockDamageEvent(mechanic, block, player);
-                OraxenPlugin.foliaLib.getImpl().runNextTick(() -> Bukkit.getPluginManager().callEvent(event));
+                OraxenPlugin.foliaLib.getImpl().runNextTick((w) -> Bukkit.getPluginManager().callEvent(event));
                 return event.isCancelled();
             }
             case TRIPWIRE -> {
                 StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
                 if (mechanic == null) return true;
                 OraxenStringBlockDamageEvent event = new OraxenStringBlockDamageEvent(mechanic, block, player);
-                OraxenPlugin.foliaLib.getImpl().runNextTick(() -> Bukkit.getPluginManager().callEvent(event));
+                OraxenPlugin.foliaLib.getImpl().runNextTick((w) -> Bukkit.getPluginManager().callEvent(event));
                 return event.isCancelled();
             }
             case BARRIER -> {

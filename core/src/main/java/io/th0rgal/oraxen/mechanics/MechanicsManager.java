@@ -95,7 +95,7 @@ public class MechanicsManager {
         if (CompatibilitiesManager.hasPlugin("ProtocolLib"))
             registerFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
 
-        OraxenPlugin.foliaLib.getImpl().runNextTick(() -> Bukkit.getPluginManager().callEvent(new OraxenNativeMechanicsRegisteredEvent()));
+        OraxenPlugin.foliaLib.getImpl().runNextTick((w) -> Bukkit.getPluginManager().callEvent(new OraxenNativeMechanicsRegisteredEvent()));
     }
 
     /**

@@ -19,12 +19,12 @@ public class InvManager {
         recipesView = new RecipesView();
     }
 
-    public PaginatedGui getItemsView() {
+    public PaginatedGui itemsView() {
         return itemsView;
     }
 
 
-    public PaginatedGui getRecipesShowcase(final int page, final List<CustomRecipe> filteredRecipes) {
+    public PaginatedGui recipesShowcase(final int page, final List<CustomRecipe> filteredRecipes) {
         return recipesView.create(page, filteredRecipes);
     }
 }
