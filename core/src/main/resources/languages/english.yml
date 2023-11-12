@@ -10,6 +10,7 @@ general:
   pack_uploaded: "<prefix><#55ffa4>Resourcepack uploaded to <url> in <delay> ms"
   pack_regenerated: "<prefix><#55ffa4>Resourcepack successfully regenerated"
   updating_config: "<prefix><#facc43>Configuration option \"<option>\" not found, adding it!"
+  removing_config: "<prefix><#facc43>Configuration option \"<option>\" has been marked for removal, removing it!"
   configs_validation_failed: "<prefix><#fa4943>Configurations validation failed, plugin automatically disabled!"
   repaired_items: "<prefix><#55ffa4><amount> item(s) were successfully repaired!"
   cannot_be_repaired: "<prefix><#fa4943>This item cannot be repaired!"

@@ -10,6 +10,7 @@ general:
   pack_uploaded: "<prefix><#55ffa4>Resourcepack nahrán na url <url> za <delay> ms"
   pack_regenerated: "<prefix><#55ffa4>Resourcepack úspěšně regenerován"
   updating_config: "<prefix><#facc43>Konfigurační možnost \"<option>\" nenalezena, přidávám!"
+  removing_config: Configuration option \"<option>\" has been marked for removal, removing it!"
   configs_validation_failed: "<prefix><#fa4943>Validace konfigurace selhala, plugin automaticky vypnut!"
   repaired_items: "<prefix><#55ffa4><amount> předmět(ů) bylo úspěšně opraveno!"
   cannot_be_repaired: "<prefix><#fa4943>Tento předmět nemůže být opraven!"
