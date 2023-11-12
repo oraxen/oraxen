@@ -1,10 +1,12 @@
 package io.th0rgal.oraxen.new_pack;
 
+import com.ticxo.modelengine.api.ModelEngineAPI;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.gestures.GestureManager;
+import io.th0rgal.oraxen.utils.ModelEngineUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
@@ -21,6 +23,7 @@ import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter;
 import team.unnamed.creative.sound.SoundRegistry;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
 
@@ -40,6 +43,7 @@ public class PackGenerator {
         resourcePack = MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile());
         OraxenPlugin.get().resourcePack(resourcePack);
         addImportPacks();
+        importModelEnginePack();
 
         addItemPackFiles();
         addGlyphFiles();
@@ -56,6 +60,14 @@ public class PackGenerator {
         MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().packPath().resolve("pack.zip").toFile(), resourcePack);
 
         builtPack = MinecraftResourcePackWriter.minecraft().build(resourcePack);
+    }
+
+    private void importModelEnginePack() {
+        if (!ModelEngineUtils.isModelEngineEnabled()) return;
+        File megPack = ModelEngineAPI.getAPI().getDataFolder().toPath().resolve("resource pack.zip").toFile();
+        if (!megPack.exists()) return;
+        mergePack(MinecraftResourcePackReader.minecraft().readFromZipFile(megPack));
+        Logs.logSuccess("Imported ModelEngine pack successfully!");
     }
 
     private void addGlyphFiles() {
