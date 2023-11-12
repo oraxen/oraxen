@@ -98,7 +98,7 @@ public class PredicateGenerator {
         ItemMeta exampleMeta = new ItemStack(material).getItemMeta();
 
         if (exampleMeta instanceof PotionMeta) {
-            variables.put("layer0", ModelTexture.ofKey(Key.key("potion" + "_overlay")));
+            variables.put("layer0", ModelTexture.ofKey(Key.key("item/potion" + "_overlay")));
             variables.put("layer1", ModelTexture.ofKey(baseKey));
         } else if (exampleMeta instanceof LeatherArmorMeta && material != Material.LEATHER_HORSE_ARMOR) {
             variables.put("layer0", ModelTexture.ofKey(baseKey));
