@@ -21,6 +21,9 @@ public enum RemovedSettings {
     UPDATE_FURNITURE_ON_LOAD2("FurnitureUpdater.update_furniture_on_load"),
     UPDATE_FURNITURE_ON_RELOAD2("FurnitureUpdater.update_furniture_on_reload"),
     SEND_PACK_ADVANCED("Pack.dispatch.send_pack_advanced"),
+    SHIELD_DISPLAY("Misc.shield_display"),
+    BOW_DISPLAY("Misc.bow_display"),
+    CROSSBOW_DISPLAY("Misc.crossbow_display"),
     NMS_BLOCK_CORRECTION("Plugin.experimental.nms.block_correction"),
     ;
 
