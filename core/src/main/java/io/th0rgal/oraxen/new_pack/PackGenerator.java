@@ -1,29 +1,24 @@
 package io.th0rgal.oraxen.new_pack;
 
+import com.ticxo.modelengine.api.ModelEngineAPI;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.gestures.GestureManager;
-import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.items.OraxenMeta;
+import io.th0rgal.oraxen.utils.ModelEngineUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
-import org.bukkit.Material;
 import team.unnamed.creative.BuiltResourcePack;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.Atlas;
-import team.unnamed.creative.atlas.AtlasSource;
 import team.unnamed.creative.base.Writable;
 import team.unnamed.creative.font.Font;
 import team.unnamed.creative.font.FontProvider;
 import team.unnamed.creative.lang.Language;
 import team.unnamed.creative.metadata.pack.PackMeta;
 import team.unnamed.creative.model.Model;
-import team.unnamed.creative.model.ModelTexture;
-import team.unnamed.creative.model.ModelTextures;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter;
 import team.unnamed.creative.sound.SoundRegistry;
@@ -31,7 +26,6 @@ import team.unnamed.creative.sound.SoundRegistry;
 import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class PackGenerator {
 
@@ -49,6 +43,7 @@ public class PackGenerator {
         resourcePack = MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile());
         OraxenPlugin.get().resourcePack(resourcePack);
         addImportPacks();
+        importModelEnginePack();
 
         addItemPackFiles();
         addGlyphFiles();
@@ -65,6 +60,14 @@ public class PackGenerator {
         MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().packPath().resolve("pack.zip").toFile(), resourcePack);
 
         builtPack = MinecraftResourcePackWriter.minecraft().build(resourcePack);
+    }
+
+    private void importModelEnginePack() {
+        if (!ModelEngineUtils.isModelEngineEnabled()) return;
+        File megPack = ModelEngineAPI.getAPI().getDataFolder().toPath().resolve("resource pack.zip").toFile();
+        if (!megPack.exists()) return;
+        mergePack(MinecraftResourcePackReader.minecraft().readFromZipFile(megPack));
+        Logs.logSuccess("Imported ModelEngine pack successfully!");
     }
 
     private void addGlyphFiles() {
