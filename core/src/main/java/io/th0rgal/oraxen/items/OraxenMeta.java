@@ -60,31 +60,31 @@ public class OraxenMeta {
         this.castModel = readModelName(section, "cast_model");
         this.chargedModel = readModelName(section, "charged_model");
         this.fireworkModel = readModelName(section, "firework_model");
-        this.pullingModels = section.getStringList("pulling_models").stream().map(Key::key).toList();
-        this.damagedModels = section.getStringList("damaged_models").stream().map(Key::key).toList();
+        this.pullingModels = section.getStringList("pulling_models").stream().map(s -> Key.key(s.replace(".png", ""))).toList();
+        this.damagedModels = section.getStringList("damaged_models").stream().map(s -> Key.key(s.replace(".png", ""))).toList();
 
         // By adding the textures to pullingModels aswell,
         // we can use the same code for both pullingModels
         // and pullingTextures to add to the base-bow file predicates
-        if (pullingModels.isEmpty()) pullingModels = section.getStringList("pulling_textures").stream().map(texture -> texture.replace(".png", "")).map(Key::key).toList();
+        if (pullingModels.isEmpty()) pullingModels = section.getStringList("pulling_textures").stream().map(t -> Key.key(t.replace(".png", ""))).toList();
+        if (damagedModels == null) damagedModels = section.getStringList("damaged_textures").stream().map(t -> Key.key(t.replace(".png", ""))).toList();
 
         if (chargedModel == null) chargedModel = Key.key(section.getString("charged_texture", "").replace(".png", ""));
         if (fireworkModel == null) fireworkModel = Key.key(section.getString("firework_texture", "").replace(".png", ""));
         if (castModel == null) castModel = Key.key(section.getString("cast_texture", "").replace(".png", ""));
         if (blockingModel == null) blockingModel = Key.key(section.getString("blocking_texture", "").replace(".png", ""));
-        if (damagedModels == null) damagedModels = section.getStringList("damaged_textures").stream().map(texture -> texture.replace(".png", "")).map(Key::key).toList();
 
         ConfigurationSection textureSection = section.getConfigurationSection("textures");
         if (textureSection != null) {
             ConfigurationSection texturesSection = section.getConfigurationSection("textures");
             assert texturesSection != null;
             Map<String, ModelTexture> variables = new HashMap<>();
-            texturesSection.getKeys(false).forEach(key -> variables.put(key, ModelTexture.ofKey(Key.key(texturesSection.getString(key)))));
+            texturesSection.getKeys(false).forEach(key -> variables.put(key, ModelTexture.ofKey(Key.key(texturesSection.getString(key).replace(".png", "")))));
             this.textureVariables = variables;
         }
-        else if (section.isList("textures")) this.textureLayers = section.getStringList("textures").stream().map(Key::key).map(ModelTexture::ofKey).toList();
-        else if (section.isString("textures")) this.textureLayers = List.of(ModelTexture.ofKey(Key.key(section.getString("textures"))));
-        else if (section.isString("texture")) this.textureLayers = List.of(ModelTexture.ofKey(Key.key(section.getString("texture"))));
+        else if (section.isList("textures")) this.textureLayers = section.getStringList("textures").stream().map(t -> ModelTexture.ofKey(Key.key(t.replace(".png", "")))).toList();
+        else if (section.isString("textures")) this.textureLayers = List.of(ModelTexture.ofKey(Key.key(section.getString("textures").replace(".png", ""))));
+        else if (section.isString("texture")) this.textureLayers = List.of(ModelTexture.ofKey(Key.key(section.getString("texture").replace(".png", ""))));
 
         this.textureVariables = textureVariables != null ? textureVariables : new HashMap<>();
         this.textureLayers = textureLayers != null ? textureLayers : new ArrayList<>();
@@ -141,7 +141,7 @@ public class OraxenMeta {
     }
 
     public boolean hasBlockingModel() {
-        return blockingModel != null;
+        return blockingModel != null && !blockingModel.value().isEmpty();
     }
 
     public Key blockingModel() {
@@ -149,7 +149,7 @@ public class OraxenMeta {
     }
 
     public boolean hasCastModel() {
-        return castModel != null;
+        return castModel != null && !castModel.value().isEmpty();
     }
 
     public Key castModel() {
@@ -157,7 +157,7 @@ public class OraxenMeta {
     }
 
     public boolean hasChargedModel() {
-        return chargedModel != null;
+        return chargedModel != null && !chargedModel.value().isEmpty();
     }
 
     public Key chargedModel() {
@@ -165,7 +165,7 @@ public class OraxenMeta {
     }
 
     public boolean hasFireworkModel() {
-        return fireworkModel != null;
+        return fireworkModel != null && !fireworkModel.value().isEmpty();
     }
 
     public Key fireworkModel() {
