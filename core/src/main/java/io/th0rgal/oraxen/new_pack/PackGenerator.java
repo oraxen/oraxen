@@ -75,7 +75,7 @@ public class PackGenerator {
     private void addGlyphFiles() {
         Map<Key, List<FontProvider>> fontGlyphs = new HashMap<>();
         for (Glyph glyph : OraxenPlugin.get().fontManager().glyphs()) {
-            if (glyph.hasBitmap()) fontGlyphs.compute(glyph.font(), (key, providers) -> {
+            if (!glyph.hasBitmap()) fontGlyphs.compute(glyph.font(), (key, providers) -> {
                 if (providers == null) providers = new ArrayList<>();
                 providers.add(glyph.fontProvider());
                 return providers;

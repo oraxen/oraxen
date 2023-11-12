@@ -79,7 +79,7 @@ public class Glyph {
         bitmapEntry = bitmapSection != null ? new BitMapEntry(bitmapSection.getString("id"), bitmapSection.getInt("row"), bitmapSection.getInt("column")) : null;
         ascent = bitmap() != null ? bitmap().ascent() : glyphSection.getInt("ascent", 8);
         height = bitmap() != null ? bitmap().height() : glyphSection.getInt("height", 8);
-        texture = bitmap() != null ? bitmap().texture() : Key.key(glyphSection.getString("texture", "required/exit_icon"));
+        texture = bitmap() != null ? bitmap().texture() : Key.key(glyphSection.getString("texture", "required/exit_icon").replaceAll("^(?!.*\\.png$)", "") + ".png");
         font = Key.key(glyphSection.getString("font", "minecraft:default"));
     }
 
