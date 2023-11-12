@@ -4,7 +4,6 @@ import io.papermc.paper.event.player.AsyncChatDecorateEvent;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -274,13 +273,11 @@ public class FontEvents implements Listener {
             );
         }
 
-        for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet())
-            if (entry.getValue().hasPermission(player)) {
-                message = message.replaceText(
-                        TextReplacementConfig.builder()
-                                .matchLiteral(entry.getKey())
-                                .replacement(entry.getValue().getGlyphComponent()).build()
-                );
+        for (Glyph glyph : manager.glyphs()) {
+            for (String placeholder : glyph.placeholders()) {
+                if (!glyph.hasPermission(player)) continue;
+                message = message.replaceText(TextReplacementConfig.builder().matchLiteral(placeholder)
+                        .replacement(glyph.getGlyphComponent()).build());
             }
 
         return message;

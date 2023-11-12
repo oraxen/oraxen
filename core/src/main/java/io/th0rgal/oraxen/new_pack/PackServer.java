@@ -27,7 +27,6 @@ public class PackServer {
     public void sendPack(Player player) {
         String hash = OraxenPlugin.get().packGenerator().builtPack.hash();
         String url = "http://" + ip + ":" + port + "/" + hash + ".zip";
-        Logs.debug("Sending pack to " + player.getName() + " with url: " + url);
         player.setResourcePack(url, hash, false, null);
     }
 
