@@ -32,8 +32,6 @@ import java.util.stream.Stream;
 
 public class FontManager {
 
-    public final boolean autoGenerate;
-    public final String permsChatcolor;
     public static Map<String, GlyphBitMap> glyphBitMaps = new HashMap<>();
     private final Map<String, Glyph> glyphMap;
     private final Map<String, Glyph> glyphByPlaceholder;
@@ -44,16 +42,16 @@ public class FontManager {
     public FontManager(final ConfigsManager configsManager) {
         final Configuration fontConfiguration = configsManager.getFont();
         final ConfigurationSection bitmapSection = fontConfiguration.getConfigurationSection("bitmaps");
-        autoGenerate = fontConfiguration.getBoolean("settings.automatically_generate");
-        permsChatcolor = fontConfiguration.getString("settings.perms_chatcolor");
         if (bitmapSection != null) {
             glyphBitMaps = bitmapSection.getKeys(false).stream().collect(HashMap::new, (map, key) -> {
                 final ConfigurationSection section = bitmapSection.getConfigurationSection(key);
                 if (section != null) {
-                    map.put(key, new GlyphBitMap(Key.key(section.getString("font", "minecraft:default")),
+                    map.put(key, new GlyphBitMap(
+                            Key.key(section.getString("font", "minecraft:default")),
                             Key.key(section.getString("texture", "").replaceAll("^(?!.*\\.png$)", "") + ".png"),
                             section.getInt("rows"), section.getInt("columns"),
-                            section.getInt("ascent", 8), section.getInt("height", 8)));
+                            section.getInt("height", 8), section.getInt("ascent", 8)
+                    ));
                 }
             }, HashMap::putAll);
         }
@@ -212,7 +210,7 @@ public class FontManager {
         this.currentGlyphCompletions.remove(player.getUniqueId());
     }
 
-    public record GlyphBitMap(Key font, Key texture, int rows, int columns, int ascent, int height) {
+    public record GlyphBitMap(Key font, Key texture, int rows, int columns, int height, int ascent) {
 
         public BitMapFontProvider fontProvider() {
             List<Glyph> bitmapGlyphs = OraxenPlugin.get().fontManager().glyphs().stream().filter(Glyph::hasBitmap).filter(g -> g.bitmap() != null && g.bitmap().equals(this)).toList();
@@ -227,10 +225,10 @@ public class FontManager {
                     Glyph glyph = glyphsInRow.stream().filter(g -> g.getBitmapEntry().column() == currentColumn).findFirst().orElse(null);
                     charRow.append(glyph != null ? glyph.character() : Glyph.WHITESPACE_GLYPH);
                 }
-                charMap.set(i - 1, charRow.toString());
+                charMap.add(i - 1, charRow.toString());
             }
 
-            return FontProvider.bitMap(texture, ascent, height, charMap);
+            return FontProvider.bitMap(texture, height, ascent, charMap);
         }
 
         public JsonObject toJson() {
