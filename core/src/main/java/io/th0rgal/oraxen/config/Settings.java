@@ -58,7 +58,6 @@ public enum Settings {
     RESET_RECIPES("Misc.reset_recipes"),
     ADD_RECIPES_TO_BOOK("Misc.add_recipes_to_book"),
     UNICODE_COMPLETIONS("Misc.unicode_completions"),
-    ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass"),
     HIDE_SCOREBOARD_NUMBERS("Misc.hide_scoreboard_numbers"),
     HIDE_SCOREBOARD_BACKGROUND("Misc.hide_scoreboard_background"),
 
