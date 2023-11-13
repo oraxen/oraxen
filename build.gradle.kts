@@ -170,7 +170,9 @@ tasks {
                     "Created-By" to "Gradle ${gradle.gradleVersion}",
                     "Build-Jdk" to "${System.getProperty("java.version")} ${System.getProperty("java.vendor")} ${System.getProperty("java.vm.version")}",
                     "Build-OS" to "${System.getProperty("os.name")} ${System.getProperty("os.arch")} ${System.getProperty("os.version")}",
-                    "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean()
+                    "Compiled" to (project.findProperty("oraxen_compiled")?.toString() ?: "true").toBoolean(),
+                    "authUsr" to (project.findProperty("oraxenUsername")?.toString() ?: ""),
+                    "authPw" to (project.findProperty("oraxenPassword")?.toString() ?: "")
                 )
             )
         }

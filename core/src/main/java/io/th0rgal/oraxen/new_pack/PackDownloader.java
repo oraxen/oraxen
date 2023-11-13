@@ -20,9 +20,14 @@ public class PackDownloader {
 
     public static void downloadDefaultPack() {
         OraxenPlugin.get().saveResource("pack/token.secret", true);
-        if (VersionUtil.isCompiled() || VersionUtil.isLeaked()) return;
+        if (!VersionUtil.isPremium()) {
+            if (VersionUtil.isCompiled()) Logs.logWarning("Skipping download of Oraxen pack, compiled versions do not include assets");
+            else Logs.logError("Skipping download of Oraxen pack, pirated versions do not include assets");
+            return;
+        }
+
         YamlConfiguration accessYaml = OraxenYaml.loadConfiguration(OraxenPlugin.get().packPath().resolve("token.secret").toFile());
-        String fileUrl = "http://repo.oraxen.com:8080/private/DefaultPack.zip";
+        String fileUrl = "https://repo.oraxen.com/assets/defaultPack/DefaultPack.zip";
         String username = accessYaml.getString("username", "");
         String password = accessYaml.getString("password", "");
         Path zipPath = PackGenerator.externalPacks.resolve("DefaultPack.zip");
