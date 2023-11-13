@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Material;
+import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.model.Model;
 
 import java.util.stream.Collectors;
@@ -17,10 +18,17 @@ public class ModelGenerator {
         for (Material baseMaterial : OraxenItems.getItems().stream().map(ItemBuilder::getType).collect(Collectors.toSet())) {
             Key baseModelKey = PredicateGenerator.vanillaModelKey(baseMaterial);
             // Get the baseModel if it exists in the pack
-            Model baseModel = OraxenPlugin.get().resourcePack().model(baseModelKey);
-            if (baseModel == null) baseModel = PredicateGenerator.generateBaseModelBuilder(baseMaterial).build();
-            OraxenPlugin.get().resourcePack().model(baseModel);
+            Model existingBaseModel = OraxenPlugin.get().resourcePack().model(baseModelKey);
+            Model.Builder baseModel = PredicateGenerator.generateBaseModelBuilder(baseMaterial);
+            if (existingBaseModel != null) mergeBaseItemModels(existingBaseModel, baseModel);
+            OraxenPlugin.get().resourcePack().model(baseModel.build());
         }
+    }
+
+    private static void mergeBaseItemModels(@NotNull Model existing, Model.Builder generated) {
+        existing.overrides().forEach(generated::addOverride);
+        generated.textures(existing.textures());
+        generated.parent(existing.parent());
     }
 
     public static void generateItemModels() {

@@ -85,15 +85,14 @@ public class OraxenPlugin extends JavaPlugin {
     @Override
     public void onLoad() {
         CommandAPI.onLoad(new CommandAPIBukkitConfig(this).silentLogs(true));
-        reloadConfigs();
     }
 
     @Override
     public void onEnable() {
         CommandAPI.onEnable();
         ProtectionLib.init(this);
-        //if (!VersionUtil.atOrAbove("1.20.3")) PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
+        reloadConfigs();
         clickActionManager = new ClickActionManager(this);
         supportsDisplayEntities = VersionUtil.atOrAbove("1.19.4");
         hudManager = new HudManager(configsManager);
@@ -113,6 +112,7 @@ public class OraxenPlugin extends JavaPlugin {
         } else Logs.logWarning("ProtocolLib is not on your server, some features will not work");
         pluginManager.registerEvents(new CustomArmorListener(), this);
         NMSHandlers.setup();
+        packGenerator = new PackGenerator();
 
         MechanicsManager.registerNativeMechanics();
         OraxenItems.loadItems();
@@ -127,7 +127,6 @@ public class OraxenPlugin extends JavaPlugin {
         ArmorEquipEvent.registerListener(this);
         new CommandsManager().loadCommands();
 
-        packGenerator = new PackGenerator();
         packGenerator.generatePack();
         packServer = new PackServer();
         packServer.start();
@@ -225,7 +224,7 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     public ResourcePack resourcePack() {
-        if (resourcePack == null) new PackGenerator().generatePack();
+        if (resourcePack == null) resourcePack = ResourcePack.resourcePack();
         return resourcePack;
     }
 
