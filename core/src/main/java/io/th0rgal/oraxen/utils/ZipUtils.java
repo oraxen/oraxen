@@ -15,8 +15,8 @@ import java.util.zip.ZipInputStream;
 public class ZipUtils {
 
     public static void extractDefaultZipPack() {
-        Path destDirectory = PackGenerator.packImports.resolve("DefaultPack").toFile().toPath();
-        File zipFile = PackGenerator.packImports.resolve("DefaultPack.zip").toFile();
+        Path destDirectory = PackGenerator.externalPacks.resolve("DefaultPack").toFile().toPath();
+        File zipFile = PackGenerator.externalPacks.resolve("DefaultPack.zip").toFile();
         if (!zipFile.exists()) return;
 
         File[] assets = destDirectory.resolve("assets").toFile().listFiles();

@@ -25,7 +25,7 @@ public class PackDownloader {
         String fileUrl = "http://repo.oraxen.com:8080/private/DefaultPack.zip";
         String username = accessYaml.getString("username", "");
         String password = accessYaml.getString("password", "");
-        Path zipPath = PackGenerator.packImports.resolve("DefaultPack.zip");
+        Path zipPath = PackGenerator.externalPacks.resolve("DefaultPack.zip");
 
         try {
             URL url = new URL(fileUrl);
@@ -48,7 +48,7 @@ public class PackDownloader {
                     fos.write(buffer, 0, bytesRead);
                 }
             }
-            ZipUtils.extractDefaultZipPack();
+            //ZipUtils.extractDefaultZipPack();
         } catch (IOException e) {
             Logs.logError("Failed to download Oraxen pack");
         }

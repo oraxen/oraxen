@@ -29,7 +29,7 @@ import java.util.*;
 
 public class PackGenerator {
 
-    public static Path packImports = OraxenPlugin.get().packPath().resolve("imports");
+    public static Path externalPacks = OraxenPlugin.get().packPath().resolve("external_packs");
     static Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
     ResourcePack resourcePack;
     BuiltResourcePack builtPack;
@@ -55,7 +55,7 @@ public class PackGenerator {
         resourcePack.removeUnknownFile("pack.zip");
 
         for (Map.Entry<String, Writable> entry : new HashSet<>(resourcePack.unknownFiles().entrySet()))
-            if (entry.getKey().startsWith("imports/")) resourcePack.removeUnknownFile(entry.getKey());
+            if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
 
         removeExcludedFileExtensions();
 
@@ -116,7 +116,7 @@ public class PackGenerator {
     }
 
     private void addImportPacks() {
-        for (File file : new ArrayList<File>().toArray(packImports.toFile().listFiles())) {
+        for (File file : new ArrayList<File>().toArray(externalPacks.toFile().listFiles())) {
             if (file == null) continue;
             if (file.isDirectory()) {
                 Logs.logInfo("Importing pack " + file.getName() + "...");
@@ -179,7 +179,7 @@ public class PackGenerator {
     }
 
     private static void generateDefaultPaths() {
-        packImports.toFile().mkdirs();
+        externalPacks.toFile().mkdirs();
         assetsFolder.resolve("minecraft/textures").toFile().mkdirs();
         assetsFolder.resolve("minecraft/models").toFile().mkdirs();
         assetsFolder.resolve("minecraft/sounds").toFile().mkdirs();
