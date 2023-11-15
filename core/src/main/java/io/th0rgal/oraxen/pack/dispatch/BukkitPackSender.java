@@ -33,7 +33,7 @@ public class BukkitPackSender extends PackSender implements Listener {
     @Override
     public void sendPack(Player player) {
         if (VersionUtil.isPaperServer()) player.setResourcePack(hostingProvider.getMinecraftPackURL(), hostingProvider.getSHA1(), AdventureUtils.MINI_MESSAGE.deserialize(prompt), mandatory);
-        else player.setResourcePack(hostingProvider.getMinecraftPackURL(), hostingProvider.getSHA1(), AdventureUtils.LEGACY_SERIALIZER.deserialize(prompt), mandatory);
+        else player.setResourcePack(hostingProvider.getMinecraftPackURL(), hostingProvider.getSHA1(), AdventureUtils.parseLegacy(prompt), mandatory);
     }
 
     @EventHandler(priority = EventPriority.NORMAL)

@@ -61,6 +61,9 @@ noteblock:
     - NETHERITE
     - # ticks between each check for dryout
   farmblock_check_delay: 1000
+  # Removes the mineable/axe tag from noteblocks for player
+  # This is to prevent axes from breaking custom-blocks in normal speed
+  remove_mineable_tag: false
   enabled: true
 
 stringblock:

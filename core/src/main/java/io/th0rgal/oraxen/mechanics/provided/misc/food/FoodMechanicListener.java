@@ -1,9 +1,13 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.food;
 
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.GameMode;
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.inventory.PlayerInventory;
@@ -13,6 +17,16 @@ public class FoodMechanicListener implements Listener {
 
     public FoodMechanicListener(FoodMechanicFactory factory) {
         this.factory = factory;
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    private void registerReplacements(OraxenItemsLoadedEvent event) {
+        for (String itemID : factory.getItems()) {
+            FoodMechanic foodMechanic = (FoodMechanic) factory.getMechanic(itemID);
+            ConfigurationSection replacementSection = foodMechanic.getSection().getConfigurationSection("replacement");
+            if (replacementSection == null) continue;
+            foodMechanic.registerReplacement(replacementSection);
+        }
     }
 
     @EventHandler

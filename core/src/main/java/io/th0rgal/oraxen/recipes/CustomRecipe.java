@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.recipes;
 
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.Recipe;
@@ -53,10 +54,6 @@ public class CustomRecipe {
         return ordered;
     }
 
-    /*
-     *
-     */
-
     @Override
     public boolean equals(Object object) {
         if (object == null) return false;
@@ -65,44 +62,23 @@ public class CustomRecipe {
         return false;
     }
 
-    /*
-     *
-     */
     @Override
     public int hashCode() {
         return result.hashCode() / 2 + ingredients.hashCode() / 2 + (ordered ? 1 : 0);
     }
 
-    /*
-     *
-     */
-
     private boolean areEqual(List<ItemStack> ingredients1, List<ItemStack> ingredients2) {
-        if (ingredients1.size() != ingredients2.size())
-            return false;
         for (int index = 0; index < ingredients1.size(); index++) {
             ItemStack ingredient1 = ingredients1.get(index);
             if (ordered) {
                 ItemStack ingredient2 = ingredients2.get(index);
-                if (ingredient1 == null && ingredient2 == null)
-                    continue;
-                if (ingredient1 == null || ingredient2 == null)
-                    return false;
-                if (!ingredient1.isSimilar(ingredient2))
-                    return false;
-            } else {
-                if (ingredient1 == null)
-                    continue;
-                if (ingredients2.stream().noneMatch(ingredient1::isSimilar))
-                    return false;
-            }
+                if (ingredient1 == null && ingredient2 == null) continue;
+                if (ingredient1 == null || ingredient2 == null) return false;
+                if (!ingredient1.isSimilar(ingredient2)) return false;
+            } else if (ingredient1 != null && ingredients2.stream().noneMatch(ingredient1::isSimilar)) return false;
         }
         return true;
     }
-
-    /*
-     *
-     */
 
     public static CustomRecipe fromRecipe(Recipe bukkitRecipe) {
         if (bukkitRecipe instanceof ShapedRecipe recipe) {
@@ -123,13 +99,11 @@ public class CustomRecipe {
             List<ItemStack> ingredients = new ArrayList<>(9);
             ingredients.addAll(recipe.getIngredientList());
             return new CustomRecipe(recipe.getKey().getKey(), recipe.getResult(), ingredients, false);
-        } else {
-            return null;
-        }
+        } else return null;
     }
 
     /**
-     * Checks if the recipe is a dye recipe
+     * Checks if the recipe is a dye recipe.
      * This does not ensure the second ingredient is dyeable,
      * only that the ingredient is not CustomArmor and therefore dyeable
      */

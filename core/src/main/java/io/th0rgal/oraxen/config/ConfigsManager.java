@@ -99,23 +99,23 @@ public class ConfigsManager {
     }
 
     public void validatesConfig() {
-        ResourcesManager resourcesManager = new ResourcesManager(OraxenPlugin.get());
-        mechanics = validate(resourcesManager, "mechanics.yml", defaultMechanics);
-        settings = validate(resourcesManager, "settings.yml", defaultSettings);
-        font = validate(resourcesManager, "font.yml", defaultFont);
-        hud = validate(resourcesManager, "hud.yml", defaultHud);
-        sound = validate(resourcesManager, "sound.yml", defaultSound);
+        ResourcesManager tempManager = new ResourcesManager(OraxenPlugin.get());
+        mechanics = validate(tempManager, "mechanics.yml", defaultMechanics);
+        settings = validate(tempManager, "settings.yml", defaultSettings);
+        font = validate(tempManager, "font.yml", defaultFont);
+        hud = validate(tempManager, "hud.yml", defaultHud);
+        sound = validate(tempManager, "sound.yml", defaultSound);
         File languagesFolder = new File(plugin.getDataFolder(), "languages");
         languagesFolder.mkdir();
         String languageFile = "languages/" + settings.getString(Settings.PLUGIN_LANGUAGE.getPath()) + ".yml";
-        language = validate(resourcesManager, languageFile, defaultLanguage);
+        language = validate(tempManager, languageFile, defaultLanguage);
 
         // check itemsFolder
         itemsFolder = new File(plugin.getDataFolder(), "items");
         if (!itemsFolder.exists()) {
             itemsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                new ResourcesManager(plugin).extractConfigsInFolder("items", "yml");
+                tempManager.extractConfigsInFolder("items", "yml");
         }
 
         // check glyphsFolder
@@ -123,8 +123,8 @@ public class ConfigsManager {
         if (!glyphsFolder.exists()) {
             glyphsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                new ResourcesManager(plugin).extractConfigsInFolder("glyphs", "yml");
-            else new ResourcesManager(plugin).extractConfiguration("glyphs/interface.yml");
+                tempManager.extractConfigsInFolder("glyphs", "yml");
+            else tempManager.extractConfiguration("glyphs/interface.yml");
         }
 
         // check schematicsFolder
@@ -132,7 +132,7 @@ public class ConfigsManager {
         if (!schematicsFolder.exists()) {
             schematicsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                new ResourcesManager(plugin).extractConfigsInFolder("schematics", "schem");
+                tempManager.extractConfigsInFolder("schematics", "schem");
         }
 
         // check gestures
@@ -140,7 +140,7 @@ public class ConfigsManager {
         if (!gesturesFolder.exists()) {
             gesturesFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                new ResourcesManager(plugin).extractConfigsInFolder("gestures", "yml");
+                tempManager.extractConfigsInFolder("gestures", "yml");
         }
 
     }
@@ -230,9 +230,8 @@ public class ConfigsManager {
     }
 
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
-
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
-        for (File file : getItemFiles()) parseMap.put(file, parseItemConfig(OraxenYaml.loadConfiguration(file), file));
+        for (File file : getItemFiles()) parseMap.put(file, parseItemConfig(file));
         return parseMap;
     }
 
@@ -301,7 +300,8 @@ public class ConfigsManager {
         return model;
     }
 
-    public Map<String, ItemBuilder> parseItemConfig(YamlConfiguration config, File itemFile) {
+    public Map<String, ItemBuilder> parseItemConfig(File itemFile) {
+        YamlConfiguration config = OraxenYaml.loadConfiguration(itemFile);
         Map<String, ItemParser> parseMap = new LinkedHashMap<>();
         ItemParser errorItem = new ItemParser(Settings.ERROR_ITEM.toConfigSection());
         for (String itemKey : config.getKeys(false)) {

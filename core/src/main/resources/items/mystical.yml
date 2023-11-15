@@ -67,11 +67,9 @@ battle_axe:
   displayname: '<gradient:#F06966:#FAD6A6>Battle Axe'
   material: DIAMOND_AXE
   AttributeModifiers:
-    - name: oraxen
-      attribute: GENERIC_ATTACK_DAMAGE
+    - attribute: GENERIC_ATTACK_DAMAGE
       amount: 7
       operation: 0
-      uuid: d1fe3908-8aa8-49bb-8c1f-907b765a43ab
       slot: HAND
   Pack:
     generate_model: false

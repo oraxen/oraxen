@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
@@ -132,7 +133,7 @@ public class BlockMechanicListener implements Listener {
         target.setBlockData(newBlockData); // false to cancel physic
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, currentBlockState, placedAgainst, item, player, true, event.getHand());
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
-        if (!blockPlaceEvent.callEvent() || !blockPlaceEvent.canBuild()) {
+        if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) {
             target.setBlockData(curentBlockData, false); // false to cancel physic
             return;
         }
@@ -153,7 +154,7 @@ public class BlockMechanicListener implements Listener {
         BlockMechanic mechanic = OraxenBlocks.getBlockMechanic(block);
         if (mechanic == null || !mechanic.canIgnite()) return;
         if (item.getType() != Material.FLINT_AND_STEEL && item.getType() != Material.FIRE_CHARGE) return;
-        new BlockIgniteEvent(block, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, event.getPlayer()).callEvent();
+        EventUtils.callEvent(new BlockIgniteEvent(block, BlockIgniteEvent.IgniteCause.FLINT_AND_STEEL, event.getPlayer()));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

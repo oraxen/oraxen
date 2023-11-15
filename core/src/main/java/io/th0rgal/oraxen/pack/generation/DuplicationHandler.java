@@ -231,7 +231,7 @@ public class DuplicationHandler {
             else duplicateFile = packFolder.resolve(name.replace("assets/minecraft/", "")).toFile();
             List<String> lines = null;
             try {
-                lines = FileUtils.readLines(duplicateFile, StandardCharsets.UTF_8);
+                if (duplicateFile.getName().endsWith(".json")) lines = FileUtils.readLines(duplicateFile, StandardCharsets.UTF_8);
             } catch (IOException ex) {
                 if (Settings.DEBUG.toBool()) ex.printStackTrace();
             }
