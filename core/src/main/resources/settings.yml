@@ -114,12 +114,11 @@ Pack:
      \nconditions of Oraxen."
 
 
-  upload:
+  server:
     enabled: true
-    type: polymath #transfer.sh or polymath
-    polymath:
-      server: atlas.oraxen.com # you can also host your own polymath instance
-      secret: "oraxen" # change this if you host your own polymath to limit access to resource pack uploading
+    upload_ip: "atlas.oraxen.com"
+    upload_port: 8080
+    download_address: "http://atlas.oraxen.com:8080"
 
   dispatch:
     send_pack: true
