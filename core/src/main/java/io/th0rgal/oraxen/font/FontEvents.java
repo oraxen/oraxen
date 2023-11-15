@@ -46,8 +46,8 @@ public class FontEvents implements Listener {
     public FontEvents(FontManager manager) {
         this.manager = manager;
         Bukkit.getPluginManager().registerEvents(
-                VersionUtil.isPaperServer() ? new PaperChatHandler() : new SpigotChatHandler()
-                , OraxenPlugin.get());
+                VersionUtil.isPaperServer() && VersionUtil.isSupportedVersionOrNewer("1.19.1")
+                        ? new PaperChatHandler() : new SpigotChatHandler(), OraxenPlugin.get());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

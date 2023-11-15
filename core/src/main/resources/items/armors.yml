@@ -56,12 +56,9 @@ emerald_leggings:
     durability:
       value: 595
   AttributeModifiers:
-    - { attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0,
-        slot: LEGS }
-    - { attribute: GENERIC_ARMOR, amount: 6, operation: 0,
-        slot: LEGS }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
-        slot: LEGS }
+    - { attribute: GENERIC_MAX_HEALTH, amount: 3, operation: 0, slot: LEGS }
+    - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: LEGS }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: LEGS }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -78,12 +75,9 @@ emerald_boots:
     durability:
       value: 516
   AttributeModifiers:
-    - { attribute: GENERIC_MAX_HEALTH, amount: 2, operation: 0,
-        slot: FEET }
-    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0,
-        slot: FEET }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
-        slot: FEET }
+    - { attribute: GENERIC_MAX_HEALTH, amount: 2, operation: 0, slot: FEET }
+    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: FEET }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: FEET }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -100,8 +94,7 @@ obsidian_helmet:
     durability:
       value: 4370
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 2, operation: 0,
-        slot: HEAD }
+    - { attribute: GENERIC_ARMOR, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -119,8 +112,7 @@ obsidian_chestplate:
     durability:
       value: 6350
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 6, operation: 0,
-        slot: CHEST }
+    - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: CHEST }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -137,8 +129,7 @@ obsidian_leggings:
     durability:
       value: 5950
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 5, operation: 0,
-        slot: LEGS }
+    - { attribute: GENERIC_ARMOR, amount: 5, operation: 0, slot: LEGS }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -155,8 +146,7 @@ obsidian_boots:
     durability:
       value: 5160
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 2, operation: 0,
-        slot: FEET }
+    - { attribute: GENERIC_ARMOR, amount: 2, operation: 0, slot: FEET }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -171,10 +161,8 @@ ruby_helmet:
     durability:
       value: 547 # 50% more than diamond helmet
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0,
-        slot: HEAD }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
-        slot: HEAD }
+    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: HEAD }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: HEAD }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -189,10 +177,8 @@ ruby_chestplate:
     durability:
       value: 792
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 8, operation: 0,
-        slot: CHEST }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
-        slot: CHEST }
+    - { attribute: GENERIC_ARMOR, amount: 8, operation: 0, slot: CHEST }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: CHEST }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -207,10 +193,8 @@ ruby_leggings:
     durability:
       value: 742
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 6, operation: 0,
-        slot: LEGS }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
-        slot: LEGS }
+    - { attribute: GENERIC_ARMOR, amount: 6, operation: 0, slot: LEGS }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: LEGS }
   Pack:
     generate_model: true
     parent_model: "item/generated"
@@ -225,10 +209,8 @@ ruby_boots:
     durability:
       value: 643
   AttributeModifiers:
-    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0,
-        slot: FEET }
-    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0,
-        slot: FEET }
+    - { attribute: GENERIC_ARMOR, amount: 3, operation: 0, slot: FEET }
+    - { attribute: GENERIC_ARMOR_TOUGHNESS, amount: 2, operation: 0, slot: FEET }
   Pack:
     generate_model: true
     parent_model: "item/generated"

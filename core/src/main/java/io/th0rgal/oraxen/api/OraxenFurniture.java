@@ -253,7 +253,7 @@ public class OraxenFurniture {
      */
     public static FurnitureMechanic getFurnitureMechanic(String itemID) {
         if (!FurnitureFactory.isEnabled() || !OraxenItems.exists(itemID)) return null;
-        return (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
+        return FurnitureFactory.getInstance().getMechanic(itemID);
     }
 
     /**

@@ -28,7 +28,7 @@ example_sword:
     # - operations: 0 for ADD_NUMBER, 1 for ADD_SCALAR, 2 for MULTIPLY_SCALAR_1;
     # - generate one here: https://www.uuidgenerator.net/
     # - slot: HAND, OFF_HAND, FEET, LEGS, CHEST or HEAD
-    - { name: "oraxen_speed", attribute: GENERIC_MOVEMENT_SPEED, amount: 0.1, operation: 0, slot: HAND }
+    - { attribute: GENERIC_MOVEMENT_SPEED, amount: 0.1, operation: 0, slot: HAND }
 
   Enchantments:
     protection: 4

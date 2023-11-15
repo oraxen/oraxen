@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 
 public class ItemsView {
 
-    private final YamlConfiguration settings = new ResourcesManager(OraxenPlugin.get()).getSettings();
+    private final YamlConfiguration settings = OraxenPlugin.get().getResourceManager().getSettings();
     ChestGui mainGui;
 
     public ChestGui create() {

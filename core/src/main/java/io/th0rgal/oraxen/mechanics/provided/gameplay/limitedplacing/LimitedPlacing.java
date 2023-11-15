@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -91,12 +92,10 @@ public class LimitedPlacing {
         Block blockBelow = placedBlock.getRelative(BlockFace.DOWN);
         Block blockAbove = placedBlock.getRelative(BlockFace.UP);
 
-        //TODO isBlock better check perhaps?
         if (wall && block.getType().isSolid()) return false;
         if (floor && (blockFace == BlockFace.UP || blockBelow.getType().isSolid())) return false;
         if (roof && blockFace == BlockFace.DOWN) return false;
-        if (roof && blockAbove.getType().isSolid()) return false;
-        return false;
+        return !roof || !blockAbove.getType().isSolid();
     }
 
     public List<Material> getLimitedBlocks() {

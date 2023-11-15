@@ -19,6 +19,7 @@ import org.bukkit.Note;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 
 import java.util.HashMap;
 import java.util.List;
@@ -35,6 +36,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     private static FarmBlockTask farmBlockTask;
     public final int farmBlockCheckDelay;
     public final boolean customSounds;
+    private final boolean removeMineableTag;
 
     public NoteBlockMechanicFactory(ConfigurationSection section) {
         super(section);
@@ -45,6 +47,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         farmBlockCheckDelay = section.getInt("farmblock_check_delay");
         farmBlock = false;
         customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("noteblock_and_block", true);
+        removeMineableTag = section.getBoolean("remove_mineable_tag", false);
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
@@ -155,6 +158,10 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         return instance;
     }
 
+    public boolean removeMineableTag() {
+        return removeMineableTag;
+    }
+
 
     /**
      * Attempts to set the block directly to the model and texture of an Oraxen item.
@@ -198,6 +205,16 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
+    }
+
+    @Override
+    public NoteBlockMechanic getMechanic(String itemID) {
+        return (NoteBlockMechanic) super.getMechanic(itemID);
+    }
+
+    @Override
+    public NoteBlockMechanic getMechanic(ItemStack itemStack) {
+        return (NoteBlockMechanic) super.getMechanic(itemStack);
     }
 
     /**

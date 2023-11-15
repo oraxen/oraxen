@@ -32,7 +32,7 @@ public class DurabilityMechanic extends Mechanic {
         return itemDurability;
     }
 
-    public void changeDurability(ItemStack item, int amount) {
+    public boolean changeDurability(ItemStack item, int amount) {
         DurabilityMechanic durabilityMechanic = this;
         AtomicBoolean check = new AtomicBoolean(false);
 
@@ -41,32 +41,29 @@ public class DurabilityMechanic extends Mechanic {
             check.set(pdc.has(DurabilityMechanic.DURABILITY_KEY, PersistentDataType.INTEGER));
 
             if (check.get()) {
-                if(!(itemMeta instanceof Damageable damageable)) {
-                    check.set(true);
-                    return;
-                }
+                if(!(itemMeta instanceof Damageable damageable)) check.set(true);
+                else {
+                    int baseMaxDurab = item.getType().getMaxDurability();
+                    int realMaxDurab = durabilityMechanic.getItemMaxDurability(); // because int rounded values suck
+                    int realDurabRemain = pdc.getOrDefault(DURABILITY_KEY, PersistentDataType.INTEGER, realMaxDurab);
 
-                int baseMaxDurab = item.getType().getMaxDurability();
-                int realMaxDurab = durabilityMechanic.getItemMaxDurability(); // because int rounded values suck
-                int realDurabRemain = pdc.getOrDefault(DURABILITY_KEY, PersistentDataType.INTEGER, realMaxDurab);
-
-                // If item was max durab before damage, set the fake one
-                if (damageable.getDamage() != 0 && realDurabRemain == realMaxDurab) {
-                    pdc.set(DURABILITY_KEY, PersistentDataType.INTEGER,
-                            (int) (realMaxDurab - (((double) damageable.getDamage() / (double) baseMaxDurab) * realMaxDurab)));
-                    item.setItemMeta(itemMeta);
-                    // Call function again to have itemmeta stick and run below part aswell
-                    changeDurability(item, amount);
-                } else {
-                    realDurabRemain = realDurabRemain + amount;
-                    if (realDurabRemain > 0) {
-                        pdc.set(DURABILITY_KEY, PersistentDataType.INTEGER, realDurabRemain);
-                        //TODO Figure out why when mending this sets the durability abit too high in the actual Damagable meta
-                        (damageable).setDamage((int) ((double) baseMaxDurab - (((double) realDurabRemain / realMaxDurab) * (double) baseMaxDurab)));
-                    } else item.setAmount(0);
+                    // If item was max durab before damage, set the fake one
+                    if (damageable.hasDamage() && realDurabRemain == realMaxDurab) {
+                        pdc.set(DURABILITY_KEY, PersistentDataType.INTEGER,
+                                (int) (realMaxDurab - (((double) damageable.getDamage() / (double) baseMaxDurab) * realMaxDurab)));
+                        item.setItemMeta(itemMeta);
+                        // Call function again to have itemmeta stick and run below part aswell
+                        changeDurability(item, amount);
+                    } else {
+                        realDurabRemain = realDurabRemain + amount;
+                        if (realDurabRemain > 0) {
+                            pdc.set(DURABILITY_KEY, PersistentDataType.INTEGER, realDurabRemain);
+                            (damageable).setDamage((int) ((double) baseMaxDurab - (((double) realDurabRemain / realMaxDurab) * (double) baseMaxDurab)));
+                        } else item.setAmount(0);
+                    }
                 }
             }
         });
-        check.get();
+        return check.get();
     }
 }

@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.utils.armorequipevent;
 
-import org.bukkit.Bukkit;
+import io.th0rgal.oraxen.utils.EventUtils;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,7 +14,6 @@ class DispenserArmorListener implements Listener {
         if (type == null || !(event.getTargetEntity() instanceof Player p)) return;
 
         ArmorEquipEvent armorEquipEvent = new ArmorEquipEvent(p, ArmorEquipEvent.EquipMethod.DISPENSER, type, null, event.getItem());
-        Bukkit.getServer().getPluginManager().callEvent(armorEquipEvent);
-        if (armorEquipEvent.isCancelled()) event.setCancelled(true);
+        if (!EventUtils.callEvent(armorEquipEvent)) event.setCancelled(true);
     }
 }

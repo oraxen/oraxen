@@ -71,6 +71,7 @@ public enum Settings {
     FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs"),
     VERIFY_PACK_FILES("Pack.generation.verify_pack_files"),
     GENERATE_ATLAS_FILE("Pack.generation.atlas.generate"),
+    TEXTURE_SLICER("Pack.generation.texture_slicer"),
     EXCLUDE_MALFORMED_ATLAS("Pack.generation.atlas.exclude_malformed_from_atlas"),
     ATLAS_GENERATION_TYPE("Pack.generation.atlas.type"),
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
