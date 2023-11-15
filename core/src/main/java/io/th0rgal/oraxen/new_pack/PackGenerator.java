@@ -30,9 +30,9 @@ import java.util.*;
 public class PackGenerator {
 
     public static Path externalPacks = OraxenPlugin.get().packPath().resolve("external_packs");
-    static Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
-    ResourcePack resourcePack;
-    BuiltResourcePack builtPack;
+    private static Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
+    private ResourcePack resourcePack;
+    private BuiltResourcePack builtPack;
 
     public PackGenerator() {
         generateDefaultPaths();

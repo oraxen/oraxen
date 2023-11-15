@@ -29,7 +29,10 @@ public enum RemovedSettings {
     EXCLUDE_MALFORMED_ATLAS("Pack.generation.atlas.exclude_malformed_from_atlas"),
     ATLAS_GENERATION_TYPE("Pack.generation.atlas.type"),
     ARMOR_EQUIP_EVENT_BYPASS("Misc.armor_equip_event_bypass"),
-
+    UPLOAD_TYPE("Pack.upload.type"),
+    UPLOAD("Pack.upload.enabled"),
+    UPLOAD_OPTIONS("Pack.upload.options"),
+    POLYMATH_SERVER("Pack.upload.polymath.server"),
 
     ;
 
