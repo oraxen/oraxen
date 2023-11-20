@@ -114,7 +114,7 @@ Pack:
 
   server:
     enabled: true
-    upload_ip: "atlas.oraxen.com"
+    upload_ip: "localhost"
     upload_port: 8080
     download_address: "http://atlas.oraxen.com:8080"
 
