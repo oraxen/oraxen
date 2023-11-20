@@ -39,7 +39,6 @@ public class CommandsManager {
                         (new BlockInfoCommand()).getBlockInfoCommand(),
                         (new HudCommand()).getHudCommand(),
                         (new LogDumpCommand().getLogDumpCommand()),
-                        (new GestureCommand().getGestureCommand()),
                         (new VersionCommand()).getVersionCommand(),
                         (new AdminCommands()).getAdminCommand(),
                         (new NewPackCommand()).getNewPackCommand())
@@ -91,7 +90,7 @@ public class CommandsManager {
                 .withPermission("oraxen.command.inventory.view")
                 .executes((sender, args) -> {
                     if (sender instanceof Player player)
-                        OraxenPlugin.get().invManager().getItemsView(player).show(player);
+                        OraxenPlugin.get().invManager().itemsView(player).open(player);
                     else
                         Message.NOT_PLAYER.send(sender);
                 });

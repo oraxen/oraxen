@@ -80,6 +80,7 @@ allprojects {
         maven("https://nexus.phoenixdevt.fr/repository/maven-public/") // MMOItems
         maven("https://repo.codemc.org/repository/maven-public/") // BlockLocker
         maven("https://repo.unnamed.team/repository/unnamed-public/") // Creative
+        maven("https://nexuslite.gcnt.net/repos/other/") // FoliaLib
 
         mavenLocal()
     }
@@ -112,6 +113,8 @@ allprojects {
         compileOnly("com.willfp:eco:6.65.5")
         compileOnly("com.willfp:libreforge:4.36.0")
         compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
+
+        implementation("com.tcoded:FoliaLib:0.3.1")
     }
 }
 
@@ -124,11 +127,12 @@ java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
-tasks {
+copyJar {
+    destPath.set(project.findProperty("oraxen_dev_plugin_path")?.toString())
+    excludePlatformDependencies.set(false)
+}
 
-    copyJar {
-        destPath.set(project.findProperty("oraxen2_plugin_path")?.toString())
-    }
+tasks {
 
     compileJava {
         options.encoding = Charsets.UTF_8.name()
@@ -166,6 +170,8 @@ tasks {
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
         relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
         relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
+        relocate("com.tcoded.folialib", "io.th0rgal.oraxen.shaded.folialib")
+
 
         manifest {
             attributes(
@@ -197,6 +203,7 @@ bukkit {
     version = pluginVersion
     name = "Oraxen"
     apiVersion = "1.19"
+    foliaSupported = true
     authors = listOf("th0rgal", "boy0000")
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards")
     depend = listOf("ProtocolLib")

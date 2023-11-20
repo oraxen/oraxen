@@ -3,9 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
-import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockPlaceEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
@@ -14,11 +12,12 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlaci
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
-import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.apache.commons.lang3.Range;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
@@ -49,7 +48,6 @@ public class StringBlockMechanicListener implements Listener {
 
     public StringBlockMechanicListener(final StringBlockMechanicFactory factory) {
         this.factory = factory;
-        BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
     public static class StringBlockMechanicPaperListener implements Listener {
@@ -75,13 +73,12 @@ public class StringBlockMechanicListener implements Listener {
                 if (changed.getType() != Material.TRIPWIRE) continue;
 
                 final BlockData data = changed.getBlockData().clone();
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                        changed.setBlockData(data, false), 1L);
-            }
+                OraxenPlugin.foliaLib.getImpl().runAtLocationLater(changed.getLocation(), () -> changed.setBlockData(data, false), 1L);
+        }
 
             // Stores the pre-change blockdata and applies it on next tick to prevent the block from updating
             final BlockData blockData = block.getBlockData().clone();
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable -> {
+            OraxenPlugin.foliaLib.getImpl().runAtLocationLater(block.getLocation(), () -> {
                 if (block.getType().isAir()) return;
                 block.setBlockData(blockData, false);
             }, 1L);
@@ -100,26 +97,6 @@ public class StringBlockMechanicListener implements Listener {
                 if (mechanic.hasLight())
                     WrappedLightAPI.removeBlockLight(block.getLocation());
                 mechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
-            }
-        }
-
-        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-        public void onBreak(BlockBreakEvent event) {
-            final Block block = event.getBlock();
-            final Block blockAbove = block.getRelative(BlockFace.UP);
-            final Player player = event.getPlayer();
-
-            for (BlockFace face : BlockFace.values()) {
-                if (face == BlockFace.SELF && !face.isCartesian()) continue;
-                if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
-                if (block.getType() == Material.BARRIER && OraxenFurniture.isFurniture(block)) break;
-                if (block.getRelative(face).getType() == Material.TRIPWIRE) {
-                    if (player.getGameMode() != GameMode.CREATIVE) block.breakNaturally(player.getInventory().getItemInMainHand(), true);
-                    else block.setType(Material.AIR);
-                    if (BlockHelpers.isReplaceable(blockAbove.getType())) blockAbove.breakNaturally(true);
-                    Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                            fixClientsideUpdate(block.getLocation()), 1);
-                }
             }
         }
     }
@@ -216,8 +193,7 @@ public class StringBlockMechanicListener implements Listener {
                 if (item.getType().toString().endsWith("SLAB")) continue;
 
                 makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), Bukkit.createBlockData(item.getType()));
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), Runnable ->
-                        fixClientsideUpdate(placedAgainst.getLocation()), 1L);
+                OraxenPlugin.foliaLib.getImpl().runAtLocationLater(placedAgainst.getLocation(), () -> fixClientsideUpdate(placedAgainst.getLocation()), 1);
             }
         }
 
@@ -341,39 +317,6 @@ public class StringBlockMechanicListener implements Listener {
             }
             event.setCursor(item);
         }
-    }
-
-    private HardnessModifier getHardnessModifier() {
-        return new HardnessModifier() {
-
-            @Override
-            public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                if (block.getType() != Material.TRIPWIRE)
-                    return false;
-                final StringBlockMechanic tripwireMechanic = OraxenBlocks.getStringMechanic(block);
-                return tripwireMechanic != null && tripwireMechanic.hasHardness();
-            }
-
-            @Override
-            public void breakBlock(final Player player, final Block block, final ItemStack tool) {
-                block.setType(Material.AIR);
-            }
-
-            @Override
-            public long getPeriod(final Player player, final Block block, final ItemStack tool) {
-                final StringBlockMechanic tripwireMechanic = OraxenBlocks.getStringMechanic(block);
-                if (tripwireMechanic == null) return 0;
-                final long period = tripwireMechanic.getHardness();
-                double modifier = 1;
-                if (tripwireMechanic.getDrop().canDrop(tool)) {
-                    modifier *= 0.4;
-                    final int diff = tripwireMechanic.getDrop().getDiff(tool);
-                    if (diff >= 1)
-                        modifier *= Math.pow(0.9, diff);
-                }
-                return (long) (period * modifier);
-            }
-        };
     }
 
     private void makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,

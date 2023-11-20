@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.recipes.builders;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -68,7 +67,7 @@ public abstract class RecipeBuilder {
 
     public YamlConfiguration getConfig() {
         if (configFile == null) {
-            configFile = OraxenPlugin.get().getResourceManager()
+            configFile = OraxenPlugin.get().resourceManager()
                     .extractConfiguration("recipes/" + builderName + ".yml");
             config = OraxenYaml.loadConfiguration(configFile);
         }

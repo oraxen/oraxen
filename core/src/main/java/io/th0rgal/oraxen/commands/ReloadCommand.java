@@ -35,8 +35,8 @@ public class ReloadCommand {
         if (Settings.UPDATE_ITEMS.toBool() && Settings.UPDATE_ITEMS_ON_RELOAD.toBool()) {
             Logs.logInfo("Updating all items in player-inventories...");
             for (Player player : Bukkit.getServer().getOnlinePlayers()) {
-                PlayerInventory inventory = player.getInventory();
-                Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
+                OraxenPlugin.foliaLib.getImpl().runAtEntity(player, (w) -> {
+                    PlayerInventory inventory = player.getInventory();
                     for (int i = 0; i < inventory.getSize(); i++) {
                         ItemStack oldItem = inventory.getItem(i);
                         ItemStack newItem = ItemUpdater.updateItem(oldItem);
@@ -69,11 +69,6 @@ public class ReloadCommand {
         hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
         hudManager.reregisterEvents();
         hudManager.restartTask();
-    }
-
-    public static void reloadGestures(@Nullable CommandSender sender) {
-        Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "gestures"));
-        OraxenPlugin.get().gestureManager().reload();
     }
 
     public static void reloadRecipes(@Nullable CommandSender sender) {

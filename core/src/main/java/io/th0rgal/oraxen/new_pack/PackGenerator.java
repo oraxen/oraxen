@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
-import io.th0rgal.oraxen.gestures.GestureManager;
 import io.th0rgal.oraxen.utils.ModelEngineUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -47,7 +46,6 @@ public class PackGenerator {
 
         addItemPackFiles();
         addGlyphFiles();
-        if (Settings.GESTURES_ENABLED.toBool()) addGestureFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
 
@@ -96,22 +94,14 @@ public class PackGenerator {
         }
     }
 
-    private void addGestureFiles() {
-        GestureManager gestureManager = OraxenPlugin.get().gestureManager();
-        resourcePack.model(GestureManager.Skull.skullModel());
-        resourcePack.unknownFile("assets/minecraft/shaders/core/rendertype_entity_translucent.vsh", gestureManager.shaderVsh());
-        resourcePack.unknownFile("assets/minecraft/shaders/core/rendertype_entity_translucent.fsh", gestureManager.shaderFsh());
-        resourcePack.unknownFile("assets/minecraft/shaders/core/rendertype_entity_translucent.json", gestureManager.shaderJson());
-    }
-
     private void hideScoreboardNumbers() {
         resourcePack.unknownFile("assets/minecraft/shaders/core/rendertype_text.json", ShaderUtils.ScoreboardNumbers.json());
         resourcePack.unknownFile("assets/minecraft/shaders/post/deferred_text.vsh", ShaderUtils.ScoreboardNumbers.vsh());
     }
 
     private void hideScoreboardBackground() {
-        String fileName = VersionUtil.isSupportedVersionOrNewer("1.20.1") ? "rendertype_gui.vsh" : "position_color.fsh";
-        Writable writable = VersionUtil.isSupportedVersionOrNewer("1.20.1") ? ShaderUtils.ScoreboardBackground.modernFile() : ShaderUtils.ScoreboardBackground.legacyFile();
+        String fileName = VersionUtil.atOrAbove("1.20.1") ? "rendertype_gui.vsh" : "position_color.fsh";
+        Writable writable = VersionUtil.atOrAbove("1.20.1") ? ShaderUtils.ScoreboardBackground.modernFile() : ShaderUtils.ScoreboardBackground.legacyFile();
         resourcePack.unknownFile("assets/minecraft/shaders/core/" + fileName, writable);
     }
 

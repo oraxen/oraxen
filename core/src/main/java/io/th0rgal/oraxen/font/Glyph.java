@@ -26,7 +26,7 @@ public class Glyph {
     private boolean fileChanged = false;
 
     private final String name;
-    private final Key font = Key.key("default");
+    private final Key font;
     private final boolean isEmoji;
     private final boolean tabcomplete;
     private final Character character;
@@ -36,7 +36,6 @@ public class Glyph {
     private final String permission;
     private final String[] placeholders;
     private final BitMapEntry bitmapEntry;
-    private final Key font;
 
     public final Pattern baseRegex;
     public final Pattern escapedRegex;
@@ -249,7 +248,7 @@ public class Glyph {
     }
 
     public Component getGlyphComponent() {
-        return Component.textOfChildren(Component.text(getCharacter(), NamedTextColor.WHITE).font(font));
+        return Component.textOfChildren(Component.text(character, NamedTextColor.WHITE).font(font));
     }
 
     public Key font() {

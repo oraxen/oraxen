@@ -31,6 +31,7 @@ public class FurnitureFactory extends MechanicFactory {
         evolutionCheckDelay = section.getInt("evolution_check_delay");
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new FurnitureListener(),
+                new FurnitureDamageListener(),
                 new FurnitureUpdater(),
                 new EvolutionListener(),
                 new JukeboxListener()
@@ -76,7 +77,9 @@ public class FurnitureFactory extends MechanicFactory {
         if (evolutionTask != null)
             evolutionTask.cancel();
         evolutionTask = new EvolutionTask(this, evolutionCheckDelay);
-        evolutionTask.runTaskTimer(OraxenPlugin.get(), 0, evolutionCheckDelay);
+        //TODO This will only run as Bukkit, Folia not yet supported
+        OraxenPlugin.foliaLib.getImpl().runTimer(evolutionTask, 20, evolutionCheckDelay);
+        //evolutionTask.runTaskTimer(OraxenPlugin.get(), 0, evolutionCheckDelay);
         evolvingFurnitures = true;
     }
 

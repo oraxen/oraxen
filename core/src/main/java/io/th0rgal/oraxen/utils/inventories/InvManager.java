@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.utils.inventories;
 
-import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import dev.triumphteam.gui.guis.PaginatedGui;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import org.bukkit.entity.Player;
 
@@ -11,8 +11,8 @@ import java.util.UUID;
 
 public class InvManager {
 
-    private Map<UUID, ChestGui> itemsViews = new HashMap<>();
-    private  Map<UUID, ChestGui> recipesViews = new HashMap<>();
+    private Map<UUID, PaginatedGui> itemsViews = new HashMap<>();
+    private  Map<UUID, PaginatedGui> recipesViews = new HashMap<>();
 
     public InvManager() {
         regen();
@@ -23,12 +23,12 @@ public class InvManager {
         recipesViews.clear();
     }
 
-    public ChestGui getItemsView(Player player) {
+    public PaginatedGui itemsView(Player player) {
         return itemsViews.computeIfAbsent(player.getUniqueId(), uuid -> new ItemsView().create());
     }
 
 
-    public ChestGui getRecipesShowcase(Player player, final int page, final List<CustomRecipe> filteredRecipes) {
+    public PaginatedGui recipesShowcase(Player player, final int page, final List<CustomRecipe> filteredRecipes) {
         return recipesViews.computeIfAbsent(player.getUniqueId(), uuid -> new RecipesView().create(page, filteredRecipes));
     }
 }

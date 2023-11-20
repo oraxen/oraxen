@@ -279,8 +279,8 @@ public class FontEvents implements Listener {
                 message = message.replaceText(TextReplacementConfig.builder().matchLiteral(placeholder)
                         .replacement(glyph.getGlyphComponent()).build());
             }
+        }
 
         return message;
     }
-
 }

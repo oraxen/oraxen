@@ -56,7 +56,8 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         tripwireState = tripwireState != null ? tripwireState : BlockState.of(Key.key("minecraft:tripwire"), variants);
         OraxenPlugin.get().resourcePack().blockState(tripwireState);
 
-        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener(this), new SaplingListener());
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
+                new StringBlockMechanicListener(this), new StringBlockDamageListener(), new SaplingListener());
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockSoundListener());
 
         // Physics-related stuff

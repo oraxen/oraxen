@@ -5,9 +5,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import team.unnamed.creative.server.ResourcePackRequestHandler;
 import team.unnamed.creative.server.ResourcePackServer;
 
 import java.io.IOException;
@@ -18,11 +16,16 @@ public class PackServer {
     public PackServer() {
         try {
             int port = Settings.PACK_SERVER_PORT.toInt(8080);
-            String ip = Settings.PACK_SERVER_IP.toString("atlas.oraxen.com");
-            packServer = ResourcePackServer.server().address(ip, port).pack(OraxenPlugin.get().packGenerator().builtPack()).build();
+            String ip = Settings.PACK_SERVER_IP.toString("localhost").replaceAll("^(?!.*/)", "") + "/";
+            if (packServer != null) packServer.stop(0);
+            packServer = (ip.startsWith("localhost") ?
+                    ResourcePackServer.server().address(port) : ResourcePackServer.server().address(ip, port))
+                    .pack(OraxenPlugin.get().packGenerator().builtPack()).build();
+            packServer.start();
         } catch (IOException e) {
             Logs.logError("Failed to start Oraxen pack-server");
             if (Settings.DEBUG.toBool()) Logs.logWarning(e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -44,8 +47,4 @@ public class PackServer {
         Logs.logError("Stopping Oraxen pack-server...");
         packServer.stop(0);
     }
-
-    private ResourcePackRequestHandler handler = (request, exchange) -> {
-        Player player = Bukkit.getPlayer(request.uuid());
-    };
 }

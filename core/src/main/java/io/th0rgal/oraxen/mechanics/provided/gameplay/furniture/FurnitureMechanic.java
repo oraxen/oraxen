@@ -167,8 +167,10 @@ public class FurnitureMechanic extends Mechanic {
         } else hasSeat = false;
 
         ConfigurationSection evoSection = section.getConfigurationSection("evolution");
-        evolvingFurniture = evoSection != null ? new EvolvingFurniture(getItemID(), evoSection) : null;
-        if (evolvingFurniture != null) ((FurnitureFactory) getFactory()).registerEvolution();
+        if (evoSection != null && !VersionUtil.isFoliaServer()) {
+                evolvingFurniture = new EvolvingFurniture(getItemID(), evoSection);
+                ((FurnitureFactory) getFactory()).registerEvolution();
+        } else evolvingFurniture = null;
 
         ConfigurationSection dropSection = section.getConfigurationSection("drop");
         drop = dropSection != null ? Drop.createDrop(FurnitureFactory.getInstance().toolTypes, dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
