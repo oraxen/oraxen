@@ -90,16 +90,18 @@ public class OraxenPlugin extends JavaPlugin {
     @Override
     public void onLoad() {
         CommandAPI.onLoad(new CommandAPIBukkitConfig(this).silentLogs(true));
-        reloadConfigs();
     }
 
     @Override
     public void onEnable() {
+        VersionUtil.isPremium();
         foliaLib = new FoliaLib(this);
         CommandAPI.onEnable();
         ProtectionLib.init(this);
         if (!VersionUtil.isFoliaServer() && !VersionUtil.isSupportedVersionOrNewer("1.20.2")) PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
+        reloadConfigs();
+        if (!VersionUtil.isSupportedVersionOrNewer("1.20.2")) PlayerAnimatorImpl.initialize(this);
         clickActionManager = new ClickActionManager(this);
         supportsDisplayEntities = VersionUtil.isSupportedVersionOrNewer("1.19.4");
         hudManager = new HudManager(configsManager);
@@ -121,6 +123,7 @@ public class OraxenPlugin extends JavaPlugin {
         } else Logs.logWarning("ProtocolLib is not on your server, some features will not work");
         pluginManager.registerEvents(new CustomArmorListener(), this);
         NMSHandlers.setup();
+        packGenerator = new PackGenerator();
 
         MechanicsManager.registerNativeMechanics();
         OraxenItems.loadItems();
@@ -135,7 +138,6 @@ public class OraxenPlugin extends JavaPlugin {
         ArmorEquipEvent.registerListener(this);
         new CommandsManager().loadCommands();
 
-        packGenerator = new PackGenerator();
         packGenerator.generatePack();
         packServer = new PackServer();
         packServer.start();
@@ -233,7 +235,7 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     public ResourcePack resourcePack() {
-        if (resourcePack == null) new PackGenerator().generatePack();
+        if (resourcePack == null) resourcePack = ResourcePack.resourcePack();
         return resourcePack;
     }
 

@@ -79,11 +79,10 @@ public enum Settings {
     PROTECTION("Pack.generation.protection"),
     COMMENT("Pack.generation.comment"),
 
-    UPLOAD_TYPE("Pack.upload.type"),
-    UPLOAD("Pack.upload.enabled"),
-    UPLOAD_OPTIONS("Pack.upload.options"),
-
-    POLYMATH_SERVER("Pack.upload.polymath.server"),
+    PACK_SERVER_ENABLED("Pack.server.enabled"),
+    PACK_SERVER_IP("Pack.server.upload_ip"),
+    PACK_SERVER_PORT("Pack.server.upload_port"),
+    PACK_SERVER_ADDRESS("Pack.server.download_address"),
 
     SEND_PACK("Pack.dispatch.send_pack"),
     SEND_ON_RELOAD("Pack.dispatch.send_on_reload"),
@@ -128,17 +127,43 @@ public enum Settings {
         }
     }
 
+    public String toString(String optionalDefault) {
+        return getValue() == null ? optionalDefault : (String) getValue();
+    }
+
     @Override
     public String toString() {
         return (String) getValue();
     }
 
-    public Component toComponent() {
-        return AdventureUtils.MINI_MESSAGE.deserialize(toString());
+    public Integer toInt() {
+        return toInt(-1);
+    }
+
+    /**
+     * @param optionalDefault value to return if the path is not an integer
+     * @return the value of the path as an int, or the default value if the path is not found
+     */
+    public Integer toInt(int optionalDefault) {
+        try {
+            return Integer.parseInt(getValue().toString());
+        } catch (NumberFormatException e) {
+            return optionalDefault;
+        }
+    }
+
+    public Boolean toBool(boolean defaultValue) {
+        return getValue() == null ? defaultValue : (Boolean) getValue();
     }
 
     public Boolean toBool() {
         return (Boolean) getValue();
+    }
+
+    public Component toComponent() {
+        return AdventureUtils.MINI_MESSAGE.deserialize(public Component toComponent() {
+            return AdventureUtils.MINI_MESSAGE.deserialize(toString());
+        });
     }
 
     public List<String> toStringList() {
