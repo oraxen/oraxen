@@ -28,19 +28,19 @@ dependencies {
     implementation("team.unnamed:creative-api:$creativeVersion")
     implementation("team.unnamed:creative-serializer-minecraft:$creativeVersion")
     implementation("team.unnamed:creative-server:$creativeVersion")
-
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
+
     paperweight.paperDevBundle("1.20.2-R0.1-SNAPSHOT")
+}
+
+java {
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 tasks {
     shadowJar {
         relocate("team.unnamed", "io.th0rgal.oraxen.shaded.unnamed")
     }
-}
-
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 publishing {

@@ -121,11 +121,12 @@ java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
-tasks {
+copyJar {
+    destPath.set(project.findProperty("oraxen2_plugin_path")?.toString())
+    excludePlatformDependencies.set(false)
+}
 
-    copyJar {
-        destPath.set(project.findProperty("oraxen2_plugin_path")?.toString())
-    }
+tasks {
 
     compileJava {
         options.encoding = Charsets.UTF_8.name()
@@ -164,6 +165,7 @@ tasks {
         relocate("com.udojava.evalex", "io.th0rgal.oraxen.shaded.evalex")
         relocate("com.ticxo.playeranimator", "io.th0rgal.oraxen.shaded.playeranimator")
         relocate("com.tcoded.folialib", "io.th0rgal.oraxen.shaded.folialib")
+
 
         manifest {
             attributes(

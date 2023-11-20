@@ -134,7 +134,6 @@ public class OraxenPlugin extends JavaPlugin {
 
         packGenerator.generatePack();
         packServer = new PackServer();
-        packServer.start();
         postLoading();
         try {
             Message.PLUGIN_LOADED.log(AdventureUtils.tagResolver("os", OS.getOs().getPlatformName()));

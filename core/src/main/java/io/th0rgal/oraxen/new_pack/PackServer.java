@@ -17,7 +17,9 @@ public class PackServer {
         try {
             int port = Settings.PACK_SERVER_PORT.toInt(8080);
             String ip = Settings.PACK_SERVER_IP.toString("atlas.oraxen.com");
+            if (packServer != null) packServer.stop(0);
             packServer = ResourcePackServer.server().address(ip, port).pack(OraxenPlugin.get().packGenerator().builtPack()).build();
+            packServer.start();
         } catch (IOException e) {
             Logs.logError("Failed to start Oraxen pack-server");
             if (Settings.DEBUG.toBool()) Logs.logWarning(e.getMessage());
