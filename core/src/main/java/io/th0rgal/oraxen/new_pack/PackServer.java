@@ -5,9 +5,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import team.unnamed.creative.server.ResourcePackRequestHandler;
 import team.unnamed.creative.server.ResourcePackServer;
 
 import java.io.IOException;
@@ -44,8 +42,4 @@ public class PackServer {
         Logs.logError("Stopping Oraxen pack-server...");
         packServer.stop(0);
     }
-
-    private ResourcePackRequestHandler handler = (request, exchange) -> {
-        Player player = Bukkit.getPlayer(request.uuid());
-    };
 }

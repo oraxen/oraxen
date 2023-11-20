@@ -12,7 +12,7 @@ tasks {
     build.get().dependsOn(shadowJar)
 }
 
-val creativeVersion = "1.2.2-SNAPSHOT"
+val creativeVersion = "1.3.0"
 
 dependencies {
     val actionsVersion = "1.0.0-SNAPSHOT"

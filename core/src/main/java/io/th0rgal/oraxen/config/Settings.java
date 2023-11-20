@@ -161,9 +161,7 @@ public enum Settings {
     }
 
     public Component toComponent() {
-        return AdventureUtils.MINI_MESSAGE.deserialize(public Component toComponent() {
-            return AdventureUtils.MINI_MESSAGE.deserialize(toString());
-        });
+        return AdventureUtils.MINI_MESSAGE.deserialize(getValue().toString());
     }
 
     public List<String> toStringList() {
