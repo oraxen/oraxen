@@ -43,7 +43,6 @@ public enum Settings {
 
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
     CUSTOM_ARMOR_SHADER_TYPE("CustomArmor.shader_type"),
-    GESTURES_ENABLED("Gestures.enabled"),
 
     // ItemUpdater
     UPDATE_ITEMS("ItemUpdater.update_items"),

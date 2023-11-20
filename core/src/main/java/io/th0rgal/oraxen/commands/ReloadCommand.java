@@ -70,11 +70,6 @@ public class ReloadCommand {
         hudManager.restartTask();
     }
 
-    public static void reloadGestures(@Nullable CommandSender sender) {
-        Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "gestures"));
-        OraxenPlugin.get().gestureManager().reload();
-    }
-
     public static void reloadRecipes(@Nullable CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "recipes"));
         RecipesManager.reload();

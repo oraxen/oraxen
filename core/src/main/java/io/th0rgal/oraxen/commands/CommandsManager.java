@@ -39,7 +39,6 @@ public class CommandsManager {
                         (new BlockInfoCommand()).getBlockInfoCommand(),
                         (new HudCommand()).getHudCommand(),
                         (new LogDumpCommand().getLogDumpCommand()),
-                        (new GestureCommand().getGestureCommand()),
                         (new VersionCommand()).getVersionCommand(),
                         (new AdminCommands()).getAdminCommand(),
                         (new NewPackCommand()).getNewPackCommand())

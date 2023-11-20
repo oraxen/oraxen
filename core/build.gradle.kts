@@ -24,7 +24,6 @@ dependencies {
     implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
     implementation("com.jeff-media:persistent-data-serializer:1.0")
     implementation("gs.mclo:java:2.2.1")
-    implementation("com.ticxo:PlayerAnimator:R1.2.8")
     implementation("org.jetbrains:annotations:24.0.1") { isTransitive = false }
     implementation("team.unnamed:creative-api:$creativeVersion")
     implementation("team.unnamed:creative-serializer-minecraft:$creativeVersion")

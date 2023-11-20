@@ -33,6 +33,8 @@ public enum RemovedSettings {
     UPLOAD("Pack.upload.enabled"),
     UPLOAD_OPTIONS("Pack.upload.options"),
     POLYMATH_SERVER("Pack.upload.polymath.server"),
+    GESTURES_ENABLED("Gestures.enabled"),
+
 
     ;
 
