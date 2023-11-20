@@ -23,6 +23,6 @@ public class NoticeUtils {
         Logs.logError("Oraxen has detected that you are using Folia.");
         Logs.logWarning("Whilst Oraxen mostly supports it, there is bound to be bugs and other unforseen issues");
         Logs.logWarning("It is not recommended to run this on a production server");
-        Logs.logInfo("Gestures & Evolution-Mechanic are entirely disabled on Folia Servers for the time being");
+        Logs.logInfo("Evolution-Mechanic is entirely disabled on Folia Servers for the time being");
     }
 }

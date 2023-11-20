@@ -122,7 +122,7 @@ java {
 }
 
 copyJar {
-    destPath.set(project.findProperty("oraxen2_plugin_path")?.toString())
+    destPath.set(project.findProperty("oraxen_folia_plugin_path")?.toString())
     excludePlatformDependencies.set(false)
 }
 
