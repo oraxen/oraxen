@@ -294,18 +294,18 @@ public class StringBlockMechanicListener implements Listener {
             if (block.getType() == Material.TRIPWIRE) {
                 StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(blockBelow);
                 if (OraxenBlocks.isOraxenStringBlock(block)) {
-                    event.setCancelled(true);
                     OraxenBlocks.remove(block.getLocation(), null);
-                } else if (mechanicBelow != null && mechanicBelow.isTall()) {
-                    event.setCancelled(true);
-                    OraxenBlocks.remove(blockBelow.getLocation(), null);
+                    event.blockList().remove(block);
                 }
-            } else if (blockAbove.getType() == Material.TRIPWIRE) {
+                else if (mechanicBelow != null && mechanicBelow.isTall()) {
+                    OraxenBlocks.remove(blockBelow.getLocation(), null);
+                    event.blockList().remove(block);
+                }
+            } else {
                 if (!OraxenBlocks.isOraxenStringBlock(blockAbove)) return;
-                event.setCancelled(true);
 
                 OraxenBlocks.remove(blockAbove.getLocation(), null);
-                block.setType(Material.AIR); // This doesn't affect furniture and noteblock as they are handled by other functions
+                event.blockList().remove(block);
             }
         });
     }
