@@ -85,15 +85,17 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     public BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack, Block block, BlockFace blockFace) {
         BlockHitResult hitResult = getBlockHitResult(player, block, blockFace);
         InteractionHand hand = slot == EquipmentSlot.HAND ? InteractionHand.MAIN_HAND : slot == EquipmentSlot.OFF_HAND ? InteractionHand.OFF_HAND : null;
-        if (hitResult == null || hand == null) return null;
-
         net.minecraft.world.item.ItemStack nmsStack = CraftItemStack.asNMSCopy(itemStack);
         ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
-        BlockPlaceContext placeContext = new BlockPlaceContext(new UseOnContext(serverPlayer, hand, hitResult));
+
+        if (hitResult == null || hand == null) return null;
+        if (serverPlayer.getCooldowns().isOnCooldown(nmsStack.getItem())) return null;
+
+        UseOnContext useOnContext = new UseOnContext(serverPlayer, hand, hitResult);
+        BlockPlaceContext placeContext = new BlockPlaceContext(useOnContext);
 
         if (!(nmsStack.getItem() instanceof BlockItem blockItem)) {
-            InteractionResultHolder<net.minecraft.world.item.ItemStack> result = nmsStack.getItem().use(serverPlayer.level, serverPlayer, hand);
-            if (result.getResult() == InteractionResult.CONSUME) player.getInventory().setItem(slot, CraftItemStack.asBukkitCopy(result.getObject()));
+            nmsStack.getItem().use(serverPlayer.level, serverPlayer, hand);
             return null;
         }
 
