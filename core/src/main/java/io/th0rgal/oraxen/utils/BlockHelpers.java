@@ -28,6 +28,7 @@ import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.RayTraceResult;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -146,7 +147,7 @@ public class BlockHelpers {
         Block target = placedAgainst.getRelative(face);
         BlockData correctedData;
         if (NMSHandlers.getHandler() != null  && Settings.NMS_BLOCK_CORRECTION.toBool())
-            correctedData = NMSHandlers.getHandler().correctBlockStates(player, hand, item, placedAgainst, face);
+            correctedData = NMSHandlers.getHandler().correctBlockStates(player, hand, item);
         else {
             if (newData == null) return null;
             // If not using NMS-method, the BlockData needs to be set beforehand

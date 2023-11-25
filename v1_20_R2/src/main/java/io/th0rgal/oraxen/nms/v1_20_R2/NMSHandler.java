@@ -14,14 +14,11 @@ import io.th0rgal.oraxen.font.GlyphTag;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.logs.Logs;
-import it.unimi.dsi.fastutil.Pair;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.*;
@@ -30,24 +27,25 @@ import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
 import net.minecraft.network.protocol.game.ClientboundPlayerChatPacket;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerConnectionListener;
 import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.TagNetworkSerialization;
+import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
-import net.minecraft.world.InteractionResultHolder;
 import net.minecraft.world.item.BlockItem;
-import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.DirectionalPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
@@ -97,17 +95,14 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     @Nullable
-    public BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack, Block block, BlockFace blockFace) {
-        BlockHitResult hitResult = getBlockHitResult(player, block, blockFace);
-        InteractionHand hand = slot == EquipmentSlot.HAND ? InteractionHand.MAIN_HAND : slot == EquipmentSlot.OFF_HAND ? InteractionHand.OFF_HAND : null;
+    public BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack) {
+        InteractionHand hand = slot == EquipmentSlot.HAND ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
         net.minecraft.world.item.ItemStack nmsStack = CraftItemStack.asNMSCopy(itemStack);
         ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+        BlockHitResult hitResult = getPlayerPOVHitResult(serverPlayer.level(), serverPlayer, ClipContext.Fluid.NONE);
+        BlockPlaceContext placeContext = new BlockPlaceContext(new UseOnContext(serverPlayer, hand, hitResult));
 
-        if (hitResult == null || hand == null) return null;
         if (serverPlayer.getCooldowns().isOnCooldown(nmsStack.getItem())) return null;
-
-        UseOnContext useOnContext = new UseOnContext(serverPlayer, hand, hitResult);
-        BlockPlaceContext placeContext = new BlockPlaceContext(useOnContext);
 
         if (!(nmsStack.getItem() instanceof BlockItem blockItem)) {
             nmsStack.getItem().use(serverPlayer.level(), serverPlayer, hand);
@@ -123,16 +118,23 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         InteractionResult result = blockItem.place(placeContext);
         if (result == InteractionResult.FAIL) return null;
         if (placeContext instanceof DirectionalPlaceContext && player.getGameMode() != org.bukkit.GameMode.CREATIVE) itemStack.setAmount(itemStack.getAmount() - 1);
-        return block.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ()).getBlockData();
+        return player.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ()).getBlockData();
     }
 
     @Override
-    public @Nullable BlockHitResult getBlockHitResult(Player player, Block block, BlockFace blockFace) {
-        Vec3 vec3 = new Vec3(player.getEyeLocation().getX(), player.getEyeLocation().getY(), player.getEyeLocation().getZ());
-        Direction direction = Arrays.stream(Direction.values()).filter(d -> d.name().equals(blockFace.name())).findFirst().orElse(null);
-        if (direction == null) return null;
-        BlockPos blockPos = new BlockPos(block.getX(), block.getY(), block.getZ()).relative(direction);
-        return new BlockHitResult(vec3, direction.getOpposite(), blockPos, false);
+    public BlockHitResult getPlayerPOVHitResult(Level world, net.minecraft.world.entity.player.Player player, ClipContext.Fluid fluidHandling) {
+        float f = player.getXRot();
+        float g = player.getYRot();
+        Vec3 vec3 = player.getEyePosition();
+        float h = Mth.cos(-g * ((float)Math.PI / 180F) - (float)Math.PI);
+        float i = Mth.sin(-g * ((float)Math.PI / 180F) - (float)Math.PI);
+        float j = -Mth.cos(-f * ((float)Math.PI / 180F));
+        float k = Mth.sin(-f * ((float)Math.PI / 180F));
+        float l = i * j;
+        float n = h * j;
+        double d = 5.0D;
+        Vec3 vec32 = vec3.add((double)l * 5.0D, (double)k * 5.0D, (double)n * 5.0D);
+        return world.clip(new ClipContext(vec3, vec32, ClipContext.Block.OUTLINE, fluidHandling, player));
     }
 
     @Override
