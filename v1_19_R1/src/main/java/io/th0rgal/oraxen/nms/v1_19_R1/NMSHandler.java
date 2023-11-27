@@ -88,10 +88,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         BlockHitResult hitResult = getPlayerPOVHitResult(serverPlayer.level, serverPlayer, ClipContext.Fluid.NONE);
         BlockPlaceContext placeContext = new BlockPlaceContext(new UseOnContext(serverPlayer, hand, hitResult));
 
-        if (serverPlayer.getCooldowns().isOnCooldown(nmsStack.getItem())) return null;
-
         if (!(nmsStack.getItem() instanceof BlockItem blockItem)) {
-            nmsStack.getItem().use(serverPlayer.level, serverPlayer, hand);
+            serverPlayer.gameMode.useItem(serverPlayer, serverPlayer.level, nmsStack, hand);
             return null;
         }
 

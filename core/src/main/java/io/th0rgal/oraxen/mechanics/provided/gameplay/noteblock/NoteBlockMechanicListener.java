@@ -273,13 +273,7 @@ public class NoteBlockMechanicListener implements Listener {
                 return;
             }
         }
-        else {
-            if (type.toString().contains("_BUCKET")) {
-                if (type == Material.MILK_BUCKET) return;
-                else if (type == Material.LAVA_BUCKET) type = Material.LAVA;
-                else type = Material.WATER;
-            } else if (Tag.ITEMS_BOATS.isTagged(item.getType())) event.setCancelled(true);
-        }
+
 
         BlockData newData = type != null && type.isBlock() ? type.createBlockData() : null;
         makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), newData);
