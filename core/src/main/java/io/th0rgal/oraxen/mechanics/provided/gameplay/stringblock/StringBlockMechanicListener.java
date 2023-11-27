@@ -418,6 +418,8 @@ public class StringBlockMechanicListener implements Listener {
             } else blockAbove.setType(Material.TRIPWIRE);
         }
         if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
+        if (target.getLocation().getBlockY() >= target.getWorld().getMaxHeight() || target.getLocation().getBlockY() <= target.getWorld().getMinHeight())
+            blockPlaceEvent.setCancelled(true);
         if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild() || !EventUtils.callEvent(oraxenBlockPlaceEvent)) return null;
 
         final String sound;

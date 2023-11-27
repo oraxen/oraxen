@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.nms.NMSHandlers;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
 import org.bukkit.block.Sign;
@@ -146,8 +147,7 @@ public class BlockHelpers {
     public static BlockData correctAllBlockStates(Block placedAgainst, Player player, EquipmentSlot hand, BlockFace face, ItemStack item, BlockData newData) {
         Block target = placedAgainst.getRelative(face);
         BlockData correctedData;
-        if (NMSHandlers.getHandler() != null  && Settings.NMS_BLOCK_CORRECTION.toBool())
-        {
+        if (NMSHandlers.getHandler() != null  && Settings.NMS_BLOCK_CORRECTION.toBool()) {
             //TODO Fix boats, currently Item#use in BoatItem calls PlayerInteractEvent
             // thus causing a StackOverflow, find a workaround
             if (Tag.ITEMS_BOATS.isTagged(item.getType())) return null;
