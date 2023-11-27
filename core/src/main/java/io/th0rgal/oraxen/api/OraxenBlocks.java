@@ -257,12 +257,10 @@ public class OraxenBlocks {
                 wireBlockBreakEvent.getDrop().spawns(block.getLocation(), item);
         }
 
-        if (mechanic.hasLight())
-            WrappedLightAPI.removeBlockLight(block.getLocation());
-        if (mechanic.isTall())
-            block.getRelative(BlockFace.UP).setType(Material.AIR, false);
-        block.setType(Material.AIR, false);
         final Block blockAbove = block.getRelative(BlockFace.UP);
+        if (mechanic.hasLight()) WrappedLightAPI.removeBlockLight(block.getLocation());
+        if (mechanic.isTall()) blockAbove.setType(Material.AIR);
+        block.setType(Material.AIR);
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             StringBlockMechanicListener.fixClientsideUpdate(block.getLocation());
             if (blockAbove.getType() == Material.TRIPWIRE)

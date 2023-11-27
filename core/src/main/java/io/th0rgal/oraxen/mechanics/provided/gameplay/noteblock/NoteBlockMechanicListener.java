@@ -306,7 +306,6 @@ public class NoteBlockMechanicListener implements Listener {
         }
 
         BlockData data = NoteBlockMechanicFactory.createNoteBlockData(customVariation);
-
         makePlayerPlaceBlock(player, event.getHand(), event.getItem(), placedAgainst, face, data);
     }
 
@@ -484,7 +483,6 @@ public class NoteBlockMechanicListener implements Listener {
     public void makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
                                      final Block placedAgainst, final BlockFace face, final BlockData newData) {
         final Block target;
-        final String sound;
         final Material type = placedAgainst.getType();
 
         if (BlockHelpers.isReplaceable(type)) target = placedAgainst;
@@ -517,10 +515,7 @@ public class NoteBlockMechanicListener implements Listener {
 
             if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
             Utils.swingHand(player, hand);
-            return;
-        }
-
-        BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
+        } else BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
     }
 
     // Used to determine what instrument to use when playing a note depending on below block
