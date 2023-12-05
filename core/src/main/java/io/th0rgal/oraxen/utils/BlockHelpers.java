@@ -7,7 +7,9 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.nms.NMSHandlers;
+import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
@@ -20,12 +22,14 @@ import org.bukkit.block.data.type.Lectern;
 import org.bukkit.block.data.type.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
+import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.RayTraceResult;
@@ -476,6 +480,39 @@ public class BlockHelpers {
 
     public static boolean isLoaded(Location loc) {
         return loc.getWorld() != null && isLoaded(loc.getWorld(), loc);
+    }
+
+    /**
+     * Used to correctly damage the item in the player's hand based on broken block
+     * Only handles it if the block is a OraxenBlock or OraxenFurniture
+     * @param player the player that broke the OraxenBlock or OraxenFurniture
+     * @param drop the Drop that will be dropped
+     * @param itemStack the item in the player's hand
+     * @return the itemStack with the correct damage applied
+     */
+    public static ItemStack damageItem(Player player, Drop drop, ItemStack itemStack) {
+
+        // If all are null this is not something Oraxen should handle
+        // If the block/furniture has no drop, it returns Drop.emptyDrop() which is handled by the caller
+        if (drop == null) return itemStack;
+
+        int damage;
+        boolean isToolEnough = drop.isToolEnough(itemStack);
+        damage = isToolEnough ? 1 : 2;
+        // If the item is not a tool, it will not be damaged, example flint&steel should not be damaged
+        damage = Tag.ITEMS_TOOLS.isTagged(itemStack.getType()) ? damage : 0;
+
+        if (damage == 0) return itemStack;
+        try {
+            return player.damageItemStack(itemStack, damage);
+        } catch (Exception e) {
+            int finalDamage = damage;
+            return Utils.editItemMeta(itemStack, meta -> {
+                if (meta instanceof Damageable damageable && EventUtils.callEvent(new PlayerItemDamageEvent(player, itemStack, finalDamage))) {
+                    damageable.setDamage(damageable.getDamage() + 1);
+                }
+            });
+        }
     }
 
 }
