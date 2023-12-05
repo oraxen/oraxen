@@ -140,7 +140,7 @@ public class FurnitureListener implements Listener {
         FurnitureMechanic mechanic = getMechanic(item, player, block);
 
         if (mechanic == null || item == null || hand != EquipmentSlot.HAND) return;
-        if (block == null || placedAgainst == null || !placedAgainst.canPlace(block.getBlockData())) return;
+        if (block == null || !placedAgainst.canPlace(block.getBlockData())) return;
         if (event.useInteractedBlock() == Event.Result.DENY) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
@@ -191,6 +191,7 @@ public class FurnitureListener implements Listener {
 
     private Block getTarget(Block placedAgainst, BlockFace blockFace) {
         Block target;
+        if (placedAgainst == null) return null;
         if (BlockHelpers.isReplaceable(placedAgainst))
             target = placedAgainst;
         else {
