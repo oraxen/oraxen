@@ -245,7 +245,7 @@ public class NoteBlockMechanicListener implements Listener {
             return;
         }
 
-        if (!Settings.NMS_BLOCK_CORRECTION.toBool()) {
+        if (!BlockHelpers.BlockCorrection.useNMS()) {
             final boolean bucketCheck = type.toString().endsWith("_BUCKET");
             final String bucketBlock = type.toString().replace("_BUCKET", "");
             EntityType bucketEntity;
