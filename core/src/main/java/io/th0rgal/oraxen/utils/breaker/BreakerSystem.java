@@ -132,7 +132,10 @@ public class BreakerSystem {
                         // Methods for sending multi-barrier block-breaks
                         final FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
                         final Entity furnitureBaseEntity = furnitureMechanic != null ? furnitureMechanic.getBaseEntity(block) : null;
-                        final List<Location> furnitureBarrierLocations = furnitureMechanic != null && furnitureBaseEntity != null ? furnitureMechanic.getLocations(FurnitureMechanic.getFurnitureYaw(furnitureBaseEntity), furnitureBaseEntity.getLocation(), furnitureMechanic.getBarriers()) : Collections.singletonList(block.getLocation());
+                        final List<Location> furnitureBarrierLocations = furnitureMechanic != null && furnitureBaseEntity != null
+                                ? furnitureMechanic.getLocations(FurnitureMechanic.getFurnitureYaw(furnitureBaseEntity),
+                                furnitureBaseEntity.getLocation(), furnitureMechanic.getBarriers())
+                                : Collections.singletonList(block.getLocation());
 
                         if (!breakerPerLocation.containsKey(location)) {
                             bukkitTask.cancel();
@@ -158,8 +161,7 @@ public class BreakerSystem {
                                 item.damage(1, player);
                             } catch (Exception e) {
                                 Utils.editItemMeta(item, meta -> {
-                                    if (meta instanceof Damageable damageable) {
-                                        EventUtils.callEvent(new PlayerItemDamageEvent(player, item, 1));
+                                    if (meta instanceof Damageable damageable && EventUtils.callEvent(new PlayerItemDamageEvent(player, item, 1))) {
                                         damageable.setDamage(damageable.getDamage() + 1);
                                     }
                                 });
