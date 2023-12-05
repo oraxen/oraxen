@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.durability;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
@@ -36,7 +37,7 @@ public class DurabilityMechanic extends Mechanic {
         DurabilityMechanic durabilityMechanic = this;
         AtomicBoolean check = new AtomicBoolean(false);
 
-        Utils.editItemMeta(item, (itemMeta) -> {
+        ItemUtils.editItemMeta(item, (itemMeta) -> {
             PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
             check.set(pdc.has(DurabilityMechanic.DURABILITY_KEY, PersistentDataType.INTEGER));
 

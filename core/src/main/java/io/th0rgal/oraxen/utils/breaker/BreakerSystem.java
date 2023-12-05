@@ -19,10 +19,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
-import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.EventUtils;
-import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -166,7 +163,7 @@ public class BreakerSystem {
                         if (value++ < 10) return;
                         if (EventUtils.callEvent(new BlockBreakEvent(block, player)) && ProtectionLib.canBreak(player, block.getLocation())) {
                             // Damage item with properties identified earlier
-                            BlockHelpers.damageItem(player, drop, item);
+                            ItemUtils.damageItem(player, drop, item);
                             modifier.breakBlock(player, block, item);
                         } else breakerPlaySound.remove(block);
 

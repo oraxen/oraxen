@@ -145,17 +145,4 @@ public class Utils {
         else player.swingOffHand();
     }
 
-    /**
-     * @param itemStack The ItemStack to edit the ItemMeta of
-     * @param function  The function-block to edit the ItemMeta in
-     * @return The original ItemStack with the new ItemMeta
-     */
-    public static ItemStack editItemMeta(ItemStack itemStack, Consumer<ItemMeta> function) {
-        ItemMeta meta = itemStack.getItemMeta();
-        if (meta == null) return itemStack;
-        function.accept(meta);
-        itemStack.setItemMeta(meta);
-        return itemStack;
-    }
-
 }

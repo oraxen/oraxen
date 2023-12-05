@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.inventory.Book;
@@ -183,7 +184,7 @@ public class FontEvents implements Listener {
         }
 
         String finalDisplayName = displayName;
-        Utils.editItemMeta(resultItem, meta -> meta.setDisplayName(finalDisplayName));
+        ItemUtils.editItemMeta(resultItem, meta -> meta.setDisplayName(finalDisplayName));
     }
 
     @EventHandler

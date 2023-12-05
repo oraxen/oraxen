@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Material;
@@ -89,7 +90,7 @@ public class ItemUpdater implements Listener {
         // Oraxens Inventory adds a dumb PDC entry to items, this will remove them
         // Done here over [ItemsView] as this method is called anyway and supports old items
         NamespacedKey guiItemKey = Objects.requireNonNull(NamespacedKey.fromString("oraxen:if-uuid"));
-        Utils.editItemMeta(oldItem, itemMeta -> itemMeta.getPersistentDataContainer().remove(guiItemKey));
+        ItemUtils.editItemMeta(oldItem, itemMeta -> itemMeta.getPersistentDataContainer().remove(guiItemKey));
 
         Optional<ItemBuilder> newItemBuilder = OraxenItems.getOptionalItemById(id);
         if (newItemBuilder.isEmpty() || newItemBuilder.get().getOraxenMeta().isNoUpdate()) return oldItem;
@@ -97,7 +98,7 @@ public class ItemUpdater implements Listener {
         ItemStack newItem = NMSHandlers.getHandler().copyItemNBTTags(oldItem, newItemBuilder.get().build());;
         newItem.setAmount(oldItem.getAmount());
 
-        Utils.editItemMeta(newItem, itemMeta -> {
+        ItemUtils.editItemMeta(newItem, itemMeta -> {
             ItemMeta oldMeta = oldItem.getItemMeta();
             ItemMeta newMeta = newItem.getItemMeta();
             if (oldMeta == null || newMeta == null) return;

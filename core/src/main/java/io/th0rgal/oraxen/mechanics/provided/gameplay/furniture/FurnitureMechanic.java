@@ -350,7 +350,7 @@ public class FurnitureMechanic extends Mechanic {
 
         ItemStack item;
         if (evolvingFurniture == null) {
-            item = Utils.editItemMeta(originalItem.clone(), meta -> meta.setDisplayName(""));
+            item = ItemUtils.editItemMeta(originalItem.clone(), meta -> meta.setDisplayName(""));
         } else item = placedItem;
         item.setAmount(1);
 
