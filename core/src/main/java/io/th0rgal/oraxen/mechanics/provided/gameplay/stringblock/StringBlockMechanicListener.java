@@ -266,11 +266,7 @@ public class StringBlockMechanicListener implements Listener {
             }
         } else if (blockAbove.getType() == Material.TRIPWIRE) {
             if (!OraxenBlocks.isOraxenStringBlock(blockAbove)) return;
-            event.setCancelled(true);
-
             OraxenBlocks.remove(blockAbove.getLocation(), player);
-            block.setType(Material.AIR); // This doesn't affect furniture and noteblock as they are handled by other functions
-            event.setDropItems(false);
         }
     }
 
