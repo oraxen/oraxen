@@ -64,17 +64,12 @@ public class FontManager {
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
 
         if (Settings.NMS_GLYPHS.toBool() && NMSHandlers.getHandler() != null) {
-            if (VersionUtil.isSupportedVersionOrNewer("1.20.2")) {
-                useNmsGlyphs = false;
-                Logs.logWarning("NMS Glyphs are not supported on 1.20.2 and newer at the moment...");
-            } else {
-                useNmsGlyphs = true;
-                NMSHandlers.getHandler().setupNmsGlyphs();
-                Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
-                Logs.logInfo("Disabling packet-based glyph systems", true);
-                OraxenPlugin.get().getProtocolManager().removePacketListener(new InventoryPacketListener());
-                OraxenPlugin.get().getProtocolManager().removePacketListener(new TitlePacketListener());
-            }
+            useNmsGlyphs = true;
+            NMSHandlers.getHandler().setupNmsGlyphs();
+            Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
+            Logs.logInfo("Disabling packet-based glyph systems", true);
+            OraxenPlugin.get().getProtocolManager().removePacketListener(new InventoryPacketListener());
+            OraxenPlugin.get().getProtocolManager().removePacketListener(new TitlePacketListener());
         } else useNmsGlyphs = false;
     }
 
