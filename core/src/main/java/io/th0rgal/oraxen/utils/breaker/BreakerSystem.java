@@ -53,7 +53,7 @@ public class BreakerSystem {
 
     public static final List<HardnessModifier> MODIFIERS = new ArrayList<>();
     private final Map<Location, BukkitScheduler> breakerPerLocation = new HashMap<>();
-    private final List<Block> breakerPlaySound = new ArrayList<>();
+    private final Map<Location, BukkitTask> breakerPlaySound = new HashMap<>();
     private final ProtocolManager protocolManager;
     private final PacketAdapter listener = new PacketAdapter(OraxenPlugin.get(),
             ListenerPriority.LOW, PacketType.Play.Client.BLOCK_DIG) {
@@ -106,11 +106,15 @@ public class BreakerSystem {
             if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
                 // Get these when block is started being broken to minimize checks & allow for proper damage checks later
                 final Drop drop;
-                if (furnitureMechanic != null) drop = furnitureMechanic.getDrop() != null ? furnitureMechanic.getDrop() : Drop.emptyDrop();
-                else if (noteMechanic != null) drop = noteMechanic.getDrop() != null ? noteMechanic.getDrop() : Drop.emptyDrop();
-                else if (stringMechanic != null) drop = stringMechanic.getDrop() != null ? stringMechanic.getDrop() : Drop.emptyDrop();
+                if (furnitureMechanic != null)
+                    drop = furnitureMechanic.getDrop() != null ? furnitureMechanic.getDrop() : Drop.emptyDrop();
+                else if (noteMechanic != null)
+                    drop = noteMechanic.getDrop() != null ? noteMechanic.getDrop() : Drop.emptyDrop();
+                else if (stringMechanic != null)
+                    drop = stringMechanic.getDrop() != null ? stringMechanic.getDrop() : Drop.emptyDrop();
                 else drop = null;
 
+                // Methods for sending multi-barrier block-breaks
                 final List<Location> furnitureBarrierLocations = furnitureBarrierLocations(furnitureMechanic, block);
 
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
@@ -118,9 +122,7 @@ public class BreakerSystem {
                                 (int) (period * 11),
                                 Integer.MAX_VALUE,
                                 false, false, false)));
-                BlockSounds blockSounds = getBlockSounds(block);
-                if (blockSounds != null)
-                    BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getHitVolume(), blockSounds.getHitPitch());
+
                 if (breakerPerLocation.containsKey(location))
                     breakerPerLocation.get(location).cancelTasks(OraxenPlugin.get());
 
@@ -136,13 +138,13 @@ public class BreakerSystem {
 
                 breakerPerLocation.put(location, scheduler);
                 final HardnessModifier modifier = triggeredModifier;
+                startBlockHitSound(block);
 
                 scheduler.runTaskTimer(OraxenPlugin.get(), new Consumer<>() {
                     int value = 0;
 
                     @Override
                     public void accept(final BukkitTask bukkitTask) {
-                        // Methods for sending multi-barrier block-breaks
                         if (!breakerPerLocation.containsKey(location)) {
                             bukkitTask.cancel();
                             return;
@@ -160,22 +162,22 @@ public class BreakerSystem {
                         }
 
                         if (value++ < 10) return;
-                        if (EventUtils.callEvent(new BlockBreakEvent(block, player)) && ProtectionLib.canBreak(player, block.getLocation())) {
+                        if (EventUtils.callEvent(new BlockBreakEvent(block, player)) && ProtectionLib.canBreak(player, location)) {
                             // Damage item with properties identified earlier
                             ItemUtils.damageItem(player, drop, item);
                             modifier.breakBlock(player, block, item);
-                        } else breakerPlaySound.remove(block);
+                        } else stopBlockHitSound(block);
 
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
                                 player.removePotionEffect(PotionEffectType.SLOW_DIGGING));
 
-                        breakerPerLocation.remove(location);
+                        stopBlockBreaker(block);
+                        stopBlockHitSound(block);
                         for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
                             if (entity instanceof Player viewer) {
-                                if (furnitureMechanic != null) {
-                                    for (Location barrierLoc : furnitureBarrierLocations)
-                                        sendBlockBreak(viewer, barrierLoc, value);
-                                } else sendBlockBreak(viewer, location, value);
+                                if (furnitureMechanic != null) for (Location barrierLoc : furnitureBarrierLocations)
+                                    sendBlockBreak(viewer, barrierLoc, value);
+                                else sendBlockBreak(viewer, location, value);
                             }
                         }
                         bukkitTask.cancel();
@@ -184,13 +186,14 @@ public class BreakerSystem {
             } else {
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
                     player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
-                    if (!ProtectionLib.canBreak(player, block.getLocation()))
+                    if (!ProtectionLib.canBreak(player, location))
                         player.sendBlockChange(block.getLocation(), block.getBlockData());
 
                     for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
                         if (entity instanceof Player viewer)
                             sendBlockBreak(viewer, location, 10);
-                    breakerPerLocation.remove(location);
+                    stopBlockBreaker(block);
+                    stopBlockHitSound(block);
                 });
             }
         }
@@ -255,16 +258,30 @@ public class BreakerSystem {
         final PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
         packet.getIntegers().write(0, location.hashCode()).write(1, stage);
         packet.getBlockPositionModifier().write(0, new BlockPosition(location.toVector()));
-        if (!breakerPlaySound.contains(block)) {
-            breakerPlaySound.add(block);
-            BlockSounds blockSounds = getBlockSounds(block);
-            if (blockSounds != null && blockSounds.hasHitSound())
-                BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getHitVolume(), blockSounds.getHitPitch());
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                    breakerPlaySound.remove(block), 3L);
-        }
 
         protocolManager.sendServerPacket(player, packet);
+    }
+
+    private void stopBlockBreaker(Block block) {
+        if (breakerPerLocation.containsKey(block.getLocation())) {
+            breakerPerLocation.get(block.getLocation()).cancelTasks(OraxenPlugin.get());
+            breakerPerLocation.remove(block.getLocation());
+        }
+    }
+
+    private void startBlockHitSound(Block block) {
+        BlockSounds blockSounds = getBlockSounds(block);
+        if (blockSounds == null || !blockSounds.hasHitSound()) return;
+        breakerPlaySound.put(block.getLocation(), Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(),
+                () -> BlockHelpers.playCustomBlockSound(block.getLocation(), getSound(block), blockSounds.getHitVolume(), blockSounds.getHitPitch())
+                , 0L, 4L));
+    }
+
+    private void stopBlockHitSound(Block block) {
+        if (breakerPlaySound.containsKey(block.getLocation())) {
+            breakerPlaySound.get(block.getLocation()).cancel();
+            breakerPlaySound.remove(block.getLocation());
+        }
     }
 
     public void registerListener() {
