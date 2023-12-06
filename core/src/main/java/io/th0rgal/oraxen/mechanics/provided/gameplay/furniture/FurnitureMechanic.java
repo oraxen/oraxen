@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
+import java.security.Key;
 import java.util.*;
 
 public class FurnitureMechanic extends Mechanic {
@@ -136,9 +137,18 @@ public class FurnitureMechanic extends Mechanic {
         barriers = new ArrayList<>();
         if (section.getBoolean("barrier", false))
             barriers.add(new BlockLocation(0, 0, 0));
-        if (section.isList("barriers"))
+        if (section.isList("barriers")) {
             for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
-                barriers.add(new BlockLocation((Map<String, Object>) barrierObject));
+                if (barrierObject instanceof String string && string.equals("origin"))
+                    barriers.add(new BlockLocation(0, 0, 0));
+                else if (barrierObject instanceof Map<?, ?> barrierMap) {
+                    try {
+                        barriers.add(new BlockLocation((Map<String, Integer>) barrierMap));
+                    } catch (ClassCastException e) {
+                        Logs.logError("Invalid barrier location: " + barrierMap + " for furniture: " + getItemID());
+                    }
+                }
+        }
 
         ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
         if (hitboxSection != null) {

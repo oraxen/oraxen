@@ -37,10 +37,10 @@ public class BlockLocation implements ConfigurationSerializable {
         this.z = Integer.parseInt(values[2]);
     }
 
-    public BlockLocation(Map<String, Object> coordinatesMap) {
-        this.x = (Integer) coordinatesMap.getOrDefault("x", 0);
-        this.y = (Integer) coordinatesMap.getOrDefault("y", 0);
-        this.z = (Integer) coordinatesMap.getOrDefault("z", 0);
+    public BlockLocation(Map<String, Integer> coordinatesMap) {
+        this.x = coordinatesMap.getOrDefault("x", 0);
+        this.y = coordinatesMap.getOrDefault("y", 0);
+        this.z = coordinatesMap.getOrDefault("z", 0);
     }
 
     @Override
