@@ -38,9 +38,9 @@ public class BlockLocation implements ConfigurationSerializable {
     }
 
     public BlockLocation(Map<String, Object> coordinatesMap) {
-        this.x = (Integer) coordinatesMap.get("x");
-        this.y = (Integer) coordinatesMap.get("y");
-        this.z = (Integer) coordinatesMap.get("z");
+        this.x = (Integer) coordinatesMap.getOrDefault("x", 0);
+        this.y = (Integer) coordinatesMap.getOrDefault("y", 0);
+        this.z = (Integer) coordinatesMap.getOrDefault("z", 0);
     }
 
     @Override
