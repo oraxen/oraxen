@@ -44,6 +44,7 @@ import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory.getBlockMechanic;
@@ -98,22 +99,24 @@ public class BreakerSystem {
             if (block.getType() == Material.NOTE_BLOCK && noteMechanic == null) return;
             if (block.getType() == Material.TRIPWIRE && stringMechanic == null) return;
             if (block.getType() == Material.BARRIER && furnitureMechanic == null) return;
-            final Entity furnitureBaseEntity = furnitureMechanic != null ? furnitureMechanic.getBaseEntity(block) : null;
-            final List<Location> furnitureBarrierLocations = furnitureMechanic != null && furnitureBaseEntity != null
-                    ? furnitureMechanic.getLocations(FurnitureMechanic.getFurnitureYaw(furnitureBaseEntity),
-                    furnitureBaseEntity.getLocation(), furnitureMechanic.getBarriers())
-                    : Collections.singletonList(block.getLocation());
-            // Get these when block is started being broken to minimize checks & allow for proper damage checks later
-            final Drop drop;
-            if (furnitureMechanic != null) drop = furnitureMechanic.getDrop() != null ? furnitureMechanic.getDrop() : Drop.emptyDrop();
-            else if (noteMechanic != null) drop = noteMechanic.getDrop() != null ? noteMechanic.getDrop() : Drop.emptyDrop();
-            else if (stringMechanic != null) drop = stringMechanic.getDrop() != null ? stringMechanic.getDrop() : Drop.emptyDrop();
-            else drop = null;
 
             event.setCancelled(true);
 
             final Location location = block.getLocation();
             if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
+                AtomicReference<Entity> furnitureBaseEntity = new AtomicReference<>();
+                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> furnitureBaseEntity.set(furnitureMechanic != null ? furnitureMechanic.getBaseEntity(block) : null));
+                final List<Location> furnitureBarrierLocations = furnitureMechanic != null && furnitureBaseEntity.get() != null
+                        ? furnitureMechanic.getLocations(FurnitureMechanic.getFurnitureYaw(furnitureBaseEntity.get()),
+                        furnitureBaseEntity.get().getLocation(), furnitureMechanic.getBarriers())
+                        : Collections.singletonList(block.getLocation());
+                // Get these when block is started being broken to minimize checks & allow for proper damage checks later
+                final Drop drop;
+                if (furnitureMechanic != null) drop = furnitureMechanic.getDrop() != null ? furnitureMechanic.getDrop() : Drop.emptyDrop();
+                else if (noteMechanic != null) drop = noteMechanic.getDrop() != null ? noteMechanic.getDrop() : Drop.emptyDrop();
+                else if (stringMechanic != null) drop = stringMechanic.getDrop() != null ? stringMechanic.getDrop() : Drop.emptyDrop();
+                else drop = null;
+
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
                         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING,
                                 (int) (period * 11),
