@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.drops.Drop;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
 import org.bukkit.block.Sign;
@@ -31,6 +32,7 @@ import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.RayTraceResult;
+import org.bukkit.util.Vector;
 
 import java.util.List;
 import java.util.Objects;
@@ -83,7 +85,7 @@ public class BlockHelpers {
 
     public static boolean isStandingInside(final Player player, final Block block) {
         if (player == null || block == null) return false;
-        final Location playerLoc = player.getLocation();
+        final Location playerLoc = player.getLocation().getBlock().getLocation();
         final Location blockLoc = BlockHelpers.toCenterLocation(block.getLocation());
         return Range.between(0.5, 1.5).contains(blockLoc.getY() - playerLoc.getY()) &&
                 Range.between(-0.80, 0.80).contains(blockLoc.getX() - playerLoc.getX())
