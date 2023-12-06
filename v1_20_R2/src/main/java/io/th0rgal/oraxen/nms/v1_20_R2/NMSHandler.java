@@ -133,7 +133,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         float l = i * j;
         float n = h * j;
         double d = 5.0D;
-        Vec3 vec32 = vec3.add((double)l * 5.0D, (double)k * 5.0D, (double)n * 5.0D);
+        Vec3 vec32 = vec3.add((double)l * d, (double)k * d, (double)n * d);
         return world.clip(new ClipContext(vec3, vec32, ClipContext.Block.OUTLINE, fluidHandling, player));
     }
 
