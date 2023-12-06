@@ -104,18 +104,14 @@ public class BreakerSystem {
 
             final Location location = block.getLocation();
             if (type == EnumWrappers.PlayerDigType.START_DESTROY_BLOCK) {
-                AtomicReference<Entity> furnitureBaseEntity = new AtomicReference<>();
-                Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> furnitureBaseEntity.set(furnitureMechanic != null ? furnitureMechanic.getBaseEntity(block) : null));
-                final List<Location> furnitureBarrierLocations = furnitureMechanic != null && furnitureBaseEntity.get() != null
-                        ? furnitureMechanic.getLocations(FurnitureMechanic.getFurnitureYaw(furnitureBaseEntity.get()),
-                        furnitureBaseEntity.get().getLocation(), furnitureMechanic.getBarriers())
-                        : Collections.singletonList(block.getLocation());
                 // Get these when block is started being broken to minimize checks & allow for proper damage checks later
                 final Drop drop;
                 if (furnitureMechanic != null) drop = furnitureMechanic.getDrop() != null ? furnitureMechanic.getDrop() : Drop.emptyDrop();
                 else if (noteMechanic != null) drop = noteMechanic.getDrop() != null ? noteMechanic.getDrop() : Drop.emptyDrop();
                 else if (stringMechanic != null) drop = stringMechanic.getDrop() != null ? stringMechanic.getDrop() : Drop.emptyDrop();
                 else drop = null;
+
+                final List<Location> furnitureBarrierLocations = furnitureBarrierLocations(furnitureMechanic, block);
 
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
                         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING,
@@ -199,6 +195,15 @@ public class BreakerSystem {
             }
         }
     };
+
+    private List<Location> furnitureBarrierLocations(FurnitureMechanic furnitureMechanic, Block block) {
+        AtomicReference<Entity> furnitureBaseEntity = new AtomicReference<>();
+        Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> furnitureBaseEntity.set(furnitureMechanic != null ? furnitureMechanic.getBaseEntity(block) : null));
+        return furnitureMechanic != null && furnitureBaseEntity.get() != null
+                ? furnitureMechanic.getLocations(FurnitureMechanic.getFurnitureYaw(furnitureBaseEntity.get()),
+                furnitureBaseEntity.get().getLocation(), furnitureMechanic.getBarriers())
+                : Collections.singletonList(block.getLocation());
+    }
 
     public BreakerSystem() {
         protocolManager = OraxenPlugin.get().getProtocolManager();
