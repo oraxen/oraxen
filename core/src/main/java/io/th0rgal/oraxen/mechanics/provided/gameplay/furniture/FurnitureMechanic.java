@@ -492,15 +492,16 @@ public class FurnitureMechanic extends Mechanic {
         frame.setVisible(false);
         frame.setItemDropChance(0);
         frame.setFacingDirection(facing, true);
-        frame.setItem(item);
+        frame.setItem(item, false);
         frame.setRotation(yawToRotation(yaw));
 
         if (hasLimitedPlacing()) {
-            if (limitedPlacing.isFloor() && !limitedPlacing.isWall() && frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
+            if (limitedPlacing.isFloor() && !limitedPlacing.isWall() && frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid())
                 frame.setFacingDirection(BlockFace.UP, true);
-            } else if (limitedPlacing.isWall()) {
+            else if (limitedPlacing.isWall())
                 frame.setRotation(Rotation.NONE);
-            }
+            else if (limitedPlacing.isRoof())
+                frame.setFacingDirection(BlockFace.DOWN, true);
         }
     }
 
