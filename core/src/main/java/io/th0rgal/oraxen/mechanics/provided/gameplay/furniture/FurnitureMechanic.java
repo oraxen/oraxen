@@ -498,7 +498,7 @@ public class FurnitureMechanic extends Mechanic {
         if (hasLimitedPlacing()) {
             if (limitedPlacing.isFloor() && !limitedPlacing.isWall() && frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid())
                 frame.setFacingDirection(BlockFace.UP, true);
-            else if (limitedPlacing.isWall())
+            else if (limitedPlacing.isWall() && facing.getModY() == 0)
                 frame.setRotation(Rotation.NONE);
             else if (limitedPlacing.isRoof())
                 frame.setFacingDirection(BlockFace.DOWN, true);
@@ -608,7 +608,13 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public static float getFurnitureYaw(Entity entity) {
-        return (entity instanceof ItemFrame itemFrame) ? rotationToYaw(itemFrame.getRotation()) : entity.getLocation().getYaw();
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
+        if (mechanic == null) return entity.getLocation().getYaw();
+
+        if (entity instanceof ItemFrame itemFrame) {
+            if (mechanic.limitedPlacing.isWall() && itemFrame.getFacing().getModY() == 0) return entity.getLocation().getYaw();
+            else return rotationToYaw(itemFrame.getRotation());
+        } else return entity.getLocation().getYaw();
     }
 
     public static float rotationToYaw(Rotation rotation) {
