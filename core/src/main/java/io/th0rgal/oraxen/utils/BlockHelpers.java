@@ -9,8 +9,6 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.nms.NMSHandlers;
-import io.th0rgal.oraxen.utils.drops.Drop;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
 import org.bukkit.block.Sign;
@@ -22,20 +20,20 @@ import org.bukkit.block.data.type.Lectern;
 import org.bukkit.block.data.type.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.RayTraceResult;
-import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 
 import static org.bukkit.block.data.FaceAttachable.AttachedFace.CEILING;
 import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
@@ -114,7 +112,7 @@ public class BlockHelpers {
         if (VersionUtil.isSupportedVersionOrNewer("1.20")) {
             REPLACEABLE_BLOCKS = Tag.REPLACEABLE.getValues().stream().toList();
         } else REPLACEABLE_BLOCKS = Arrays.asList(
-                Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,
+                Material.SNOW, Material.VINE, Material.valueOf("GRASS"), Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,
                 Material.LARGE_FERN, Material.AIR);
     }
 

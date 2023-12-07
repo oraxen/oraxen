@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.gestures.GestureManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 
@@ -25,7 +26,7 @@ public class GestureCommand {
                         new PlayerArgument("player").setOptional(true)
                 )
                 .executes((sender, args) -> {
-                    if (!Settings.GESTURES_ENABLED.toBool()) {
+                    if (!Settings.GESTURES_ENABLED.toBool() || VersionUtil.isSupportedVersionOrNewer("1.20.3")) {
                         OraxenPlugin.get().getAudience().sender(sender).sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>Gestures are not enabled!"));
                         return;
                     }

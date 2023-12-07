@@ -31,6 +31,7 @@ public class VersionUtil {
     }
 
     static {
+        versionMap.put(NMSVersion.v1_20_R3, Map.of(11, "1.20.3", 12, "1.20.4"));
         versionMap.put(NMSVersion.v1_20_R2, Map.of(10, "1.20.2"));
         versionMap.put(NMSVersion.v1_20_R1, Map.of(8, "1.20", 9, "1.20.1"));
         versionMap.put(NMSVersion.v1_19_R3, Map.of(7, "1.19.4"));
