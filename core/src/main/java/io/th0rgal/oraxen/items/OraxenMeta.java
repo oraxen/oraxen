@@ -115,6 +115,7 @@ public class OraxenMeta {
         this.generate_model = section.getBoolean("generate_model", getModelName().isEmpty());
         this.generatedModelPath = section.getString("generated_model_path", "");
         this.parentModel = section.getString("parent_model", "item/generated");
+
     }
 
     // this might not be a very good function name

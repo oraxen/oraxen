@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
@@ -154,4 +155,19 @@ public class Utils {
         return Float.parseFloat(String.format("%.2f", roundedValue).replace(",", "."));
     }
 
+    /**
+     * Used to ensure that a string follows [a-z0-9_]
+     * @param itemKey
+     */
+    public static void ensureStringFormat(String itemKey) {
+        if (itemKey.matches("[a-z0-9_]+")) return;//return itemKey;
+        //String newKey = itemKey.toLowerCase().replace("+", "_plus_").replace(" ", "_");
+        //newKey = (newKey.endsWith("_")) ? newKey.substring(0, newKey.length() - 1) : newKey;
+
+        Logs.logWarning("Item " + itemKey + " does not follow the format [a-z0-9_]");
+        Logs.logWarning("It is recommended to follow this as it might lead to problems with Pack-generation");
+        //Logs.logError("Temporarily replacing it with " + newKey);
+
+        //return newKey;
+    }
 }
