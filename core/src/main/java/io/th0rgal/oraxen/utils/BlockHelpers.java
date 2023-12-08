@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import com.google.common.collect.Sets;
 import com.jeff_media.customblockdata.CustomBlockData;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
@@ -36,6 +37,7 @@ import org.bukkit.util.Vector;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 
 import static org.bukkit.block.data.FaceAttachable.AttachedFace.CEILING;
 import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
@@ -106,6 +108,8 @@ public class BlockHelpers {
     public static PersistentDataContainer getPDC(Block block, JavaPlugin plugin) {
         return new CustomBlockData(block, plugin);
     }
+
+    public static final Set<Material> UNBREAKABLE_BLOCKS = Sets.newHashSet(Material.BEDROCK, Material.BARRIER, Material.NETHER_PORTAL, Material.END_PORTAL_FRAME, Material.END_PORTAL, Material.END_GATEWAY, Material.REINFORCED_DEEPSLATE);
 
     public static final List<Material> REPLACEABLE_BLOCKS = Tag.REPLACEABLE.getValues().stream().toList();
 
