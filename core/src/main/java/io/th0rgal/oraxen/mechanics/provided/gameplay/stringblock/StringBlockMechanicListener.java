@@ -5,14 +5,17 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockPlaceEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
+import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -225,19 +228,8 @@ public class StringBlockMechanicListener implements Listener {
             customVariation = ((StringBlockMechanic) factory.getMechanic(randomBlock)).getCustomVariation();
         }
 
-        Block placedBlock = makePlayerPlaceBlock(player, event.getHand(), event.getItem(),
-                placedAgainst, event.getBlockFace(),
-                StringBlockMechanicFactory.createTripwireData(customVariation));
-        if (placedBlock == null) return;
-
-        if (mechanic.getLight() != -1)
-            WrappedLightAPI.createBlockLight(placedBlock.getLocation(), mechanic.getLight());
-        if (mechanic.isSapling()) {
-            SaplingMechanic sapling = mechanic.getSaplingMechanic();
-            if (mechanic.getSaplingMechanic().canGrowNaturally())
-                BlockHelpers.getPDC(placedBlock).set(SaplingMechanic.SAPLING_KEY, PersistentDataType.INTEGER, sapling.getNaturalGrowthTime());
-        }
-        event.setCancelled(true);
+        BlockData data = StringBlockMechanicFactory.createTripwireData(customVariation);
+        makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), data);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -274,11 +266,7 @@ public class StringBlockMechanicListener implements Listener {
             }
         } else if (blockAbove.getType() == Material.TRIPWIRE) {
             if (!OraxenBlocks.isOraxenStringBlock(blockAbove)) return;
-            event.setCancelled(true);
-
             OraxenBlocks.remove(blockAbove.getLocation(), player);
-            block.setType(Material.AIR); // This doesn't affect furniture and noteblock as they are handled by other functions
-            event.setDropItems(false);
         }
     }
 
@@ -294,39 +282,35 @@ public class StringBlockMechanicListener implements Listener {
             if (block.getType() == Material.TRIPWIRE) {
                 StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(blockBelow);
                 if (OraxenBlocks.isOraxenStringBlock(block)) {
-                    event.setCancelled(true);
-                    OraxenBlocks.remove(block.getLocation(), null);
-                } else if (mechanicBelow != null && mechanicBelow.isTall()) {
-                    event.setCancelled(true);
-                    OraxenBlocks.remove(blockBelow.getLocation(), null);
+                    OraxenBlocks.remove(block.getLocation(), null, true);
+                    event.blockList().remove(block);
                 }
-            } else if (blockAbove.getType() == Material.TRIPWIRE) {
+                else if (mechanicBelow != null && mechanicBelow.isTall()) {
+                    OraxenBlocks.remove(blockBelow.getLocation(), null, true);
+                    event.blockList().remove(block);
+                }
+            } else {
                 if (!OraxenBlocks.isOraxenStringBlock(blockAbove)) return;
-                event.setCancelled(true);
 
-                OraxenBlocks.remove(blockAbove.getLocation(), null);
-                block.setType(Material.AIR); // This doesn't affect furniture and noteblock as they are handled by other functions
+                OraxenBlocks.remove(blockAbove.getLocation(), null, true);
+                event.blockList().remove(block);
             }
         });
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onWaterUpdate(final BlockFromToEvent event) {
-        if (!event.getBlock().isLiquid()) return;
-        for (BlockFace f : BlockFace.values()) {
-            if (!f.isCartesian() || f == BlockFace.SELF) continue; // Only take N/S/W/E
-            final Block changed = event.getToBlock().getRelative(f);
-            final Block changedBelow = changed.getRelative(BlockFace.DOWN);
+        final Block changed = event.getToBlock();
+        final Block changedBelow = changed.getRelative(BlockFace.DOWN);
+        if (!event.getBlock().isLiquid() || changed.getType() != Material.TRIPWIRE) return;
 
-            if (changed.getType() == Material.TRIPWIRE) {
-                StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(changedBelow);
-                if (OraxenBlocks.isOraxenStringBlock(changed)) {
-                    OraxenBlocks.remove(changed.getLocation(), null);
-                } else if (mechanicBelow != null && mechanicBelow.isTall()) {
-                    OraxenBlocks.remove(changedBelow.getLocation(), null);
-                }
-            }
-        }
+        event.setCancelled(true);
+        StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(changedBelow);
+        if (OraxenBlocks.isOraxenStringBlock(changed))
+            OraxenBlocks.remove(changed.getLocation(), null, true);
+        else if (mechanicBelow != null && mechanicBelow.isTall())
+            OraxenBlocks.remove(changedBelow.getLocation(), null, true);
+
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
@@ -392,43 +376,45 @@ public class StringBlockMechanicListener implements Listener {
         };
     }
 
-    private Block makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
+    private void makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
                                        final Block placedAgainst, final BlockFace face, final BlockData newData) {
         final Block target;
         final Material type = placedAgainst.getType();
         if (BlockHelpers.isReplaceable(type)) target = placedAgainst;
         else {
             target = placedAgainst.getRelative(face);
-            if (!target.getType().isAir() && target.getType() != Material.WATER && target.getType() != Material.LAVA)
-                return null;
+            if (!target.getType().isAir() && !target.isLiquid() && target.getType() != Material.LIGHT) return;
         }
 
-        if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation())) return null;
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(newData);
-        if (mechanic == null) return null;
 
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, hand);
-        final OraxenStringBlockPlaceEvent oraxenBlockPlaceEvent = new OraxenStringBlockPlaceEvent(mechanic, target, player, item, hand);
 
         Block blockAbove = target.getRelative(BlockFace.UP);
-        if (mechanic.isTall()) {
-            if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType())) {
+        if (mechanic != null && mechanic.isTall()) {
+            if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType()))
                 blockPlaceEvent.setCancelled(true);
-                oraxenBlockPlaceEvent.setCancelled(true);
-            } else blockAbove.setType(Material.TRIPWIRE);
+            else blockAbove.setType(Material.TRIPWIRE);
         }
-        if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
-        if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild() || !EventUtils.callEvent(oraxenBlockPlaceEvent)) return null;
+        if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation())) blockPlaceEvent.setCancelled(true);
+        //if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
+        if (target.getLocation().getBlockY() >= target.getWorld().getMaxHeight() || target.getLocation().getBlockY() <= target.getWorld().getMinHeight())
+            blockPlaceEvent.setCancelled(true);
+        if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) return;
 
         final String sound;
-        if (newData.getMaterial() == Material.WATER || newData.getMaterial() == Material.LAVA) {
-            if (newData.getMaterial() == Material.WATER) sound = "item.bucket.empty";
-            else sound = "item.bucket.empty_" + newData.getMaterial().toString().toLowerCase();
-        } else if (!OraxenBlocks.isOraxenBlock(target)) sound = target.getBlockData().getSoundGroup().getPlaceSound().getKey().toString();
-        else sound = null;
-        if (sound != null) BlockHelpers.playCustomBlockSound(target.getLocation(), sound, SoundCategory.BLOCKS, 0.8f, 0.8f);
+        if (mechanic != null) {
+            BlockData oldData = target.getBlockData();
+            OraxenBlocks.place(mechanic.getItemID(), target.getLocation());
 
-        return BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData) != null ? target : null;
+            if (!EventUtils.callEvent(new OraxenStringBlockPlaceEvent(mechanic, target, player, item, hand))) {
+                target.setBlockData(oldData);
+                return;
+            }
+
+            if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
+            Utils.swingHand(player, hand);
+        } else BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
     }
 
     public static void fixClientsideUpdate(Location loc) {

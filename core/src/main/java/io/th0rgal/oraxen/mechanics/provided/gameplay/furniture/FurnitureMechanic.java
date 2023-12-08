@@ -34,6 +34,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
+import java.security.Key;
 import java.util.*;
 
 public class FurnitureMechanic extends Mechanic {
@@ -136,9 +137,18 @@ public class FurnitureMechanic extends Mechanic {
         barriers = new ArrayList<>();
         if (section.getBoolean("barrier", false))
             barriers.add(new BlockLocation(0, 0, 0));
-        if (section.isList("barriers"))
+        if (section.isList("barriers")) {
             for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
-                barriers.add(new BlockLocation((Map<String, Object>) barrierObject));
+                if (barrierObject instanceof String string && string.equals("origin"))
+                    barriers.add(new BlockLocation(0, 0, 0));
+                else if (barrierObject instanceof Map<?, ?> barrierMap) {
+                    try {
+                        barriers.add(new BlockLocation((Map<String, Integer>) barrierMap));
+                    } catch (ClassCastException e) {
+                        Logs.logError("Invalid barrier location: " + barrierMap + " for furniture: " + getItemID());
+                    }
+                }
+        }
 
         ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
         if (hitboxSection != null) {
@@ -350,7 +360,7 @@ public class FurnitureMechanic extends Mechanic {
 
         ItemStack item;
         if (evolvingFurniture == null) {
-            item = Utils.editItemMeta(originalItem.clone(), meta -> meta.setDisplayName(""));
+            item = ItemUtils.editItemMeta(originalItem.clone(), meta -> meta.setDisplayName(""));
         } else item = placedItem;
         item.setAmount(1);
 
@@ -482,15 +492,16 @@ public class FurnitureMechanic extends Mechanic {
         frame.setVisible(false);
         frame.setItemDropChance(0);
         frame.setFacingDirection(facing, true);
-        frame.setItem(item);
+        frame.setItem(item, false);
         frame.setRotation(yawToRotation(yaw));
 
         if (hasLimitedPlacing()) {
-            if (limitedPlacing.isFloor() && !limitedPlacing.isWall() && frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid()) {
+            if (limitedPlacing.isFloor() && !limitedPlacing.isWall() && frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid())
                 frame.setFacingDirection(BlockFace.UP, true);
-            } else if (limitedPlacing.isWall()) {
+            else if (limitedPlacing.isWall() && facing.getModY() == 0)
                 frame.setRotation(Rotation.NONE);
-            }
+            else if (limitedPlacing.isRoof())
+                frame.setFacingDirection(BlockFace.DOWN, true);
         }
     }
 
@@ -597,7 +608,13 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public static float getFurnitureYaw(Entity entity) {
-        return (entity instanceof ItemFrame itemFrame) ? rotationToYaw(itemFrame.getRotation()) : entity.getLocation().getYaw();
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
+        if (mechanic == null) return entity.getLocation().getYaw();
+
+        if (entity instanceof ItemFrame itemFrame) {
+            if (mechanic.limitedPlacing.isWall() && itemFrame.getFacing().getModY() == 0) return entity.getLocation().getYaw();
+            else return rotationToYaw(itemFrame.getRotation());
+        } else return entity.getLocation().getYaw();
     }
 
     public static float rotationToYaw(Rotation rotation) {

@@ -18,19 +18,14 @@ public class DurabilityMechanicManager implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemDamaged(PlayerItemDamageEvent event) {
         DurabilityMechanic mechanic = factory.getMechanic(event.getItem());
-        if (mechanic == null) return;
-        if (mechanic.changeDurability(event.getItem(), -event.getDamage())) {
-            event.setDamage(0);
-        }
+        if (mechanic == null || !mechanic.changeDurability(event.getItem(), -event.getDamage())) return;
+        event.setDamage(0);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onItemMend(PlayerItemMendEvent event) {
-        DurabilityMechanic mechanic = (DurabilityMechanic) factory.getMechanic(OraxenItems.getIdByItem(event.getItem()));
-        if (mechanic == null) return;
-
-        if (mechanic.changeDurability(event.getItem(), event.getRepairAmount())) {
-            event.setRepairAmount(0);
-        }
+        DurabilityMechanic mechanic = factory.getMechanic(OraxenItems.getIdByItem(event.getItem()));
+        if (mechanic == null || !mechanic.changeDurability(event.getItem(), event.getRepairAmount())) return;
+        event.setRepairAmount(0);
     }
 }

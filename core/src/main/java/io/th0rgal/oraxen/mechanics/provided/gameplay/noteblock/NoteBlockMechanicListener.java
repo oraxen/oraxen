@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -244,7 +245,7 @@ public class NoteBlockMechanicListener implements Listener {
             return;
         }
 
-        if (!Settings.NMS_BLOCK_CORRECTION.toBool()) {
+        if (!BlockHelpers.BlockCorrection.useNMS()) {
             final boolean bucketCheck = type.toString().endsWith("_BUCKET");
             final String bucketBlock = type.toString().replace("_BUCKET", "");
             EntityType bucketEntity;
@@ -272,13 +273,7 @@ public class NoteBlockMechanicListener implements Listener {
                 return;
             }
         }
-        else {
-            if (type.toString().contains("_BUCKET")) {
-                if (type == Material.MILK_BUCKET) return;
-                else if (type == Material.LAVA_BUCKET) type = Material.LAVA;
-                else type = Material.WATER;
-            }
-        }
+
 
         BlockData newData = type != null && type.isBlock() ? type.createBlockData() : null;
         makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), newData);
@@ -311,7 +306,6 @@ public class NoteBlockMechanicListener implements Listener {
         }
 
         BlockData data = NoteBlockMechanicFactory.createNoteBlockData(customVariation);
-
         makePlayerPlaceBlock(player, event.getHand(), event.getItem(), placedAgainst, face, data);
     }
 
@@ -341,12 +335,11 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler
     public void onExplosionDestroy(EntityExplodeEvent event) {
-        List<Block> blockList = event.blockList().stream().filter(block -> block.getType().equals(Material.NOTE_BLOCK)).toList();
-        blockList.forEach(block -> {
-            NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
-            if (mechanic != null)
-                OraxenBlocks.remove(block.getLocation(), null);
-        });
+        for (Block block : new HashSet<>(event.blockList())) {
+            if (!OraxenBlocks.isOraxenNoteBlock(block)) continue;
+            OraxenBlocks.remove(block.getLocation(), null);
+            event.blockList().remove(block);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -490,7 +483,6 @@ public class NoteBlockMechanicListener implements Listener {
     public void makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
                                      final Block placedAgainst, final BlockFace face, final BlockData newData) {
         final Block target;
-        final String sound;
         final Material type = placedAgainst.getType();
 
         if (BlockHelpers.isReplaceable(type)) target = placedAgainst;
@@ -506,7 +498,8 @@ public class NoteBlockMechanicListener implements Listener {
             blockPlaceEvent.setCancelled(true);
         if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
             blockPlaceEvent.setCancelled(true);
-
+        if (target.getLocation().getBlockY() >= target.getWorld().getMaxHeight() || target.getLocation().getBlockY() <= target.getWorld().getMinHeight())
+            blockPlaceEvent.setCancelled(true);
         if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) return;
 
         // This method is run for placing on custom blocks aswell, so this should not be called for vanilla blocks
@@ -522,10 +515,7 @@ public class NoteBlockMechanicListener implements Listener {
 
             if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
             Utils.swingHand(player, hand);
-            return;
-        }
-
-        BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
+        } else BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
     }
 
     // Used to determine what instrument to use when playing a note depending on below block

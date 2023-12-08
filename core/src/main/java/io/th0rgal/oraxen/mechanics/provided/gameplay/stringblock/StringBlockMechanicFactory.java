@@ -113,7 +113,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     public static void setBlockModel(Block block, String itemId) {
         final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("stringblock");
         StringBlockMechanic stringBlockMechanic = (StringBlockMechanic) mechanicFactory.getMechanic(itemId);
-        block.setBlockData(createTripwireData(stringBlockMechanic.getCustomVariation()), false);
+        block.setBlockData(createTripwireData(stringBlockMechanic.getCustomVariation()));
     }
 
     private String getBlockstateContent() {

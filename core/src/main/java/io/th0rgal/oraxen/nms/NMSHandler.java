@@ -3,7 +3,10 @@ package io.th0rgal.oraxen.nms;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
+import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
@@ -43,15 +46,14 @@ public interface NMSHandler {
     /**
      * Corrects the BlockData of a placed block.
      * Mainly fired when placing a block against an OraxenNoteBlock due to vanilla behaviour requiring Sneaking
-     * @param player The player that placed the block
-     * @param slot The hand the player placed the block with
-     * @param itemStack The ItemStack the player placed the block with
-     * @param blockAgainst The block the player placed the block against
-     * @param blockFace The face of the block the player placed the block against
+     *
+     * @param player          The player that placed the block
+     * @param slot            The hand the player placed the block with
+     * @param itemStack       The ItemStack the player placed the block with
      * @return The corrected BlockData
      */
-    @Nullable BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack, Block blockAgainst, BlockFace blockFace);
-    @Nullable BlockHitResult getBlockHitResult(Player player, Block block, BlockFace blockFace);
+    @Nullable BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack);
+    BlockHitResult getPlayerPOVHitResult(Level world, net.minecraft.world.entity.player.Player player, ClipContext.Fluid fluidHandling);
 
     /**Removes mineable/axe tag from noteblocks for custom blocks */
     void customBlockDefaultTools(Player player);

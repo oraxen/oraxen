@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.combat.spell;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.oraxen.utils.timers.TimersFactory;
@@ -61,7 +62,7 @@ public abstract class SpellMechanic extends Mechanic {
     }
 
     public void removeCharge(ItemStack item){
-        Utils.editItemMeta(item, (itemMeta -> {
+        ItemUtils.editItemMeta(item, (itemMeta -> {
             PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
             if (!pdc.has(NAMESPACED_KEY, PersistentDataType.INTEGER)) return;
 

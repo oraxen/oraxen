@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -115,12 +116,15 @@ public class PredicatesGenerator {
             }
             if (oraxenMeta.hasPullingModels()) {
                 final List<String> pullingModels = oraxenMeta.getPullingModels();
-                for (int i = 0; i <= pullingModels.size(); i++) {
-                    if (i == 0) continue;
+                for (int i = 0; i < pullingModels.size(); i++) {
+                    String pullingModel = pullingModels.get(i);
                     final JsonObject predicate = new JsonObject();
                     predicate.addProperty("pulling", 1);
-                    predicate.addProperty("pull", Math.min((float) i / pullingModels.size(), 0.99f));
-                    overrides.add(getOverride(predicate, "custom_model_data", customModelData, pullingModels.get(i - 1)));
+                    // Round to nearest 0.X5 (0.0667 -> 0.65, 0.677 -> 0.7)
+                    float pull = Math.min(Utils.customRound((((float) (i + 1) / pullingModels.size())), 0.05f), 0.9f);
+                    // First pullingModel should always be used immediatly, thus pull: 0f
+                    if (i != 0) predicate.addProperty("pull", pull);
+                    overrides.add(getOverride(predicate, "custom_model_data", customModelData, pullingModel));
                 }
             }
             if (oraxenMeta.hasCastModel()) {

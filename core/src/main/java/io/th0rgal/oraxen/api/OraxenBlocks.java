@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
+import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Location;
@@ -43,6 +44,7 @@ public class OraxenBlocks {
 
     /**
      * Get all OraxenItem ID's that have either a NoteBlockMechanic or a StringBlockMechanic
+     *
      * @return A set of all OraxenItem ID's that have either a NoteBlockMechanic or a StringBlockMechanic
      */
     public static Set<String> getBlockIDs() {
@@ -51,6 +53,7 @@ public class OraxenBlocks {
 
     /**
      * Get all OraxenItem ID's that have a NoteBlockMechanic
+     *
      * @return A set of all OraxenItem ID's that have a NoteBlockMechanic
      */
     public static Set<String> getNoteBlockIDs() {
@@ -59,6 +62,7 @@ public class OraxenBlocks {
 
     /**
      * Get all OraxenItem ID's that have a StringBlockMechanic
+     *
      * @return A set of all OraxenItem ID's that have a StringBlockMechanic
      */
     public static Set<String> getStringBlockIDs() {
@@ -207,20 +211,33 @@ public class OraxenBlocks {
     /**
      * Breaks an OraxenBlock at the given location
      *
-     * @param location The location of the OraxenBlock
+     * @param location  The location of the OraxenBlock
+     * @param player    The player that broke the block, can be null
      * @return True if the block was broken, false if the block was not an OraxenBlock
      */
     public static boolean remove(Location location, @Nullable Player player) {
+        return remove(location, player, false);
+    }
+
+    /**
+     * Breaks an OraxenBlock at the given location
+     *
+     * @param location  The location of the OraxenBlock
+     * @param player    The player that broke the block, can be null
+     * @param forceDrop Whether to force the block to drop, even if player is null or in creative mode
+     * @return True if the block was broken, false if the block was not an OraxenBlock
+     */
+    public static boolean remove(Location location, @Nullable Player player, boolean forceDrop) {
         Block block = location.getBlock();
         if (isOraxenNoteBlock(block)) {
-            removeNoteBlock(block, player);
+            removeNoteBlock(block, player, forceDrop);
         } else if (isOraxenStringBlock(block)) {
-            removeStringBlock(block, player);
+            removeStringBlock(block, player, forceDrop);
         } else return false;
         return true;
     }
 
-    private static void removeNoteBlock(Block block, @Nullable Player player) {
+    private static void removeNoteBlock(Block block, @Nullable Player player, boolean forceDrop) {
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
         if (mechanic == null) return;
         if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
@@ -243,30 +260,31 @@ public class OraxenBlocks {
         checkNoteBlockAbove(block.getLocation());
     }
 
-    private static void removeStringBlock(Block block, @Nullable Player player) {
+
+    private static void removeStringBlock(Block block, @Nullable Player player, boolean forceDrop) {
 
         StringBlockMechanic mechanic = getStringMechanic(block);
         ItemStack item = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
         if (mechanic == null) return;
 
+        Drop drop = forceDrop ? mechanic.getDrop() : null;
         if (player != null) {
             OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
             if (!EventUtils.callEvent(wireBlockBreakEvent)) return;
 
-            if (player.getGameMode() != GameMode.CREATIVE)
-                wireBlockBreakEvent.getDrop().spawns(block.getLocation(), item);
+            if (forceDrop || player.getGameMode() != GameMode.CREATIVE)
+                drop = wireBlockBreakEvent.getDrop();
         }
+        if (drop != null) drop.spawns(block.getLocation(), item);
 
-        if (mechanic.hasLight())
-            WrappedLightAPI.removeBlockLight(block.getLocation());
-        if (mechanic.isTall())
-            block.getRelative(BlockFace.UP).setType(Material.AIR, false);
-        block.setType(Material.AIR, false);
         final Block blockAbove = block.getRelative(BlockFace.UP);
+        if (mechanic.hasLight()) WrappedLightAPI.removeBlockLight(block.getLocation());
+        if (mechanic.isTall()) blockAbove.setType(Material.AIR);
+        block.setType(Material.AIR);
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             StringBlockMechanicListener.fixClientsideUpdate(block.getLocation());
             if (blockAbove.getType() == Material.TRIPWIRE)
-                removeStringBlock(blockAbove, player);
+                removeStringBlock(blockAbove, player, forceDrop);
         }, 1L);
     }
 
