@@ -37,27 +37,23 @@ public class Glyph {
 
     private final String name;
     private final boolean isEmoji;
-    private boolean tabcomplete;
+    private final boolean tabcomplete;
     private final Character character;
     private String texture;
     private final int ascent;
     private final int height;
-    private String permission = null;
-    private String[] placeholders;
+    private final String permission;
+    private final String[] placeholders;
     private final BitMapEntry bitmapEntry;
 
     public Glyph(final String glyphName, final ConfigurationSection glyphSection, char newChars) {
         name = glyphName;
-        placeholders = new String[0];
         isEmoji = glyphSection.getBoolean("is_emoji", false);
-        if (glyphSection.isConfigurationSection("chat")) {
-            final ConfigurationSection chatSection = glyphSection.getConfigurationSection("chat");
-            assert chatSection != null;
-            placeholders = chatSection.getStringList("placeholders").toArray(new String[0]);
-            if (chatSection.isString("permission"))
-                permission = chatSection.getString("permission");
-            tabcomplete = chatSection.getBoolean("tabcomplete", false);
-        }
+
+        final ConfigurationSection chatSection = glyphSection.getConfigurationSection("chat");
+        placeholders = chatSection != null ? chatSection.getStringList("placeholders").toArray(new String[0]) : new String[0];
+        permission = chatSection != null ? chatSection.getString("permission", "") : "";
+        tabcomplete = chatSection != null && chatSection.getBoolean("tabcomplete", false);
 
         if (glyphSection.contains("code")) {
             if (glyphSection.isInt("code")) glyphSection.set("char", (char) glyphSection.getInt("code"));
@@ -161,7 +157,7 @@ public class Glyph {
     }
 
     public boolean hasPermission(Player player) {
-        return player == null || permission == null || permission.isEmpty() || player.hasPermission(permission);
+        return player == null || permission.isEmpty() || player.hasPermission(permission);
     }
 
     private final Set<String> materialNames = Arrays.stream(Material.values()).map(Material::name).collect(Collectors.toSet());

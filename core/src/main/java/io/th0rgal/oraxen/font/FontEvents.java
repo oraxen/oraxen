@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
@@ -245,41 +246,19 @@ public class FontEvents implements Listener {
     @SuppressWarnings("UnstableApiUsage")
     public class PaperChatHandler implements Listener {
 
-        @EventHandler(priority = EventPriority.LOWEST)
+        @EventHandler
         public void onPlayerChat(AsyncChatDecorateEvent event) {
             if (!Settings.FORMAT_CHAT.toBool()) return;
-
-            Component result = format(event.originalMessage(), event.player());
-            event.result(result != null ? result : Component.empty());
-        }
-
-        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-        public void onPlayerChat2(AsyncChatDecorateEvent event) {
-            if (!Settings.FORMAT_CHAT.toBool()) return;
-
-            Component result = format(event.result(), null);
-            event.result(result != null ? result : Component.empty());
+            event.result(format(event.result(), event.player()));
         }
 
     }
 
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    @EventHandler
     public void onPlayerChat(AsyncChatEvent event) {
         if (!Settings.FORMAT_CHAT.toBool() || !VersionUtil.isPaperServer()) return;
         // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
         Component message = VersionUtil.isSupportedVersionOrNewer("1.19.1") ? event.message() : format(event.message(), event.getPlayer());
-        message = message != null ? message : Component.empty();
-        if (!message.equals(Component.empty())) return;
-
-        event.viewers().clear();
-        event.setCancelled(true);
-    }
-
-    @EventHandler(priority = EventPriority.HIGHEST)
-    public void onPlayerChat2(AsyncChatEvent event) {
-        if (!Settings.FORMAT_CHAT.toBool() || !VersionUtil.isPaperServer()) return;
-        // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
-        Component message = VersionUtil.isSupportedVersionOrNewer("1.19.1") ? event.message() : format(event.originalMessage(), event.getPlayer());
         message = message != null ? message : Component.empty();
         if (!message.equals(Component.empty())) return;
 
@@ -294,19 +273,17 @@ public class FontEvents implements Listener {
             Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
             if (!glyph.hasPermission(player)) {
                 Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
-                return null;
+                return Component.empty();
             }
         }
 
-        for (Glyph glyph : manager.getGlyphs()) {
-            for (String placeholder : glyph.getPlaceholders()) {
-                if (!glyph.hasPermission(player)) continue;
-                message = message.replaceText(TextReplacementConfig.builder().matchLiteral(placeholder)
-                        .replacement(Component.text(glyph.getCharacter()).color(NamedTextColor.WHITE)).build());
-            }
+        for (Glyph glyph : manager.getGlyphs()) for (String placeholder : glyph.getPlaceholders()) {
+            if (!glyph.hasPermission(player)) continue;
+            message = message.replaceText(TextReplacementConfig.builder().matchLiteral(placeholder)
+                    .replacement(Component.text(glyph.getCharacter(), NamedTextColor.WHITE)).build());
         }
 
-        return AdventureUtils.parseMiniMessage(message, player);
+        return message;
     }
 
 }
