@@ -6,6 +6,7 @@ import net.Indyuce.mmoitems.MMOItems;
 import net.Indyuce.mmoitems.api.ItemTier;
 import net.Indyuce.mmoitems.api.Type;
 import net.Indyuce.mmoitems.api.item.build.MMOItemBuilder;
+import net.Indyuce.mmoitems.api.item.mmoitem.MMOItem;
 import net.Indyuce.mmoitems.api.item.template.MMOItemTemplate;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -26,15 +27,19 @@ public class WrappedMMOItem {
             level = 0;
             tier = null;
         } else {
-            type = MMOItems.plugin.getTypes().getOrThrow(section.getString("type"));
+            type = MMOItems.plugin.getTypes().get(section.getString("type"));
             id = section.getString("id");
 
             // Check if template exists
-            MMOItems.plugin.getTemplates().getTemplateOrThrow(type, id);
+            if (!MMOItems.plugin.getTemplates().hasTemplate(type, id)) {
+                Logs.logError("Failed to load MMOItem " + id);
+                Logs.logError("Template does not exist");
+            }
 
             // Optional stuff
             level = section.getInt("level", 1);
-            tier = section.isString("tier") ? MMOItems.plugin.getTiers().getOrThrow(section.getString("tier")) : null;
+            String tierId = section.getString("tier");
+            tier = tierId != null && MMOItems.plugin.getTiers().has(tierId) ? MMOItems.plugin.getTiers().get(tierId) : null;
         }
     }
 
@@ -53,24 +58,23 @@ public class WrappedMMOItem {
     }
 
     private MMOItemTemplate getTemplate() {
-        try {
-            return MMOItems.plugin.getTemplates().getTemplateOrThrow(type, id);
-        } catch (Exception e) {
+        if (MMOItems.plugin.getTemplates().hasTemplate(type, id)) {
+            return MMOItems.plugin.getTemplates().getTemplate(type, id);
+        } else {
             Logs.logError("Failed to load MMOItem " + id);
-            if (Settings.DEBUG.toBool()) Logs.logWarning(e.getMessage());
+            Logs.logError("Template does not exist");
             return null;
         }
     }
 
     public ItemStack build() {
-        try {
-            return new MMOItemBuilder(getTemplate(), level, tier).build().newBuilder().build();
-        } catch (Exception e) {
-            Logs.logError("Failed to load MMOItem " + id);
-            if (!Bukkit.getPluginManager().isPluginEnabled("MMOItems"))
-                Logs.logWarning("MMOItems is not installed");
-            if (Settings.DEBUG.toBool()) Logs.logWarning(e.getMessage());
-            return null;
-        }
+        if (Bukkit.getPluginManager().isPluginEnabled("MMOItems")) {
+            MMOItemTemplate template = getTemplate();
+            if (template == null) {
+                Logs.logError("Failed to load MMOItem " + id);
+                Logs.logError("Item does not exist");
+            } else return template.newBuilder().build().newBuilder().build();
+        } else Logs.logWarning("MMOItems is not installed");
+        return null;
     }
 }
