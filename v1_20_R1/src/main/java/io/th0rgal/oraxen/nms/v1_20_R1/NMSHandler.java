@@ -307,31 +307,18 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     }
 
     private void inject(Channel channel) {
-        if (!encoder.containsKey(channel)) {
-            // Replace the vanilla PacketEncoder with our own
-            ChannelHandler handler = channel.pipeline().get("encoder");
-            if (!(handler instanceof CustomPacketEncoder)) {
-                encoder.put(channel, channel.pipeline().replace("encoder", "encoder", new CustomPacketEncoder()));
-            }
-        }
+        // Replace the vanilla PacketEncoder with our own
+        if (!encoder.containsKey(channel) && !(channel.pipeline().get("encoder") instanceof CustomPacketEncoder))
+            encoder.put(channel, channel.pipeline().replace("encoder", "encoder", new CustomPacketEncoder()));
 
-        if (!decoder.containsKey(channel)) {
-            // Replace the vanilla PacketDecoder with our own
-            ChannelHandler handler = channel.pipeline().get("decoder");
-            if (!(handler instanceof CustomPacketDecoder)) {
-                decoder.put(channel, channel.pipeline().replace("decoder", "decoder", new CustomPacketDecoder()));
-            }
-        }
+        // Replace the vanilla PacketDecoder with our own
+        if (!decoder.containsKey(channel) && !(channel.pipeline().get("decoder") instanceof CustomPacketDecoder))
+            decoder.put(channel, channel.pipeline().replace("decoder", "decoder", new CustomPacketDecoder()));
     }
 
     private void bind(List<ChannelFuture> channelFutures, ChannelInboundHandlerAdapter serverChannelHandler) {
-        for (ChannelFuture future : channelFutures) {
-            future.channel().pipeline().addFirst(serverChannelHandler);
-        }
-
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            inject(player);
-        }
+        for (ChannelFuture future : channelFutures) future.channel().pipeline().addFirst(serverChannelHandler);
+        for (Player player : Bukkit.getOnlinePlayers()) inject(player);
     }
 
     private static class CustomDataSerializer extends FriendlyByteBuf {
