@@ -63,6 +63,7 @@ allprojects {
         maven("https://hub.spigotmc.org/nexus/content/repositories/snapshots/") // Spigot
         maven("https://oss.sonatype.org/content/repositories/snapshots") // Because Spigot depends on Bungeecord ChatComponent-API
         maven("https://repo.dmulloy2.net/repository/public/") // ProtocolLib
+        maven("https://repo.viaversion.com/") // ViaVersion
         maven("https://libraries.minecraft.net/") // Minecraft repo (commodore)
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceHolderAPI
         maven("https://maven.elmakers.com/repository/") // EffectLib
@@ -90,6 +91,7 @@ allprojects {
         compileOnly("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
         compileOnly("net.kyori:adventure-platform-bukkit:$platformVersion")
         compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
+        compileOnly("com.viaversion:viaversion-api:4.9.2")
         compileOnly("me.clip:placeholderapi:2.11.4")
         compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
         compileOnly("me.gabytm.util:actions-core:$actionsVersion")
@@ -187,7 +189,7 @@ bukkit {
     name = "Oraxen"
     apiVersion = "1.18"
     authors = listOf("th0rgal", "boy0000")
-    softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards")
+    softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaVersion", "ViaBackwards")
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
     permissions.create("oraxen.command") {

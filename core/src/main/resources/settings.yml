@@ -125,6 +125,7 @@ Pack:
     delay: -1
     mandatory: true
     prompt: "<#fa4943>Accept the pack to enjoy a full <b><gradient:#9055FF:#13E2DA>Oraxen</b><#fa4943> experience"
+    min_protocol: -1
     join_message:
       enabled: false
       delay: -1
