@@ -35,10 +35,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.RayTraceResult;
 import org.bukkit.util.Vector;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 import static org.bukkit.block.data.FaceAttachable.AttachedFace.CEILING;
 import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
@@ -114,9 +111,14 @@ public class BlockHelpers {
 
     static {
         if (VersionUtil.isSupportedVersionOrNewer("1.19")) UNBREAKABLE_BLOCKS.add(Material.REINFORCED_DEEPSLATE);
+        if (VersionUtil.isSupportedVersionOrNewer("1.20")) {
+            REPLACEABLE_BLOCKS = Tag.REPLACEABLE.getValues().stream().toList();
+        } else REPLACEABLE_BLOCKS = Arrays.asList(
+                Material.SNOW, Material.VINE, Material.GRASS, Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,
+                Material.LARGE_FERN, Material.AIR);
     }
 
-    public static final List<Material> REPLACEABLE_BLOCKS = Tag.REPLACEABLE.getValues().stream().toList();
+    public static final List<Material> REPLACEABLE_BLOCKS;
 
     public static boolean isReplaceable(Block block) {
         return REPLACEABLE_BLOCKS.contains(block.getType());
