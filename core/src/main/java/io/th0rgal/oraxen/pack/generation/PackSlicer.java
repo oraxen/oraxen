@@ -10,17 +10,19 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.awt.image.ImageObserver;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 import java.util.function.UnaryOperator;
+import java.util.stream.Collectors;
 
 public class PackSlicer extends Slicer {
 
     private static final Path packFolder = OraxenPlugin.get().getResourcePack().getPackFolder().toPath();
     private static final Path assetsFolder = packFolder.resolve("assets/minecraft");
     private static final Box STANDARD_CONTAINER_BOX = new Box(0, 0, 176, 166, 256, 256);
-    private static final List<InputFile> INPUTS;
+    public static final List<InputFile> INPUTS;
+    public static final Set<String> OUTPUT_PATHS;
 
     public PackSlicer(Path rootPath) {
         super(rootPath, rootPath, null);
@@ -583,6 +585,9 @@ public class PackSlicer extends Slicer {
                         new OutputFile("textures/gui/sprites/statistics/header.png", new Box(0, 18, 18, 18, 128, 128)),
                         new OutputFile("textures/gui/sprites/statistics/sort_up.png", new Box(36, 0, 18, 18, 128, 128)),
                         new OutputFile("textures/gui/sprites/statistics/sort_down.png", new Box(18, 0, 18, 18, 128, 128))), moveRealmsToMinecraft("realms/adventure"), moveRealmsToMinecraft("realms/darken"), moveRealmsToMinecraft("realms/empty_frame"), moveRealmsToMinecraft("realms/experience"), moveRealmsToMinecraft("realms/inspiration"), moveRealmsToMinecraft("realms/new_world"), moveRealmsToMinecraft("realms/popup"), moveRealmsToMinecraft("realms/survival_spawn"), moveRealmsToMinecraft("realms/upload"), moveRealmsToMinecraft("title/realms"), copy("advancements/backgrounds/adventure"), copy("advancements/backgrounds/end"), copy("advancements/backgrounds/husbandry"), copy("advancements/backgrounds/nether"), copy("advancements/backgrounds/stone"), copy("advancements/backgrounds/window"), copy("advancements/window"), copy("container/creative_inventory/tab_inventory"), copy("container/creative_inventory/tab_item_search"), copy("container/creative_inventory/tab_items"), clip("container/anvil", STANDARD_CONTAINER_BOX), clip("container/beacon", new Box(0, 0, 230, 219, 256, 256)), clip("container/blast_furnace", STANDARD_CONTAINER_BOX), clip("container/brewing_stand", STANDARD_CONTAINER_BOX), clip("container/cartography_table", STANDARD_CONTAINER_BOX), clip("container/crafting_table", STANDARD_CONTAINER_BOX), clip("container/dispenser", STANDARD_CONTAINER_BOX), clip("container/enchanting_table", STANDARD_CONTAINER_BOX), clip("container/furnace", STANDARD_CONTAINER_BOX), clip("container/gamemode_switcher", new Box(0, 0, 125, 75, 128, 128)), copy("container/generic_54"), clip("container/grindstone", STANDARD_CONTAINER_BOX), clip("container/hopper", new Box(0, 0, 176, 133, 256, 256)), clip("container/horse", STANDARD_CONTAINER_BOX), clip("container/inventory", STANDARD_CONTAINER_BOX), clip("container/loom", STANDARD_CONTAINER_BOX), clip("container/shulker_box", STANDARD_CONTAINER_BOX), clip("container/smithing", STANDARD_CONTAINER_BOX), clip("container/smoker", STANDARD_CONTAINER_BOX), clip("container/stonecutter", STANDARD_CONTAINER_BOX), clip("container/villager2", "container/villager", new Box(0, 0, 276, 166, 512, 256)), copy("hanging_signs/acacia"), copy("hanging_signs/bamboo"), copy("hanging_signs/birch"), copy("hanging_signs/cherry"), copy("hanging_signs/crimson"), copy("hanging_signs/dark_oak"), copy("hanging_signs/jungle"), copy("hanging_signs/mangrove"), copy("hanging_signs/oak"), copy("hanging_signs/spruce"), copy("hanging_signs/warped"), copy("presets/isles"), copy("title/background/panorama_0"), copy("title/background/panorama_1"), copy("title/background/panorama_2"), copy("title/background/panorama_3"), copy("title/background/panorama_4"), copy("title/background/panorama_5"), copy("title/background/panorama_overlay"), copy("title/edition"), copy("title/minceraft"), copy("title/minecraft"), copy("title/mojangstudios"), clip("book", new Box(20, 1, 146, 180, 256, 256)), copy("demo_background"), copy("footer_separator"), copy("header_separator"), copy("light_dirt_background"), copy("options_background"), clip("recipe_book", new Box(0, 0, 149, 168, 256, 256)));
+
+        OUTPUT_PATHS = INPUTS.stream().map(i -> i.outputs.stream().map(o -> o.path).collect(Collectors.toSet())).flatMap(s -> s.stream()).collect(Collectors.toSet());
+
     }
 
 }

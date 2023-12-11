@@ -20,8 +20,8 @@ import java.util.List;
 
 @ParametersAreNonnullByDefault
 public class InputFile {
-    private final String path;
-    private final List<OutputFile> outputs = new ArrayList<>();
+    public final String path;
+    public final List<OutputFile> outputs = new ArrayList<>();
 
     public InputFile(final String path) {
         this.path = path;
