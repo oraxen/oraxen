@@ -7,7 +7,7 @@ plugins {
     //id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.2.0"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
-    id("io.papermc.paperweight.userdev") version "1.5.6" apply false
+    id("io.papermc.paperweight.userdev") version "1.5.11" apply false
     alias(libs.plugins.shadowjar)
     alias(libs.plugins.mia.publication)
 }
@@ -21,7 +21,8 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
     "v1_19_R2" toNms "1.19.3-R0.1-SNAPSHOT",
     "v1_19_R3" toNms "1.19.4-R0.1-SNAPSHOT",
     "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
-    "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT"
+    "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
+    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT"
 )
 
 SUPPORTED_VERSIONS.forEach {
@@ -48,7 +49,7 @@ val devPluginPath = project.findProperty("oraxen_dev_plugin_path")?.toString()
 val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString()
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
-val commandApiVersion = "9.2.0"
+val commandApiVersion = "9.3.0"
 val adventureVersion = "4.14.0"
 val platformVersion = "4.3.1"
 group = "io.th0rgal"
@@ -84,7 +85,7 @@ allprojects {
     dependencies {
         val actionsVersion = "1.0.0-SNAPSHOT"
 
-        compileOnly("io.papermc.paper:paper-api:1.20.2-R0.1-SNAPSHOT")
+        compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
         compileOnly("net.kyori:adventure-text-minimessage:$adventureVersion")
         compileOnly("net.kyori:adventure-text-serializer-plain:$adventureVersion")
         compileOnly("net.kyori:adventure-text-serializer-ansi:$adventureVersion")

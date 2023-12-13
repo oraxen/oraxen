@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "1.5.6"
+    id("io.papermc.paperweight.userdev") version "1.5.11"
     id("maven-publish")
     alias(libs.plugins.shadowjar)
     id("org.ajoberstar.grgit.service") version "5.2.0"
