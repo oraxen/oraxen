@@ -9,6 +9,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.Attribute;
 import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.configuration.GlobalConfiguration;
+import io.papermc.paper.event.player.AsyncChatDecorateEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
@@ -48,6 +49,8 @@ import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -248,6 +251,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 }
             }.runTask(OraxenPlugin.get());
         }
+
+        if (VersionUtil.isSupportedVersionOrNewer("1.19") && VersionUtil.isPaperServer())
+            Bukkit.getPluginManager().registerEvents(new GlyphHandlers(), OraxenPlugin.get());
     }
 
 

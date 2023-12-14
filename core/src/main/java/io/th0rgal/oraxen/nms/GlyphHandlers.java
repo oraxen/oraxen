@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.nms;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.papermc.paper.event.player.AsyncChatDecorateEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -11,13 +12,21 @@ import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.translation.GlobalTranslator;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 import java.util.regex.Matcher;
 
-public class GlyphHandlers {
+public class GlyphHandlers implements Listener {
+
+    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
+    public void onDecorate(AsyncChatDecorateEvent event) {
+        event.result(GlyphHandlers.transform(event.result(), event.player(), true));
+    }
 
     public static Component transform(Component component, @Nullable Player player, boolean isUtf) {
         if (player != null) return escapeGlyphTags(component, player);
