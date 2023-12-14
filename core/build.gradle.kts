@@ -13,6 +13,8 @@ tasks {
 }
 
 dependencies {
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+
     val actionsVersion = "1.0.0-SNAPSHOT"
     implementation("org.bstats:bstats-bukkit:3.0.0")
     implementation("dev.triumphteam:triumph-gui:3.1.5") { exclude("net.kyori") }

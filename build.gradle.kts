@@ -37,6 +37,7 @@ SUPPORTED_VERSIONS.forEach {
         }
 
         dependencies {
+            compileOnly("io.papermc.paper:paper-api:" + it.serverVersion)
             implementation(project(":core"))
             paperDevBundle(it.serverVersion)
         }
@@ -85,7 +86,6 @@ allprojects {
     dependencies {
         val actionsVersion = "1.0.0-SNAPSHOT"
 
-        compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
         compileOnly("net.kyori:adventure-text-minimessage:$adventureVersion")
         compileOnly("net.kyori:adventure-text-serializer-plain:$adventureVersion")
         compileOnly("net.kyori:adventure-text-serializer-ansi:$adventureVersion")

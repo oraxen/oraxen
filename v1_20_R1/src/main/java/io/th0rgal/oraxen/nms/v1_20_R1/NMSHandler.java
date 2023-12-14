@@ -260,6 +260,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 }
             }.runTask(OraxenPlugin.get());
         }
+
+        if (VersionUtil.isPaperServer())
+            Bukkit.getPluginManager().registerEvents(new GlyphListener(), OraxenPlugin.get());
     }
 
     @Override

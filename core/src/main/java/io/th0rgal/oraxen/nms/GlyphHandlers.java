@@ -21,12 +21,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 
-public class GlyphHandlers implements Listener {
-
-    @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
-    public void onDecorate(AsyncChatDecorateEvent event) {
-        event.result(GlyphHandlers.transform(event.result(), event.player(), true));
-    }
+public class GlyphHandlers {
 
     public static Component transform(Component component, @Nullable Player player, boolean isUtf) {
         if (player != null) return escapeGlyphTags(component, player);

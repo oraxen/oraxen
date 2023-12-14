@@ -11,6 +11,8 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.text.Component;
@@ -245,6 +247,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                 }
             }.runTask(OraxenPlugin.get());
         }
+
+        if (VersionUtil.isPaperServer()) Bukkit.getPluginManager().registerEvents(new GlyphListener(), OraxenPlugin.get());
+        else Logs.logError("Server is not Paper, or fork of Paper, and NMS-Glyphs might therefore not properly work");
     }
 
     @Override
