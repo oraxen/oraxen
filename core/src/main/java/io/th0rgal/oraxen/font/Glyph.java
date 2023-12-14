@@ -46,8 +46,15 @@ public class Glyph {
     private final String[] placeholders;
     private final BitMapEntry bitmapEntry;
 
+    public final Pattern glyphBaseRegex;
+    public final Pattern glyphEscapedRegex;
+
     public Glyph(final String glyphName, final ConfigurationSection glyphSection, char newChars) {
         name = glyphName;
+        String baseRegex = "(<(glyph|g):" + name + ")(:(c|colorable))*>";
+        glyphBaseRegex = Pattern.compile("(?<!\\\\)" + baseRegex);
+        glyphEscapedRegex = Pattern.compile("\\\\" + baseRegex);
+
         isEmoji = glyphSection.getBoolean("is_emoji", false);
 
         final ConfigurationSection chatSection = glyphSection.getConfigurationSection("chat");
@@ -270,6 +277,7 @@ public class Glyph {
     public String getGlyphTag() {
         return '<' + "glyph;" + name + '>';
     }
+
 
     public String getShortGlyphTag() {
         return "<g:" + name + '>';

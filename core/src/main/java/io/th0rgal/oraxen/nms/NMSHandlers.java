@@ -1,7 +1,9 @@
 package io.th0rgal.oraxen.nms;
 
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -12,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.function.Function;
 
 public class NMSHandlers {
 
@@ -50,21 +53,6 @@ public class NMSHandlers {
             }
         }
     }
-
-    public static String formatJsonString(@NotNull JsonObject obj) {
-        return (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) ?
-               Glyph.parsePlaceholders(obj).toString() : obj.toString();
-    }
-
-    public static String verifyFor(Player player, String message) {
-        if (message != null && player != null) for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
-            String glyphTag = glyph.getGlyphTag();
-            // Escape all glyphs the player does not have permission for
-            if (!glyph.hasPermission(player)) message = message.replace(glyphTag, "g" + glyphTag);
-        }
-        return message;
-    }
-
     public static boolean isTripwireUpdatesDisabled() {
         return handler != null && handler.tripwireUpdatesDisabled();
     }
