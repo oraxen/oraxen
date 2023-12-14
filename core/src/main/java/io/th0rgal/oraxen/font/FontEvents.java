@@ -201,7 +201,7 @@ public class FontEvents implements Listener {
     public class SpigotChatHandler implements Listener {
         @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
         public void onPlayerChat(AsyncPlayerChatEvent event) {
-            if (!Settings.FORMAT_CHAT.toBool()) return;
+            if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
 
             String format = format(event.getFormat(), null);
             String message = format(event.getMessage(), event.getPlayer());
@@ -248,7 +248,7 @@ public class FontEvents implements Listener {
 
         @EventHandler
         public void onPlayerChat(AsyncChatDecorateEvent event) {
-            if (!Settings.FORMAT_CHAT.toBool()) return;
+            if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
             event.result(format(event.result(), event.player()));
         }
 
@@ -256,7 +256,7 @@ public class FontEvents implements Listener {
 
     @EventHandler
     public void onPlayerChat(AsyncChatEvent event) {
-        if (!Settings.FORMAT_CHAT.toBool() || !VersionUtil.isPaperServer()) return;
+        if (!Settings.FORMAT_CHAT.toBool() || !VersionUtil.isPaperServer() || manager.useNmsGlyphs()) return;
         // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
         Component message = VersionUtil.isSupportedVersionOrNewer("1.19.1") ? event.message() : format(event.message(), event.getPlayer());
         message = message != null ? message : Component.empty();
