@@ -419,21 +419,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
     }
 
-    public static class PacketTooLargeException extends RuntimeException {
-        private final Packet<?> packet;
-        public final AttributeKey<ConnectionProtocol.CodecData<?>> codecKey;
-
-        PacketTooLargeException(Packet<?> packet, AttributeKey<ConnectionProtocol.CodecData<?>> codecKey, int packetLength) {
-            super("PacketTooLarge - " + packet.getClass().getSimpleName() + " is " + packetLength + ". Max is " + 8388608);
-            this.packet = packet;
-            this.codecKey = codecKey;
-        }
-
-        public Packet<?> getPacket() {
-            return this.packet;
-        }
-    }
-
     private static class CustomPacketDecoder extends ByteToMessageDecoder {
         @Nullable private final Player player;
 
