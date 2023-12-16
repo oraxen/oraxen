@@ -6,10 +6,14 @@ import com.google.gson.JsonParser;
 import io.papermc.paper.event.player.AsyncChatDecorateEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.font.GlyphTag;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
+import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
 import net.kyori.adventure.translation.GlobalTranslator;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -20,6 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.function.Function;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GlyphHandlers {
 
@@ -59,7 +64,35 @@ public class GlyphHandlers {
         return component;
     }
 
+    private static final Pattern colorableRegex = Pattern.compile("<glyph:.*:(c|colorable)>");
+
     private static Component transformGlyphTags(Component component, boolean isUtf) {
+
+        for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
+            Matcher matcher = glyph.glyphBaseRegex.matcher(AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component));
+            Component glyphComponent = Component.text(glyph.getCharacter()).font(Key.key("default")).style(Style.empty());
+            while (matcher.find()) {
+                component = component.replaceText(
+                        TextReplacementConfig.builder()
+                                .match(matcher.pattern())
+                                .replacement(glyphComponent.color(matcher.group().matches(colorableRegex.pattern()) ? null : NamedTextColor.WHITE))
+                                .build()
+                );
+            }
+
+            if (isUtf) {
+                matcher = glyph.glyphEscapedRegex.matcher(AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component));
+                while (matcher.find()) {
+                    component = component.replaceText(
+                            TextReplacementConfig.builder()
+                                    .match(matcher.pattern())
+                                    .replacement(matcher.group())
+                                    .build()
+                    );
+                }
+            }
+        }
+
 
         return component;
     }
