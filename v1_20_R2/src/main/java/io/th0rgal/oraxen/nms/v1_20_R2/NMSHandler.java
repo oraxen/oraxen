@@ -275,12 +275,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private void inject(Channel channel, @Nullable Player player) {
         // Replace the vanilla PacketEncoder with our own
-        if (!encoder.containsKey(channel) && !(channel.pipeline().get("encoder") instanceof CustomPacketEncoder))
-            encoder.put(channel, channel.pipeline().replace("encoder", "encoder", new CustomPacketEncoder(player)));
+        if (!(channel.pipeline().get("encoder") instanceof CustomPacketEncoder))
+            encoder.putIfAbsent(channel, channel.pipeline().replace("encoder", "encoder", new CustomPacketEncoder(player)));
 
         // Replace the vanilla PacketDecoder with our own
-        if (!decoder.containsKey(channel) && !(channel.pipeline().get("decoder") instanceof CustomPacketDecoder))
-            decoder.put(channel, channel.pipeline().replace("decoder", "decoder", new CustomPacketDecoder(player)));
+        if (!(channel.pipeline().get("decoder") instanceof CustomPacketDecoder))
+            decoder.putIfAbsent(channel, channel.pipeline().replace("decoder", "decoder", new CustomPacketDecoder(player)));
     }
 
     private void uninject(Channel channel) {
@@ -366,32 +366,38 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }
 
         private void transform(ListTag list, Function<String, String> transformer) {
-            for (Tag base : List.copyOf(list)) {
+            List<Tag> listCopy = List.copyOf(list);
+            for (Tag base : listCopy) {
                 if (base instanceof CompoundTag tag) transform(tag, transformer);
                 else if (base instanceof ListTag listTag) transform(listTag, transformer);
                 else if (base instanceof StringTag) {
                     int index = list.indexOf(base);
-                    list.setTag(index, StringTag.valueOf(transformer.apply(base.getAsString())));
+                    list.set(index, StringTag.valueOf(transformer.apply(base.getAsString())));
                 }
             }
         }
     }
 
     private static class CustomPacketEncoder extends MessageToByteEncoder<Packet<?>> {
-        private Player player;
+        @Nullable private final Player player;
 
-        private CustomPacketEncoder(Player player) {
+        private CustomPacketEncoder(@Nullable Player player) {
+            super();
             this.player = player;
         }
+
         private final PacketFlow protocolDirection = PacketFlow.CLIENTBOUND;
 
         @Override
-        protected void encode(ChannelHandlerContext ctx, Packet<?> msg, ByteBuf out) {
-            ConnectionProtocol enumProt = ctx.channel().attr(Connection.ATTRIBUTE_SERVERBOUND_PROTOCOL).get().protocol();
-            int integer = enumProt.codec(protocolDirection).packetId(msg);
+        public void encode(ChannelHandlerContext ctx, Packet<?> msg, ByteBuf out) {
+            if (ctx.channel() == null) throw new RuntimeException("Channel is null");
+            ConnectionProtocol.CodecData<?> enumProt = ctx.channel().attr(Connection.ATTRIBUTE_CLIENTBOUND_PROTOCOL).get();
+            if (enumProt == null) throw new RuntimeException("ConnectionProtocol unknown: " + out);
+            if (msg == null) throw new RuntimeException("No packet to encode for: " + out);
+            int packetId = enumProt.protocol().codec(protocolDirection).packetId(msg);
 
-            FriendlyByteBuf packetDataSerializer = new CustomDataSerializer(player, out);
-            packetDataSerializer.writeVarInt(integer);
+            FriendlyByteBuf packetDataSerializer = new FriendlyByteBuf(out); //new CustomDataSerializer(player, out);
+            packetDataSerializer.writeVarInt(packetId);
 
             try {
                 int integer2 = packetDataSerializer.writerIndex();
@@ -401,15 +407,16 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     throw new IllegalArgumentException("Packet too big (is " + integer3 + ", should be less than 8388608): " + msg);
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                if (msg.isSkippable()) throw new SkipPacketException(e);
+                throw e;
             }
         }
     }
 
     private static class CustomPacketDecoder extends ByteToMessageDecoder {
-        private Player player;
+        @Nullable private final Player player;
 
-        private CustomPacketDecoder(Player player) {
+        private CustomPacketDecoder(@Nullable Player player) {
             this.player = player;
         }
 
@@ -418,22 +425,23 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             final ByteBuf bufferCopy = buffer.copy();
             if (buffer.readableBytes() == 0) return;
 
-            Attribute<ConnectionProtocol.CodecData<?>> attribute = ctx.channel().attr(Connection.ATTRIBUTE_SERVERBOUND_PROTOCOL);
-            ConnectionProtocol.CodecData<?> codecData = attribute.get();
             CustomDataSerializer dataSerializer = new CustomDataSerializer(player, buffer);
             int packetID = dataSerializer.readVarInt();
-            Packet<?> packet = codecData.createPacket(packetID, dataSerializer);
-
-            if (packet == null) throw new IOException("Bad packet id " + packetID);
+            Attribute<ConnectionProtocol.CodecData<?>> attribute = ctx.channel().attr(Connection.ATTRIBUTE_SERVERBOUND_PROTOCOL);
+            Packet<?> packet = attribute.get().createPacket(packetID, dataSerializer);
 
             if (dataSerializer.readableBytes() > 0) {
                 throw new IOException("Packet " + packetID + " " + packet + " was larger than expected, found " + dataSerializer.readableBytes() + " bytes extra whiløst reading the packet " + packetID);
             } else if (packet instanceof ServerboundChatPacket) {
                 FriendlyByteBuf baseSerializer = new FriendlyByteBuf(bufferCopy);
                 int basePacketID = baseSerializer.readVarInt();
-                packet = codecData.createPacket(basePacketID, baseSerializer);
+                packet = attribute.get().createPacket(basePacketID, baseSerializer);
             }
+
+            if (packet == null) throw new IOException("Bad packet id " + packetID);
+
             out.add(packet);
+            ProtocolSwapHandler.swapProtocolIfNeeded(attribute, packet);
         }
     }
 
