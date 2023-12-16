@@ -3,22 +3,16 @@ package io.th0rgal.oraxen.nms;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import io.papermc.paper.event.player.AsyncChatDecorateEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.Glyph;
-import io.th0rgal.oraxen.font.GlyphTag;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
-import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
 import net.kyori.adventure.translation.GlobalTranslator;
 import org.bukkit.entity.Player;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -50,11 +44,11 @@ public class GlyphHandlers {
             );
 
             // Escape all glyph-tags
-            Matcher matcher = glyph.glyphBaseRegex.matcher(AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component));
+            Matcher matcher = glyph.baseRegex.matcher(AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component));
             while (matcher.find()) {
                 component = component.replaceText(
                         TextReplacementConfig.builder()
-                                .match(glyph.glyphBaseRegex)
+                                .match(glyph.baseRegex)
                                 .replacement(AdventureUtils.MINI_MESSAGE_EMPTY.deserialize("\\" + matcher.group()))
                                 .build()
                 );
@@ -69,7 +63,7 @@ public class GlyphHandlers {
     private static Component transformGlyphTags(Component component, boolean isUtf) {
 
         for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
-            Matcher matcher = glyph.glyphBaseRegex.matcher(AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component));
+            Matcher matcher = glyph.baseRegex.matcher(AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component));
             Component glyphComponent = Component.text(glyph.getCharacter()).font(Key.key("default")).style(Style.empty());
             while (matcher.find()) {
                 component = component.replaceText(
@@ -81,7 +75,7 @@ public class GlyphHandlers {
             }
 
             if (isUtf) {
-                matcher = glyph.glyphEscapedRegex.matcher(AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component));
+                matcher = glyph.escapedRegex.matcher(AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component));
                 while (matcher.find()) {
                     component = component.replaceText(
                             TextReplacementConfig.builder()

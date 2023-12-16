@@ -46,14 +46,11 @@ public class Glyph {
     private final String[] placeholders;
     private final BitMapEntry bitmapEntry;
 
-    public final Pattern glyphBaseRegex;
-    public final Pattern glyphEscapedRegex;
+    public final Pattern baseRegex;
+    public final Pattern escapedRegex;
 
     public Glyph(final String glyphName, final ConfigurationSection glyphSection, char newChars) {
         name = glyphName;
-        String baseRegex = "(<(glyph|g):" + name + ")(:(c|colorable))*>";
-        glyphBaseRegex = Pattern.compile("(?<!\\\\)" + baseRegex);
-        glyphEscapedRegex = Pattern.compile("\\\\" + baseRegex);
 
         isEmoji = glyphSection.getBoolean("is_emoji", false);
 
@@ -61,6 +58,10 @@ public class Glyph {
         placeholders = chatSection != null ? chatSection.getStringList("placeholders").toArray(new String[0]) : new String[0];
         permission = chatSection != null ? chatSection.getString("permission", "") : "";
         tabcomplete = chatSection != null && chatSection.getBoolean("tabcomplete", false);
+
+        String baseRegex = "((<(glyph|g):" + name + ")(:(c|colorable))*>" + (placeholders.length > 0 ? "|" : "") + Arrays.stream(placeholders).map(s -> s + "|")+ ")";
+        this.baseRegex = Pattern.compile("(?<!\\\\)" + baseRegex);
+        escapedRegex = Pattern.compile("\\\\" + baseRegex);
 
         if (glyphSection.contains("code")) {
             if (glyphSection.isInt("code")) glyphSection.set("char", (char) glyphSection.getInt("code"));
