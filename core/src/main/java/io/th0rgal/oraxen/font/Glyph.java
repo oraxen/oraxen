@@ -59,7 +59,7 @@ public class Glyph {
         permission = chatSection != null ? chatSection.getString("permission", "") : "";
         tabcomplete = chatSection != null && chatSection.getBoolean("tabcomplete", false);
 
-        String baseRegex = "((<(glyph|g):" + name + ")(:(c|colorable))*>" + (placeholders.length > 0 ? "|" : "") + Arrays.stream(placeholders).map(s -> s + "|")+ ")";
+        String baseRegex = "((<(glyph|g):" + name + ")(:(c|colorable))*>" + (placeholders.length > 0 ? "|" : "") + String.join("|", placeholders) + ")";
         this.baseRegex = Pattern.compile("(?<!\\\\)" + baseRegex);
         escapedRegex = Pattern.compile("\\\\" + baseRegex);
 
