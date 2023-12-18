@@ -64,14 +64,11 @@ public class GlyphHandlers {
     private static final Pattern colorableRegex = Pattern.compile("<glyph:.*:(c|colorable)>");
 
     private static Component transformGlyphTags(Component component, boolean isUtf) {
-
+        String serialized = AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component);
         for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
-            Logs.logWarning(glyph.baseRegex.toString());
-            Matcher matcher = glyph.baseRegex.matcher(AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component));
+            Matcher matcher = glyph.baseRegex.matcher(serialized);
             Component glyphComponent = Component.text(glyph.getCharacter(), NamedTextColor.WHITE).font(Key.key("default")).style(Style.empty());
             while (matcher.find()) {
-                Logs.logError(matcher.group());
-                Logs.logWarning(String.valueOf(matcher.group().matches(colorableRegex.pattern())));
                 component = component.replaceText(
                         TextReplacementConfig.builder()
                                 .match(matcher.pattern())
@@ -80,7 +77,7 @@ public class GlyphHandlers {
             }
 
             if (isUtf) {
-                matcher = glyph.escapedRegex.matcher(AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component));
+                matcher = glyph.escapedRegex.matcher(serialized);
                 while (matcher.find()) {
                     component = component.replaceText(
                             TextReplacementConfig.builder()
@@ -91,7 +88,6 @@ public class GlyphHandlers {
                 }
             }
         }
-
 
         return component;
     }
