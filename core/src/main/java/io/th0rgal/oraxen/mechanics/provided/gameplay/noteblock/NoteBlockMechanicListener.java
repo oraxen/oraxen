@@ -221,7 +221,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (!player.isSneaking() && BlockHelpers.isInteractable(block)) return;
 
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
-        if (mechanic == null) return;
+        if (mechanic == null || OraxenBlocks.isOraxenNoteBlock(item)) return;
         if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentMechanic();
 
@@ -229,52 +229,8 @@ public class NoteBlockMechanicListener implements Listener {
         if (!EventUtils.callEvent(new OraxenNoteBlockInteractEvent(mechanic, player, item, hand, block, blockFace))) event.setCancelled(true);
         if (item == null) return;
 
-        Block relative = block.getRelative(blockFace);
         Material type = item.getType();
         if (type == Material.AIR) return;
-
-        if (type == Material.BUCKET && relative.getBlockData() instanceof Levelled levelled && levelled.getLevel() == levelled.getMaximumLevel()) {
-            final Sound sound;
-            if (relative.getType() == Material.WATER) sound = Sound.ITEM_BUCKET_FILL;
-            else sound = Sound.valueOf("ITEM_BUCKET_FILL_" + relative.getType());
-
-            if (player.getGameMode() != GameMode.CREATIVE)
-                item.setType(Objects.requireNonNull(Material.getMaterial(relative.getType() + "_BUCKET")));
-
-            player.playSound(relative.getLocation(), sound, 1.0f, 1.0f);
-            relative.setType(Material.AIR, true);
-            return;
-        }
-
-        if (!BlockHelpers.BlockCorrection.useNMS()) {
-            final boolean bucketCheck = type.toString().endsWith("_BUCKET");
-            final String bucketBlock = type.toString().replace("_BUCKET", "");
-            EntityType bucketEntity;
-            try {
-                bucketEntity = EntityType.valueOf(bucketBlock);
-            } catch (IllegalArgumentException e) {
-                bucketEntity = null;
-            }
-
-            if (bucketCheck && type != Material.MILK_BUCKET) {
-                if (bucketEntity == null)
-                    type = Material.getMaterial(bucketBlock);
-                else {
-                    type = Material.WATER;
-                    player.getWorld().spawnEntity(relative.getLocation().add(0.5, 0.0, 0.5), bucketEntity);
-                }
-            }
-
-            if (type != null && type.hasGravity() && relative.getRelative(BlockFace.DOWN).getType().isAir()) {
-                BlockData data = type.createBlockData();
-                if (type.toString().endsWith("ANVIL")) ((Directional) data).setFacing(getAnvilFacing(event.getBlockFace()));
-                BlockHelpers.playCustomBlockSound(relative.getLocation(), data.getSoundGroup().getPlaceSound().getKey().toString(), data.getSoundGroup().getVolume(), data.getSoundGroup().getPitch());
-                block.getWorld().spawnFallingBlock(BlockHelpers.toCenterBlockLocation(relative.getLocation()), data);
-                if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
-                return;
-            }
-        }
-
 
         BlockData newData = type != null && type.isBlock() ? type.createBlockData() : null;
         makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), newData);
