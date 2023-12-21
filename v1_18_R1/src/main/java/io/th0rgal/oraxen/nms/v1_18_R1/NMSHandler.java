@@ -301,7 +301,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             try {
                 JsonElement element = JsonParser.parseString(string);
                 if (element.isJsonObject())
-                    return super.writeUtf(GlyphHandlers.formatJsonString(element.getAsJsonObject()), maxLength);
+                    return super.writeUtf(GlyphHandlers.formatJsonString(element.getAsJsonObject(), null), maxLength);
             } catch (Exception ignored) {
 
             }
@@ -316,7 +316,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     try {
                         JsonElement element = JsonParser.parseString(string);
                         if (element.isJsonObject())
-                            return GlyphHandlers.formatJsonString(element.getAsJsonObject());
+                            return GlyphHandlers.formatJsonString(element.getAsJsonObject(), null);
                     } catch (Exception ignored) {
                     }
                     return string;

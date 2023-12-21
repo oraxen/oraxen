@@ -17,6 +17,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.kyori.adventure.text.Component;
@@ -331,9 +332,11 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         @Override
         public @NotNull FriendlyByteBuf writeUtf(@NotNull String string, int maxLength) {
             try {
+                //Logs.logError("writeUtf");
+                //Logs.logSuccess(string);
                 JsonElement element = JsonParser.parseString(string);
                 if (element.isJsonObject())
-                    return super.writeUtf(GlyphHandlers.formatJsonString(element.getAsJsonObject()), maxLength);
+                    return super.writeUtf(GlyphHandlers.formatJsonString(element.getAsJsonObject(), null), maxLength);
             } catch (Exception ignored) {
             }
 
@@ -342,21 +345,27 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         @Override
         public @NotNull String readUtf(int i) {
-            Component component = AdventureUtils.MINI_MESSAGE_EMPTY.deserialize(super.readUtf(i));
+            Component component;
+            try {
+                component = AdventureUtils.MINI_MESSAGE_EMPTY.deserialize(super.readUtf(i));
+            } catch (Exception e) {
+                component = AdventureUtils.LEGACY_SERIALIZER.deserialize(super.readUtf(i));
+            }
+
             return AdventureUtils.MINI_MESSAGE_EMPTY.serialize(GlyphHandlers.transform(component, player, true));
         }
 
         @NotNull
         @Override
         public FriendlyByteBuf writeNbt(@Nullable Tag tag) {
-            if (tag instanceof CompoundTag compoundTag) transform(compoundTag, GlyphHandlers.transformer());
+            if (tag instanceof CompoundTag compoundTag) transform(compoundTag, GlyphHandlers.transformer(null));
             return super.writeNbt(tag);
         }
 
         @Override
         public @Nullable CompoundTag readNbt() {
             CompoundTag compound = super.readNbt();
-            if (compound != null) transform(compound, string -> GlyphHandlers.verifyFor(player, string));
+            if (compound != null) transform(compound, GlyphHandlers.transformer(player));
 
             return compound;
         }

@@ -345,7 +345,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             try {
                 JsonElement element = JsonParser.parseString(string);
                 if (element.isJsonObject())
-                    return super.writeUtf(GlyphHandlers.formatJsonString(element.getAsJsonObject()), maxLength);
+                    return super.writeUtf(GlyphHandlers.formatJsonString(element.getAsJsonObject(), null), maxLength);
             } catch (Exception ignored) {
             }
 
@@ -361,7 +361,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         @NotNull
         @Override
         public FriendlyByteBuf writeNbt(CompoundTag tag) {
-            transform(tag, GlyphHandlers.transformer());
+            transform(tag, GlyphHandlers.transformer(null));
             return super.writeNbt(tag);
         }
 

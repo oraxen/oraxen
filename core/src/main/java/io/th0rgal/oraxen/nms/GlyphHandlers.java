@@ -18,6 +18,7 @@ import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,13 +26,14 @@ import java.util.regex.Pattern;
 public class GlyphHandlers {
 
     public static Component transform(Component component, @Nullable Player player, boolean isUtf) {
-        if (player != null) return escapeGlyphTags(component, player);
-        else return transformGlyphTags(component, isUtf);
+        //Logs.logError("transform: " + (player == null ? "escape" : "transform") + " : " + component.toString());
+        if (player != null) return escapeGlyphs(component, player);
+        else return transformGlyphs(component, isUtf);
     }
 
-    private static Component escapeGlyphTags(Component component, @NotNull Player player) {
+    private static Component escapeGlyphs(Component component, @NotNull Player player) {
         component = GlobalTranslator.render(component, player.locale());
-        String serialized = AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component);
+        String serialized = AdventureUtils.MINI_MESSAGE.serialize(component);
 
         // Replace raw unicode usage of non-permissed Glyphs with random font
         // This will always show a white square
@@ -49,10 +51,14 @@ public class GlyphHandlers {
             // Escape all glyph-tags
             Matcher matcher = glyph.baseRegex.matcher(serialized);
             while (matcher.find()) {
+                if (Objects.equals(glyph.getName(), "knight_tag") || Objects.equals(glyph.getName(), "farmer_tag")) {
+                    Logs.logSuccess(serialized);
+                    Logs.logInfo(matcher.group());
+                }
                 component = component.replaceText(
                         TextReplacementConfig.builder()
-                                .match(glyph.baseRegex)
-                                .replacement(AdventureUtils.MINI_MESSAGE_EMPTY.deserialize("\\" + matcher.group()))
+                                .matchLiteral(matcher.group())
+                                .replacement(AdventureUtils.MINI_MESSAGE.deserialize("\\" + matcher.group()))
                                 .build()
                 );
             }
@@ -63,26 +69,33 @@ public class GlyphHandlers {
 
     private static final Pattern colorableRegex = Pattern.compile("<glyph:.*:(c|colorable)>");
 
-    private static Component transformGlyphTags(Component component, boolean isUtf) {
-        String serialized = AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component);
+    private static Component transformGlyphs(Component component, boolean isUtf) {
+        String serialized = AdventureUtils.MINI_MESSAGE.serialize(component);
+
         for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
             Matcher matcher = glyph.baseRegex.matcher(serialized);
             Component glyphComponent = Component.text(glyph.getCharacter(), NamedTextColor.WHITE).font(Key.key("default")).style(Style.empty());
             while (matcher.find()) {
                 component = component.replaceText(
                         TextReplacementConfig.builder()
-                                .match(matcher.pattern())
+                                .matchLiteral(matcher.group())
                                 .replacement(glyphComponent)
                                 .build());
             }
 
             if (isUtf) {
+                if (Objects.equals(glyph.getName(), "knight_tag") || Objects.equals(glyph.getName(), "farmer_tag")) {
+                    Logs.logSuccess("isUtf");
+                    Logs.logError(serialized);
+                }
                 matcher = glyph.escapedRegex.matcher(serialized);
                 while (matcher.find()) {
+                    Logs.logInfo(matcher.group());
+                    Logs.logWarning(glyph.escapedRegex.pattern());
                     component = component.replaceText(
                             TextReplacementConfig.builder()
-                                    .match(matcher.pattern())
-                                    .replacement(AdventureUtils.MINI_MESSAGE_EMPTY.deserialize(StringUtils.removeEnd(matcher.group(), "\\")))
+                                    .matchLiteral(matcher.group())
+                                    .replacement(AdventureUtils.MINI_MESSAGE_EMPTY.deserialize(StringUtils.removeStart(matcher.group(), "\\")))
                                     .build()
                     );
                 }
@@ -92,17 +105,21 @@ public class GlyphHandlers {
         return component;
     }
 
-    public static String formatJsonString(@NotNull JsonObject obj) {
-        return (obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate")) ?
-                Glyph.parsePlaceholders(obj).toString() : obj.toString();
+    public static String formatJsonString(@NotNull JsonObject obj, @Nullable Player player) {
+        if ((obj.has("args") || obj.has("text") || obj.has("extra") || obj.has("translate"))) {
+            Component component = AdventureUtils.GSON_SERIALIZER.deserialize(obj.toString());
+            component = AdventureUtils.MINI_MESSAGE_EMPTY.deserialize(AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component));
+            component = transform(component, player, false);
+            return AdventureUtils.GSON_SERIALIZER.serialize(component);
+        } else return obj.toString();
     }
 
-    public static Function<String, String> transformer() {
+    public static Function<String, String> transformer(@Nullable Player player) {
         return string -> {
             try {
                 JsonElement element = JsonParser.parseString(string);
                 if (element.isJsonObject())
-                    return GlyphHandlers.formatJsonString(element.getAsJsonObject());
+                    return GlyphHandlers.formatJsonString(element.getAsJsonObject(), player);
             } catch (Exception ignored) {
             }
             return string;

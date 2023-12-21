@@ -16,6 +16,7 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
+import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -59,7 +60,7 @@ public class Glyph {
         permission = chatSection != null ? chatSection.getString("permission", "") : "";
         tabcomplete = chatSection != null && chatSection.getBoolean("tabcomplete", false);
 
-        String baseRegex = "((<(glyph|g):" + name + ")(:(c|colorable))*>" + (placeholders.length > 0 ? "|" : "") + String.join("|", placeholders) + ")";
+        String baseRegex = "((<(glyph|g):" + name + ")(:(c|colorable))*>" + (placeholders.length > 0 ? "|" + String.join("|", placeholders) : "") + ")";
         this.baseRegex = Pattern.compile("(?<!\\\\)" + baseRegex);
         escapedRegex = Pattern.compile("\\\\" + baseRegex);
 
@@ -240,35 +241,29 @@ public class Glyph {
      * @param element The JSON Object to parse
      * @return The parsed JSON Object
      */
-    public static JsonObject parsePlaceholders(JsonElement element) {
+    public static JsonObject parsePlaceholders(JsonElement element, @Nullable Player player) {
         Component component = AdventureUtils.GSON_SERIALIZER.deserializeFromTree(element);
-        for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
-            Component glyphComponent = Component.text().content(glyph.getCharacter()).color(NamedTextColor.WHITE).build();
-            // Format all non-escaped glyph-tags and raw unicodes
-            component = component.replaceText(TextReplacementConfig.builder()
-                    .match(Pattern.compile("(?<!\\\\)(" + glyph.getCharacter() + "|" + glyph.getGlyphTag() + ")"))
-                    .replacement(glyphComponent).build());
 
-            for (String placeholder : glyph.placeholders) {
+        if (player != null) {
+            //TODO Escape all glyphs the player does not have permission for
+        } else {
+            for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
+                Component glyphComponent = Component.text().content(glyph.getCharacter()).color(NamedTextColor.WHITE).build();
+                // Format all non-escaped glyph-tags and raw unicodes
                 component = component.replaceText(TextReplacementConfig.builder()
-                        .match(Pattern.compile("(?<!\\\\)" + placeholder))
-                        .replacement(glyph.getCharacter()).build());
+                        .match(glyph.baseRegex.pattern())
+                        .replacement(glyphComponent).build());
 
-                // Replace all escaped glyphs with their non-formatted variant
+                // Replace all escaped glyph-tags with their non-formatted variant
                 component = component.replaceText(TextReplacementConfig.builder()
-                        .match(Pattern.compile("\\\\(" + placeholder + "|" + glyph.getCharacter() + ")"))
-                        .replacement(glyphComponent)
+                        .match(Pattern.compile("\\\\" + glyph.getGlyphTag()))
+                        .replacement(glyph.getGlyphTag())
                         .build());
             }
 
-            // Replace all escaped glyph-tags with their non-formatted variant
-            component = component.replaceText(TextReplacementConfig.builder()
-                    .match(Pattern.compile("\\\\" + glyph.getGlyphTag()))
-                    .replacement(glyph.getGlyphTag())
-                    .build());
+            component = AdventureUtils.MINI_MESSAGE.deserialize(AdventureUtils.MINI_MESSAGE.serialize(component));
         }
 
-        component = AdventureUtils.MINI_MESSAGE.deserialize(AdventureUtils.MINI_MESSAGE.serialize(component));
         return AdventureUtils.GSON_SERIALIZER.serializeToTree(component).getAsJsonObject();
     }
 
