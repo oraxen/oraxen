@@ -445,7 +445,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (BlockHelpers.isReplaceable(type)) target = placedAgainst;
         else {
             target = placedAgainst.getRelative(face);
-            if (!target.getType().isAir() && !target.isLiquid() && target.getType() != Material.LIGHT) return;
+            if (!BlockHelpers.isReplaceable(target.getType())) return;
         }
 
         final NoteBlockMechanic againstMechanic = OraxenBlocks.getNoteBlockMechanic(placedAgainst);
