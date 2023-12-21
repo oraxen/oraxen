@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -37,6 +38,7 @@ public class Glyph {
     private boolean fileChanged = false;
 
     private final String name;
+    private final Key font = Key.key("default");
     private final boolean isEmoji;
     private final boolean tabcomplete;
     private final Character character;
@@ -236,38 +238,6 @@ public class Glyph {
     }
 
     /**
-     * Parses all glyph-tags and raw unicodes in a message to their formatted variant
-     * Relies on NMSHandler#verifyFor to escape all glyphs that the player doesn't have permission for
-     * @param element The JSON Object to parse
-     * @return The parsed JSON Object
-     */
-    public static JsonObject parsePlaceholders(JsonElement element, @Nullable Player player) {
-        Component component = AdventureUtils.GSON_SERIALIZER.deserializeFromTree(element);
-
-        if (player != null) {
-            //TODO Escape all glyphs the player does not have permission for
-        } else {
-            for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
-                Component glyphComponent = Component.text().content(glyph.getCharacter()).color(NamedTextColor.WHITE).build();
-                // Format all non-escaped glyph-tags and raw unicodes
-                component = component.replaceText(TextReplacementConfig.builder()
-                        .match(glyph.baseRegex.pattern())
-                        .replacement(glyphComponent).build());
-
-                // Replace all escaped glyph-tags with their non-formatted variant
-                component = component.replaceText(TextReplacementConfig.builder()
-                        .match(Pattern.compile("\\\\" + glyph.getGlyphTag()))
-                        .replacement(glyph.getGlyphTag())
-                        .build());
-            }
-
-            component = AdventureUtils.MINI_MESSAGE.deserialize(AdventureUtils.MINI_MESSAGE.serialize(component));
-        }
-
-        return AdventureUtils.GSON_SERIALIZER.serializeToTree(component).getAsJsonObject();
-    }
-
-    /**
      * Useful to easily get the MiniMessage-tag for a glyph
      */
     public String getGlyphTag() {
@@ -277,5 +247,9 @@ public class Glyph {
 
     public String getShortGlyphTag() {
         return "<g:" + name + '>';
+    }
+
+    public Component getGlyphComponent() {
+        return Component.textOfChildren(Component.text(getCharacter(), NamedTextColor.WHITE).font(font));
     }
 }

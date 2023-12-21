@@ -26,10 +26,10 @@ import java.util.regex.Pattern;
 public class GlyphHandlers {
 
     public static Component transform(Component component, @Nullable Player player, boolean isUtf) {
-        //Logs.logError("transform: " + (player == null ? "escape" : "transform") + " : " + component.toString());
         if (player != null) return escapeGlyphs(component, player);
         else return transformGlyphs(component, isUtf);
     }
+    private static final Key randomKey = Key.key("random");
 
     private static Component escapeGlyphs(Component component, @NotNull Player player) {
         component = GlobalTranslator.render(component, player.locale());
@@ -37,26 +37,21 @@ public class GlyphHandlers {
 
         // Replace raw unicode usage of non-permissed Glyphs with random font
         // This will always show a white square
-        Key randomKey = Key.key("random");
         for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
             if (glyph.hasPermission(player)) continue;
 
             component = component.replaceText(
                     TextReplacementConfig.builder()
                             .matchLiteral(glyph.getCharacter())
-                            .replacement(Component.text(glyph.getCharacter()).font(randomKey))
+                            .replacement(glyph.getGlyphComponent().font(randomKey))
                             .build()
             );
 
             // Escape all glyph-tags
             Matcher matcher = glyph.baseRegex.matcher(serialized);
             while (matcher.find()) {
-                if (Objects.equals(glyph.getName(), "knight_tag") || Objects.equals(glyph.getName(), "farmer_tag")) {
-                    Logs.logSuccess(serialized);
-                    Logs.logInfo(matcher.group());
-                }
                 component = component.replaceText(
-                        TextReplacementConfig.builder()
+                        TextReplacementConfig.builder().once()
                                 .matchLiteral(matcher.group())
                                 .replacement(AdventureUtils.MINI_MESSAGE.deserialize("\\" + matcher.group()))
                                 .build()
@@ -70,30 +65,23 @@ public class GlyphHandlers {
     private static final Pattern colorableRegex = Pattern.compile("<glyph:.*:(c|colorable)>");
 
     private static Component transformGlyphs(Component component, boolean isUtf) {
-        String serialized = AdventureUtils.MINI_MESSAGE.serialize(component);
+        String serialized = AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component);
 
         for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
             Matcher matcher = glyph.baseRegex.matcher(serialized);
-            Component glyphComponent = Component.text(glyph.getCharacter(), NamedTextColor.WHITE).font(Key.key("default")).style(Style.empty());
             while (matcher.find()) {
                 component = component.replaceText(
-                        TextReplacementConfig.builder()
+                        TextReplacementConfig.builder().once()
                                 .matchLiteral(matcher.group())
-                                .replacement(glyphComponent)
+                                .replacement(glyph.getGlyphComponent())
                                 .build());
             }
 
             if (isUtf) {
-                if (Objects.equals(glyph.getName(), "knight_tag") || Objects.equals(glyph.getName(), "farmer_tag")) {
-                    Logs.logSuccess("isUtf");
-                    Logs.logError(serialized);
-                }
                 matcher = glyph.escapedRegex.matcher(serialized);
                 while (matcher.find()) {
-                    Logs.logInfo(matcher.group());
-                    Logs.logWarning(glyph.escapedRegex.pattern());
                     component = component.replaceText(
-                            TextReplacementConfig.builder()
+                            TextReplacementConfig.builder().once()
                                     .matchLiteral(matcher.group())
                                     .replacement(AdventureUtils.MINI_MESSAGE_EMPTY.deserialize(StringUtils.removeStart(matcher.group(), "\\")))
                                     .build()
@@ -124,14 +112,5 @@ public class GlyphHandlers {
             }
             return string;
         };
-    }
-
-    public static String verifyFor(Player player, String message) {
-        if (message != null && player != null) for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
-            String glyphTag = glyph.getGlyphTag();
-            // Escape all glyphs the player does not have permission for
-            if (!glyph.hasPermission(player)) message = message.replace(glyphTag, "g" + glyphTag);
-        }
-        return message;
     }
 }

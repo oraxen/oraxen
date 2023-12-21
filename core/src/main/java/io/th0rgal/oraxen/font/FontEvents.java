@@ -47,9 +47,11 @@ public class FontEvents implements Listener {
 
     public FontEvents(FontManager manager) {
         this.manager = manager;
-        Bukkit.getPluginManager().registerEvents(
-                VersionUtil.isPaperServer() && VersionUtil.isSupportedVersionOrNewer("1.19.1")
-                        ? new PaperChatHandler() : new SpigotChatHandler(), OraxenPlugin.get());
+        if (VersionUtil.isPaperServer()) {
+            if (VersionUtil.isSupportedVersionOrNewer("1.19.1"))
+                Bukkit.getPluginManager().registerEvents(new PaperChatHandler(), OraxenPlugin.get());
+            Bukkit.getPluginManager().registerEvents(new LegacyPaperChatHandler(), OraxenPlugin.get());
+        } else Bukkit.getPluginManager().registerEvents(new SpigotChatHandler(), OraxenPlugin.get());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -246,7 +248,7 @@ public class FontEvents implements Listener {
     @SuppressWarnings("UnstableApiUsage")
     public class PaperChatHandler implements Listener {
 
-        @EventHandler
+        @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
         public void onPlayerChat(AsyncChatDecorateEvent event) {
             if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
             event.result(format(event.result(), event.player()));
@@ -254,16 +256,20 @@ public class FontEvents implements Listener {
 
     }
 
-    @EventHandler
-    public void onPlayerChat(AsyncChatEvent event) {
-        if (!Settings.FORMAT_CHAT.toBool() || !VersionUtil.isPaperServer() || manager.useNmsGlyphs()) return;
-        // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
-        Component message = VersionUtil.isSupportedVersionOrNewer("1.19.1") ? event.message() : format(event.message(), event.getPlayer());
-        message = message != null ? message : Component.empty();
-        if (!message.equals(Component.empty())) return;
+    public class LegacyPaperChatHandler implements Listener {
 
-        event.viewers().clear();
-        event.setCancelled(true);
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        public void onPlayerChat(AsyncChatEvent event) {
+            if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
+            // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
+            Component message = VersionUtil.isSupportedVersionOrNewer("1.19.1") ? event.message() : format(event.message(), event.getPlayer());
+            message = message != null ? message : Component.empty();
+            if (!message.equals(Component.empty())) return;
+
+            event.viewers().clear();
+            event.setCancelled(true);
+        }
+
     }
 
     private Component format(Component message, Player player) {
@@ -277,10 +283,11 @@ public class FontEvents implements Listener {
             }
         }
 
-        for (Glyph glyph : manager.getGlyphs()) for (String placeholder : glyph.getPlaceholders()) {
+        for (Glyph glyph : manager.getGlyphs()) {
             if (!glyph.hasPermission(player)) continue;
-            message = message.replaceText(TextReplacementConfig.builder().matchLiteral(placeholder)
-                    .replacement(Component.text(glyph.getCharacter(), NamedTextColor.WHITE)).build());
+            message = message.replaceText(TextReplacementConfig.builder()
+                    .once().match(glyph.baseRegex)
+                    .replacement(glyph.getGlyphComponent()).build());
         }
 
         return message;

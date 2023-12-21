@@ -11,9 +11,6 @@ public class GlyphListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onDecorate(AsyncChatDecorateEvent event) {
-        Logs.logError("onDecorate");
-        //Logs.logSuccess(event.player().getName());
-        //event.result(GlyphHandlers.transform(event.result(), event.player(), true));
-        //Logs.logWarning(event.result().toString());
+        event.result(GlyphHandlers.transform(event.result(), event.player(), true));
     }
 }

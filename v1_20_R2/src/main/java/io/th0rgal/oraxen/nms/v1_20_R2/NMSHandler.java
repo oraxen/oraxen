@@ -332,8 +332,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         @Override
         public @NotNull FriendlyByteBuf writeUtf(@NotNull String string, int maxLength) {
             try {
-                //Logs.logError("writeUtf");
-                //Logs.logSuccess(string);
                 JsonElement element = JsonParser.parseString(string);
                 if (element.isJsonObject())
                     return super.writeUtf(GlyphHandlers.formatJsonString(element.getAsJsonObject(), null), maxLength);
@@ -345,11 +343,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         @Override
         public @NotNull String readUtf(int i) {
+            String string = super.readUtf(i);
             Component component;
             try {
-                component = AdventureUtils.MINI_MESSAGE_EMPTY.deserialize(super.readUtf(i));
+                component = AdventureUtils.MINI_MESSAGE_EMPTY.deserialize(string);
             } catch (Exception e) {
-                component = AdventureUtils.LEGACY_SERIALIZER.deserialize(super.readUtf(i));
+                component = AdventureUtils.LEGACY_SERIALIZER.deserialize(string);
             }
 
             return AdventureUtils.MINI_MESSAGE_EMPTY.serialize(GlyphHandlers.transform(component, player, true));

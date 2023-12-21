@@ -367,7 +367,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         @Override
         public @Nullable CompoundTag readNbt() {
             CompoundTag compound = super.readNbt();
-            if (compound != null) transform(compound, string -> GlyphHandlers.verifyFor(player, string));
+            if (compound != null) transform(compound, GlyphHandlers.transformer(player));
 
             return compound;
         }
