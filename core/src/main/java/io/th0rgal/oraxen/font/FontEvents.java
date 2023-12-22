@@ -13,9 +13,11 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.inventory.Book;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -216,6 +218,7 @@ public class FontEvents implements Listener {
 
         /**
          * Formats a string with glyphs and placeholders
+         *
          * @param string The string to format
          * @param player The player to check permissions for, if null it parses the string without checking permissions
          * @return The formatted string, or null if the player doesn't have permission for a glyph
@@ -273,22 +276,28 @@ public class FontEvents implements Listener {
     }
 
     private Component format(Component message, Player player) {
+        Key randomKey = Key.key("random");
+        String serialized = MINI_MESSAGE.serialize(message);
         for (Character character : manager.getReverseMap().keySet()) {
-            if (!MINI_MESSAGE.serialize(message).contains(character.toString())) continue;
+            if (!serialized.contains(character.toString())) continue;
 
             Glyph glyph = manager.getGlyphFromName(manager.getReverseMap().get(character));
-            if (!glyph.hasPermission(player)) {
-                Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", glyph.getPermission()));
-                return Component.empty();
-            }
+            if (!glyph.hasPermission(player)) message.replaceText(
+                    TextReplacementConfig.builder()
+                            .matchLiteral(character.toString())
+                            .replacement(glyph.getGlyphComponent().font(randomKey))
+                            .build()
+            );
         }
 
-        for (Glyph glyph : manager.getGlyphs()) {
-            if (!glyph.hasPermission(player)) continue;
-            message = message.replaceText(TextReplacementConfig.builder()
-                    .once().match(glyph.baseRegex)
-                    .replacement(glyph.getGlyphComponent()).build());
-        }
+        for (Map.Entry<String, Glyph> entry : manager.getGlyphByPlaceholderMap().entrySet())
+            if (entry.getValue().hasPermission(player)) {
+                message = message.replaceText(
+                        TextReplacementConfig.builder()
+                                .matchLiteral(entry.getKey())
+                                .replacement(entry.getValue().getGlyphComponent()).build()
+                );
+            }
 
         return message;
     }
