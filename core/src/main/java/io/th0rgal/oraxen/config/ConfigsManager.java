@@ -190,15 +190,31 @@ public class ConfigsManager {
         List<File> glyphFiles = getGlyphFiles();
         List<Glyph> output = new ArrayList<>();
         Map<String, Character> charPerGlyph = new HashMap<>();
+        char nextCharacter = '\uE001'; // Start with the character E001
+
         for (File file : glyphFiles) {
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
                 ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
                 if (glyphSection == null) continue;
+
                 String characterString = glyphSection.getString("char", "");
                 char character = !characterString.isBlank() ? characterString.charAt(0) : Character.MIN_VALUE;
-                if (character != Character.MIN_VALUE)
-                    charPerGlyph.put(key, character);
+
+                // Ensure character is higher than E000
+                if (character != Character.MIN_VALUE && character <= '\uE000') {
+                    character = nextCharacter++;
+                    // Update the file with the new character
+                    glyphSection.set("char", String.valueOf(character));
+                    try {
+                        configuration.save(file);
+                    } catch (IOException e) {
+                        Logs.logWarning("Failed to save updated glyph file: " + file.getName());
+                        if (Settings.DEBUG.toBool()) e.printStackTrace();
+                    }
+                }
+
+                charPerGlyph.put(key, character);
             }
         }
 
@@ -207,16 +223,23 @@ public class ConfigsManager {
             boolean fileChanged = false;
             for (String key : configuration.getKeys(false)) {
                 char character = charPerGlyph.getOrDefault(key, Character.MIN_VALUE);
-                if (character == Character.MIN_VALUE) {
-                    character = Utils.firstEmpty(charPerGlyph, 42000);
-                    charPerGlyph.put(key, character);
-                }
-                Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key), character);
-                if (glyph.isFileChanged())
+
+                // Ensure character is higher than E000
+                if (character <= '\uE000') {
+                    character = nextCharacter++;
+                    // Update the character in the file
+                    configuration.set(key + ".char", String.valueOf(character));
                     fileChanged = true;
+                }
+
+                Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key), character);
+                if (glyph.isFileChanged()) {
+                    fileChanged = true;
+                }
                 glyph.verifyGlyph(output);
                 output.add(glyph);
             }
+
             if (fileChanged && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
                 try {
                     configuration.save(file);
@@ -226,8 +249,10 @@ public class ConfigsManager {
                 }
             }
         }
+
         return output;
     }
+
 
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
