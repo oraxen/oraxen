@@ -612,7 +612,8 @@ public class FurnitureMechanic extends Mechanic {
         if (mechanic == null) return entity.getLocation().getYaw();
 
         if (entity instanceof ItemFrame itemFrame) {
-            if (mechanic.limitedPlacing.isWall() && itemFrame.getFacing().getModY() == 0) return entity.getLocation().getYaw();
+            if (mechanic.hasLimitedPlacing() && mechanic.limitedPlacing.isWall() && itemFrame.getFacing().getModY() == 0)
+                return entity.getLocation().getYaw();
             else return rotationToYaw(itemFrame.getRotation());
         } else return entity.getLocation().getYaw();
     }
