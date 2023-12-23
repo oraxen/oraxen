@@ -110,6 +110,11 @@ public enum Settings {
     RECEIVE_LOADED_ACTIONS("Pack.receive.loaded.actions"),
     RECEIVE_FAILED_ACTIONS("Pack.receive.failed_download.actions"),
     RECEIVE_DENIED_ACTIONS("Pack.receive.denied.actions"),
+    RECEIVE_FAILED_RELOAD_ACTIONS("Pack.receive.failed_reload.actions"),
+    RECEIVE_DOWNLOADED_ACTIONS("Pack.receive.downloaded.actions"),
+    RECEIVE_INVALID_URL_ACTIONS("Pack.receive.invalid_url.actions"),
+    RECEIVE_DISCARDED_ACTIONS("Pack.receive.discarded.actions"),
+
 
     // Inventory
     ORAXEN_INV_LAYOUT("oraxen_inventory.menu_layout"),

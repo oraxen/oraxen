@@ -9,7 +9,6 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.nms.NMSHandlers;
-import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
@@ -22,19 +21,17 @@ import org.bukkit.block.data.type.Lectern;
 import org.bukkit.block.data.type.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
-import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.RayTraceResult;
-import org.bukkit.util.Vector;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -109,9 +106,18 @@ public class BlockHelpers {
         return new CustomBlockData(block, plugin);
     }
 
-    public static final Set<Material> UNBREAKABLE_BLOCKS = Sets.newHashSet(Material.BEDROCK, Material.BARRIER, Material.NETHER_PORTAL, Material.END_PORTAL_FRAME, Material.END_PORTAL, Material.END_GATEWAY, Material.REINFORCED_DEEPSLATE);
+    public static final Set<Material> UNBREAKABLE_BLOCKS = Sets.newHashSet(Material.BEDROCK, Material.BARRIER, Material.NETHER_PORTAL, Material.END_PORTAL_FRAME, Material.END_PORTAL, Material.END_GATEWAY);
 
-    public static final List<Material> REPLACEABLE_BLOCKS = Tag.REPLACEABLE.getValues().stream().toList();
+    static {
+        if (VersionUtil.isSupportedVersionOrNewer("1.19")) UNBREAKABLE_BLOCKS.add(Material.REINFORCED_DEEPSLATE);
+        if (VersionUtil.isSupportedVersionOrNewer("1.20")) {
+            REPLACEABLE_BLOCKS = Tag.REPLACEABLE.getValues().stream().toList();
+        } else REPLACEABLE_BLOCKS = Arrays.asList(
+                Material.SNOW, Material.VINE, Material.valueOf("GRASS"), Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,
+                Material.LARGE_FERN, Material.AIR, Material.WATER, Material.LAVA, Material.LIGHT);
+    }
+
+    public static final List<Material> REPLACEABLE_BLOCKS;
 
     public static boolean isReplaceable(Block block) {
         return REPLACEABLE_BLOCKS.contains(block.getType());
@@ -122,6 +128,7 @@ public class BlockHelpers {
     }
 
     public static boolean isReplaceable(Material material) {
+        Logs.debug("type: " + material);
         return REPLACEABLE_BLOCKS.contains(material);
     }
 
@@ -161,10 +168,11 @@ public class BlockHelpers {
     public static BlockData correctAllBlockStates(Block placedAgainst, Player player, EquipmentSlot hand, BlockFace face, ItemStack item, BlockData newData) {
         Block target = placedAgainst.getRelative(face);
         BlockData correctedData;
-        if (NMSHandlers.getHandler() != null  && BlockCorrection.useNMS()) {
+        if (NMSHandlers.getHandler() != null && BlockCorrection.useNMS()) {
             //TODO Fix boats, currently Item#use in BoatItem calls PlayerInteractEvent
             // thus causing a StackOverflow, find a workaround
             if (Tag.ITEMS_BOATS.isTagged(item.getType())) return null;
+            Logs.debug("Using NMS");
             correctedData = NMSHandlers.getHandler().correctBlockStates(player, hand, item);
         }
         else {

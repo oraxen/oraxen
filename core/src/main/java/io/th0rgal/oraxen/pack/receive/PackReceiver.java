@@ -28,6 +28,12 @@ public class PackReceiver implements Listener {
             case DECLINED -> new PackAction(Settings.RECEIVE_DENIED_ACTIONS.toConfigSection(), playerResolver);
             case FAILED_DOWNLOAD -> new PackAction(Settings.RECEIVE_FAILED_ACTIONS.toConfigSection(), playerResolver);
             case SUCCESSFULLY_LOADED -> new PackAction(Settings.RECEIVE_LOADED_ACTIONS.toConfigSection(), playerResolver);
+
+            // 1.20.3+ only. switch statement should never reach this however on lower versions
+            case DOWNLOADED -> new PackAction(Settings.RECEIVE_DOWNLOADED_ACTIONS.toConfigSection(), playerResolver);
+            case INVALID_URL -> new PackAction(Settings.RECEIVE_INVALID_URL_ACTIONS.toConfigSection(), playerResolver);
+            case FAILED_RELOAD -> new PackAction(Settings.RECEIVE_FAILED_RELOAD_ACTIONS.toConfigSection(), playerResolver);
+            case DISCARDED -> new PackAction(Settings.RECEIVE_DISCARDED_ACTIONS.toConfigSection(), playerResolver);
         };
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             if (packAction.hasMessage())

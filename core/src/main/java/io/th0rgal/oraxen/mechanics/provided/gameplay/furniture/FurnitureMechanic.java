@@ -500,7 +500,7 @@ public class FurnitureMechanic extends Mechanic {
                 frame.setFacingDirection(BlockFace.UP, true);
             else if (limitedPlacing.isWall() && facing.getModY() == 0)
                 frame.setRotation(Rotation.NONE);
-            else if (limitedPlacing.isRoof())
+            else if (limitedPlacing.isRoof() && facing == BlockFace.DOWN)
                 frame.setFacingDirection(BlockFace.DOWN, true);
         }
     }

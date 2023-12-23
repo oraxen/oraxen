@@ -194,6 +194,33 @@ Pack:
           player: [ ]
           opped_player: [ ]
 
+    failed_reload: #1.20.3+ only
+      actions:
+        commands:
+          console: [ ]
+          player: [ ]
+          opped_player: [ ]
+
+    downloaded: #1.20.3+ only
+      actions:
+        commands:
+          console: [ ]
+          player: [ ]
+          opped_player: [ ]
+
+    invalid_url: #1.20.3+ only
+      actions:
+        commands:
+          console: [ ]
+          player: [ ]
+          opped_player: [ ]
+
+    discarded: #1.20.3+ only
+      actions:
+        commands:
+          console: [ ]
+          player: [ ]
+          opped_player: [ ]
 Misc:
   # If this is set to true, Oraxen will reset recipes on reload. This might create conflicts with other plugins
   # but this makes the things easier if you want to try your oraxen recipes.
