@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.Font;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.font.packets.ScoreboardPacketListener;
 import io.th0rgal.oraxen.gestures.GestureManager;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
@@ -19,11 +20,18 @@ import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.text.Component;
+import net.minecraft.world.scores.ScoreHolder;
+import net.minecraft.world.scores.criteria.ObjectiveCriteria;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.RenderType;
+import org.bukkit.scoreboard.Score;
 import org.bukkit.scoreboard.Scoreboard;
 
 import javax.imageio.ImageIO;
@@ -647,17 +655,7 @@ public class ResourcePack {
 
     private void hideScoreboardNumbers() {
         if (VersionUtil.atOrAbove("1.20.3")) {
-            Bukkit.getOnlinePlayers().forEach(player -> {
-                Logs.debug("Hiding scoreboard numbers for player " + player.getName());
-                Scoreboard scoreboard = player.getScoreboard();
-                /*scoreboard.getScores(player).forEach(score ->
-                        score.customName(Component.empty())
-                );
-                scoreboard.getObjectives().forEach(objective ->
-                        objective.setRenderType(RenderType.HEARTS));*/
-
-                player.setScoreboard(scoreboard);
-            });
+            OraxenPlugin.get().getProtocolManager().addPacketListener(new ScoreboardPacketListener());
         } else { // Pre 1.20.3 rely on shaders
             writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
             writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
