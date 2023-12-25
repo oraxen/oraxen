@@ -34,7 +34,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.security.Key;
 import java.util.*;
 
 public class FurnitureMechanic extends Mechanic {
@@ -477,7 +476,7 @@ public class FurnitureMechanic extends Mechanic {
         // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
         float pitch;
         float alterYaw;
-        if (VersionUtil.isSupportedVersionOrNewer("1.20.1")) {
+        if (VersionUtil.atOrAbove("1.20.1")) {
             pitch = isFixed && hasLimitedPlacing() && (limitedPlacing.isFloor() || limitedPlacing.isRoof()) ? -90 : 0;
             alterYaw = yaw;
         } else {

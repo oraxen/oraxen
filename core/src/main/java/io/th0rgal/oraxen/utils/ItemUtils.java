@@ -63,7 +63,7 @@ public class ItemUtils {
         return isTool(itemStack.getType());
     }
     public static boolean isTool(Material material) {
-        if (VersionUtil.isSupportedVersionOrNewer("1.19.4"))
+        if (VersionUtil.atOrAbove("1.19.4"))
             return Tag.ITEMS_TOOLS.isTagged(material);
         else return material.toString().endsWith("_AXE")
                 || material.toString().endsWith("_PICKAXE")

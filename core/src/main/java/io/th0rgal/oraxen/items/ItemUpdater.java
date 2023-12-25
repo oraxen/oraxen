@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
-import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -151,7 +150,7 @@ public class ItemUpdater implements Listener {
                 mapMeta.setColor(oldMapMeta.getColor());
             }
 
-            if (VersionUtil.isSupportedVersionOrNewer("1.20") && itemMeta instanceof ArmorMeta armorMeta && oldMeta instanceof ArmorMeta oldArmorMeta) {
+            if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && oldMeta instanceof ArmorMeta oldArmorMeta) {
                 armorMeta.setTrim(oldArmorMeta.getTrim());
             }
 

@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingTask;
@@ -64,7 +63,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPaperListener());
             if (!NMSHandlers.isTripwireUpdatesDisabled()) {
                 MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener.StringBlockMechanicPhysicsListener());
-                if (VersionUtil.isSupportedVersionOrNewer("1.20.1")) {
+                if (VersionUtil.atOrAbove("1.20.1")) {
                     Logs.logError("Papers block-updates.disable-tripwire-updates is not enabled.");
                     Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with tripwires");
                     Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");

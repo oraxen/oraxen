@@ -24,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.scoreboard.Scoreboard;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -80,7 +81,7 @@ public class ResourcePack {
         generatePredicates(extractTexturedItems());
         generateFont();
         if (Settings.GESTURES_ENABLED.toBool()) generateGestureFiles();
-        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) generateScoreboardHideNumbers();
+        if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) generateScoreboardHideBackground();
         if (Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) CustomArmorsTextures.generateArmorShaderFiles();
         if (Settings.TEXTURE_SLICER.toBool()) PackSlicer.slicePackFiles();
@@ -644,13 +645,27 @@ public class ResourcePack {
             "th_th", "tl_ph", "tlh_aa", "tok", "tr_tr", "tt_ru", "uk_ua", "val_es",
             "vec_it", "vi_vn", "yi_de", "yo_ng", "zh_cn", "zh_hk", "zh_tw", "zlm_arab"));
 
-    private void generateScoreboardHideNumbers() {
-        writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
-        writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
+    private void hideScoreboardNumbers() {
+        if (VersionUtil.atOrAbove("1.20.3")) {
+            Bukkit.getOnlinePlayers().forEach(player -> {
+                Logs.debug("Hiding scoreboard numbers for player " + player.getName());
+                Scoreboard scoreboard = player.getScoreboard();
+                /*scoreboard.getScores(player).forEach(score ->
+                        score.customName(Component.empty())
+                );
+                scoreboard.getObjectives().forEach(objective ->
+                        objective.setRenderType(RenderType.HEARTS));*/
+
+                player.setScoreboard(scoreboard);
+            });
+        } else { // Pre 1.20.3 rely on shaders
+            writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
+            writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.vsh", getScoreboardVsh());
+        }
     }
 
     private void generateScoreboardHideBackground() {
-        String fileName = VersionUtil.isSupportedVersionOrNewer("1.20.1") ? "rendertype_gui.vsh" : "position_color.fsh";
+        String fileName = VersionUtil.atOrAbove("1.20.1") ? "rendertype_gui.vsh" : "position_color.fsh";
         writeStringToVirtual("assets/minecraft/shaders/core/", fileName, getScoreboardBackground());
     }
 
@@ -725,7 +740,7 @@ public class ResourcePack {
     }
 
     private String getScoreboardBackground() {
-        if (VersionUtil.isSupportedVersionOrNewer("1.20.1"))
+        if (VersionUtil.atOrAbove("1.20.1"))
             return """
                     #version 150
                                         

@@ -109,8 +109,8 @@ public class BlockHelpers {
     public static final Set<Material> UNBREAKABLE_BLOCKS = Sets.newHashSet(Material.BEDROCK, Material.BARRIER, Material.NETHER_PORTAL, Material.END_PORTAL_FRAME, Material.END_PORTAL, Material.END_GATEWAY);
 
     static {
-        if (VersionUtil.isSupportedVersionOrNewer("1.19")) UNBREAKABLE_BLOCKS.add(Material.REINFORCED_DEEPSLATE);
-        if (VersionUtil.isSupportedVersionOrNewer("1.20")) {
+        if (VersionUtil.atOrAbove("1.19")) UNBREAKABLE_BLOCKS.add(Material.REINFORCED_DEEPSLATE);
+        if (VersionUtil.atOrAbove("1.20")) {
             REPLACEABLE_BLOCKS = Tag.REPLACEABLE.getValues().stream().toList();
         } else REPLACEABLE_BLOCKS = Arrays.asList(
                 Material.SNOW, Material.VINE, Material.valueOf("GRASS"), Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,

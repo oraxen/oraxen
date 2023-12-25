@@ -34,7 +34,7 @@ public class BukkitPackSender extends PackSender implements Listener {
 
     @Override
     public void sendPack(Player player) {
-        if (VersionUtil.isSupportedVersionOrNewer("1.20.3"))
+        if (VersionUtil.atOrAbove("1.20.3"))
             player.setResourcePack(UUID.randomUUID(), hostingProvider.getMinecraftPackURL(), hostingProvider.getSHA1(), AdventureUtils.parseLegacy(prompt), mandatory);
         if (VersionUtil.isPaperServer()) player.setResourcePack(hostingProvider.getMinecraftPackURL(), hostingProvider.getSHA1(), AdventureUtils.MINI_MESSAGE.deserialize(prompt), mandatory);
         else player.setResourcePack(hostingProvider.getMinecraftPackURL(), hostingProvider.getSHA1(), AdventureUtils.parseLegacy(prompt), mandatory);

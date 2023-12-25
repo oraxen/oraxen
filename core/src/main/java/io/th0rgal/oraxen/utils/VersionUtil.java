@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import com.comphenix.protocol.utility.MinecraftVersion;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Bukkit;
@@ -9,7 +10,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.*;
 
 public class VersionUtil {
-    private static final Map<NMSVersion, Map<Integer, String>> versionMap = new HashMap<>();
+    private static final Map<NMSVersion, Map<Integer, MinecraftVersion>> versionMap = new HashMap<>();
 
     public enum NMSVersion {
         v1_20_R3,
@@ -22,43 +23,32 @@ public class VersionUtil {
         v1_18_R1,
         UNKNOWN;
 
-        public static boolean matchesServer(String version) {
-            return getNMSVersion(getMinecraftVersion()).equals(getNMSVersion(version));
-        }
         public static boolean matchesServer(NMSVersion version) {
-            return version != UNKNOWN && getNMSVersion(getMinecraftVersion()).equals(version);
+            return version != UNKNOWN && getNMSVersion(MinecraftVersion.getCurrentVersion()).equals(version);
         }
     }
 
     static {
-        versionMap.put(NMSVersion.v1_20_R3, Map.of(11, "1.20.3", 12, "1.20.4"));
-        versionMap.put(NMSVersion.v1_20_R2, Map.of(10, "1.20.2"));
-        versionMap.put(NMSVersion.v1_20_R1, Map.of(8, "1.20", 9, "1.20.1"));
-        versionMap.put(NMSVersion.v1_19_R3, Map.of(7, "1.19.4"));
-        versionMap.put(NMSVersion.v1_19_R2, Map.of(6, "1.19.3"));
-        versionMap.put(NMSVersion.v1_19_R1, Map.of(3, "1.19", 4, "1.19.1", 5, "1.19.2"));
-        versionMap.put(NMSVersion.v1_18_R2, Map.of(2, "1.18.2"));
-        versionMap.put(NMSVersion.v1_18_R1, Map.of(0, "1.18", 1, "1.18.1"));
+        versionMap.put(NMSVersion.v1_20_R3, Map.of(11, new MinecraftVersion("1.20.3"), 12, new MinecraftVersion("1.20.4")));
+        versionMap.put(NMSVersion.v1_20_R2, Map.of(10, new MinecraftVersion("1.20.2")));
+        versionMap.put(NMSVersion.v1_20_R1, Map.of(8, new MinecraftVersion("1.20"), 9, new MinecraftVersion("1.20.1")));
+        versionMap.put(NMSVersion.v1_19_R3, Map.of(7, new MinecraftVersion("1.19.4")));
+        versionMap.put(NMSVersion.v1_19_R2, Map.of(6, new MinecraftVersion("1.19.3")));
+        versionMap.put(NMSVersion.v1_19_R1, Map.of(3, new MinecraftVersion("1.19"), 4, new MinecraftVersion("1.19.1"), 5, new MinecraftVersion("1.19.2")));
+        versionMap.put(NMSVersion.v1_18_R2, Map.of(2, new MinecraftVersion("1.18.2")));
+        versionMap.put(NMSVersion.v1_18_R1, Map.of(0, new MinecraftVersion("1.18"), 1, new MinecraftVersion("1.18.1")));
     }
 
-    public static NMSVersion getNMSVersion(String version) {
+    public static NMSVersion getNMSVersion(MinecraftVersion version) {
         return versionMap.entrySet().stream().filter(e -> e.getValue().containsValue(version)).map(Map.Entry::getKey).findFirst().orElse(NMSVersion.UNKNOWN);
     }
 
-    private static int getVersionValue(String version) {
-        for (Map.Entry<Integer, String> pair : versionMap.values().stream().flatMap(map -> map.entrySet().stream()).toList()) {
-            if (pair.getValue().equals(version)) return pair.getKey();
-        }
-        return -1;
-    }
-
     public static boolean matchesServer(String server) {
-        return server.equals(getMinecraftVersion());
+        return MinecraftVersion.getCurrentVersion().equals(new MinecraftVersion(server));
     }
 
-    public static boolean isSupportedVersionOrNewer(String versionString) {
-        int serverValue = getVersionValue(getMinecraftVersion());
-        return getVersionValue(versionString) <= serverValue;
+    public static boolean atOrAbove(String versionString) {
+        return new MinecraftVersion(versionString).atOrAbove();
     }
 
     /**
@@ -139,10 +129,5 @@ public class VersionUtil {
     public static boolean isValidCompiler() {
         List<String> split = Arrays.stream(manifest.split(":|\n")).map(String::trim).toList();
         return Set.of("sivert", "thomas").contains(split.get(split.indexOf("Built-By") + 1).toLowerCase());
-    }
-
-    public static String getMinecraftVersion() {
-        if (isPaperServer()) return Bukkit.getMinecraftVersion();
-        else return Bukkit.getVersion().split("MC: ")[1].split("\\)")[0];
     }
 }
