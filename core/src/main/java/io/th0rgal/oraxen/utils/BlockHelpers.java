@@ -128,7 +128,6 @@ public class BlockHelpers {
     }
 
     public static boolean isReplaceable(Material material) {
-        Logs.debug("type: " + material);
         return REPLACEABLE_BLOCKS.contains(material);
     }
 
@@ -172,7 +171,6 @@ public class BlockHelpers {
             //TODO Fix boats, currently Item#use in BoatItem calls PlayerInteractEvent
             // thus causing a StackOverflow, find a workaround
             if (Tag.ITEMS_BOATS.isTagged(item.getType())) return null;
-            Logs.debug("Using NMS");
             correctedData = NMSHandlers.getHandler().correctBlockStates(player, hand, item);
         }
         else {
