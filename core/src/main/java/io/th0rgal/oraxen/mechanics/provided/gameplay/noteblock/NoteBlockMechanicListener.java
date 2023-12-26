@@ -275,13 +275,8 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
-        final Block block = event.getBlock();
-
-        NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
-        if (mechanic == null) return;
-        if (OraxenBlocks.remove(block.getLocation(), event.getPlayer())) {
+        if (OraxenBlocks.remove(event.getBlock().getLocation(), event.getPlayer()))
             event.setDropItems(false);
-        }
     }
 
     @EventHandler
