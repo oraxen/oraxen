@@ -11,27 +11,29 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlo
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripListener;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.breaker.ToolTypeSpeedModifier;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Range;
-import org.bukkit.Bukkit;
-import org.bukkit.Instrument;
-import org.bukkit.Material;
-import org.bukkit.Note;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
 public class NoteBlockMechanicFactory extends MechanicFactory {
 
     public static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
     private static JsonObject variants;
     private static NoteBlockMechanicFactory instance;
+    public static final Set<ToolTypeSpeedModifier> toolTypeSpeedModifiers = ToolTypeSpeedModifier.VANILLA;
     public final List<String> toolTypes;
     private boolean farmBlock;
     private static FarmBlockTask farmBlockTask;
@@ -45,6 +47,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         variants = new JsonObject();
         variants.add("instrument=harp,powered=false", getModelJson("block/note_block"));
         toolTypes = section.getStringList("tool_types");
+
         farmBlockCheckDelay = section.getInt("farmblock_check_delay");
         farmBlock = false;
         customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("noteblock_and_block", true);
@@ -266,6 +269,39 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
         farmBlockTask.runTaskTimer(OraxenPlugin.get(), 0, farmBlockCheckDelay);
         farmBlock = true;
+    }
+
+    public float getSpeedMultiplier(Player player, Block block) {
+        ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
+        AtomicReference<Float> speedMultiplier = new AtomicReference<>((float) 1);
+        List<ToolTypeSpeedModifier> validToolTypes = toolTypeSpeedModifiers.stream().filter(t -> t.getToolType().contains(itemInMainHand.getType()))
+                .sorted(Comparator.comparingDouble(ToolTypeSpeedModifier::getSpeedModifier))
+                .toList();
+
+        // Find first validToolTypes that contains the block material
+        // If none found, use the first validToolTypes
+        validToolTypes.stream().filter(t -> t.getMaterials().contains(block.getType()))
+                .findFirst().ifPresentOrElse(toolTypeSpeedModifier -> speedMultiplier.set(toolTypeSpeedModifier.getSpeedModifier()), () ->
+                        speedMultiplier.set(validToolTypes.stream().findFirst().get().getSpeedModifier()));
+
+        float multiplier = speedMultiplier.get();
+        if (itemInMainHand.containsEnchantment(Enchantment.DIG_SPEED))
+            multiplier *= 1f + (itemInMainHand.getEnchantmentLevel(Enchantment.DIG_SPEED) ^ 2 + 1);
+
+        PotionEffect haste = player.getPotionEffect(PotionEffectType.FAST_DIGGING);
+        if (haste != null) multiplier *= 1f + (0.2F * haste.getAmplifier() + 1);
+
+        // Whilst the player has this when they start digging, period is calculated before it is applied
+        PotionEffect miningFatigue = player.getPotionEffect(PotionEffectType.SLOW_DIGGING);
+        if (miningFatigue != null) multiplier *= 1f - (0.3F * miningFatigue.getAmplifier() + 1);
+
+        ItemStack helmet = player.getEquipment().getHelmet();
+        if (player.isInWater() && (helmet == null || !helmet.containsEnchantment(Enchantment.WATER_WORKER)))
+            multiplier /= 5;
+
+        if (!player.isOnGround()) multiplier /= 5;
+
+        return multiplier;
     }
 
 }
