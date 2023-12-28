@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurniturePlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -106,11 +107,6 @@ public class FurnitureSoundListener implements Listener {
         EntityDamageEvent cause = entity.getLastDamageCause();
         SoundGroup soundGroup = blockBelow.getBlockData().getSoundGroup();
 
-
-
-        // Apparently water and air use stone sounds
-        // Seems stone is the generic one so might be used in alot of places we don't want this to play
-        if (blockBelow.getType() == Material.WATER || blockBelow.getType() == Material.AIR) return;
         if (soundGroup.getStepSound() != Sound.BLOCK_STONE_STEP) return;
         if (gameEvent == GameEvent.HIT_GROUND && cause != null && cause.getCause() != EntityDamageEvent.DamageCause.FALL) return;
         if (!BlockHelpers.isReplaceable(block) || block.getType() == Material.TRIPWIRE) return;
