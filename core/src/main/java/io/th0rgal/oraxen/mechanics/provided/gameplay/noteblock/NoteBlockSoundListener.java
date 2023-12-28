@@ -46,7 +46,6 @@ public class NoteBlockSoundListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingWood(final BlockPlaceEvent event) {
         Block placed = event.getBlockPlaced();
-        Logs.debug(placed.getType().name());
         if (placed.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_WOOD_PLACE) return;
         if (OraxenBlocks.isOraxenNoteBlock(placed) || placed.getType() == Material.MUSHROOM_STEM) return;
 
