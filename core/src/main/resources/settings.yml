@@ -23,6 +23,7 @@ Plugin:
     noteblock_mechanic: false
     stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
   experimental:
+    spigot_chat_formatting: false # This will enable the use of Spigot's chat formatting, which is not recommended
     nms:
       glyphs: false # Uses NMS to render glyphs instead of the default method
 

@@ -45,7 +45,7 @@ public class FontEvents implements Listener {
 
     public FontEvents(FontManager manager) {
         this.manager = manager;
-        if (VersionUtil.isPaperServer()) {
+        if (VersionUtil.isPaperServer() && !Settings.SPIGOT_CHAT_FORMATTING.toBool()) {
             if (VersionUtil.atOrAbove("1.19.1"))
                 Bukkit.getPluginManager().registerEvents(new PaperChatHandler(), OraxenPlugin.get());
             Bukkit.getPluginManager().registerEvents(new LegacyPaperChatHandler(), OraxenPlugin.get());
