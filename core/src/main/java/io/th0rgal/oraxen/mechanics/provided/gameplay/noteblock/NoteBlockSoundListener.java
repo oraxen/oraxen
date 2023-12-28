@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockPlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -45,6 +46,7 @@ public class NoteBlockSoundListener implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPlacingWood(final BlockPlaceEvent event) {
         Block placed = event.getBlockPlaced();
+        Logs.debug(placed.getType().name());
         if (placed.getBlockData().getSoundGroup().getPlaceSound() != Sound.BLOCK_WOOD_PLACE) return;
         if (OraxenBlocks.isOraxenNoteBlock(placed) || placed.getType() == Material.MUSHROOM_STEM) return;
 

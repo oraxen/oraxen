@@ -15,6 +15,7 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
@@ -437,30 +438,42 @@ public class NoteBlockMechanicListener implements Listener {
             if (!BlockHelpers.isReplaceable(target.getType())) return;
         }
 
+        // Store oldData incase event(s) is cancelled, set the target blockData
+        final BlockData oldData = target.getBlockData();
+        target.setBlockData(newData);
         final NoteBlockMechanic againstMechanic = OraxenBlocks.getNoteBlockMechanic(placedAgainst);
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, hand);
+
         if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions()))
             blockPlaceEvent.setCancelled(true);
         if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
             blockPlaceEvent.setCancelled(true);
         if (!Range.between(target.getWorld().getMinHeight(), target.getWorld().getMaxHeight() - 1).contains(target.getY()))
             blockPlaceEvent.setCancelled(true);
-        if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) return;
+
+        // Call the event and check if it is cancelled, if so reset BlockData
+        if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) {
+            target.setBlockData(oldData);
+            return;
+        }
 
         // This method is run for placing on custom blocks aswell, so this should not be called for vanilla blocks
         NoteBlockMechanic targetOraxen = OraxenBlocks.getNoteBlockMechanic(newData);
         if (targetOraxen != null) {
-            BlockData oldData = target.getBlockData();
             OraxenBlocks.place(targetOraxen.getItemID(), target.getLocation());
 
-            if (!EventUtils.callEvent(new OraxenNoteBlockPlaceEvent(targetOraxen, target, player, item, hand))) {
+            OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(targetOraxen, target, player, item, hand);
+            if (!EventUtils.callEvent(oraxenPlaceEvent)) {
                 target.setBlockData(oldData);
                 return;
             }
 
             if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
             Utils.swingHand(player, hand);
-        } else BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
+        } else {
+            target.setType(Material.AIR);
+            BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
+        }
     }
 
     // Used to determine what instrument to use when playing a note depending on below block

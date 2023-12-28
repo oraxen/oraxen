@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -170,9 +171,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
      * @param itemId The Oraxen item ID.
      */
     public static void setBlockModel(Block block, String itemId) {
-        final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("noteblock");
-        NoteBlockMechanic noteBlockMechanic = (NoteBlockMechanic) mechanicFactory.getMechanic(itemId);
-        block.setBlockData(createNoteBlockData(noteBlockMechanic.getCustomVariation()), false);
+        NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(itemId);
+        if (mechanic != null) block.setBlockData(createNoteBlockData(mechanic.getCustomVariation()));
     }
 
     private String getBlockstateContent() {
