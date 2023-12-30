@@ -29,8 +29,9 @@ public class ItemUtils {
     /**
      * Used to correctly damage the item in the player's hand based on broken block
      * Only handles it if the block is a OraxenBlock or OraxenFurniture
-     * @param player the player that broke the OraxenBlock or OraxenFurniture
-     * @param drop the Drop that will be dropped
+     *
+     * @param player    the player that broke the OraxenBlock or OraxenFurniture
+     * @param drop      the Drop that will be dropped
      * @param itemStack the item in the player's hand
      * @return the itemStack with the correct damage applied
      */
@@ -62,6 +63,7 @@ public class ItemUtils {
     public static boolean isTool(ItemStack itemStack) {
         return isTool(itemStack.getType());
     }
+
     public static boolean isTool(Material material) {
         if (VersionUtil.atOrAbove("1.19.4"))
             return Tag.ITEMS_TOOLS.isTagged(material);
@@ -71,5 +73,13 @@ public class ItemUtils {
                 || material.toString().endsWith("_HOE")
                 || material.toString().endsWith("_SWORD")
                 || material == Material.TRIDENT;
+    }
+
+    public static boolean isSkull(Material material) {
+        return switch (material) {
+            case PLAYER_HEAD, PLAYER_WALL_HEAD, SKELETON_SKULL, SKELETON_WALL_SKULL, WITHER_SKELETON_SKULL, WITHER_SKELETON_WALL_SKULL, ZOMBIE_HEAD, ZOMBIE_WALL_HEAD, CREEPER_HEAD, CREEPER_WALL_HEAD, DRAGON_HEAD, DRAGON_WALL_HEAD, PIGLIN_HEAD, PIGLIN_WALL_HEAD ->
+                    true;
+            default -> false;
+        };
     }
 }
