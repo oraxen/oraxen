@@ -78,7 +78,8 @@ allprojects {
         maven("https://repo.oraxen.com/releases")
         maven("https://repo.oraxen.com/snapshots")
         maven("https://jitpack.io") // JitPack
-        maven("https://nexus.phoenixdevt.fr/repository/maven-public/") //MMOItems
+        maven("https://nexus.phoenixdevt.fr/repository/maven-public/") // MMOItems
+        maven("https://repo.codemc.org/repository/maven-public/") // BlockLocker
 
         mavenLocal()
     }
@@ -109,6 +110,7 @@ allprojects {
         compileOnly("com.willfp:EcoItems:5.23.0")
         compileOnly("com.willfp:eco:6.65.5")
         compileOnly("com.willfp:libreforge:4.36.0")
+        compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
     }
 }
 

@@ -8,6 +8,7 @@ import com.ticxo.modelengine.api.model.ModeledEntity;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -71,6 +72,8 @@ public class FurnitureMechanic extends Mechanic {
     private final DisplayEntityProperties displayEntityProperties;
     private final FurnitureHitbox hitbox;
     private final boolean isRotatable;
+
+    private final BlockLockerMechanic blockLocker;
 
     public record FurnitureHitbox(float width, float height) {
     }
@@ -191,6 +194,9 @@ public class FurnitureMechanic extends Mechanic {
                 isRotatable = false;
             } else isRotatable = true;
         } else isRotatable = false;
+
+        ConfigurationSection blockLockerSection = section.getConfigurationSection("blocklocker");
+        blockLocker = blockLockerSection != null ? new BlockLockerMechanic(blockLockerSection) : null;
     }
 
     public boolean isModelEngine() {
@@ -810,5 +816,9 @@ public class FurnitureMechanic extends Mechanic {
         Rotation newRotation = FurnitureMechanic.yawToRotation(yaw).rotateClockwise();
         if (baseEntity instanceof ItemFrame frame) frame.setRotation(newRotation);
         else baseEntity.setRotation(FurnitureMechanic.rotationToYaw(newRotation), baseEntity.getLocation().getPitch());
+    }
+
+    public BlockLockerMechanic getBlockLocker() {
+        return blockLocker;
     }
 }
