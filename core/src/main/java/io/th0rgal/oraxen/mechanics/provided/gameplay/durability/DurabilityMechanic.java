@@ -33,6 +33,11 @@ public class DurabilityMechanic extends Mechanic {
         return itemDurability;
     }
 
+    public int getItemDurability(ItemStack item) {
+        if (!(item.getItemMeta() instanceof Damageable damageable)) return 0;
+        return damageable.getPersistentDataContainer().getOrDefault(DURABILITY_KEY, PersistentDataType.INTEGER, 0);
+    }
+
     public boolean changeDurability(ItemStack item, int amount) {
         DurabilityMechanic durabilityMechanic = this;
         AtomicBoolean check = new AtomicBoolean(false);
