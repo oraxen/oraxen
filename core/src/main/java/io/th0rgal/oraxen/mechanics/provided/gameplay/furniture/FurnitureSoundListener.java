@@ -55,17 +55,18 @@ public class FurnitureSoundListener implements Listener {
     }
 
     // Play sound due to furniture/barrier custom sound replacing stone
-    @EventHandler(priority = EventPriority.MONITOR)
+    @EventHandler(priority = EventPriority.HIGHEST)
     public void onBreakingStone(final BlockBreakEvent event) {
         Block block = event.getBlock();
         Location location = block.getLocation();
 
-        if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_STONE_BREAK) return;
-        if (!OraxenFurniture.isFurniture(block)) return;
         if (breakerPlaySound.containsKey(location)) {
             breakerPlaySound.get(location).cancel();
             breakerPlaySound.remove(location);
         }
+
+        if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_STONE_BREAK) return;
+        if (!OraxenFurniture.isFurniture(block)) return;
 
         if (!event.isCancelled() && ProtectionLib.canBreak(event.getPlayer(), location))
             BlockHelpers.playCustomBlockSound(location, VANILLA_STONE_BREAK, VANILLA_BREAK_VOLUME, VANILLA_BREAK_PITCH);

@@ -57,13 +57,13 @@ public class NoteBlockSoundListener implements Listener {
     public void onBreakingWood(final BlockBreakEvent event) {
         final Block block = event.getBlock();
         Location location = block.getLocation();
-        if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
-        if (OraxenBlocks.isOraxenNoteBlock(block) || block.getType() == Material.MUSHROOM_STEM) return;
 
         if (breakerPlaySound.containsKey(location)) {
             breakerPlaySound.get(location).cancel();
             breakerPlaySound.remove(location);
         }
+        if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
+        if (OraxenBlocks.isOraxenNoteBlock(block) || block.getType() == Material.MUSHROOM_STEM) return;
 
         if (!event.isCancelled() && ProtectionLib.canBreak(event.getPlayer(), location))
             BlockHelpers.playCustomBlockSound(location, VANILLA_WOOD_BREAK, VANILLA_BREAK_VOLUME, VANILLA_BREAK_PITCH);
