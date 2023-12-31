@@ -52,6 +52,14 @@ public class StringBlockMechanicListener implements Listener {
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
+    public static class StringBlockMechanicPaperListener implements Listener {
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        public void onEnteringTripwire(EntityInsideBlockEvent event) {
+            if (event.getBlock().getType() == Material.TRIPWIRE)
+                event.setCancelled(true);
+        }
+    }
+
     public static class StringBlockMechanicPhysicsListener implements Listener {
 
         @EventHandler(priority = EventPriority.MONITOR)
@@ -93,12 +101,6 @@ public class StringBlockMechanicListener implements Listener {
                     WrappedLightAPI.removeBlockLight(block.getLocation());
                 mechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
             }
-        }
-
-        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-        public void onEnteringTripwire(EntityInsideBlockEvent event) {
-            if (event.getBlock().getType() == Material.TRIPWIRE)
-                event.setCancelled(true);
         }
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

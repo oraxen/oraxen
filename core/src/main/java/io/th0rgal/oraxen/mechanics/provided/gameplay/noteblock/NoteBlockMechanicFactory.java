@@ -62,17 +62,16 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         );
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockSoundListener());
 
-        if (VersionUtil.isPaperServer()) {
+        // Physics-related stuff
+        if (VersionUtil.isPaperServer())
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPaperListener());
-            if (!NMSHandlers.isNoteblockUpdatesDisabled()) {
-                MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
-                if (VersionUtil.atOrAbove("1.20.1")) {
-                    Logs.logError("Papers block-updates.disable-noteblock-updates is not enabled.");
-                    Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with noteblocks");
-                    Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");
-                    Logs.logWarning("You can enable this setting in ServerFolder/config/paper-global.yml", true);
-                }
-            }
+        if (!VersionUtil.isPaperServer() || !NMSHandlers.isNoteblockUpdatesDisabled())
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
+        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1") && !NMSHandlers.isNoteblockUpdatesDisabled()) {
+            Logs.logError("Papers block-updates.disable-noteblock-updates is not enabled.");
+            Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with noteblocks");
+            Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");
+            Logs.logWarning("You can enable this setting in ServerFolder/config/paper-global.yml", true);
         }
     }
 
