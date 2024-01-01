@@ -2,22 +2,18 @@ package io.th0rgal.oraxen.font;
 
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
-import net.kyori.adventure.text.TextReplacementConfig;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
-import javax.annotation.Nullable;
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -62,7 +58,8 @@ public class Glyph {
         permission = chatSection != null ? chatSection.getString("permission", "") : "";
         tabcomplete = chatSection != null && chatSection.getBoolean("tabcomplete", false);
 
-        String baseRegex = "((<(glyph|g):" + name + ")(:(c|colorable))*>" + (placeholders.length > 0 ? "|" + String.join("|", placeholders) : "") + ")";
+        String placeholderRegex = String.join("|", Arrays.stream(placeholders).map(Pattern::quote).toArray(String[]::new));
+        String baseRegex = "((<(glyph|g):" + name + ")(:(c|colorable))*>" + (placeholders.length > 0 ?  "|" + placeholderRegex : "") + ")";
         this.baseRegex = Pattern.compile("(?<!\\\\)" + baseRegex);
         escapedRegex = Pattern.compile("\\\\" + baseRegex);
 
