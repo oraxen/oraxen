@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import com.destroystokyo.paper.MaterialSetTag;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -240,7 +241,8 @@ public class PredicatesGenerator {
 
     public String getVanillaTextureName(final Material material, final boolean model) {
         if (!model)
-            if (material.isBlock() && !has2DBlockIcon(material)) return "block/" + material.toString().toLowerCase(Locale.ENGLISH);
+            if (material == Material.IRON_BARS || (material.isBlock() && !has2DBlockIcon(material)))
+                return "block/" + material.toString().toLowerCase(Locale.ENGLISH);
             else if (material == Material.CROSSBOW) return "item/crossbow_standby";
         return "item/" + material.toString().toLowerCase(Locale.ENGLISH);
     }
@@ -263,6 +265,7 @@ public class PredicatesGenerator {
 
     private static boolean has2DBlockIcon(Material material) {
         if (material == Material.BARRIER || material == Material.STRUCTURE_VOID) return true;
+        else if (material == Material.IRON_BARS || material == Material.CHAIN) return true;
         else if (Tag.DOORS.isTagged(material)) return true;
         else if (Tag.CANDLES.isTagged(material)) return true;
 
