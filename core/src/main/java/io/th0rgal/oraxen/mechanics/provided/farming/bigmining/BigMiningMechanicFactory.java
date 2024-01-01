@@ -4,7 +4,13 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.utils.OraxenYaml;
+import io.th0rgal.oraxen.utils.logs.Logs;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.YamlConfiguration;
+
+import java.io.File;
 
 public class BigMiningMechanicFactory extends MechanicFactory {
 
@@ -12,7 +18,12 @@ public class BigMiningMechanicFactory extends MechanicFactory {
 
     public BigMiningMechanicFactory(ConfigurationSection section) {
         super(section);
-        this.callEvents = section.getBoolean("call_events", true);
+        if (Bukkit.getPluginManager().isPluginEnabled("AdvancedEnchantments") && section.getBoolean("call_events", true)) {
+            Logs.logError("AdvancedEnchantment is enabled, disabling BigMining-Mechanic");
+            section.set("call_events", false);
+            OraxenYaml.saveConfig(OraxenPlugin.get().getDataFolder().toPath().resolve("mechanics.yml").toFile(), section);
+            this.callEvents = false;
+        } else this.callEvents = section.getBoolean("call_events", true);
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new BigMiningMechanicListener(this));
     }
 
