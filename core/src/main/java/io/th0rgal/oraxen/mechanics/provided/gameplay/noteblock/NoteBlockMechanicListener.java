@@ -32,6 +32,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.*;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
+import org.bukkit.event.entity.EntityPlaceEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
@@ -228,7 +229,7 @@ public class NoteBlockMechanicListener implements Listener {
         Material type = item.getType();
         if (type == Material.AIR) return;
 
-        BlockData newData = type != null && type.isBlock() ? type.createBlockData() : null;
+        BlockData newData = type.isBlock() ? type.createBlockData() : null;
         makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), newData);
     }
 
@@ -439,23 +440,26 @@ public class NoteBlockMechanicListener implements Listener {
             if (!BlockHelpers.isReplaceable(target.getType())) return;
         }
 
-        // Store oldData incase event(s) is cancelled, set the target blockData
-        final BlockData oldData = target.getBlockData();
-        target.setBlockData(newData);
         final NoteBlockMechanic againstMechanic = OraxenBlocks.getNoteBlockMechanic(placedAgainst);
-        final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, hand);
+        // Store oldData incase event(s) is cancelled, set the target blockData
+        // newData might be null in some scenarios
+        final BlockData oldData = target.getBlockData();
+        if (newData != null) {
+            target.setBlockData(newData);
+            final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, hand);
 
-        if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions()))
-            blockPlaceEvent.setCancelled(true);
-        if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
-            blockPlaceEvent.setCancelled(true);
-        if (!Range.between(target.getWorld().getMinHeight(), target.getWorld().getMaxHeight() - 1).contains(target.getY()))
-            blockPlaceEvent.setCancelled(true);
+            if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions()))
+                blockPlaceEvent.setCancelled(true);
+            if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
+                blockPlaceEvent.setCancelled(true);
+            if (!Range.between(target.getWorld().getMinHeight(), target.getWorld().getMaxHeight() - 1).contains(target.getY()))
+                blockPlaceEvent.setCancelled(true);
 
-        // Call the event and check if it is cancelled, if so reset BlockData
-        if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) {
-            target.setBlockData(oldData);
-            return;
+            // Call the event and check if it is cancelled, if so reset BlockData
+            if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) {
+                target.setBlockData(oldData);
+                return;
+            }
         }
 
         // This method is run for placing on custom blocks aswell, so this should not be called for vanilla blocks
