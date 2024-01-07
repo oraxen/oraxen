@@ -47,17 +47,14 @@ public class ItemUtils {
         damage = isTool(itemStack) ? damage : 0;
 
         if (damage == 0) return itemStack;
-        try {
-            return player.damageItemStack(itemStack, damage);
-        } catch (Exception e) {
-            int finalDamage = damage;
+        int finalDamage = damage;
             return editItemMeta(itemStack, meta -> {
                 if (meta instanceof Damageable damageable && EventUtils.callEvent(new PlayerItemDamageEvent(player, itemStack, finalDamage))) {
                     damageable.setDamage(damageable.getDamage() + 1);
                 }
             });
         }
-    }
+
 
     public static boolean isTool(ItemStack itemStack) {
         return isTool(itemStack.getType());
