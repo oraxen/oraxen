@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.compatibilities.provided.worldedit;
 
-import com.sk89q.jnbt.ByteArrayTag;
 import com.sk89q.jnbt.CompoundTag;
 import com.sk89q.jnbt.Tag;
 import com.sk89q.worldedit.WorldEdit;
@@ -21,7 +20,6 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
-import io.th0rgal.oraxen.utils.UUIDUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -71,33 +69,22 @@ public class WorldEditHandlers {
                 if (mechanic == null) return super.createEntity(location, baseEntity);
 
                 Location bukkitLocation = BukkitAdapter.adapt(BukkitAdapter.adapt(event.getWorld()), location);
-                // UUID of the original entity
-                UUID previousUUID = UUID.nameUUIDFromBytes(baseEntity.getNbtData().getByteArray("UUID"));
-
-                // We store the old UUID and the new UUID in a map
-
                 CompoundTag compoundTag = baseEntity.getNbtData();
-                Map<String, Tag> compoundMap = new HashMap<>(compoundTag.getValue());
-                //Map<String, Tag> bukkitValues = new HashMap<>((Map<String, Tag>) compoundTag.getValue().get("BukkitValues").getValue());
-
-                // Set the hitbox/base-entity uuid link
-                // TODO handle incase oldToNewUUIDs returns null
-                //bukkitValues.remove("oraxen:interaction");
-
-                compoundMap.put("UUID", new ByteArrayTag(UUIDUtils.uuidToByteArray(UUID.randomUUID())));
-                baseEntity.setNbtData(new CompoundTag(compoundMap));
+                if (compoundTag == null) return super.createEntity(location, baseEntity);
+                Map<String, Tag> compoundTagMap = new HashMap<>(compoundTag.getValue());
+                Map<String, Tag> bukkitValues = new HashMap<>((Map<String, Tag>) compoundTagMap.get("BukkitValues").getValue());
+                bukkitValues.remove("oraxen:interaction");
+                compoundTagMap.put("BukkitValues", new CompoundTag(bukkitValues));
+                baseEntity.setNbtData(new CompoundTag(compoundTagMap));
 
                 Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
-                    bukkitLocation.getBlock().setType(Material.AIR);
-                    mechanic.place(bukkitLocation, null, 0f, BlockFace.NORTH, true);
-                    /*Logs.debug("Creating entity");
-                    List<org.bukkit.entity.Entity> entities = bukkitLocation.getNearbyEntities(0.1, 0.1, 0.1).stream().toList();
-                    Set<org.bukkit.entity.Entity> nearbyEntities = entities.stream().filter(e -> e.getLocation().equals(bukkitLocation)).collect(Collectors.toSet());
-                    org.bukkit.entity.Entity entity = nearbyEntities.stream().findFirst().get();
-                    mechanic.setEntityData(entity, entity.getLocation().getYaw(), null, BlockFace.NORTH);*/
-                }, 20L);
+                    List<org.bukkit.entity.Entity> entities = bukkitLocation.getNearbyEntities(0.5, 0.5, 0.5).stream().toList();
+                    List<org.bukkit.entity.Entity> nearbyEntities = entities.stream().sorted(Comparator.comparingDouble(entity -> entity.getLocation().distance(bukkitLocation))).toList();
+                    nearbyEntities.stream().findFirst().ifPresent(e ->
+                            mechanic.setEntityData(e, e.getLocation().getYaw(), BlockFace.NORTH));
+                }, 1L);
 
-                return null;
+                return super.createEntity(location, baseEntity);
             }
 
             @Override
