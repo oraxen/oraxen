@@ -48,9 +48,9 @@ public class ItemUtils {
         damage = isTool(itemStack) ? damage : 0;
 
         if (damage == 0) return itemStack;
-        try {
+        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.19"))
             return player.damageItemStack(itemStack, damage);
-        } catch (Exception e) {
+        else {
             int finalDamage = damage;
             return editItemMeta(itemStack, meta -> {
                 if (meta instanceof Damageable damageable && EventUtils.callEvent(new PlayerItemDamageEvent(player, itemStack, finalDamage))) {
