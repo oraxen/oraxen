@@ -26,7 +26,7 @@ public class GestureCommand {
                         new PlayerArgument("player").setOptional(true)
                 )
                 .executes((sender, args) -> {
-                    if (!Settings.GESTURES_ENABLED.toBool() || VersionUtil.isSupportedVersionOrNewer("1.20.3")) {
+                    if (!Settings.GESTURES_ENABLED.toBool() || VersionUtil.atOrAbove("1.20.3")) {
                         OraxenPlugin.get().getAudience().sender(sender).sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>Gestures are not enabled!"));
                         return;
                     }

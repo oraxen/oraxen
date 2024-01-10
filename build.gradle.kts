@@ -51,8 +51,8 @@ val foliaPluginPath = project.findProperty("oraxen_folia_plugin_path")?.toString
 val spigotPluginPath = project.findProperty("oraxen_spigot_plugin_path")?.toString()
 val pluginVersion: String by project
 val commandApiVersion = "9.3.0"
-val adventureVersion = "4.14.0"
-val platformVersion = "4.3.1"
+val adventureVersion = "4.15.0"
+val platformVersion = "4.3.2"
 group = "io.th0rgal"
 version = pluginVersion
 
@@ -78,7 +78,8 @@ allprojects {
         maven("https://repo.oraxen.com/releases")
         maven("https://repo.oraxen.com/snapshots")
         maven("https://jitpack.io") // JitPack
-        maven("https://nexus.phoenixdevt.fr/repository/maven-public/") //MMOItems
+        maven("https://nexus.phoenixdevt.fr/repository/maven-public/") // MMOItems
+        maven("https://repo.codemc.org/repository/maven-public/") // BlockLocker
 
         mavenLocal()
     }
@@ -92,10 +93,10 @@ allprojects {
         compileOnly("net.kyori:adventure-platform-bukkit:$platformVersion")
         compileOnly("com.comphenix.protocol:ProtocolLib:5.1.0")
         compileOnly("me.clip:placeholderapi:2.11.4")
-        compileOnly("com.github.BeYkeRYkt:LightAPI:5.3.0-Bukkit")
+        compileOnly("com.github.LinsMinecraftStudio.LighterAPI:lightapi-bukkit-common:5.4.0-SNAPSHOT")
         compileOnly("me.gabytm.util:actions-core:$actionsVersion")
         compileOnly("org.springframework:spring-expression:6.0.6")
-        compileOnly("io.lumine:Mythic-Dist:5.2.0-SNAPSHOT")
+        compileOnly("io.lumine:Mythic-Dist:5.3.5")
         compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
         compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
         compileOnly("commons-io:commons-io:2.11.0")
@@ -103,12 +104,14 @@ allprojects {
         compileOnly("com.ticxo.modelengine:api:R3.1.8")
         compileOnly(files("../libs/compile/BSP.jar"))
         compileOnly("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
-        compileOnly("io.lumine:MythicLib:1.1.6")
+        compileOnly("io.lumine:MythicLib:1.1.6") // Remove and add deps needed for Polymath
+        compileOnly("io.lumine:MythicLib-dist:1.6.2-SNAPSHOT")
         compileOnly("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
         compileOnly("org.joml:joml:1.10.5") // Because pre 1.19.4 api does not have this in the server-jar
         compileOnly("com.willfp:EcoItems:5.23.0")
         compileOnly("com.willfp:eco:6.65.5")
         compileOnly("com.willfp:libreforge:4.36.0")
+        compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
     }
 }
 

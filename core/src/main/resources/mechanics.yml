@@ -145,7 +145,7 @@ bigmining:
   enabled: true
   # Toggles if Oraxen should call the BlockBreakEvent or just listen to it
   # Known to cause issues with some enchantment-plugins if enabled
-  call_events: false
+  call_events: true
 
 smelting:
   enabled: true

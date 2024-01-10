@@ -8,6 +8,7 @@ import com.ticxo.modelengine.api.model.ModeledEntity;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -34,7 +35,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.security.Key;
 import java.util.*;
 
 public class FurnitureMechanic extends Mechanic {
@@ -72,6 +72,8 @@ public class FurnitureMechanic extends Mechanic {
     private final DisplayEntityProperties displayEntityProperties;
     private final FurnitureHitbox hitbox;
     private final boolean isRotatable;
+
+    private final BlockLockerMechanic blockLocker;
 
     public record FurnitureHitbox(float width, float height) {
     }
@@ -192,6 +194,9 @@ public class FurnitureMechanic extends Mechanic {
                 isRotatable = false;
             } else isRotatable = true;
         } else isRotatable = false;
+
+        ConfigurationSection blockLockerSection = section.getConfigurationSection("blocklocker");
+        blockLocker = blockLockerSection != null ? new BlockLockerMechanic(blockLockerSection) : null;
     }
 
     public boolean isModelEngine() {
@@ -477,7 +482,7 @@ public class FurnitureMechanic extends Mechanic {
         // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
         float pitch;
         float alterYaw;
-        if (VersionUtil.isSupportedVersionOrNewer("1.20.1")) {
+        if (VersionUtil.atOrAbove("1.20.1")) {
             pitch = isFixed && hasLimitedPlacing() && (limitedPlacing.isFloor() || limitedPlacing.isRoof()) ? -90 : 0;
             alterYaw = yaw;
         } else {
@@ -612,7 +617,8 @@ public class FurnitureMechanic extends Mechanic {
         if (mechanic == null) return entity.getLocation().getYaw();
 
         if (entity instanceof ItemFrame itemFrame) {
-            if (mechanic.limitedPlacing.isWall() && itemFrame.getFacing().getModY() == 0) return entity.getLocation().getYaw();
+            if (mechanic.hasLimitedPlacing() && mechanic.limitedPlacing.isWall() && itemFrame.getFacing().getModY() == 0)
+                return entity.getLocation().getYaw();
             else return rotationToYaw(itemFrame.getRotation());
         } else return entity.getLocation().getYaw();
     }
@@ -810,5 +816,9 @@ public class FurnitureMechanic extends Mechanic {
         Rotation newRotation = FurnitureMechanic.yawToRotation(yaw).rotateClockwise();
         if (baseEntity instanceof ItemFrame frame) frame.setRotation(newRotation);
         else baseEntity.setRotation(FurnitureMechanic.rotationToYaw(newRotation), baseEntity.getLocation().getPitch());
+    }
+
+    public BlockLockerMechanic getBlockLocker() {
+        return blockLocker;
     }
 }

@@ -23,7 +23,7 @@ public class EntityUtils {
     }
 
     public void teleport(@NotNull Location location, @NotNull Entity entity, PlayerTeleportEvent.TeleportCause cause) {
-        if (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer() && VersionUtil.isSupportedVersionOrNewer("1.19.4")) {
+        if (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer() && VersionUtil.atOrAbove("1.19.4")) {
             entity.teleportAsync(location, cause);
         } else entity.teleport(location);
     }
@@ -35,7 +35,7 @@ public class EntityUtils {
      * @param entity The entity to teleport
      */
     public static void teleport(@NotNull Location location, @NotNull Entity entity) {
-        if (VersionUtil.isSupportedVersionOrNewer("1.19.4") && (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer())) {
+        if (VersionUtil.atOrAbove("1.19.4") && (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer())) {
             entity.teleportAsync(location);
         } else entity.teleport(location);
     }
@@ -44,7 +44,7 @@ public class EntityUtils {
         try {
             // Get the method based on the server version
             Class<?> entitySpawnerClass = Class.forName("org.bukkit.RegionAccessor"); // Replace with actual path
-            if (VersionUtil.isSupportedVersionOrNewer("1.20.2")) {
+            if (VersionUtil.atOrAbove("1.20.2")) {
                 spawnMethod = entitySpawnerClass.getDeclaredMethod("spawn", Location.class, Class.class, java.util.function.Consumer.class);
             } else {
                 spawnMethod = entitySpawnerClass.getDeclaredMethod("spawn", Location.class, Class.class, org.bukkit.util.Consumer.class);
@@ -69,7 +69,7 @@ public class EntityUtils {
 
             // Determine the consumer type and choose the appropriate spawn method
             // 1.20.2> uses java.util.function.Consumer while 1.20.2< uses org.bukkit.util.Consumer
-            if (VersionUtil.isSupportedVersionOrNewer("1.20.2")) wrappedConsumer = new JavaConsumerWrapper<>(consumer);
+            if (VersionUtil.atOrAbove("1.20.2")) wrappedConsumer = new JavaConsumerWrapper<>(consumer);
             else wrappedConsumer = new BukkitConsumerWrapper<>(consumer);
 
             entity = (T) spawnMethod.invoke(world, location, clazz, wrappedConsumer);

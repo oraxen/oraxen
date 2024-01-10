@@ -25,6 +25,7 @@ public enum Settings {
     FORMAT_ANVIL("Plugin.formatting.anvil"),
     FORMAT_SIGNS("Plugin.formatting.signs"),
     FORMAT_CHAT("Plugin.formatting.chat"),
+    SPIGOT_CHAT_FORMATTING("Plugin.experimental.spigot_chat_formatting"),
     FORMAT_BOOKS("Plugin.formatting.books"),
     NMS_GLYPHS("Plugin.experimental.nms.glyphs"),
 

@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockPlaceEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
@@ -51,6 +52,14 @@ public class StringBlockMechanicListener implements Listener {
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
+    public static class StringBlockMechanicPaperListener implements Listener {
+        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+        public void onEnteringTripwire(EntityInsideBlockEvent event) {
+            if (event.getBlock().getType() == Material.TRIPWIRE)
+                event.setCancelled(true);
+        }
+    }
+
     public static class StringBlockMechanicPhysicsListener implements Listener {
 
         @EventHandler(priority = EventPriority.MONITOR)
@@ -92,12 +101,6 @@ public class StringBlockMechanicListener implements Listener {
                     WrappedLightAPI.removeBlockLight(block.getLocation());
                 mechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
             }
-        }
-
-        @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
-        public void onEnteringTripwire(EntityInsideBlockEvent event) {
-            if (event.getBlock().getType() == Material.TRIPWIRE)
-                event.setCancelled(true);
         }
 
         @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -384,6 +387,9 @@ public class StringBlockMechanicListener implements Listener {
         }
 
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(newData);
+        // Store oldData incase event(s) is cancelled, set the target blockData
+        final BlockData oldData = target.getBlockData();
+        target.setBlockData(newData);
 
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, hand);
 
@@ -398,21 +404,29 @@ public class StringBlockMechanicListener implements Listener {
         //if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
         if (!worldHeightRange.contains(target.getY()))
             blockPlaceEvent.setCancelled(true);
-        if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) return;
+
+        // Call the event and check if it is cancelled, if so reset BlockData
+        if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) {
+            target.setBlockData(oldData);
+            return;
+        }
 
         final String sound;
         if (mechanic != null) {
-            BlockData oldData = target.getBlockData();
             OraxenBlocks.place(mechanic.getItemID(), target.getLocation());
 
-            if (!EventUtils.callEvent(new OraxenStringBlockPlaceEvent(mechanic, target, player, item, hand))) {
+            OraxenStringBlockPlaceEvent oraxenPlaceEvent = new OraxenStringBlockPlaceEvent(mechanic, target, player, item, hand);
+            if (!EventUtils.callEvent(oraxenPlaceEvent)) {
                 target.setBlockData(oldData);
                 return;
             }
 
             if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
             Utils.swingHand(player, hand);
-        } else BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
+        } else {
+            target.setType(Material.AIR);
+            BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
+        }
     }
 
     public static void fixClientsideUpdate(Location loc) {

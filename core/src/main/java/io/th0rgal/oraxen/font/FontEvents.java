@@ -9,15 +9,11 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
-import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.TextColor;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -49,8 +45,8 @@ public class FontEvents implements Listener {
 
     public FontEvents(FontManager manager) {
         this.manager = manager;
-        if (VersionUtil.isPaperServer()) {
-            if (VersionUtil.isSupportedVersionOrNewer("1.19.1"))
+        if (VersionUtil.isPaperServer() && !Settings.SPIGOT_CHAT_FORMATTING.toBool()) {
+            if (VersionUtil.atOrAbove("1.19.1"))
                 Bukkit.getPluginManager().registerEvents(new PaperChatHandler(), OraxenPlugin.get());
             Bukkit.getPluginManager().registerEvents(new LegacyPaperChatHandler(), OraxenPlugin.get());
         } else Bukkit.getPluginManager().registerEvents(new SpigotChatHandler(), OraxenPlugin.get());
@@ -265,7 +261,7 @@ public class FontEvents implements Listener {
         public void onPlayerChat(AsyncChatEvent event) {
             if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
             // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
-            Component message = VersionUtil.isSupportedVersionOrNewer("1.19.1") ? event.message() : format(event.message(), event.getPlayer());
+            Component message = VersionUtil.atOrAbove("1.19.1") ? event.message() : format(event.message(), event.getPlayer());
             message = message != null ? message : Component.empty();
             if (!message.equals(Component.empty())) return;
 

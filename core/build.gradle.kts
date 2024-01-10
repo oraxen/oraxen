@@ -28,7 +28,7 @@ dependencies {
     implementation("org.jetbrains:annotations:24.0.1") { isTransitive = false }
 
     implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
-    paperweight.paperDevBundle("1.20.2-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
 }
 
 configurations.all {

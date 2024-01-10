@@ -89,10 +89,10 @@ public class OraxenPlugin extends JavaPlugin {
     public void onEnable() {
         CommandAPI.onEnable();
         ProtectionLib.init(this);
-        if (!VersionUtil.isSupportedVersionOrNewer("1.20.3")) PlayerAnimatorImpl.initialize(this);
+        if (!VersionUtil.atOrAbove("1.20.3")) PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
-        supportsDisplayEntities = VersionUtil.isSupportedVersionOrNewer("1.19.4");
+        supportsDisplayEntities = VersionUtil.atOrAbove("1.19.4");
         reloadConfigs();
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
@@ -115,7 +115,7 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
-        if (!VersionUtil.isSupportedVersionOrNewer("1.20.3")) gestureManager = new GestureManager();
+        if (!VersionUtil.atOrAbove("1.20.3")) gestureManager = new GestureManager();
         OraxenItems.loadItems();
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there
