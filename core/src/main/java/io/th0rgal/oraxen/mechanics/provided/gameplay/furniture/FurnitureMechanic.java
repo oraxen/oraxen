@@ -354,8 +354,12 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public Entity place(Location location, ItemStack originalItem, Float yaw, BlockFace facing) {
+        return place(location, originalItem, yaw, facing, true);
+    }
+
+    public Entity place(Location location, ItemStack originalItem, Float yaw, BlockFace facing, boolean checkSpace) {
         if (!location.isWorldLoaded()) return null;
-        if (this.notEnoughSpace(yaw, location)) return null;
+        if (checkSpace && this.notEnoughSpace(yaw, location)) return null;
         assert location.getWorld() != null;
         setPlacedItem();
         assert location.getWorld() != null;
@@ -364,9 +368,9 @@ public class FurnitureMechanic extends Mechanic {
         if (entityClass == null) entityClass = ItemFrame.class;
 
         ItemStack item;
-        if (evolvingFurniture == null) {
+        /*if (evolvingFurniture == null) {
             item = ItemUtils.editItemMeta(originalItem.clone(), meta -> meta.setDisplayName(""));
-        } else item = placedItem;
+        } else */item = placedItem;
         item.setAmount(1);
 
         Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, facing), entityClass, (e) -> setEntityData(e, yaw, item, facing));
@@ -390,7 +394,7 @@ public class FurnitureMechanic extends Mechanic {
         return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 : 0), 0);
     }
 
-    private void setEntityData(Entity entity, float yaw, ItemStack item, BlockFace facing) {
+    public void setEntityData(Entity entity, float yaw, ItemStack item, BlockFace facing) {
         setBaseFurnitureData(entity);
         Location location = entity.getLocation();
         if (entity instanceof ItemFrame frame) {
@@ -475,7 +479,7 @@ public class FurnitureMechanic extends Mechanic {
 
         itemDisplay.setDisplayWidth(properties.getDisplayWidth());
         itemDisplay.setDisplayHeight(properties.getDisplayHeight());
-        itemDisplay.setItemStack(item);
+        itemDisplay.setItemStack(item == null ? placedItem : item);
 
         // Set scale to .5 if FIXED aka ItemFrame to fix size. Also flip it 90 degrees on pitch
         boolean isFixed = properties.getDisplayTransform().equals(ItemDisplay.ItemDisplayTransform.FIXED);

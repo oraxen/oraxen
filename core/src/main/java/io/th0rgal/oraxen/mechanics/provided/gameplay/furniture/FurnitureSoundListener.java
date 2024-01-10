@@ -142,6 +142,11 @@ public class FurnitureSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreakingFurniture(final OraxenFurnitureBreakEvent event) {
+        if (event.getPlayer().isSneaking()) {
+            event.setCancelled(true);
+            Logs.debug("baseEntity: " + event.getBaseEntity().getUniqueId());
+            Logs.debug("interaction: " + event.getMechanic().getInteractionEntity(event.getBaseEntity()).getUniqueId());
+        }
         Location loc = event.getBlock() != null ? event.getBlock().getLocation() : event.getBaseEntity().getLocation();
         final FurnitureMechanic mechanic = event.getMechanic();
         if (!mechanic.hasBlockSounds()) return;

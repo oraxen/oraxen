@@ -26,6 +26,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
@@ -63,46 +64,40 @@ public class WorldEditHandlers {
             @Override
             public Entity createEntity(com.sk89q.worldedit.util.Location location, BaseEntity baseEntity) {
                 // If entity isnt a furniture, we return
-                Entity worldEditEntity = getExtent().createEntity(location, baseEntity);
-                if (worldEditEntity == null) return null;
-                if (baseEntity == null || !baseEntity.hasNbtData() || !furnitureTypes.contains(baseEntity.getType()))
-                    return worldEditEntity;
+                if (baseEntity == null || baseEntity.getType() == BukkitAdapter.adapt(EntityType.INTERACTION)) return null;
+                if (!baseEntity.hasNbtData() || !furnitureTypes.contains(baseEntity.getType()))
+                    return super.createEntity(location, baseEntity);
                 FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
-                if (mechanic == null) return worldEditEntity;
+                if (mechanic == null) return super.createEntity(location, baseEntity);
 
                 Location bukkitLocation = BukkitAdapter.adapt(BukkitAdapter.adapt(event.getWorld()), location);
                 // UUID of the original entity
                 UUID previousUUID = UUID.nameUUIDFromBytes(baseEntity.getNbtData().getByteArray("UUID"));
-                BaseEntity worldEditState = worldEditEntity.getState();
-                UUID newUUID = UUID.nameUUIDFromBytes(worldEditEntity.getState().getNbtData().getByteArray("UUID"));
 
                 // We store the old UUID and the new UUID in a map
-                oldToNewUUIDs.put(previousUUID, newUUID);
 
-                CompoundTag compoundTag = worldEditState.getNbtData();
-                Map<String, Tag> bukkitValues = new HashMap<>((Map<String, Tag>) compoundTag.getValue().get("BukkitValues").getValue());
-                // If the entity-nbt has "oraxen:interaction", we know it is the BaseEntity
-                // And update the interaction-uuid link
-
-                // If the entity-nbt has "oraxen:base_entity", we know it is the hitbox
-                // and we update the base_entity-uuid link
-                // Otherwise we know it is the base-entity and get the old interaction tag
-                String linkedEntityTagID = baseEntity.getType() == BukkitAdapter.adapt(EntityType.INTERACTION)
-                        ? "oraxen:base_entity" : "oraxen:interaction";
-                Tag linkedEntityTag = bukkitValues.get(linkedEntityTagID);
-
-                UUID oldInteractionUUID = UUID.nameUUIDFromBytes((byte[]) linkedEntityTag.getValue());
-                UUID newInteractionUUID = oldToNewUUIDs.get(oldInteractionUUID);
+                CompoundTag compoundTag = baseEntity.getNbtData();
+                Map<String, Tag> compoundMap = new HashMap<>(compoundTag.getValue());
+                //Map<String, Tag> bukkitValues = new HashMap<>((Map<String, Tag>) compoundTag.getValue().get("BukkitValues").getValue());
 
                 // Set the hitbox/base-entity uuid link
                 // TODO handle incase oldToNewUUIDs returns null
-                if (newInteractionUUID != null)
-                    bukkitValues.put(linkedEntityTagID, new ByteArrayTag(UUIDUtils.uuidToByteArray(newInteractionUUID)));
-                bukkitValues.remove(linkedEntityTagID);
+                //bukkitValues.remove("oraxen:interaction");
 
-                worldEditState.setNbtData(compoundTag.setValue(bukkitValues));
+                compoundMap.put("UUID", new ByteArrayTag(UUIDUtils.uuidToByteArray(UUID.randomUUID())));
+                baseEntity.setNbtData(new CompoundTag(compoundMap));
 
-                return worldEditEntity;
+                Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
+                    bukkitLocation.getBlock().setType(Material.AIR);
+                    mechanic.place(bukkitLocation, null, 0f, BlockFace.NORTH, true);
+                    /*Logs.debug("Creating entity");
+                    List<org.bukkit.entity.Entity> entities = bukkitLocation.getNearbyEntities(0.1, 0.1, 0.1).stream().toList();
+                    Set<org.bukkit.entity.Entity> nearbyEntities = entities.stream().filter(e -> e.getLocation().equals(bukkitLocation)).collect(Collectors.toSet());
+                    org.bukkit.entity.Entity entity = nearbyEntities.stream().findFirst().get();
+                    mechanic.setEntityData(entity, entity.getLocation().getYaw(), null, BlockFace.NORTH);*/
+                }, 20L);
+
+                return null;
             }
 
             @Override
@@ -131,7 +126,7 @@ public class WorldEditHandlers {
                     Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> OraxenBlocks.remove(loc, null));
                 }
 
-                return getExtent().setBlock(pos, block);
+                return super.setBlock(pos, block);
             }
 
             @Nullable
