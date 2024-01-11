@@ -109,7 +109,7 @@ public class ItemBuilder {
         if (itemMeta instanceof SkullMeta skullMeta)
             owningPlayer = skullMeta.getOwningPlayer();
 
-        if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta) {
+        if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta && tropicalFishBucketMeta.hasVariant()) {
             bodyColor = tropicalFishBucketMeta.getBodyColor();
             pattern = tropicalFishBucketMeta.getPattern();
             patternColor = tropicalFishBucketMeta.getPatternColor();
@@ -324,8 +324,9 @@ public class ItemBuilder {
         return oraxenMeta;
     }
 
-    public void setOraxenMeta(final OraxenMeta itemResources) {
+    public ItemBuilder setOraxenMeta(final OraxenMeta itemResources) {
         oraxenMeta = itemResources;
+        return this;
     }
 
     public ItemStack getReferenceClone() {
@@ -447,7 +448,7 @@ public class ItemBuilder {
             }
         }
 
-        if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta)
+        if (itemMeta instanceof TropicalFishBucketMeta tropicalFishBucketMeta && tropicalFishBucketMeta.hasVariant())
             return handleTropicalFishBucketMeta(tropicalFishBucketMeta);
 
         return itemMeta;

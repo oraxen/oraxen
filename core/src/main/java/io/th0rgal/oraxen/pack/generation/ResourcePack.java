@@ -20,19 +20,11 @@ import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import net.kyori.adventure.text.Component;
-import net.minecraft.world.scores.ScoreHolder;
-import net.minecraft.world.scores.criteria.ObjectiveCriteria;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
-import org.bukkit.scoreboard.DisplaySlot;
-import org.bukkit.scoreboard.RenderType;
-import org.bukkit.scoreboard.Score;
-import org.bukkit.scoreboard.Scoreboard;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -336,8 +328,8 @@ public class ResourcePack {
         final Map<Material, List<ItemBuilder>> texturedItems = new HashMap<>();
         for (final Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
             final ItemBuilder item = entry.getValue();
-            if (item.getOraxenMeta().hasPackInfos()) {
-                OraxenMeta oraxenMeta = item.getOraxenMeta();
+            OraxenMeta oraxenMeta = item.getOraxenMeta();
+            if (item.hasOraxenMeta() && oraxenMeta.hasPackInfos()) {
                 if (oraxenMeta.shouldGenerateModel()) {
                     writeStringToVirtual(oraxenMeta.getModelPath(),
                             item.getOraxenMeta().getModelName() + ".json",

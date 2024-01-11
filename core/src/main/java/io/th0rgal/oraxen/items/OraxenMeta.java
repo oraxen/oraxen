@@ -143,16 +143,18 @@ public class OraxenMeta {
         return hasPackInfos;
     }
 
-    public void setCustomModelData(int customModelData) {
+    public OraxenMeta setCustomModelData(int customModelData) {
         this.customModelData = customModelData;
+        return this;
     }
 
     public int getCustomModelData() {
         return customModelData;
     }
 
-    public void setModelName(String modelName) {
+    public OraxenMeta setModelName(String modelName) {
         this.modelName = modelName;
+        return this;
     }
 
     public OraxenMeta setNoUpdate(boolean noUpdate) {
