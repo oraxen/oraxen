@@ -82,4 +82,8 @@ public class ItemUtils {
             default -> false;
         };
     }
+
+    public static boolean hasInventoryParent(Material material) {
+        return Tag.WALLS.isTagged(material) || Tag.FENCES.isTagged(material) || Tag.BUTTONS.isTagged(material) || material == Material.PISTON || material == Material.STICKY_PISTON || (VersionUtil.atOrAbove("1.20") && material == Material.CHISELED_BOOKSHELF) || material == Material.BROWN_MUSHROOM_BLOCK || material == Material.RED_MUSHROOM_BLOCK || material == Material.MUSHROOM_STEM;
+    }
 }

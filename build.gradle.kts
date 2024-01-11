@@ -53,6 +53,7 @@ val pluginVersion: String by project
 val commandApiVersion = "9.3.0"
 val adventureVersion = "4.15.0"
 val platformVersion = "4.3.2"
+val googleGsonVersion = "2.10.1"
 group = "io.th0rgal"
 version = pluginVersion
 
@@ -100,6 +101,7 @@ allprojects {
         compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
         compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
         compileOnly("commons-io:commons-io:2.11.0")
+        compileOnly("com.google.code.gson:gson:$googleGsonVersion")
         compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.1")
         compileOnly("com.ticxo.modelengine:api:R3.1.8")
         compileOnly(files("../libs/compile/BSP.jar"))
@@ -144,7 +146,7 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.20")
+        minecraftVersion("1.18.2")
     }
 
     shadowJar {
@@ -207,6 +209,7 @@ bukkit {
         "net.kyori:adventure-text-serializer-plain:$adventureVersion",
         "net.kyori:adventure-text-serializer-ansi:$adventureVersion",
         "net.kyori:adventure-platform-bukkit:$platformVersion",
+        "com.google.code.gson:gson:$googleGsonVersion"
     )
 }
 
