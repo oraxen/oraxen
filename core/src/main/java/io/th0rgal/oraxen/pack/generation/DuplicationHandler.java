@@ -191,7 +191,7 @@ public class DuplicationHandler {
 
             JsonArray providers = fontelement.getAsJsonObject().getAsJsonArray("providers");
             List<String> newProviderChars = getNewProviderCharSet(newProviders);
-            for (JsonElement providerElement : providers) {
+            if (providers != null) for (JsonElement providerElement : providers) {
                 if (!providerElement.isJsonObject()) continue;
                 if (newProviders.contains(providerElement)) continue;
                 if (!providerElement.getAsJsonObject().has("chars")) continue;
