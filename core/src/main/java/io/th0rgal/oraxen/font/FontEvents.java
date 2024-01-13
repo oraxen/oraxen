@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.inventory.Book;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
@@ -43,13 +44,38 @@ public class FontEvents implements Listener {
 
     private final FontManager manager;
 
+    enum ChatHandler {
+        LEGACY,
+        MODERN;
+
+        public static boolean isLegacy() {
+            return get() == LEGACY;
+        }
+
+        public static boolean isModern() {
+            return get() == MODERN;
+        }
+
+        public static ChatHandler get() {
+            try {
+                return valueOf(Settings.CHAT_HANDLER.toString());
+            } catch (IllegalArgumentException e) {
+                ChatHandler chatHandler = VersionUtil.isPaperServer() ? MODERN : LEGACY;
+                Logs.logError("Invalid chat-handler defined in settings.yml, defaulting to " + chatHandler, true);
+                Logs.logError("Valid options are: " + Arrays.toString(values()), true);
+                return chatHandler;
+            }
+        }
+    }
+
     public FontEvents(FontManager manager) {
         this.manager = manager;
-        if (VersionUtil.isPaperServer() && !Settings.SPIGOT_CHAT_FORMATTING.toBool()) {
+        if (VersionUtil.isPaperServer()) {
             if (VersionUtil.atOrAbove("1.19.1"))
                 Bukkit.getPluginManager().registerEvents(new PaperChatHandler(), OraxenPlugin.get());
             Bukkit.getPluginManager().registerEvents(new LegacyPaperChatHandler(), OraxenPlugin.get());
-        } else Bukkit.getPluginManager().registerEvents(new SpigotChatHandler(), OraxenPlugin.get());
+        }
+        Bukkit.getPluginManager().registerEvents(new SpigotChatHandler(), OraxenPlugin.get());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -201,7 +227,7 @@ public class FontEvents implements Listener {
     public class SpigotChatHandler implements Listener {
         @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
         public void onPlayerChat(AsyncPlayerChatEvent event) {
-            if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
+            if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isLegacy() || manager.useNmsGlyphs()) return;
 
             String format = format(event.getFormat(), null);
             String message = format(event.getMessage(), event.getPlayer());
@@ -249,7 +275,7 @@ public class FontEvents implements Listener {
 
         @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
         public void onPlayerChat(AsyncChatDecorateEvent event) {
-            if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
+            if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isModern() || manager.useNmsGlyphs()) return;
             event.result(format(event.result(), event.player()));
         }
 
@@ -259,7 +285,7 @@ public class FontEvents implements Listener {
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onPlayerChat(AsyncChatEvent event) {
-            if (!Settings.FORMAT_CHAT.toBool() || manager.useNmsGlyphs()) return;
+            if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isModern() || manager.useNmsGlyphs()) return;
             // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
             Component message = VersionUtil.atOrAbove("1.19.1") ? event.message() : format(event.message(), event.getPlayer());
             message = message != null ? message : Component.empty();
