@@ -154,20 +154,4 @@ public class Utils {
         if (remainder > step / 2) roundedValue += step;
         return Float.parseFloat(String.format("%.2f", roundedValue).replace(",", "."));
     }
-
-    /**
-     * Used to ensure that a string follows [a-z0-9_]
-     * @param itemKey
-     */
-    public static void ensureStringFormat(String itemKey) {
-        if (itemKey.matches("[a-z0-9_]+")) return;//return itemKey;
-        //String newKey = itemKey.toLowerCase().replace("+", "_plus_").replace(" ", "_");
-        //newKey = (newKey.endsWith("_")) ? newKey.substring(0, newKey.length() - 1) : newKey;
-
-        Logs.logWarning("Item " + itemKey + " does not follow the format [a-z0-9_]");
-        Logs.logWarning("It is recommended to follow this as it might lead to problems with Pack-generation");
-        //Logs.logError("Temporarily replacing it with " + newKey);
-
-        //return newKey;
-    }
 }

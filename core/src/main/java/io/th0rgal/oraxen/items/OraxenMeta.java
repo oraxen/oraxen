@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
@@ -112,9 +113,14 @@ public class OraxenMeta {
         }
 
         // If not specified, check if a model or texture is set
-        this.generate_model = section.getBoolean("generate_model", getModelName().isEmpty());
+        this.generate_model = section.getBoolean("generate_model", modelName.isEmpty());
         this.generatedModelPath = section.getString("generated_model_path", "");
         this.parentModel = section.getString("parent_model", "item/generated");
+
+        if (generate_model && !modelName.matches("^[a-z0-9-_]+$")) {
+            Logs.logWarning("Item " + section.getParent().getName() + " is set to generate a model, but ItemID does not adhere to [a-z0-9-_]!");
+            Logs.logWarning("This will generate a malformed model!");
+        }
 
     }
 

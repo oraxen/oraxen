@@ -21,7 +21,7 @@ import java.util.function.UnaryOperator;
 public class OutputFile {
     private static final Color REMOVED_MARKER = new Color(128, 0, 0, 128);
 
-    private final String path;
+    public final String path;
     private final Box box;
     private final List<UnaryOperator<BufferedImage>> transformers = new ArrayList<>();
     @Nullable

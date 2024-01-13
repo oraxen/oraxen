@@ -1,14 +1,16 @@
 package io.th0rgal.oraxen.pack.generation;
 
+import com.destroystokyo.paper.MaterialSetTag;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.OraxenMeta;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
@@ -35,13 +37,13 @@ public class PredicatesGenerator {
         final ItemMeta exampleMeta = new ItemStack(material).getItemMeta();
         final JsonObject textures = new JsonObject();
 
-        // potions use the overlay as the base layer
-        if (exampleMeta instanceof PotionMeta) {
+        if (material == Material.TIPPED_ARROW) {
+            textures.addProperty("layer0", "item/tipped_arrow_head");
+            textures.addProperty("layer1", "item/tipped_arrow_base");
+        } else if (exampleMeta instanceof PotionMeta) {
             textures.addProperty("layer0", vanillaTextureName + "_overlay");
             textures.addProperty("layer1", vanillaTextureName);
-        }
-        // to support colored leather armor
-        else if (exampleMeta instanceof LeatherArmorMeta && material != Material.LEATHER_HORSE_ARMOR) {
+        } else if (exampleMeta instanceof LeatherArmorMeta && material != Material.LEATHER_HORSE_ARMOR) {
             textures.addProperty("layer0", vanillaTextureName);
             textures.addProperty("layer1", vanillaTextureName + "_overlay");
         }
@@ -239,21 +241,35 @@ public class PredicatesGenerator {
 
     public String getVanillaTextureName(final Material material, final boolean model) {
         if (!model)
-            if (material.isBlock()) return "block/" + material.toString().toLowerCase(Locale.ENGLISH);
+            if (material == Material.IRON_BARS || (material.isBlock() && !has2DBlockIcon(material)))
+                return "block/" + material.toString().toLowerCase(Locale.ENGLISH);
             else if (material == Material.CROSSBOW) return "item/crossbow_standby";
         return "item/" + material.toString().toLowerCase(Locale.ENGLISH);
     }
 
     private String getParent(final Material material) {
-        if (material.isBlock())
-            return "block/cube_all";
+        if (ItemUtils.isSkull(material))
+            return "item/template_skull";
         if (Arrays.stream(tools).anyMatch(tool -> material.toString().contains(tool)))
             return "item/handheld";
         if (material == Material.FISHING_ROD)
             return "item/handheld_rod";
         if (material == Material.SHIELD)
             return "builtin/entity";
+        if (has2DBlockIcon(material))
+            return "item/generated";
+        if (material.isBlock() && material.isSolid())
+            return "block/" + material.name().toLowerCase();
         return "item/generated";
+    }
+
+    private static boolean has2DBlockIcon(Material material) {
+        if (material == Material.BARRIER || material == Material.STRUCTURE_VOID) return true;
+        else if (material == Material.IRON_BARS || material == Material.CHAIN) return true;
+        else if (Tag.DOORS.isTagged(material)) return true;
+        else if (Tag.CANDLES.isTagged(material)) return true;
+
+        else return false;
     }
 
     public JsonObject toJSON() {

@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import com.google.gson.JsonObject;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -61,17 +62,16 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         );
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockSoundListener());
 
-        if (VersionUtil.isPaperServer()) {
+        // Physics-related stuff
+        if (VersionUtil.isPaperServer())
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPaperListener());
-            if (!NMSHandlers.isNoteblockUpdatesDisabled()) {
-                MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
-                if (VersionUtil.isSupportedVersionOrNewer("1.20.1")) {
-                    Logs.logError("Papers block-updates.disable-noteblock-updates is not enabled.");
-                    Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with noteblocks");
-                    Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");
-                    Logs.logWarning("You can enable this setting in ServerFolder/config/paper-global.yml", true);
-                }
-            }
+        if (!VersionUtil.isPaperServer() || !NMSHandlers.isNoteblockUpdatesDisabled())
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
+        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1") && !NMSHandlers.isNoteblockUpdatesDisabled()) {
+            Logs.logError("Papers block-updates.disable-noteblock-updates is not enabled.");
+            Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with noteblocks");
+            Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");
+            Logs.logWarning("You can enable this setting in ServerFolder/config/paper-global.yml", true);
         }
     }
 
@@ -170,9 +170,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
      * @param itemId The Oraxen item ID.
      */
     public static void setBlockModel(Block block, String itemId) {
-        final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("noteblock");
-        NoteBlockMechanic noteBlockMechanic = (NoteBlockMechanic) mechanicFactory.getMechanic(itemId);
-        block.setBlockData(createNoteBlockData(noteBlockMechanic.getCustomVariation()), false);
+        NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(itemId);
+        if (mechanic != null) block.setBlockData(createNoteBlockData(mechanic.getCustomVariation()));
     }
 
     private String getBlockstateContent() {

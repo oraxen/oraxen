@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactor
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -82,7 +83,7 @@ public class Drop {
     }
 
     public boolean canDrop(ItemStack itemInHand) {
-        return isToolEnough(itemInHand) && isTypeEnough(itemInHand);
+        return minimalType == null || minimalType.isEmpty() || isToolEnough(itemInHand) && isTypeEnough(itemInHand);
     }
 
     public boolean isTypeEnough(ItemStack itemInHand) {
@@ -96,7 +97,7 @@ public class Drop {
     public boolean isToolEnough(ItemStack itemInHand) {
         if (!bestTools.isEmpty()) {
             String itemID = OraxenItems.getIdByItem(itemInHand);
-            String type = itemInHand == null ? Material.AIR.toString() : itemInHand.getType().toString().toUpperCase();
+            String type = (itemInHand == null ? Material.AIR : itemInHand.getType()).toString().toUpperCase();
             if (itemID != null && bestTools.stream().anyMatch(itemID::equalsIgnoreCase)) return true;
             else if (bestTools.contains(type)) return true;
             else return bestTools.stream().anyMatch(toolName -> type.endsWith(toolName.toUpperCase()));

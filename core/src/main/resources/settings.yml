@@ -23,6 +23,7 @@ Plugin:
     noteblock_mechanic: false
     stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
   experimental:
+    spigot_chat_formatting: false # This will enable the use of Spigot's chat formatting, which is not recommended
     nms:
       glyphs: false # Uses NMS to render glyphs instead of the default method
 
@@ -194,6 +195,33 @@ Pack:
           player: [ ]
           opped_player: [ ]
 
+    failed_reload: #1.20.3+ only
+      actions:
+        commands:
+          console: [ ]
+          player: [ ]
+          opped_player: [ ]
+
+    downloaded: #1.20.3+ only
+      actions:
+        commands:
+          console: [ ]
+          player: [ ]
+          opped_player: [ ]
+
+    invalid_url: #1.20.3+ only
+      actions:
+        commands:
+          console: [ ]
+          player: [ ]
+          opped_player: [ ]
+
+    discarded: #1.20.3+ only
+      actions:
+        commands:
+          console: [ ]
+          player: [ ]
+          opped_player: [ ]
 Misc:
   # If this is set to true, Oraxen will reset recipes on reload. This might create conflicts with other plugins
   # but this makes the things easier if you want to try your oraxen recipes.

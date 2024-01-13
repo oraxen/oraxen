@@ -115,6 +115,10 @@ public class OraxenBlocks {
         return !NoteBlockMechanicFactory.getInstance().isNotImplementedIn(itemID);
     }
 
+    public static boolean isOraxenNoteBlock(ItemStack item) {
+        return isOraxenNoteBlock(OraxenItems.getIdByItem(item));
+    }
+
     /**
      * Check if a block is an instance of a StringBlock
      *
@@ -238,18 +242,21 @@ public class OraxenBlocks {
     }
 
     private static void removeNoteBlock(Block block, @Nullable Player player, boolean forceDrop) {
+        ItemStack itemInHand = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
         if (mechanic == null) return;
         if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentMechanic();
 
+        Drop drop = forceDrop ? mechanic.getDrop() : null;
         if (player != null) {
             OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
             if (!EventUtils.callEvent(noteBlockBreakEvent)) return;
 
-            if (player.getGameMode() != GameMode.CREATIVE)
-                noteBlockBreakEvent.getDrop().spawns(block.getLocation(), player.getInventory().getItemInMainHand());
+            if (forceDrop || player.getGameMode() != GameMode.CREATIVE)
+                drop = noteBlockBreakEvent.getDrop();
         }
+        if (drop != null) drop.spawns(block.getLocation(), itemInHand);
 
         if (mechanic.hasLight())
             WrappedLightAPI.removeBlockLight(block.getLocation());
@@ -264,7 +271,7 @@ public class OraxenBlocks {
     private static void removeStringBlock(Block block, @Nullable Player player, boolean forceDrop) {
 
         StringBlockMechanic mechanic = getStringMechanic(block);
-        ItemStack item = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
+        ItemStack itemInHand = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
         if (mechanic == null) return;
 
         Drop drop = forceDrop ? mechanic.getDrop() : null;
@@ -275,7 +282,7 @@ public class OraxenBlocks {
             if (forceDrop || player.getGameMode() != GameMode.CREATIVE)
                 drop = wireBlockBreakEvent.getDrop();
         }
-        if (drop != null) drop.spawns(block.getLocation(), item);
+        if (drop != null) drop.spawns(block.getLocation(), itemInHand);
 
         final Block blockAbove = block.getRelative(BlockFace.UP);
         if (mechanic.hasLight()) WrappedLightAPI.removeBlockLight(block.getLocation());
