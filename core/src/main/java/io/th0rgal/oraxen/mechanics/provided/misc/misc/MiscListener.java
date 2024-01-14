@@ -36,10 +36,7 @@ import static org.bukkit.event.entity.EntityDamageEvent.DamageCause.FIRE_TICK;
 
 public class MiscListener implements Listener {
 
-    private final MiscMechanicFactory factory;
-
     public MiscListener(MiscMechanicFactory factory) {
-        this.factory = factory;
         if (VersionUtil.isPaperServer()) {
             OraxenPlugin.get().getServer().getPluginManager().registerEvents(new PaperOnlyListeners(factory), OraxenPlugin.get());
         }
@@ -55,7 +52,7 @@ public class MiscListener implements Listener {
         if (composter.getType() != Material.COMPOSTER) return;
         if (!(composter.getBlockData() instanceof Levelled levelled)) return;
 
-        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(event.getItem());
+        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(event.getItem());
         if (mechanic == null || !mechanic.isCompostable()) return;
 
         if (levelled.getLevel() < levelled.getMaximumLevel()) {
@@ -79,7 +76,7 @@ public class MiscListener implements Listener {
         if (item == null || block == null || block.getType() != Material.COMPOSTER) return;
         if (!(block.getBlockData() instanceof Levelled levelled)) return;
         if (!ProtectionLib.canInteract(player, block.getLocation())) return;
-        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(item);
+        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(item);
         if (mechanic == null || !mechanic.isCompostable()) return;
         if (event.useInteractedBlock() == Event.Result.DENY) return;
         event.setUseInteractedBlock(Event.Result.ALLOW);
@@ -100,11 +97,11 @@ public class MiscListener implements Listener {
         Block block = event.getClickedBlock();
         ItemStack item = event.getItem();
         Player player = event.getPlayer();
+        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(item);
 
         if (block == null || !Tag.LOGS.isTagged(block.getType())) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || item == null) return;
-        if (!(factory.getMechanic(OraxenItems.getIdByItem(item)) instanceof MiscMechanic mechanic)) return;
-        if (!mechanic.canStripLogs()) return;
+        if (mechanic == null || !mechanic.canStripLogs()) return;
 
         if (item.getItemMeta() instanceof Damageable axeDurabilityMeta) {
             int durability = axeDurabilityMeta.getDamage();
@@ -162,14 +159,14 @@ public class MiscListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onDisableVanillaInteraction(PlayerInteractEvent event) {
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(event.getItem());
+        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(event.getItem());
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         event.setUseItemInHand(Event.Result.DENY);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDisableItemConsume(PlayerItemConsumeEvent event) {
-        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(event.getItem());
+        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(event.getItem());
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         event.setCancelled(true);
     }
@@ -177,7 +174,7 @@ public class MiscListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onDisableBowShoot(EntityShootBowEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(event.getConsumable());
+        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(event.getConsumable());
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         event.setConsumeItem(false);
         event.setCancelled(true);
@@ -196,7 +193,7 @@ public class MiscListener implements Listener {
         else return;
 
 
-        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(item);
+        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(item);
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         event.setCancelled(true);
     }
@@ -205,7 +202,7 @@ public class MiscListener implements Listener {
     public void onDisableHorseArmorEquip(PlayerInteractEntityEvent event) {
         if (!(event.getRightClicked() instanceof Horse)) return;
         ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
-        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(item);
+        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(item);
         if (mechanic == null || !mechanic.isVanillaInteractionDisabled()) return;
         if (item.getType().name().endsWith("_HORSE_ARMOR")) {
             event.setCancelled(true);
@@ -219,7 +216,7 @@ public class MiscListener implements Listener {
         String itemID = OraxenItems.getIdByItem(itemStack);
         if (itemID == null) return null;
 
-        return (MiscMechanic) factory.getMechanic(itemID);
+        return MiscMechanicFactory.get().getMechanic(itemID);
     }
 
     private Material getStrippedLog(Material log) {
@@ -249,7 +246,7 @@ public class MiscListener implements Listener {
     }
 
     private boolean shouldPreventPiglinAggro(ItemStack itemStack) {
-        MiscMechanic mechanic = (MiscMechanic) factory.getMechanic(OraxenItems.getIdByItem(itemStack));
+        MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(OraxenItems.getIdByItem(itemStack));
         return mechanic != null && mechanic.piglinIgnoreWhenEquipped();
     }
 
