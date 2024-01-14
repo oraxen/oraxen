@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.config.ConfigsManager;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
 import io.th0rgal.oraxen.font.packets.TitlePacketListener;
+import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -63,14 +64,14 @@ public class FontManager {
         if (fontConfiguration.isConfigurationSection("fonts"))
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
 
-        if (Settings.NMS_GLYPHS.toBool() && NMSHandlers.getHandler() != null) {
-            useNmsGlyphs = true;
+        useNmsGlyphs = GlyphHandlers.isNms() && NMSHandlers.getHandler() != null;
+        if (useNmsGlyphs) {
             NMSHandlers.getHandler().setupNmsGlyphs();
             Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
             Logs.logInfo("Disabling packet-based glyph systems", true);
             OraxenPlugin.get().getProtocolManager().removePacketListener(new InventoryPacketListener());
             OraxenPlugin.get().getProtocolManager().removePacketListener(new TitlePacketListener());
-        } else useNmsGlyphs = false;
+        }
     }
 
     public boolean useNmsGlyphs() {

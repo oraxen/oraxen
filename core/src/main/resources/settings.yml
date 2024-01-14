@@ -5,8 +5,6 @@ Plugin:
   commands:
     repair:
       oraxen_durability_only: false # will not repair vanilla items if set to true
-    emoji_list:
-      only_show_emojis_with_permission: true # will only show emojis player has permission to use if set to true
   generation:
     default_assets: true
     default_configs: true
@@ -22,9 +20,6 @@ Plugin:
   worldedit: # Please note these are both experimental still and should be used with caution
     noteblock_mechanic: false
     stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
-  experimental:
-    nms:
-      glyphs: false # Uses NMS to render glyphs instead of the default method
 
 ConfigsTools:
   # list of model data numbers the automatic system will skip
@@ -37,6 +32,11 @@ ConfigsTools:
     material: PODZOL
     excludeFromInventory: false # set to true if you don't want to display it inside inventory
     injectID: false
+
+Glyphs:
+  glyph_handler: VANILLA # Valid handlers are VANILLA and NMS
+  emoji_list_permission_only: true # will only show emojis player has permission to use if set to true
+  unicode_completions: true # Whether glyph tab-completions shows unicodes or glyph-pølaceholders
 
 Chat:
   # If glyphs do not show up in chat, try setting this to LEGACY
@@ -236,9 +236,6 @@ Misc:
   hide_scoreboard_numbers: false
   # This will hide the background of scoreboards
   hide_scoreboard_background: false
-
-  # Whether Oraxen should register emoji tab completions with unicode characters
-  unicode_completions: true
 
   # All blocks with an inventory or any blocks that when right clicked shouldn't equip armor.
   armor_equip_event_bypass:
