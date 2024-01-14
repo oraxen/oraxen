@@ -15,6 +15,8 @@ import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
+import io.th0rgal.oraxen.utils.breaker.ToolTypeSpeedModifier;
+import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.apache.commons.lang3.Range;
@@ -416,15 +418,14 @@ public class NoteBlockMechanicListener implements Listener {
                 if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
                     mechanic = mechanic.getDirectional().getParentMechanic();
 
-                final long period = mechanic.getHardness();
-                double modifier = 1;
-                if (mechanic.getDrop().canDrop(tool)) {
-                    modifier *= 0.4;
-                    final int diff = mechanic.getDrop().getDiff(tool);
-                    if (diff >= 1)
-                        modifier *= Math.pow(0.9, diff);
-                }
-                return (long) (period * modifier);
+                Drop drop = mechanic.getDrop();
+                float speedMultiplier = NoteBlockMechanicFactory.getInstance().getSpeedMultiplier(player, block);
+                float damage = speedMultiplier / mechanic.getHardness() / 30;
+
+                //Instant break
+                if (damage > 1) return 0L;
+
+                return (long) (1 / damage) / 20;
             }
         };
     }
