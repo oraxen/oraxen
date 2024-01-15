@@ -97,6 +97,7 @@ compileOnly 'io.th0rgal:oraxen:VERSION'
   <artifactId>oraxen</artifactId>
   <version>VERSION</version>
   <scope>provided</scope>
+</dependency>
 ```
 Snapshot builds are also available at [https://repo.oraxen.com/snapshots](https://repo.oraxen.com/snapshots). \
 
