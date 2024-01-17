@@ -31,10 +31,6 @@ dependencies {
     paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
 }
 
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor(0, "seconds")
-}
-
 java {
     toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
