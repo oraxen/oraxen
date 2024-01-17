@@ -129,13 +129,12 @@ public class NoteBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void callInteract(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();
-        if (block == null) return;
-        if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (block == null || (event.getAction() != Action.LEFT_CLICK_BLOCK && event.getAction() != Action.RIGHT_CLICK_BLOCK)) return;
         if (event.getClickedBlock().getType() != Material.NOTE_BLOCK) return;
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
         if (mechanic == null) return;
         if (!EventUtils.callEvent(new OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace())))
-            event.setCancelled(true);
+            event.setUseInteractedBlock(Event.Result.DENY);
     }
 
     @EventHandler(priority = EventPriority.NORMAL, ignoreCancelled = true)
@@ -210,18 +209,12 @@ public class NoteBlockMechanicListener implements Listener {
         EquipmentSlot hand = event.getHand();
         BlockFace blockFace = event.getBlockFace();
 
-        if (hand == null || event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK)
-            return;
+        if (hand == null || event.getAction() != Action.RIGHT_CLICK_BLOCK || block == null || block.getType() != Material.NOTE_BLOCK) return;
         if (!player.isSneaking() && BlockHelpers.isInteractable(block)) return;
-
-        NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
-        if (mechanic == null) return;
-        if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
-            mechanic = mechanic.getDirectional().getParentMechanic();
+        if (event.useInteractedBlock() == Event.Result.DENY || !OraxenBlocks.isOraxenNoteBlock(block)) return;
 
         event.setUseInteractedBlock(Event.Result.DENY);
         if (OraxenBlocks.isOraxenNoteBlock(item)) return;
-        if (!EventUtils.callEvent(new OraxenNoteBlockInteractEvent(mechanic, player, item, hand, block, blockFace))) event.setCancelled(true);
         if (item == null) return;
 
         Material type = item.getType();
