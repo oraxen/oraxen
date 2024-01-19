@@ -8,8 +8,8 @@ import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PlaceholderAPIC
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.bukkit.Bukkit;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.ConcurrentHashMap;
@@ -113,6 +113,6 @@ public class CompatibilitiesManager {
     }
 
     public static boolean hasPlugin(String name) {
-        return Bukkit.getPluginManager().isPluginEnabled(name);
+        return PluginUtils.isEnabled(name);
     }
 }
