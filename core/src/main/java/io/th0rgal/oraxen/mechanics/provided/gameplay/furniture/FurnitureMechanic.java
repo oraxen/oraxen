@@ -380,10 +380,13 @@ public class FurnitureMechanic extends Mechanic {
     private Location correctedSpawnLocation(Location baseLocation) {
         Location correctedLocation = BlockHelpers.toCenterBlockLocation(baseLocation);
         boolean isWall = hasLimitedPlacing() && limitedPlacing.isWall();
+        boolean isRoof = hasLimitedPlacing() && limitedPlacing.isRoof();
+        boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
         if (furnitureType != FurnitureType.DISPLAY_ENTITY || !hasDisplayEntityProperties()) return correctedLocation;
-        if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall) return correctedLocation;
+        if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall && !isRoof) return correctedLocation;
         float scale = displayEntityProperties.hasScale() ? displayEntityProperties.getScale().y() : 1;
-        return correctedLocation.add(0, 0.5 * scale, 0);
+        // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
+        return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 : 0), 0);
     }
 
     private void setEntityData(Entity entity, float yaw, ItemStack item, BlockFace facing) {
@@ -412,7 +415,9 @@ public class FurnitureMechanic extends Mechanic {
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
             float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
             float height = hasHitbox() ? hitbox.height : displayEntityProperties.getDisplayHeight();
-            Interaction interaction = spawnInteractionEntity(itemDisplay, location, width, height);
+            boolean isFixed = displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+            Location interactionLoc = location.clone().subtract(0, (hasLimitedPlacing() && limitedPlacing.isRoof() && isFixed) ? 1.5 : 0, 0);
+            Interaction interaction = spawnInteractionEntity(itemDisplay, interactionLoc, width, height);
             Location barrierLoc = EntityUtils.isNone(itemDisplay) && displayEntityProperties.hasScale()
                             ? location.clone().subtract(0, 0.5 * displayEntityProperties.getScale().y(), 0) : location;
 
@@ -481,11 +486,16 @@ public class FurnitureMechanic extends Mechanic {
         // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation
         // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
         float pitch;
-        yaw = VersionUtil.atOrAbove("1.20.1") ? yaw : yaw - 180;
-        if (VersionUtil.atOrAbove("1.20.1"))
-            pitch = isFixed && hasLimitedPlacing() && (limitedPlacing.isFloor() || limitedPlacing.isRoof()) ? -90 : 0;
-        else
-            pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
+        yaw = (VersionUtil.atOrAbove("1.20.1") && (!hasLimitedPlacing() || !limitedPlacing.isRoof() || !isFixed)) ? yaw : yaw - 180;
+        if (VersionUtil.atOrAbove("1.20.1")) {
+            if (hasLimitedPlacing() && isFixed)
+                if (limitedPlacing.isFloor()) pitch = -90;
+                else if (limitedPlacing.isRoof()) pitch = 90;
+                else pitch = 0;
+            else pitch = 0;
+        }
+        else pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
+
         itemDisplay.setTransformation(transform);
         itemDisplay.setRotation(yaw, pitch);
     }
