@@ -2,13 +2,13 @@ package io.th0rgal.oraxen.recipes.builders;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,17 +53,17 @@ public abstract class RecipeBuilder {
         return this.inventory;
     }
 
-    protected void setSerializedItem(ConfigurationSection section, ItemStack itemStack) {
+    protected void setSerializedItem(ConfigurationSection section, @NotNull ItemStack itemStack) {
 
         // if our itemstack is made using oraxen and is not modified
-        if (OraxenItems.exists(itemStack)) {
-            String itemID = OraxenItems.getIdByItem(itemStack);
-            section.set("oraxen_item", itemID);
-        }
-        // if our itemstack is an unmodified vanilla item
-        else if (itemStack != null && itemStack.equals(new ItemStack(itemStack.getType())))
-            section.set("minecraft_type", itemStack.getType().toString());
+        if (OraxenItems.exists(itemStack))
+            section.set("oraxen_item", OraxenItems.getIdByItem(itemStack));
+        // if our itemstack is an unmodified vanilla item outside of amount
+        else if (itemStack.isSimilar(new ItemStack(itemStack.getType())))
+            section.set("minecraft_type", itemStack.getType().name());
         else section.set("minecraft_item", itemStack);
+
+        if (itemStack.getAmount() > 1) section.set("amount", itemStack.getAmount());
     }
 
     public YamlConfiguration getConfig() {
