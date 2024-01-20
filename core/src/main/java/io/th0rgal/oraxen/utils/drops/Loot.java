@@ -21,9 +21,9 @@ public class Loot {
     private LinkedHashMap<String, Object> config;
 
     public Loot(LinkedHashMap<String, Object> config) {
-        this.probability = config.containsKey("probability") ? (int) (1D / (double) config.get("probability")) : 1;
-        this.minAmount = config.containsKey("min_amount") ? (int) config.get("min_amount") : 1;
-        this.maxAmount = config.containsKey("max_amount") ? Math.max((int) config.get("max_amount"), this.minAmount) : this.minAmount;
+        this.probability = Integer.getInteger(config.getOrDefault("probability", 1).toString(), 1);
+        this.minAmount = Integer.getInteger(config.getOrDefault("min_amount", 1).toString(), 1);
+        this.maxAmount = Math.max(Integer.getInteger(config.getOrDefault("max_amount", this.minAmount).toString(), this.minAmount), this.minAmount);
         this.config = config;
     }
 
