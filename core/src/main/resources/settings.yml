@@ -17,9 +17,11 @@ Plugin:
     signs: true # Formats text on signs when placed or edited
     chat: true # Formats text and glyphs in chat. Disable if using a chat-plugin and you are experiencing issues
     books: true # Formats glyphs in books.
-  worldedit: # Please note these are both experimental still and should be used with caution
-    noteblock_mechanic: false
-    stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
+
+WorldEdit: # Please note these are both experimental still and should be used with caution
+  noteblock_mechanic: false
+  stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
+  furniture_mechanic: false # NOTE: This only handles clipboard stuff, it does not allow for anything outside cut/copy/paste
 
 ConfigsTools:
   # list of model data numbers the automatic system will skip

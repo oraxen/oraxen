@@ -57,10 +57,10 @@ public class WorldEditHandlers {
         if (event.getWorld() == null) return;
 
         event.setExtent(new AbstractDelegateExtent(event.getExtent()) {
-            private final Map<UUID, UUID> oldToNewUUIDs = new HashMap<>();
 
             @Override
             public Entity createEntity(com.sk89q.worldedit.util.Location location, BaseEntity baseEntity) {
+                if (!Settings.WORLDEDIT_FURNITURE.toBool()) return super.createEntity(location, baseEntity);
                 if (baseEntity == null || baseEntity.getType() == BukkitAdapter.adapt(EntityType.INTERACTION)) return null;
                 if (!baseEntity.hasNbtData() || !furnitureTypes.contains(baseEntity.getType()))
                     return super.createEntity(location, baseEntity);
