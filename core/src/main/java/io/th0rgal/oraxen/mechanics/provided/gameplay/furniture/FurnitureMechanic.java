@@ -369,7 +369,7 @@ public class FurnitureMechanic extends Mechanic {
         } else item = placedItem;
         item.setAmount(1);
 
-        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location), entityClass, (e) -> setEntityData(e, yaw, item, facing));
+        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, facing), entityClass, (e) -> setEntityData(e, yaw, item, facing));
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }
@@ -377,7 +377,7 @@ public class FurnitureMechanic extends Mechanic {
         return baseEntity;
     }
 
-    private Location correctedSpawnLocation(Location baseLocation) {
+    private Location correctedSpawnLocation(Location baseLocation, BlockFace facing) {
         Location correctedLocation = BlockHelpers.toCenterBlockLocation(baseLocation);
         boolean isWall = hasLimitedPlacing() && limitedPlacing.isWall();
         boolean isRoof = hasLimitedPlacing() && limitedPlacing.isRoof();
@@ -386,6 +386,7 @@ public class FurnitureMechanic extends Mechanic {
         if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall && !isRoof) return correctedLocation;
         float scale = displayEntityProperties.hasScale() ? displayEntityProperties.getScale().y() : 1;
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
+        if (isFixed && isWall) correctedLocation.add(-facing.getModX() * (0.5 * scale), 0, -facing.getModZ() * (0.5 * scale));
         return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 : 0), 0);
     }
 
