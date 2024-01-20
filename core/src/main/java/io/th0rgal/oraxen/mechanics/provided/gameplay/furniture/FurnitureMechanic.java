@@ -377,11 +377,11 @@ public class FurnitureMechanic extends Mechanic {
         return baseEntity;
     }
 
-    //TODO Account for limitedPlacing differences
     private Location correctedSpawnLocation(Location baseLocation) {
         Location correctedLocation = BlockHelpers.toCenterBlockLocation(baseLocation);
+        boolean isWall = hasLimitedPlacing() && limitedPlacing.isWall();
         if (furnitureType != FurnitureType.DISPLAY_ENTITY || !hasDisplayEntityProperties()) return correctedLocation;
-        if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE) return correctedLocation;
+        if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall) return correctedLocation;
         float scale = displayEntityProperties.hasScale() ? displayEntityProperties.getScale().y() : 1;
         return correctedLocation.add(0, 0.5 * scale, 0);
     }
@@ -481,16 +481,13 @@ public class FurnitureMechanic extends Mechanic {
         // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation
         // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
         float pitch;
-        float alterYaw;
-        if (VersionUtil.atOrAbove("1.20.1")) {
+        yaw = VersionUtil.atOrAbove("1.20.1") ? yaw : yaw - 180;
+        if (VersionUtil.atOrAbove("1.20.1"))
             pitch = isFixed && hasLimitedPlacing() && (limitedPlacing.isFloor() || limitedPlacing.isRoof()) ? -90 : 0;
-            alterYaw = yaw;
-        } else {
+        else
             pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
-            alterYaw = yaw - 180;
-        }
         itemDisplay.setTransformation(transform);
-        itemDisplay.setRotation(alterYaw, pitch);
+        itemDisplay.setRotation(yaw, pitch);
     }
 
     private void setFrameData(ItemFrame frame, ItemStack item, float yaw, BlockFace facing) {
