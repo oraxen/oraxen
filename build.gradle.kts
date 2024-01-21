@@ -209,7 +209,8 @@ bukkit {
         "net.kyori:adventure-text-serializer-plain:$adventureVersion",
         "net.kyori:adventure-text-serializer-ansi:$adventureVersion",
         "net.kyori:adventure-platform-bukkit:$platformVersion",
-        "com.google.code.gson:gson:$googleGsonVersion"
+        "com.google.code.gson:gson:$googleGsonVersion",
+        "gs.mclo:java:2.2.1",
     )
 }
 
