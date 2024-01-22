@@ -101,7 +101,7 @@ allprojects {
         compileOnly("org.springframework:spring-expression:6.0.6")
         compileOnly("io.lumine:Mythic-Dist:5.3.5")
         compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
-        compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
+        compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
         compileOnly("commons-io:commons-io:2.11.0")
         compileOnly("com.google.code.gson:gson:$googleGsonVersion")
         compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.1")

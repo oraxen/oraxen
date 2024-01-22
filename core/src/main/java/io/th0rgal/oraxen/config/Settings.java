@@ -15,8 +15,6 @@ public enum Settings {
     REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only"),
     GENERATE_DEFAULT_ASSETS("Plugin.generation.default_assets"),
     GENERATE_DEFAULT_CONFIGS("Plugin.generation.default_configs"),
-    WORLDEDIT_NOTEBLOCKS("Plugin.worldedit.noteblock_mechanic"),
-    WORLDEDIT_STRINGBLOCKS("Plugin.worldedit.stringblock_mechanic"),
     FORMAT_INVENTORY_TITLES("Plugin.formatting.inventory_titles"),
     FORMAT_TITLES("Plugin.formatting.titles"),
     FORMAT_SUBTITLES("Plugin.formatting.subtitles"),
@@ -25,6 +23,11 @@ public enum Settings {
     FORMAT_SIGNS("Plugin.formatting.signs"),
     FORMAT_CHAT("Plugin.formatting.chat"),
     FORMAT_BOOKS("Plugin.formatting.books"),
+
+    // WorldEdit
+    WORLDEDIT_NOTEBLOCKS("WorldEdit.noteblock_mechanic"),
+    WORLDEDIT_STRINGBLOCKS("WorldEdit.stringblock_mechanic"),
+    WORLDEDIT_FURNITURE("WorldEdit.furniture_mechanic"),
 
     // Glyphs
     GLYPH_HANDLER("Glyphs.glyph_handler"),
