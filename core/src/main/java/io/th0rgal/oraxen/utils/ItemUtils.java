@@ -13,6 +13,10 @@ import java.util.function.Consumer;
 
 public class ItemUtils {
 
+    public static boolean isEmpty(ItemStack itemStack) {
+        return itemStack == null || itemStack.getType() == Material.AIR || itemStack.getAmount() == 0;
+    }
+
     /**
      * @param itemStack The ItemStack to edit the ItemMeta of
      * @param function  The function-block to edit the ItemMeta in
