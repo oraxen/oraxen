@@ -19,6 +19,7 @@ import org.bukkit.block.data.type.Chest;
 import org.bukkit.block.data.type.Lectern;
 import org.bukkit.block.data.type.*;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.EquipmentSlot;
@@ -28,7 +29,9 @@ import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +42,30 @@ import static org.bukkit.block.data.FaceAttachable.AttachedFace.CEILING;
 import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
 
 public class BlockHelpers {
+
+    /**
+     * Returns the block the entity is standing on.<br>
+     * Mainly to handle cases where player is on the edge of a block, with AIR below them
+     */
+    @Nullable
+    public static Block getBlockStandingOn(Entity entity) {
+        Block block = entity.getLocation().getBlock();
+        Block blockBelow = block.getRelative(BlockFace.DOWN);
+        if (!block.getType().isAir()) return block;
+        if (!blockBelow.getType().isAir()) return blockBelow;
+
+        // Expand players hitbox by 0.3, which is the maximum size a player can be off a block
+        // Whilst not falling off
+        BoundingBox entityBox = entity.getBoundingBox().expand(0.3);
+        for (BlockFace face : BlockFace.values()) {
+            if (!face.isCartesian() || face.getModY() != 0) continue;
+            Block relative = blockBelow.getRelative(face);
+            if (relative.getType() == Material.AIR) continue;
+            if (relative.getBoundingBox().overlaps(entityBox)) return relative;
+        }
+
+        return null;
+    }
 
     public static void playCustomBlockSound(Location location, String sound, float volume, float pitch) {
         playCustomBlockSound(toCenterLocation(location), sound, SoundCategory.BLOCKS, volume, pitch);

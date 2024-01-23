@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.GameEvent;
 import org.bukkit.Material;
 import org.bukkit.SoundCategory;
