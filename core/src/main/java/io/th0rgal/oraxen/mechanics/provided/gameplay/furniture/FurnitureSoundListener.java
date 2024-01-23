@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurniturePlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -55,7 +54,7 @@ public class FurnitureSoundListener implements Listener {
     }
 
     // Play sound due to furniture/barrier custom sound replacing stone
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.HIGH)
     public void onBreakingStone(final BlockBreakEvent event) {
         Block block = event.getBlock();
         Location location = block.getLocation();
@@ -66,7 +65,7 @@ public class FurnitureSoundListener implements Listener {
         }
 
         if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_STONE_BREAK) return;
-        if (!OraxenFurniture.isFurniture(block)) return;
+        if (OraxenFurniture.isFurniture(block)) return;
 
         if (!event.isCancelled() && ProtectionLib.canBreak(event.getPlayer(), location))
             BlockHelpers.playCustomBlockSound(location, VANILLA_STONE_BREAK, VANILLA_BREAK_VOLUME, VANILLA_BREAK_PITCH);
@@ -106,6 +105,7 @@ public class FurnitureSoundListener implements Listener {
         Block block = entity.getLocation().getBlock();
         Block blockBelow = block.getRelative(BlockFace.DOWN);
         EntityDamageEvent cause = entity.getLastDamageCause();
+        if (blockBelow.getType() == Material.AIR) return;
         SoundGroup soundGroup = blockBelow.getBlockData().getSoundGroup();
 
         if (soundGroup.getStepSound() != Sound.BLOCK_STONE_STEP) return;
