@@ -9,7 +9,6 @@ import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.event.EventHandler;
@@ -102,27 +101,27 @@ public class FurnitureSoundListener implements Listener {
         if (!isLoaded(entity.getLocation())) return;
 
         GameEvent gameEvent = event.getEvent();
-        Block block = entity.getLocation().getBlock();
-        Block blockBelow = block.getRelative(BlockFace.DOWN);
+        Block blockStandingOn = BlockHelpers.getBlockStandingOn(entity);
         EntityDamageEvent cause = entity.getLastDamageCause();
-        if (blockBelow.getType() == Material.AIR) return;
-        SoundGroup soundGroup = blockBelow.getBlockData().getSoundGroup();
+
+        if (blockStandingOn == null || blockStandingOn.getType().isAir()) return;
+        SoundGroup soundGroup = blockStandingOn.getBlockData().getSoundGroup();
 
         if (soundGroup.getStepSound() != Sound.BLOCK_STONE_STEP) return;
         if (gameEvent == GameEvent.HIT_GROUND && cause != null && cause.getCause() != EntityDamageEvent.DamageCause.FALL) return;
-        if (!BlockHelpers.isReplaceable(block) || block.getType() == Material.TRIPWIRE) return;
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(blockBelow);
+        if (blockStandingOn.getType() == Material.TRIPWIRE) return;
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(blockStandingOn);
 
         String sound;
         float volume;
         float pitch;
         if (gameEvent == GameEvent.STEP) {
-            boolean check = blockBelow.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasStepSound();
+            boolean check = blockStandingOn.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasStepSound();
             sound = (check) ? mechanic.getBlockSounds().getStepSound() : VANILLA_STONE_STEP;
             volume = (check) ? mechanic.getBlockSounds().getStepVolume() : VANILLA_STEP_VOLUME;
             pitch = (check) ? mechanic.getBlockSounds().getStepPitch() : VANILLA_STEP_PITCH;
         } else if (gameEvent == GameEvent.HIT_GROUND) {
-            boolean check = (blockBelow.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasFallSound());
+            boolean check = (blockStandingOn.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasFallSound());
             sound = (check) ? mechanic.getBlockSounds().getFallSound() : VANILLA_STONE_FALL;
             volume = (check) ? mechanic.getBlockSounds().getFallVolume() : VANILLA_FALL_VOLUME;
             pitch = (check) ? mechanic.getBlockSounds().getFallPitch() : VANILLA_FALL_PITCH;
@@ -142,11 +141,6 @@ public class FurnitureSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreakingFurniture(final OraxenFurnitureBreakEvent event) {
-        if (event.getPlayer().isSneaking()) {
-            event.setCancelled(true);
-            Logs.debug("baseEntity: " + event.getBaseEntity().getUniqueId());
-            Logs.debug("interaction: " + event.getMechanic().getInteractionEntity(event.getBaseEntity()).getUniqueId());
-        }
         Location loc = event.getBlock() != null ? event.getBlock().getLocation() : event.getBaseEntity().getLocation();
         final FurnitureMechanic mechanic = event.getMechanic();
         if (!mechanic.hasBlockSounds()) return;
