@@ -20,6 +20,7 @@ import org.bukkit.block.data.type.Lectern;
 import org.bukkit.block.data.type.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.EquipmentSlot;
@@ -113,10 +114,7 @@ public class BlockHelpers {
         // Since the block might be AIR, Block#getBoundingBox returns an empty one
         // Get the block-center and expand it 0.5 to cover the block
         BoundingBox blockBox = BoundingBox.of(BlockHelpers.toCenterLocation(block.getLocation()), 0.5, 0.5, 0.5);
-
-        return !block.getWorld().getNearbyEntities(blockBox).stream()
-                .filter(e -> !(e instanceof Player p) || p.getGameMode() != GameMode.SPECTATOR)
-                .toList().isEmpty();
+        return !block.getWorld().getNearbyEntities(blockBox, entity -> (entity instanceof LivingEntity livingEntity) && !livingEntity.isInvisible()).isEmpty();
     }
 
     /** Returns the PersistentDataContainer from CustomBlockData
