@@ -20,6 +20,7 @@ import org.bukkit.block.data.type.Lectern;
 import org.bukkit.block.data.type.*;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.EquipmentSlot;
@@ -110,11 +111,14 @@ public class BlockHelpers {
 
     public static boolean isStandingInside(final Player player, final Block block) {
         if (player == null || block == null) return false;
-        final Location playerLoc = player.getLocation().getBlock().getLocation();
         final Location blockLoc = BlockHelpers.toCenterLocation(block.getLocation());
-        return Range.between(0.5, 1.5).contains(blockLoc.getY() - playerLoc.getY()) &&
-                Range.between(-0.80, 0.80).contains(blockLoc.getX() - playerLoc.getX())
-                && Range.between(-0.80, 0.80).contains(blockLoc.getZ() - playerLoc.getZ());
+        // determine if there is an entity in the target location
+        return blockLoc.getWorld().getNearbyEntities(blockLoc, 0.5, 0.5, 0.5, entity -> {
+            if (entity instanceof LivingEntity livingEntity) {
+                return !livingEntity.isInvisible();
+            }
+            return false;
+        }).size() > 0;
     }
 
     /** Returns the PersistentDataContainer from CustomBlockData
