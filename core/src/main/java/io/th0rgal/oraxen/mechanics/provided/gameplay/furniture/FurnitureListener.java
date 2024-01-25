@@ -248,7 +248,7 @@ public class FurnitureListener implements Listener {
         if (!ProtectionLib.canBreak(player, entity.getLocation())) return;
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, entity, player, entity.getLocation().getBlock());
         if (!EventUtils.callEvent(furnitureBreakEvent)) return;
-        OraxenFurniture.remove(entity, player, furnitureBreakEvent.getDrop());
+        if (OraxenFurniture.remove(entity, player, furnitureBreakEvent.getDrop())) event.setCancelled(false);
     }
 
     //TODO This should take hardness into account.
@@ -264,13 +264,11 @@ public class FurnitureListener implements Listener {
         Entity baseEntity = mechanic.getBaseEntity(block);
         if (baseEntity == null) return;
 
+        event.setCancelled(true);
         OraxenFurnitureBreakEvent furnitureBreakEvent = new OraxenFurnitureBreakEvent(mechanic, baseEntity, player, block);
-        if (!EventUtils.callEvent(furnitureBreakEvent)) {
-            event.setCancelled(true);
-            return;
-        }
-
-        OraxenFurniture.remove(block.getLocation(), player, furnitureBreakEvent.getDrop());
+        if (!EventUtils.callEvent(furnitureBreakEvent)) return;
+        // If successfully removed, un-cancel the event
+        if (OraxenFurniture.remove(block.getLocation(), player, furnitureBreakEvent.getDrop())) event.setCancelled(false);
         event.setDropItems(false);
     }
 
