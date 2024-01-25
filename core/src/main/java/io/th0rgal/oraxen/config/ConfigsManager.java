@@ -192,17 +192,26 @@ public class ConfigsManager {
         Map<String, Character> charPerGlyph = new HashMap<>();
         char nextCharacter = '\uE001'; // Start with the character E001
 
+        List<Character> usedCharacters = new ArrayList<>();
+
         for (File file : glyphFiles) {
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
             for (String key : configuration.getKeys(false)) {
+
                 ConfigurationSection glyphSection = configuration.getConfigurationSection(key);
                 if (glyphSection == null) continue;
 
                 String characterString = glyphSection.getString("char", "");
                 char character = !characterString.isBlank() ? characterString.charAt(0) : Character.MIN_VALUE;
 
+                usedCharacters.add(character);
+                nextCharacter = (char) (nextCharacter + 1);
+
                 // Ensure character is higher than E000
-                if (character != Character.MIN_VALUE && character <= '\uE000') {
+                if (character != Character.MIN_VALUE && character <= '\uE000' || usedCharacters.contains(character)) {
+                    while (usedCharacters.contains(nextCharacter)) {
+                        nextCharacter = (char) (nextCharacter + 1);
+                    }
                     character = nextCharacter++;
                     // Update the file with the new character
                     glyphSection.set("char", String.valueOf(character));
@@ -226,6 +235,9 @@ public class ConfigsManager {
 
                 // Ensure character is higher than E000
                 if (character <= '\uE000') {
+                    while (usedCharacters.contains(nextCharacter)) {
+                        nextCharacter = (char) (nextCharacter + 1);
+                    }
                     character = nextCharacter++;
                     // Update the character in the file
                     configuration.set(key + ".char", String.valueOf(character));
