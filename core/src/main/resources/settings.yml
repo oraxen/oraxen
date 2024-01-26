@@ -369,7 +369,7 @@ oraxen_inventory:
     items:
       slot: 6
       icon: ruby
-      displayname: "<green>Ruby"
+      displayname: "<green>Items"
       title: "<main_menu_title><#DA2E45><glyph:menu_items_overlay:colorable>"
     mystical:
       slot: 7
