@@ -150,9 +150,14 @@ public class ResourcePack {
             EventUtils.callEvent(event);
             ZipUtils.writeZipFile(pack, event.getOutput());
 
-            UploadManager uploadManager = new UploadManager(OraxenPlugin.get());
-            OraxenPlugin.get().setUploadManager(uploadManager);
-            uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack());
+            UploadManager uploadManager = OraxenPlugin.get().getUploadManager();
+            if (uploadManager != null) { // If the uploadManager isnt null, this was triggered by a pack-reload
+                uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), true, true);
+            } else { // Otherwise this is was triggered on server-startup
+                uploadManager = new UploadManager(OraxenPlugin.get());
+                OraxenPlugin.get().setUploadManager(uploadManager);
+                uploadManager.uploadAsyncAndSendToPlayers(OraxenPlugin.get().getResourcePack(), false, false);
+            }
         });
     }
 

@@ -47,10 +47,6 @@ public class UploadManager {
         return packSender;
     }
 
-    public void uploadAsyncAndSendToPlayers(final ResourcePack resourcePack) {
-        uploadAsyncAndSendToPlayers(resourcePack, false, false);
-    }
-
     public void uploadAsyncAndSendToPlayers(final ResourcePack resourcePack, final boolean updatePackSender, final boolean isReload) {
         if (!enabled)
             return;
