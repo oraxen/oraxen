@@ -22,6 +22,8 @@ public enum RemovedSettings {
     UPDATE_FURNITURE_ON_RELOAD2("FurnitureUpdater.update_furniture_on_reload"),
     SEND_PACK_ADVANCED("Pack.dispatch.send_pack_advanced"),
     NMS_BLOCK_CORRECTION("Plugin.experimental.nms.block_correction"),
+    SPIGOT_CHAT_FORMATTING("Plugin.experimental.spigot_chat_formatting"),
+
     ;
 
     private final String path;

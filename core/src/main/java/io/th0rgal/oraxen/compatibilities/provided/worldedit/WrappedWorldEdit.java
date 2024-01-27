@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.compatibilities.provided.worldedit;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -18,7 +19,7 @@ public class WrappedWorldEdit {
     public static boolean loaded;
 
     public static void init() {
-        loaded = Bukkit.getPluginManager().isPluginEnabled("WorldEdit") || Bukkit.getPluginManager().isPluginEnabled("FastAsyncWorldEdit");
+        loaded = PluginUtils.isEnabled("WorldEdit") || PluginUtils.isEnabled("FastAsyncWorldEdit");
     }
 
     public static void registerParser() {

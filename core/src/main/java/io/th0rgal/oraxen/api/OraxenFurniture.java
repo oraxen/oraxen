@@ -297,7 +297,7 @@ public class OraxenFurniture {
             }
 
             if (!OraxenFurniture.remove(entity, null)) return;
-            Entity newEntity = mechanic.place(entity.getLocation(), newItem, FurnitureMechanic.getFurnitureYaw(entity), oldFacing);
+            Entity newEntity = mechanic.place(entity.getLocation(), FurnitureMechanic.getFurnitureYaw(entity), oldFacing);
             if (newEntity == null) return;
 
             // Copy old PDC to new PDC, skip keys that should not persist

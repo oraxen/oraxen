@@ -13,6 +13,8 @@ public class MiscMechanic extends Mechanic {
     private final boolean piglinsIgnoreWhenEquipped;
     private final boolean compostable;
 
+    private final boolean allowInVanillaRecipes;
+
     public MiscMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
         cactusBreaks = section.getBoolean("breaks_from_cactus", true);
@@ -22,6 +24,7 @@ public class MiscMechanic extends Mechanic {
         canStripLogs = section.getBoolean("can_strip_logs", false);
         piglinsIgnoreWhenEquipped = section.getBoolean("piglins_ignore_when_equipped", false);
         compostable = section.getBoolean("compostable", false);
+        allowInVanillaRecipes = section.getBoolean("allow_in_vanilla_recipes", false);
     }
 
     public boolean breaksFromCactus() { return cactusBreaks; }
@@ -31,4 +34,6 @@ public class MiscMechanic extends Mechanic {
     public boolean canStripLogs() { return canStripLogs; }
     public boolean piglinIgnoreWhenEquipped() { return piglinsIgnoreWhenEquipped; }
     public boolean isCompostable() { return compostable; }
+
+    public boolean isAllowedInVanillaRecipes() { return allowInVanillaRecipes; }
 }

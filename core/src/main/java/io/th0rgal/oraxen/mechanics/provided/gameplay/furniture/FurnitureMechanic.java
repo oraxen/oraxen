@@ -339,23 +339,23 @@ public class FurnitureMechanic extends Mechanic {
     public void setPlacedItem() {
         if (placedItem == null) {
             placedItem = OraxenItems.getItemById(placedItemId != null ? placedItemId : getItemID()).build();
-            //Utils.editItemMeta(placedItem, meta -> meta.setDisplayName(""));
+            ItemUtils.editItemMeta(placedItem, meta -> meta.setDisplayName(""));
+            placedItem.setAmount(1);
         }
     }
 
     public Entity place(Location location) {
         setPlacedItem();
-        return place(location, placedItem, 0f, BlockFace.NORTH);
+        return place(location, 0f, BlockFace.NORTH);
     }
 
-    public Entity place(Location location, float yaw, BlockFace facing) {
-        setPlacedItem();
-        return place(location, placedItem, yaw, facing);
+    public Entity place(Location location, Float yaw, BlockFace facing) {
+        return place(location, yaw, facing, true);
     }
 
-    public Entity place(Location location, ItemStack originalItem, Float yaw, BlockFace facing) {
+    public Entity place(Location location, Float yaw, BlockFace facing, boolean checkSpace) {
         if (!location.isWorldLoaded()) return null;
-        if (this.notEnoughSpace(yaw, location)) return null;
+        if (checkSpace && this.notEnoughSpace(yaw, location)) return null;
         assert location.getWorld() != null;
         setPlacedItem();
         assert location.getWorld() != null;
@@ -363,34 +363,33 @@ public class FurnitureMechanic extends Mechanic {
         Class<? extends Entity> entityClass = getFurnitureEntityType().getEntityClass();
         if (entityClass == null) entityClass = ItemFrame.class;
 
-        ItemStack item;
-        if (evolvingFurniture == null) {
-            item = ItemUtils.editItemMeta(originalItem.clone(), meta -> meta.setDisplayName(""));
-        } else item = placedItem;
-        item.setAmount(1);
-
-        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location), entityClass, (e) -> setEntityData(e, yaw, item, facing));
-        if (this.isModelEngine() && Bukkit.getPluginManager().isPluginEnabled("ModelEngine")) {
+        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, facing), entityClass, (e) -> setEntityData(e, yaw, facing));
+        if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }
 
         return baseEntity;
     }
 
-    //TODO Account for limitedPlacing differences
-    private Location correctedSpawnLocation(Location baseLocation) {
+    private Location correctedSpawnLocation(Location baseLocation, BlockFace facing) {
         Location correctedLocation = BlockHelpers.toCenterBlockLocation(baseLocation);
+        boolean isWall = hasLimitedPlacing() && limitedPlacing.isWall();
+        boolean isRoof = hasLimitedPlacing() && limitedPlacing.isRoof();
+        boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
         if (furnitureType != FurnitureType.DISPLAY_ENTITY || !hasDisplayEntityProperties()) return correctedLocation;
-        if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE) return correctedLocation;
+        if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall && !isRoof) return correctedLocation;
         float scale = displayEntityProperties.hasScale() ? displayEntityProperties.getScale().y() : 1;
-        return correctedLocation.add(0, 0.5 * scale, 0);
+        // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
+        if (isFixed && isWall) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
+        float heightCorrection = (hasHitbox() ? hitbox.height : 1) - 1;
+        return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 * heightCorrection : 0), 0);
     }
 
-    private void setEntityData(Entity entity, float yaw, ItemStack item, BlockFace facing) {
+    public void setEntityData(Entity entity, float yaw, BlockFace facing) {
         setBaseFurnitureData(entity);
         Location location = entity.getLocation();
         if (entity instanceof ItemFrame frame) {
-            setFrameData(frame, item, yaw, facing);
+            setFrameData(frame, yaw, facing);
 
             if (hasBarriers()) setBarrierHitbox(entity, location, yaw, true);
             else {
@@ -409,10 +408,12 @@ public class FurnitureMechanic extends Mechanic {
                 }
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
-            setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
+            setItemDisplayData(itemDisplay, yaw, displayEntityProperties);
             float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
             float height = hasHitbox() ? hitbox.height : displayEntityProperties.getDisplayHeight();
-            Interaction interaction = spawnInteractionEntity(itemDisplay, location, width, height);
+            boolean isFixed = displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+            Location interactionLoc = location.clone().subtract(0, (hasLimitedPlacing() && limitedPlacing.isRoof() && isFixed) ? 1.5 * (height - 1) : 0, 0);
+            Interaction interaction = spawnInteractionEntity(itemDisplay, interactionLoc, width, height);
             Location barrierLoc = EntityUtils.isNone(itemDisplay) && displayEntityProperties.hasScale()
                             ? location.clone().subtract(0, 0.5 * displayEntityProperties.getScale().y(), 0) : location;
 
@@ -428,6 +429,12 @@ public class FurnitureMechanic extends Mechanic {
 
     private Interaction spawnInteractionEntity(Entity entity, Location location, float width, float height) {
         if (!OraxenPlugin.supportsDisplayEntities || width <= 0f || height <= 0f) return null;
+        UUID existingInteractionUUID = entity.getPersistentDataContainer().get(INTERACTION_KEY, DataType.UUID);
+        if (existingInteractionUUID != null) {
+            Entity existingInteraction = Bukkit.getEntity(existingInteractionUUID);
+            if (existingInteraction instanceof Interaction interaction) return interaction;
+        }
+
         Interaction interaction = EntityUtils.spawnEntity(BlockHelpers.toCenterBlockLocation(location), Interaction.class, (i) -> {
             i.setInteractionWidth(width);
             i.setInteractionHeight(height);
@@ -454,7 +461,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Float yaw, DisplayEntityProperties properties) {
+    private void setItemDisplayData(ItemDisplay itemDisplay, Float yaw, DisplayEntityProperties properties) {
         itemDisplay.setItemDisplayTransform(properties.getDisplayTransform());
         if (properties.hasSpecifiedViewRange()) itemDisplay.setViewRange(properties.getViewRange());
         if (properties.hasInterpolationDuration())
@@ -469,7 +476,7 @@ public class FurnitureMechanic extends Mechanic {
 
         itemDisplay.setDisplayWidth(properties.getDisplayWidth());
         itemDisplay.setDisplayHeight(properties.getDisplayHeight());
-        itemDisplay.setItemStack(item);
+        itemDisplay.setItemStack(placedItem);
 
         // Set scale to .5 if FIXED aka ItemFrame to fix size. Also flip it 90 degrees on pitch
         boolean isFixed = properties.getDisplayTransform().equals(ItemDisplay.ItemDisplayTransform.FIXED);
@@ -481,23 +488,25 @@ public class FurnitureMechanic extends Mechanic {
         // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation
         // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
         float pitch;
-        float alterYaw;
+        yaw = (VersionUtil.atOrAbove("1.20.1") && (!hasLimitedPlacing() || !limitedPlacing.isRoof() || !isFixed)) ? yaw : yaw - 180;
         if (VersionUtil.atOrAbove("1.20.1")) {
-            pitch = isFixed && hasLimitedPlacing() && (limitedPlacing.isFloor() || limitedPlacing.isRoof()) ? -90 : 0;
-            alterYaw = yaw;
-        } else {
-            pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
-            alterYaw = yaw - 180;
+            if (hasLimitedPlacing() && isFixed)
+                if (limitedPlacing.isFloor()) pitch = -90;
+                else if (limitedPlacing.isRoof()) pitch = 90;
+                else pitch = 0;
+            else pitch = 0;
         }
+        else pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
+
         itemDisplay.setTransformation(transform);
-        itemDisplay.setRotation(alterYaw, pitch);
+        itemDisplay.setRotation(yaw, pitch);
     }
 
-    private void setFrameData(ItemFrame frame, ItemStack item, float yaw, BlockFace facing) {
+    private void setFrameData(ItemFrame frame, float yaw, BlockFace facing) {
         frame.setVisible(false);
         frame.setItemDropChance(0);
         frame.setFacingDirection(facing, true);
-        frame.setItem(item, false);
+        frame.setItem(placedItem, false);
         frame.setRotation(yawToRotation(yaw));
 
         if (hasLimitedPlacing()) {

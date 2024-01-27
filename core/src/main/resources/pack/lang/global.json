@@ -4,5 +4,5 @@
 
 
   "menu.game": "<glyph:logo>",
-  "menu.disconnect": "<gray><shift:60>See you soon!<shift:-143><glyph:menu_banner>"
+  "menu.disconnect": "<shift:74><gray>See you soon!<shift:-142><glyph:menu_banner>"
 }

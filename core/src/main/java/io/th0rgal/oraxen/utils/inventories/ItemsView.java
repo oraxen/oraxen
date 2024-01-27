@@ -7,13 +7,12 @@ import com.github.stefvanschie.inventoryframework.pane.StaticPane;
 import com.github.stefvanschie.inventoryframework.pane.util.Slot;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.config.ResourcesManager;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.Utils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.inventory.ItemFlag;
@@ -134,30 +133,31 @@ public class ItemsView {
 
     private Pair<ItemStack, Integer> getItemStack(final File file) {
         ItemStack itemStack;
-        String material = settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", Utils.removeExtension(file.getName())), "PAPER");
-
+        String fileName = Utils.removeExtension(file.getName());
+        String material = settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", fileName), "PAPER");
+        String displayName = ItemParser.parseComponentDisplayName(settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), "<green>" + file.getName()));
         try {
             itemStack = new ItemBuilder(OraxenItems.getItemById(material).build())
                     .addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
-                    .setDisplayName(ChatColor.GREEN + file.getName())
+                    .setDisplayName(displayName)
                     .setLore(new ArrayList<>())
                     .build();
         } catch (final Exception e) {
             try {
                 itemStack = new ItemBuilder(Material.getMaterial(material.toUpperCase()))
                         .addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
-                        .setDisplayName(ChatColor.GREEN + file.getName())
+                        .setDisplayName(displayName)
                         .build();
             } catch (final Exception ignored) {
                 itemStack = new ItemBuilder(Material.PAPER)
-                        .setDisplayName(ChatColor.GREEN + file.getName())
+                        .setDisplayName(displayName)
                         .build();
             }
         }
 
         if (itemStack == null)
             // avoid possible bug if isOraxenItems is available but can't be an itemstack
-            itemStack = new ItemBuilder(Material.PAPER).setDisplayName(ChatColor.GREEN + file.getName()).build();
+            itemStack = new ItemBuilder(Material.PAPER).setDisplayName(displayName).build();
 
         return Pair.of(itemStack, settings.getInt(String.format("oraxen_inventory.menu_layout.%s.slot", Utils.removeExtension(file.getName())), -1) - 1);
     }

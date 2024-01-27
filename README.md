@@ -65,7 +65,7 @@ Oraxen's API is primarily found in these four classes:
 - OraxenPack - methods related to the resource-pack
 
 ### Repository
-**Gradle Kts**:
+**Gradle Kotlin**:
 ```kts
 maven("https://repo.oraxen.com/releases")
 ```
@@ -84,20 +84,74 @@ maven {
 </repository>
 ```
 ### Dependency [![version](https://img.shields.io/maven-metadata/v?metadataUrl=https://repo.oraxen.com/releases/io/th0rgal/oraxen/maven-metadata.xml)](https://repo.oraxen.com/#/releases/io/th0rgal/oraxen) [![version](https://img.shields.io/maven-metadata/v?metadataUrl=https://repo.oraxen.com/snapshots/io/th0rgal/oraxen/maven-metadata.xml)](https://repo.oraxen.com/#/snapshots/io/th0rgal/oraxen)
-The latest version can be found at above.\ 
+The latest version can be found at above.\
+**Gradle Kotlin**:
 ```kts
 compileOnly("io.th0rgal:oraxen:VERSION")
 ```
+**Groovy**:
 ```groovy
 compileOnly 'io.th0rgal:oraxen:VERSION'
 ```
+**Maven**
+<details open>
+<summary>Maven with exclusions</summary>
+
 ```html
 <dependency>
-  <groupId>io.th0rgal</groupId>
-  <artifactId>oraxen</artifactId>
-  <version>VERSION</version>
-  <scope>provided</scope>
+    <groupId>io.th0rgal</groupId>
+    <artifactId>oraxen</artifactId>
+    <version>1.167.0</version>
+    <exclusions>
+        <exclusion>
+            <groupId>me.gabytm.util</groupId>
+            <artifactId>actions-spigot</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>org.jetbrains</groupId>
+            <artifactId>annotations</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>com.ticxo</groupId>
+            <artifactId>PlayerAnimator</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>com.github.stefvanschie.inventoryframework</groupId>
+            <artifactId>IF</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>io.th0rgal</groupId>
+            <artifactId>protectionlib</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>dev.triumphteam</groupId>
+            <artifactId>triumph-gui</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>org.bstats</groupId>
+            <artifactId>bstats-bukkit</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>com.jeff-media</groupId>
+            <artifactId>custom-block-data</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>com.jeff-media</groupId>
+            <artifactId>persistent-data-serializer</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>com.jeff_media</groupId>
+            <artifactId>MorePersistentDataTypes</artifactId>
+        </exclusion>
+        <exclusion>
+            <groupId>gs.mclo</groupId>
+            <artifactId>java</artifactId>
+        </exclusion>
+    </exclusions>
+    <scope>provided</scope>
+</dependency>
 ```
+</details>
 Snapshot builds are also available at [https://repo.oraxen.com/snapshots](https://repo.oraxen.com/snapshots). \
 
 ## License

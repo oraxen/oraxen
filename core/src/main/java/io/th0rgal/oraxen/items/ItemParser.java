@@ -87,14 +87,14 @@ public class ItemParser {
         return templateItem != null;
     }
 
-    private String parseComponentDisplayName(String miniString) {
+    public static String parseComponentDisplayName(String miniString) {
         if (miniString.isEmpty()) return miniString;
         Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
         // If it has no formatting, set color to WHITE to prevent Italic
         return AdventureUtils.LEGACY_SERIALIZER.serialize(component.colorIfAbsent(NamedTextColor.WHITE));
     }
 
-    private String parseComponentLore(String miniString) {
+    public static String parseComponentLore(String miniString) {
         Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
         // If it has no formatting, set color to WHITE to prevent Italic
         return AdventureUtils.LEGACY_SERIALIZER.serialize(component);
@@ -116,7 +116,7 @@ public class ItemParser {
         item.setDisplayName(parseComponentDisplayName(section.getString("displayname", "")));
 
         //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
-        if (section.contains("lore")) item.setLore(section.getStringList("lore").stream().map(this::parseComponentLore).toList());
+        if (section.contains("lore")) item.setLore(section.getStringList("lore").stream().map(ItemParser::parseComponentLore).toList());
         if (section.contains("durability")) item.setDurability((short) section.getInt("durability"));
         if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));
         if (section.contains("unstackable")) item.setUnstackable(section.getBoolean("unstackable", false));

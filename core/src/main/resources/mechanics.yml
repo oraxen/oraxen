@@ -10,7 +10,7 @@ armor_effects:
 consumable:
   enabled: true
 
-consumablepotioneffects:
+consumable_potion_effects:
   enabled: true
 
 custom:

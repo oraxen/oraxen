@@ -5,8 +5,6 @@ Plugin:
   commands:
     repair:
       oraxen_durability_only: false # will not repair vanilla items if set to true
-    emoji_list:
-      only_show_emojis_with_permission: true # will only show emojis player has permission to use if set to true
   generation:
     default_assets: true
     default_configs: true
@@ -19,13 +17,11 @@ Plugin:
     signs: true # Formats text on signs when placed or edited
     chat: true # Formats text and glyphs in chat. Disable if using a chat-plugin and you are experiencing issues
     books: true # Formats glyphs in books.
-  worldedit: # Please note these are both experimental still and should be used with caution
-    noteblock_mechanic: false
-    stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
-  experimental:
-    spigot_chat_formatting: false # This will enable the use of Spigot's chat formatting, which is not recommended
-    nms:
-      glyphs: false # Uses NMS to render glyphs instead of the default method
+
+WorldEdit: # Please note these are both experimental still and should be used with caution
+  noteblock_mechanic: false
+  stringblock_mechanic: false # Works, but is buggy with some stringblocks, specifically with Tall-property
+  furniture_mechanic: false # NOTE: This only handles clipboard stuff, it does not allow for anything outside cut/copy/paste
 
 ConfigsTools:
   # list of model data numbers the automatic system will skip
@@ -38,6 +34,15 @@ ConfigsTools:
     material: PODZOL
     excludeFromInventory: false # set to true if you don't want to display it inside inventory
     injectID: false
+
+Glyphs:
+  glyph_handler: VANILLA # Valid handlers are VANILLA and NMS
+  emoji_list_permission_only: true # will only show emojis player has permission to use if set to true
+  unicode_completions: true # Whether glyph tab-completions shows unicodes or glyph-pølaceholders
+
+Chat:
+  # If glyphs do not show up in chat, try setting this to LEGACY
+  chat_handler: MODERN # Valid once are MODERN & LEGACY
 
 CustomArmor:
   disable_leather_repair: true # Makes custom armor not repairable with leather, only with copies of said custom armor
@@ -234,9 +239,6 @@ Misc:
   # This will hide the background of scoreboards
   hide_scoreboard_background: false
 
-  # Whether Oraxen should register emoji tab completions with unicode characters
-  unicode_completions: true
-
   # All blocks with an inventory or any blocks that when right clicked shouldn't equip armor.
   armor_equip_event_bypass:
     - FURNACE
@@ -342,44 +344,55 @@ oraxen_inventory:
     armors:
       slot: 1
       icon: emerald_chestplate
+      displayname: "<green>Armors"
       title: "<main_menu_title><#362753><glyph:menu_items_overlay:colorable>"
     blocks:
       slot: 2
       icon: orax_ore
+      displayname: "<green>Blocks"
       title: "<main_menu_title><#EDCDEB><glyph:menu_items_overlay:colorable>"
     furniture:
       slot: 3
       icon: chair
+      displayname: "<green>Furniture"
       title: "<main_menu_title><#F2F2F2><glyph:menu_items_overlay:colorable>"
     flowers:
       slot: 4
       icon: dailily
+      displayname: "<green>Flowers"
       title: "<main_menu_title><#bf332c><glyph:menu_items_overlay:colorable>"
     hats:
       slot: 5
       icon: crown
+      displayname: "<green>Hats"
       title: "<main_menu_title><#81B125><glyph:menu_items_overlay:colorable>"
     items:
       slot: 6
       icon: ruby
+      displayname: "<green>Items"
       title: "<main_menu_title><#DA2E45><glyph:menu_items_overlay:colorable>"
     mystical:
       slot: 7
       icon: legendary_hammer
+      displayname: "<green>Mystical"
       title: "<main_menu_title><#9AB2E4><glyph:menu_items_overlay:colorable>"
     plants:
       slot: 8
       icon: weed_leaf
+      displayname: "<green>Plants"
       title: "<main_menu_title><#44C886><glyph:menu_items_overlay:colorable>"
     skins:
       slot: 9
       icon: wood_sword
+      displayname: "<green>Skins"
       title: "<main_menu_title><#C48E40><glyph:menu_items_overlay:colorable>"
     tools:
       slot: 10
       icon: iron_serpe
+      displayname: "<green>Tools"
       title: "<main_menu_title><#FFFFFF><glyph:menu_items_overlay:colorable>"
     weapons:
       slot: 11
       icon: energy_crystal_sword
+      displayname: "<green>Weapons"
       title: "<main_menu_title><#2FB6FF><glyph:menu_items_overlay:colorable>"

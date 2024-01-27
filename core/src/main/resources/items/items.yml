@@ -90,7 +90,7 @@ miner_sandwitch:
     textures:
       - default/sandwitch.png # .png extension is not mandatory
   Mechanics:
-    consumablepotioneffects:
+    consumable_potion_effects:
       fast_digging:
         amplifier: 0
         ambient: true # Makes potion effect produce more, translucent, particles.

@@ -18,6 +18,7 @@ import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
@@ -149,8 +150,7 @@ public class OraxenPlugin extends JavaPlugin {
         unregisterListeners();
         FurnitureFactory.unregisterEvolution();
         for (Player player : Bukkit.getOnlinePlayers())
-            if (NMSHandlers.getHandler() != null && Settings.NMS_GLYPHS.toBool())
-                NMSHandlers.getHandler().uninject(player);
+            if (GlyphHandlers.isNms()) NMSHandlers.getHandler().uninject(player);
 
         CompatibilitiesManager.disableCompatibilities();
         Message.PLUGIN_UNLOADED.log();

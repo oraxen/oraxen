@@ -488,6 +488,7 @@ public class CustomArmorsTextures {
             String itemId = entry.getKey();
             ItemBuilder builder = entry.getValue();
             String armorType = StringUtils.substringBeforeLast(itemId, "_");
+            if (!builder.hasOraxenMeta()) continue;
             List<String> layerList = builder.getOraxenMeta().getLayers();
 
             boolean isArmor = builder.build().getType().toString().contains("LEATHER_");

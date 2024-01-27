@@ -231,7 +231,8 @@ public class ConfigsManager {
 
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
-        for (File file : getItemFiles()) parseMap.put(file, parseItemConfig(file));
+        ItemBuilder errorItem = new ItemParser(Settings.ERROR_ITEM.toConfigSection()).buildItem();
+        for (File file : getItemFiles()) parseMap.put(file, parseItemConfig(file, errorItem));
         return parseMap;
     }
 
@@ -300,10 +301,10 @@ public class ConfigsManager {
         return model;
     }
 
-    public Map<String, ItemBuilder> parseItemConfig(File itemFile) {
+    public Map<String, ItemBuilder> parseItemConfig(File itemFile, ItemBuilder errorItem) {
         YamlConfiguration config = OraxenYaml.loadConfiguration(itemFile);
         Map<String, ItemParser> parseMap = new LinkedHashMap<>();
-        ItemParser errorItem = new ItemParser(Settings.ERROR_ITEM.toConfigSection());
+
         for (String itemKey : config.getKeys(false)) {
             //Utils.ensureStringFormat(itemKey);
             ConfigurationSection itemSection = config.getConfigurationSection(itemKey);
@@ -319,8 +320,7 @@ public class ConfigsManager {
             try {
                 map.put(entry.getKey(), itemParser.buildItem());
             } catch (Exception e) {
-                map.put(entry.getKey(),
-                        errorItem.buildItem());
+                map.put(entry.getKey(), errorItem);
                 Logs.logError("ERROR BUILDING ITEM \"" + entry.getKey() + "\"");
                 if (Settings.DEBUG.toBool()) e.printStackTrace();
                 else Logs.logWarning(e.getMessage());
