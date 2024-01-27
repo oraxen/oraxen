@@ -4,26 +4,42 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextReplacementConfig;
-import net.kyori.adventure.text.format.NamedTextColor;
-import net.kyori.adventure.text.format.Style;
 import net.kyori.adventure.translation.GlobalTranslator;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Objects;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class GlyphHandlers {
+
+    private enum GlyphHandler {
+        NMS, VANILLA;
+
+        public static GlyphHandler get() {
+            try {
+                return GlyphHandler.valueOf(Settings.GLYPH_HANDLER.toString());
+            } catch (IllegalArgumentException e) {
+                Logs.logError("Invalid glyph handler: " + Settings.GLYPH_HANDLER + ", defaulting to VANILLA", true);
+                Logs.logError("Valid options are: NMS, VANILLA", true);
+                return GlyphHandler.VANILLA;
+            }
+        }
+    }
+
+    public static boolean isNms() {
+        return GlyphHandler.get() == GlyphHandler.NMS;
+    }
 
     public static Component transform(Component component, @Nullable Player player, boolean isUtf) {
         if (player != null) return escapeGlyphs(component, player);

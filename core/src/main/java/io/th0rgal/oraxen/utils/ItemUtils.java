@@ -13,6 +13,10 @@ import java.util.function.Consumer;
 
 public class ItemUtils {
 
+    public static boolean isEmpty(ItemStack itemStack) {
+        return itemStack == null || itemStack.getType() == Material.AIR || itemStack.getAmount() == 0;
+    }
+
     /**
      * @param itemStack The ItemStack to edit the ItemMeta of
      * @param function  The function-block to edit the ItemMeta in
@@ -81,5 +85,9 @@ public class ItemUtils {
                     true;
             default -> false;
         };
+    }
+
+    public static boolean hasInventoryParent(Material material) {
+        return Tag.WALLS.isTagged(material) || Tag.FENCES.isTagged(material) || Tag.BUTTONS.isTagged(material) || material == Material.PISTON || material == Material.STICKY_PISTON || (VersionUtil.atOrAbove("1.20") && material == Material.CHISELED_BOOKSHELF) || material == Material.BROWN_MUSHROOM_BLOCK || material == Material.RED_MUSHROOM_BLOCK || material == Material.MUSHROOM_STEM;
     }
 }

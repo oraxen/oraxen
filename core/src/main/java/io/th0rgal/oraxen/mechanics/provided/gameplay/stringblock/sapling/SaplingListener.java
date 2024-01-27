@@ -4,7 +4,11 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
-import org.bukkit.*;
+import io.th0rgal.oraxen.utils.PluginUtils;
+import org.bukkit.Effect;
+import org.bukkit.GameMode;
+import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -40,7 +44,7 @@ public class SaplingListener implements Listener {
         if (sapling.requiresLight() && sapling.getMinLightLevel() > block.getLightLevel()) return;
         if (sapling.requiresWaterSource() && sapling.isInWater(block)) return;
         if (!sapling.canGrowFromBoneMeal()) return;
-        if (!Bukkit.getPluginManager().isPluginEnabled("WorldEdit")) return;
+        if (!PluginUtils.isEnabled("WorldEdit")) return;
         if (!sapling.replaceBlocks() && !WrappedWorldEdit.getBlocksInSchematic(loc, sapling.getSchematic()).isEmpty()) return;
 
         if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);

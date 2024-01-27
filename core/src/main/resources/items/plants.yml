@@ -14,7 +14,7 @@ weed_leaf:
     textures:
       - default/weed/leaf
   Mechanics:
-    consumablepotioneffects:
+    consumable_potion_effects:
       confusion:
         amplifier: 0
         ambient: true # Makes potion effect produce more, translucent, particles.

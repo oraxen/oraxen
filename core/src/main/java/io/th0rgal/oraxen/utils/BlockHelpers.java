@@ -19,6 +19,8 @@ import org.bukkit.block.data.type.Chest;
 import org.bukkit.block.data.type.Lectern;
 import org.bukkit.block.data.type.*;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.BlockInventoryHolder;
 import org.bukkit.inventory.EquipmentSlot;
@@ -28,7 +30,9 @@ import org.bukkit.inventory.meta.BannerMeta;
 import org.bukkit.inventory.meta.BlockStateMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.util.BoundingBox;
 import org.bukkit.util.RayTraceResult;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +43,30 @@ import static org.bukkit.block.data.FaceAttachable.AttachedFace.CEILING;
 import static org.bukkit.block.data.FaceAttachable.AttachedFace.FLOOR;
 
 public class BlockHelpers {
+
+    /**
+     * Returns the block the entity is standing on.<br>
+     * Mainly to handle cases where player is on the edge of a block, with AIR below them
+     */
+    @Nullable
+    public static Block getBlockStandingOn(Entity entity) {
+        Block block = entity.getLocation().getBlock();
+        Block blockBelow = block.getRelative(BlockFace.DOWN);
+        if (!block.getType().isAir()) return block;
+        if (!blockBelow.getType().isAir()) return blockBelow;
+
+        // Expand players hitbox by 0.3, which is the maximum size a player can be off a block
+        // Whilst not falling off
+        BoundingBox entityBox = entity.getBoundingBox().expand(0.3);
+        for (BlockFace face : BlockFace.values()) {
+            if (!face.isCartesian() || face.getModY() != 0) continue;
+            Block relative = blockBelow.getRelative(face);
+            if (relative.getType() == Material.AIR) continue;
+            if (relative.getBoundingBox().overlaps(entityBox)) return relative;
+        }
+
+        return null;
+    }
 
     public static void playCustomBlockSound(Location location, String sound, float volume, float pitch) {
         playCustomBlockSound(toCenterLocation(location), sound, SoundCategory.BLOCKS, volume, pitch);
@@ -83,11 +111,13 @@ public class BlockHelpers {
 
     public static boolean isStandingInside(final Player player, final Block block) {
         if (player == null || block == null) return false;
-        final Location playerLoc = player.getLocation().getBlock().getLocation();
-        final Location blockLoc = BlockHelpers.toCenterLocation(block.getLocation());
-        return Range.between(0.5, 1.5).contains(blockLoc.getY() - playerLoc.getY()) &&
-                Range.between(-0.80, 0.80).contains(blockLoc.getX() - playerLoc.getX())
-                && Range.between(-0.80, 0.80).contains(blockLoc.getZ() - playerLoc.getZ());
+        // Since the block might be AIR, Block#getBoundingBox returns an empty one
+        // Get the block-center and expand it 0.5 to cover the block
+        BoundingBox blockBox = BoundingBox.of(BlockHelpers.toCenterLocation(block.getLocation()), 0.5, 0.5, 0.5);
+
+        return !block.getWorld().getNearbyEntities(blockBox).stream()
+                .filter(e -> e instanceof LivingEntity && (!(e instanceof Player p) || p.getGameMode() != GameMode.SPECTATOR))
+                .toList().isEmpty();
     }
 
     /** Returns the PersistentDataContainer from CustomBlockData

@@ -53,6 +53,7 @@ val pluginVersion: String by project
 val commandApiVersion = "9.3.0"
 val adventureVersion = "4.15.0"
 val platformVersion = "4.3.2"
+val googleGsonVersion = "2.10.1"
 group = "io.th0rgal"
 version = pluginVersion
 
@@ -86,6 +87,8 @@ allprojects {
 
     dependencies {
         val actionsVersion = "1.0.0-SNAPSHOT"
+        compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+        compileOnly("gs.mclo:java:2.2.1")
 
         compileOnly("net.kyori:adventure-text-minimessage:$adventureVersion")
         compileOnly("net.kyori:adventure-text-serializer-plain:$adventureVersion")
@@ -98,8 +101,9 @@ allprojects {
         compileOnly("org.springframework:spring-expression:6.0.6")
         compileOnly("io.lumine:Mythic-Dist:5.3.5")
         compileOnly("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
-        compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.0")
+        compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
         compileOnly("commons-io:commons-io:2.11.0")
+        compileOnly("com.google.code.gson:gson:$googleGsonVersion")
         compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.1")
         compileOnly("com.ticxo.modelengine:api:R3.1.8")
         compileOnly(files("../libs/compile/BSP.jar"))
@@ -112,6 +116,18 @@ allprojects {
         compileOnly("com.willfp:eco:6.65.5")
         compileOnly("com.willfp:libreforge:4.36.0")
         compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
+
+        implementation("org.bstats:bstats-bukkit:3.0.0")
+        implementation("io.th0rgal:protectionlib:1.4.0")
+        implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
+        implementation("com.jeff-media:custom-block-data:2.2.2")
+        implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
+        implementation("com.jeff-media:persistent-data-serializer:1.0")
+        implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
+        implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
+        implementation("com.ticxo:PlayerAnimator:R1.2.8") { isChanging = true }
+
+        implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     }
 }
 
@@ -144,7 +160,7 @@ tasks {
     }
 
     runServer {
-        minecraftVersion("1.20")
+        minecraftVersion("1.18.2")
     }
 
     shadowJar {
@@ -153,10 +169,8 @@ tasks {
         //archiveClassifier = null
         relocate("org.bstats", "io.th0rgal.oraxen.shaded.bstats")
         relocate("dev.triumphteam.gui", "io.th0rgal.oraxen.shaded.triumphteam.gui")
-        relocate("com.jeff_media.customblockdata", "io.th0rgal.oraxen.shaded.customblockdata")
-        relocate("com.jeff_media.morepersistentdatatypes", "io.th0rgal.oraxen.shaded.morepersistentdatatypes")
-        relocate("com.jeff_media.persistentdataserializer", "io.th0rgal.oraxen.shaded.persistentdataserializer")
-        relocate("com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.if")
+        relocate("com.jeff_media", "io.th0rgal.oraxen.shaded.jeff_media")
+        relocate("com.github.stefvanschie.inventoryframework", "io.th0rgal.oraxen.shaded.inventoryframework")
         relocate("me.gabytm.util.actions", "io.th0rgal.oraxen.shaded.actions")
         relocate("org.intellij.lang.annotations", "io.th0rgal.oraxen.shaded.intellij.annotations")
         relocate("org.jetbrains.annotations", "io.th0rgal.oraxen.shaded.jetbrains.annotations")
@@ -177,6 +191,7 @@ tasks {
             )
         }
         archiveFileName.set("oraxen-${pluginVersion}.jar")
+        archiveClassifier.set("")
     }
 
     compileJava.get().dependsOn(clean)
@@ -191,7 +206,7 @@ bukkit {
     name = "Oraxen"
     apiVersion = "1.18"
     authors = listOf("th0rgal", "boy0000")
-    softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards")
+    softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards", "HuskClaims")
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
     permissions.create("oraxen.command") {
@@ -207,6 +222,8 @@ bukkit {
         "net.kyori:adventure-text-serializer-plain:$adventureVersion",
         "net.kyori:adventure-text-serializer-ansi:$adventureVersion",
         "net.kyori:adventure-platform-bukkit:$platformVersion",
+        "com.google.code.gson:gson:$googleGsonVersion",
+        "gs.mclo:java:2.2.1",
     )
 }
 

@@ -8,8 +8,8 @@ logo:
 
 menu_banner:
   texture: required/ui/menu_banner
-  ascent: -14
-  height: 256
+  ascent: -10
+  height: 236
 
 menu_recipe:
   texture: required/recipe_showcase

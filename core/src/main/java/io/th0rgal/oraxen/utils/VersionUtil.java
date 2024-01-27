@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.utils;
 
-import com.comphenix.protocol.utility.MinecraftVersion;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Bukkit;

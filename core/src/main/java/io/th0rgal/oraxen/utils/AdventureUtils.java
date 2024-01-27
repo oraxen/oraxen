@@ -12,6 +12,7 @@ import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.kyori.adventure.translation.GlobalTranslator;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Locale;
 
@@ -52,8 +53,8 @@ public class AdventureUtils {
         return MINI_MESSAGE.serialize(MINI_MESSAGE.deserialize(message)).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
     }
 
-    public static String parseMiniMessage(String message, TagResolver tagResolver) {
-        return MINI_MESSAGE.serialize(MINI_MESSAGE.deserialize(message, tagResolver)).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
+    public static String parseMiniMessage(String message, @Nullable TagResolver tagResolver) {
+        return MINI_MESSAGE.serialize((tagResolver != null ? MINI_MESSAGE.deserialize(message, tagResolver) : MINI_MESSAGE.deserialize(message))).replaceAll("\\\\(?!u)(?!n)(?!\")", "");
     }
 
     public static String parseMiniMessage(String message, Player player) {

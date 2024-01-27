@@ -1,14 +1,11 @@
 package io.th0rgal.oraxen.compatibilities.provided.mmoitems;
 
-import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.Indyuce.mmoitems.MMOItems;
 import net.Indyuce.mmoitems.api.ItemTier;
 import net.Indyuce.mmoitems.api.Type;
-import net.Indyuce.mmoitems.api.item.build.MMOItemBuilder;
-import net.Indyuce.mmoitems.api.item.mmoitem.MMOItem;
 import net.Indyuce.mmoitems.api.item.template.MMOItemTemplate;
-import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
@@ -20,7 +17,7 @@ public class WrappedMMOItem {
     private final ItemTier tier;
 
     public WrappedMMOItem(ConfigurationSection section) {
-        if (!Bukkit.getPluginManager().isPluginEnabled("MMOItems")) {
+        if (!PluginUtils.isEnabled("MMOItems")) {
             Logs.logError("MMOItems is not installed");
             type = null;
             id = null;
@@ -68,7 +65,7 @@ public class WrappedMMOItem {
     }
 
     public ItemStack build() {
-        if (Bukkit.getPluginManager().isPluginEnabled("MMOItems")) {
+        if (PluginUtils.isEnabled("MMOItems")) {
             MMOItemTemplate template = getTemplate();
             if (template == null) {
                 Logs.logError("Failed to load MMOItem " + id);

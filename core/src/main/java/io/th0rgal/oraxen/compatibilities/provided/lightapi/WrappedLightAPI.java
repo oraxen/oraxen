@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockBreakEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.utils.PluginUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
@@ -21,8 +22,8 @@ public class WrappedLightAPI {
     public static boolean lighterApiEnabled;
 
     static {
-        lightApiEnabled = Bukkit.getPluginManager().isPluginEnabled("LightAPI");
-        lighterApiEnabled = Bukkit.getPluginManager().isPluginEnabled("LighterAPI");
+        lightApiEnabled = PluginUtils.isEnabled("LightAPI");
+        lighterApiEnabled = PluginUtils.isEnabled("LighterAPI");
     }
 
     private WrappedLightAPI() {

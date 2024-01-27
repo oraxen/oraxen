@@ -8,31 +8,13 @@ plugins {
 
 val pluginVersion = project.property("pluginVersion") as String
 tasks {
+    publish.get().dependsOn(shadowJar)
     shadowJar.get().archiveFileName.set("oraxen-${pluginVersion}.jar")
     build.get().dependsOn(shadowJar)
 }
 
 dependencies {
-    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
-
-    val actionsVersion = "1.0.0-SNAPSHOT"
-    implementation("org.bstats:bstats-bukkit:3.0.0")
-    implementation("dev.triumphteam:triumph-gui:3.1.5") { exclude("net.kyori") }
-    implementation("io.th0rgal:protectionlib:1.3.6")
-    implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
-    implementation("com.jeff-media:custom-block-data:2.2.2")
-    implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
-    implementation("com.jeff-media:persistent-data-serializer:1.0")
-    implementation("gs.mclo:java:2.2.1")
-    implementation("com.ticxo:PlayerAnimator:R1.2.8") { isChanging = true }
-    implementation("org.jetbrains:annotations:24.0.1") { isTransitive = false }
-
-    implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
-}
-
-configurations.all {
-    resolutionStrategy.cacheChangingModulesFor(0, "seconds")
 }
 
 java {
@@ -47,7 +29,8 @@ publishing {
             artifactId = rootProject.name
             version = publishData.getVersion()
 
-            from(components["java"])
+            //from(components["java"])
+            artifact(tasks.shadowJar.get().apply { archiveClassifier.set("") })
         }
     }
 
@@ -69,9 +52,10 @@ publishing {
     }
 }
 
+
 class PublishData(private val project: Project) {
-    var type: Type = getReleaseType()
-    var hashLength: Int = 7
+    private var type: Type = getReleaseType()
+    private var hashLength: Int = 7
 
     private fun getReleaseType(): Type {
         val branch = getCheckedOutBranch()
@@ -94,7 +78,7 @@ class PublishData(private val project: Project) {
     fun getVersion(appendCommit: Boolean): String =
         type.append(getVersionString(), appendCommit, getCheckedOutGitCommitHash())
 
-    private fun getVersionString(): String =
+    fun getVersionString(): String =
         (rootProject.version as String).removeSuffix("-SNAPSHOT").removeSuffix("-DEV")
 
     fun getRepository(): String = type.repo

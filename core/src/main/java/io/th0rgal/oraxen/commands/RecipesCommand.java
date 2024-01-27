@@ -42,7 +42,7 @@ public class RecipesCommand {
                             Message.RECIPE_NO_RECIPE.send(sender);
                             return;
                         }
-                        OraxenPlugin.get().getInvManager().getRecipesShowcase(player,0, recipes).show(player);
+                        OraxenPlugin.get().getInvManager().getRecipesShowcase(0, recipes).show(player);
                     } else
                         Message.NOT_PLAYER.send(sender);
                 });

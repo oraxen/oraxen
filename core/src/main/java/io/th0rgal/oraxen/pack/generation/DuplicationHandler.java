@@ -13,6 +13,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
@@ -191,7 +192,7 @@ public class DuplicationHandler {
 
             JsonArray providers = fontelement.getAsJsonObject().getAsJsonArray("providers");
             List<String> newProviderChars = getNewProviderCharSet(newProviders);
-            for (JsonElement providerElement : providers) {
+            if (providers != null) for (JsonElement providerElement : providers) {
                 if (!providerElement.isJsonObject()) continue;
                 if (newProviders.contains(providerElement)) continue;
                 if (!providerElement.getAsJsonObject().has("chars")) continue;
@@ -328,22 +329,22 @@ public class DuplicationHandler {
         }
 
         JsonObject json = JsonParser.parseString(fileContent).getAsJsonObject();
-        JsonArray overrides = json.getAsJsonArray("overrides");
-        //Map<Integer, Map<Integer, String>> pullingModels = new HashMap<>();
+        List<JsonObject> overrides = new ArrayList<>(json.getAsJsonArray("overrides").asList().stream().filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).toList());
         Map<Integer, List<String>> pullingModels = new HashMap<>();
         Map<Integer, String> chargedModels = new HashMap<>();
         Map<Integer, String> blockingModels = new HashMap<>();
         Map<Integer, String> castModels = new HashMap<>();
         Map<Integer, List<String>> damagedModels = new HashMap<>();
         List<JsonElement> overridesToRemove = new ArrayList<>();
-        if (overrides != null) {
+
+        if (!overrides.isEmpty()) {
             handleBowPulling(overrides, overridesToRemove, pullingModels);
             handleCrossbowPulling(overrides, overridesToRemove, chargedModels);
             handleShieldBlocking(overrides, overridesToRemove, blockingModels);
             handleFishingRodCast(overrides, overridesToRemove, castModels);
             handleDamaged(overrides, overridesToRemove, damagedModels);
 
-            for (JsonElement element : overridesToRemove) overrides.remove(element);
+            overrides.removeIf(overridesToRemove::contains);
 
             for (JsonElement element : overrides) {
                 JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
@@ -378,15 +379,15 @@ public class DuplicationHandler {
         return true;
     }
 
-    private static void handleBowPulling(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, List<String>> pullingModels) {
+    private static void handleBowPulling(@NotNull List<JsonObject> overrides, List<JsonElement> overridesToRemove, Map<Integer, List<String>> pullingModels) {
         handleExtraListPredicates(overrides, overridesToRemove, pullingModels, "pulling");
     }
-    private static void handleDamaged(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, List<String>> damagedModels) {
+    private static void handleDamaged(@NotNull List<JsonObject> overrides, List<JsonElement> overridesToRemove, Map<Integer, List<String>> damagedModels) {
         handleExtraListPredicates(overrides, overridesToRemove, damagedModels, "damaged");
     }
 
-    private static void handleExtraListPredicates(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, List<String>> predicateModels, String predicate) {
-        for (JsonObject object : overrides.asList().stream().filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).toList()) {
+    private static void handleExtraListPredicates(@NotNull List<JsonObject> overrides, List<JsonElement> overridesToRemove, Map<Integer, List<String>> predicateModels, String predicate) {
+        for (JsonObject object : overrides) {
             if (object.get("predicate") == null || !object.get("predicate").isJsonObject()) continue;
             JsonObject predicateObject = object.get("predicate").getAsJsonObject();
             if (predicateObject == null || !predicateObject.has(predicate)) continue;
@@ -397,18 +398,18 @@ public class DuplicationHandler {
         }
     }
 
-    private static void handleCrossbowPulling(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> chargedModels) {
+    private static void handleCrossbowPulling(@NotNull List<JsonObject> overrides, List<JsonElement> overridesToRemove, Map<Integer, String> chargedModels) {
         handleExtraPredicates(overrides, overridesToRemove, chargedModels, "charged");
     }
-    private static void handleShieldBlocking(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> blockingModels) {
+    private static void handleShieldBlocking(@NotNull List<JsonObject> overrides, List<JsonElement> overridesToRemove, Map<Integer, String> blockingModels) {
         handleExtraPredicates(overrides, overridesToRemove, blockingModels, "blocking");
     }
-    private static void handleFishingRodCast(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> castModels) {
+    private static void handleFishingRodCast(@NotNull List<JsonObject> overrides, List<JsonElement> overridesToRemove, Map<Integer, String> castModels) {
         handleExtraPredicates(overrides, overridesToRemove, castModels, "cast");
     }
 
-    private static void handleExtraPredicates(JsonArray overrides, List<JsonElement> overridesToRemove, Map<Integer, String> predicateModels, String predicate) {
-        for (JsonObject object : overrides.asList().stream().filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).toList()) {
+    private static void handleExtraPredicates(@NotNull List<JsonObject> overrides, List<JsonElement> overridesToRemove, Map<Integer, String> predicateModels, String predicate) {
+        for (JsonObject object : overrides) {
             if (object.get("predicate") == null || !object.get("predicate").isJsonObject()) continue;
             JsonObject predicateObject = object.get("predicate").getAsJsonObject();
             if (predicateObject == null || !predicateObject.has(predicate)) continue;
