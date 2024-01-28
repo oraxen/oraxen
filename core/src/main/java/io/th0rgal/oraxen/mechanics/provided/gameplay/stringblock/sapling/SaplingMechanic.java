@@ -93,7 +93,7 @@ public class SaplingMechanic {
     public boolean copyBiomes() { return shouldCopyBiomes; }
     public boolean copyEntities() { return shouldCopyEntities; }
 
-    public boolean isInWater(Block block) {
+    public boolean isUnderWater(Block block) {
         return block.getRelative(BlockFace.DOWN).getType() == Material.WATER;
     }
 }

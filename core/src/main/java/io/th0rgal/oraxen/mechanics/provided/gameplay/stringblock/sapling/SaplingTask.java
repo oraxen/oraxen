@@ -40,7 +40,7 @@ public class SaplingTask extends BukkitRunnable {
                         SaplingMechanic sapling = string.getSaplingMechanic();
                         if (sapling == null || !sapling.hasSchematic()) continue;
                         if (!sapling.canGrowNaturally()) continue;
-                        if (sapling.requiresWaterSource() && !sapling.isInWater(block)) continue;
+                        if (sapling.requiresWaterSource() && !sapling.isUnderWater(block)) continue;
                         if (sapling.requiresLight() && block.getLightLevel() < sapling.getMinLightLevel()) continue;
                         if (!sapling.replaceBlocks() && !WrappedWorldEdit.getBlocksInSchematic(block.getLocation(), sapling.getSchematic()).isEmpty()) continue;
 

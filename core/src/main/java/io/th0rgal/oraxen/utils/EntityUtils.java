@@ -14,6 +14,12 @@ import java.lang.reflect.Method;
 public class EntityUtils {
     private static Method spawnMethod;
 
+    public static boolean isUnderWater(Entity entity) {
+        if (VersionUtil.atOrAbove("1.19")) {
+            return entity.isUnderWater();
+        } else return entity.isInWater();
+    }
+
     public static boolean isFixed(ItemDisplay itemDisplay) {
         return itemDisplay.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
     }
