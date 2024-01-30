@@ -339,21 +339,21 @@ public class FurnitureMechanic extends Mechanic {
     public void setPlacedItem() {
         if (placedItem == null) {
             placedItem = OraxenItems.getItemById(placedItemId != null ? placedItemId : getItemID()).build();
-            ItemUtils.editItemMeta(placedItem, meta -> meta.setDisplayName(""));
-            placedItem.setAmount(1);
+            //Utils.editItemMeta(placedItem, meta -> meta.setDisplayName(""));
         }
     }
 
     public Entity place(Location location) {
         setPlacedItem();
-        return place(location, 0f, BlockFace.NORTH);
+        return place(location, placedItem, 0f, BlockFace.NORTH, true);
     }
 
     public Entity place(Location location, Float yaw, BlockFace facing) {
-        return place(location, yaw, facing, true);
+        setPlacedItem();
+        return place(location, placedItem, yaw, facing, true);
     }
 
-    public Entity place(Location location, Float yaw, BlockFace facing, boolean checkSpace) {
+    public Entity place(Location location, ItemStack originalItem, Float yaw, BlockFace facing, boolean checkSpace) {
         if (!location.isWorldLoaded()) return null;
         if (checkSpace && this.notEnoughSpace(yaw, location)) return null;
         assert location.getWorld() != null;
@@ -363,7 +363,13 @@ public class FurnitureMechanic extends Mechanic {
         Class<? extends Entity> entityClass = getFurnitureEntityType().getEntityClass();
         if (entityClass == null) entityClass = ItemFrame.class;
 
-        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, facing), entityClass, (e) -> setEntityData(e, yaw, facing));
+        ItemStack item;
+        if (evolvingFurniture == null) {
+            item = ItemUtils.editItemMeta(originalItem.clone(), meta -> meta.setDisplayName(""));
+        } else item = placedItem;
+        item.setAmount(1);
+
+        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, facing), entityClass, (e) -> setEntityData(e, yaw, item, facing));
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }
@@ -386,10 +392,14 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void setEntityData(Entity entity, float yaw, BlockFace facing) {
+        setEntityData(entity, yaw, getFurnitureItem(entity), facing);
+    }
+
+    public void setEntityData(Entity entity, float yaw, ItemStack item, BlockFace facing) {
         setBaseFurnitureData(entity);
         Location location = entity.getLocation();
         if (entity instanceof ItemFrame frame) {
-            setFrameData(frame, yaw, facing);
+            setFrameData(frame, item, yaw, facing);
 
             if (hasBarriers()) setBarrierHitbox(entity, location, yaw, true);
             else {
@@ -408,7 +418,7 @@ public class FurnitureMechanic extends Mechanic {
                 }
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
-            setItemDisplayData(itemDisplay, yaw, displayEntityProperties);
+            setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
             float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
             float height = hasHitbox() ? hitbox.height : displayEntityProperties.getDisplayHeight();
             boolean isFixed = displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
@@ -461,7 +471,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void setItemDisplayData(ItemDisplay itemDisplay, Float yaw, DisplayEntityProperties properties) {
+    private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Float yaw, DisplayEntityProperties properties) {
         itemDisplay.setItemDisplayTransform(properties.getDisplayTransform());
         if (properties.hasSpecifiedViewRange()) itemDisplay.setViewRange(properties.getViewRange());
         if (properties.hasInterpolationDuration())
@@ -476,7 +486,7 @@ public class FurnitureMechanic extends Mechanic {
 
         itemDisplay.setDisplayWidth(properties.getDisplayWidth());
         itemDisplay.setDisplayHeight(properties.getDisplayHeight());
-        itemDisplay.setItemStack(placedItem);
+        itemDisplay.setItemStack(item);
 
         // Set scale to .5 if FIXED aka ItemFrame to fix size. Also flip it 90 degrees on pitch
         boolean isFixed = properties.getDisplayTransform().equals(ItemDisplay.ItemDisplayTransform.FIXED);
@@ -502,11 +512,11 @@ public class FurnitureMechanic extends Mechanic {
         itemDisplay.setRotation(yaw, pitch);
     }
 
-    private void setFrameData(ItemFrame frame, float yaw, BlockFace facing) {
+    private void setFrameData(ItemFrame frame, ItemStack item, float yaw, BlockFace facing) {
         frame.setVisible(false);
         frame.setItemDropChance(0);
         frame.setFacingDirection(facing, true);
-        frame.setItem(placedItem, false);
+        frame.setItem(item, false);
         frame.setRotation(yawToRotation(yaw));
 
         if (hasLimitedPlacing()) {
