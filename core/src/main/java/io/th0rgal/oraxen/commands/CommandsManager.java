@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -25,7 +26,7 @@ public class CommandsManager {
         new CommandAPICommand("oraxen")
                 .withAliases("o", "oxn")
                 .withPermission("oraxen.command")
-                .withSubcommands(getDyeCommand(), getInvCommand(), getSimpleGiveCommand(), getGiveCommand(),
+                .withSubcommands(getDyeCommand(), getInvCommand(), getSimpleGiveCommand(), getGiveCommand(), getTakeCommand(),
                         (new PackCommand()).getPackCommand(),
                         (new UpdateCommand()).getUpdateCommand(),
                         (new RepairCommand()).getRepairCommand(),
@@ -41,7 +42,7 @@ public class CommandsManager {
                         (new LogDumpCommand().getLogDumpCommand()),
                         (new GestureCommand().getGestureCommand()),
                         (new VersionCommand()).getVersionCommand(),
-                        (new AdminCommands()).getAdminCommand())
+                        (new AdminCommand()).getAdminCommand())
                 .executes((sender, args) -> {
                     Message.COMMAND_HELP.send(sender);
                 })
@@ -164,6 +165,22 @@ public class CommandsManager {
                                 .send(sender, AdventureUtils.tagResolver("count", String.valueOf(targets.size())),
                                         AdventureUtils.tagResolver("amount", String.valueOf(1)),
                                         AdventureUtils.tagResolver("item", itemID));
+                });
+    }
+
+    private CommandAPICommand getTakeCommand() {
+        return new CommandAPICommand("take")
+                .withPermission("oraxen.command.take")
+                .withArguments(new EntitySelectorArgument.ManyPlayers("targets"),
+                        new TextArgument("item").replaceSuggestions(ArgumentSuggestions.strings(OraxenItems.getItemNames())))
+                .executes((sender, args) -> {
+                    final Collection<Player> targets = (Collection<Player>) args.get(0);
+                    final String itemID = (String) args.get(1);
+                    if (!OraxenItems.exists(itemID)) {
+                        Message.ITEM_NOT_FOUND.send(sender, AdventureUtils.tagResolver("item", itemID));
+                    } else for (final Player target : targets) for (ItemStack itemStack : target.getInventory().getContents())
+                        if (!ItemUtils.isEmpty(itemStack) && OraxenItems.getIdByItem(itemStack).equals(itemID))
+                            target.getInventory().remove(itemStack);
                 });
     }
 }
