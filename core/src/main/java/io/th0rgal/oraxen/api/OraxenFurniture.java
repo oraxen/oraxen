@@ -163,6 +163,8 @@ public class OraxenFurniture {
             StorageMechanic storage = mechanic.getStorage();
             if (storage != null && (storage.isStorage() || storage.isShulker()))
                 storage.dropStorageContent(mechanic, baseEntity);
+
+            baseEntity.getWorld().sendGameEvent(null, GameEvent.BLOCK_DESTROY, baseEntity.getLocation().toVector());
         }
 
         if (mechanic.hasBarriers())
@@ -206,6 +208,7 @@ public class OraxenFurniture {
             StorageMechanic storage = mechanic.getStorage();
             if (storage != null && (storage.isStorage() || storage.isShulker()))
                 storage.dropStorageContent(mechanic, baseEntity);
+            baseEntity.getWorld().sendGameEvent(null, GameEvent.BLOCK_DESTROY, baseEntity.getLocation().toVector());
         }
 
         // Check if the mechanic or the baseEntity has barriers tied to it
