@@ -12,10 +12,6 @@ import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.inventory.meta.LeatherArmorMeta;
-import org.bukkit.inventory.meta.MapMeta;
-import org.bukkit.inventory.meta.PotionMeta;
 
 import java.util.Collection;
 import java.util.Map;
@@ -69,16 +65,7 @@ public class CommandsManager {
                             Message.DYE_WRONG_COLOR.send(sender);
                             return;
                         }
-                        ItemStack item = player.getInventory().getItemInMainHand();
-                        ItemMeta itemMeta = item.getItemMeta();
-                        if (itemMeta instanceof LeatherArmorMeta meta) meta.setColor(hexColor);
-                        else if (itemMeta instanceof PotionMeta meta) meta.setColor(hexColor);
-                        else if (itemMeta instanceof MapMeta meta) meta.setColor(hexColor);
-                        else {
-                            Message.DYE_FAILED.send(sender);
-                            return;
-                        }
-                        item.setItemMeta(itemMeta);
+                        ItemUtils.dyeItem(player.getInventory().getItemInMainHand(), hexColor);
                         Message.DYE_SUCCESS.send(sender);
                     } else
                         Message.NOT_PLAYER.send(sender);
