@@ -153,7 +153,7 @@ public class Drop {
 
     public void furnitureSpawns(Entity baseEntity, ItemStack itemInHand) {
         ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
-        Location location = baseEntity.getLocation();
+        Location location = BlockHelpers.toBlockLocation(baseEntity.getLocation());
         ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
         ItemUtils.editItemMeta(furnitureItem, (itemMeta) -> {
             ItemMeta baseMeta = baseItem.getItemMeta();
