@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
-import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -97,7 +96,7 @@ public class StringBlockMechanicListener implements Listener {
                 block.setType(Material.AIR, false);
 
                 if (mechanic.hasLight())
-                    WrappedLightAPI.removeBlockLight(block.getLocation());
+                    mechanic.getLight().removeBlockLight(block);
                 mechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
             }
         }

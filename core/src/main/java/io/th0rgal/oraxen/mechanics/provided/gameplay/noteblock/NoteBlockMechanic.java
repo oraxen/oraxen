@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
@@ -29,7 +30,7 @@ public class NoteBlockMechanic extends Mechanic {
     private final BlockSounds blockSounds;
     private String model;
     private final int hardness;
-    private final int light;
+    private final LightMechanic light;
     private final boolean canIgnite;
     private final boolean isFalling;
     private final FarmBlockDryout farmBlockDryout;
@@ -51,7 +52,7 @@ public class NoteBlockMechanic extends Mechanic {
         customVariation = section.getInt("custom_variation");
         hardness = section.getInt("hardness", 1);
 
-        light = Math.min(section.getInt("light", -1), 15);
+        light = new LightMechanic(section);
         clickActions = ClickAction.parseList(section);
         canIgnite = section.getBoolean("can_ignite", false);
         isFalling = section.getBoolean("is_falling", false);
@@ -137,11 +138,11 @@ public class NoteBlockMechanic extends Mechanic {
 
     public boolean hasLight() {
         if (isDirectional() && !getDirectional().isParentBlock()) {
-            return light != -1 || directionalBlock.getParentMechanic().hasLight();
-        } else return light != -1;
+            return light.hasLightLevel() || directionalBlock.getParentMechanic().getLight().hasLightLevel();
+        } else return light.hasLightLevel();
     }
 
-    public int getLight() {
+    public LightMechanic getLight() {
         return light;
     }
 
