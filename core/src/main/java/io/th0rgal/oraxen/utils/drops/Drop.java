@@ -149,9 +149,9 @@ public class Drop {
         else dropLoot(loots, location, getFortuneMultiplier(itemInHand));
     }
 
-    public void furnitureSpawns(Entity baseEntity, ItemStack itemInHand) {
+    public void furnitureSpawns(Location dropLocation, Entity baseEntity, ItemStack itemInHand) {
         ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
-        Location location = BlockHelpers.toBlockLocation(baseEntity.getLocation());
+        Location location = dropLocation != null ? dropLocation : BlockHelpers.toBlockLocation(baseEntity.getLocation());
         ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
         ItemUtils.editItemMeta(furnitureItem, (itemMeta) -> {
             ItemMeta baseMeta = baseItem.getItemMeta();
