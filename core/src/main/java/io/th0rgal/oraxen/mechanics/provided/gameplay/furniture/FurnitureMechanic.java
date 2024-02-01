@@ -401,7 +401,7 @@ public class FurnitureMechanic extends Mechanic {
         if (entity instanceof ItemFrame frame) {
             setFrameData(frame, item, yaw, facing);
 
-            if (hasBarriers()) setBarrierHitbox(entity, location, yaw, true);
+            if (hasBarriers()) setBarrierHitbox(entity, location, yaw);
             else {
                 float width = hasHitbox() ? hitbox.width : 1f;
                 float height = hasHitbox() ? hitbox.height : 1f;
@@ -413,9 +413,7 @@ public class FurnitureMechanic extends Mechanic {
                     interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                     frame.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
                 }
-                if (light.hasLightLevel()) {
-                    light.createBlockLight(block);
-                }
+                if (light.hasLightLevel()) light.createBlockLight(block);
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
@@ -427,7 +425,7 @@ public class FurnitureMechanic extends Mechanic {
             Location barrierLoc = EntityUtils.isNone(itemDisplay) && displayEntityProperties.hasScale()
                             ? location.clone().subtract(0, 0.5 * displayEntityProperties.getScale().y(), 0) : location;
 
-            if (hasBarriers()) setBarrierHitbox(entity, barrierLoc, yaw, false);
+            if (hasBarriers()) setBarrierHitbox(entity, barrierLoc, yaw);
             else if (hasSeat() && interaction != null) {
                 UUID seatUuid = spawnSeat(location.getBlock(), hasSeatYaw ? seatYaw : yaw);
                 interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
@@ -528,7 +526,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void setBarrierHitbox(Entity entity, Location location, float yaw, boolean handleLight) {
+    private void setBarrierHitbox(Entity entity, Location location, float yaw) {
         List<Location> barrierLocations = getLocations(yaw, BlockHelpers.toCenterBlockLocation(location), barriers);
         for (Location barrierLocation : barrierLocations) {
             Block block = barrierLocation.getBlock();
@@ -539,8 +537,7 @@ public class FurnitureMechanic extends Mechanic {
             data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location.clone()).toString());
             data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
             data.set(BASE_ENTITY_KEY, DataType.UUID, entity.getUniqueId());
-            if (handleLight && light.hasLightLevel())
-                light.createBlockLight(block);
+            if (light.hasLightLevel()) light.createBlockLight(block);
         }
     }
 
