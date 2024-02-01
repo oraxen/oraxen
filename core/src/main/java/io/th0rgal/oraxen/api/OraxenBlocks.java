@@ -257,8 +257,7 @@ public class OraxenBlocks {
         }
         if (drop != null) drop.spawns(block.getLocation(), itemInHand);
 
-        if (mechanic.hasLight())
-            mechanic.getLight().removeBlockLight(block);
+        if (mechanic.hasLight()) mechanic.getLight().removeBlockLight(block);
         if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             mechanic.getStorage().dropStorageContent(block);
         }

@@ -575,13 +575,13 @@ public class FurnitureMechanic extends Mechanic {
 
         for (Location location : barrierLocations) {
             Block block = location.getBlock();
-            if (light.hasLightLevel()) light.removeBlockLight(block);
             if (hasSeat) removeFurnitureSeat(location);
             if (block.getType() != Material.BARRIER) continue;
             if (!BlockHelpers.getPDC(block).getOrDefault(BASE_ENTITY_KEY, DataType.UUID, UUID.randomUUID()).equals(baseEntity.getUniqueId())) continue;
 
             block.setType(Material.AIR);
             new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
+            if (light.hasLightLevel()) light.removeBlockLight(block);
         }
         removeBaseEntity(baseEntity);
     }
@@ -836,5 +836,13 @@ public class FurnitureMechanic extends Mechanic {
 
     public BlockLockerMechanic getBlockLocker() {
         return blockLocker;
+    }
+
+    public boolean hasLight() {
+        return light.hasLightLevel();
+    }
+
+    public LightMechanic getLight() {
+        return light;
     }
 }

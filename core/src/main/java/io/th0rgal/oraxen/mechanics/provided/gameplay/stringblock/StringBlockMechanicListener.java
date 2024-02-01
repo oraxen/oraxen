@@ -341,6 +341,12 @@ public class StringBlockMechanicListener implements Listener {
         }
     }
 
+    @EventHandler(ignoreCancelled = true)
+    public void updateLightOnBlockBreak(BlockBreakEvent event) {
+        Block block = event.getBlock();
+        //if (!OraxenBlocks.isOraxenStringBlock(block)) LightMechanic.refreshBlockLight(block);
+    }
+
     private HardnessModifier getHardnessModifier() {
         return new HardnessModifier() {
 
