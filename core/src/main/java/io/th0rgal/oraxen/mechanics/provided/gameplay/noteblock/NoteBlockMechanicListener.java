@@ -364,6 +364,12 @@ public class NoteBlockMechanicListener implements Listener {
         }
     }
 
+    @EventHandler(ignoreCancelled = true)
+    public void updateLightOnBlockBreak(BlockBreakEvent event) {
+        Block block = event.getBlock();
+        //if (!OraxenBlocks.isOraxenNoteBlock(block)) LightMechanic.refreshBlockLight(block);
+    }
+
     //TODO Also trigger for attached blocks
     /* Make Falling Oraxen Blocks above the given block trigger causing physics changes*/
     private void handleFallingOraxenBlockAbove(Block block) {

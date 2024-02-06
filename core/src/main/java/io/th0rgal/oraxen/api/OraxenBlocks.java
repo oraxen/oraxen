@@ -4,7 +4,6 @@ import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockBreakEvent;
-import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanicFactory;
@@ -167,8 +166,9 @@ public class OraxenBlocks {
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
         if (mechanic == null) return;
 
-        if (mechanic.hasLight())
-            WrappedLightAPI.createBlockLight(block.getLocation(), mechanic.getLight());
+        if (mechanic.hasLight()) {
+            mechanic.getLight().createBlockLight(block);
+        }
 
         if (mechanic.hasDryout() && mechanic.getDryout().isFarmBlock()) {
             pdc.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
@@ -200,8 +200,8 @@ public class OraxenBlocks {
             else blockAbove.setType(Material.TRIPWIRE);
         }
 
-        if (mechanic.getLight() != -1)
-            WrappedLightAPI.createBlockLight(block.getLocation(), mechanic.getLight());
+        if (mechanic.hasLight())
+            mechanic.getLight().createBlockLight(block);
         if (mechanic.isSapling()) {
             SaplingMechanic sapling = mechanic.getSaplingMechanic();
             if (sapling != null && sapling.canGrowNaturally())
@@ -257,8 +257,7 @@ public class OraxenBlocks {
         }
         if (drop != null) drop.spawns(block.getLocation(), itemInHand);
 
-        if (mechanic.hasLight())
-            WrappedLightAPI.removeBlockLight(block.getLocation());
+        if (mechanic.hasLight()) mechanic.getLight().removeBlockLight(block);
         if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             mechanic.getStorage().dropStorageContent(block);
         }
@@ -286,7 +285,7 @@ public class OraxenBlocks {
         if (drop != null) drop.spawns(block.getLocation(), itemInHand);
 
         final Block blockAbove = block.getRelative(BlockFace.UP);
-        if (mechanic.hasLight()) WrappedLightAPI.removeBlockLight(block.getLocation());
+        if (mechanic.hasLight()) mechanic.getLight().removeBlockLight(block);
         if (mechanic.isTall()) blockAbove.setType(Material.AIR);
         block.setType(Material.AIR);
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {

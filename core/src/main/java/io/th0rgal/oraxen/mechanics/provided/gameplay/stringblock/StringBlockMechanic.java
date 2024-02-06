@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
@@ -20,7 +21,7 @@ public class StringBlockMechanic extends Mechanic {
     private final LimitedPlacing limitedPlacing;
     private String model;
     private final int hardness;
-    private final int light;
+    private final LightMechanic light;
 
     private final List<String> randomPlaceBlock;
     private final SaplingMechanic saplingMechanic;
@@ -39,8 +40,8 @@ public class StringBlockMechanic extends Mechanic {
         model = section.getString("model");
         customVariation = section.getInt("custom_variation");
         isTall = section.getBoolean("is_tall", false);
-        light = Math.min(section.getInt("light", -1), 15);
         hardness = section.getInt("hardness", 1);
+        light = new LightMechanic(section);
 
         ConfigurationSection dropSection = section.getConfigurationSection("drop");
         drop = dropSection != null ? Drop.createDrop(StringBlockMechanicFactory.getInstance().toolTypes, dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
@@ -97,10 +98,10 @@ public class StringBlockMechanic extends Mechanic {
     }
 
     public boolean hasLight() {
-        return light <= -1;
+        return light.hasLightLevel();
     }
 
-    public int getLight() {
+    public LightMechanic getLight() {
         return light;
     }
 
