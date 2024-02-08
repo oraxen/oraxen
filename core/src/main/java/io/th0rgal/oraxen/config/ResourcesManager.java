@@ -75,7 +75,7 @@ public class ResourcesManager {
     public void extractFileIfTrue(ZipEntry entry, boolean isSuitable) {
         if (entry.isDirectory()) return;
         if (isSuitable) {
-            if (!Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.toBool() && entry.getName().startsWith("pack/textures/models/armor/leather_layer")) return;
+            if (!Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && entry.getName().startsWith("pack/textures/models/armor/leather_layer")) return;
             plugin.saveResource(entry.getName(), true);
         }
     }

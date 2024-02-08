@@ -263,7 +263,7 @@ public class DuplicationHandler {
             Logs.logWarning("You are importing another copy of a shader file used to hide scoreboard numbers");
             Logs.logWarning("Either disable <#22b14c>" + Settings.HIDE_SCOREBOARD_NUMBERS.getPath() + "</#22b14c> in settings.yml or delete this file");
             return false;
-        } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_armor_cutout_no_cull") && Settings.GENERATE_ARMOR_SHADER_FILES.toBool()) {
+        } else if (name.startsWith("assets/minecraft/shaders/core/rendertype_armor_cutout_no_cull") && Settings.CUSTOM_ARMOR_SHADER_GENERATE_FILES.toBool()) {
             Logs.logWarning("You are trying to import a shader file used for custom armor.");
             Logs.logWarning("This shader file is already in your pack. Deleting...");
             return true;
@@ -274,7 +274,7 @@ public class DuplicationHandler {
         } else if (name.startsWith("assets/minecraft/textures/models/armor/leather_layer")) {
             Logs.logWarning("Failed to migrate duplicate file-entry, file is a combined custom armor texture");
             Logs.logWarning("You should not import already combined armor layer files.");
-            Logs.logWarning("If you want to handle these files manually, disable <#22b14c>" + Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.getPath() + "</#22b14c> in settings.yml");
+            Logs.logWarning("If you want to handle these files manually, disable <#22b14c>" + Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.getPath() + "</#22b14c> in settings.yml");
             Logs.logWarning("Please refer to https://docs.oraxen.com/configuration/custom-armors for more information. Deleting...");
             return true;
         } else if (name.startsWith("assets/minecraft/textures")) {

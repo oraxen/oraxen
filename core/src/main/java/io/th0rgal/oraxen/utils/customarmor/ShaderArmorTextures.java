@@ -25,7 +25,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.*;
 
-public class CustomArmorsTextures {
+public class ShaderArmorTextures {
 
     static final int DEFAULT_RESOLUTION = 16;
     static final int HEIGHT_RATIO = 2;
@@ -46,11 +46,11 @@ public class CustomArmorsTextures {
         FANCY, LESS_FANCY
     }
 
-    public CustomArmorsTextures() {
+    public ShaderArmorTextures() {
         this(DEFAULT_RESOLUTION);
     }
 
-    public CustomArmorsTextures(int resolution) {
+    public ShaderArmorTextures(int resolution) {
         this.resolution = resolution;
         try {
             shaderType = ShaderType.valueOf(Settings.CUSTOM_ARMOR_SHADER_TYPE.toString().toUpperCase());
@@ -78,7 +78,7 @@ public class CustomArmorsTextures {
 
         if (!name.endsWith(".png")) return false;
         if (!name.contains("armor_layer") && !name.contains("leather_layer")) return false;
-        if (!Settings.GENERATE_CUSTOM_ARMOR_TEXTURES.toBool()) return false;
+        if (!Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool()) return false;
 
         BufferedImage img;
         try {
@@ -278,7 +278,7 @@ public class CustomArmorsTextures {
             if (shaderType == ShaderType.FANCY) {
                 setPixel(image.getRaster(), 0, 0, armorColor);
                 if (isAnimated)
-                    setPixel(image.getRaster(), 1, 0, Color.fromRGB(image.getHeight() / (int) Settings.ARMOR_RESOLUTION.getValue(), getAnimatedArmorFramerate(), 1));
+                    setPixel(image.getRaster(), 1, 0, Color.fromRGB(image.getHeight() / (int) Settings.CUSTOM_ARMOR_SHADER_RESOLUTION.getValue(), getAnimatedArmorFramerate(), 1));
             }
 
             if (name.contains("armor_layer_1")) {
@@ -294,7 +294,7 @@ public class CustomArmorsTextures {
             if (!isAnimated && image.getHeight() > getLayerHeight()) {
                 Logs.logError("The height of " + name + " is greater than " + getLayerHeight() + "px.");
                 Logs.logWarning("Since it is not an animated armor-file, this will potentially break other armor sets.");
-                Logs.logWarning("Adjust the " + Settings.ARMOR_RESOLUTION.getPath() + " setting to fix this issue.");
+                Logs.logWarning("Adjust the " + Settings.CUSTOM_ARMOR_SHADER_RESOLUTION.getPath() + " setting to fix this issue.");
                 Logs.logWarning("If it is meant to be an animated armor-file, make sure it ends with _a.png or _a_e.png if emissive");
             }
         }
@@ -356,7 +356,7 @@ public class CustomArmorsTextures {
 
     public int getAnimatedArmorFramerate() {
         try {
-            return Integer.parseInt(Settings.ANIMATED_ARMOR_FRAMERATE.getValue().toString());
+            return Integer.parseInt(Settings.CUSTOM_ARMOR_SHADER_ANIMATED_FRAMERATE.getValue().toString());
         } catch (NumberFormatException e) {
             return 24;
         }
@@ -586,9 +586,9 @@ public class CustomArmorsTextures {
 
     public static void generateArmorShaderFiles() {
         if (shaderType == ShaderType.LESS_FANCY) {
-            CustomArmorsTextures.LessFancyArmorShaders.generateArmorShaderFiles();
+            ShaderArmorTextures.LessFancyArmorShaders.generateArmorShaderFiles();
         } else if (shaderType == ShaderType.FANCY) {
-            CustomArmorsTextures.FancyArmorShaders.generateArmorShaderFiles();
+            ShaderArmorTextures.FancyArmorShaders.generateArmorShaderFiles();
         }
     }
 
@@ -791,7 +791,7 @@ public class CustomArmorsTextures {
                      
                          fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
                      }
-                    """.replace(SHADER_PARAMETER_PLACEHOLDER, String.valueOf((int) Settings.ARMOR_RESOLUTION.getValue())).trim();
+                    """.replace(SHADER_PARAMETER_PLACEHOLDER, String.valueOf((int) Settings.CUSTOM_ARMOR_SHADER_RESOLUTION.getValue())).trim();
         }
 
         private static String getShaderJson() {
