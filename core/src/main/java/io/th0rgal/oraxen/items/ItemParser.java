@@ -11,16 +11,23 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
+import org.bukkit.Tag;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -120,13 +127,37 @@ public class ItemParser {
         if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));
         if (section.contains("unstackable")) item.setUnstackable(section.getBoolean("unstackable", false));
         if (section.contains("color")) item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
-        if (section.contains("trim_pattern")) item.setTrim(Key.key(section.getString("trim_pattern", "")));
+        if (section.contains("trim_pattern")) item.setTrimPattern(Key.key(section.getString("trim_pattern", "")));
 
         parseMiscOptions(item);
         parseVanillaSections(item);
         parseOraxenSections(item);
+        parseCustomArmor(item);
         item.setOraxenMeta(oraxenMeta);
         return item;
+    }
+
+    private void parseCustomArmor(ItemBuilder item) {
+        String itemID = section.getName();
+        if (!VersionUtil.atOrAbove("1.20")) return;
+        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(item.getType())) return;
+
+        if (!item.getItemFlags().contains(ItemFlag.HIDE_ARMOR_TRIM)) {
+            Logs.logWarning("Item " + itemID + " does not have the HIDE_ARMOR_TRIM flag set.");
+            Logs.logWarning("Custom Armors are recommended to have the HIDE_ARMOR_TRIM flag set.", true);
+        }
+        if (!item.hasTrimPattern() && CustomArmorType.getSetting() == CustomArmorType.TRIMS) {
+            String armorPrefix = StringUtils.substringBeforeLast(itemID,"_");
+            Logs.logWarning("Item " + itemID + " does not have a trim pattern set.");
+            Logs.logWarning("Oraxen has been configured to use Trims for custom-armor due to " + Settings.CUSTOM_ARMOR_TYPE.getPath() + " setting");
+
+            TrimPattern trimPattern = Registry.TRIM_PATTERN.get(NamespacedKey.fromString("oraxen:" + armorPrefix));
+            if (Settings.CUSTOM_ARMOR_TRIMS_ASSIGN.toBool() && trimPattern != null) {
+                Logs.logInfo("Assigned trim pattern " + trimPattern.key().asString() + " to " + itemID, true);
+                item.setTrimPattern(trimPattern.key());
+                configUpdated = true;
+            } else Logs.logWarning("Custom Armor will not work unless a trim pattern is set.", true);
+        }
     }
 
     private void parseMiscOptions(ItemBuilder item) {

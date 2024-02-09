@@ -35,7 +35,7 @@ public class TrimArmorDatapack {
         data.addProperty("pack_format", 26);
         datapackMeta.add("pack", data);
         trimSourcesObject();
-        checkOraxenArmorItems();
+        //checkOraxenArmorItems();
     }
 
     public void generateTrimAssets(List<VirtualFile> output) {

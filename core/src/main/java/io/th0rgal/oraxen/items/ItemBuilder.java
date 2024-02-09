@@ -24,6 +24,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.inventory.meta.trim.ArmorTrim;
 import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionData;
@@ -224,21 +225,28 @@ public class ItemBuilder {
         return this;
     }
 
+    public boolean hasTrimPattern() {
+        return VersionUtil.atOrAbove("1.20") && trimPattern != null && getTrimPattern() != null;
+    }
+
     @Nullable
-    public Key getTrim() {
+    public Key getTrimPatternKey() {
         if (!VersionUtil.atOrAbove("1.20")) return null;
         if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type)) return null;
         return trimPattern;
     }
 
-    public ItemBuilder setTrim(final TrimMaterial trimMaterial) {
-        if (!VersionUtil.atOrAbove("1.20")) return this;
-        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type)) return this;
-        this.trimPattern = trimMaterial.key();
-        return this;
+    @Nullable
+    public TrimPattern getTrimPattern() {
+        if (!VersionUtil.atOrAbove("1.20")) return null;
+        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type)) return null;
+        if (trimPattern == null) return null;
+        NamespacedKey key = NamespacedKey.fromString(trimPattern.asString());
+        if (key == null) return null;
+        return Registry.TRIM_PATTERN.get(key);
     }
 
-    public ItemBuilder setTrim(final Key trimKey) {
+    public ItemBuilder setTrimPattern(final Key trimKey) {
         if (!VersionUtil.atOrAbove("1.20")) return this;
         if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type)) return this;
         this.trimPattern = trimKey;
@@ -474,9 +482,8 @@ public class ItemBuilder {
             return effectMeta;
         }
 
-        if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && trimPattern != null) {
-            NamespacedKey trimPattern = NamespacedKey.fromString(this.trimPattern.asString());
-            armorMeta.setTrim(new ArmorTrim(TrimMaterial.REDSTONE, Registry.TRIM_PATTERN.get(trimPattern)));
+        if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && hasTrimPattern()) {
+            armorMeta.setTrim(new ArmorTrim(TrimMaterial.REDSTONE, getTrimPattern()));
             return armorMeta;
         }
 
