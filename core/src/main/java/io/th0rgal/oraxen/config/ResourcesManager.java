@@ -3,7 +3,8 @@ package io.th0rgal.oraxen.config;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.ReflectionUtils;
-import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -75,7 +76,14 @@ public class ResourcesManager {
     public void extractFileIfTrue(ZipEntry entry, boolean isSuitable) {
         if (entry.isDirectory()) return;
         if (isSuitable) {
-            if (!Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && entry.getName().startsWith("pack/textures/models/armor/leather_layer")) return;
+            if (entry.getName().startsWith("pack/textures/models/armor/")) {
+                CustomArmorType customArmorType = CustomArmorType.getSetting();
+                if (customArmorType == CustomArmorType.NONE) return;
+                else if (customArmorType == CustomArmorType.SHADER)
+                    if (!Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && entry.getName().startsWith("pack/textures/models/armor/leather_layer")) return;
+                else if (CustomArmorType.getSetting() == CustomArmorType.TRIMS && entry.getName().startsWith("pack/textures/models/armor/"))
+                    if (!Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().startsWith(StringUtils.substringAfter(entry.getName(), "armor/").toUpperCase())) return;
+            }
             plugin.saveResource(entry.getName(), true);
         }
     }
