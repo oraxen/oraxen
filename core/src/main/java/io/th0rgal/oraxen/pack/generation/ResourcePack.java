@@ -607,7 +607,7 @@ public class ResourcePack {
                 e.printStackTrace();
             }
         } else if (customArmorType == CustomArmorType.TRIMS) {
-            trimArmorDatapack.generateTrimDatapack(output);
+            trimArmorDatapack.generateTrimAssets(output);
             String armorPath = "assets/minecraft/textures/models/armor";
             //TODO make this configurable
             output.add(new VirtualFile(armorPath, "chainmail_layer_1.png", OraxenPlugin.get().getResource("pack/textures/models/armor/chainmail_layer_1.png")));
