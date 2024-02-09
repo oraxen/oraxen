@@ -274,6 +274,10 @@ public class ItemBuilder {
         return this;
     }
 
+    public List<ItemFlag> getItemFlags() {
+        return itemFlags != null ? new ArrayList<>(itemFlags) : new ArrayList<>();
+    }
+
     public ItemBuilder addAttributeModifiers(final Attribute attribute, final AttributeModifier attributeModifier) {
         if (!hasAttributeModifiers) {
             hasAttributeModifiers = true;

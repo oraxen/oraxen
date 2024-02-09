@@ -4,11 +4,18 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.utils.VirtualFile;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.inventory.ItemFlag;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.ArmorMeta;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +35,7 @@ public class TrimArmorDatapack {
         data.addProperty("pack_format", 26);
         datapackMeta.add("pack", data);
         trimSourcesObject();
+        checkOraxenArmorItems();
     }
 
     public void generateTrimAssets(List<VirtualFile> output) {
@@ -126,6 +134,20 @@ public class TrimArmorDatapack {
             FileUtils.writeStringToFile(packMeta, datapackMeta.toString(), StandardCharsets.UTF_8);
         } catch (IOException e) {
             e.printStackTrace();
+        }
+    }
+
+    private void checkOraxenArmorItems() {
+        for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
+            String itemID = OraxenItems.getIdByItem(itemBuilder);
+            ItemStack itemStack = itemBuilder.build();
+            if (itemStack == null) continue;
+            if (!itemStack.hasItemMeta() || !(itemStack.getItemMeta() instanceof ArmorMeta)) continue;
+            if (!itemStack.getType().name().toUpperCase().startsWith(Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toUpperCase())) continue;
+            if (itemBuilder.getItemFlags().contains(ItemFlag.HIDE_ARMOR_TRIM)) continue;
+
+            Logs.logWarning("Item " + itemID + " does not have the HIDE_ARMOR_TRIM flag set.");
+            Logs.logWarning("Custom Armors are recommended to have the HIDE_ARMOR_TRIM flag set.", true);
         }
     }
 
