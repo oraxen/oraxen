@@ -8,20 +8,20 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Light;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 
 public class LightMechanic {
     private static final BlockFace[] BLOCK_FACES = new BlockFace[]{BlockFace.UP, BlockFace.DOWN, BlockFace.NORTH, BlockFace.EAST, BlockFace.SOUTH, BlockFace.WEST, BlockFace.SELF};
-    private final BlockData lightData;
+    private final Light lightData;
 
     private final int lightLevel;
 
     public LightMechanic(ConfigurationSection section) {
         lightLevel = Math.min(15, section.getInt("light", -1));
         lightData = lightLevel == -1 ? null : (Light) Material.LIGHT.createBlockData();
+        if (lightData != null) lightData.setLevel(lightLevel);
     }
 
     public int getLightLevel() {
@@ -29,7 +29,7 @@ public class LightMechanic {
     }
 
     public boolean hasLightLevel() {
-        return lightLevel != -1;
+        return lightLevel != -1 && lightData != null;
     }
 
     public void createBlockLight(Block block) {
@@ -48,8 +48,7 @@ public class LightMechanic {
     }
 
     public void removeBlockLight(Block block) {
-        if (!hasLightLevel()) return;
-        for (BlockFace face : BLOCK_FACES) {
+        if (hasLightLevel()) for (BlockFace face : BLOCK_FACES) {
             Block relative = block.getRelative(face);
             // If relative is Light we want to remove it
             if (relative.getType() == Material.LIGHT)
