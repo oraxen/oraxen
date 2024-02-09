@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
@@ -44,12 +45,31 @@ public class TrimArmorDatapack {
         File datapack = datapacksRoot.toPath().resolve("trims").toFile();
         datapack.toPath().resolve("data").toFile().mkdirs();
         writeMCMeta(datapack);
-        writeTrimPattern(datapack, armorPrefixes);
+        writeVanillaTrimPattern(datapack);
+        writeCustomTrimPatterns(datapack, armorPrefixes);
         writeTrimAtlas(output, armorPrefixes);
         copyArmorLayerTextures(output);
     }
 
-    private void writeTrimPattern(File datapack, Set<String> armorPrefixes) {
+    private void writeVanillaTrimPattern(File datapack) {
+        File vanillaArmorJson = datapack.toPath().resolve("data/minecraft/trim_pattern/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase() + ".json").toFile();
+        vanillaArmorJson.getParentFile().mkdirs();
+        JsonObject vanillaTrimPattern = new JsonObject();
+        JsonObject description = new JsonObject();
+        description.addProperty("translate", "trim_pattern.minecraft." + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase());
+        vanillaTrimPattern.add("description", description);
+        vanillaTrimPattern.addProperty("asset_id", "minecraft:" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase());
+        vanillaTrimPattern.addProperty("template_item", "minecraft:debug_stick");
+
+        try {
+            vanillaArmorJson.createNewFile();
+            FileUtils.writeStringToFile(vanillaArmorJson, vanillaTrimPattern.toString(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void writeCustomTrimPatterns(File datapack, Set<String> armorPrefixes) {
         for (String armorPrefix : armorPrefixes) {
             File armorJson = datapack.toPath().resolve("data/oraxen/trim_pattern/" + armorPrefix + ".json").toFile();
             armorJson.getParentFile().mkdirs();
@@ -86,6 +106,9 @@ public class TrimArmorDatapack {
                         texturesArray.add("oraxen:trims/models/armor/" + armorPrefix);
                         texturesArray.add("oraxen:trims/models/armor/" + armorPrefix + "_leggings");
                     }
+                    texturesArray.add("minecraft:trims/models/armor/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase());
+                    texturesArray.add("minecraft:trims/models/armor/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase() + "_leggings");
+
                     sourceObject.remove("textures");
                     sourceObject.add("textures", texturesArray);
                 }
@@ -105,6 +128,8 @@ public class TrimArmorDatapack {
                 texturesArray.add("oraxen:trims/models/armor/" + armorPrefix);
                 texturesArray.add("oraxen:trims/models/armor/" + armorPrefix + "_leggings");
             }
+            texturesArray.add("minecraft:trims/models/armor/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase());
+            texturesArray.add("minecraft:trims/models/armor/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase() + "_leggings");
 
             sourcesObject.add("textures", texturesArray);
             sourcesArray.add(sourcesObject);
@@ -115,16 +140,30 @@ public class TrimArmorDatapack {
     }
 
     private void copyArmorLayerTextures(List<VirtualFile> output) {
+        String armorPath = "assets/minecraft/textures/models/armor/";
+        String material = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase();
+
         for (VirtualFile virtualFile : output) {
-            if (virtualFile.getPath().endsWith("_armor_layer_1.png")) {
+            String path = virtualFile.getPath();
+            if (path.endsWith("_armor_layer_1.png")) {
                 String armorPrefix = armorPrefix(virtualFile);
                 virtualFile.setPath("assets/oraxen/textures/trims/models/armor/" + armorPrefix + ".png");
-            } else if (virtualFile.getPath().endsWith("_armor_layer_2.png")) {
-                String armorPrefix = StringUtils.substringAfterLast(StringUtils.substringBefore(virtualFile.getPath(), "_armor_layer_2.png"), "/");
+            } else if (path.endsWith("_armor_layer_2.png")) {
+                String armorPrefix = StringUtils.substringAfterLast(StringUtils.substringBefore(path, "_armor_layer_2.png"), "/");
                 virtualFile.setPath("assets/oraxen/textures/trims/models/armor/" + armorPrefix + "_leggings.png");
             }
 
+            if (path.startsWith(armorPath + material)) {
+                if (path.endsWith("_layer_1.png")) {
+                    virtualFile.setPath("assets/minecraft/textures/trims/models/armor/" + material + ".png");
+                } else if (path.endsWith("_layer_2.png")) {
+                    virtualFile.setPath("assets/minecraft/textures/trims/models/armor/" + material + "_leggings.png");
+                }
+            }
         }
+
+        output.add(new VirtualFile(armorPath, material + "_layer_1.png", OraxenPlugin.get().getResource("pack/textures/models/armor/transparent_layer_1.png")));
+        output.add(new VirtualFile(armorPath, material + "_layer_2.png", OraxenPlugin.get().getResource("pack/textures/models/armor/transparent_layer_2.png")));
     }
 
     private void writeMCMeta(File datapack) {

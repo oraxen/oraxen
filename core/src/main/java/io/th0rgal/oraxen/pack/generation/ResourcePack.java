@@ -610,8 +610,8 @@ public class ResourcePack {
             trimArmorDatapack.generateTrimAssets(output);
             String armorPath = "assets/minecraft/textures/models/armor";
             //TODO make this configurable
-            output.add(new VirtualFile(armorPath, "chainmail_layer_1.png", OraxenPlugin.get().getResource("pack/textures/models/armor/chainmail_layer_1.png")));
-            output.add(new VirtualFile(armorPath, "chainmail_layer_2.png", OraxenPlugin.get().getResource("pack/textures/models/armor/chainmail_layer_2.png")));
+            //output.add(new VirtualFile(armorPath, "transparent_layer_1.png", OraxenPlugin.get().getResource("pack/textures/models/armor/transparent_layer_1.png")));
+            //output.add(new VirtualFile(armorPath, "transparent_layer_2.png", OraxenPlugin.get().getResource("pack/textures/models/armor/transparent_layer_2.png")));
         }
     }
 

@@ -75,16 +75,17 @@ public class ResourcesManager {
 
     public void extractFileIfTrue(ZipEntry entry, boolean isSuitable) {
         if (entry.isDirectory()) return;
-        if (isSuitable) {
-            if (entry.getName().startsWith("pack/textures/models/armor/")) {
-                CustomArmorType customArmorType = CustomArmorType.getSetting();
-                if (customArmorType == CustomArmorType.NONE) return;
-                else if (customArmorType == CustomArmorType.SHADER)
-                    if (!Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && entry.getName().startsWith("pack/textures/models/armor/leather_layer")) return;
-                else if (CustomArmorType.getSetting() == CustomArmorType.TRIMS && entry.getName().startsWith("pack/textures/models/armor/"))
-                    if (!Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().startsWith(StringUtils.substringAfter(entry.getName(), "armor/").toUpperCase())) return;
+        if (isSuitable) plugin.saveResource(entry.getName(), true);
+        else if (entry.getName().startsWith("pack/textures/models/armor/")) {
+            CustomArmorType customArmorType = CustomArmorType.getSetting();
+            if (OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists()) return;
+            if (customArmorType == CustomArmorType.NONE) return;
+            else if (customArmorType == CustomArmorType.SHADER) {
+                if (!Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && entry.getName().startsWith("pack/textures/models/armor/leather_layer")) return;
+            } else if (CustomArmorType.getSetting() == CustomArmorType.TRIMS) {
+                if (!StringUtils.substringAfter(entry.getName(), "armor/").toUpperCase().startsWith(Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString())) return;
             }
-            plugin.saveResource(entry.getName(), true);
+            plugin.saveResource(entry.getName(), false);
         }
     }
 

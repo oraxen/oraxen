@@ -19,8 +19,11 @@ public class VirtualFile implements Comparable<VirtualFile> {
     private InputStream inputStream;
 
     public VirtualFile(String parentFolder, String name, InputStream inputStream) {
-        this.parentFolder = OS.getOs().getName().startsWith("Windows")
+        parentFolder = OS.getOs().getName().startsWith("Windows")
                 ? parentFolder.replace("\\", "/")
+                : parentFolder;
+        this.parentFolder = parentFolder.endsWith("/")
+                ? parentFolder.substring(0, parentFolder.length() - 1)
                 : parentFolder;
         this.name = name;
         this.inputStream = inputStream;
