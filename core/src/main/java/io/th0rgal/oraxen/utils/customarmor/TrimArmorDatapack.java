@@ -14,9 +14,13 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Registry;
+import org.bukkit.Tag;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,6 +53,7 @@ public class TrimArmorDatapack {
         writeCustomTrimPatterns(datapack, armorPrefixes);
         writeTrimAtlas(output, armorPrefixes);
         copyArmorLayerTextures(output);
+        checkOraxenArmorItems();
     }
 
     private void writeVanillaTrimPattern(File datapack) {
@@ -180,13 +185,35 @@ public class TrimArmorDatapack {
         for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
             String itemID = OraxenItems.getIdByItem(itemBuilder);
             ItemStack itemStack = itemBuilder.build();
-            if (itemStack == null) continue;
+            boolean changed = false;
+
+            if (itemStack == null || !Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(itemBuilder.getType())) continue;
             if (!itemStack.hasItemMeta() || !(itemStack.getItemMeta() instanceof ArmorMeta)) continue;
             if (!itemStack.getType().name().toUpperCase().startsWith(Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toUpperCase())) continue;
-            if (itemBuilder.getItemFlags().contains(ItemFlag.HIDE_ARMOR_TRIM)) continue;
 
-            Logs.logWarning("Item " + itemID + " does not have the HIDE_ARMOR_TRIM flag set.");
-            Logs.logWarning("Custom Armors are recommended to have the HIDE_ARMOR_TRIM flag set.", true);
+            if (!itemBuilder.getItemFlags().contains(ItemFlag.HIDE_ARMOR_TRIM)) {
+                Logs.logWarning("Item " + itemID + " does not have the HIDE_ARMOR_TRIM flag set.");
+
+                if (Settings.CUSTOM_ARMOR_TRIMS_ASSIGN.toBool()) {
+                    itemBuilder.addItemFlags(ItemFlag.HIDE_ARMOR_TRIM);
+                    changed = true;
+                    if (Settings.DEBUG.toBool()) Logs.logInfo("Assigned HIDE_ARMOR_TRIM flag to " + itemID, true);
+                } else Logs.logWarning("Custom Armors are recommended to have the HIDE_ARMOR_TRIM flag set.", true);
+            }
+            if (!itemBuilder.hasTrimPattern() && CustomArmorType.getSetting() == CustomArmorType.TRIMS) {
+                String armorPrefix = StringUtils.substringBeforeLast(itemID,"_");
+                Logs.logWarning("Item " + itemID + " does not have a trim pattern set.");
+                Logs.logWarning("Oraxen has been configured to use Trims for custom-armor due to " + Settings.CUSTOM_ARMOR_TYPE.getPath() + " setting");
+
+                TrimPattern trimPattern = Registry.TRIM_PATTERN.get(NamespacedKey.fromString("oraxen:" + armorPrefix));
+                if (Settings.CUSTOM_ARMOR_TRIMS_ASSIGN.toBool() && trimPattern != null) {
+                    itemBuilder.setTrimPattern(trimPattern.key());
+                    changed = true;
+                    if (Settings.DEBUG.toBool()) Logs.logInfo("Assigned trim pattern " + trimPattern.key().asString() + " to " + itemID, true);
+                } else Logs.logWarning("Custom Armor will not work unless a trim pattern is set.", true);
+            }
+
+            if (changed) itemBuilder.save();
         }
     }
 

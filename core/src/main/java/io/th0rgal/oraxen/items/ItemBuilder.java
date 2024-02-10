@@ -439,8 +439,17 @@ public class ItemBuilder {
         regen();
         OraxenItems.getMap().entrySet().stream().filter(entry -> entry.getValue().containsValue(this)).findFirst().ifPresent(entry -> {
             YamlConfiguration yamlConfiguration = OraxenYaml.loadConfiguration(entry.getKey());
-            String color = this.color.getRed() + "," + this.color.getGreen() + "," + this.color.getBlue();
-            yamlConfiguration.set(OraxenItems.getIdByItem(this.build()) + ".color", color);
+            if (this.hasColor()) {
+                String color = this.color.getRed() + "," + this.color.getGreen() + "," + this.color.getBlue();
+                yamlConfiguration.set(OraxenItems.getIdByItem(this.build()) + ".color", color);
+            }
+            if (this.hasTrimPattern()) {
+                String trimPattern = this.getTrimPatternKey().asString();
+                yamlConfiguration.set(OraxenItems.getIdByItem(this.build()) + ".trim_pattern", trimPattern);
+            }
+            if (!getItemFlags().isEmpty()) {
+                yamlConfiguration.set(OraxenItems.getIdByItem(this.build()) + ".ItemFlags", this.itemFlags.stream().map(ItemFlag::name).toList());
+            }
             try {
                 yamlConfiguration.save(entry.getKey());
             } catch (IOException e) {
