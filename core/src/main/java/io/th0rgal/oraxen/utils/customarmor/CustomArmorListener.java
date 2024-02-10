@@ -10,9 +10,12 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
+import org.bukkit.event.inventory.PrepareSmithingEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.AnvilInventory;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.SmithingInventory;
+import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 
 public class CustomArmorListener implements Listener {
@@ -45,5 +48,16 @@ public class CustomArmorListener implements Listener {
         if (!OraxenItems.exists(item)) return;
 
         event.setUseInteractedBlock(Event.Result.DENY);
+    }
+
+    @EventHandler
+    public void onTrimCustomArmor(PrepareSmithingEvent event) {
+        SmithingInventory inventory = event.getInventory();
+        ItemStack armorPiece = inventory.getInputEquipment();
+        if (CustomArmorType.getSetting() != CustomArmorType.TRIMS) return;
+        if (armorPiece == null || !armorPiece.hasItemMeta() || !OraxenItems.exists(armorPiece)) return;
+        if (!armorPiece.hasItemMeta() || !(armorPiece.getItemMeta() instanceof ArmorMeta armorMeta)) return;
+        if (!armorMeta.hasTrim() || !armorMeta.getTrim().getPattern().key().namespace().equals("oraxen")) return;
+        event.setResult(null);
     }
 }
