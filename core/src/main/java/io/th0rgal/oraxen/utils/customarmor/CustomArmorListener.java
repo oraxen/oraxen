@@ -17,6 +17,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.PrepareAnvilEvent;
 import org.bukkit.event.inventory.PrepareSmithingEvent;
+import org.bukkit.event.player.PlayerArmorStandManipulateEvent;
 import org.bukkit.event.player.PlayerAttemptPickupItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -93,6 +94,12 @@ public class CustomArmorListener implements Listener {
         setVanillaArmorTrim(event.getOldArmorPiece());
     }
 
+    @EventHandler
+    public void onAmorStandEquip(PlayerArmorStandManipulateEvent event) {
+        setVanillaArmorTrim(event.getPlayerItem());
+        setVanillaArmorTrim(event.getArmorStandItem());
+    }
+
     private void setVanillaArmorTrim(ItemStack itemStack) {
         String armorPrefix = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString();
         if (!VersionUtil.atOrAbove("1.20")) return;
@@ -104,7 +111,6 @@ public class CustomArmorListener implements Listener {
         Key vanillaPatternKey = Key.key("minecraft", armorPrefix.toLowerCase());
         @Nullable TrimPattern vanillaPattern = Registry.TRIM_PATTERN.get(NamespacedKey.fromString(vanillaPatternKey.asString()));
         if (vanillaPattern != null && (!armorMeta.hasItemFlag(ItemFlag.HIDE_ARMOR_TRIM) || !armorMeta.hasTrim() || !armorMeta.getTrim().getPattern().key().equals(vanillaPatternKey))) {
-            Logs.debug("Updated to " + armorMeta);
             armorMeta.setTrim(new ArmorTrim(TrimMaterial.REDSTONE, vanillaPattern));
             armorMeta.addItemFlags(ItemFlag.HIDE_ARMOR_TRIM);
             itemStack.setItemMeta(armorMeta);
