@@ -146,29 +146,34 @@ public class TrimArmorDatapack {
 
     private void copyArmorLayerTextures(List<VirtualFile> output) {
         String armorPath = "assets/minecraft/textures/models/armor/";
+        String vanillaTrimPath = "assets/minecraft/textures/trims/models/armor/";
+        String oraxenTrimPath = "assets/oraxen/textures/trims/models/armor/";
         String material = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase();
 
         for (VirtualFile virtualFile : output) {
             String path = virtualFile.getPath();
+            String armorPrefix = armorPrefix(virtualFile);
             if (path.endsWith("_armor_layer_1.png")) {
-                String armorPrefix = armorPrefix(virtualFile);
-                virtualFile.setPath("assets/oraxen/textures/trims/models/armor/" + armorPrefix + ".png");
+                virtualFile.setPath(oraxenTrimPath + armorPrefix + ".png");
             } else if (path.endsWith("_armor_layer_2.png")) {
-                String armorPrefix = StringUtils.substringAfterLast(StringUtils.substringBefore(path, "_armor_layer_2.png"), "/");
-                virtualFile.setPath("assets/oraxen/textures/trims/models/armor/" + armorPrefix + "_leggings.png");
+                virtualFile.setPath(oraxenTrimPath + armorPrefix + "_leggings.png");
             }
 
-            if (path.startsWith(armorPath + material)) {
-                if (path.endsWith("_layer_1.png")) {
-                    virtualFile.setPath("assets/minecraft/textures/trims/models/armor/" + material + ".png");
-                } else if (path.endsWith("_layer_2.png")) {
-                    virtualFile.setPath("assets/minecraft/textures/trims/models/armor/" + material + "_leggings.png");
-                }
+            if (path.equals(armorPath + material + "_layer_1.png")) {
+                virtualFile.setPath(vanillaTrimPath + material + ".png");
+            } else if (path.equals(armorPath + material + "_layer_2.png")) {
+                virtualFile.setPath(vanillaTrimPath + material + "_leggings.png");
             }
         }
 
-        output.add(new VirtualFile(armorPath, material + "_layer_1.png", OraxenPlugin.get().getResource("pack/textures/models/armor/transparent_layer_1.png")));
-        output.add(new VirtualFile(armorPath, material + "_layer_2.png", OraxenPlugin.get().getResource("pack/textures/models/armor/transparent_layer_2.png")));
+        String resourcePath = "pack/textures/models/armor/";
+        if (output.stream().noneMatch(v -> v.getPath().equals(vanillaTrimPath + material + ".png")))
+            output.add(new VirtualFile(vanillaTrimPath, material + ".png", OraxenPlugin.get().getResource(resourcePath + material + "_layer_1.png")));
+        if (output.stream().noneMatch(v -> v.getPath().equals(vanillaTrimPath + material + "_leggings.png")))
+            output.add(new VirtualFile(vanillaTrimPath, material + "_leggings.png", OraxenPlugin.get().getResource(resourcePath + material + "_layer_2.png")));
+
+        output.add(new VirtualFile(armorPath, material + "_layer_1.png", OraxenPlugin.get().getResource(resourcePath + "transparent_layer_1.png")));
+        output.add(new VirtualFile(armorPath, material + "_layer_2.png", OraxenPlugin.get().getResource(resourcePath + "transparent_layer_2.png")));
     }
 
     private void writeMCMeta(File datapack) {

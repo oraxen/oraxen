@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.ReflectionUtils;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
-import org.apache.commons.lang3.StringUtils;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -79,12 +78,8 @@ public class ResourcesManager {
         else if (entry.getName().startsWith("pack/textures/models/armor/")) {
             CustomArmorType customArmorType = CustomArmorType.getSetting();
             if (OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists()) return;
-            if (customArmorType == CustomArmorType.NONE) return;
-            else if (customArmorType == CustomArmorType.SHADER) {
-                if (!Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && entry.getName().startsWith("pack/textures/models/armor/leather_layer")) return;
-            } else if (CustomArmorType.getSetting() == CustomArmorType.TRIMS) {
-                if (!entry.getName().contains("transparent") && !StringUtils.substringAfter(entry.getName(), "armor/").toUpperCase().startsWith(Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString())) return;
-            }
+            if (customArmorType != CustomArmorType.SHADER) return;
+            if (!Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && entry.getName().startsWith("pack/textures/models/armor/leather_layer")) return;
             plugin.saveResource(entry.getName(), false);
         }
     }
