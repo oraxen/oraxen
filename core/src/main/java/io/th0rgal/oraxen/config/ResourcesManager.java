@@ -83,7 +83,7 @@ public class ResourcesManager {
             else if (customArmorType == CustomArmorType.SHADER) {
                 if (!Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && entry.getName().startsWith("pack/textures/models/armor/leather_layer")) return;
             } else if (CustomArmorType.getSetting() == CustomArmorType.TRIMS) {
-                if (!StringUtils.substringAfter(entry.getName(), "armor/").toUpperCase().startsWith(Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString())) return;
+                if (!entry.getName().contains("transparent") && !StringUtils.substringAfter(entry.getName(), "armor/").toUpperCase().startsWith(Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString())) return;
             }
             plugin.saveResource(entry.getName(), false);
         }
