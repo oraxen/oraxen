@@ -31,6 +31,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class TrimArmorDatapack {
+    private static final File customArmorDatapack = Bukkit.getWorldContainer().toPath().resolve("world/datapacks/oraxen_custom_armor").toFile();
 
     private final JsonObject datapackMeta = new JsonObject();
     private final JsonObject sourcesObject = new JsonObject();
@@ -43,14 +44,20 @@ public class TrimArmorDatapack {
         //checkOraxenArmorItems();
     }
 
+    public static void clearOldDataPacks() {
+        try {
+            FileUtils.deleteDirectory(customArmorDatapack);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     public void generateTrimAssets(List<VirtualFile> output) {
         Set<String> armorPrefixes = armorPrefixes(output);
-        File datapacksRoot = Bukkit.getWorldContainer().toPath().resolve("world/datapacks").toFile();
-        File datapack = datapacksRoot.toPath().resolve("trims").toFile();
-        datapack.toPath().resolve("data").toFile().mkdirs();
-        writeMCMeta(datapack);
-        writeVanillaTrimPattern(datapack);
-        writeCustomTrimPatterns(datapack, armorPrefixes);
+        customArmorDatapack.toPath().resolve("data").toFile().mkdirs();
+        writeMCMeta(customArmorDatapack);
+        writeVanillaTrimPattern(customArmorDatapack);
+        writeCustomTrimPatterns(customArmorDatapack, armorPrefixes);
         writeTrimAtlas(output, armorPrefixes);
         copyArmorLayerTextures(output);
         checkOraxenArmorItems();

@@ -596,6 +596,9 @@ public class ResourcePack {
 
     private void handleCustomArmor(List<VirtualFile> output) {
         CustomArmorType customArmorType = CustomArmorType.getSetting();
+        // Clear out old datapacks before generating new ones, in case type changed or otherwise
+        TrimArmorDatapack.clearOldDataPacks();
+
         if (customArmorType == CustomArmorType.SHADER && Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && shaderArmorTextures.hasCustomArmors()) {
             try {
                 String armorPath = "assets/minecraft/textures/models/armor";
