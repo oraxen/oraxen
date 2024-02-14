@@ -6,8 +6,6 @@ import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.ItemUtils;
-import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -34,10 +32,10 @@ public class Drop {
     final String sourceID;
 
     @SuppressWarnings("unchecked")
-    public static Drop createDrop(List<String> toolTypes, @NotNull ConfigurationSection dropSection, String itemID) {
-        List<Loot> loots = ((List<LinkedHashMap<String, Object>>) dropSection.getList("loots", new ArrayList<>())).stream().map(Loot::new).toList();
+    public static Drop createDrop(List<String> toolTypes, @NotNull ConfigurationSection dropSection, String sourceID) {
+        List<Loot> loots = ((List<LinkedHashMap<String, Object>>) dropSection.getList("loots", new ArrayList<>())).stream().map(c -> new Loot(c, sourceID)).toList();
         return new Drop(toolTypes, loots, dropSection.getBoolean("silktouch"),
-                dropSection.getBoolean("fortune"), itemID,
+                dropSection.getBoolean("fortune"), sourceID,
                 dropSection.getString("minimal_type", ""), dropSection.getStringList("best_tools"));
     }
 
@@ -153,7 +151,7 @@ public class Drop {
 
     public void furnitureSpawns(Entity baseEntity, ItemStack itemInHand) {
         ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
-        Location location = baseEntity.getLocation();
+        Location location = BlockHelpers.toBlockLocation(baseEntity.getLocation());
         ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
         ItemUtils.editItemMeta(furnitureItem, (itemMeta) -> {
             ItemMeta baseMeta = baseItem.getItemMeta();
@@ -173,7 +171,7 @@ public class Drop {
             // Filter loots down to only the furniture item and drop the item in the actual Furniture to preseve color etc.
             dropLoot(loots.stream()
                     .filter(loot -> loot.getItemStack().equals(baseItem))
-                    .map(loot -> new Loot(furnitureItem, loot.getProbability(), 1, loot.getMaxAmount()))
+                    .map(loot -> new Loot(sourceID, furnitureItem, loot.getProbability(), 1, loot.getMaxAmount()))
                     .toList(), location, getFortuneMultiplier(itemInHand));
         }
     }

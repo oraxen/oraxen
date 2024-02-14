@@ -11,7 +11,7 @@ import org.bukkit.block.Block;
 
 import java.util.*;
 
-public class AdminCommands {
+public class AdminCommand {
 
     CommandAPICommand getAdminCommand() {
         return new CommandAPICommand("admin")

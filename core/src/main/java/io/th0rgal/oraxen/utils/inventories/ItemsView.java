@@ -137,7 +137,7 @@ public class ItemsView {
         String material = settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", fileName), "PAPER");
         String displayName = ItemParser.parseComponentDisplayName(settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), "<green>" + file.getName()));
         try {
-            itemStack = new ItemBuilder(OraxenItems.getItemById(material).build())
+            itemStack = new ItemBuilder(OraxenItems.getItemById(material).getReferenceClone())
                     .addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
                     .setDisplayName(displayName)
                     .setLore(new ArrayList<>())

@@ -42,7 +42,7 @@ public class SaplingListener implements Listener {
         SaplingMechanic sapling = mechanic.getSaplingMechanic();
         if (sapling == null || !sapling.hasSchematic()) return;
         if (sapling.requiresLight() && sapling.getMinLightLevel() > block.getLightLevel()) return;
-        if (sapling.requiresWaterSource() && sapling.isInWater(block)) return;
+        if (sapling.requiresWaterSource() && sapling.isUnderWater(block)) return;
         if (!sapling.canGrowFromBoneMeal()) return;
         if (!PluginUtils.isEnabled("WorldEdit")) return;
         if (!sapling.replaceBlocks() && !WrappedWorldEdit.getBlocksInSchematic(loc, sapling.getSchematic()).isEmpty()) return;

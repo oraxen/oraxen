@@ -12,6 +12,7 @@ import org.bukkit.Location;
 import org.bukkit.Particle;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.damage.DamageType;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
@@ -116,7 +117,7 @@ public class EnergyBlastMechanicManager implements Listener {
                     spawnParticle(playerLoc.getWorld(), playerLoc, mechanic, 1000, 0.3, 0.3, 0.3, 0.3);
                     for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, 0.5, 0.5, 0.5))
                         if (entity instanceof LivingEntity livingEntity && entity != player) {
-                            EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, mechanic.getDamage() * 3.0);
+                            EntityDamageByEntityEvent event = EventUtils.EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, DamageType.MAGIC, mechanic.getDamage() * 3.0);
                             if (entity.isDead() || EventUtils.callEvent(event)) continue;
                             entity.setLastDamageCause(event);
                             livingEntity.damage(mechanic.getDamage() * 3.0, player);
@@ -128,7 +129,7 @@ public class EnergyBlastMechanicManager implements Listener {
                 playerLoc.add(dir);
                 for (Entity entity : playerLoc.getWorld().getNearbyEntities(playerLoc, radius, radius, radius))
                     if (entity instanceof LivingEntity livingEntity && entity != player) {
-                        EntityDamageByEntityEvent event = new EntityDamageByEntityEvent(player, livingEntity, EntityDamageEvent.DamageCause.MAGIC, mechanic.getDamage());
+                        EntityDamageByEntityEvent event = EventUtils.EntityDamageByEntityEvent(player, entity, EntityDamageEvent.DamageCause.MAGIC, DamageType.MAGIC, mechanic.getDamage());
                         if (livingEntity.isDead() || !EventUtils.callEvent(event)) continue;
                         livingEntity.setLastDamageCause(event);
                         livingEntity.damage(mechanic.getDamage(), player);

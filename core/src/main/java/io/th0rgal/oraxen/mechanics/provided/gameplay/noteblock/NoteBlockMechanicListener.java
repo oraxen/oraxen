@@ -238,7 +238,6 @@ public class NoteBlockMechanicListener implements Listener {
 
         // determines the new block data of the block
         int customVariation = mechanic.getCustomVariation();
-        boolean isFalling = mechanic.isFalling();
         BlockFace face = event.getBlockFace();
 
         if (mechanic.isDirectional()) {
@@ -365,6 +364,12 @@ public class NoteBlockMechanicListener implements Listener {
         }
     }
 
+    @EventHandler(ignoreCancelled = true)
+    public void updateLightOnBlockBreak(BlockBreakEvent event) {
+        Block block = event.getBlock();
+        //if (!OraxenBlocks.isOraxenNoteBlock(block)) LightMechanic.refreshBlockLight(block);
+    }
+
     //TODO Also trigger for attached blocks
     /* Make Falling Oraxen Blocks above the given block trigger causing physics changes*/
     private void handleFallingOraxenBlockAbove(Block block) {
@@ -457,6 +462,7 @@ public class NoteBlockMechanicListener implements Listener {
         // This method is run for placing on custom blocks aswell, so this should not be called for vanilla blocks
         NoteBlockMechanic targetOraxen = OraxenBlocks.getNoteBlockMechanic(newData);
         if (targetOraxen != null) {
+
             OraxenBlocks.place(targetOraxen.getItemID(), target.getLocation());
 
             OraxenNoteBlockPlaceEvent oraxenPlaceEvent = new OraxenNoteBlockPlaceEvent(targetOraxen, target, player, item, hand);
@@ -465,12 +471,20 @@ public class NoteBlockMechanicListener implements Listener {
                 return;
             }
 
+            if (targetOraxen.isFalling() && target.getRelative(BlockFace.DOWN).getType().isAir()) {
+                Location fallingLocation = BlockHelpers.toCenterBlockLocation(target.getLocation());
+                OraxenBlocks.remove(target.getLocation(), null);
+                target.getWorld().spawnFallingBlock(fallingLocation, newData);
+                handleFallingOraxenBlockAbove(target);
+            }
+
             if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
             Utils.swingHand(player, hand);
         } else {
             target.setType(Material.AIR);
             BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
         }
+        target.getWorld().sendGameEvent(null, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
     }
 
     // Used to determine what instrument to use when playing a note depending on below block

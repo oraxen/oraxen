@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.compatibilities;
 
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.bossshoppro.BossShopProCompatibility;
-import io.th0rgal.oraxen.compatibilities.provided.lightapi.WrappedLightAPI;
 import io.th0rgal.oraxen.compatibilities.provided.mythicmobs.MythicMobsCompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PlaceholderAPICompatibility;
 import io.th0rgal.oraxen.compatibilities.provided.worldedit.WrappedWorldEdit;
@@ -22,7 +21,6 @@ public class CompatibilitiesManager {
     private static final ConcurrentHashMap<String, CompatibilityProvider<?>> ACTIVE_COMPATIBILITY_PROVIDERS = new ConcurrentHashMap<>();
 
     public static void enableNativeCompatibilities() {
-        WrappedLightAPI.init();
         WrappedWorldEdit.init();
         WrappedWorldEdit.registerParser();
         new CompatibilityListener();

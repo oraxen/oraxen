@@ -1,13 +1,13 @@
 package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.utils.drops.Drop;
+import org.bukkit.Color;
 import org.bukkit.Material;
 import org.bukkit.Tag;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
-import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.*;
 
 import java.util.function.Consumer;
 
@@ -15,6 +15,18 @@ public class ItemUtils {
 
     public static boolean isEmpty(ItemStack itemStack) {
         return itemStack == null || itemStack.getType() == Material.AIR || itemStack.getAmount() == 0;
+    }
+
+    public static void dyeItem(ItemStack itemStack, Color color) {
+        editItemMeta(itemStack, meta -> {
+            if (meta instanceof LeatherArmorMeta leatherArmorMeta) {
+                leatherArmorMeta.setColor(color);
+            } else if (meta instanceof PotionMeta potionMeta) {
+                potionMeta.setColor(color);
+            } else if (meta instanceof MapMeta mapMeta) {
+                mapMeta.setColor(color);
+            }
+        });
     }
 
     /**
