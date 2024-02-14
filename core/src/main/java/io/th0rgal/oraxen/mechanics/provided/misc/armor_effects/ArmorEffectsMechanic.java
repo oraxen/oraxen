@@ -2,10 +2,10 @@ package io.th0rgal.oraxen.mechanics.provided.misc.armor_effects;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorsTextures;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.StringUtils;
-import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -30,9 +30,7 @@ public class ArmorEffectsMechanic extends Mechanic {
 
     public void registersEffectFromSection(ConfigurationSection section) {
         String type = section.getName().toLowerCase();
-        PotionEffectType effectType = PotionEffectType.getByName(type);
-        if (effectType == null)
-            effectType = PotionEffectType.getByKey(type.contains(":") ? NamespacedKey.fromString(type) : NamespacedKey.minecraft(type));
+        PotionEffectType effectType = PotionUtils.getEffectType(type);
         if (effectType == null) {
             Logs.logError("Invalid potion effect: " + section.getName() + ", in " + StringUtils.substringBefore(section.getCurrentPath(), ".") + "!");
             return;
