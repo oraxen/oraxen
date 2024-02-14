@@ -646,7 +646,7 @@ public class CustomArmorsTextures {
                          texCoord1 = UV1;
                          normal = ProjMat * ModelViewMat * vec4(Normal, 0.0);
                      }
-                    """;
+                    """.trim();
         }
 
         private static String getShaderFsh() {
@@ -791,7 +791,7 @@ public class CustomArmorsTextures {
                      
                          fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
                      }
-                    """.replace(SHADER_PARAMETER_PLACEHOLDER, String.valueOf((int) Settings.ARMOR_RESOLUTION.getValue()));
+                    """.replace(SHADER_PARAMETER_PLACEHOLDER, String.valueOf((int) Settings.ARMOR_RESOLUTION.getValue())).trim();
         }
 
         private static String getShaderJson() {
@@ -828,7 +828,7 @@ public class CustomArmorsTextures {
                              { "name": "GameTime", "type": "float", "count": 1, "values": [ 1.0 ] }
                          ]
                      }
-                    """;
+                    """.trim();
         }
 
         private static String getLicense() {
@@ -837,7 +837,7 @@ public class CustomArmorsTextures {
                                     
                     This allowed to commercially use with reference to original author.
                     Original license: https://github.com/Ancientkingg/fancyPants/blob/master/README.md
-                    """;
+                    """.trim();
         }
 
     }
@@ -888,7 +888,7 @@ public class CustomArmorsTextures {
                              { "name": "FogColor", "type": "float", "count": 4, "values": [ 0.0, 0.0, 0.0, 0.0 ] },
                              { "name": "GameTime", "type": "float", "count": 1, "values": [ 1.0 ] }
                          ]
-                     }""";
+                     }""".trim();
         }
 
         public static String getOutlineJson() {
@@ -914,7 +914,7 @@ public class CustomArmorsTextures {
                             { "name": "ProjMat", "type": "matrix4x4", "count": 16, "values": [ 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 1.0 ] },
                             { "name": "ColorModulator", "type": "float", "count": 4, "values": [ 1.0, 1.0, 1.0, 1.0 ] }
                         ]
-                    }""";
+                    }""".trim();
         }
 
         public static String getArmorVsh() {
@@ -983,7 +983,7 @@ public class CustomArmorsTextures {
                                 tintColor = vec4(1);
                             }
                         }
-                    }""";
+                    }""".trim();
         }
 
         public static String getArmorFsh() {
@@ -1016,7 +1016,7 @@ public class CustomArmorsTextures {
                         color.rgb = mix(overlayColor.rgb, color.rgb, overlayColor.a);
                         color *= vertexColor * lightColor; //shading
                         fragColor = linear_fog(color, vertexDistance, FogStart, FogEnd, FogColor);
-                    }""";
+                    }""".trim();
         }
 
         public static String getGlowingVsh() {
@@ -1046,7 +1046,7 @@ public class CustomArmorsTextures {
                         if (size.y >= 2*size.x && size.x < 256) {
                             uv.y /= 2.*size.y/size.x;
                         }
-                    }""";
+                    }""".trim();
         }
 
         public static String getGlowingFsh() {
@@ -1066,7 +1066,7 @@ public class CustomArmorsTextures {
                         vec4 color = texture(Sampler0, uv);
                         if (color.a == 0.0) discard;
                         fragColor = vec4(ColorModulator.rgb * vertexColor.rgb, ColorModulator.a);
-                    }""";
+                    }""".trim();
         }
 
         public static String getFogGlsl() {
@@ -1098,7 +1098,7 @@ public class CustomArmorsTextures {
                             float distY = length((modelViewMat * vec4(0.0, pos.y, 0.0, 1.0)).xyz);
                             return max(distXZ, distY);
                         }
-                    }""";
+                    }""".trim();
         }
     }
 
