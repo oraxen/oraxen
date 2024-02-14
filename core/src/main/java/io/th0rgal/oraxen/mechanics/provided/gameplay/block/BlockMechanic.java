@@ -42,7 +42,7 @@ public class BlockMechanic extends Mechanic {
         ConfigurationSection drop = section.getConfigurationSection("drop");
         if (drop != null){
             for (LinkedHashMap<String, Object> lootConfig : (List<LinkedHashMap<String, Object>>) drop.getList("loots", new ArrayList<>()))
-                loots.add(new Loot(lootConfig));
+                loots.add(new Loot(lootConfig, getItemID()));
             if (drop.isString("minimal_type")) {
                 BlockMechanicFactory mechanic = (BlockMechanicFactory) mechanicFactory;
                 this.drop = new Drop(mechanic.toolTypes, loots, drop.getBoolean("silktouch"),

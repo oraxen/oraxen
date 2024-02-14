@@ -77,14 +77,12 @@ public class HudManager {
     }
 
     public boolean getHudStateForPlayer(Player player) {
-        return !Boolean.FALSE.equals(player.getPersistentDataContainer().get(hudToggleKey, DataType.BOOLEAN));
+        return player.getPersistentDataContainer().getOrDefault(hudToggleKey, DataType.BOOLEAN, true);
     }
 
     public void setHudStateForPlayer(Player player, boolean state) {
         player.getPersistentDataContainer().set(hudToggleKey, DataType.BOOLEAN, state);
     }
-
-
 
     public Collection<Hud> getDefaultEnabledHuds() {
         return huds.values().stream().filter(Hud::isEnabledByDefault).toList();

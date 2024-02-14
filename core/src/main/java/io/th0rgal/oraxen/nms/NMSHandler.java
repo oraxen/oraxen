@@ -6,9 +6,6 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
-import org.bukkit.Location;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -22,7 +19,7 @@ import java.util.Set;
 public interface NMSHandler {
 
     @Nullable
-    ConfigurationSection paperSection = VersionUtil.isPaperServer() ? OraxenYaml.loadConfiguration(OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().getParent().getParent().resolve("config").resolve("paper-global.yml").toFile()).getConfigurationSection("block-updates") : null;
+    ConfigurationSection paperSection = VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.19") ? OraxenYaml.loadConfiguration(OraxenPlugin.get().getDataFolder().toPath().toAbsolutePath().getParent().getParent().resolve("config").resolve("paper-global.yml").toFile()).getConfigurationSection("block-updates") : null;
 
     default boolean noteblockUpdatesDisabled() {
         return VersionUtil.isPaperServer() && paperSection != null && paperSection.getBoolean("disable-noteblock-updates", false);

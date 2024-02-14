@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.hud;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.EntityUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -21,7 +22,7 @@ public class HudTask extends BukkitRunnable {
             Hud hud = manager.getActiveHudForPlayer(player) != null ? manager.getActiveHudForPlayer(player) : manager.getDefaultEnabledHuds().stream().findFirst().orElse(null);
 
             if (hud == null || manager.getHudID(hud) == null) continue;
-            if (hud.disableWhilstInWater() && player.isInWater()) continue;
+            if (hud.disableWhilstInWater() && EntityUtils.isUnderWater(player)) continue;
             if (!player.hasPermission(hud.getPerm())) continue;
 
             manager.updateHud(player);
