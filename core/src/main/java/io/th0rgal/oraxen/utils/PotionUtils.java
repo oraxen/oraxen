@@ -11,14 +11,15 @@ public class PotionUtils {
     @SuppressWarnings({"deprecation"})
     @Nullable
     public static PotionEffectType getEffectType(String effect) {
-        PotionEffectType effectType;
+        PotionEffectType effectType = null;
         try {
             effectType = Registry.POTION_EFFECT_TYPE.get(NamespacedKey.fromString(effect));
         } catch (Exception e) {
-            effectType = PotionEffectType.getByName(effect);
-            if (effectType == null)
-                effectType = PotionEffectType.getByKey(effect.contains(":") ? NamespacedKey.fromString(effect) : NamespacedKey.minecraft(effect));
         }
+        if (effectType == null)
+            effectType = PotionEffectType.getByName(effect);
+        if (effectType == null)
+            effectType = PotionEffectType.getByKey(effect.contains(":") ? NamespacedKey.fromString(effect) : NamespacedKey.minecraft(effect));
 
         return effectType;
     }
