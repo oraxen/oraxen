@@ -155,7 +155,7 @@ public class FurnitureListener implements Listener {
 
         BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(block, block.getState(), placedAgainst, item, player, true, hand);
 
-        final Rotation rotation = getRotation(player.getEyeLocation().getYaw(), mechanic.getBarriers().size() > 1);
+        final Rotation rotation = getRotation(player.getEyeLocation().getYaw(), mechanic);
         final float yaw = rotationToYaw(rotation);
         if (player.getGameMode() == GameMode.ADVENTURE)
             blockPlaceEvent.setCancelled(true);
@@ -208,10 +208,11 @@ public class FurnitureListener implements Listener {
         return FurnitureFactory.getInstance().getMechanic(item);
     }
 
-    private Rotation getRotation(final double yaw, final boolean restricted) {
+    private Rotation getRotation(final double yaw, FurnitureMechanic mechanic) {
+        FurnitureMechanic.RestrictedRotation restrictedRotation = mechanic.getRestrictedRotation();
         int id = (int) (((Location.normalizeYaw((float) yaw) + 180) * 8 / 360) + 0.5) % 8;
-        if (restricted && id % 2 != 0)
-            id -= 1;
+        int offset = restrictedRotation == FurnitureMechanic.RestrictedRotation.STRICT ? 0 : 1;
+        if (restrictedRotation != FurnitureMechanic.RestrictedRotation.NONE && id % 2 != 0) id -= offset;
         return Rotation.values()[id];
     }
 
@@ -372,9 +373,9 @@ public class FurnitureListener implements Listener {
 
         if (mechanic.hasSeat() && pdc != null && mechanic.isRotatable()) {
             if (!player.isSneaking()) FurnitureMechanic.sitOnSeat(pdc, player);
-            else FurnitureMechanic.rotateFurniture(baseEntity);
+            else mechanic.rotateFurniture(baseEntity);
         } else if (mechanic.hasSeat() && pdc != null) FurnitureMechanic.sitOnSeat(pdc, player);
-        else if (mechanic.isRotatable()) FurnitureMechanic.rotateFurniture(baseEntity);
+        else if (mechanic.isRotatable()) mechanic.rotateFurniture(baseEntity);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
