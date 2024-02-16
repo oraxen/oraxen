@@ -34,6 +34,7 @@ import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -380,38 +381,25 @@ public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMiddleClick(final InventoryCreativeEvent event) {
-        if (event.getClick() != ClickType.CREATIVE) return;
         final Player player = (Player) event.getInventory().getHolder();
-        if (player == null) return;
-        if (event.getCursor().getType() == Material.BARRIER) {
-            final RayTraceResult rayTraceResult = player.rayTraceBlocks(6.0);
-            if (rayTraceResult == null) return;
-            final Block block = rayTraceResult.getHitBlock();
-            if (block == null) return;
-            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
-            if (mechanic == null) return;
+        if (event.getClickedInventory() == null || player == null) return;
+        if (event.getClick() != ClickType.CREATIVE) return;
+        if (event.getSlotType() != InventoryType.SlotType.QUICKBAR) return;
+        if (event.getCursor().getType() != Material.BARRIER) return;
 
-            ItemStack item = OraxenItems.getItemById(mechanic.getItemID()).build();
-            for (int i = 0; i <= 8; i++) {
-                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), mechanic.getItemID())) {
-                    player.getInventory().setHeldItemSlot(i);
-                    event.setCancelled(true);
-                    return;
-                }
+        final RayTraceResult rayTraceResult = player.rayTraceBlocks(8.0);
+        FurnitureMechanic mechanic = rayTraceResult != null ? OraxenFurniture.getFurnitureMechanic(rayTraceResult.getHitBlock()) : null;
+        if (mechanic == null) return;
+
+        ItemStack item = OraxenItems.getItemById(mechanic.getItemID()).build();
+        for (int i = 0; i <= 8; i++) {
+            if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), mechanic.getItemID())) {
+                player.getInventory().setHeldItemSlot(i);
+                event.setCancelled(true);
+                return;
             }
-            event.setCursor(item);
-        } else if (OraxenItems.getIdByItem(event.getCursor()) != null) {
-            String itemID = OraxenItems.getIdByItem(event.getCursor());
-            if (!OraxenFurniture.isFurniture(itemID)) return;
-            for (int i = 0; i <= 8; i++) {
-                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), itemID)) {
-                    player.getInventory().setHeldItemSlot(i);
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-            event.setCursor(OraxenItems.getItemById(itemID).build());
         }
+        event.setCursor(item);
     }
 
     @EventHandler(ignoreCancelled = true)
