@@ -131,7 +131,7 @@ public class StringBlockMechanicListener implements Listener {
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
         if (mechanic == null) return;
 
-        if (!EventUtils.callEvent(new OraxenStringBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace())))
+        if (!EventUtils.callEvent(new OraxenStringBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace(), event.getAction())))
             event.setCancelled(true);
     }
 
@@ -240,7 +240,7 @@ public class StringBlockMechanicListener implements Listener {
         // Call the event
         StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
         if (stringBlockMechanic == null) return;
-        if (!EventUtils.callEvent(new OraxenStringBlockInteractEvent(stringBlockMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace())))
+        if (!EventUtils.callEvent(new OraxenStringBlockInteractEvent(stringBlockMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace(), event.getAction())))
             event.setUseInteractedBlock(Event.Result.DENY);
     }
 

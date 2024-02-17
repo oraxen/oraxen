@@ -7,6 +7,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
+import org.bukkit.event.block.Action;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
@@ -20,16 +21,18 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
     private final ItemStack itemInHand;
     private final BlockFace blockFace;
     private final EquipmentSlot hand;
+    private final Action action;
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenNoteBlockInteractEvent(@NotNull final NoteBlockMechanic mechanic, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @NotNull final Block block, @NotNull final BlockFace blockFace) {
+    public OraxenNoteBlockInteractEvent(@NotNull final NoteBlockMechanic mechanic, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @NotNull final Block block, @NotNull final BlockFace blockFace, @NotNull final Action action) {
         this.mechanic = mechanic;
         this.block = block;
         this.player = player;
         this.itemInHand = itemInHand;
         this.blockFace = blockFace;
         this.hand = hand;
+        this.action = action;
         this.isCancelled = false;
     }
 
@@ -79,6 +82,14 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
     @NotNull
     public EquipmentSlot getHand() {
         return hand;
+    }
+
+    /**
+     * @return The type of interaction
+     */
+    @NotNull
+    public Action getAction() {
+        return action;
     }
 
     @Override
