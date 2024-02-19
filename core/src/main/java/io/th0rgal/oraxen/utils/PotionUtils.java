@@ -11,6 +11,7 @@ public class PotionUtils {
     @SuppressWarnings({"deprecation"})
     @Nullable
     public static PotionEffectType getEffectType(String effect) {
+        if (effect == null || effect.isEmpty()) return null;
         PotionEffectType effectType = null;
         try {
             effectType = Registry.POTION_EFFECT_TYPE.get(NamespacedKey.fromString(effect));
