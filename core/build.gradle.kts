@@ -29,8 +29,8 @@ publishing {
             artifactId = rootProject.name
             version = publishData.getVersion()
 
-            //from(components["java"])
-            artifact(tasks.shadowJar.get().apply { archiveClassifier.set("") })
+            from(components["java"])
+            //artifact(tasks.shadowJar.get().apply { archiveClassifier.set("") })
         }
     }
 
