@@ -194,13 +194,13 @@ public class DuplicationHandler {
             List<String> newProviderChars = getNewProviderCharSet(newProviders);
             if (providers != null) for (JsonElement providerElement : providers) {
                 if (!providerElement.isJsonObject()) continue;
+                JsonObject provider = providerElement.getAsJsonObject();
                 if (newProviders.contains(providerElement)) continue;
-                if (!providerElement.getAsJsonObject().has("chars")) continue;
-                String chars = providerElement.getAsJsonObject().getAsJsonArray("chars").toString();
-                if (!newProviderChars.contains(chars))
-                    newProviders.add(providerElement);
-                else
-                    Logs.logWarning("Tried adding " + chars + " but it was already defined in this font");
+                if (provider.has("chars")) {
+                    String chars = provider.getAsJsonArray("chars").toString();
+                    if (!newProviderChars.contains(chars)) newProviders.add(provider);
+                    else Logs.logWarning("Tried adding " + chars + " but it was already defined in this font");
+                } else newProviders.add(provider);
             }
         }
         return newProviders;
