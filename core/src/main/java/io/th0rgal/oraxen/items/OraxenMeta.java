@@ -56,7 +56,6 @@ public class OraxenMeta {
     public void setPackInfos(ConfigurationSection section) {
         this.hasPackInfos = true;
         this.modelName = readModelName(section, "model");
-        Logs.debug("model name: " + modelName);
         this.blockingModel = readModelName(section, "blocking_model");
         this.castModel = readModelName(section, "cast_model");
         this.chargedModel = readModelName(section, "charged_model");

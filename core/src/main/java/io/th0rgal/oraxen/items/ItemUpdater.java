@@ -24,11 +24,13 @@ import org.bukkit.inventory.PlayerInventory;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.persistence.PersistentDataContainer;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 
 import static io.th0rgal.oraxen.items.ItemBuilder.ORIGINAL_NAME_KEY;
+import static io.th0rgal.oraxen.items.ItemBuilder.UNSTACKABLE_KEY;
 
 public class ItemUpdater implements Listener {
 
@@ -82,19 +84,20 @@ public class ItemUpdater implements Listener {
         }
     }
 
+    private static final NamespacedKey GUI_ITEM_KEY = Objects.requireNonNull(NamespacedKey.fromString("oraxen:if-uuid"));
     public static ItemStack updateItem(ItemStack oldItem) {
         String id = OraxenItems.getIdByItem(oldItem);
         if (id == null) return oldItem;
 
         // Oraxens Inventory adds a dumb PDC entry to items, this will remove them
         // Done here over [ItemsView] as this method is called anyway and supports old items
-        NamespacedKey guiItemKey = Objects.requireNonNull(NamespacedKey.fromString("oraxen:if-uuid"));
-        ItemUtils.editItemMeta(oldItem, itemMeta -> itemMeta.getPersistentDataContainer().remove(guiItemKey));
+        ItemUtils.editItemMeta(oldItem, itemMeta -> itemMeta.getPersistentDataContainer().remove(GUI_ITEM_KEY));
 
-        Optional<ItemBuilder> newItemBuilder = OraxenItems.getOptionalItemById(id);
-        if (newItemBuilder.isEmpty() || newItemBuilder.get().getOraxenMeta().isNoUpdate()) return oldItem;
+        Optional<ItemBuilder> optionalBuilder = OraxenItems.getOptionalItemById(id);
+        if (optionalBuilder.isEmpty() || optionalBuilder.get().getOraxenMeta().isNoUpdate()) return oldItem;
+        ItemBuilder newItemBuilder = optionalBuilder.get();
 
-        ItemStack newItem = NMSHandlers.getHandler().copyItemNBTTags(oldItem, newItemBuilder.get().build());;
+        ItemStack newItem = NMSHandlers.getHandler() != null ? NMSHandlers.getHandler().copyItemNBTTags(oldItem, newItemBuilder.build()) : newItemBuilder.build();
         newItem.setAmount(oldItem.getAmount());
 
         ItemUtils.editItemMeta(newItem, itemMeta -> {
@@ -105,7 +108,8 @@ public class ItemUpdater implements Listener {
             PersistentDataContainer itemPdc = itemMeta.getPersistentDataContainer();
 
             // Transfer over all PDC entries from oldItem to newItem
-            PersistentDataSerializer.fromMapList(PersistentDataSerializer.toMapList(oldPdc), itemPdc);
+            List<Map<?, ?>> oldPdcMap = PersistentDataSerializer.toMapList(oldPdc);
+            PersistentDataSerializer.fromMapList(oldPdcMap, itemPdc);
 
             // Add all enchantments from oldItem and add all from newItem aslong as it is not the same Enchantments
             for (Map.Entry<Enchantment, Integer> entry : oldMeta.getEnchants().entrySet())
@@ -138,7 +142,7 @@ public class ItemUpdater implements Listener {
                 // in the process of creating the shader images. Then we just save the builder to update the config
                 else {
                     leatherMeta.setColor(newLeatherMeta.getColor());
-                    newItemBuilder.get().save();
+                    newItemBuilder.save();
                 }
             }
 
@@ -164,7 +168,10 @@ public class ItemUpdater implements Listener {
             } else {
                 itemMeta.setDisplayName(newMeta.getDisplayName());
             }
+
             itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.getDisplayName());
+            // If the item is not unstackable, we should remove the unstackable tag
+            if (!newItemBuilder.isUnstackable()) itemPdc.remove(UNSTACKABLE_KEY);
         });
 
         return newItem;
