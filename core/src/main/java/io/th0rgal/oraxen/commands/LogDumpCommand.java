@@ -31,7 +31,7 @@ public class LogDumpCommand {
                     try {
                         Path path = OraxenPlugin.get().getDataFolder().getAbsoluteFile().getParentFile().getParentFile().toPath().resolve("logs/latest.log");
                         logfile = Files.readString(path).replaceAll(packUrl, "[REDACTED]");
-                        if (VersionUtil.isLeaked()) logfile = logfile + "\n\nThis server is running a leaked version of Oraxen, please report it to the developers.";
+                        if (VersionUtil.isLeaked()) logfile = logfile + "\n\nThis server is running a leaked version of Oraxen";
                     } catch (Exception e) {
                         Logs.logError("Failed to read latest.log, is it missing?");
                         if (Settings.DEBUG.toBool()) e.printStackTrace();

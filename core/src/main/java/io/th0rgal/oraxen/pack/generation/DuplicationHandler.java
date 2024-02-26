@@ -185,10 +185,7 @@ public class DuplicationHandler {
         for (VirtualFile font : duplicates) {
             JsonElement fontelement = font.toJsonElement();
 
-            if (!fontelement.isJsonObject()) {
-                Logs.logError("Not a json object");
-                continue;
-            }
+            if (fontelement == null || !fontelement.isJsonObject()) continue;
 
             JsonArray providers = fontelement.getAsJsonObject().getAsJsonArray("providers");
             List<String> newProviderChars = getNewProviderCharSet(newProviders);
