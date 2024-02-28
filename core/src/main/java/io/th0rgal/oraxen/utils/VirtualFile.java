@@ -1,10 +1,12 @@
 package io.th0rgal.oraxen.utils;
 
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -50,6 +52,7 @@ public class VirtualFile implements Comparable<VirtualFile> {
         return other.getPath().compareTo(getPath());
     }
 
+    @Nullable
     public JsonElement toJsonElement() {
         InputStream fontInput = inputStream;
         String fontContent;
@@ -60,6 +63,17 @@ public class VirtualFile implements Comparable<VirtualFile> {
             return null;
         }
         return JsonParser.parseString(fontContent);
+    }
+
+    @Nullable
+    public JsonObject toJsonObject() {
+        JsonElement element = toJsonElement();
+        return element != null && element.isJsonObject() ? element.getAsJsonObject() : null;
+    }
+
+    public boolean isJsonObject() {
+        JsonElement element = toJsonElement();
+        return element != null && element.isJsonObject();
     }
 
 }
