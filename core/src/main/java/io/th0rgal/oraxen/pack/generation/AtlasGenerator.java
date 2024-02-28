@@ -47,7 +47,8 @@ public class AtlasGenerator {
         Set<String> fontTextures = new LinkedHashSet<>();
         Set<JsonObject> fonts = output.stream().filter(v -> v.getPath().matches("assets/.*/font/.*.json") && v.isJsonObject()).map(VirtualFile::toJsonObject).collect(Collectors.toSet());
         for (JsonObject font : fonts) {
-            if (font.has("providers")) for (JsonElement providerElement : font.getAsJsonArray("providers")) {
+            if (font == null || !font.has("providers")) continue;
+            for (JsonElement providerElement : font.getAsJsonArray("providers")) {
                 if (!providerElement.isJsonObject()) continue;
                 JsonObject provider = providerElement.getAsJsonObject();
                 if (provider.has("file")) {

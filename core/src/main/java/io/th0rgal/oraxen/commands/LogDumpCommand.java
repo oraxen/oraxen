@@ -42,7 +42,7 @@ public class LogDumpCommand {
                         APIResponse post = MclogsAPI.share(new Log(logfile));
                         Logs.logSuccess("Logfile has been dumped to: " + post.url);
                     } catch (IOException e) {
-                        Logs.logWarning("Failed to upload logfile to mclo.gs, attempting to using pastebin");
+                        Logs.logWarning("Failed to upload logfile to mclo.gs, attempting to using pastebin - s");
                         if (Settings.DEBUG.toBool()) e.printStackTrace();
                         try {
                             Logs.logSuccess("Logfile has been dumped to: " + postToPasteBin(logfile));
