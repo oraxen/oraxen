@@ -8,6 +8,7 @@ import org.apache.commons.io.IOUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 
@@ -58,6 +59,8 @@ public class VirtualFile implements Comparable<VirtualFile> {
         String fontContent;
         try {
             fontContent = IOUtils.toString(fontInput, StandardCharsets.UTF_8);
+            inputStream.close();
+            inputStream = new ByteArrayInputStream(fontContent.getBytes(StandardCharsets.UTF_8));
         } catch (Exception e) {
             Logs.logError(Utils.removeParentDirs(getPath()) + " was empty");
             return null;
