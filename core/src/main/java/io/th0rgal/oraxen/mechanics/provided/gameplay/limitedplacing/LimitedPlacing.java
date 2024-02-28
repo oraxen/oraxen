@@ -5,8 +5,6 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -112,6 +110,7 @@ public class LimitedPlacing {
     }
 
     public boolean checkLimitedMechanic(Block block) {
+        if (blockTypes.isEmpty() && blockTags.isEmpty() && oraxenBlocks.isEmpty()) return type == LimitedPlacingType.ALLOW;
         String oraxenId = checkIfOraxenItem(block);
         if (oraxenId == null) {
             if (blockTypes.contains(block.getType())) return true;

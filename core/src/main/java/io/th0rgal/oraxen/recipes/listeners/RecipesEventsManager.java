@@ -48,8 +48,9 @@ public class RecipesEventsManager implements Listener {
         if (event.getSlot() != 2 || merchantInventory.getSelectedRecipe() == null) return;
 
         String first = OraxenItems.getIdByItem(merchantInventory.getItem(0)), second = OraxenItems.getIdByItem(merchantInventory.getItem(1));
-        List<ItemStack> ingredients = merchantInventory.getSelectedRecipe().getIngredients();
-        String firstIngredient = OraxenItems.getIdByItem(ingredients.get(0)), secondIngredient = OraxenItems.getIdByItem(ingredients.get(1));
+        ArrayList<ItemStack> ingredients = new ArrayList<>(merchantInventory.getSelectedRecipe().getIngredients());
+        String firstIngredient = ingredients.isEmpty() ? null : OraxenItems.getIdByItem(ingredients.get(0));
+        String secondIngredient = ingredients.size() < 2 ? null : OraxenItems.getIdByItem(ingredients.get(1));
         if (!Objects.equals(first, firstIngredient) || !Objects.equals(second, secondIngredient)) event.setCancelled(true);
     }
 
@@ -66,8 +67,7 @@ public class RecipesEventsManager implements Listener {
         if (!containsOraxenItem || recipe == null) return;
 
         CustomRecipe current = new CustomRecipe(null, recipe.getResult(), Arrays.asList(event.getInventory().getMatrix()));
-        if (whitelistedCraftRecipes.stream().anyMatch(w -> w.equals(current))) return;
-        if (current.isValidDyeRecipe()) return;
+        if (whitelistedCraftRecipes.stream().anyMatch(current::equals) || current.isValidDyeRecipe()) return;
 
         event.getInventory().setResult(null);
     }

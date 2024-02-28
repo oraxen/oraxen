@@ -72,10 +72,25 @@ public class FurnitureMechanic extends Mechanic {
     private final DisplayEntityProperties displayEntityProperties;
     private final FurnitureHitbox hitbox;
     private final boolean isRotatable;
-
     private final BlockLockerMechanic blockLocker;
+    private final RestrictedRotation restrictedRotation;
 
     public record FurnitureHitbox(float width, float height) {
+    }
+
+    public enum RestrictedRotation {
+        NONE, STRICT, VERY_STRICT;
+
+        public static RestrictedRotation fromString(String string) {
+            try {
+                return RestrictedRotation.valueOf(string);
+            } catch (IllegalArgumentException e) {
+                Logs.logError("Invalid restricted rotation: " + string);
+                Logs.logError("Allowed ones are: " + Arrays.toString(RestrictedRotation.values()));
+                Logs.logWarning("Setting to STRICT");
+                return STRICT;
+            }
+        }
     }
 
     public enum FurnitureType {
@@ -108,6 +123,7 @@ public class FurnitureMechanic extends Mechanic {
         farmlandRequired = section.getBoolean("farmland_required", false);
         farmblockRequired = section.getBoolean("farmblock_required", false);
         light = new LightMechanic(section);
+        restrictedRotation = RestrictedRotation.fromString(section.getString("restricted_rotation", "STRICT"));
 
         try {
             String defaultEntityType;
@@ -827,11 +843,20 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    public static void rotateFurniture(Entity baseEntity) {
+    public RestrictedRotation getRestrictedRotation() {
+        return restrictedRotation;
+    }
+
+    public void rotateFurniture(Entity baseEntity) {
         float yaw = FurnitureMechanic.getFurnitureYaw(baseEntity);
-        Rotation newRotation = FurnitureMechanic.yawToRotation(yaw).rotateClockwise();
+        Rotation newRotation = rotateClockwise(yawToRotation(yaw));
         if (baseEntity instanceof ItemFrame frame) frame.setRotation(newRotation);
         else baseEntity.setRotation(FurnitureMechanic.rotationToYaw(newRotation), baseEntity.getLocation().getPitch());
+    }
+
+    private Rotation rotateClockwise(Rotation rotation) {
+        int offset = restrictedRotation == RestrictedRotation.VERY_STRICT ? 2 : 1;
+        return Rotation.values()[(rotation.ordinal() + offset) & 0x7];
     }
 
     public BlockLockerMechanic getBlockLocker() {

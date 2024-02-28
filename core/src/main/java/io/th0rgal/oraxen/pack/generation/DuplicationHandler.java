@@ -185,22 +185,19 @@ public class DuplicationHandler {
         for (VirtualFile font : duplicates) {
             JsonElement fontelement = font.toJsonElement();
 
-            if (!fontelement.isJsonObject()) {
-                Logs.logError("Not a json object");
-                continue;
-            }
+            if (fontelement == null || !fontelement.isJsonObject()) continue;
 
             JsonArray providers = fontelement.getAsJsonObject().getAsJsonArray("providers");
             List<String> newProviderChars = getNewProviderCharSet(newProviders);
             if (providers != null) for (JsonElement providerElement : providers) {
                 if (!providerElement.isJsonObject()) continue;
+                JsonObject provider = providerElement.getAsJsonObject();
                 if (newProviders.contains(providerElement)) continue;
-                if (!providerElement.getAsJsonObject().has("chars")) continue;
-                String chars = providerElement.getAsJsonObject().getAsJsonArray("chars").toString();
-                if (!newProviderChars.contains(chars))
-                    newProviders.add(providerElement);
-                else
-                    Logs.logWarning("Tried adding " + chars + " but it was already defined in this font");
+                if (provider.has("chars")) {
+                    String chars = provider.getAsJsonArray("chars").toString();
+                    if (!newProviderChars.contains(chars)) newProviders.add(provider);
+                    else Logs.logWarning("Tried adding " + chars + " but it was already defined in this font");
+                } else newProviders.add(provider);
             }
         }
         return newProviders;

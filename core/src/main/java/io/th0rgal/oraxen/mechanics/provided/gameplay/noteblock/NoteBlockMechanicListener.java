@@ -133,7 +133,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (event.getClickedBlock().getType() != Material.NOTE_BLOCK) return;
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
         if (mechanic == null) return;
-        if (!EventUtils.callEvent(new OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace())))
+        if (!EventUtils.callEvent(new OraxenNoteBlockInteractEvent(mechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace(), event.getAction())))
             event.setUseInteractedBlock(Event.Result.DENY);
     }
 
@@ -268,8 +268,8 @@ public class NoteBlockMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakingCustomBlock(final BlockBreakEvent event) {
-        if (OraxenBlocks.remove(event.getBlock().getLocation(), event.getPlayer()))
-            event.setDropItems(false);
+        if (OraxenBlocks.isOraxenNoteBlock(event.getBlock())) event.setDropItems(false);
+        OraxenBlocks.remove(event.getBlock().getLocation(), event.getPlayer());
     }
 
     @EventHandler

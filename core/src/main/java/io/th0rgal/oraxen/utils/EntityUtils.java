@@ -15,7 +15,7 @@ public class EntityUtils {
     private static Method spawnMethod;
 
     public static boolean isUnderWater(Entity entity) {
-        if (VersionUtil.atOrAbove("1.19")) {
+        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.19")) {
             return entity.isUnderWater();
         } else return entity.isInWater();
     }

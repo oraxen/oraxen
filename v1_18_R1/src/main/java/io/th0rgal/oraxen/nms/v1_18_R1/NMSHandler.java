@@ -56,6 +56,16 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private final Map<Channel, ChannelHandler> decoder = Collections.synchronizedMap(new WeakHashMap<>());
 
     @Override
+    public boolean noteblockUpdatesDisabled() {
+        return false;
+    }
+
+    @Override
+    public boolean tripwireUpdatesDisabled() {
+        return false;
+    }
+
+    @Override
     public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
         CompoundTag oldTag = CraftItemStack.asNMSCopy(oldItem).getOrCreateTag();
         net.minecraft.world.item.ItemStack newNmsItem = CraftItemStack.asNMSCopy(newItem);

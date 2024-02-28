@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.utils.inventories;
 
 import com.github.stefvanschie.inventoryframework.gui.type.ChestGui;
+import dev.triumphteam.gui.guis.BaseGui;
 import io.th0rgal.oraxen.recipes.CustomRecipe;
 import org.bukkit.entity.Player;
 
@@ -11,7 +12,7 @@ import java.util.UUID;
 
 public class InvManager {
 
-    private Map<UUID, ChestGui> itemsViews = new HashMap<>();
+    private final Map<UUID, BaseGui> itemsViews = new HashMap<>();
 
     public InvManager() {
         regen();
@@ -21,7 +22,7 @@ public class InvManager {
         itemsViews.clear();
     }
 
-    public ChestGui getItemsView(Player player) {
+    public BaseGui getItemsView(Player player) {
         return itemsViews.computeIfAbsent(player.getUniqueId(), uuid -> new ItemsView().create());
     }
 

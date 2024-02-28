@@ -103,7 +103,7 @@ allprojects {
         compileOnly("com.sk89q.worldedit:worldedit-bukkit:7.2.9")
         compileOnly("commons-io:commons-io:2.11.0")
         compileOnly("com.google.code.gson:gson:$googleGsonVersion")
-        compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.1")
+        compileOnly("com.ticxo.modelengine:ModelEngine:R4.0.4")
         compileOnly("com.ticxo.modelengine:api:R3.1.8")
         compileOnly(files("../libs/compile/BSP.jar"))
         compileOnly("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
@@ -199,7 +199,7 @@ tasks {
 }
 
 bukkit {
-    load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
+    load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.STARTUP
     main = "io.th0rgal.oraxen.OraxenPlugin"
     version = pluginVersion
     name = "Oraxen"

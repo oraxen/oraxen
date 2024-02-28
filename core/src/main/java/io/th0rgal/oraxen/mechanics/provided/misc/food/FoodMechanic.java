@@ -1,17 +1,15 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.food;
 
-import io.lumine.mythiccrucible.MythicCrucible;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.ecoitems.WrappedEcoItem;
-import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.Indyuce.mmoitems.MMOItems;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
@@ -47,9 +45,7 @@ public class FoodMechanic extends Mechanic {
 
     private void registerEffects(ConfigurationSection section) {
         String type = section.getName().toLowerCase();
-        PotionEffectType effectType = PotionEffectType.getByName(type);
-        if (effectType == null)
-            effectType = PotionEffectType.getByKey(type.contains(":") ? NamespacedKey.fromString(type) : NamespacedKey.minecraft(type));
+        PotionEffectType effectType = PotionUtils.getEffectType(type);
         if (effectType == null) {
             Logs.logError("Invalid potion effect: " + section.getName() + ", in " + StringUtils.substringBefore(section.getCurrentPath(), ".") + "!");
             return;

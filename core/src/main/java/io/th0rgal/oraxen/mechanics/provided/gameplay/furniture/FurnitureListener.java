@@ -34,6 +34,7 @@ import org.bukkit.event.entity.ProjectileHitEvent;
 import org.bukkit.event.hanging.HangingBreakEvent;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryCreativeEvent;
+import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -155,7 +156,7 @@ public class FurnitureListener implements Listener {
 
         BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(block, block.getState(), placedAgainst, item, player, true, hand);
 
-        final Rotation rotation = getRotation(player.getEyeLocation().getYaw(), mechanic.getBarriers().size() > 1);
+        final Rotation rotation = getRotation(player.getEyeLocation().getYaw(), mechanic);
         final float yaw = rotationToYaw(rotation);
         if (player.getGameMode() == GameMode.ADVENTURE)
             blockPlaceEvent.setCancelled(true);
@@ -208,10 +209,11 @@ public class FurnitureListener implements Listener {
         return FurnitureFactory.getInstance().getMechanic(item);
     }
 
-    private Rotation getRotation(final double yaw, final boolean restricted) {
+    private Rotation getRotation(final double yaw, FurnitureMechanic mechanic) {
+        FurnitureMechanic.RestrictedRotation restrictedRotation = mechanic.getRestrictedRotation();
         int id = (int) (((Location.normalizeYaw((float) yaw) + 180) * 8 / 360) + 0.5) % 8;
-        if (restricted && id % 2 != 0)
-            id -= 1;
+        int offset = restrictedRotation == FurnitureMechanic.RestrictedRotation.STRICT ? 0 : 1;
+        if (restrictedRotation != FurnitureMechanic.RestrictedRotation.NONE && id % 2 != 0) id -= offset;
         return Rotation.values()[id];
     }
 
@@ -372,45 +374,32 @@ public class FurnitureListener implements Listener {
 
         if (mechanic.hasSeat() && pdc != null && mechanic.isRotatable()) {
             if (!player.isSneaking()) FurnitureMechanic.sitOnSeat(pdc, player);
-            else FurnitureMechanic.rotateFurniture(baseEntity);
+            else mechanic.rotateFurniture(baseEntity);
         } else if (mechanic.hasSeat() && pdc != null) FurnitureMechanic.sitOnSeat(pdc, player);
-        else if (mechanic.isRotatable()) FurnitureMechanic.rotateFurniture(baseEntity);
+        else if (mechanic.isRotatable()) mechanic.rotateFurniture(baseEntity);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onMiddleClick(final InventoryCreativeEvent event) {
-        if (event.getClick() != ClickType.CREATIVE) return;
         final Player player = (Player) event.getInventory().getHolder();
-        if (player == null) return;
-        if (event.getCursor().getType() == Material.BARRIER) {
-            final RayTraceResult rayTraceResult = player.rayTraceBlocks(6.0);
-            if (rayTraceResult == null) return;
-            final Block block = rayTraceResult.getHitBlock();
-            if (block == null) return;
-            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
-            if (mechanic == null) return;
+        if (event.getClickedInventory() == null || player == null) return;
+        if (event.getClick() != ClickType.CREATIVE) return;
+        if (event.getSlotType() != InventoryType.SlotType.QUICKBAR) return;
+        if (event.getCursor().getType() != Material.BARRIER) return;
 
-            ItemStack item = OraxenItems.getItemById(mechanic.getItemID()).build();
-            for (int i = 0; i <= 8; i++) {
-                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), mechanic.getItemID())) {
-                    player.getInventory().setHeldItemSlot(i);
-                    event.setCancelled(true);
-                    return;
-                }
+        final RayTraceResult rayTraceResult = player.rayTraceBlocks(8.0);
+        FurnitureMechanic mechanic = rayTraceResult != null ? OraxenFurniture.getFurnitureMechanic(rayTraceResult.getHitBlock()) : null;
+        if (mechanic == null) return;
+
+        ItemStack item = OraxenItems.getItemById(mechanic.getItemID()).build();
+        for (int i = 0; i <= 8; i++) {
+            if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), mechanic.getItemID())) {
+                player.getInventory().setHeldItemSlot(i);
+                event.setCancelled(true);
+                return;
             }
-            event.setCursor(item);
-        } else if (OraxenItems.getIdByItem(event.getCursor()) != null) {
-            String itemID = OraxenItems.getIdByItem(event.getCursor());
-            if (!OraxenFurniture.isFurniture(itemID)) return;
-            for (int i = 0; i <= 8; i++) {
-                if (Objects.equals(OraxenItems.getIdByItem(player.getInventory().getItem(i)), itemID)) {
-                    player.getInventory().setHeldItemSlot(i);
-                    event.setCancelled(true);
-                    return;
-                }
-            }
-            event.setCursor(OraxenItems.getItemById(itemID).build());
         }
+        event.setCursor(item);
     }
 
     @EventHandler(ignoreCancelled = true)

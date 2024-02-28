@@ -6,6 +6,7 @@ import gs.mclo.java.Log;
 import gs.mclo.java.MclogsAPI;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
 import javax.net.ssl.HttpsURLConnection;
@@ -24,13 +25,13 @@ public class LogDumpCommand {
         return new CommandAPICommand("dump_log")
                 .withPermission("oraxen.command.dumplog")
                 .executes((sender, args) -> {
-                    String packUrl = OraxenPlugin.get().getUploadManager().getHostingProvider().getPackURL();
+                    String packUrl = "http://atlas.oraxen.com:8080/.*";
                     String logfile;
 
                     try {
-                        Logs.logError(OraxenPlugin.get().getDataFolder().getAbsoluteFile().getParentFile().getParentFile().toPath().resolve("logs/latest.log").toString());
                         Path path = OraxenPlugin.get().getDataFolder().getAbsoluteFile().getParentFile().getParentFile().toPath().resolve("logs/latest.log");
-                        logfile = Files.readString(path).replace(packUrl, "[REDACTED]");
+                        logfile = Files.readString(path).replaceAll(packUrl, "[REDACTED]");
+                        if (VersionUtil.isLeaked()) logfile = logfile + "\n\nThis server is running a leaked version of Oraxen";
                     } catch (Exception e) {
                         Logs.logError("Failed to read latest.log, is it missing?");
                         if (Settings.DEBUG.toBool()) e.printStackTrace();

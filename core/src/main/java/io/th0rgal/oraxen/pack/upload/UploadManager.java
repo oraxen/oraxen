@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.upload;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.events.OraxenPackPreUploadEvent;
 import io.th0rgal.oraxen.api.events.OraxenPackUploadEvent;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
@@ -11,6 +12,7 @@ import io.th0rgal.oraxen.pack.receive.PackReceiver;
 import io.th0rgal.oraxen.pack.upload.hosts.HostingProvider;
 import io.th0rgal.oraxen.pack.upload.hosts.Polymath;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
@@ -57,8 +59,10 @@ public class UploadManager {
         }
 
         final long time = System.currentTimeMillis();
-        Message.PACK_UPLOADING.log();
         Bukkit.getScheduler().runTaskAsynchronously(OraxenPlugin.get(), () -> {
+            EventUtils.callEvent(new OraxenPackPreUploadEvent());
+
+            Message.PACK_UPLOADING.log();
             if (!hostingProvider.uploadPack(resourcePack.getFile())) {
                 Message.PACK_NOT_UPLOADED.log();
                 return;

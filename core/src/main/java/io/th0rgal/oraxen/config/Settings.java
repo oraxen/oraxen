@@ -1,7 +1,9 @@
 package io.th0rgal.oraxen.config;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.text.Component;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
@@ -128,7 +130,11 @@ public enum Settings {
     // Inventory
     ORAXEN_INV_LAYOUT("oraxen_inventory.menu_layout"),
     ORAXEN_INV_ROWS("oraxen_inventory.menu_rows"),
-    ORAXEN_INV_TITLE("oraxen_inventory.main_menu_title");
+    ORAXEN_INV_TITLE("oraxen_inventory.main_menu_title"),
+    ORAXEN_INV_TYPE("oraxen_inventory.main_menu_type"),
+    ORAXEN_INV_NEXT_ICON("oraxen_inventory.next_page_icon"),
+    ORAXEN_INV_PREVIOUS_ICON("oraxen_inventory.previous_page_icon"),
+    ORAXEN_INV_EXIT("oraxen_inventory.exit_icon");
 
     private final String path;
 
@@ -157,6 +163,10 @@ public enum Settings {
     @Override
     public String toString() {
         return (String) getValue();
+    }
+
+    public Component toComponent() {
+        return AdventureUtils.MINI_MESSAGE.deserialize(getValue().toString());
     }
 
     public Boolean toBool() {
