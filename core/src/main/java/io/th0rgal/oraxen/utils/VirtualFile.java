@@ -61,11 +61,11 @@ public class VirtualFile implements Comparable<VirtualFile> {
             fontContent = IOUtils.toString(fontInput, StandardCharsets.UTF_8);
             inputStream.close();
             inputStream = new ByteArrayInputStream(fontContent.getBytes(StandardCharsets.UTF_8));
+            return JsonParser.parseString(fontContent);
         } catch (Exception e) {
             Logs.logError(Utils.removeParentDirs(getPath()) + " was empty");
             return null;
         }
-        return JsonParser.parseString(fontContent);
     }
 
     @Nullable
