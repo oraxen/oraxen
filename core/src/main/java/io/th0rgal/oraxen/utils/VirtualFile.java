@@ -79,15 +79,4 @@ public class VirtualFile implements Comparable<VirtualFile> {
         return element != null && element.isJsonObject();
     }
 
-    @Nullable
-    public JsonObject toJsonObject() {
-        JsonElement element = toJsonElement();
-        return element != null && element.isJsonObject() ? element.getAsJsonObject() : null;
-    }
-
-    public boolean isJsonObject() {
-        JsonElement element = toJsonElement();
-        return element != null && element.isJsonObject();
-    }
-
 }
