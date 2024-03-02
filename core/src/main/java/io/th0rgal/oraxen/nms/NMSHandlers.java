@@ -17,10 +17,12 @@ public class NMSHandlers {
 
     @Nullable
     public static NMSHandler getHandler() {
-        if (handler != null) return handler;
-        else setup();
+        if (handler == null) {
+            setup();
+        }
         return handler;
     }
+    
 
     public static String getVersion() {
         return version;
