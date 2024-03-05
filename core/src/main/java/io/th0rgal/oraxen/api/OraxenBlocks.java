@@ -261,7 +261,7 @@ public class OraxenBlocks {
 
             World world = block.getWorld();
 
-            world.sendGameEvent(null, GameEvent.BLOCK_DESTROY, loc.toVector());
+            world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector());
             world.playEffect(loc, Effect.STEP_SOUND, block.getBlockData());
         }
         if (drop != null) drop.spawns(loc, itemInHand);
