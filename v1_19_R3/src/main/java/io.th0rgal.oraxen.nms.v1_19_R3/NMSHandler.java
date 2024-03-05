@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.nms.v1_19_R3;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
+import fr.euphyllia.energie.Energie;
+import fr.euphyllia.energie.model.SchedulerType;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -246,12 +248,10 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         try {
             bind(futures, serverChannelHandler);
         } catch (IllegalArgumentException ex) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    bind(futures, serverChannelHandler);
-                }
-            }.runTask(OraxenPlugin.get());
+            OraxenPlugin.getEnergieTask().getScheduler(Energie.SchedulerSoft.MINECRAFT)
+                    .runTask(SchedulerType.SYNC, schedulerTaskInter -> {
+                        bind(futures, serverChannelHandler);
+                    });
         }
 
         if (VersionUtil.isPaperServer())

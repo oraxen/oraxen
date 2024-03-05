@@ -19,7 +19,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.EVOLUTION_KEY;
 
-public class EvolutionTask extends BukkitRunnable {
+public class EvolutionTask implements Runnable {
 
     private final FurnitureFactory furnitureFactory;
     private final int delay;

@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import fr.euphyllia.energie.model.SchedulerTaskInter;
+import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -19,6 +21,7 @@ public class FurnitureFactory extends MechanicFactory {
     public final int evolutionCheckDelay;
     private boolean evolvingFurnitures;
     private static EvolutionTask evolutionTask;
+    private static SchedulerTaskInter evolutionSchedulerTask;
     public final boolean customSounds;
     public final boolean detectViabackwards;
 
@@ -74,15 +77,18 @@ public class FurnitureFactory extends MechanicFactory {
         if (evolvingFurnitures)
             return;
         if (evolutionTask != null)
-            evolutionTask.cancel();
+            evolutionSchedulerTask.cancel();
         evolutionTask = new EvolutionTask(this, evolutionCheckDelay);
-        evolutionTask.runTaskTimer(OraxenPlugin.get(), 0, evolutionCheckDelay);
+        OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, taskInter -> {
+            evolutionSchedulerTask = taskInter;
+            evolutionTask.run();
+        }, 0, evolutionCheckDelay);
         evolvingFurnitures = true;
     }
 
     public static void unregisterEvolution() {
         if (evolutionTask != null)
-            evolutionTask.cancel();
+            evolutionSchedulerTask.cancel();
     }
 
     @Override

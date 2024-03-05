@@ -5,6 +5,9 @@ import com.comphenix.protocol.ProtocolManager;
 import com.ticxo.playeranimator.PlayerAnimatorImpl;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
+import fr.euphyllia.energie.Energie;
+import fr.euphyllia.energie.model.Scheduler;
+import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.commands.CommandsManager;
@@ -24,10 +27,7 @@ import io.th0rgal.oraxen.pack.generation.ResourcePack;
 import io.th0rgal.oraxen.pack.upload.UploadManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.NoticeUtils;
-import io.th0rgal.oraxen.utils.OS;
-import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -36,7 +36,6 @@ import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
-import org.bstats.bukkit.Metrics;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
@@ -50,6 +49,7 @@ import java.util.jar.JarFile;
 public class OraxenPlugin extends JavaPlugin {
 
     private static OraxenPlugin oraxen;
+    private static Energie energie;
     private static GestureManager gestureManager;
     private ConfigsManager configsManager;
     private ResourcesManager resourceManager;
@@ -72,6 +72,15 @@ public class OraxenPlugin extends JavaPlugin {
         return oraxen;
     }
 
+    public static Energie getEnergieTask() {
+        return energie;
+    }
+
+    public static Scheduler getScheduler() {
+        return energie.getScheduler(Energie.SchedulerSoft.MINECRAFT);
+    }
+
+
     @Nullable
     public static JarFile getJarFile() {
         try {
@@ -88,6 +97,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        energie = new Energie(this);
         CommandAPI.onEnable();
         ProtectionLib.init(this);
         if (!VersionUtil.atOrAbove("1.20.3")) PlayerAnimatorImpl.initialize(this);
@@ -141,8 +151,9 @@ public class OraxenPlugin extends JavaPlugin {
 
     private void postLoading() {
         new Metrics(this, 5371);
-        Bukkit.getScheduler().runTask(this, () ->
-                Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
+        getScheduler().runTask(SchedulerType.SYNC, schedulerTaskInter -> {
+            Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
+        });
     }
 
     @Override

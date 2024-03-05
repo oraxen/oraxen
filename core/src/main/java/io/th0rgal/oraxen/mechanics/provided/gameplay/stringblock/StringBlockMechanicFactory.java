@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import com.google.gson.JsonObject;
+import fr.euphyllia.energie.model.SchedulerTaskInter;
+import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -34,6 +36,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     public final List<String> toolTypes;
     private boolean sapling;
     private static SaplingTask saplingTask;
+    private static SchedulerTaskInter saplingSchedulerTask;
     private final int saplingGrowthCheckDelay;
     public final boolean customSounds;
     public final boolean disableVanillaString;
@@ -193,7 +196,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
 
     public void registerSaplingMechanic() {
         if (sapling) return;
-        if (saplingTask != null) saplingTask.cancel();
+        if (saplingSchedulerTask != null) saplingSchedulerTask.cancel();
 
         // Disabled for abit as OraxenItems.getItems() here
         // Dont register if there is no sapling in configs
@@ -207,7 +210,10 @@ public class StringBlockMechanicFactory extends MechanicFactory {
 //        if (saplingList.isEmpty()) return;
 
         saplingTask = new SaplingTask(saplingGrowthCheckDelay);
-        saplingTask.runTaskTimer(OraxenPlugin.get(), 0, saplingGrowthCheckDelay);
+        OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, schedulerTaskInter -> {
+            saplingSchedulerTask = schedulerTaskInter;
+            saplingTask.run();
+        }, 0, saplingGrowthCheckDelay);
         sapling = true;
     }
 }

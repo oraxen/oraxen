@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import com.google.gson.JsonObject;
+import fr.euphyllia.energie.model.SchedulerTaskInter;
+import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.Mechanic;
@@ -35,6 +37,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public final List<String> toolTypes;
     private boolean farmBlock;
     private static FarmBlockTask farmBlockTask;
+    private static SchedulerTaskInter farmBlockSchedulerTask;
     public final int farmBlockCheckDelay;
     public final boolean customSounds;
     private final boolean removeMineableTag;
@@ -250,7 +253,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
     public void registerFarmBlock() {
         if (farmBlock) return;
-        if (farmBlockTask != null) farmBlockTask.cancel();
+        if (farmBlockSchedulerTask != null) farmBlockSchedulerTask.cancel();
 
 //        // Dont register if there is no farmblocks in configs
 //        List<String> farmblockList = new ArrayList<>();
@@ -263,8 +266,10 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 //        if (farmblockList.isEmpty()) return;
 
         farmBlockTask = new FarmBlockTask(farmBlockCheckDelay);
-
-        farmBlockTask.runTaskTimer(OraxenPlugin.get(), 0, farmBlockCheckDelay);
+        OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, schedulerTaskInter -> {
+            farmBlockSchedulerTask = schedulerTaskInter;
+            farmBlockTask.run();
+        }, 0, farmBlockCheckDelay);
         farmBlock = true;
     }
 

@@ -18,7 +18,7 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 
-public class SaplingTask extends BukkitRunnable {
+public class SaplingTask implements Runnable {
 
     private final int delay;
 
