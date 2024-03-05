@@ -74,9 +74,11 @@ public class NoteBlockSoundListener implements Listener {
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
 
         if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM) {
-            if (event.getInstaBreak()) Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                    block.setType(Material.AIR, false), 1);
-            return;
+            if (event.getInstaBreak()) {
+                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
+                        block.setType(Material.AIR, false), 1);
+                return;
+            }
         }
         if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (breakerPlaySound.containsKey(location)) return;
