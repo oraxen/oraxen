@@ -77,6 +77,10 @@ public class NoteBlockSoundListener implements Listener {
             if (event.getInstaBreak()) {
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
                         block.setType(Material.AIR, false), 1);
+              
+            if (event.getInstaBreak()) { 
+                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
+                    block.setType(Material.AIR, false), 1);
                 return;
             }
         }

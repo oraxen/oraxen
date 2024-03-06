@@ -45,15 +45,16 @@ public class AtlasGenerator {
                 .forEach(builder -> itemTextures.addAll(builder.getOraxenMeta().getLayers()));
 
         Set<String> fontTextures = new LinkedHashSet<>();
-        Set<VirtualFile> fonts = output.stream().filter(v -> v.getPath().matches("assets/.*/font/.*.json")).collect(Collectors.toSet());
-        for (VirtualFile font : fonts) {
-            JsonObject fontObject = font.toJsonElement().getAsJsonObject();
-            fontObject.getAsJsonArray("providers").forEach(provider -> {
-                JsonObject providerObject = provider.getAsJsonObject();
-                if (providerObject.has("file")) {
-                    fontTextures.add(providerObject.get("file").getAsString().replace(".png", ""));
+        Set<JsonObject> fonts = output.stream().filter(v -> v.getPath().matches("assets/.*/font/.*.json") && v.isJsonObject()).map(VirtualFile::toJsonObject).collect(Collectors.toSet());
+        for (JsonObject font : fonts) {
+            if (font == null || !font.has("providers")) continue;
+            for (JsonElement providerElement : font.getAsJsonArray("providers")) {
+                if (!providerElement.isJsonObject()) continue;
+                JsonObject provider = providerElement.getAsJsonObject();
+                if (provider.has("file")) {
+                    fontTextures.add(provider.get("file").getAsString().replace(".png", ""));
                 }
-            });
+            }
         }
 
         for (Map.Entry<VirtualFile, String> entry : textureSubFolders.entrySet()) {
