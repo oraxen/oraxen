@@ -39,6 +39,7 @@ Glyphs:
   glyph_handler: VANILLA # Valid handlers are VANILLA and NMS
   emoji_list_permission_only: true # will only show emojis player has permission to use if set to true
   unicode_completions: true # Whether glyph tab-completions shows unicodes or glyph-pølaceholders
+  chat_hover_text: "<glyph_placeholder>" # The text that will be shown when hovering over a glyph in chat
 
 Chat:
   # If glyphs do not show up in chat, try setting this to LEGACY

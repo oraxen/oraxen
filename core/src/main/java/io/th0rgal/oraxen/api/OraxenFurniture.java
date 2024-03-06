@@ -18,6 +18,7 @@ import org.bukkit.entity.*;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -48,7 +49,9 @@ public class OraxenFurniture {
      * @return true if the block is an instance of a Furniture, otherwise false
      */
     public static boolean isFurniture(Block block) {
-        return block.getType() == Material.BARRIER && getFurnitureMechanic(block) != null;
+        BoundingBox blockBox = BoundingBox.of(BlockHelpers.toCenterLocation(block.getLocation()), 0.5, 0.5, 0.5);
+        return (block.getType() == Material.BARRIER && getFurnitureMechanic(block) != null) ||
+                !block.getWorld().getNearbyEntities(blockBox).stream().filter(OraxenFurniture::isFurniture).toList().isEmpty();
     }
 
     /**
