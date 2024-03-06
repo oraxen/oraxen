@@ -289,7 +289,7 @@ public class OraxenBlocks {
         if (mechanic.hasLight()) mechanic.getLight().removeBlockLight(block);
         if (mechanic.isTall()) blockAbove.setType(Material.AIR);
         block.setType(Material.AIR);
-        OraxenPlugin.getScheduler().runDelayed(SchedulerType.SYNC, schedulerTaskInter -> {
+        OraxenPlugin.getScheduler().runDelayed(SchedulerType.SYNC, block.getLocation(), schedulerTaskInter -> {
             StringBlockMechanicListener.fixClientsideUpdate(block.getLocation());
             if (blockAbove.getType() == Material.TRIPWIRE)
                 removeStringBlock(blockAbove, player, forceDrop);

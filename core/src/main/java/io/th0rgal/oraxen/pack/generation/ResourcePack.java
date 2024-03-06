@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.generation;
 
 import com.google.gson.*;
+import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenPackGeneratedEvent;
@@ -145,7 +146,7 @@ public class ResourcePack {
 
         generateSound(output);
 
-        Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
+        OraxenPlugin.getScheduler().scheduleSyncDelayed(SchedulerType.SYNC, task -> {
             OraxenPackGeneratedEvent event = new OraxenPackGeneratedEvent(output);
             EventUtils.callEvent(event);
             ZipUtils.writeZipFile(pack, event.getOutput());

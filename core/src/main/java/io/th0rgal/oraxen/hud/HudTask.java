@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.EntityUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.List;
 

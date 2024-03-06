@@ -118,14 +118,14 @@ allprojects {
 
         //implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.4.0")
-        implementation(files("../libs/compile-folia/IF-0.10.14-SNAPSHOT.jar")) // implementation("com.github.stefvanschie.inventoryframework:IF:0.10.12")
-        implementation(files("../libs/compile-folia/custom-block-data-2.2.2.jar")) // implementation("com.jeff-media:custom-block-data:2.2.2")
+        implementation(files("../libs/compile-folia/IF-0.10.14-SNAPSHOT.jar"))
+        implementation(files("../libs/compile-folia/custom-block-data-2.2.2.jar"))
         implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
         implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
         implementation("com.ticxo:PlayerAnimator:R1.2.8") { isChanging = true }
-        implementation("com.github.Euphillya:Energie:5d4157c0ea")
+        implementation("com.github.Euphillya:Energie:5659f25e22")
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     }
@@ -209,6 +209,7 @@ bukkit {
     softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards", "HuskClaims")
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
+    foliaSupported = true
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
         default = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.Permission.Default.TRUE

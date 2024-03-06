@@ -100,7 +100,9 @@ public class OraxenPlugin extends JavaPlugin {
         energie = new Energie(this);
         CommandAPI.onEnable();
         ProtectionLib.init(this);
-        if (!VersionUtil.atOrAbove("1.20.3")) PlayerAnimatorImpl.initialize(this);
+        if (!Energie.isFolia()) {
+            if (!VersionUtil.atOrAbove("1.20.3")) PlayerAnimatorImpl.initialize(this);
+        }
         audience = BukkitAudiences.create(this);
         clickActionManager = new ClickActionManager(this);
         supportsDisplayEntities = VersionUtil.atOrAbove("1.19.4");

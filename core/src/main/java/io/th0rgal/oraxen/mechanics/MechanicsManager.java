@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.mechanics;
 
+import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
@@ -100,9 +101,8 @@ public class MechanicsManager {
         if (CompatibilitiesManager.hasPlugin("ProtocolLib"))
             registerFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
 
-        Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
+        OraxenPlugin.getScheduler().callSyncMethod(task -> {
             Bukkit.getPluginManager().callEvent(new OraxenNativeMechanicsRegisteredEvent());
-            return null;
         });
     }
 

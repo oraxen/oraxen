@@ -246,8 +246,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         try {
             bind(futures, serverChannelHandler);
         } catch (IllegalArgumentException ex) {
-            OraxenPlugin.getEnergieTask().getScheduler(Energie.SchedulerSoft.MINECRAFT)
-                    .runTask(SchedulerType.SYNC, schedulerTaskInter -> {
+            OraxenPlugin.getScheduler().runTask(SchedulerType.SYNC, schedulerTaskInter -> {
                         bind(futures, serverChannelHandler);
                     });
         }
