@@ -77,19 +77,20 @@ public class NoteBlockSoundListener implements Listener {
             if (event.getInstaBreak()) {
                 Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
                         block.setType(Material.AIR, false), 1);
-              
-            if (event.getInstaBreak()) { 
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                    block.setType(Material.AIR, false), 1);
-                return;
-            }
-        }
-        if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
-        if (breakerPlaySound.containsKey(location)) return;
 
-        BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                BlockHelpers.playCustomBlockSound(location, VANILLA_WOOD_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH), 2L, 4L);
-        breakerPlaySound.put(location, task);
+                if (event.getInstaBreak()) {
+                    Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
+                            block.setType(Material.AIR, false), 1);
+                    return;
+                }
+            }
+            if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
+            if (breakerPlaySound.containsKey(location)) return;
+
+            BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
+                    BlockHelpers.playCustomBlockSound(location, VANILLA_WOOD_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH), 2L, 4L);
+            breakerPlaySound.put(location, task);
+        }
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -111,8 +112,10 @@ public class NoteBlockSoundListener implements Listener {
         Block block = BlockHelpers.getBlockStandingOn(entity);
         EntityDamageEvent cause = entity.getLastDamageCause();
 
-        if (gameEvent == GameEvent.HIT_GROUND && cause != null && cause.getCause() != EntityDamageEvent.DamageCause.FALL) return;
-        if (block == null || block.getType().isAir() || block.getBlockData().getSoundGroup().getStepSound() != Sound.BLOCK_WOOD_STEP) return;
+        if (gameEvent == GameEvent.HIT_GROUND && cause != null && cause.getCause() != EntityDamageEvent.DamageCause.FALL)
+            return;
+        if (block == null || block.getType().isAir() || block.getBlockData().getSoundGroup().getStepSound() != Sound.BLOCK_WOOD_STEP)
+            return;
 
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
         if (mechanic != null && mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
