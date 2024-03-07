@@ -41,6 +41,8 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.RayTraceResult;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
@@ -390,16 +392,26 @@ public class NoteBlockMechanicListener implements Listener {
 
             @Override
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                if (block.getType() != Material.NOTE_BLOCK)
+                CompletableFuture<Boolean> future = new CompletableFuture<>();
+                OraxenPlugin.getScheduler().runTask(SchedulerType.SYNC, block.getLocation(), schedulerTaskInter -> {
+                    if (block.getType() != Material.NOTE_BLOCK) {
+                        future.complete(false);
+                    }
+                    NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
+                    if (mechanic == null) {
+                        future.complete(false);
+                        return;
+                    }
+                    if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
+                        mechanic = mechanic.getDirectional().getParentMechanic();
+
+                    future.complete(mechanic.hasHardness());
+                });
+                try {
+                    return future.get();
+                } catch (InterruptedException | ExecutionException e) {
                     return false;
-
-                NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
-                if (mechanic == null) return false;
-
-                if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
-                    mechanic = mechanic.getDirectional().getParentMechanic();
-
-                return mechanic.hasHardness();
+                }
             }
 
             @Override
