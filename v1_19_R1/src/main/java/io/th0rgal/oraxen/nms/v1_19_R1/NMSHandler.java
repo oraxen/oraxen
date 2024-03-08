@@ -44,6 +44,7 @@ import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.SoundCategory;
+import org.bukkit.SoundGroup;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
@@ -113,11 +114,18 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         InteractionResult result = blockItem.place(placeContext);
         if (result == InteractionResult.FAIL) return null;
         if (placeContext instanceof DirectionalPlaceContext && player.getGameMode() != org.bukkit.GameMode.CREATIVE) itemStack.setAmount(itemStack.getAmount() - 1);
-
         World world = player.getWorld();
-        BlockPos clickPos = placeContext.getClickedPos();
-        Block block = world.getBlockAt(clickPos.getX(), clickPos.getY(), clickPos.getZ());
-        world.playSound(BlockHelpers.toCenterBlockLocation(block.getLocation()), block.getBlockSoundGroup().getPlaceSound(), SoundCategory.BLOCKS, 1.0F, 0.8F);
+
+        if(!player.isSneaking()) {
+            BlockPos clickPos = placeContext.getClickedPos();
+            Block block = world.getBlockAt(clickPos.getX(), clickPos.getY(), clickPos.getZ());
+            SoundGroup sound = block.getBlockData().getSoundGroup();
+
+            world.playSound(
+                    BlockHelpers.toCenterBlockLocation(block.getLocation()), sound.getPlaceSound(),
+                    SoundCategory.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F, sound.getPitch() * 0.8F
+            );
+        }
 
         return world.getBlockAt(pos.getX(), pos.getY(), pos.getZ()).getBlockData();
     }
