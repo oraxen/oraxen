@@ -13,6 +13,7 @@ import io.papermc.paper.configuration.GlobalConfiguration;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
@@ -45,7 +46,8 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import org.bukkit.Bukkit;
+import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
@@ -113,7 +115,20 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         InteractionResult result = blockItem.place(placeContext);
         if (result == InteractionResult.FAIL) return null;
         if (placeContext instanceof DirectionalPlaceContext && player.getGameMode() != org.bukkit.GameMode.CREATIVE) itemStack.setAmount(itemStack.getAmount() - 1);
-        return player.getWorld().getBlockAt(pos.getX(), pos.getY(), pos.getZ()).getBlockData();
+        World world = player.getWorld();
+
+        if(!player.isSneaking()) {
+            BlockPos clickPos = placeContext.getClickedPos();
+            Block block = world.getBlockAt(clickPos.getX(), clickPos.getY(), clickPos.getZ());
+            SoundGroup sound = block.getBlockData().getSoundGroup();
+
+            world.playSound(
+                    BlockHelpers.toCenterBlockLocation(block.getLocation()), sound.getPlaceSound(),
+                    SoundCategory.BLOCKS, (sound.getVolume() + 1.0F) / 2.0F, sound.getPitch() * 0.8F
+            );
+        }
+
+        return world.getBlockAt(pos.getX(), pos.getY(), pos.getZ()).getBlockData();
     }
 
     @Override
