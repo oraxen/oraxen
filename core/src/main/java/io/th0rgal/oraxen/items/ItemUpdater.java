@@ -84,14 +84,18 @@ public class ItemUpdater implements Listener {
         }
     }
 
-    private static final NamespacedKey GUI_ITEM_KEY = Objects.requireNonNull(NamespacedKey.fromString("oraxen:if-uuid"));
+    private static final NamespacedKey IF_UUID = Objects.requireNonNull(NamespacedKey.fromString("oraxen:if-uuid"));
+    private static final NamespacedKey MF_GUI = Objects.requireNonNull(NamespacedKey.fromString("oraxen:mf-gui"));
     public static ItemStack updateItem(ItemStack oldItem) {
         String id = OraxenItems.getIdByItem(oldItem);
         if (id == null) return oldItem;
 
         // Oraxens Inventory adds a dumb PDC entry to items, this will remove them
         // Done here over [ItemsView] as this method is called anyway and supports old items
-        ItemUtils.editItemMeta(oldItem, itemMeta -> itemMeta.getPersistentDataContainer().remove(GUI_ITEM_KEY));
+        ItemUtils.editItemMeta(oldItem, itemMeta -> {
+            itemMeta.getPersistentDataContainer().remove(IF_UUID);
+            itemMeta.getPersistentDataContainer().remove(MF_GUI);
+        });
 
         Optional<ItemBuilder> optionalBuilder = OraxenItems.getOptionalItemById(id);
         if (optionalBuilder.isEmpty() || optionalBuilder.get().getOraxenMeta().isNoUpdate()) return oldItem;
