@@ -156,7 +156,8 @@ compileOnly 'io.th0rgal:oraxen:VERSION'
 </dependency>
 ```
 </details>
-Snapshot builds are also available at [https://repo.oraxen.com/snapshots](https://repo.oraxen.com/snapshots). \
+
+Snapshot builds are also available at [https://repo.oraxen.com/#/snapshots](https://repo.oraxen.com/#/snapshots).
 
 ## License
 
