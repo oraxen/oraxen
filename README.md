@@ -147,6 +147,10 @@ compileOnly 'io.th0rgal:oraxen:VERSION'
             <groupId>gs.mclo</groupId>
             <artifactId>java</artifactId>
         </exclusion>
+        <exclusion>
+            <groupId>fr.euphyllia</groupId>
+            <artifactId>energie</artifactId>
+        </exclusion>
     </exclusions>
     <scope>provided</scope>
 </dependency>
