@@ -20,10 +20,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
-import org.bukkit.event.EventHandler;
-import org.bukkit.event.EventPriority;
-import org.bukkit.event.Listener;
+import org.bukkit.event.*;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -43,6 +40,9 @@ import static io.th0rgal.oraxen.utils.AdventureUtils.*;
 public class FontEvents implements Listener {
 
     private final FontManager manager;
+    @Nullable PaperChatHandler paperChatHandler;
+    @Nullable LegacyPaperChatHandler legacyPaperChatHandler;
+    @Nullable SpigotChatHandler spigotChatHandler;
 
     enum ChatHandler {
         LEGACY,
@@ -72,10 +72,28 @@ public class FontEvents implements Listener {
         this.manager = manager;
         if (VersionUtil.isPaperServer()) {
             if (VersionUtil.atOrAbove("1.19.1"))
-                Bukkit.getPluginManager().registerEvents(new PaperChatHandler(), OraxenPlugin.get());
-            Bukkit.getPluginManager().registerEvents(new LegacyPaperChatHandler(), OraxenPlugin.get());
+                paperChatHandler = new PaperChatHandler();
+            legacyPaperChatHandler = new LegacyPaperChatHandler();
         }
-        Bukkit.getPluginManager().registerEvents(new SpigotChatHandler(), OraxenPlugin.get());
+        spigotChatHandler = new SpigotChatHandler();
+    }
+
+    public void registerChatHandlers() {
+        if (paperChatHandler != null)
+            Bukkit.getPluginManager().registerEvents(paperChatHandler, OraxenPlugin.get());
+        if (legacyPaperChatHandler != null)
+            Bukkit.getPluginManager().registerEvents(legacyPaperChatHandler, OraxenPlugin.get());
+        if (spigotChatHandler != null)
+            Bukkit.getPluginManager().registerEvents(spigotChatHandler, OraxenPlugin.get());
+    }
+
+    public void unregisterChatHandlers() {
+        if (paperChatHandler != null)
+            HandlerList.unregisterAll(paperChatHandler);
+        if (legacyPaperChatHandler != null)
+            HandlerList.unregisterAll(legacyPaperChatHandler);
+        if (spigotChatHandler != null)
+            HandlerList.unregisterAll(spigotChatHandler);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -277,6 +295,7 @@ public class FontEvents implements Listener {
         @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
         public void onPlayerChat(AsyncChatDecorateEvent event) {
             if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isModern() || manager.useNmsGlyphs()) return;
+            Logs.logError("onPlayerChat");
             event.result(format(event.result(), event.player()));
         }
 
@@ -286,6 +305,7 @@ public class FontEvents implements Listener {
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onPlayerChat(AsyncChatEvent event) {
+            Logs.logError("onPlayerChatL");
             if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isModern() || manager.useNmsGlyphs()) return;
             // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
             Component message = VersionUtil.atOrAbove("1.19.1") ? event.message() : format(event.message(), event.getPlayer());
