@@ -283,7 +283,7 @@ public class OraxenBlocks {
             if (forceDrop || player.getGameMode() != GameMode.CREATIVE)
                 drop = wireBlockBreakEvent.getDrop();
 
-            block.getWorld().sendGameEvent(null, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
+            block.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
         }
         if (drop != null) drop.spawns(block.getLocation(), itemInHand);
 
