@@ -118,8 +118,8 @@ allprojects {
 
         //implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.4.0")
-        implementation(files("../libs/compile-folia/IF-0.10.14-SNAPSHOT.jar"))
-        implementation(files("../libs/compile-folia/custom-block-data-2.2.2.jar"))
+        implementation("com.github.stefvanschie.inventoryframework:IF_Folia:0.10.14-SNAPSHOT")
+        implementation("com.jeff_media:CustomBlockData_Folia:2.2.2")
         implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
