@@ -147,12 +147,17 @@ compileOnly 'io.th0rgal:oraxen:VERSION'
             <groupId>gs.mclo</groupId>
             <artifactId>java</artifactId>
         </exclusion>
+        <exclusion>
+            <groupId>fr.euphyllia</groupId>
+            <artifactId>energie</artifactId>
+        </exclusion>
     </exclusions>
     <scope>provided</scope>
 </dependency>
 ```
 </details>
-Snapshot builds are also available at [https://repo.oraxen.com/snapshots](https://repo.oraxen.com/snapshots). \
+
+Snapshot builds are also available at [https://repo.oraxen.com/#/snapshots](https://repo.oraxen.com/#/snapshots).
 
 ## License
 
