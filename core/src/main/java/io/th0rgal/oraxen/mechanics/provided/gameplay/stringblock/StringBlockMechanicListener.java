@@ -431,7 +431,7 @@ public class StringBlockMechanicListener implements Listener {
             target.setType(Material.AIR);
             BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
         }
-        target.getWorld().sendGameEvent(null, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
+        target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
     }
 
     public static void fixClientsideUpdate(Location loc) {
