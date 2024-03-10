@@ -404,7 +404,7 @@ public class StringBlockMechanicListener implements Listener {
                 blockPlaceEvent.setCancelled(true);
             else blockAbove.setType(Material.TRIPWIRE);
         }
-        if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation())) blockPlaceEvent.setCancelled(true);
+        if (!ProtectionLib.canBuild(player, target.getLocation())) blockPlaceEvent.setCancelled(true);
         //if (player.getGameMode() == GameMode.ADVENTURE) blockPlaceEvent.setCancelled(true);
         if (!worldHeightRange.contains(target.getY()))
             blockPlaceEvent.setCancelled(true);
