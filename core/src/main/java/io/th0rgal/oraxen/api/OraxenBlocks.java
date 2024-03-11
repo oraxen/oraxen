@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -256,7 +257,7 @@ public class OraxenBlocks {
             World world = block.getWorld();
 
             world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector());
-            world.playEffect(loc, Effect.STEP_SOUND, block.getBlockData());
+            world.playEffect(loc, Effect.STEP_SOUND, VersionUtil.atOrAbove("1.20") ? block.getBlockData() : null);
         }
         if (drop != null) drop.spawns(loc, itemInHand);
 
