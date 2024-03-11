@@ -65,7 +65,7 @@ public class FurnitureSoundListener implements Listener {
         }
 
         if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_STONE_BREAK) return;
-        if (OraxenFurniture.isFurniture(block)) return;
+        if (OraxenFurniture.isFurniture(block) && block.getType() == Material.BARRIER || block.isEmpty()) return;
 
         if (!event.isCancelled() && ProtectionLib.canBreak(event.getPlayer(), location))
             BlockHelpers.playCustomBlockSound(location, VANILLA_STONE_BREAK, VANILLA_BREAK_VOLUME, VANILLA_BREAK_PITCH);
