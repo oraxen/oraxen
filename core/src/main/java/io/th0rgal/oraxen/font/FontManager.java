@@ -96,6 +96,10 @@ public class FontManager {
         fontEvents.unregisterChatHandlers();
     }
 
+    public FontEvents getFontEvents() {
+        return fontEvents;
+    }
+
     private void loadGlyphs(Collection<Glyph> glyphs) {
         verifyRequiredGlyphs();
         for (Glyph glyph : glyphs) {
