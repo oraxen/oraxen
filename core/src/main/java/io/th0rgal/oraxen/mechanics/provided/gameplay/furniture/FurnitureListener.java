@@ -61,17 +61,9 @@ public class FurnitureListener implements Listener {
 
             @Override
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                CompletableFuture<Boolean> future = new CompletableFuture<>();
-                OraxenPlugin.getScheduler().runTask(SchedulerType.SYNC, block.getLocation(), schedulerTaskInter -> {
-                    FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
 
-                    future.complete(mechanic != null && mechanic.hasHardness());
-                });
-                try {
-                    return future.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    return false;
-                }
+                return mechanic != null && mechanic.hasHardness();
             }
 
             @Override

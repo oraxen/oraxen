@@ -356,20 +356,11 @@ public class StringBlockMechanicListener implements Listener {
 
             @Override
             public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                CompletableFuture<Boolean> future = new CompletableFuture<>();
-                OraxenPlugin.getScheduler().runTask(SchedulerType.SYNC, block.getLocation(), schedulerTaskInter -> {
-                    if (block.getType() != Material.TRIPWIRE){
-                        future.complete(false);
-                        return;
-                    }
-                    final StringBlockMechanic tripwireMechanic = OraxenBlocks.getStringMechanic(block);
-                    future.complete(tripwireMechanic != null && tripwireMechanic.hasHardness());
-                });
-                try {
-                    return future.get();
-                } catch (InterruptedException | ExecutionException e) {
+                if (block.getType() != Material.TRIPWIRE){
                     return false;
                 }
+                final StringBlockMechanic tripwireMechanic = OraxenBlocks.getStringMechanic(block);
+                return tripwireMechanic != null && tripwireMechanic.hasHardness();
             }
 
             @Override
