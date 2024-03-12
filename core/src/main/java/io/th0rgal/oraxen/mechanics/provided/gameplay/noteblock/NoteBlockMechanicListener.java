@@ -41,8 +41,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.RayTraceResult;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 

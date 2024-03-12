@@ -41,8 +41,6 @@ import org.bukkit.util.RayTraceResult;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 public class StringBlockMechanicListener implements Listener {
 
