@@ -115,8 +115,7 @@ public class HudManager {
         if (huds.isEmpty()) return;
 
         hudTask = new HudTask();
-        OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, schedulerTaskInter -> {
-            hudSchedulerTask = schedulerTaskInter;
+        hudSchedulerTask = OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, schedulerTaskInter -> {
             hudTask.run();
         }, 0, hudUpdateTime);
         hudTaskEnabled = true;

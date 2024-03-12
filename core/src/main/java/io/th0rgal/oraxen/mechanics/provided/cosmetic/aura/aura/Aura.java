@@ -24,8 +24,7 @@ public abstract class Aura {
     protected abstract long getDelay();
 
     public void start() {
-        OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.ASYNC, schedulerTaskInter -> {
-            runnable = schedulerTaskInter;
+        runnable = OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.ASYNC, schedulerTaskInter -> {
             this.getRunnable().run();
         }, 0L, getDelay());
     }

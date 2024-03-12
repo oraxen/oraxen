@@ -79,8 +79,7 @@ public class FurnitureFactory extends MechanicFactory {
         if (evolutionTask != null)
             evolutionSchedulerTask.cancel();
         evolutionTask = new EvolutionTask(this, evolutionCheckDelay);
-        OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, taskInter -> {
-            evolutionSchedulerTask = taskInter;
+        evolutionSchedulerTask = OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, taskInter -> {
             evolutionTask.run();
         }, 0, evolutionCheckDelay);
         evolvingFurnitures = true;

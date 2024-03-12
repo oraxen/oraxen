@@ -280,10 +280,9 @@ public class BreakerSystem {
         BlockSounds blockSounds = getBlockSounds(block);
         if (blockSounds == null || !blockSounds.hasHitSound()) return;
         Location blockLocation = block.getLocation();
-        OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, blockLocation, taskInter -> {
+        breakerPlaySound.put(blockLocation, OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, blockLocation, taskInter -> {
             BlockHelpers.playCustomBlockSound(blockLocation, getSound(block), blockSounds.getHitVolume(), blockSounds.getHitPitch());
-            breakerPlaySound.put(blockLocation, taskInter);
-        }, 0L, 4L);
+            }, 0L, 4L));
     }
 
     private void stopBlockHitSound(Block block) {

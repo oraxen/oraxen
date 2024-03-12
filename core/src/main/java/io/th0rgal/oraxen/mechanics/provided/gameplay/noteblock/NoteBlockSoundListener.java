@@ -83,10 +83,10 @@ public class NoteBlockSoundListener implements Listener {
         if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (breakerPlaySound.containsKey(location)) return;
 
-        OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, location, taskInter -> {
+        SchedulerTaskInter task = OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, location, taskInter -> {
             BlockHelpers.playCustomBlockSound(location, VANILLA_WOOD_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH);
-            breakerPlaySound.put(location, taskInter);
         }, 2L, 4L);
+        breakerPlaySound.put(location, task);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)

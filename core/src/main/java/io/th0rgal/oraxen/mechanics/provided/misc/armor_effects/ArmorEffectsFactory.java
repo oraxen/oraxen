@@ -32,8 +32,7 @@ public class ArmorEffectsFactory extends MechanicFactory {
         addToImplemented(mechanic);
         if (armorEffectSchedulerTask != null) armorEffectSchedulerTask.cancel();
         armorEffectTask = new ArmorEffectsTask();
-        OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, schedulerTaskInter -> {
-            armorEffectSchedulerTask = schedulerTaskInter;
+        armorEffectSchedulerTask = OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, schedulerTaskInter -> {
             armorEffectTask.run();
         }, 0, delay);
         return mechanic;

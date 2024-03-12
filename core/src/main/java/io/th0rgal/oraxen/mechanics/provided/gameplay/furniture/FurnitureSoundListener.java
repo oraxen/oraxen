@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import fr.euphyllia.energie.model.SchedulerTaskInter;
 import fr.euphyllia.energie.model.SchedulerType;
+import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureBreakEvent;
@@ -81,10 +82,10 @@ public class FurnitureSoundListener implements Listener {
         if (block.getType() == Material.BARRIER || soundGroup.getHitSound() != Sound.BLOCK_STONE_HIT) return;
         if (breakerPlaySound.containsKey(location)) return;
 
-        OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, location, taskInter -> {
+        SchedulerTaskInter task = OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, location, taskInter -> {
             BlockHelpers.playCustomBlockSound(location, VANILLA_STONE_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH);
-            breakerPlaySound.put(location, taskInter);
             }, 2L, 4L);
+        breakerPlaySound.put(location, task);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
