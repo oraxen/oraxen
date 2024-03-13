@@ -64,7 +64,7 @@ public class ShapedBuilder extends WorkbenchBuilder {
             ConfigurationSection ingredientSection = ingredients.createSection(String.valueOf(entry.getValue()));
             setSerializedItem(ingredientSection, entry.getKey());
         }
-        if (permission != null)
+        if (permission != null && !permission.isEmpty())
             newCraftSection.set("permission", permission);
         saveConfig();
         close();

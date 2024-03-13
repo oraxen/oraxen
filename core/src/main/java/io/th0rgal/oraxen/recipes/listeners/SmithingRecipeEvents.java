@@ -28,6 +28,7 @@ public class SmithingRecipeEvents implements Listener {
         if (Arrays.stream(inventory.getContents()).noneMatch(OraxenItems::exists)) return;
 
         String oraxenItemId = OraxenItems.getIdByItem(input);
+        if (oraxenItemId == null) return;
         MiscMechanic mechanic = MiscMechanicFactory.get().getMechanic(input);
         if (mechanic != null && mechanic.isAllowedInVanillaRecipes()) return;
 

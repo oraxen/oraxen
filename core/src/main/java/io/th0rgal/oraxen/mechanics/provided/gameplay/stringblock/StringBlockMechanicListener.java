@@ -296,6 +296,34 @@ public class StringBlockMechanicListener implements Listener {
         });
     }
 
+    @EventHandler
+    public void onBlockExplosionDestroy(BlockExplodeEvent event) {
+        List<Block> blockList = event.blockList().stream().filter(block -> block.getType().equals(Material.TRIPWIRE)).toList();
+        blockList.forEach(block -> {
+            final StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
+            if (stringBlockMechanic == null) return;
+
+            final Block blockAbove = block.getRelative(BlockFace.UP);
+            final Block blockBelow = block.getRelative(BlockFace.DOWN);
+            if (block.getType() == Material.TRIPWIRE) {
+                StringBlockMechanic mechanicBelow = OraxenBlocks.getStringMechanic(blockBelow);
+                if (OraxenBlocks.isOraxenStringBlock(block)) {
+                    OraxenBlocks.remove(block.getLocation(), null, true);
+                    event.blockList().remove(block);
+                }
+                else if (mechanicBelow != null && mechanicBelow.isTall()) {
+                    OraxenBlocks.remove(blockBelow.getLocation(), null, true);
+                    event.blockList().remove(block);
+                }
+            } else {
+                if (!OraxenBlocks.isOraxenStringBlock(blockAbove)) return;
+
+                OraxenBlocks.remove(blockAbove.getLocation(), null, true);
+                event.blockList().remove(block);
+            }
+        });
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onWaterUpdate(final BlockFromToEvent event) {
         final Block changed = event.getToBlock();
