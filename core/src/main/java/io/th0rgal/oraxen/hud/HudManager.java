@@ -71,19 +71,23 @@ public class HudManager {
         return null;
     }
 
-    public Hud getActiveHudForPlayer(Player player) {
+    public boolean hasActiveHud(Player player) {
+        return !player.getPersistentDataContainer().getOrDefault(hudDisplayKey, DataType.STRING, "").isEmpty();
+    }
+
+    public Hud getActiveHud(Player player) {
         return huds.get(player.getPersistentDataContainer().get(hudDisplayKey, DataType.STRING));
     }
 
-    public void setActiveHudForPlayer(Player player, Hud hud) {
+    public void setActiveHud(Player player, Hud hud) {
         player.getPersistentDataContainer().set(hudDisplayKey, PersistentDataType.STRING, getHudID(hud));
     }
 
-    public boolean getHudStateForPlayer(Player player) {
+    public boolean getHudState(Player player) {
         return player.getPersistentDataContainer().getOrDefault(hudToggleKey, DataType.BOOLEAN, true);
     }
 
-    public void setHudStateForPlayer(Player player, boolean state) {
+    public void setHudState(Player player, boolean state) {
         player.getPersistentDataContainer().set(hudToggleKey, DataType.BOOLEAN, state);
     }
 
@@ -92,7 +96,7 @@ public class HudManager {
     }
 
     public void updateHud(final Player player) {
-        enableHud(player, getActiveHudForPlayer(player));
+        enableHud(player, getActiveHud(player));
     }
 
     public void disableHud(final Player player) {
@@ -100,7 +104,7 @@ public class HudManager {
     }
 
     public void enableHud(final Player player, Hud hud) {
-        if (hud == null || hud.getDisplayText() == null || !getHudStateForPlayer(player)) return;
+        if (hud == null || hud.getDisplayText() == null || !getHudState(player)) return;
 
         String hudDisplay = parsedHudDisplays.get(hud);
         hudDisplay = translatePlaceholdersForHudDisplay(player, hudDisplay);

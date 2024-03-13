@@ -35,9 +35,9 @@ public class HudCommand {
                             return;
                         }
 
-                        boolean toggle = !manager.getHudStateForPlayer(player);
-                        manager.setHudStateForPlayer(player, toggle);
-                        manager.setActiveHudForPlayer(player, hud);
+                        boolean toggle = !manager.getHudState(player);
+                        manager.setHudState(player, toggle);
+                        manager.setActiveHud(player, hud);
                         if (toggle) {
                             Message.HUD_TOGGLE_ON.send(player, AdventureUtils.tagResolver("hud_id", hudId));
                             manager.enableHud(player, hud);

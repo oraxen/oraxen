@@ -52,7 +52,7 @@ public class BlockHelpers {
     public static Block getBlockStandingOn(Entity entity) {
         Block block = entity.getLocation().getBlock();
         Block blockBelow = block.getRelative(BlockFace.DOWN);
-        if (!block.getType().isAir()) return block;
+        if (!block.getType().isAir() && block.getType() != Material.LIGHT) return block;
         if (!blockBelow.getType().isAir()) return blockBelow;
 
         // Expand players hitbox by 0.3, which is the maximum size a player can be off a block

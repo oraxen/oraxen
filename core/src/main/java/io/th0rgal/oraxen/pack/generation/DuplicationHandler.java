@@ -345,8 +345,8 @@ public class DuplicationHandler {
 
             for (JsonElement element : overrides) {
                 JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
-                String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
-                String id = "migrated_" + Utils.removeParentDirs(modelPath);
+                String modelPath = element.getAsJsonObject().get("model").getAsString().replaceAll("[^a-zA-Z0-9]+","_");
+                String id = "migrated_" + modelPath;
                 // Assume if no cmd is in that it is meant to replace the default model
                 int cmd = predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsInt() : 0;
 

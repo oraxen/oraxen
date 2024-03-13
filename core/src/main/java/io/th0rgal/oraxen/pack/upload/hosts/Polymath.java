@@ -15,6 +15,7 @@ import org.apache.http.util.EntityUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.UUID;
 
 public class Polymath implements HostingProvider {
 
@@ -22,6 +23,7 @@ public class Polymath implements HostingProvider {
     private String packUrl;
     private String minecraftPackURL;
     private String sha1;
+    private UUID packUUID;
 
     public Polymath(String serverAddress) {
         this.serverAddress = (serverAddress.startsWith("http://") || serverAddress.startsWith("https://") ? "" : "https://") + serverAddress + (serverAddress.endsWith("/") ? "" : "/");
@@ -54,6 +56,7 @@ public class Polymath implements HostingProvider {
                 packUrl = jsonOutput.get("url").getAsString();
                 minecraftPackURL = packUrl.replace("https://", "http://");
                 sha1 = jsonOutput.get("sha1").getAsString();
+                packUUID = UUID.nameUUIDFromBytes(sha1.getBytes());
                 return true;
             }
 
@@ -93,6 +96,11 @@ public class Polymath implements HostingProvider {
     @Override
     public String getOriginalSHA1() {
         return sha1;
+    }
+
+    @Override
+    public UUID getPackUUID() {
+        return packUUID;
     }
 
 }

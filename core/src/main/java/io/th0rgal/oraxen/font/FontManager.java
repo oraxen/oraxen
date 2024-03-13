@@ -88,10 +88,16 @@ public class FontManager {
 
     public void registerEvents() {
         Bukkit.getPluginManager().registerEvents(fontEvents, OraxenPlugin.get());
+        fontEvents.registerChatHandlers();
     }
 
     public void unregisterEvents() {
         HandlerList.unregisterAll(fontEvents);
+        fontEvents.unregisterChatHandlers();
+    }
+
+    public FontEvents getFontEvents() {
+        return fontEvents;
     }
 
     private void loadGlyphs(Collection<Glyph> glyphs) {

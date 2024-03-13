@@ -6,12 +6,13 @@ import net.kyori.adventure.text.minimessage.tag.Tag;
 import net.kyori.adventure.text.minimessage.tag.resolver.ArgumentQueue;
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver;
 
+import java.util.Set;
+
 public class ShiftTag {
     private static final String SHIFT = "shift";
     private static final String SHIFT_SHORT = "s";
 
-    public static final TagResolver RESOLVER = TagResolver.resolver(SHIFT, (args, ctx) -> shiftTag(args));
-    public static final TagResolver RESOLVER_SHORT = TagResolver.resolver(SHIFT_SHORT, (args, ctx) -> shiftTag(args));
+    public static final TagResolver RESOLVER = TagResolver.resolver(Set.of(SHIFT, SHIFT_SHORT), (args, ctx) -> shiftTag(args));
 
     private static Tag shiftTag(final ArgumentQueue args) {
         int length = 0;

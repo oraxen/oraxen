@@ -1,6 +1,6 @@
 {
   "connect.joining": "",
-  "menu.disconnect": "<shift:74><gray>See you soon!<shift:-142><glyph:menu_banner>",
+  "menu.disconnect": "<shift:-256><gray>See you soon!<shift:-142><glyph:menu_banner><shift:-327>",
   "menu.returnToGame": "Back to the Oraxen experience",
   "menu.game": "<glyph:logo>",
   "item.dyed": "",

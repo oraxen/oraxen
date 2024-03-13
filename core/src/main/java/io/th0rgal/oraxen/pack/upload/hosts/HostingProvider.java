@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack.upload.hosts;
 
 import java.io.File;
+import java.util.UUID;
 
 public interface HostingProvider {
 
@@ -13,5 +14,7 @@ public interface HostingProvider {
     byte[] getSHA1();
 
     String getOriginalSHA1();
+
+    UUID getPackUUID();
 
 }
