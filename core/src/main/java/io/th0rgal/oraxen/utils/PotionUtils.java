@@ -15,7 +15,7 @@ public class PotionUtils {
         PotionEffectType effectType = null;
         try {
             effectType = Registry.POTION_EFFECT_TYPE.get(NamespacedKey.fromString(effect));
-        } catch (Exception e) {
+        } catch (NoSuchFieldError ignored) {
         }
         if (effectType == null)
             effectType = PotionEffectType.getByName(effect);

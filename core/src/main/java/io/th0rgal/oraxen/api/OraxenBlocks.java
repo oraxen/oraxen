@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -29,8 +30,7 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
@@ -245,6 +245,7 @@ public class OraxenBlocks {
         if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentMechanic();
 
+        Location loc = block.getLocation();
         Drop drop = forceDrop ? mechanic.getDrop() : null;
         if (player != null) {
             OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
@@ -253,16 +254,19 @@ public class OraxenBlocks {
             if (forceDrop || player.getGameMode() != GameMode.CREATIVE)
                 drop = noteBlockBreakEvent.getDrop();
 
-            block.getWorld().sendGameEvent(null, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
+            World world = block.getWorld();
+
+            world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector());
+            world.playEffect(loc, Effect.STEP_SOUND, VersionUtil.atOrAbove("1.20") ? block.getBlockData() : null);
         }
-        if (drop != null) drop.spawns(block.getLocation(), itemInHand);
+        if (drop != null) drop.spawns(loc, itemInHand);
 
         if (mechanic.hasLight()) mechanic.getLight().removeBlockLight(block);
         if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             mechanic.getStorage().dropStorageContent(block);
         }
         block.setType(Material.AIR);
-        checkNoteBlockAbove(block.getLocation());
+        checkNoteBlockAbove(loc);
     }
 
 
@@ -280,7 +284,7 @@ public class OraxenBlocks {
             if (forceDrop || player.getGameMode() != GameMode.CREATIVE)
                 drop = wireBlockBreakEvent.getDrop();
 
-            block.getWorld().sendGameEvent(null, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
+            block.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
         }
         if (drop != null) drop.spawns(block.getLocation(), itemInHand);
 

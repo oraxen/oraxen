@@ -19,13 +19,13 @@ public class HudEvents implements Listener {
         HudManager hudManager = OraxenPlugin.get().getHudManager();
         final Player player = event.getPlayer();
         final PersistentDataContainer pdc = player.getPersistentDataContainer();
-        Hud hud = hudManager.getActiveHudForPlayer(player) != null
-                ? hudManager.getActiveHudForPlayer(player) : hudManager.getDefaultEnabledHuds().stream().findFirst().orElse(null);
+        Hud hud = hudManager.hasActiveHud(player)
+                ? hudManager.getActiveHud(player) : hudManager.getDefaultEnabledHuds().stream().findFirst().orElse(null);
         String hudId = hudManager.getHudID(hud);
 
         if (hud == null || hudId == null) return;
         if (!player.hasPermission(hud.getPerm())) return;
-        if (!hudManager.getHudStateForPlayer(player)) return;
+        if (!hudManager.getHudState(player)) return;
 
         pdc.set(hudManager.hudDisplayKey, DataType.STRING, hudManager.getHudID(hud));
         pdc.set(hudManager.hudToggleKey, DataType.BOOLEAN, true);
@@ -38,14 +38,14 @@ public class HudEvents implements Listener {
 
         HudManager hudManager = OraxenPlugin.get().getHudManager();
         Player player = (Player) event.getEntity();
-        Hud hud = hudManager.getActiveHudForPlayer(player);
+        Hud hud = hudManager.getActiveHud(player);
 
-        if (hud == null || !hud.isDisabledWhilstInWater() || !hudManager.getHudStateForPlayer(player)) return;
+        if (hud == null || !hud.isDisabledWhilstInWater() || !hudManager.getHudState(player)) return;
         if (event.getAmount() < player.getMaximumAir()) {
-            hudManager.setHudStateForPlayer(player, true);
+            hudManager.setHudState(player, true);
             hudManager.updateHud(player);
         } else {
-            hudManager.setHudStateForPlayer(player, false);
+            hudManager.setHudState(player, false);
             hudManager.disableHud(player);
         }
     }
@@ -54,14 +54,14 @@ public class HudEvents implements Listener {
     public void onGameModeChange(final PlayerGameModeChangeEvent event) {
         HudManager hudManager = OraxenPlugin.get().getHudManager();
         Player player = event.getPlayer();
-        Hud hud = hudManager.getActiveHudForPlayer(player);
+        Hud hud = hudManager.getActiveHud(player);
         if (hud == null) return;
 
         if (player.getGameMode() == GameMode.SPECTATOR && !hud.enableInSpectatorMode()) {
-            hudManager.setHudStateForPlayer(player, false);
+            hudManager.setHudState(player, false);
             hudManager.disableHud(player);
         } else {
-            hudManager.setHudStateForPlayer(player, true);
+            hudManager.setHudState(player, true);
             hudManager.updateHud(player);
         }
     }

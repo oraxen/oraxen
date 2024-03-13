@@ -24,8 +24,7 @@ public class AdventureUtils {
     public static final MiniMessage MINI_MESSAGE_EMPTY = MiniMessage.miniMessage();
 
     public static final TagResolver OraxenTagResolver = TagResolver.resolver(TagResolver.standard(),
-            GlyphTag.RESOLVER, GlyphTag.RESOLVER_SHORT, ShiftTag.RESOLVER, ShiftTag.RESOLVER_SHORT,
-            TagResolver.resolver("prefix", Tag.selfClosingInserting(MINI_MESSAGE_EMPTY.deserialize(Message.PREFIX.toString())))
+            GlyphTag.RESOLVER, ShiftTag.RESOLVER, TagResolver.resolver("prefix", Tag.selfClosingInserting(MINI_MESSAGE_EMPTY.deserialize(Message.PREFIX.toString())))
     );
 
     public static final LegacyComponentSerializer LEGACY_SERIALIZER =
@@ -138,7 +137,7 @@ public class AdventureUtils {
     }
 
     public static String parseJsonThroughMiniMessage(String message, Player player) {
-        TagResolver resolver = TagResolver.resolver(GlyphTag.getResolverForPlayer(player), ShiftTag.RESOLVER, ShiftTag.RESOLVER_SHORT);
+        TagResolver resolver = TagResolver.resolver(GlyphTag.getResolverForPlayer(player), ShiftTag.RESOLVER);
         Component component = GSON_SERIALIZER.deserialize(message.replaceAll("\\\\(?!u)(?!n)(?!\")", ""));
         component = MINI_MESSAGE.deserialize(MINI_MESSAGE.serialize(component).replaceAll("\\\\(?!u)(?!n)(?!\")", ""), resolver);
         if (player != null) component = GlobalTranslator.render(component, Locale.forLanguageTag(player.getLocale()));
