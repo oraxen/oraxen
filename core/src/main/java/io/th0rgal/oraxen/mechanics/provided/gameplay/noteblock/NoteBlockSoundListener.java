@@ -77,7 +77,7 @@ public class NoteBlockSoundListener implements Listener {
 
         if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM) {
             if (event.getInstaBreak()) {
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
+                OraxenPlugin.getScheduler().runDelayed(SchedulerType.SYNC, location, taskInter ->
                         block.setType(Material.AIR, false), 1);
                 return;
             }
