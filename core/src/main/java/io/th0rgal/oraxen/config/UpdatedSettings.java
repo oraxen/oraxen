@@ -22,6 +22,12 @@ public enum UpdatedSettings {
     UNICODE_COMPLETIONS("Misc.unicode_completions", "Glyphs.unicode_completions"),
     WORLDEDIT_NOTEBLOCKS("Plugin.worldedit.noteblock_mechanic", "WorldEdit.noteblock_mechanic"),
     WORLDEDIT_STRINGBLOCKS("Plugin.worldedit.stringblock_mechanic", "WorldEdit.stringblock_mechanic"),
+    CUSTOM_ARMOR_SHADER_TYPE("CustomArmor.shader_type", "CustomArmor.shader_settings.type"),
+    ARMOR_RESOLUTION("Pack.generation.armor_resolution", "CustomArmor.shader_settings.armor_resolution"),
+    ANIMATED_ARMOR_FRAMERATE("Pack.generation.animated_armor_framerate", "CustomArmor.shader_settings.animated_armor_framerate"),
+    GENERATE_ARMOR_SHADER_FILES("Pack.generation.generate_armor_shader_files", "CustomArmor.shader_settings.generate_armor_shader_files"),
+    GENERATE_CUSTOM_ARMOR_TEXTURES("Pack.generation.generate_custom_armor_textures", "CustomArmor.shader_settings.generate_custom_armor_textures"),
+    AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR("Pack.generation.automatically_generate_shader_compatible_armor", "CustomArmor.shader_settings.generate_shader_compatible_armor"),
     ;
 
     private final String path;
