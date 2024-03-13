@@ -9,6 +9,7 @@ import com.comphenix.protocol.events.PacketEvent;
 import com.comphenix.protocol.reflect.StructureModifier;
 import com.comphenix.protocol.wrappers.BlockPosition;
 import com.comphenix.protocol.wrappers.EnumWrappers;
+import fr.euphyllia.energie.Energie;
 import fr.euphyllia.energie.model.Scheduler;
 import fr.euphyllia.energie.model.SchedulerTaskInter;
 import fr.euphyllia.energie.model.SchedulerType;
@@ -131,7 +132,7 @@ public class BreakerSystem {
                     // However still needs to be called for plugin support.
                     final PlayerInteractEvent playerInteractEvent =
                             new PlayerInteractEvent(player, Action.LEFT_CLICK_BLOCK, player.getInventory().getItemInMainHand(), block, blockFace, EquipmentSlot.HAND);
-                    scheduler.runTask(SchedulerType.SYNC, task -> Bukkit.getPluginManager().callEvent(playerInteractEvent));
+                    scheduler.runTask(SchedulerType.SYNC, player, task -> Bukkit.getPluginManager().callEvent(playerInteractEvent), null);
 
                     // If the relevant damage event is cancelled, return
                     if (blockDamageEventCancelled(block, player)) return;
@@ -140,10 +141,10 @@ public class BreakerSystem {
                     final HardnessModifier modifier = triggeredModifier;
                     startBlockHitSound(block);
                     AtomicInteger value = new AtomicInteger();
-                    scheduler.runAtFixedRate(SchedulerType.SYNC, globalTask ->  {
-                        if (globalTask == null) return;
+                    scheduler.runAtFixedRate(SchedulerType.SYNC, location, regionTask2 ->  {
+                        if (regionTask2 == null) return;
                         if (!breakerPerLocation.containsKey(location)) {
-                            globalTask.cancel();
+                            regionTask2.cancel();
                             return;
                         }
 
@@ -177,7 +178,7 @@ public class BreakerSystem {
                                 else sendBlockBreak(viewer, location, value.get());
                             }
                         }
-                        globalTask.cancel();
+                        regionTask2.cancel();
                     }, period, period);
                 }
                 else {
@@ -185,12 +186,14 @@ public class BreakerSystem {
                         player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
                         if (!ProtectionLib.canBreak(player, location))
                             player.sendBlockChange(block.getLocation(), block.getBlockData());
+                        OraxenPlugin.getScheduler().runTask(SchedulerType.SYNC, location, regionTask2 -> {
+                            for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
+                                if (entity instanceof Player viewer)
+                                    sendBlockBreak(viewer, location, 10);
+                            stopBlockBreaker(block);
+                            stopBlockHitSound(block);
+                        });
 
-                        for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16))
-                            if (entity instanceof Player viewer)
-                                sendBlockBreak(viewer, location, 10);
-                        stopBlockBreaker(block);
-                        stopBlockHitSound(block);
                     }, null);
                 }
             });
@@ -232,23 +235,34 @@ public class BreakerSystem {
             }
             case BARRIER -> {
                 try {
-                    CompletableFuture<Boolean> completableFuture = new CompletableFuture<>();
-                    OraxenPlugin.getScheduler().callSyncMethod(schedulerTaskInter -> {
+                    if (!Energie.isFolia()) {
+                        return Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
+                            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+                            if (mechanic == null) {
+                                return true;
+                            }
+                            Entity baseEntity = mechanic.getBaseEntity(block);
+                            if (baseEntity == null) {
+                                return true;
+                            }
+                            OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block);
+                            Bukkit.getPluginManager().callEvent(event);
+                            return event.isCancelled();
+                        }).get();
+                    } else {
                         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
                         if (mechanic == null) {
-                            completableFuture.complete(true);
-                            return;
+                            return true;
                         }
                         Entity baseEntity = mechanic.getBaseEntity(block);
                         if (baseEntity == null) {
-                            completableFuture.complete(true);
-                            return;
+                            return true;
                         }
                         OraxenFurnitureDamageEvent event = new OraxenFurnitureDamageEvent(mechanic, baseEntity, player, block);
-                        OraxenPlugin.getScheduler().runTask(SchedulerType.SYNC, taskInter -> Bukkit.getPluginManager().callEvent(event));
-                        completableFuture.complete(event.isCancelled());
-                    });
-                    return completableFuture.join();
+                        Bukkit.getPluginManager().callEvent(event);
+                        return event.isCancelled();
+                    }
+
                 } catch (Exception e) {
                     return false;
                 }
