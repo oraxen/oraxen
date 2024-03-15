@@ -199,7 +199,7 @@ tasks {
 }
 
 bukkit {
-    load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.STARTUP
+    load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
     main = "io.th0rgal.oraxen.OraxenPlugin"
     version = pluginVersion
     name = "Oraxen"
