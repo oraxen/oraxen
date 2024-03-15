@@ -445,11 +445,17 @@ public class NoteBlockMechanicListener implements Listener {
             target.setBlockData(newData);
             final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, hand);
 
+            Material material = newData.getMaterial();
+
             if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions()))
                 blockPlaceEvent.setCancelled(true);
             if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
                 blockPlaceEvent.setCancelled(true);
             if (!Range.between(target.getWorld().getMinHeight(), target.getWorld().getMaxHeight() - 1).contains(target.getY()))
+                blockPlaceEvent.setCancelled(true);
+            if (Tag.WOODEN_DOORS.isTagged(material) && (target.getRelative(BlockFace.DOWN).isEmpty() || !target.getRelative(BlockFace.UP).isEmpty()))
+                blockPlaceEvent.setCancelled(true);
+            if (Tag.WOODEN_PRESSURE_PLATES.isTagged(material) && !target.canPlace(newData))
                 blockPlaceEvent.setCancelled(true);
 
             // Call the event and check if it is cancelled, if so reset BlockData
