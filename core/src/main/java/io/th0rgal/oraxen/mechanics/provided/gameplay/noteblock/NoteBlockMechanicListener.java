@@ -444,8 +444,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (newData != null) {
             target.setBlockData(newData);
             final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, hand);
-
-            Material material = newData.getMaterial();
+            final Material material = newData.getMaterial();
 
             if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions()))
                 blockPlaceEvent.setCancelled(true);
