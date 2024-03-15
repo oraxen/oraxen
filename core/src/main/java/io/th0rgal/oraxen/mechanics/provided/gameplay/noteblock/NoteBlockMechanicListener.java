@@ -452,7 +452,7 @@ public class NoteBlockMechanicListener implements Listener {
                 blockPlaceEvent.setCancelled(true);
             if (!Range.between(target.getWorld().getMinHeight(), target.getWorld().getMaxHeight() - 1).contains(target.getY()))
                 blockPlaceEvent.setCancelled(true);
-            if (Tag.WOODEN_DOORS.isTagged(material) && (target.getRelative(BlockFace.DOWN).isEmpty() || !target.getRelative(BlockFace.UP).isEmpty()))
+            if (Tag.WOODEN_DOORS.isTagged(material) && (!target.canPlace(newData) || !target.getRelative(BlockFace.UP).isEmpty()))
                 blockPlaceEvent.setCancelled(true);
             if (Tag.WOODEN_PRESSURE_PLATES.isTagged(material) && !target.canPlace(newData))
                 blockPlaceEvent.setCancelled(true);
