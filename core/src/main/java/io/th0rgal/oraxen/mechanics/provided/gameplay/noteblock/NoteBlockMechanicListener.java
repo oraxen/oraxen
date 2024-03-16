@@ -281,6 +281,15 @@ public class NoteBlockMechanicListener implements Listener {
         }
     }
 
+    @EventHandler
+    public void onBedExplosion(BlockExplodeEvent event) {
+        for (Block block : new HashSet<>(event.blockList())) {
+            if (!OraxenBlocks.isOraxenNoteBlock(block)) continue;
+            OraxenBlocks.remove(block.getLocation(), null);
+            event.blockList().remove(block);
+        }
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onFallingOraxenBlock(EntityChangeBlockEvent event) {
         if (event.getEntity() instanceof FallingBlock fallingBlock) {
