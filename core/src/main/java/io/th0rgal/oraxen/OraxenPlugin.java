@@ -109,7 +109,7 @@ public class OraxenPlugin extends JavaPlugin {
         pluginManager.registerEvents(new CustomArmorListener(), this);
         NMSHandlers.setup();
 
-        resourceManager = new ResourcesManager(this);
+
         resourcePack = new ResourcePack();
         MechanicsManager.registerNativeMechanics();
         //CustomBlockData.registerListener(this); //Handle this manually
@@ -182,6 +182,7 @@ public class OraxenPlugin extends JavaPlugin {
     public void reloadConfigs() {
         configsManager = new ConfigsManager(this);
         configsManager.validatesConfig();
+        resourceManager = new ResourcesManager(this);
     }
 
     public ConfigsManager getConfigsManager() {
