@@ -599,22 +599,20 @@ public class ResourcePack {
         // Clear out old datapacks before generating new ones, in case type changed or otherwise
         TrimArmorDatapack.clearOldDataPacks();
 
-        if (customArmorType == CustomArmorType.SHADER && Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && shaderArmorTextures.hasCustomArmors()) {
-            try {
-                String armorPath = "assets/minecraft/textures/models/armor";
-                output.add(new VirtualFile(armorPath, "leather_layer_1.png", shaderArmorTextures.getLayerOne()));
-                output.add(new VirtualFile(armorPath, "leather_layer_2.png", shaderArmorTextures.getLayerTwo()));
-                if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool())
-                    output.addAll(shaderArmorTextures.getOptifineFiles());
-            } catch (IOException e) {
-                e.printStackTrace();
+        switch (customArmorType) {
+            case TRIMS -> trimArmorDatapack.generateTrimAssets(output);
+            case SHADER -> {
+                if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && shaderArmorTextures.hasCustomArmors()) try {
+                    String armorPath = "assets/minecraft/textures/models/armor";
+                    output.add(new VirtualFile(armorPath, "leather_layer_1.png", shaderArmorTextures.getLayerOne()));
+                    output.add(new VirtualFile(armorPath, "leather_layer_2.png", shaderArmorTextures.getLayerTwo()));
+                    if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool()) {
+                        output.addAll(shaderArmorTextures.getOptifineFiles());
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        } else if (customArmorType == CustomArmorType.TRIMS) {
-            trimArmorDatapack.generateTrimAssets(output);
-            String armorPath = "assets/minecraft/textures/models/armor";
-            //TODO make this configurable
-            //output.add(new VirtualFile(armorPath, "transparent_layer_1.png", OraxenPlugin.get().getResource("pack/textures/models/armor/transparent_layer_1.png")));
-            //output.add(new VirtualFile(armorPath, "transparent_layer_2.png", OraxenPlugin.get().getResource("pack/textures/models/armor/transparent_layer_2.png")));
         }
     }
 
