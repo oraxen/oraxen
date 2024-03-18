@@ -483,7 +483,8 @@ public class NoteBlockMechanicListener implements Listener {
             if (targetOraxen.isFalling() && target.getRelative(BlockFace.DOWN).getType().isAir()) {
                 Location fallingLocation = BlockHelpers.toCenterBlockLocation(target.getLocation());
                 OraxenBlocks.remove(target.getLocation(), null);
-                target.getWorld().spawnFallingBlock(fallingLocation, newData);
+                if(fallingLocation.getNearbyEntitiesByType(FallingBlock.class, 0.25).isEmpty())
+                    target.getWorld().spawnFallingBlock(fallingLocation, newData);
                 handleFallingOraxenBlockAbove(target);
             }
 
