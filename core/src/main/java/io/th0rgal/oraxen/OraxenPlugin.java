@@ -13,7 +13,6 @@ import io.th0rgal.oraxen.config.*;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
 import io.th0rgal.oraxen.font.packets.TitlePacketListener;
-import io.th0rgal.oraxen.gestures.GestureManager;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
@@ -52,7 +51,6 @@ import java.util.jar.JarFile;
 public class OraxenPlugin extends JavaPlugin {
 
     private static OraxenPlugin oraxen;
-    private static GestureManager gestureManager;
     private ConfigsManager configsManager;
     private ResourcesManager resourceManager;
     private BukkitAudiences audience;
@@ -102,7 +100,6 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
-        gestureManager = new GestureManager();
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
@@ -177,10 +174,6 @@ public class OraxenPlugin extends JavaPlugin {
         return protocolManager;
     }
 
-    public GestureManager gestureManager() {
-        return gestureManager;
-    }
-
     public BukkitAudiences audience() {
         return audience;
     }
@@ -188,10 +181,17 @@ public class OraxenPlugin extends JavaPlugin {
     public void reloadConfigs() {
         configsManager = new ConfigsManager(this);
         configsManager.validatesConfig();
+        resourceManager = new ResourcesManager(this);
     }
 
     public ConfigsManager configsManager() {
         return configsManager;
+    }
+    public ResourcesManager resourceManager() {
+        return resourceManager;
+    }
+    public void resourceManager(ResourcesManager resourceManager) {
+        this.resourceManager = resourceManager;
     }
 
     public FontManager fontManager() {

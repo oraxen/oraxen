@@ -68,7 +68,7 @@ public abstract class RecipeBuilder {
 
     public YamlConfiguration getConfig() {
         if (configFile == null) {
-            configFile = OraxenPlugin.get().getResourceManager()
+            configFile = OraxenPlugin.get().resourceManager()
                     .extractConfiguration("recipes/" + builderName + ".yml");
             config = OraxenYaml.loadConfiguration(configFile);
         }

@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 
 public class PackSlicer extends Slicer {
 
-    private static final Path packFolder = OraxenPlugin.get().getResourcePack().getPackFolder().toPath();
+    private static final Path packFolder = OraxenPlugin.get().packPath();
     private static final Path assetsFolder = packFolder.resolve("assets/minecraft");
     private static final Box STANDARD_CONTAINER_BOX = new Box(0, 0, 176, 166, 256, 256);
     public static final List<InputFile> INPUTS;

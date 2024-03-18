@@ -34,8 +34,7 @@ public enum RemovedSettings {
     UPLOAD_OPTIONS("Pack.upload.options"),
     POLYMATH_SERVER("Pack.upload.polymath.server"),
 
-    NMS_BLOCK_CORRECTION("Plugin.experimental.nms.block_correction"),
-    SPIGOT_CHAT_FORMATTING("Plugin.experimental.spigot_chat_formatting"),
+    GESTURES_ENABLED("Gestures.enabled"),
 
     ;
 
