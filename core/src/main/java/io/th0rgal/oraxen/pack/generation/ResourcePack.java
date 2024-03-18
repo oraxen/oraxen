@@ -93,7 +93,7 @@ public class ResourcePack {
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) generateScoreboardHideBackground();
         if (Settings.TEXTURE_SLICER.toBool()) PackSlicer.slicePackFiles();
-        if (CustomArmorType.getSetting() == CustomArmorType.SHADER && Settings.CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool())
+        if (CustomArmorType.getSetting() == CustomArmorType.SHADER && Settings.CUSTOM_ARMOR_SHADER_GENERATE_FILES.toBool())
             ShaderArmorTextures.generateArmorShaderFiles();
 
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
