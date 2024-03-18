@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
+import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.entity.ArmorStand;
@@ -34,7 +35,9 @@ public class HatMechanicListener implements Listener {
         if (!(event.getRightClicked() instanceof ArmorStand armorStand)) return;
         EntityEquipment equipment = armorStand.getEquipment();
         if (equipment.getHelmet() == null) return;
-        if (!new PlayerArmorStandManipulateEvent(player, armorStand, item, equipment.getHelmet(), EquipmentSlot.HEAD, EquipmentSlot.HAND).isCancelled()) return;
+        PlayerArmorStandManipulateEvent armorStandEvent = new PlayerArmorStandManipulateEvent(player, armorStand, item, equipment.getHelmet(), EquipmentSlot.HEAD, EquipmentSlot.HAND);
+        Bukkit.getPluginManager().callEvent(armorStandEvent);
+        if (armorStandEvent.isCancelled()) return;
 
         if (item.getType() == Material.AIR) {
             if (event.getClickedPosition().getY() < 1.55) return; // Did not click head
