@@ -87,6 +87,7 @@ allprojects {
 
     dependencies {
         val actionsVersion = "1.0.0-SNAPSHOT"
+        val creativeVersion = "1.3.0"
         compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
         compileOnly("gs.mclo:java:2.2.1")
 
@@ -124,7 +125,9 @@ allprojects {
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
         implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
-        implementation("com.ticxo:PlayerAnimator:R1.2.8") { isChanging = true }
+        implementation("team.unnamed:creative-api:$creativeVersion")
+        implementation("team.unnamed:creative-serializer-minecraft:$creativeVersion")
+        implementation("team.unnamed:creative-server:$creativeVersion")
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     }

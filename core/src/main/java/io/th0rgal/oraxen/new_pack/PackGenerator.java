@@ -100,8 +100,8 @@ public class PackGenerator {
     }
 
     private void hideScoreboardBackground() {
-        String fileName = VersionUtil.isSupportedVersionOrNewer("1.20.1") ? "rendertype_gui.vsh" : "position_color.fsh";
-        Writable writable = VersionUtil.isSupportedVersionOrNewer("1.20.1") ? ShaderUtils.ScoreboardBackground.modernFile() : ShaderUtils.ScoreboardBackground.legacyFile();
+        String fileName = VersionUtil.atOrAbove("1.20.1") ? "rendertype_gui.vsh" : "position_color.fsh";
+        Writable writable = VersionUtil.atOrAbove("1.20.1") ? ShaderUtils.ScoreboardBackground.modernFile() : ShaderUtils.ScoreboardBackground.legacyFile();
         resourcePack.unknownFile("assets/minecraft/shaders/core/" + fileName, writable);
     }
 

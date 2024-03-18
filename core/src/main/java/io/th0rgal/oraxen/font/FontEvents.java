@@ -4,7 +4,6 @@ import io.papermc.paper.event.player.AsyncChatDecorateEvent;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.compatibilities.provided.placeholderapi.PapiAliases;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -270,7 +269,7 @@ public class FontEvents implements Listener {
 
                 if (player == null || glyph.hasPermission(player)) {
                     component = (TextComponent) component.replaceText(TextReplacementConfig.builder()
-                            .matchLiteral(placeholder).replacement(glyph.getGlyphComponent()).build());
+                            .matchLiteral(placeholder).replacement(glyph.glyphComponent()).build());
                 }
             }
 
@@ -318,7 +317,7 @@ public class FontEvents implements Listener {
             if (!glyph.hasPermission(player)) message.replaceText(
                     TextReplacementConfig.builder()
                             .matchLiteral(character.toString())
-                            .replacement(glyph.getGlyphComponent().font(randomKey))
+                            .replacement(glyph.glyphComponent().font(randomKey))
                             .build()
             );
         }
@@ -328,7 +327,7 @@ public class FontEvents implements Listener {
                 message = message.replaceText(
                         TextReplacementConfig.builder()
                                 .matchLiteral(entry.getKey())
-                                .replacement(entry.getValue().getGlyphComponent()).build()
+                                .replacement(entry.getValue().glyphComponent()).build()
                 );
             }
 

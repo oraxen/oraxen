@@ -13,8 +13,6 @@ tasks {
     build.get().dependsOn(shadowJar)
 }
 
-val creativeVersion = "1.2.2-SNAPSHOT"
-
 dependencies {
     paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
 }

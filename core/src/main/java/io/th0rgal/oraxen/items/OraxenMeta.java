@@ -1,16 +1,11 @@
 package io.th0rgal.oraxen.items;
 
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.new_pack.ModelGenerator;
 import io.th0rgal.oraxen.utils.Utils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.ConfigurationSection;
-import team.unnamed.creative.model.Model;
 import team.unnamed.creative.model.ModelTexture;
 import team.unnamed.creative.model.ModelTextures;
-import team.unnamed.creative.texture.Texture;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -98,22 +93,6 @@ public class OraxenMeta {
 
         this.parentModel = Key.key(section.getString("parent_model", "item/generated"));
         this.generateModel = section.getString("model") == null;
-    }
-
-        // If not specified, check if a model or texture is set
-        this.generate_model = section.getBoolean("generate_model", modelName.isEmpty());
-        this.generatedModelPath = section.getString("generated_model_path", "");
-        this.parentModel = section.getString("parent_model", "item/generated");
-
-        if (generate_model && !modelName.matches("^[a-z0-9-_/]+$")) {
-            Logs.logWarning("Item " + section.getParent().getName() + " is set to generate a model, but ItemID does not adhere to [a-z0-9-_]!");
-            Logs.logWarning("This will generate a malformed model!");
-        }
-
-    private void correctModelTextures() {
-        if (parentModel.asString().startsWith("block/")) {
-
-        }
     }
 
     // this might not be a very good function name

@@ -53,13 +53,13 @@ public class GlyphHandlers {
 
         // Replace raw unicode usage of non-permissed Glyphs with random font
         // This will always show a white square
-        for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
+        for (Glyph glyph : OraxenPlugin.get().fontManager().glyphs()) {
             if (glyph.hasPermission(player)) continue;
 
             component = component.replaceText(
                     TextReplacementConfig.builder()
-                            .matchLiteral(glyph.getCharacter())
-                            .replacement(glyph.getGlyphComponent().font(randomKey))
+                            .matchLiteral(glyph.character())
+                            .replacement(glyph.glyphComponent().font(randomKey))
                             .build()
             );
 
@@ -83,13 +83,13 @@ public class GlyphHandlers {
     private static Component transformGlyphs(Component component, boolean isUtf) {
         String serialized = AdventureUtils.MINI_MESSAGE_EMPTY.serialize(component);
 
-        for (Glyph glyph : OraxenPlugin.get().getFontManager().getGlyphs()) {
+        for (Glyph glyph : OraxenPlugin.get().fontManager().glyphs()) {
             Matcher matcher = glyph.baseRegex.matcher(serialized);
             while (matcher.find()) {
                 component = component.replaceText(
                         TextReplacementConfig.builder().once()
                                 .matchLiteral(matcher.group())
-                                .replacement(glyph.getGlyphComponent())
+                                .replacement(glyph.glyphComponent())
                                 .build());
             }
 

@@ -38,7 +38,6 @@ public enum Settings {
     UNICODE_COMPLETIONS("Glyphs.unicode_completions"),
     GLYPH_HOVER_TEXT("Glyphs.chat_hover_text"),
 
-
     // Chat
     CHAT_HANDLER("Chat.chat_handler"),
 
@@ -49,10 +48,6 @@ public enum Settings {
     DISABLE_AUTOMATIC_GLYPH_CODE("ConfigsTools.disable_automatic_glyph_code"),
     SKIPPED_MODEL_DATA_NUMBERS("ConfigsTools.skipped_model_data_numbers"),
     ERROR_ITEM("ConfigsTools.error_item"),
-
-    SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list.only_show_emojis_with_permission"),
-    UNICODE_COMPLETIONS("Glyphs.unicode_completions"),
-    NMS_GLYPHS("Glyphs.nms_glyphs"),
 
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
     CUSTOM_ARMOR_SHADER_TYPE("CustomArmor.shader_type"),

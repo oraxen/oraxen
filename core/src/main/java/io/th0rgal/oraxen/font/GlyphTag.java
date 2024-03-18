@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.font;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import net.kyori.adventure.text.format.Style;
@@ -29,7 +28,7 @@ public class GlyphTag {
         boolean colorable = args.hasNext() && (args.peek().value().equals("colorable") || args.peek().value().equals("c"));
         Component glyphComponent = Component.text(glyph.character()).font(glyph.font()).style(Style.empty());
 
-        glyphComponent = glyph.hasPermission(player) ? glyphComponent.color(colorable ? null : NamedTextColor.WHITE) : Component.text().content(glyph.getGlyphTag()).build();
+        glyphComponent = glyph.hasPermission(player) ? glyphComponent.color(colorable ? null : NamedTextColor.WHITE) : Component.text().content(glyph.glyphTag()).build();
         return Tag.selfClosingInserting(glyphComponent);
     }
 }
