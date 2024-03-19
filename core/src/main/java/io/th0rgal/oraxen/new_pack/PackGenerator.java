@@ -7,6 +7,10 @@ import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.utils.ModelEngineUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.customarmor.CustomArmor;
+import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
+import io.th0rgal.oraxen.utils.customarmor.ShaderArmorTextures;
+import io.th0rgal.oraxen.utils.customarmor.TrimArmorDatapack;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import team.unnamed.creative.BuiltResourcePack;
@@ -32,10 +36,13 @@ public class PackGenerator {
     private static Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
     private ResourcePack resourcePack;
     private BuiltResourcePack builtPack;
+    private CustomArmor customArmorHandler;
 
     public PackGenerator() {
         generateDefaultPaths();
         PackDownloader.downloadDefaultPack();
+        if (CustomArmorType.getSetting().equals(CustomArmorType.SHADER)) customArmorHandler = new ShaderArmorTextures();
+        else if (CustomArmorType.getSetting().equals(CustomArmorType.TRIMS)) new TrimArmorDatapack();
     }
 
     public void generatePack() {
@@ -46,6 +53,7 @@ public class PackGenerator {
 
         addItemPackFiles();
         addGlyphFiles();
+        customArmorHandler.generateNeededFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
 

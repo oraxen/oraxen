@@ -26,7 +26,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.*;
 
-public class ShaderArmorTextures {
+public class ShaderArmorTextures implements CustomArmor {
 
     static final int DEFAULT_RESOLUTION = 16;
     static final int HEIGHT_RATIO = 2;
@@ -41,10 +41,26 @@ public class ShaderArmorTextures {
     private BufferedImage layer2;
     private int layer2Width = 0;
     private int layer2Height = 0;
-    private static ShaderType shaderType;
+    private final ShaderType shaderType;
+
+    @Override
+    public void generateNeededFiles() {
+        generateArmorShaderFiles();
+    }
 
     public enum ShaderType {
-        FANCY, LESS_FANCY
+        FANCY, LESS_FANCY;
+
+        public static ShaderType fromSetting() {
+            try {
+                return ShaderType.valueOf(Settings.CUSTOM_ARMOR_SHADER_TYPE.toString().toUpperCase());
+            } catch (IllegalArgumentException e) {
+                Logs.logError("Invalid value for CUSTOM_ARMOR_SHADER_TYPE: " + Settings.CUSTOM_ARMOR_SHADER_TYPE.getValue());
+                Logs.logWarning("Valid values are: FANCY, LESS_FANCY");
+                Logs.logWarning("Defaulting to FANCY");
+                return ShaderType.FANCY;
+            }
+        }
     }
 
     public ShaderArmorTextures() {
@@ -53,14 +69,7 @@ public class ShaderArmorTextures {
 
     public ShaderArmorTextures(int resolution) {
         this.resolution = resolution;
-        try {
-            shaderType = ShaderType.valueOf(Settings.CUSTOM_ARMOR_SHADER_TYPE.toString().toUpperCase());
-        } catch (IllegalArgumentException e) {
-            Logs.logError("Invalid value for CUSTOM_ARMOR_SHADER_TYPE: " + Settings.CUSTOM_ARMOR_SHADER_TYPE.getValue());
-            Logs.logWarning("Valid values are: FANCY, LESS_FANCY");
-            Logs.logWarning("Defaulting to FANCY");
-            shaderType = ShaderType.FANCY;
-        }
+        this.shaderType = ShaderType.fromSetting();
         //this.layer1Height = resolution * HEIGHT_RATIO;
     }
 
@@ -589,7 +598,7 @@ public class ShaderArmorTextures {
         return concatImage;
     }
 
-    public static void generateArmorShaderFiles() {
+    private void generateArmorShaderFiles() {
         if (shaderType == ShaderType.LESS_FANCY) {
             ShaderArmorTextures.LessFancyArmorShaders.generateArmorShaderFiles();
         } else if (shaderType == ShaderType.FANCY) {
