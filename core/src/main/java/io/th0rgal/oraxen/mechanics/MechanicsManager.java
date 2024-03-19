@@ -40,6 +40,7 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,6 +50,7 @@ import java.util.Map.Entry;
 public class MechanicsManager {
 
     private static final Map<String, MechanicFactory> FACTORIES_BY_MECHANIC_ID = new HashMap<>();
+    public static final Map<String, List<Integer>> MECHANIC_TASKS = new HashMap<>();
     private static final Map<String, List<Listener>> MECHANICS_LISTENERS = new HashMap<>();
 
     public static void registerNativeMechanics() {
@@ -114,6 +116,7 @@ public class MechanicsManager {
     public static void unregisterMechanicFactory(String mechanicId) {
         FACTORIES_BY_MECHANIC_ID.remove(mechanicId);
         unloadListeners(mechanicId);
+        unregisterTasks(mechanicId);
     }
 
     /**
@@ -141,6 +144,26 @@ public class MechanicsManager {
         } catch (final IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public static void registerTask(String mechanicId, BukkitTask task) {
+        MECHANIC_TASKS.compute(mechanicId, (key, value) -> {
+            if (value == null) value = new ArrayList<>();
+            value.add(task.getTaskId());
+            return value;
+        });
+    }
+
+    public static void unregisterTasks() {
+        MECHANIC_TASKS.values().forEach(tasks -> tasks.forEach(Bukkit.getScheduler()::cancelTask));
+        MECHANIC_TASKS.clear();
+    }
+
+    public static void unregisterTasks(String mechanicId) {
+        MECHANIC_TASKS.computeIfPresent(mechanicId, (key, value) -> {
+            value.forEach(Bukkit.getScheduler()::cancelTask);
+            return Collections.emptyList();
+        });
     }
 
     public static void registerListeners(final JavaPlugin plugin, String mechanicId, final Listener... listeners) {
