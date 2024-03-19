@@ -37,7 +37,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public final List<String> toolTypes;
     private boolean farmBlock;
     private static FarmBlockTask farmBlockTask;
-    private static SchedulerTaskInter farmBlockSchedulerTask;
     public final int farmBlockCheckDelay;
     public final boolean customSounds;
     private final boolean removeMineableTag;
@@ -253,7 +252,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
     public void registerFarmBlock() {
         if (farmBlock) return;
-        if (farmBlockSchedulerTask != null) farmBlockSchedulerTask.cancel();
+        if (farmBlockTask != null) farmBlockTask.cancel();
 
 //        // Dont register if there is no farmblocks in configs
 //        List<String> farmblockList = new ArrayList<>();
@@ -266,9 +265,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 //        if (farmblockList.isEmpty()) return;
 
         farmBlockTask = new FarmBlockTask(farmBlockCheckDelay);
-        farmBlockSchedulerTask = OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, schedulerTaskInter -> {
-            farmBlockTask.run();
-        }, 0, farmBlockCheckDelay);
+        farmBlockTask.runAtFixedRate(OraxenPlugin.get(),  SchedulerType.SYNC, 0, farmBlockCheckDelay);
         farmBlock = true;
     }
 

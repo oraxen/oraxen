@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 import fr.euphyllia.energie.Energie;
 import fr.euphyllia.energie.model.MultipleRecords;
 import fr.euphyllia.energie.model.SchedulerType;
+import fr.euphyllia.energie.utils.SchedulerTaskRunnable;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
@@ -19,7 +20,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.EVOLUTION_KEY;
 
-public class EvolutionTask implements Runnable {
+public class EvolutionTask extends SchedulerTaskRunnable {
 
     private final FurnitureFactory furnitureFactory;
     private final int delay;

@@ -2,8 +2,8 @@ package io.th0rgal.oraxen.nms.v1_20_R1;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import fr.euphyllia.energie.Energie;
 import fr.euphyllia.energie.model.SchedulerType;
+import fr.euphyllia.energie.utils.SchedulerTaskRunnable;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -21,7 +21,10 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.*;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
@@ -55,7 +58,6 @@ import org.bukkit.craftbukkit.v1_20_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -265,9 +267,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         try {
             bind(futures, serverChannelHandler);
         } catch (IllegalArgumentException ex) {
-            OraxenPlugin.getScheduler().runTask(SchedulerType.SYNC, schedulerTaskInter -> {
-                        bind(futures, serverChannelHandler);
-                    });
+            new SchedulerTaskRunnable() {
+                @Override
+                public void run() {
+                    bind(futures, serverChannelHandler);
+                }
+            }.runTask(OraxenPlugin.get(), SchedulerType.SYNC);
         }
 
         if (VersionUtil.isPaperServer())

@@ -26,7 +26,6 @@ public class HudManager {
     public final NamespacedKey hudDisplayKey;
     private final HudEvents hudEvents;
     private static HudTask hudTask;
-    private static SchedulerTaskInter hudSchedulerTask;
     private static boolean hudTaskEnabled;
     private final Map<String, Hud> huds;
 
@@ -114,20 +113,18 @@ public class HudManager {
 
     public void registerTask() {
         if (hudTaskEnabled) return;
-        if (hudSchedulerTask != null) hudSchedulerTask.cancel();
+        if (hudTask != null) hudTask.cancel();
         if (hudUpdateTime == 0) return;
         if (huds.isEmpty()) return;
 
         hudTask = new HudTask();
-        hudSchedulerTask = OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, schedulerTaskInter -> {
-            hudTask.run();
-        }, 0, hudUpdateTime);
+        hudTask.runAtFixedRate(OraxenPlugin.get(), SchedulerType.SYNC, 0, hudUpdateTime);
         hudTaskEnabled = true;
     }
 
     public void unregisterTask() {
         if (!hudTaskEnabled) return;
-        if (hudSchedulerTask != null) hudSchedulerTask.cancel();
+        if (hudTask != null) hudTask.cancel();
         hudTaskEnabled = false;
     }
 

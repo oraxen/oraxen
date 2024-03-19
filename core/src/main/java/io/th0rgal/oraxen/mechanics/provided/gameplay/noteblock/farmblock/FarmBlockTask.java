@@ -2,7 +2,9 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock;
 
 import com.jeff_media.customblockdata.CustomBlockData;
 import fr.euphyllia.energie.model.MultipleRecords;
+import fr.euphyllia.energie.model.SchedulerTaskInter;
 import fr.euphyllia.energie.model.SchedulerType;
+import fr.euphyllia.energie.utils.SchedulerTaskRunnable;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -17,7 +19,7 @@ import org.bukkit.persistence.PersistentDataType;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 
-public class FarmBlockTask implements Runnable {
+public class FarmBlockTask extends SchedulerTaskRunnable {
     private final int delay;
 
     public FarmBlockTask(int delay) {

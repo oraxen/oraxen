@@ -21,7 +21,6 @@ public class FurnitureFactory extends MechanicFactory {
     public final int evolutionCheckDelay;
     private boolean evolvingFurnitures;
     private static EvolutionTask evolutionTask;
-    private static SchedulerTaskInter evolutionSchedulerTask;
     public final boolean customSounds;
     public final boolean detectViabackwards;
 
@@ -77,17 +76,15 @@ public class FurnitureFactory extends MechanicFactory {
         if (evolvingFurnitures)
             return;
         if (evolutionTask != null)
-            evolutionSchedulerTask.cancel();
+            evolutionTask.cancel();
         evolutionTask = new EvolutionTask(this, evolutionCheckDelay);
-        evolutionSchedulerTask = OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, taskInter -> {
-            evolutionTask.run();
-        }, 0, evolutionCheckDelay);
+        evolutionTask.runAtFixedRate(OraxenPlugin.get(), SchedulerType.SYNC,0, evolutionCheckDelay);
         evolvingFurnitures = true;
     }
 
     public static void unregisterEvolution() {
         if (evolutionTask != null)
-            evolutionSchedulerTask.cancel();
+            evolutionTask.cancel();
     }
 
     @Override

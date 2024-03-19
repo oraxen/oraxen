@@ -36,7 +36,6 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     public final List<String> toolTypes;
     private boolean sapling;
     private static SaplingTask saplingTask;
-    private static SchedulerTaskInter saplingSchedulerTask;
     private final int saplingGrowthCheckDelay;
     public final boolean customSounds;
     public final boolean disableVanillaString;
@@ -196,7 +195,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
 
     public void registerSaplingMechanic() {
         if (sapling) return;
-        if (saplingSchedulerTask != null) saplingSchedulerTask.cancel();
+        if (saplingTask != null) saplingTask.cancel();
 
         // Disabled for abit as OraxenItems.getItems() here
         // Dont register if there is no sapling in configs
@@ -210,9 +209,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
 //        if (saplingList.isEmpty()) return;
 
         saplingTask = new SaplingTask(saplingGrowthCheckDelay);
-        saplingSchedulerTask = OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, schedulerTaskInter -> {
-            saplingTask.run();
-        }, 0, saplingGrowthCheckDelay);
+        saplingTask.runAtFixedRate(OraxenPlugin.get(), SchedulerType.SYNC, 0, saplingGrowthCheckDelay);
         sapling = true;
     }
 }

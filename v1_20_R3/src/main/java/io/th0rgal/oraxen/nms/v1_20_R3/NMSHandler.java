@@ -2,8 +2,8 @@ package io.th0rgal.oraxen.nms.v1_20_R3;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
-import fr.euphyllia.energie.Energie;
 import fr.euphyllia.energie.model.SchedulerType;
+import fr.euphyllia.energie.utils.SchedulerTaskRunnable;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.*;
 import io.netty.handler.codec.ByteToMessageDecoder;
@@ -48,7 +48,10 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.SoundCategory;
+import org.bukkit.SoundGroup;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
@@ -56,7 +59,6 @@ import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -264,9 +266,12 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         try {
             bind(futures, serverChannelHandler);
         } catch (IllegalArgumentException ex) {
-            OraxenPlugin.getScheduler().runTask(SchedulerType.SYNC, schedulerTaskInter -> {
-                        bind(futures, serverChannelHandler);
-                    });
+            new SchedulerTaskRunnable() {
+                @Override
+                public void run() {
+                    bind(futures, serverChannelHandler);
+                }
+            }.runTask(OraxenPlugin.get(), SchedulerType.SYNC);
         }
 
         if (VersionUtil.isPaperServer())
