@@ -6,7 +6,7 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,6 +18,7 @@ import java.util.Base64;
 public class PackDownloader {
 
     public static void downloadDefaultPack() {
+        Logs.logInfo("Downloading default resourcepack...");
         OraxenPlugin.get().saveResource("pack/token.secret", true);
         if (!VersionUtil.isPremium()) {
             if (VersionUtil.isCompiled()) Logs.logWarning("Skipping download of Oraxen pack, compiled versions do not include assets");
@@ -25,10 +26,12 @@ public class PackDownloader {
             return;
         }
 
-        YamlConfiguration accessYaml = OraxenYaml.loadConfiguration(OraxenPlugin.get().packPath().resolve("token.secret").toFile());
+        File accessFile = OraxenPlugin.get().packPath().resolve("token.secret").toFile();
+        YamlConfiguration accessYaml = OraxenYaml.loadConfiguration(accessFile);
         String fileUrl = "https://repo.oraxen.com/assets/defaultPack/DefaultPack.zip";
         String username = accessYaml.getString("username", "");
         String password = accessYaml.getString("password", "");
+        String hash = accessYaml.getString("hash", "");
         Path zipPath = PackGenerator.externalPacks.resolve("DefaultPack.zip");
 
         try {
@@ -42,7 +45,7 @@ public class PackDownloader {
             connection.setRequestProperty("Authorization", authHeaderValue);
 
             // Open input stream from the connection
-            InputStream inputStream = new BufferedInputStream(connection.getInputStream());
+            InputStream inputStream = connection.getInputStream();
 
             // Save the file to local disk
             try (FileOutputStream fos = new FileOutputStream(zipPath.toString())) {
@@ -53,8 +56,12 @@ public class PackDownloader {
                 }
             }
             //ZipUtils.extractDefaultZipPack();
+
+            accessYaml.set("hash", hash);
+            accessYaml.save(accessFile);
         } catch (IOException e) {
             Logs.logError("Failed to download Oraxen pack");
         }
     }
+
 }

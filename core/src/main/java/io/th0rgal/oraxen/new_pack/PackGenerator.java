@@ -46,6 +46,7 @@ public class PackGenerator {
     }
 
     public void generatePack() {
+        Logs.logInfo("Generating resourcepack...");
         resourcePack = MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile());
         OraxenPlugin.get().resourcePack(resourcePack);
         addImportPacks();
@@ -68,6 +69,7 @@ public class PackGenerator {
         MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().packPath().resolve("pack.zip").toFile(), resourcePack);
 
         builtPack = MinecraftResourcePackWriter.minecraft().build(resourcePack);
+        Logs.logSuccess("Finished generating resourcepack!", true);
     }
 
     private void importModelEnginePack() {

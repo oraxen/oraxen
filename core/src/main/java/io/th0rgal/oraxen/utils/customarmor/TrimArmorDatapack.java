@@ -183,7 +183,7 @@ public class TrimArmorDatapack implements CustomArmor {
                 resourcePack.texture(t.toBuilder().key(Key.key(vanillaTrimPath + material + "_leggings.png")).build());
         });
 
-        String resourcePath = "pack/textures/models/armor/";
+        String resourcePath = "assets/minecraft/textures/models/armor/";
         if (resourcePack.textures().stream().noneMatch(t -> t.key().asString().equals(oraxenTrimPath + material + ".png")))
             resourcePack.texture(Texture.texture(Key.key(vanillaTrimPath + material + ".png"), Writable.copyInputStream(OraxenPlugin.get().getResource(resourcePath + material + "_layer_1.png"))));
         if (resourcePack.textures().stream().noneMatch(t -> t.key().asString().equals(oraxenTrimPath + material + "_leggings.png")))

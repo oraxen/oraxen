@@ -67,30 +67,6 @@ CustomArmor:
 CustomBlocks:
   block_correction: NMS # Valid types are NMS and LEGACY
 
-# This will break Player Heads for all 1.19.4 players and above.
-# Until this issue is resolved, this will be disabled by default
-Gestures:
-  enabled: false # Enabled gesture-mechanic and generates needed files
-
-ItemUpdater:
-  # Update the items in player inventory to the latest in config when player joins
-  update_items: true
-  override_renamed_items: false
-  override_item_lore: false # If lore should be overriden, enable to ensure it is identical to the OraxenItem's lore
-  update_items_on_reload: true # If Oraxen should update all the items of online players on /oraxen reload items/all
-
-FurnitureUpdater:
-  update_furniture: true
-  update_on_reload: false # If furniture should be updated on /oraxen reload items/all
-  update_on_load: false # If Oraxen should update the FurnitureItem whenever an entity is loaded
-  experimental_furniture_type_update: false
-  experimental_fix_broken_furniture: false # Attempts to fix furniture that is not placed/broken correctly
-
-# This will break Player Heads for all 1.19.4 players and above.
-# Until this issue is resolved, this will be disabled by default
-Gestures:
-  enabled: false # Enabled gesture-mechanic and generates needed files
-
 ItemUpdater:
   # Update the items in player inventory to the latest in config when player joins
   update_items: true
@@ -141,9 +117,9 @@ Pack:
 
   server:
     enabled: true
-    upload_ip: "atlas.oraxen.com"
-    upload_port: 8080
-    download_address: "http://atlas.oraxen.com:8080"
+    upload_ip: "0.0.0.0"
+    upload_port: 8082
+    download_address: "0.0.0.0:8082"
 
   dispatch:
     send_pack: true
@@ -270,16 +246,11 @@ oraxen_inventory:
       title: "<main_menu_title><#44C886><glyph:menu_items_overlay:colorable>"
     tools:
       slot: 9
-      icon: wood_sword
-      displayname: "<green>Skins"
-      title: "<main_menu_title><#C48E40><glyph:menu_items_overlay:colorable>"
-    tools:
-      slot: 10
       icon: iron_serpe
       displayname: "<green>Tools"
       title: "<main_menu_title><#FFFFFF><glyph:menu_items_overlay:colorable>"
     weapons:
-      slot: 11
+      slot: 10
       icon: energy_crystal_sword
       displayname: "<green>Weapons"
       title: "<main_menu_title><#2FB6FF><glyph:menu_items_overlay:colorable>"

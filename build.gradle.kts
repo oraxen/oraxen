@@ -87,7 +87,7 @@ allprojects {
 
     dependencies {
         val actionsVersion = "1.0.0-SNAPSHOT"
-        val creativeVersion = "1.3.0"
+        val creativeVersion = "1.7.0"
         compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
         compileOnly("gs.mclo:java:2.2.1")
 
