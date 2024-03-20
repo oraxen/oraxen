@@ -1,67 +1,82 @@
 package io.th0rgal.oraxen.new_pack;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.apache.commons.lang3.StringUtils;
 import org.bukkit.configuration.file.YamlConfiguration;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Path;
-import java.util.Base64;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
+import java.util.zip.ZipOutputStream;
 
 public class PackDownloader {
 
     public static void downloadDefaultPack() {
         Logs.logInfo("Downloading default resourcepack...");
-        OraxenPlugin.get().saveResource("pack/token.secret", true);
-        if (!VersionUtil.isPremium()) {
-            if (VersionUtil.isCompiled()) Logs.logWarning("Skipping download of Oraxen pack, compiled versions do not include assets");
-            else Logs.logError("Skipping download of Oraxen pack, pirated versions do not include assets");
-            return;
-        }
-
-        File accessFile = OraxenPlugin.get().packPath().resolve("token.secret").toFile();
-        YamlConfiguration accessYaml = OraxenYaml.loadConfiguration(accessFile);
-        String fileUrl = "https://repo.oraxen.com/assets/defaultPack/DefaultPack.zip";
-        String username = accessYaml.getString("username", "");
-        String password = accessYaml.getString("password", "");
-        String hash = accessYaml.getString("hash", "");
-        Path zipPath = PackGenerator.externalPacks.resolve("DefaultPack.zip");
-
-        try {
-            URL url = new URL(fileUrl);
-            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-
-            // Set up basic authentication
-            String auth = username + ":" + password;
-            String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
-            String authHeaderValue = "Basic " + encodedAuth;
-            connection.setRequestProperty("Authorization", authHeaderValue);
-
-            // Open input stream from the connection
-            InputStream inputStream = connection.getInputStream();
-
-            // Save the file to local disk
-            try (FileOutputStream fos = new FileOutputStream(zipPath.toString())) {
-                byte[] buffer = new byte[1024];
-                int bytesRead;
-                while ((bytesRead = inputStream.read(buffer)) != -1) {
-                    fos.write(buffer, 0, bytesRead);
-                }
+        if (VersionUtil.isCompiled()) Logs.logWarning("Skipping download of Oraxen pack, compiled versions do not include assets");
+        else if (VersionUtil.isLeaked()) Logs.logError("Skipping download of Oraxen pack, pirated versions do not include assets");
+        else {
+            InputStream accessStream = OraxenPlugin.get().getResource("pack/token.secret");
+            if (accessStream == null) {
+                Logs.logWarning("Failed to download Default-Pack...");
+                Logs.logWarning("Missing token-file, please contact the developer!");
+                return;
             }
-            //ZipUtils.extractDefaultZipPack();
 
-            accessYaml.set("hash", hash);
-            accessYaml.save(accessFile);
-        } catch (IOException e) {
-            Logs.logError("Failed to download Oraxen pack");
+            YamlConfiguration accessYaml = OraxenYaml.loadConfiguration(new InputStreamReader(accessStream));
+            String fileUrl = "https://api.github.com/repos/oraxen/DefaultPack/zipball/main";
+            String token = accessYaml.getString("token", "");
+            //String hash = accessYaml.getString("hash", "");
+            Path zipPath = PackGenerator.externalPacks.resolve("DefaultPack.zip");
+
+            try {
+                URL url = new URL(fileUrl);
+                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+                connection.setRequestProperty("Authorization", !token.isEmpty() ? "token " + token : "");
+
+                // Open input stream from the connection
+                ZipInputStream zis = new ZipInputStream(connection.getInputStream());
+
+                // Save the file to local disk
+                try (FileOutputStream fos = new FileOutputStream(zipPath.toString())) {
+                    ZipOutputStream zos = new ZipOutputStream(fos);
+                    ZipEntry entry = zis.getNextEntry();
+
+                    while (entry != null) {
+                        if (!entry.isDirectory()) {
+                            zos.putNextEntry(new ZipEntry(StringUtils.substringAfter(entry.getName(), "/")));
+
+                            byte[] buffer = new byte[1024];
+                            int bytesRead;
+                            while ((bytesRead = zis.read(buffer)) > 0) {
+                                zos.write(buffer, 0, bytesRead);
+                            }
+
+                        }
+
+                        zis.closeEntry();
+                        entry = zis.getNextEntry();
+                    }
+
+                    zos.close();
+                }
+                zis.close();
+                connection.disconnect();
+
+                accessStream.close();
+            } catch (IOException e) {
+                if (Settings.DEBUG.toBool()) e.printStackTrace();
+                else Logs.logWarning(e.getMessage());
+                Logs.logError("Failed to download Oraxen pack...");
+                Logs.logError("Please contact the developer!", true);
+            }
         }
     }
-
 }

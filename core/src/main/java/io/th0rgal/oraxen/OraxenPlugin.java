@@ -85,7 +85,6 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        VersionUtil.isPremium();
         CommandAPI.onEnable();
         ProtectionLib.init(this);
         audience = BukkitAudiences.create(this);
