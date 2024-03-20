@@ -33,7 +33,7 @@ import java.util.*;
 public class PackGenerator {
 
     public static Path externalPacks = OraxenPlugin.get().packPath().resolve("external_packs");
-    private static Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
+    private static final Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
     private ResourcePack resourcePack;
     private BuiltResourcePack builtPack;
     private CustomArmor customArmorHandler;
@@ -48,6 +48,8 @@ public class PackGenerator {
     public void generatePack() {
         Logs.logInfo("Generating resourcepack...");
         resourcePack = MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile());
+        resourcePack.removeUnknownFile("pack.zip");
+
         OraxenPlugin.get().resourcePack(resourcePack);
         addImportPacks();
         importModelEnginePack();
@@ -57,9 +59,6 @@ public class PackGenerator {
         customArmorHandler.generateNeededFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
-
-        resourcePack.removeUnknownFile("token.secret");
-        resourcePack.removeUnknownFile("pack.zip");
 
         for (Map.Entry<String, Writable> entry : new HashSet<>(resourcePack.unknownFiles().entrySet()))
             if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
@@ -116,17 +115,15 @@ public class PackGenerator {
     }
 
     private void addImportPacks() {
-        for (File file : new ArrayList<File>().toArray(externalPacks.toFile().listFiles())) {
+        for (File file : externalPacks.toFile().listFiles()) {
             if (file == null) continue;
             if (file.isDirectory()) {
                 Logs.logInfo("Importing pack " + file.getName() + "...");
                 mergePack(MinecraftResourcePackReader.minecraft().readFromDirectory(file));
-            }
-            else if (file.getName().endsWith(".zip")) {
+            } else if (file.getName().endsWith(".zip")) {
                 Logs.logInfo("Importing zipped pack " + file.getName() + "...");
                 mergePack(MinecraftResourcePackReader.minecraft().readFromZipFile(file));
-            }
-            else {
+            } else {
                 Logs.logError("Skipping unknown file " + file.getName() + " in imports folder");
                 Logs.logError("File is neither a directory nor a zip file");
             }
