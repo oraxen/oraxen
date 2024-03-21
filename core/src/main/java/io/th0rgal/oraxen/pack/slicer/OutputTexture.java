@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.function.UnaryOperator;
 
 @ParametersAreNonnullByDefault
-public class OutputFile {
+public class OutputTexture {
     private static final Color REMOVED_MARKER = new Color(128, 0, 0, 128);
 
     public final Key key;
@@ -31,12 +31,12 @@ public class OutputFile {
     @Nullable
     private Metadata metadata;
 
-    public OutputFile(final String key, final Box box) {
+    public OutputTexture(final String key, final Box box) {
         this.key = Key.key(key);
         this.box = box;
     }
 
-    public OutputFile(final Key key, final Box box) {
+    public OutputTexture(final Key key, final Box box) {
         this.key = key;
         this.box = box;
     }
@@ -65,22 +65,22 @@ public class OutputFile {
         leftover.fillRect(x, y, w, h);
     }
 
-    public OutputFile apply(final UnaryOperator<BufferedImage> transform) {
+    public OutputTexture apply(final UnaryOperator<BufferedImage> transform) {
         transformers.add(transform);
         return this;
     }
 
-    public OutputFile nineSliceMeta(int width, int height, int border) {
+    public OutputTexture nineSliceMeta(int width, int height, int border) {
         this.metadata = Metadata.metadata().addPart(GuiMeta.of(GuiScaling.nineSlice(width, height, border))).build();
         return this;
     }
 
-    public OutputFile nineSliceMeta(int width, int height, GuiBorder border) {
+    public OutputTexture nineSliceMeta(int width, int height, GuiBorder border) {
         this.metadata = Metadata.metadata().addPart(GuiMeta.of(GuiScaling.nineSlice(width, height, border))).build();
         return this;
     }
 
-    public OutputFile animationMeta(AnimationMeta.Builder meta) {
+    public OutputTexture animationMeta(AnimationMeta.Builder meta) {
         this.metadata = Metadata.metadata().addPart(meta.build()).build();
         return this;
     }

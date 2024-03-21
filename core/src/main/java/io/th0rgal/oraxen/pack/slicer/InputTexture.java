@@ -21,13 +21,13 @@ import java.util.List;
 @ParametersAreNonnullByDefault
 public class InputTexture {
     public final Key key;
-    public final List<OutputFile> outputs = new ArrayList<>();
+    public final List<OutputTexture> outputs = new ArrayList<>();
 
     public InputTexture(final Key key) {
         this.key = key;
     }
 
-    public InputTexture outputs(final OutputFile... files) {
+    public InputTexture outputs(final OutputTexture... files) {
         Collections.addAll(outputs, files);
         return this;
     }
@@ -42,7 +42,7 @@ public class InputTexture {
             final Graphics2D leftoverGraphics = leftoverImage.createGraphics();
             leftoverGraphics.drawImage(image, 0, 0, null);
 
-            for (final OutputFile outputFile : outputs) {
+            for (final OutputTexture outputFile : outputs) {
                 outputFile.process(resourcePack, texture, image, leftoverGraphics);
             }
 
