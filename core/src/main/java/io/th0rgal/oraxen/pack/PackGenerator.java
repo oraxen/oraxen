@@ -50,7 +50,6 @@ public class PackGenerator {
         resourcePack = MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile());
         resourcePack.removeUnknownFile("pack.zip");
 
-        OraxenPlugin.get().resourcePack(resourcePack);
         addImportPacks();
         importModelEnginePack();
 
@@ -171,6 +170,14 @@ public class PackGenerator {
             if (baseLanguage != null) baseLanguage.translations().putAll(language.translations());
             resourcePack.language(language);
         });
+    }
+
+    public ResourcePack resourcePack() {
+        if (resourcePack == null) resourcePack = ResourcePack.resourcePack();
+        return resourcePack;
+    }
+    public void resourcePack(ResourcePack resourcePack) {
+        this.resourcePack = resourcePack;
     }
 
     public BuiltResourcePack builtPack() {

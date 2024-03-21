@@ -611,10 +611,10 @@ public class ShaderArmorTextures implements CustomArmor {
     private static class FancyArmorShaders {
         private static void generateArmorShaderFiles() {
             String file = "assets/minecraft/shaders/core/rendertype_armor_cutout_no_cull";
-            OraxenPlugin.get().resourcePack().unknownFile(file + ".json", shaderJson());
-            OraxenPlugin.get().resourcePack().unknownFile(file + ".vsh", shaderVsh());
-            OraxenPlugin.get().resourcePack().unknownFile(file + ".fsh", shaderFsh());
-            OraxenPlugin.get().resourcePack().unknownFile("LICENSE.md", license());
+            OraxenPlugin.get().packGenerator().resourcePack().unknownFile(file + ".json", shaderJson());
+            OraxenPlugin.get().packGenerator().resourcePack().unknownFile(file + ".vsh", shaderVsh());
+            OraxenPlugin.get().packGenerator().resourcePack().unknownFile(file + ".fsh", shaderFsh());
+            OraxenPlugin.get().packGenerator().resourcePack().unknownFile("LICENSE.md", license());
         }
 
         private static Writable shaderVsh() {
@@ -862,13 +862,13 @@ public class ShaderArmorTextures implements CustomArmor {
     private static class LessFancyArmorShaders {
         private static void generateArmorShaderFiles() {
             String shaders = "assets/minecraft/shaders";
-            OraxenPlugin.get().resourcePack().unknownFile(shaders + "/core/rendertype_armor_cutout_no_cull.json", shaderJson());
-            OraxenPlugin.get().resourcePack().unknownFile(shaders + "/core/rendertype_outline.json", outlineJson());
-            OraxenPlugin.get().resourcePack().unknownFile(shaders + "/core/render/armor.vsh", armorVsh());
-            OraxenPlugin.get().resourcePack().unknownFile(shaders + "/core/render/armor.fsh", armorFsh());
-            OraxenPlugin.get().resourcePack().unknownFile(shaders + "/core/render/glowing.vsh", glowingVsh());
-            OraxenPlugin.get().resourcePack().unknownFile(shaders + "/core/render/glowing.fsh", glowingFsh());
-            OraxenPlugin.get().resourcePack().unknownFile(shaders + "/include/LICENSE.md", fogGlsl());
+            OraxenPlugin.get().packGenerator().resourcePack().unknownFile(shaders + "/core/rendertype_armor_cutout_no_cull.json", shaderJson());
+            OraxenPlugin.get().packGenerator().resourcePack().unknownFile(shaders + "/core/rendertype_outline.json", outlineJson());
+            OraxenPlugin.get().packGenerator().resourcePack().unknownFile(shaders + "/core/render/armor.vsh", armorVsh());
+            OraxenPlugin.get().packGenerator().resourcePack().unknownFile(shaders + "/core/render/armor.fsh", armorFsh());
+            OraxenPlugin.get().packGenerator().resourcePack().unknownFile(shaders + "/core/render/glowing.vsh", glowingVsh());
+            OraxenPlugin.get().packGenerator().resourcePack().unknownFile(shaders + "/core/render/glowing.fsh", glowingFsh());
+            OraxenPlugin.get().packGenerator().resourcePack().unknownFile(shaders + "/include/LICENSE.md", fogGlsl());
         }
 
         public static Writable shaderJson() {

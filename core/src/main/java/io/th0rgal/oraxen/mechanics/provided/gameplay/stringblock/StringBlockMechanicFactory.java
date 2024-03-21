@@ -4,7 +4,6 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingTask;
 import io.th0rgal.oraxen.nms.NMSHandlers;
@@ -53,9 +52,9 @@ public class StringBlockMechanicFactory extends MechanicFactory {
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
-        BlockState tripwireState = OraxenPlugin.get().resourcePack().blockState(Key.key("minecraft:tripwire"));
+        BlockState tripwireState = OraxenPlugin.get().packGenerator().resourcePack().blockState(Key.key("minecraft:tripwire"));
         tripwireState = tripwireState != null ? tripwireState : BlockState.of(Key.key("minecraft:tripwire"), variants);
-        OraxenPlugin.get().resourcePack().blockState(tripwireState);
+        OraxenPlugin.get().packGenerator().resourcePack().blockState(tripwireState);
 
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener(this), new SaplingListener());
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockSoundListener());

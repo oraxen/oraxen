@@ -70,7 +70,7 @@ public class TrimArmorDatapack implements CustomArmor {
     }
 
     private void generateTrimAssets() {
-        ResourcePack resourcePack = OraxenPlugin.get().resourcePack();
+        ResourcePack resourcePack = OraxenPlugin.get().packGenerator().resourcePack();
         Set<String> armorPrefixes = armorPrefixes(resourcePack);
         customArmorDatapack.toPath().resolve("data").toFile().mkdirs();
         writeMCMeta(customArmorDatapack);

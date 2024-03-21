@@ -126,7 +126,10 @@ public class OraxenPlugin extends JavaPlugin {
 
         packGenerator.generatePack();
         packServer = OraxenPackServer.initializeServer();
-        if (packServer != null) packServer.start();
+        if (packServer != null) {
+            packServer.start();
+            packServer.uploadPack();
+        }
         postLoading();
         CompatibilitiesManager.enableNativeCompatibilities();
         if (VersionUtil.isCompiled()) NoticeUtils.compileNotice();
@@ -217,15 +220,6 @@ public class OraxenPlugin extends JavaPlugin {
 
     public InvManager invManager() {
         return invManager;
-    }
-
-    public ResourcePack resourcePack() {
-        if (resourcePack == null) resourcePack = ResourcePack.resourcePack();
-        return resourcePack;
-    }
-
-    public void resourcePack(ResourcePack resourcePack) {
-        this.resourcePack = resourcePack;
     }
 
     public PackGenerator packGenerator() {

@@ -55,12 +55,12 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
-        BlockState noteState = OraxenPlugin.get().resourcePack().blockState(Key.key("minecraft:note_block"));
+        BlockState noteState = OraxenPlugin.get().packGenerator().resourcePack().blockState(Key.key("minecraft:note_block"));
         if (noteState != null) {
             noteState.variants().putAll(variants);
         } else noteState = getBlockState();
 
-        OraxenPlugin.get().resourcePack().blockState(noteState);
+        OraxenPlugin.get().packGenerator().resourcePack().blockState(noteState);
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new NoteBlockMechanicListener(),
                 new LogStripListener()

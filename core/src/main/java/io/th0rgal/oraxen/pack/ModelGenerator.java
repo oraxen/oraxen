@@ -18,10 +18,10 @@ public class ModelGenerator {
         for (Material baseMaterial : OraxenItems.getItems().stream().map(ItemBuilder::getType).collect(Collectors.toSet())) {
             Key baseModelKey = PredicateGenerator.vanillaModelKey(baseMaterial);
             // Get the baseModel if it exists in the pack
-            Model existingBaseModel = OraxenPlugin.get().resourcePack().model(baseModelKey);
+            Model existingBaseModel = OraxenPlugin.get().packGenerator().resourcePack().model(baseModelKey);
             Model.Builder baseModel = PredicateGenerator.generateBaseModelBuilder(baseMaterial);
             if (existingBaseModel != null) mergeBaseItemModels(existingBaseModel, baseModel);
-            OraxenPlugin.get().resourcePack().model(baseModel.build());
+            OraxenPlugin.get().packGenerator().resourcePack().model(baseModel.build());
         }
     }
 
@@ -35,7 +35,7 @@ public class ModelGenerator {
         for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
             OraxenMeta oraxenMeta = itemBuilder.getOraxenMeta();
             if (oraxenMeta == null || !oraxenMeta.hasPackInfos() || !oraxenMeta.shouldGenerateModel()) continue;
-            OraxenPlugin.get().resourcePack().model(ModelGenerator.generateModelBuilder(oraxenMeta).build());
+            OraxenPlugin.get().packGenerator().resourcePack().model(ModelGenerator.generateModelBuilder(oraxenMeta).build());
         }
     }
 

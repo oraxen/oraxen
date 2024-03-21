@@ -13,7 +13,7 @@ public class AtlasGenerator {
 
     public static void generateAtlasFile() {
         List<AtlasSource> sources = new ArrayList<>();
-        for (Model model : OraxenPlugin.get().resourcePack().models()) {
+        for (Model model : OraxenPlugin.get().packGenerator().resourcePack().models()) {
             sources.addAll(model.textures().layers().stream().map(t -> AtlasSource.single(t.key())).toList());
             sources.addAll(model.textures().variables().values().stream().map(t -> AtlasSource.single(t.key())).toList());
             if (model.textures().particle() != null) sources.add(AtlasSource.single(model.textures().particle().key()));
@@ -25,6 +25,6 @@ public class AtlasGenerator {
             return resource.startsWith("item/") || resource.startsWith("block/");
         }).toList().forEach(sources::remove);
 
-        OraxenPlugin.get().resourcePack().atlas(Atlas.atlas(Atlas.BLOCKS, sources));
+        OraxenPlugin.get().packGenerator().resourcePack().atlas(Atlas.atlas(Atlas.BLOCKS, sources));
     }
 }
