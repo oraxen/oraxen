@@ -1,11 +1,11 @@
-package io.th0rgal.oraxen.pack.generation;
+package io.th0rgal.oraxen.pack;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.pack.generation.slicer.Box;
-import io.th0rgal.oraxen.pack.generation.slicer.InputFile;
-import io.th0rgal.oraxen.pack.generation.slicer.OutputFile;
-import io.th0rgal.oraxen.pack.generation.slicer.Slicer;
+import io.th0rgal.oraxen.pack.slicer.Box;
+import io.th0rgal.oraxen.pack.slicer.InputFile;
+import io.th0rgal.oraxen.pack.slicer.OutputFile;
+import io.th0rgal.oraxen.pack.slicer.Slicer;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
 import java.awt.*;
@@ -18,8 +18,7 @@ import java.util.stream.Collectors;
 
 public class PackSlicer extends Slicer {
 
-    private static final Path packFolder = OraxenPlugin.get().packPath();
-    private static final Path assetsFolder = packFolder.resolve("assets/minecraft");
+    private static final Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets/minecraft");
     private static final Box STANDARD_CONTAINER_BOX = new Box(0, 0, 176, 166, 256, 256);
     public static final List<InputFile> INPUTS;
     public static final Set<String> OUTPUT_PATHS;
@@ -31,7 +30,7 @@ public class PackSlicer extends Slicer {
     public static void slicePackFiles() {
         Logs.logInfo("Slicing gui-textures to 1.20.2-format...");
         try {
-            new PackSlicer(packFolder).process(INPUTS);
+            //new PackSlicer(packFolder).process(INPUTS);
             if (assetsFolder.toFile().exists()) new PackSlicer(assetsFolder).process(INPUTS);
             Logs.logSuccess("Successfully sliced gui-textures for 1.20.2");
         } catch (Exception e) {

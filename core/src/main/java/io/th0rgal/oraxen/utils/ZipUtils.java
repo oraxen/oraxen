@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
-import io.th0rgal.oraxen.new_pack.PackGenerator;
+import io.th0rgal.oraxen.pack.PackGenerator;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
 import java.io.File;

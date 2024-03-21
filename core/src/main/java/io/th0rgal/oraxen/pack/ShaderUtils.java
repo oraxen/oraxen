@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.new_pack;
+package io.th0rgal.oraxen.pack;
 
 import team.unnamed.creative.base.Writable;
 

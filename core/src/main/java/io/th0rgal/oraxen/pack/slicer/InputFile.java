@@ -1,9 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-package io.th0rgal.oraxen.pack.generation.slicer;
-
-import io.th0rgal.oraxen.utils.logs.Logs;
+package io.th0rgal.oraxen.pack.slicer;
 
 import javax.annotation.Nullable;
 import javax.annotation.ParametersAreNonnullByDefault;

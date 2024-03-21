@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.new_pack;
+package io.th0rgal.oraxen.pack;
 
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import io.th0rgal.oraxen.OraxenPlugin;

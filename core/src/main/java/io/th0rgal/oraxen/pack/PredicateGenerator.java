@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.new_pack;
+package io.th0rgal.oraxen.pack;
 
 import com.google.common.collect.Lists;
 import io.th0rgal.oraxen.api.OraxenItems;

@@ -1,19 +1,13 @@
-package io.th0rgal.oraxen.new_pack;
+package io.th0rgal.oraxen.pack;
 
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.utils.logs.Logs;
-import net.kyori.adventure.key.Key;
 import team.unnamed.creative.atlas.Atlas;
 import team.unnamed.creative.atlas.AtlasSource;
 import team.unnamed.creative.atlas.SingleAtlasSource;
 import team.unnamed.creative.model.Model;
-import team.unnamed.creative.model.ModelTexture;
-import team.unnamed.creative.model.ModelTextures;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class AtlasGenerator {
 

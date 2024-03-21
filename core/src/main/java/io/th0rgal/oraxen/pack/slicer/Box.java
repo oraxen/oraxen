@@ -1,7 +1,7 @@
 // Copyright (c) Microsoft Corporation. All rights reserved.
 // Licensed under the MIT license.
 
-package io.th0rgal.oraxen.pack.generation.slicer;
+package io.th0rgal.oraxen.pack.slicer;
 
 public record Box(int x, int y, int w, int h, int totalW, int totalH) {
     public int scaleX(final int imgWidth) {
