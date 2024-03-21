@@ -93,10 +93,11 @@ public enum Settings {
     COMMENT("Pack.generation.comment"),
 
     PACK_SERVER_TYPE("Pack.server.type"),
-    PACK_SERVER_IP("Pack.server.upload_ip"),
-    PACK_SERVER_PORT("Pack.server.upload_port"),
-    PACK_SERVER_ADDRESS("Pack.server.download_address"),
-    POLYMATH_SECRET("Pack.server.polymath_secret"),
+    CREATIVE_PACK_SERVER_IP("Pack.server.creative.upload_ip"),
+    CREATIVE_PACK_SERVER_PORT("Pack.server.creative.upload_port"),
+    CREATIVE_PACK_DOWNLOAD_ADDRESS("Pack.server.creative.download_address"),
+    POLYMATH_SERVER("Pack.server.polymath.server"),
+    POLYMATH_SECRET("Pack.server.polymath.secret"),
 
     SEND_PACK("Pack.dispatch.send_pack"),
     SEND_ON_RELOAD("Pack.dispatch.send_on_reload"),
@@ -174,7 +175,7 @@ public enum Settings {
     public Integer toInt(int optionalDefault) {
         try {
             return Integer.parseInt(getValue().toString());
-        } catch (NumberFormatException e) {
+        } catch (NumberFormatException | NullPointerException e) {
             return optionalDefault;
         }
     }

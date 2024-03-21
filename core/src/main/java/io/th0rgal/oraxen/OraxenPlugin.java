@@ -126,10 +126,6 @@ public class OraxenPlugin extends JavaPlugin {
 
         packGenerator.generatePack();
         packServer = OraxenPackServer.initializeServer();
-        if (packServer != null) {
-            packServer.start();
-            packServer.uploadPack();
-        }
         postLoading();
         CompatibilitiesManager.enableNativeCompatibilities();
         if (VersionUtil.isCompiled()) NoticeUtils.compileNotice();
@@ -233,7 +229,10 @@ public class OraxenPlugin extends JavaPlugin {
     public void packServer(@Nullable OraxenPackServer server) {
         if (packServer != null) packServer.stop();
         packServer = server;
-        if (packServer != null) packServer.start();
+        if (packServer != null) {
+            packServer.start();
+            packServer.uploadPack();
+        }
     }
 
     public ClickActionManager clickActionManager() {

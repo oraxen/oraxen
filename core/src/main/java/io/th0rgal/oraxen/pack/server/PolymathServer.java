@@ -29,7 +29,7 @@ public class PolymathServer implements OraxenPackServer {
     private UUID packUUID;
 
     public PolymathServer() {
-        String address = Settings.PACK_SERVER_ADDRESS.toString();
+        String address = Settings.POLYMATH_SERVER.toString("atlas.oraxen.com");
         this.serverAddress = (address.startsWith("http://") || address.startsWith("https://") ? "" : "https://") + address + (address.endsWith("/") ? "" : "/");
     }
 

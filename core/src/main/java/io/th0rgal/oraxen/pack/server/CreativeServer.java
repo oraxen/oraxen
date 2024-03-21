@@ -16,14 +16,18 @@ import java.util.UUID;
 public class CreativeServer implements OraxenPackServer {
 
     private ResourcePackServer packServer;
+    private final String serverIp = Settings.CREATIVE_PACK_SERVER_IP.toString("0.0.0.0").replace("localhost", "0.0.0.0");
+    private String downloadAddress = Settings.CREATIVE_PACK_DOWNLOAD_ADDRESS.toString(serverIp).replace("localhost", "0.0.0.0");
+    private final String prompt = Settings.SEND_PACK_PROMPT.toString();
+    private final boolean mandatory = Settings.SEND_PACK_MANDATORY.toBool();
 
     public CreativeServer() {
+        downloadAddress = (downloadAddress.startsWith("http://") || downloadAddress.startsWith("https://") ? "" : "http://") + downloadAddress + (downloadAddress.endsWith("/") ? "" : "/");
         try {
-            String ip = Settings.PACK_SERVER_IP.toString("0.0.0.0");
-            int port = Settings.PACK_SERVER_PORT.toInt(8082);
             BuiltResourcePack builtPack = OraxenPlugin.get().packGenerator().builtPack();
             ResourcePackRequestHandler handler = ResourcePackRequestHandler.fixed(builtPack);
-            packServer = ResourcePackServer.server().address(ip, port).handler(handler).pack(builtPack).build();
+            int serverPort = Settings.CREATIVE_PACK_SERVER_PORT.toInt(8082);
+            packServer = ResourcePackServer.server().address(serverIp, serverPort).handler(handler).pack(builtPack).build();
             OraxenPlugin.get().packServer(this);
         } catch (IOException e) {
             if (Settings.DEBUG.toBool()) e.printStackTrace();
@@ -34,11 +38,9 @@ public class CreativeServer implements OraxenPackServer {
 
     @Override
     public void sendPack(Player player) {
-        String prompt = Settings.SEND_PACK_PROMPT.toString();
-        boolean mandatory = Settings.SEND_PACK_MANDATORY.toBool();
         String hash = OraxenPlugin.get().packGenerator().builtPack().hash();
         byte[] hashArray = OraxenPackServer.hashArray(hash);
-        String url = Settings.PACK_SERVER_ADDRESS.toString("http://0.0.0.0:8082").replaceAll("^(?!.*/)", "") + "/" + hash + ".zip";
+        String url = downloadAddress.replaceAll("^(?!.*/)", "") + "/" + hash + ".zip";
         UUID packUUID = UUID.nameUUIDFromBytes(hashArray);
 
         if (VersionUtil.atOrAbove("1.20.3")) {

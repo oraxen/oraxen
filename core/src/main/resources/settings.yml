@@ -117,10 +117,14 @@ Pack:
 
   server:
     type: CREATIVE #Valid types are, CREATIVE, POLYMATH & NONE
-    upload_ip: "0.0.0.0"
-    upload_port: 8082
-    download_address: "0.0.0.0:8082"
-    polymath_secret: "oraxen" # change this if you host your own polymath to limit access to resource pack uploading
+    creative:
+      upload_ip: "localhost"
+      #upload_port: 8082
+      #download_address: "http://0.0.0.0:8082"
+    polymath:
+      server: atlas.oraxen.com # you can also host your own polymath instance
+      secret: "oraxen" # change this if you host your own polymath to limit access to resource pack uploading
+    polymath_secret:
 
   dispatch:
     send_pack: true
