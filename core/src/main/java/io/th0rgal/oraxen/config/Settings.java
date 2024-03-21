@@ -92,7 +92,7 @@ public enum Settings {
     PROTECTION("Pack.generation.protection"),
     COMMENT("Pack.generation.comment"),
 
-    PACK_SERVER_ENABLED("Pack.server.enabled"),
+    PACK_SERVER_TYPE("Pack.server.type"),
     PACK_SERVER_IP("Pack.server.upload_ip"),
     PACK_SERVER_PORT("Pack.server.upload_port"),
     PACK_SERVER_ADDRESS("Pack.server.download_address"),

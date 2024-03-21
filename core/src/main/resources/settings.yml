@@ -116,7 +116,7 @@ Pack:
 
 
   server:
-    enabled: true
+    type: CREATIVE #Valid types are, CREATIVE, POLYMATH & NONE
     upload_ip: "0.0.0.0"
     upload_port: 8082
     download_address: "0.0.0.0:8082"

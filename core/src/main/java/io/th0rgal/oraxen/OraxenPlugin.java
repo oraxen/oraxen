@@ -16,13 +16,15 @@ import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
-import io.th0rgal.oraxen.pack.PackGenerator;
-import io.th0rgal.oraxen.pack.PackServer;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
+import io.th0rgal.oraxen.pack.PackGenerator;
+import io.th0rgal.oraxen.pack.server.OraxenPackServer;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.LU;
+import io.th0rgal.oraxen.utils.NoticeUtils;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
@@ -56,7 +58,7 @@ public class OraxenPlugin extends JavaPlugin {
     private InvManager invManager;
     private ResourcePack resourcePack;
     private PackGenerator packGenerator;
-    private PackServer packServer;
+    @Nullable private OraxenPackServer packServer;
     private ClickActionManager clickActionManager;
     private ProtocolManager protocolManager;
     public static boolean supportsDisplayEntities;
@@ -123,8 +125,8 @@ public class OraxenPlugin extends JavaPlugin {
         new CommandsManager().loadCommands();
 
         packGenerator.generatePack();
-        packServer = new PackServer();
-        packServer.start();
+        packServer = OraxenPackServer.initializeServer();
+        if (packServer != null) packServer.start();
         postLoading();
         CompatibilitiesManager.enableNativeCompatibilities();
         if (VersionUtil.isCompiled()) NoticeUtils.compileNotice();
@@ -230,8 +232,14 @@ public class OraxenPlugin extends JavaPlugin {
         return packGenerator;
     }
 
-    public PackServer packServer() {
+    @Nullable
+    public OraxenPackServer packServer() {
         return packServer;
+    }
+    public void packServer(@Nullable OraxenPackServer server) {
+        if (packServer != null) packServer.stop();
+        packServer = server;
+        if (packServer != null) packServer.start();
     }
 
     public ClickActionManager clickActionManager() {
