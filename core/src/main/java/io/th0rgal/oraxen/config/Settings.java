@@ -96,6 +96,7 @@ public enum Settings {
     PACK_SERVER_IP("Pack.server.upload_ip"),
     PACK_SERVER_PORT("Pack.server.upload_port"),
     PACK_SERVER_ADDRESS("Pack.server.download_address"),
+    POLYMATH_SECRET("Pack.server.polymath_secret"),
 
     SEND_PACK("Pack.dispatch.send_pack"),
     SEND_ON_RELOAD("Pack.dispatch.send_on_reload"),

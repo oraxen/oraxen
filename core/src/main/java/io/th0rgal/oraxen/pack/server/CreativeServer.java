@@ -11,6 +11,7 @@ import team.unnamed.creative.server.ResourcePackServer;
 import team.unnamed.creative.server.handler.ResourcePackRequestHandler;
 
 import java.io.IOException;
+import java.util.UUID;
 
 public class CreativeServer implements OraxenPackServer {
 
@@ -33,12 +34,21 @@ public class CreativeServer implements OraxenPackServer {
 
     @Override
     public void sendPack(Player player) {
+        String prompt = Settings.SEND_PACK_PROMPT.toString();
+        boolean mandatory = Settings.SEND_PACK_MANDATORY.toBool();
         String hash = OraxenPlugin.get().packGenerator().builtPack().hash();
+        byte[] hashArray = OraxenPackServer.hashArray(hash);
         String url = Settings.PACK_SERVER_ADDRESS.toString("http://0.0.0.0:8082").replaceAll("^(?!.*/)", "") + "/" + hash + ".zip";
-        //String url = "http://" + ip + ":" + port + "/" + hash + ".zip";
-        if (VersionUtil.isPaperServer())
-            player.setResourcePack(url, hash, Settings.SEND_PACK_MANDATORY.toBool(), AdventureUtils.MINI_MESSAGE.deserialize(Settings.SEND_PACK_PROMPT.toString()));
-        else player.setResourcePack(url, hash, Settings.SEND_PACK_MANDATORY.toBool());
+        UUID packUUID = UUID.nameUUIDFromBytes(hashArray);
+
+        if (VersionUtil.atOrAbove("1.20.3")) {
+            if (VersionUtil.isPaperServer()) player.setResourcePack(packUUID, url, hash, AdventureUtils.MINI_MESSAGE.deserialize(prompt), mandatory);
+            else player.setResourcePack(packUUID, url, hashArray, AdventureUtils.parseLegacy(prompt), mandatory);
+        }
+        else if (VersionUtil.isPaperServer()) player.setResourcePack(url, hashArray, AdventureUtils.MINI_MESSAGE.deserialize(prompt), mandatory);
+        else player.setResourcePack(url, hashArray, AdventureUtils.parseLegacy(prompt), mandatory);
+
+
     }
 
     @Override

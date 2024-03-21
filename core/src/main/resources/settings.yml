@@ -120,6 +120,7 @@ Pack:
     upload_ip: "0.0.0.0"
     upload_port: 8082
     download_address: "0.0.0.0:8082"
+    polymath_secret: "oraxen" # change this if you host your own polymath to limit access to resource pack uploading
 
   dispatch:
     send_pack: true
