@@ -29,7 +29,6 @@ public class PackSlicer extends Slicer {
         Logs.logInfo("Slicing gui-textures to 1.20.2-format...");
         try {
             new PackSlicer(resourcePack).process(INPUTS);
-            Logs.logSuccess("Successfully sliced gui-textures for 1.20.2", true);
         } catch (Exception e) {
             if (Settings.DEBUG.toBool()) e.printStackTrace();
             else Logs.logWarning(e.getMessage());
