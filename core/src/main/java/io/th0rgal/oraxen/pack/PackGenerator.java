@@ -65,6 +65,8 @@ public class PackGenerator {
 
         removeExcludedFileExtensions();
 
+        PackSlicer.processInputs(resourcePack);
+
         MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().packPath().resolve("pack.zip").toFile(), resourcePack);
 
         builtPack = MinecraftResourcePackWriter.minecraft().build(resourcePack);
