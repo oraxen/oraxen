@@ -7,7 +7,7 @@ import java.util.Arrays;
 import java.util.stream.Collectors;
 
 public enum PackServerType {
-    CREATIVE, POLYMATH, NONE;
+    SELFHOST, POLYMATH, NONE;
 
     public static PackServerType fromSetting() {
         String typeString = Settings.PACK_SERVER_TYPE.toString();
@@ -20,7 +20,7 @@ public enum PackServerType {
             else Logs.logWarning(e.getMessage());
 
             Logs.logError("Invalid PackServer-type specified: " + typeString);
-            Logs.logError("Valid types are: " + Arrays.stream(PackServerType.values()).map(Enum::name).collect(Collectors.joining()));
+            Logs.logError("Valid types are: " + Arrays.stream(PackServerType.values()).map(Enum::name).collect(Collectors.joining(", ")));
             Logs.logError("Server is temporarily set to NONE, please fix the setting!");
             return NONE;
         }

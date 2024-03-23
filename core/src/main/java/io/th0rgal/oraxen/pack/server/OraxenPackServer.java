@@ -8,7 +8,7 @@ public interface OraxenPackServer {
     @Nullable
     static OraxenPackServer initializeServer() {
         return switch (PackServerType.fromSetting()) {
-            case CREATIVE -> new CreativeServer();
+            case SELFHOST -> new SelfHostServer();
             case POLYMATH -> new PolymathServer();
             case NONE -> null;
         };

@@ -93,9 +93,7 @@ public enum Settings {
     COMMENT("Pack.generation.comment"),
 
     PACK_SERVER_TYPE("Pack.server.type"),
-    CREATIVE_PACK_SERVER_IP("Pack.server.creative.upload_ip"),
-    CREATIVE_PACK_SERVER_PORT("Pack.server.creative.upload_port"),
-    CREATIVE_PACK_DOWNLOAD_ADDRESS("Pack.server.creative.download_address"),
+    SELFHOST_PACK_SERVER_PORT("Pack.server.selfhost.port"),
     POLYMATH_SERVER("Pack.server.polymath.server"),
     POLYMATH_SECRET("Pack.server.polymath.secret"),
 
