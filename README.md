@@ -26,6 +26,10 @@
     </a>
 </p>
 
+下载jar文件：https://github.com/postyizhan/oraxen/actions
+
+基础配置底版：https://github.com/postyizhan/oraxen/tree/basic_configuration
+
 ## What is it?
 
 Oraxen is a minecraft plugin that allows you to modify the game by adding new items, weapons, blocks, and more. One of
