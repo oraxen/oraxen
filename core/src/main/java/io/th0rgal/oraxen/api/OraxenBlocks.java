@@ -267,7 +267,9 @@ public class OraxenBlocks {
             OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
             if (!EventUtils.callEvent(noteBlockBreakEvent)) return false;
 
-            if (hasOverrideDrop || player.getGameMode() != GameMode.CREATIVE)
+            if (player.getGameMode() == GameMode.CREATIVE)
+                drop = null;
+            else if (hasOverrideDrop || player.getGameMode() != GameMode.CREATIVE)
                 drop = noteBlockBreakEvent.getDrop();
 
             World world = block.getWorld();
@@ -299,7 +301,9 @@ public class OraxenBlocks {
             OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
             if (!EventUtils.callEvent(wireBlockBreakEvent)) return false;
 
-            if (hasDropOverride || player.getGameMode() != GameMode.CREATIVE)
+            if (player.getGameMode() == GameMode.CREATIVE)
+                drop = null;
+            else if (hasDropOverride || player.getGameMode() != GameMode.CREATIVE)
                 drop = wireBlockBreakEvent.getDrop();
 
             block.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
