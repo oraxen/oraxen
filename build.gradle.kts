@@ -199,13 +199,17 @@ tasks {
 }
 
 bukkit {
-    load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.STARTUP
+    load = net.minecrell.pluginyml.bukkit.BukkitPluginDescription.PluginLoadOrder.POSTWORLD
     main = "io.th0rgal.oraxen.OraxenPlugin"
     version = pluginVersion
     name = "Oraxen"
     apiVersion = "1.18"
     authors = listOf("th0rgal", "boy0000")
-    softDepend = listOf("LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro", "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared", "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards", "HuskClaims")
+    softDepend = listOf(
+        "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro",
+        "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
+        "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards", "HuskClaims", "BentoBox"
+    )
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
     permissions.create("oraxen.command") {

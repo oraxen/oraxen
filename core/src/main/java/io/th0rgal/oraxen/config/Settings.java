@@ -49,12 +49,24 @@ public enum Settings {
     SKIPPED_MODEL_DATA_NUMBERS("ConfigsTools.skipped_model_data_numbers"),
     ERROR_ITEM("ConfigsTools.error_item"),
 
+    // Custom Armor
+    CUSTOM_ARMOR_TYPE("CustomArmor.type"),
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair"),
-    CUSTOM_ARMOR_SHADER_TYPE("CustomArmor.shader_type"),
+    CUSTOM_ARMOR_TRIMS_MATERIAL("CustomArmor.trims_settings.material_replacement"),
+    CUSTOM_ARMOR_TRIMS_ASSIGN("CustomArmor.trims_settings.auto_assign_settings"),
+    CUSTOM_ARMOR_SHADER_TYPE("CustomArmor.shader_settings.type"),
+    CUSTOM_ARMOR_SHADER_RESOLUTION("CustomArmor.shader_settings.armor_resolution"),
+    CUSTOM_ARMOR_SHADER_ANIMATED_FRAMERATE("CustomArmor.shader_settings.animated_armor_framerate"),
+    CUSTOM_ARMOR_SHADER_GENERATE_FILES("CustomArmor.shader_settings.generate_armor_shader_files"),
+    CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES("CustomArmor.shader_settings.generate_custom_armor_textures"),
+    CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR("CustomArmor.shader_settings.generate_shader_compatible_armor"),
+
+
     GESTURES_ENABLED("Gestures.enabled"),
 
     // Custom Blocks
     BLOCK_CORRECTION("CustomBlocks.block_correction"),
+    LEGACY_NOTEBLOCKS("CustomBlocks.use_legacy_noteblocks"),
 
     // ItemUpdater
     UPDATE_ITEMS("ItemUpdater.update_items"),
@@ -89,11 +101,6 @@ public enum Settings {
     EXCLUDE_MALFORMED_ATLAS("Pack.generation.atlas.exclude_malformed_from_atlas"),
     ATLAS_GENERATION_TYPE("Pack.generation.atlas.type"),
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
-    ARMOR_RESOLUTION("Pack.generation.armor_resolution"),
-    ANIMATED_ARMOR_FRAMERATE("Pack.generation.animated_armor_framerate"),
-    GENERATE_ARMOR_SHADER_FILES("Pack.generation.generate_armor_shader_files"),
-    GENERATE_CUSTOM_ARMOR_TEXTURES("Pack.generation.generate_custom_armor_textures"),
-    AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR("Pack.generation.automatically_generate_shader_compatible_armor"),
     COMPRESSION("Pack.generation.compression"),
     PROTECTION("Pack.generation.protection"),
     COMMENT("Pack.generation.comment"),

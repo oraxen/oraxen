@@ -295,7 +295,6 @@ public class FontEvents implements Listener {
         @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
         public void onPlayerChat(AsyncChatDecorateEvent event) {
             if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isModern() || manager.useNmsGlyphs()) return;
-            Logs.logError("onPlayerChat");
             event.result(format(event.result(), event.player()));
         }
 
@@ -305,7 +304,6 @@ public class FontEvents implements Listener {
 
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onPlayerChat(AsyncChatEvent event) {
-            Logs.logError("onPlayerChatL");
             if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isModern() || manager.useNmsGlyphs()) return;
             // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
             Component message = VersionUtil.atOrAbove("1.19.1") ? event.message() : format(event.message(), event.getPlayer());

@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.scheduler.BukkitTask;
 
 public class ArmorEffectsFactory extends MechanicFactory {
 
@@ -29,7 +30,8 @@ public class ArmorEffectsFactory extends MechanicFactory {
         addToImplemented(mechanic);
         if (armorEffectTask != null) armorEffectTask.cancel();
         armorEffectTask = new ArmorEffectsTask();
-        armorEffectTask.runTaskTimer(OraxenPlugin.get(), 0, delay);
+        BukkitTask task = armorEffectTask.runTaskTimer(OraxenPlugin.get(), 0, delay);
+        MechanicsManager.registerTask(instance.getMechanicID(), task);
         return mechanic;
     }
 

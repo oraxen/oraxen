@@ -38,7 +38,7 @@ public class ShapelessBuilder extends WorkbenchBuilder {
             setSerializedItem(ingredientSection, item.getKey());
         }
 
-        if (permission != null)
+        if (permission != null && !permission.isEmpty())
             newCraftSection.set("permission", permission);
         saveConfig();
         close();

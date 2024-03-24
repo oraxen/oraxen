@@ -2,8 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.misc.food;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
-import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import org.bukkit.GameMode;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
@@ -11,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerItemConsumeEvent;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 
@@ -40,7 +40,8 @@ public class FoodMechanicListener implements Listener {
         event.setCancelled(true);
 
         if (player.getGameMode() != GameMode.CREATIVE) {
-            inventory.getItemInMainHand().setAmount(inventory.getItemInMainHand().getAmount() - 1);
+            ItemStack itemInHand = (event.getHand() == EquipmentSlot.HAND ? inventory.getItemInMainHand() : inventory.getItemInOffHand());
+            ItemUtils.subtract(itemInHand, 1);
             if (mechanic.hasReplacement()) inventory.addItem(mechanic.getReplacement());
 
             if (mechanic.hasEffects() && Math.random() <= mechanic.getEffectProbability())

@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.commands;
 import dev.jorel.commandapi.CommandAPICommand;
 import dev.jorel.commandapi.arguments.ArgumentSuggestions;
 import dev.jorel.commandapi.arguments.IntegerArgument;
+import dev.jorel.commandapi.arguments.StringArgument;
 import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Message;
@@ -186,6 +187,7 @@ public class RecipesCommand {
         return new CommandAPICommand("save")
                 .withPermission("oraxen.command.recipes.builder")
                 .withArguments(new TextArgument("name"))
+                .withOptionalArguments(new StringArgument("permission"))
                 .executes((sender, args) -> {
                     if (sender instanceof Player player) {
                         final RecipeBuilder recipe = RecipeBuilder.get(player.getUniqueId());
@@ -194,7 +196,8 @@ public class RecipesCommand {
                             return;
                         }
                         final String name = (String) args.args()[0];
-                        recipe.saveRecipe(name);
+                        final String permission = (String) args.getOptional("permission").orElse("");
+                        recipe.saveRecipe(name, permission);
                         Message.RECIPE_SAVE.send(sender, AdventureUtils.tagResolver("name", name));
                     } else
                         Message.NOT_PLAYER.send(sender);

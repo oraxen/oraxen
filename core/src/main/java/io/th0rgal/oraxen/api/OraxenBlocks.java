@@ -212,12 +212,12 @@ public class OraxenBlocks {
     /**
      * Breaks an OraxenBlock at the given location
      *
-     * @param location  The location of the OraxenBlock
-     * @param player    The player that broke the block, can be null
-     * @return True if the block was broken, false if the block was not an OraxenBlock
+     * @param location The location of the OraxenBlock
+     * @param player   The player that broke the block, can be null
+     * @return True if the block was broken, false if the block was not an OraxenBlock or could not be broken
      */
     public static boolean remove(Location location, @Nullable Player player) {
-        return remove(location, player, false);
+        return remove(location, player, null);
     }
 
     /**
@@ -226,32 +226,48 @@ public class OraxenBlocks {
      * @param location  The location of the OraxenBlock
      * @param player    The player that broke the block, can be null
      * @param forceDrop Whether to force the block to drop, even if player is null or in creative mode
-     * @return True if the block was broken, false if the block was not an OraxenBlock
+     * @return True if the block was broken, false if the block was not an OraxenBlock or could not be broken
      */
     public static boolean remove(Location location, @Nullable Player player, boolean forceDrop) {
         Block block = location.getBlock();
-        if (isOraxenNoteBlock(block)) {
-            removeNoteBlock(block, player, forceDrop);
-        } else if (isOraxenStringBlock(block)) {
-            removeStringBlock(block, player, forceDrop);
-        } else return false;
-        return true;
+
+        NoteBlockMechanic noteMechanic = getNoteBlockMechanic(block);
+        StringBlockMechanic stringMechanic = getStringMechanic(block);
+        Drop overrideDrop = !forceDrop ? null : noteMechanic != null ? noteMechanic.getDrop() : stringMechanic != null ? stringMechanic.getDrop() : null;
+        return remove(location, player, overrideDrop);
     }
 
-    private static void removeNoteBlock(Block block, @Nullable Player player, boolean forceDrop) {
+    /**
+     * Breaks an OraxenBlock at the given location
+     *
+     * @param location     The location of the OraxenBlock
+     * @param player       The player that broke the block, can be null
+     * @param overrideDrop Drop to override the default drop, can be null
+     * @return True if the block was broken, false if the block was not an OraxenBlock or could not be broken
+     */
+    public static boolean remove(Location location, @Nullable Player player, @Nullable Drop overrideDrop) {
+        Block block = location.getBlock();
+
+        if (isOraxenNoteBlock(block)) return removeNoteBlock(block, player, overrideDrop);
+        if (isOraxenStringBlock(block)) return removeStringBlock(block, player, overrideDrop);
+        return false;
+    }
+
+    private static boolean removeNoteBlock(Block block, @Nullable Player player, Drop overrideDrop) {
         ItemStack itemInHand = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
         NoteBlockMechanic mechanic = getNoteBlockMechanic(block);
-        if (mechanic == null) return;
+        if (mechanic == null) return false;
         if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
             mechanic = mechanic.getDirectional().getParentMechanic();
 
         Location loc = block.getLocation();
-        Drop drop = forceDrop ? mechanic.getDrop() : null;
+        boolean hasOverrideDrop = overrideDrop != null;
+        Drop drop = hasOverrideDrop ? overrideDrop : mechanic.getDrop();
         if (player != null) {
             OraxenNoteBlockBreakEvent noteBlockBreakEvent = new OraxenNoteBlockBreakEvent(mechanic, block, player);
-            if (!EventUtils.callEvent(noteBlockBreakEvent)) return;
+            if (!EventUtils.callEvent(noteBlockBreakEvent)) return false;
 
-            if (forceDrop || player.getGameMode() != GameMode.CREATIVE)
+            if (hasOverrideDrop || player.getGameMode() != GameMode.CREATIVE)
                 drop = noteBlockBreakEvent.getDrop();
 
             World world = block.getWorld();
@@ -267,21 +283,23 @@ public class OraxenBlocks {
         }
         block.setType(Material.AIR);
         checkNoteBlockAbove(loc);
+        return true;
     }
 
 
-    private static void removeStringBlock(Block block, @Nullable Player player, boolean forceDrop) {
+    private static boolean removeStringBlock(Block block, @Nullable Player player, @Nullable Drop overrideDrop) {
 
         StringBlockMechanic mechanic = getStringMechanic(block);
         ItemStack itemInHand = player != null ? player.getInventory().getItemInMainHand() : new ItemStack(Material.AIR);
-        if (mechanic == null) return;
+        if (mechanic == null) return false;
 
-        Drop drop = forceDrop ? mechanic.getDrop() : null;
+        boolean hasDropOverride = overrideDrop != null;
+        Drop drop = hasDropOverride ? overrideDrop : mechanic.getDrop();
         if (player != null) {
             OraxenStringBlockBreakEvent wireBlockBreakEvent = new OraxenStringBlockBreakEvent(mechanic, block, player);
-            if (!EventUtils.callEvent(wireBlockBreakEvent)) return;
+            if (!EventUtils.callEvent(wireBlockBreakEvent)) return false;
 
-            if (forceDrop || player.getGameMode() != GameMode.CREATIVE)
+            if (hasDropOverride || player.getGameMode() != GameMode.CREATIVE)
                 drop = wireBlockBreakEvent.getDrop();
 
             block.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
@@ -295,8 +313,9 @@ public class OraxenBlocks {
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             StringBlockMechanicListener.fixClientsideUpdate(block.getLocation());
             if (blockAbove.getType() == Material.TRIPWIRE)
-                removeStringBlock(blockAbove, player, forceDrop);
+                removeStringBlock(blockAbove, player, overrideDrop);
         }, 1L);
+        return true;
     }
 
     /**

@@ -11,7 +11,7 @@ public class Logs {
     private Logs() {}
 
     public static void logInfo(String message) {
-        logInfo(message, false);
+        if (!message.isEmpty()) logInfo(message, false);
     }
 
     public static void logInfo(String message, boolean newline) {

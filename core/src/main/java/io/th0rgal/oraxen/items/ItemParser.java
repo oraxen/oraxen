@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
 import org.bukkit.Material;
@@ -119,6 +120,7 @@ public class ItemParser {
         if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));
         if (section.contains("unstackable")) item.setUnstackable(section.getBoolean("unstackable", false));
         if (section.contains("color")) item.setColor(Utils.toColor(section.getString("color", "#FFFFFF")));
+        if (section.contains("trim_pattern")) item.setTrimPattern(Key.key(section.getString("trim_pattern", "")));
 
         parseMiscOptions(item);
         parseVanillaSections(item);

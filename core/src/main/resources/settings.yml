@@ -46,11 +46,22 @@ Chat:
   chat_handler: MODERN # Valid once are MODERN & LEGACY
 
 CustomArmor:
+  type: SHADER # Valid types are SHADER, TRIMS and NONE
   disable_leather_repair: true # Makes custom armor not repairable with leather, only with copies of said custom armor
-  shader_type: FANCY # Valid types are FANCY and LESS_FANCY
+  trims_settings:
+    material_replacement: CHAINMAIL # Valid materials are CHAINMAIL, IRON, GOLD, DIAMOND, NETHERITE and LEATHER
+    auto_assign_settings: true # If true, the trim & item-flag will be automatically assigned to the custom armor piece, unless specified
+  shader_settings:
+    type: FANCY # Valid types are FANCY and LESS_FANCY
+    armor_resolution: 16 # 64x32 -> 16, 128x64 -> 32...
+    animated_armor_framerate: 24
+    generate_shader_compatible_armor: true
+    generate_armor_shader_files: true
+    generate_custom_armor_textures: true
 
 CustomBlocks:
   block_correction: NMS # Valid types are NMS and LEGACY
+  use_legacy_noteblocks: true # Setting relevant for future changes, for now leave this to true
 
 # This will break Player Heads for all 1.19.4 players and above.
 # Until this issue is resolved, this will be disabled by default
@@ -84,13 +95,6 @@ Pack:
       generate: true
       type: "SPRITE" # "SPRITE" or "DIRECTORY"
     auto_generated_models_follow_texture_path: false
-    # 64x32 layer is default size and corresponds to 16. If you need higher
-    # resolution, e.g. 128x64, you should set this parameter to 32 and so on.
-    armor_resolution: 16
-    animated_armor_framerate: 24
-    automatically_generate_shader_compatible_armor: true
-    generate_armor_shader_files: true
-    generate_custom_armor_textures: true
     compression: BEST_COMPRESSION # see Deflater.class
     # protection will use several methods to make your pack impossible to extract
     # with usual tools (native windows unzip, 7zip, winrar, etc) without altering

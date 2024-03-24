@@ -17,6 +17,10 @@ public class ItemUtils {
         return itemStack == null || itemStack.getType() == Material.AIR || itemStack.getAmount() == 0;
     }
 
+    public static void subtract(ItemStack itemStack, int amount) {
+        itemStack.setAmount(Math.max(0, itemStack.getAmount() - amount));
+    }
+
     public static void dyeItem(ItemStack itemStack, Color color) {
         editItemMeta(itemStack, meta -> {
             if (meta instanceof LeatherArmorMeta leatherArmorMeta) {

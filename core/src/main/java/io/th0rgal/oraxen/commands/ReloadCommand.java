@@ -96,6 +96,7 @@ public class ReloadCommand {
                         case "CONFIGS" -> OraxenPlugin.get().reloadConfigs();
                         default -> {
                             MechanicsManager.unloadListeners();
+                            MechanicsManager.unregisterTasks();
                             MechanicsManager.registerNativeMechanics();
                             OraxenPlugin.get().reloadConfigs();
                             reloadItems(sender);

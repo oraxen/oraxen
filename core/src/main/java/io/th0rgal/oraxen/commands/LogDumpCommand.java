@@ -6,6 +6,7 @@ import gs.mclo.java.Log;
 import gs.mclo.java.MclogsAPI;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.LU;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 
@@ -31,6 +32,7 @@ public class LogDumpCommand {
                     try {
                         Path path = OraxenPlugin.get().getDataFolder().getAbsoluteFile().getParentFile().getParentFile().toPath().resolve("logs/latest.log");
                         logfile = Files.readString(path).replaceAll(packUrl, "[REDACTED]");
+                        logfile += "\n\n" + new LU().hr();
                         if (VersionUtil.isLeaked()) logfile = logfile + "\n\nThis server is running a leaked version of Oraxen";
                     } catch (Exception e) {
                         Logs.logError("Failed to read latest.log, is it missing?");
