@@ -66,6 +66,7 @@ CustomArmor:
 
 CustomBlocks:
   block_correction: NMS # Valid types are NMS and LEGACY
+  use_legacy_noteblocks: false # Should only be enabled when server is below 1.19.4 or updating from Oraxen 1.x
 
 ItemUpdater:
   # Update the items in player inventory to the latest in config when player joins
@@ -122,7 +123,6 @@ Pack:
     polymath:
       server: atlas.oraxen.com # you can also host your own polymath instance
       secret: "oraxen" # change this if you host your own polymath to limit access to resource pack uploading
-    polymath_secret:
 
   dispatch:
     send_pack: true

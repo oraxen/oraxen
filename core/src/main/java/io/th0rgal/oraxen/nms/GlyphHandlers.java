@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 
 public class GlyphHandlers {
 
-    private enum GlyphHandler {
+    public enum GlyphHandler {
         NMS, VANILLA;
 
         public static GlyphHandler get() {
