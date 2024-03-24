@@ -230,15 +230,12 @@ public class NoteBlockMechanicListener implements Listener {
         final String itemID = OraxenItems.getIdByItem(item);
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
+        BlockFace face = event.getBlockFace();
 
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || placedAgainst == null) return;
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(itemID);
         if (mechanic == null) return;
         if (!player.isSneaking() && BlockHelpers.isInteractable(placedAgainst)) return;
-
-        // determines the new block data of the block
-        int customVariation = mechanic.getCustomVariation();
-        BlockFace face = event.getBlockFace();
 
         if (mechanic.isDirectional()) {
             DirectionalBlock directional = mechanic.getDirectional();
@@ -246,11 +243,11 @@ public class NoteBlockMechanicListener implements Listener {
                 directional = directional.getParentMechanic().getDirectional();
             }
 
-            customVariation = directional.getDirectionVariation(face, player);
+            NoteBlockMechanic newMechanic = directional.getDirectionMechanic(face, player);
+            if (newMechanic != null) mechanic = newMechanic;
         }
 
-        BlockData data = NoteBlockMechanicFactory.createNoteBlockData(customVariation);
-        makePlayerPlaceBlock(player, event.getHand(), event.getItem(), placedAgainst, face, data);
+        makePlayerPlaceBlock(player, event.getHand(), event.getItem(), placedAgainst, face, mechanic.blockData());
     }
 
     // If block is not a custom block, play the correct sound according to the below block or default

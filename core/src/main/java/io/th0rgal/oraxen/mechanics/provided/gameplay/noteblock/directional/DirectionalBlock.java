@@ -6,6 +6,7 @@ import org.apache.commons.lang3.Range;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 public class DirectionalBlock {
     private final String parentBlock;
@@ -65,6 +66,27 @@ public class DirectionalBlock {
         LOG, FURNACE, DROPPER
     }
 
+    @Nullable
+    public NoteBlockMechanic getDirectionMechanic(BlockFace face, Player player) {
+        if (isLog()) {
+            switch (face) {
+                case NORTH: case SOUTH: return getDirectionMechanic(xBlock);
+                case EAST: case WEST: return getDirectionMechanic(zBlock);
+                case UP: case DOWN: return getDirectionMechanic(yBlock);
+            }
+        } else {
+            switch (getRelativeFacing(player)) {
+                case NORTH: return getDirectionMechanic(northBlock);
+                case SOUTH: return getDirectionMechanic(southBlock);
+                case EAST: return getDirectionMechanic(eastBlock);
+                case WEST: return getDirectionMechanic(westBlock);
+                case UP: return getDirectionMechanic(upBlock);
+                case DOWN: return getDirectionMechanic(downBlock);
+            }
+        }
+        return null;
+    }
+
     public int getDirectionVariation(BlockFace face, Player player) {
         if (isLog()) {
             switch (face) {
@@ -104,8 +126,12 @@ public class DirectionalBlock {
         return face;
     }
 
-    private int getDirectionVariation(String id) {
-        return ((NoteBlockMechanic) NoteBlockMechanicFactory.getInstance().getMechanic(id)).getCustomVariation();
+    private NoteBlockMechanic getDirectionMechanic(String itemId) {
+        return NoteBlockMechanicFactory.getInstance().getMechanic(itemId);
+    }
+
+    private int getDirectionVariation(String itemId) {
+        return NoteBlockMechanicFactory.getInstance().getMechanic(itemId).getCustomVariation();
     }
 
     public String getDirectionalModel(NoteBlockMechanic mechanic) {

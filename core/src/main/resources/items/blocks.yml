@@ -6,25 +6,6 @@
 # Color codes: https://docs.adventure.kyori.net/minimessage.html#format
 
 
-caveblock:
-  displayname: "<#D5D6D8>Cave Block"
-  material: PAPER
-  Pack:
-    generate_model: false # because this is a block, a 2nd model pointing to specified one will be generated anyway
-    model: default/caveblock
-  Mechanics:
-    noteblock:
-      block_sounds:
-        break_sound: block.glass.break
-        place_sound: block.glass.place
-      custom_variation: 0
-      model: default/caveblock
-      hardness: 1
-      drop:
-        silktouch: false # enable if you want to cancel loots and drop the block when a silktouch pickaxe is used
-        loots:
-          - { oraxen_item: caveblock, probability: 1.0 } # item_section: probability of loot
-
 amethyst_ore:
   displayname: '<gradient:#4B36B1:#6699FF>Amethyst Ore'
   material: PAPER

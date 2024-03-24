@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
@@ -13,7 +14,11 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
+import org.bukkit.Instrument;
+import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
+import org.bukkit.Note;
+import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 
@@ -40,6 +45,8 @@ public class NoteBlockMechanic extends Mechanic {
 
     private final BlockLockerMechanic blockLocker;
 
+    private final NoteBlock blockData;
+
     @SuppressWarnings("unchecked")
     public NoteBlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         /*
@@ -50,6 +57,7 @@ public class NoteBlockMechanic extends Mechanic {
 
         model = section.getString("model");
         customVariation = section.getInt("custom_variation");
+        blockData =  createNoteBlockData();
         hardness = section.getInt("hardness", 1);
 
         light = new LightMechanic(section);
@@ -83,6 +91,38 @@ public class NoteBlockMechanic extends Mechanic {
         blockLocker = blockLockerSection != null ? new BlockLockerMechanic(blockLockerSection) : null;
     }
 
+    private NoteBlock createNoteBlockData() {
+        Instrument instrument;
+        Note note;
+        boolean powered;
+        if (Settings.LEGACY_NOTEBLOCKS.toBool()) {
+            /* We have 16 instruments with 25 notes. All of those blocks can be powered.
+             * That's: 16*25*2 = 800 variations. The first 25 variations of PIANO (not powered)
+             * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
+             */
+            int customVariation = this.customVariation + 26;
+            instrument = Instrument.getByType((byte) ((customVariation % 400) / 25));
+            note = new Note(customVariation % 25);
+            powered = customVariation >= 400;
+        } else {
+            instrument = Instrument.getByType((byte)Math.min(Instrument.values().length, customVariation / 50));
+            note = new Note(customVariation % 25);
+            powered = (customVariation % 50 >= 25);
+        }
+        if (instrument == null) return null;
+
+        NoteBlock noteBlock = (NoteBlock) Material.NOTE_BLOCK.createBlockData();
+        noteBlock.setInstrument(instrument);
+        noteBlock.setNote(note);
+        noteBlock.setPowered(powered);
+
+        return noteBlock;
+    }
+
+    public NoteBlock blockData() {
+        return blockData;
+    }
+
     public boolean hasLimitedPlacing() { return limitedPlacing != null; }
     public LimitedPlacing getLimitedPlacing() { return limitedPlacing; }
 
@@ -111,11 +151,8 @@ public class NoteBlockMechanic extends Mechanic {
     public boolean isDirectional() { return directionalBlock != null; }
     public DirectionalBlock getDirectional() { return directionalBlock; }
 
-    public String getModel(ConfigurationSection section) {
-        if (model != null)
-            return model;
-        // use the itemstack model if block model isn't set
-        return section.getString("Pack.model");
+    public String getModel() {
+        return model != null ? model : getSection().getParent().getString("Pack.model", "block/note_block");
     }
 
     public int getCustomVariation() {

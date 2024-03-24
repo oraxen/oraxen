@@ -53,6 +53,7 @@ val commandApiVersion = "9.3.0"
 val adventureVersion = "4.15.0"
 val platformVersion = "4.3.2"
 val googleGsonVersion = "2.10.1"
+val creativeVersion = "1.7.0"
 group = "io.th0rgal"
 version = pluginVersion
 
@@ -87,7 +88,7 @@ allprojects {
 
     dependencies {
         val actionsVersion = "1.0.0-SNAPSHOT"
-        val creativeVersion = "1.7.0"
+
         compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
         compileOnly("gs.mclo:java:2.2.1")
 
@@ -116,6 +117,9 @@ allprojects {
         compileOnly("com.willfp:eco:6.65.5")
         compileOnly("com.willfp:libreforge:4.36.0")
         compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
+        compileOnly("team.unnamed:creative-api:$creativeVersion")
+        compileOnly("team.unnamed:creative-serializer-minecraft:$creativeVersion")
+        compileOnly("team.unnamed:creative-server:$creativeVersion")
 
         implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.5.0")
@@ -125,9 +129,6 @@ allprojects {
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
         implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
-        implementation("team.unnamed:creative-api:$creativeVersion")
-        implementation("team.unnamed:creative-serializer-minecraft:$creativeVersion")
-        implementation("team.unnamed:creative-server:$creativeVersion")
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     }
@@ -237,5 +238,8 @@ bukkit {
         "net.kyori:adventure-platform-bukkit:$platformVersion",
         "com.google.code.gson:gson:$googleGsonVersion",
         "gs.mclo:java:2.2.1",
+        "team.unnamed:creative-api:$creativeVersion",
+        "team.unnamed:creative-serializer-minecraft:$creativeVersion",
+        "team.unnamed:creative-server:$creativeVersion",
     )
 }

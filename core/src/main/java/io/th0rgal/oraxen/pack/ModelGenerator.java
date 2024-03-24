@@ -8,7 +8,10 @@ import net.kyori.adventure.key.Key;
 import org.bukkit.Material;
 import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.model.Model;
+import team.unnamed.creative.model.ModelTexture;
+import team.unnamed.creative.model.ModelTextures;
 
+import java.util.List;
 import java.util.stream.Collectors;
 
 public class ModelGenerator {
@@ -40,9 +43,47 @@ public class ModelGenerator {
     }
 
     public static Model.Builder generateModelBuilder(OraxenMeta oraxenMeta) {
+        final String parent = oraxenMeta.parentModelKey().asMinimalString();
+        ModelTextures.Builder textures = oraxenMeta.modelTextures().toBuilder();
+
+        if (oraxenMeta.modelTextures().variables().isEmpty()) {
+            final List<ModelTexture> layers = oraxenMeta.modelTextures().layers();
+            textures.layers(List.of());
+            if (parent.equals("block/cube") || parent.equals("block/cube_directional") || parent.equals("block/cube_mirrored")) {
+                textures.addVariable("particle", layers.get(2));
+                textures.addVariable("down", layers.get(0));
+                textures.addVariable("up", layers.get(1));
+                textures.addVariable("north", layers.get(2));
+                textures.addVariable("south", layers.get(3));
+                textures.addVariable("west", layers.get(4));
+                textures.addVariable("east", layers.get(5));
+            } else if (parent.equals("block/cube_all") || parent.equals("block/cube_mirrored_all")) {
+                textures.addVariable("all", layers.get(0));
+            } else if (parent.equals("block/cross")) {
+                textures.addVariable("cross", layers.get(0));
+            } else if (parent.startsWith("block/orientable")) {
+                textures.addVariable("front", layers.get(0));
+                textures.addVariable("side", layers.get(1));
+                if (!parent.endsWith("vertical"))
+                    textures.addVariable("top", layers.get(2));
+                if (parent.endsWith("with_bottom"))
+                    textures.addVariable("bottom", layers.get(3));
+            } else if (parent.startsWith("block/cube_column")) {
+                textures.addVariable("end", layers.get(0));
+                textures.addVariable("side", layers.get(1));
+            } else if (parent.equals("block/cube_bottom_top")) {
+                textures.addVariable("top", layers.get(0));
+                textures.addVariable("side", layers.get(1));
+                textures.addVariable("bottom", layers.get(2));
+            } else if (parent.equals("block/cube_top")) {
+                textures.addVariable("top", layers.get(0));
+                textures.addVariable("side", layers.get(1));
+            } else textures.layers(layers);
+        }
+
         return Model.model()
                 .key(oraxenMeta.modelKey())
                 .parent(oraxenMeta.parentModelKey())
-                .textures(oraxenMeta.modelTextures());
+                .textures(textures.build());
     }
 }

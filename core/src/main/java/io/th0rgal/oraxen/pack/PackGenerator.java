@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.utils.customarmor.ShaderArmorTextures;
 import io.th0rgal.oraxen.utils.customarmor.TrimArmorDatapack;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
+import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.BuiltResourcePack;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.Atlas;
@@ -36,7 +37,7 @@ public class PackGenerator {
 
     public static Path externalPacks = OraxenPlugin.get().packPath().resolve("external_packs");
     private static final Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
-    private ResourcePack resourcePack;
+    @NotNull private ResourcePack resourcePack = ResourcePack.resourcePack();
     private BuiltResourcePack builtPack;
     private CustomArmor customArmorHandler;
 
@@ -49,7 +50,7 @@ public class PackGenerator {
 
     public void generatePack() {
         Logs.logInfo("Generating resourcepack...");
-        resourcePack = MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile());
+        mergePack(MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile()));
         resourcePack.removeUnknownFile("pack.zip");
 
         addImportPacks();
@@ -76,7 +77,6 @@ public class PackGenerator {
     }
 
     public ResourcePack resourcePack() {
-        if (resourcePack == null) resourcePack = ResourcePack.resourcePack();
         return resourcePack;
     }
 

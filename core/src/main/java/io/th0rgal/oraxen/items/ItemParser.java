@@ -211,8 +211,8 @@ public class ItemParser {
             if (factory != null) {
                 ConfigurationSection mechanicSection = mechanicsSection.getConfigurationSection(mechanicID);
                 if (mechanicSection == null) continue;
-                //if (mechanicID.equals("furniture") && !FurnitureFactory.setDefaultType(mechanicSection)) configUpdated = true;
                 Mechanic mechanic = factory.parse(mechanicSection);
+                if (mechanic == null) continue;
                 // Apply item modifiers
                 for (Function<ItemBuilder, ItemBuilder> itemModifier : mechanic.getItemModifiers())
                     item = itemModifier.apply(item);

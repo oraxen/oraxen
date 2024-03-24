@@ -28,7 +28,8 @@ import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 
 import javax.annotation.Nullable;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
@@ -151,7 +152,7 @@ public class OraxenBlocks {
     @Nullable
     public static BlockData getOraxenBlockData(String itemID) {
         if (isOraxenNoteBlock(itemID)) {
-            return NoteBlockMechanicFactory.getInstance().createNoteBlockData(itemID);
+            return NoteBlockMechanicFactory.getInstance().getNoteBlockData(itemID);
         } else if (isOraxenStringBlock(itemID)) {
             return StringBlockMechanicFactory.getInstance().createTripwireData(itemID);
         } else return null;
@@ -343,28 +344,24 @@ public class OraxenBlocks {
     public static NoteBlockMechanic getNoteBlockMechanic(BlockData data) {
         if (!NoteBlockMechanicFactory.isEnabled()) return null;
         if (!(data instanceof NoteBlock noteBlock)) return null;
-        return NoteBlockMechanicFactory
-                .getBlockMechanic((noteBlock.getInstrument().getType()) * 25
-                        + noteBlock.getNote().getId() + (noteBlock.isPowered() ? 400 : 0) - 26);
+        return NoteBlockMechanicFactory.getBlockMechanic(noteBlock);
     }
 
     public static NoteBlockMechanic getNoteBlockMechanic(Block block) {
         if (!NoteBlockMechanicFactory.isEnabled()) return null;
         if (block.getType() != Material.NOTE_BLOCK) return null;
         final NoteBlock noteblock = (NoteBlock) block.getBlockData();
-        return NoteBlockMechanicFactory
-                .getBlockMechanic((noteblock.getInstrument().getType()) * 25
-                        + noteblock.getNote().getId() + (noteblock.isPowered() ? 400 : 0) - 26);
+        return NoteBlockMechanicFactory.getBlockMechanic(noteblock);
     }
 
-    @org.jetbrains.annotations.Nullable
+    @Nullable
     public static NoteBlockMechanic getNoteBlockMechanic(String itemID) {
         if (!NoteBlockMechanicFactory.isEnabled()) return null;
         Mechanic mechanic = NoteBlockMechanicFactory.getInstance().getMechanic(itemID);
         return mechanic instanceof NoteBlockMechanic noteBlockMechanic ? noteBlockMechanic : null;
     }
 
-    @org.jetbrains.annotations.Nullable
+    @Nullable
     public static StringBlockMechanic getStringMechanic(BlockData blockData) {
         if (!StringBlockMechanicFactory.isEnabled()) return null;
         if (!(blockData instanceof Tripwire tripwire)) return null;
