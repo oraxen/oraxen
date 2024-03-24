@@ -2,13 +2,13 @@ package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.bukkit.configuration.Configuration;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.InvalidConfigurationException;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class OraxenYaml extends YamlConfiguration {
@@ -33,7 +33,7 @@ public class OraxenYaml extends YamlConfiguration {
         YamlConfiguration config = new YamlConfiguration();
         try {
             config.load(file);
-        } catch (InvalidConfigurationException e) {
+        } catch (FileNotFoundException | InvalidConfigurationException e) {
             // Handle the exception here (e.g., log the error)
             Logs.logError("Error loading YAML configuration file: " + file.getName());
             Logs.logError("Ensure that your config is formatted correctly:");

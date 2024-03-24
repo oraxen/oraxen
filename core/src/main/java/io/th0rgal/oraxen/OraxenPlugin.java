@@ -171,9 +171,9 @@ public class OraxenPlugin extends JavaPlugin {
     }
 
     public void reloadConfigs() {
+        resourceManager = new ResourcesManager(this);
         configsManager = new ConfigsManager(this);
         configsManager.validatesConfig();
-        resourceManager = new ResourcesManager(this);
     }
 
     public ConfigsManager configsManager() {

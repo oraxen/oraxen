@@ -26,7 +26,7 @@ import java.nio.file.Files;
 import java.util.List;
 import java.util.*;
 
-public class ShaderArmorTextures implements CustomArmor {
+public class ShaderArmorTextures extends CustomArmor {
 
     static final int DEFAULT_RESOLUTION = 16;
     static final int HEIGHT_RATIO = 2;

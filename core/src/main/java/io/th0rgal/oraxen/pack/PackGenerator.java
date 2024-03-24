@@ -39,19 +39,22 @@ public class PackGenerator {
     private static final Path assetsFolder = OraxenPlugin.get().packPath().resolve("assets");
     @NotNull private ResourcePack resourcePack = ResourcePack.resourcePack();
     private BuiltResourcePack builtPack;
-    private CustomArmor customArmorHandler;
+    private final CustomArmor customArmorHandler;
 
     public PackGenerator() {
         generateDefaultPaths();
         PackDownloader.downloadDefaultPack();
         if (CustomArmorType.getSetting().equals(CustomArmorType.SHADER)) customArmorHandler = new ShaderArmorTextures();
-        else if (CustomArmorType.getSetting().equals(CustomArmorType.TRIMS)) new TrimArmorDatapack();
+        else if (CustomArmorType.getSetting().equals(CustomArmorType.TRIMS)) customArmorHandler = new TrimArmorDatapack();
+        else customArmorHandler = new CustomArmor();
     }
 
     public void generatePack() {
         Logs.logInfo("Generating resourcepack...");
         mergePack(MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile()));
         resourcePack.removeUnknownFile("pack.zip");
+        for (Map.Entry<String, Writable> entry : new HashSet<>(resourcePack.unknownFiles().entrySet()))
+            if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
 
         addImportPacks();
         importModelEnginePack();
@@ -62,9 +65,6 @@ public class PackGenerator {
         customArmorHandler.generateNeededFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
-
-        for (Map.Entry<String, Writable> entry : new HashSet<>(resourcePack.unknownFiles().entrySet()))
-            if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
 
         removeExcludedFileExtensions();
 

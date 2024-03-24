@@ -26,7 +26,6 @@ public class ConfigsManager {
 
     private final JavaPlugin plugin;
     private final YamlConfiguration defaultMechanics;
-    private final YamlConfiguration defaultSettings;
     private final YamlConfiguration defaultFont;
     private final YamlConfiguration defaultSound;
     private final YamlConfiguration defaultLanguage;
@@ -44,7 +43,6 @@ public class ConfigsManager {
     public ConfigsManager(JavaPlugin plugin) {
         this.plugin = plugin;
         defaultMechanics = extractDefault("mechanics.yml");
-        defaultSettings = extractDefault("settings.yml");
         defaultFont = extractDefault("bitmaps.yml");
         defaultSound = extractDefault("sound.yml");
         defaultLanguage = extractDefault("languages/english.yml");
@@ -56,7 +54,8 @@ public class ConfigsManager {
     }
 
     public YamlConfiguration getSettings() {
-        return settings != null ? settings : defaultSettings;
+        if (settings == null) settings = Settings.validateSettings();
+        return settings;
     }
 
     public File getSettingsFile() {
@@ -98,23 +97,23 @@ public class ConfigsManager {
     }
 
     public void validatesConfig() {
-        ResourcesManager tempManager = new ResourcesManager(OraxenPlugin.get());
-        mechanics = validate(tempManager, "mechanics.yml", defaultMechanics);
-        settings = validate(tempManager, "settings.yml", defaultSettings);
-        font = validate(tempManager, "bitmaps.yml", defaultFont);
-        hud = validate(tempManager, "hud.yml", defaultHud);
-        sound = validate(tempManager, "sound.yml", defaultSound);
+        ResourcesManager resourcesManager = OraxenPlugin.get().resourceManager();
+        settings = Settings.validateSettings();
+        mechanics = validate(resourcesManager, "mechanics.yml", defaultMechanics);
+        font = validate(resourcesManager, "bitmaps.yml", defaultFont);
+        hud = validate(resourcesManager, "hud.yml", defaultHud);
+        sound = validate(resourcesManager, "sound.yml", defaultSound);
         File languagesFolder = new File(plugin.getDataFolder(), "languages");
         languagesFolder.mkdir();
-        String languageFile = "languages/" + settings.getString(Settings.PLUGIN_LANGUAGE.getPath()) + ".yml";
-        language = validate(tempManager, languageFile, defaultLanguage);
+        String languageFile = "languages/" + Settings.PLUGIN_LANGUAGE + ".yml";
+        language = validate(resourcesManager, languageFile, defaultLanguage);
 
         // check itemsFolder
         itemsFolder = new File(plugin.getDataFolder(), "items");
         if (!itemsFolder.exists()) {
             itemsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                tempManager.extractConfigsInFolder("items", "yml");
+                resourcesManager.extractConfigsInFolder("items", "yml");
         }
 
         // check glyphsFolder
@@ -122,8 +121,8 @@ public class ConfigsManager {
         if (!glyphsFolder.exists()) {
             glyphsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                tempManager.extractConfigsInFolder("glyphs", "yml");
-            else tempManager.extractConfiguration("glyphs/interface.yml");
+                resourcesManager.extractConfigsInFolder("glyphs", "yml");
+            else resourcesManager.extractConfiguration("glyphs/interface.yml");
         }
 
         // check schematicsFolder
@@ -131,7 +130,7 @@ public class ConfigsManager {
         if (!schematicsFolder.exists()) {
             schematicsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                tempManager.extractConfigsInFolder("schematics", "schem");
+                resourcesManager.extractConfigsInFolder("schematics", "schem");
         }
 
     }
@@ -220,7 +219,7 @@ public class ConfigsManager {
 
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
-        ItemBuilder errorItem = new ItemParser(Settings.ERROR_ITEM.toConfigSection()).buildItem();
+        ItemBuilder errorItem = new ItemBuilder(Material.PODZOL);
         for (File file : getItemFiles()) parseMap.put(file, parseItemConfig(file, errorItem));
         return parseMap;
     }

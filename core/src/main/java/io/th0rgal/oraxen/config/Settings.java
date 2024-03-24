@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.pack.server.PackServerType;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
 import io.th0rgal.oraxen.utils.customarmor.ShaderArmorTextures;
@@ -15,13 +16,15 @@ import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.Deflater;
 
 public enum Settings {
     // Generic Plugin stuff
-    DEBUG("debug", false),
+    DEBUG("debug", false, "test"),
     PLUGIN_LANGUAGE("Plugin.language", "english"),
     KEEP_UP_TO_DATE("Plugin.keep_this_up_to_date", true),
     REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only", false),
@@ -42,13 +45,13 @@ public enum Settings {
     WORLDEDIT_FURNITURE("WorldEdit.furniture_mechanic", false),
 
     // Glyphs
-    GLYPH_HANDLER("Glyphs.glyph_handler", GlyphHandlers.GlyphHandler.VANILLA),
+    GLYPH_HANDLER("Glyphs.glyph_handler", GlyphHandlers.GlyphHandler.VANILLA.name()),
     SHOW_PERMISSION_EMOJIS("Glyphs.emoji_list_permission_only", true),
     UNICODE_COMPLETIONS("Glyphs.unicode_completions", true),
     GLYPH_HOVER_TEXT("Glyphs.chat_hover_text", "<glyph_placeholder>"),
 
     // Chat
-    CHAT_HANDLER("Chat.chat_handler", VersionUtil.atOrAbove("1.19") && VersionUtil.isPaperServer() ? FontEvents.ChatHandler.MODERN : FontEvents.ChatHandler.LEGACY),
+    CHAT_HANDLER("Chat.chat_handler", VersionUtil.atOrAbove("1.19") && VersionUtil.isPaperServer() ? FontEvents.ChatHandler.MODERN.name() : FontEvents.ChatHandler.LEGACY.name()),
 
     // Config Tools
     //CONFIGS_VERSION("configs_version", "false"),
@@ -56,14 +59,14 @@ public enum Settings {
     DISABLE_AUTOMATIC_MODEL_DATA("ConfigsTools.disable_automatic_model_data", false),
     DISABLE_AUTOMATIC_GLYPH_CODE("ConfigsTools.disable_automatic_glyph_code", false),
     SKIPPED_MODEL_DATA_NUMBERS("ConfigsTools.skipped_model_data_numbers", List.of()),
-    ERROR_ITEM("ConfigsTools.error_item", Map.of("material", Material.PODZOL, "excludeFromInventory", false, "injectID", false)),
+    ERROR_ITEM("ConfigsTools.error_item", Map.of("material", Material.PODZOL.name(), "excludeFromInventory", false, "injectID", false)),
 
     // Custom Armor
-    CUSTOM_ARMOR_TYPE("CustomArmor.type", VersionUtil.atOrAbove("1.20") ? CustomArmorType.TRIMS : CustomArmorType.SHADER),
+    CUSTOM_ARMOR_TYPE("CustomArmor.type", VersionUtil.atOrAbove("1.20") ? CustomArmorType.TRIMS.name() : CustomArmorType.SHADER.name()),
     DISABLE_LEATHER_REPAIR_CUSTOM("CustomArmor.disable_leather_repair", true),
     CUSTOM_ARMOR_TRIMS_MATERIAL("CustomArmor.trims_settings.material_replacement", "CHAINMAIL"),
     CUSTOM_ARMOR_TRIMS_ASSIGN("CustomArmor.trims_settings.auto_assign_settings", true),
-    CUSTOM_ARMOR_SHADER_TYPE("CustomArmor.shader_settings.type", ShaderArmorTextures.ShaderType.FANCY),
+    CUSTOM_ARMOR_SHADER_TYPE("CustomArmor.shader_settings.type", ShaderArmorTextures.ShaderType.FANCY.name()),
     CUSTOM_ARMOR_SHADER_RESOLUTION("CustomArmor.shader_settings.armor_resolution", 16),
     CUSTOM_ARMOR_SHADER_ANIMATED_FRAMERATE("CustomArmor.shader_settings.animated_armor_framerate", 24),
     CUSTOM_ARMOR_SHADER_GENERATE_FILES("CustomArmor.shader_settings.generate_armor_shader_files", true),
@@ -71,7 +74,7 @@ public enum Settings {
     CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR("CustomArmor.shader_settings.generate_shader_compatible_armor", true),
 
     // Custom Blocks
-    BLOCK_CORRECTION("CustomBlocks.block_correction", BlockHelpers.BlockCorrection.NMS),
+    BLOCK_CORRECTION("CustomBlocks.block_correction", BlockHelpers.BlockCorrection.NMS.name()),
     LEGACY_NOTEBLOCKS("CustomBlocks.use_legacy_noteblocks", VersionUtil.atOrAbove("1.20")),
     LEGACY_STRINGBLOCKS("CustomBlocks.use_legacy_stringblocks", false),
 
@@ -100,7 +103,7 @@ public enum Settings {
     FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs", true),
     VERIFY_PACK_FILES("Pack.generation.verify_pack_files", true),
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path", false),
-    COMPRESSION("Pack.generation.compression", Deflater.BEST_COMPRESSION),
+    COMPRESSION("Pack.generation.compression", "BEST_COMPRESSION"),
     PROTECTION("Pack.generation.protection", true),
     COMMENT("Pack.generation.comment", """
             The content of this resourcepack
@@ -110,7 +113,7 @@ public enum Settings {
             conditions of Oraxen
             """.trim()),
 
-    PACK_SERVER_TYPE("Pack.server.type", PackServerType.SELFHOST),
+    PACK_SERVER_TYPE("Pack.server.type", PackServerType.SELFHOST.name()),
     SELFHOST_PACK_SERVER_PORT("Pack.server.selfhost.port", 8082),
     POLYMATH_SERVER("Pack.server.polymath.server", "atlas.oraxen.com"),
     POLYMATH_SECRET("Pack.server.polymath.secret", "oraxen"),
@@ -157,6 +160,9 @@ public enum Settings {
 
     private final String path;
     private final Object defaultValue;
+    private List<String> comments = Collections.emptyList();
+    private List<String> inlineComments = Collections.emptyList();
+    private Component richComment = Component.empty();
 
     Settings(String path) {
         this.path = path;
@@ -168,11 +174,42 @@ public enum Settings {
         this.defaultValue = defaultValue;
     }
 
+    Settings(String path, Object defaultValue, String... comments) {
+        this.path = path;
+        this.defaultValue = defaultValue;
+        this.comments = List.of(comments);
+    }
+
+    Settings(String path, Object defaultValue, List<String> comments, String... inlineComments) {
+        this.path = path;
+        this.defaultValue = defaultValue;
+        this.comments = comments;
+        this.inlineComments = List.of(inlineComments);
+    }
+
+    Settings(String path, Object defaultValue, Component richComment) {
+        this.path = path;
+        this.defaultValue = defaultValue;
+        this.richComment = richComment;
+    }
+
     public String getPath() {
         return path;
     }
     public Object defaultValue() {
         return defaultValue;
+    }
+
+    public List<String> comments() {
+        return comments;
+    }
+
+    public List<String> inlineComments() {
+        return inlineComments;
+    }
+
+    public Component richComment() {
+        return richComment;
     }
 
     public Object getValue() {
@@ -195,7 +232,7 @@ public enum Settings {
 
     @Override
     public String toString() {
-        return (String) getValue();
+        return String.valueOf(getValue());
     }
 
     public Component toComponent() {
@@ -232,6 +269,38 @@ public enum Settings {
 
     public ConfigurationSection toConfigSection() {
         return OraxenPlugin.get().configsManager().getSettings().getConfigurationSection(path);
+    }
+
+    public static YamlConfiguration validateSettings() {
+        File settingsFile = OraxenPlugin.get().getDataFolder().toPath().resolve("settings.yml").toFile();
+        YamlConfiguration settings = settingsFile.exists() ? OraxenYaml.loadConfiguration(settingsFile) : new YamlConfiguration();
+        settings.options().copyDefaults(true).indent(4).parseComments(true);
+        YamlConfiguration defaults = defaultSettings();
+
+        settings.addDefaults(defaults);
+
+        try {
+            settingsFile.createNewFile();
+            settings.save(settingsFile);
+        } catch (IOException e) {
+            if (DEBUG.toBool()) e.printStackTrace();
+        }
+
+        return settings;
+    }
+
+    private static YamlConfiguration defaultSettings() {
+        YamlConfiguration defaultSettings = new YamlConfiguration();
+        defaultSettings.options().copyDefaults(true).indent(4).parseComments(true);
+
+        for (Settings setting : Settings.values()) {
+            defaultSettings.set(setting.getPath(), setting.defaultValue());
+            defaultSettings.setComments(setting.getPath(), setting.comments());
+            defaultSettings.setInlineComments(setting.getPath(), setting.inlineComments());
+            //defaultSettings.setRichMessage(setting.getPath(), setting.richComment());
+        }
+
+        return defaultSettings;
     }
 
 }

@@ -21,7 +21,6 @@ import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.Atlas;
 import team.unnamed.creative.atlas.AtlasSource;
 import team.unnamed.creative.atlas.PalettedPermutationsAtlasSource;
-import team.unnamed.creative.base.Writable;
 import team.unnamed.creative.texture.Texture;
 
 import java.io.File;
@@ -30,7 +29,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class TrimArmorDatapack implements CustomArmor {
+public class TrimArmorDatapack extends CustomArmor {
     private static final File customArmorDatapack = Bukkit.getWorldContainer().toPath().resolve("world/datapacks/oraxen_custom_armor").toFile();
 
     private final JsonObject datapackMeta = new JsonObject();
@@ -182,15 +181,6 @@ public class TrimArmorDatapack implements CustomArmor {
             else if (t.key().asString().equals(armorPath + material + "_layer_2.png"))
                 resourcePack.texture(t.toBuilder().key(Key.key(vanillaTrimPath + material + "_leggings.png")).build());
         });
-
-        String resourcePath = "assets/minecraft/textures/models/armor/";
-        if (resourcePack.textures().stream().noneMatch(t -> t.key().asString().equals(oraxenTrimPath + material + ".png")))
-            resourcePack.texture(Texture.texture(Key.key(vanillaTrimPath + material + ".png"), Writable.copyInputStream(OraxenPlugin.get().getResource(resourcePath + material + "_layer_1.png"))));
-        if (resourcePack.textures().stream().noneMatch(t -> t.key().asString().equals(oraxenTrimPath + material + "_leggings.png")))
-            resourcePack.texture(Texture.texture(Key.key(vanillaTrimPath + material + "_leggings.png"), Writable.copyInputStream(OraxenPlugin.get().getResource(resourcePath + material + "_layer_2.png"))));
-
-        resourcePack.texture(Texture.texture(Key.key(armorPath + material + "_layer_1.png"), Writable.copyInputStream(OraxenPlugin.get().getResource(resourcePath + "transparent_layer_1.png"))));
-        resourcePack.texture(Texture.texture(Key.key(armorPath + material + "_layer_2.png"), Writable.copyInputStream(OraxenPlugin.get().getResource(resourcePath + "transparent_layer_2.png"))));
     }
 
     private void writeMCMeta(File datapack) {

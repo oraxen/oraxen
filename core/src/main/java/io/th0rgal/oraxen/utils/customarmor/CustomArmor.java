@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.utils.customarmor;
 
-public interface CustomArmor {
+public class CustomArmor {
 
-    void generateNeededFiles();
+    public void generateNeededFiles() {
+
+    }
 }
