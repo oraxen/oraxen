@@ -152,9 +152,9 @@ public class OraxenBlocks {
     @Nullable
     public static BlockData getOraxenBlockData(String itemID) {
         if (isOraxenNoteBlock(itemID)) {
-            return NoteBlockMechanicFactory.getInstance().getNoteBlockData(itemID);
+            return NoteBlockMechanicFactory.getInstance().getMechanic(itemID).blockData();
         } else if (isOraxenStringBlock(itemID)) {
-            return StringBlockMechanicFactory.getInstance().createTripwireData(itemID);
+            return StringBlockMechanicFactory.getInstance().getMechanic(itemID).blockData();
         } else return null;
     }
 
@@ -349,35 +349,31 @@ public class OraxenBlocks {
 
     public static NoteBlockMechanic getNoteBlockMechanic(Block block) {
         if (!NoteBlockMechanicFactory.isEnabled()) return null;
-        if (block.getType() != Material.NOTE_BLOCK) return null;
-        final NoteBlock noteblock = (NoteBlock) block.getBlockData();
-        return NoteBlockMechanicFactory.getBlockMechanic(noteblock);
+        if (!(block.getBlockData() instanceof NoteBlock noteBlock)) return null;
+        return NoteBlockMechanicFactory.getBlockMechanic(noteBlock);
     }
 
     @Nullable
     public static NoteBlockMechanic getNoteBlockMechanic(String itemID) {
         if (!NoteBlockMechanicFactory.isEnabled()) return null;
-        Mechanic mechanic = NoteBlockMechanicFactory.getInstance().getMechanic(itemID);
-        return mechanic instanceof NoteBlockMechanic noteBlockMechanic ? noteBlockMechanic : null;
+        return NoteBlockMechanicFactory.getInstance().getMechanic(itemID);
     }
 
     @Nullable
     public static StringBlockMechanic getStringMechanic(BlockData blockData) {
         if (!StringBlockMechanicFactory.isEnabled()) return null;
         if (!(blockData instanceof Tripwire tripwire)) return null;
-        return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
+        return StringBlockMechanicFactory.getBlockMechanic(tripwire);
     }
 
-    @org.jetbrains.annotations.Nullable
+    @Nullable
     public static StringBlockMechanic getStringMechanic(Block block) {
         if (!StringBlockMechanicFactory.isEnabled()) return null;
-        if (block.getType() == Material.TRIPWIRE) {
-            final Tripwire tripwire = (Tripwire) block.getBlockData();
-            return StringBlockMechanicFactory.getBlockMechanic(StringBlockMechanicFactory.getCode(tripwire));
-        } else return null;
+        if (!(block.getBlockData() instanceof Tripwire tripwire)) return null;
+        return StringBlockMechanicFactory.getBlockMechanic(tripwire);
     }
 
-    @org.jetbrains.annotations.Nullable
+    @Nullable
     public static StringBlockMechanic getStringMechanic(String itemID) {
         if (!StringBlockMechanicFactory.isEnabled()) return null;
         return StringBlockMechanicFactory.getInstance().getMechanic(itemID);

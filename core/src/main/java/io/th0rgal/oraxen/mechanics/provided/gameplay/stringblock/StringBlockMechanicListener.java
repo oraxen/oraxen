@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.stringblock.OraxenStringBlockPlaceEvent;
-import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
@@ -20,6 +19,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
@@ -43,10 +43,7 @@ import java.util.Random;
 
 public class StringBlockMechanicListener implements Listener {
 
-    private final MechanicFactory factory;
-
-    public StringBlockMechanicListener(final StringBlockMechanicFactory factory) {
-        this.factory = factory;
+    public StringBlockMechanicListener() {
         BreakerSystem.MODIFIERS.add(getHardnessModifier());
     }
 
@@ -198,12 +195,12 @@ public class StringBlockMechanicListener implements Listener {
         final String itemID = OraxenItems.getIdByItem(item);
         final Block placedAgainst = event.getClickedBlock();
         final Player player = event.getPlayer();
-        StringBlockMechanic mechanic = (StringBlockMechanic) factory.getMechanic(itemID);
+        StringBlockMechanic mechanic = (StringBlockMechanic) StringBlockMechanicFactory.getInstance().getMechanic(itemID);
 
         if (mechanic == null || placedAgainst == null) return;
         if (!event.getPlayer().isSneaking() && BlockHelpers.isInteractable(placedAgainst)) return;
 
-        if (item != null && item.getType().isBlock() && !factory.isNotImplementedIn(itemID)) {
+        if (item != null && item.getType().isBlock() && !StringBlockMechanicFactory.getInstance().isNotImplementedIn(itemID)) {
             for (BlockFace face : BlockFace.values()) {
                 if (!face.isCartesian() || face.getModZ() != 0) continue;
                 final Block relative = placedAgainst.getRelative(face);
@@ -219,15 +216,14 @@ public class StringBlockMechanicListener implements Listener {
             }
         }
 
-        int customVariation = mechanic.getCustomVariation();
+        Tripwire blockData = mechanic.blockData();
         if (mechanic.hasRandomPlace()) {
             List<String> randomList = mechanic.getRandomPlaceBlock();
             String randomBlock = randomList.get(new Random().nextInt(randomList.size()));
-            customVariation = ((StringBlockMechanic) factory.getMechanic(randomBlock)).getCustomVariation();
+            blockData = StringBlockMechanicFactory.getInstance().getMechanic(randomBlock).blockData();
         }
 
-        BlockData data = StringBlockMechanicFactory.createTripwireData(customVariation);
-        makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), data);
+        makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, event.getBlockFace(), blockData);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import net.kyori.adventure.key.Key;
 import org.apache.commons.lang3.Range;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
@@ -134,7 +135,7 @@ public class DirectionalBlock {
         return NoteBlockMechanicFactory.getInstance().getMechanic(itemId).getCustomVariation();
     }
 
-    public String getDirectionalModel(NoteBlockMechanic mechanic) {
-        return mechanic.getSection().getString("model");
+    public Key getDirectionalModel(NoteBlockMechanic mechanic) {
+        return Key.key(mechanic.getSection().getString("model"));
     }
 }

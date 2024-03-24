@@ -73,6 +73,7 @@ public enum Settings {
     // Custom Blocks
     BLOCK_CORRECTION("CustomBlocks.block_correction", BlockHelpers.BlockCorrection.NMS),
     LEGACY_NOTEBLOCKS("CustomBlocks.use_legacy_noteblocks", VersionUtil.atOrAbove("1.20")),
+    LEGACY_STRINGBLOCKS("CustomBlocks.use_legacy_stringblocks", false),
 
     // ItemUpdater
     UPDATE_ITEMS("ItemUpdater.update_items", true),

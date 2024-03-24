@@ -11,19 +11,16 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.lang3.Range;
-import org.bukkit.Bukkit;
-import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.blockstate.BlockState;
 import team.unnamed.creative.blockstate.MultiVariant;
 import team.unnamed.creative.blockstate.Variant;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,7 +40,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     public StringBlockMechanicFactory(ConfigurationSection section) {
         super(section);
         instance = this;
-        variants.put("east=false,west=false,south=false,north=false,attached=false,disarmed=false,powered=false", getModelJson("block/barrier"));
+        variants.put("east=false,west=false,south=false,north=false,attached=false,disarmed=false,powered=false", MultiVariant.of(Variant.builder().model(Key.key("block/barrier")).build()));
         toolTypes = section.getStringList("tool_types");
         saplingGrowthCheckDelay = section.getInt("sapling_growth_check_delay");
         sapling = false;
@@ -53,10 +50,11 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         // this modifier should be executed when all the items have been parsed, just
         // before zipping the pack
         BlockState tripwireState = OraxenPlugin.get().packGenerator().resourcePack().blockState(Key.key("minecraft:tripwire"));
-        tripwireState = tripwireState != null ? tripwireState : BlockState.of(Key.key("minecraft:tripwire"), variants);
+        if (tripwireState != null) tripwireState.variants().putAll(variants);
+        else tripwireState = BlockState.of(Key.key("minecraft:tripwire"), variants);
         OraxenPlugin.get().packGenerator().resourcePack().blockState(tripwireState);
 
-        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener(this), new SaplingListener());
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener(), new SaplingListener());
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockSoundListener());
 
         // Physics-related stuff
@@ -72,24 +70,8 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         }
     }
 
-    public static MultiVariant getModelJson(String modelName) {
-        modelName = modelName.startsWith("minecraft:") ? modelName : "minecraft:" + modelName;
-        return MultiVariant.of(Variant.builder().model(Key.key(modelName)).build());
-    }
-
-    public static String getBlockstateVariantName(int id) {
-        return "east=" + ((id & 1) == 1 ? "true" : "false")
-                + ",west=" + (((id >> 1) & 1) == 1 ? "true" : "false")
-                + ",south=" + (((id >> 2) & 1) == 1 ? "true" : "false")
-                + ",north=" + (((id >> 3) & 1) == 1 ? "true" : "false")
-                + ",attached=" + (((id >> 4) & 1) == 1 ? "true" : "false")
-                + ",disarmed=" + (((id >> 5) & 1) == 1 ? "true" : "false")
-                + ",powered=" + (((id >> 6) & 1) == 1 ? "true" : "false");
-    }
-
-    @org.jetbrains.annotations.Nullable
-    public static StringBlockMechanic getBlockMechanic(int customVariation) {
-        return BLOCK_PER_VARIATION.get(customVariation);
+    public static StringBlockMechanic getBlockMechanic(@NotNull Tripwire blockData) {
+        return BLOCK_PER_VARIATION.values().stream().filter(m -> m.blockData().equals(blockData)).findFirst().orElse(null);
     }
 
     public static boolean isEnabled() {
@@ -110,21 +92,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     public static void setBlockModel(Block block, String itemId) {
         final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("stringblock");
         StringBlockMechanic stringBlockMechanic = (StringBlockMechanic) mechanicFactory.getMechanic(itemId);
-        block.setBlockData(createTripwireData(stringBlockMechanic.getCustomVariation()));
-    }
-
-    @Override
-    public Mechanic parse(ConfigurationSection section) {
-        StringBlockMechanic mechanic = new StringBlockMechanic(this, section);
-        if (!Range.between(1, 127).contains(mechanic.getCustomVariation())) {
-            Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and 127!");
-            Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
-        }
-        variants.put(getBlockstateVariantName(mechanic.getCustomVariation()),
-                getModelJson(mechanic.getModel(section.getParent().getParent())));
-        BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
-        addToImplemented(mechanic);
-        return mechanic;
+        block.setBlockData(stringBlockMechanic.blockData());
     }
 
     @Override
@@ -137,49 +105,31 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         return (StringBlockMechanic) super.getMechanic(itemStack);
     }
 
-    public static int getCode(final Tripwire blockData) {
-        final List<BlockFace> properties = Arrays
-                .asList(BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH);
-        int sum = 0;
-        for (final BlockFace blockFace : blockData.getFaces())
-            sum += (int) Math.pow(2, properties.indexOf(blockFace));
-        if (blockData.isAttached())
-            sum += (int) Math.pow(2, 4);
-        if (blockData.isDisarmed())
-            sum += (int) Math.pow(2, 5);
-        if (blockData.isPowered())
-            sum += (int) Math.pow(2, 6);
-        return sum;
+    @Override
+    public Mechanic parse(ConfigurationSection section) {
+        StringBlockMechanic mechanic = new StringBlockMechanic(this, section);
+        if (!Range.between(1, 127).contains(mechanic.getCustomVariation())) {
+            Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and 127!");
+            Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
+        }
+
+        String variantName = getBlockstateVariantName(mechanic);
+        MultiVariant multiVariant = MultiVariant.of(Variant.builder().model(mechanic.getModel()).build());
+        variants.put(variantName, multiVariant);
+        BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
+        addToImplemented(mechanic);
+        return mechanic;
     }
 
-    /**
-     * Generate a Tripwire blockdata from its id
-     *
-     * @param code The block id.
-     */
-    public static BlockData createTripwireData(final int code) {
-        Tripwire data = ((Tripwire) Bukkit.createBlockData(Material.TRIPWIRE));
-        int i = 0;
-        for (BlockFace face : new BlockFace[]{BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH,
-                BlockFace.NORTH})
-            data.setFace(face, (code & 0x1 << i++) != 0);
-        data.setAttached((code & 0x1 << i++) != 0);
-        data.setDisarmed((code & 0x1 << i++) != 0);
-        data.setPowered((code & 0x1 << i) != 0);
-        return data;
-    }
-
-    /**
-     * Generate a NoteBlock blockdata from an oraxen id
-     *
-     * @param itemID The id of an item implementing NoteBlockMechanic
-     */
-    public BlockData createTripwireData(String itemID) {
-        /* We have 16 instruments with 25 notes. All of those blocks can be powered.
-         * That's: 16*25*2 = 800 variations. The first 25 variations of PIANO (not powered)
-         * will be reserved for the vanilla behavior. We still have 800-25 = 775 variations
-         */
-        return createTripwireData(((StringBlockMechanic) getInstance().getMechanic(itemID)).getCustomVariation());
+    private String getBlockstateVariantName(StringBlockMechanic mechanic) {
+        Tripwire t = mechanic.blockData();
+        return "east=" + t.hasFace(BlockFace.EAST)
+                + ",west=" + t.hasFace(BlockFace.WEST)
+                + ",south=" + t.hasFace(BlockFace.SOUTH)
+                + ",north=" + t.hasFace(BlockFace.NORTH)
+                + ",attached=" + t.isAttached()
+                + ",disarmed=" + t.isDisarmed()
+                + ",powered=" + t.isPowered();
     }
 
     public void registerSaplingMechanic() {

@@ -14,6 +14,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
+import net.kyori.adventure.key.Key;
 import org.bukkit.Instrument;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -33,7 +34,7 @@ public class NoteBlockMechanic extends Mechanic {
     private final LimitedPlacing limitedPlacing;
     private final StorageMechanic storage;
     private final BlockSounds blockSounds;
-    private String model;
+    private final Key model;
     private final int hardness;
     private final LightMechanic light;
     private final boolean canIgnite;
@@ -55,7 +56,7 @@ public class NoteBlockMechanic extends Mechanic {
          */
         super(mechanicFactory, section);
 
-        model = section.getString("model");
+        model = Key.key(section.getString("model", section.getParent().getString("Pack.model", getItemID())));
         customVariation = section.getInt("custom_variation");
         blockData =  createNoteBlockData();
         hardness = section.getInt("hardness", 1);
@@ -151,8 +152,8 @@ public class NoteBlockMechanic extends Mechanic {
     public boolean isDirectional() { return directionalBlock != null; }
     public DirectionalBlock getDirectional() { return directionalBlock; }
 
-    public String getModel() {
-        return model != null ? model : getSection().getParent().getString("Pack.model", "block/note_block");
+    public Key getModel() {
+        return model;
     }
 
     public int getCustomVariation() {

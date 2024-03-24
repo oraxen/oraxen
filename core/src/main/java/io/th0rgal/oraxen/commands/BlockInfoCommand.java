@@ -55,7 +55,7 @@ public class BlockInfoCommand {
         } else if (OraxenBlocks.isOraxenStringBlock(itemId)) {
             StringBlockMechanic mechanic = StringBlockMechanicFactory.getInstance().getMechanic(itemId);
             if (mechanic == null) return;
-            Tripwire data = (Tripwire) StringBlockMechanicFactory.createTripwireData(mechanic.getCustomVariation());
+            Tripwire data = mechanic.blockData();
             sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>Facing: " + data.getFaces()));
             sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>Powered: " + data.isPowered()));
             sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>Disarmed: " + data.isDisarmed()));

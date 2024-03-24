@@ -19,6 +19,7 @@ import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import team.unnamed.creative.blockstate.BlockState;
 import team.unnamed.creative.blockstate.MultiVariant;
@@ -76,58 +77,8 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         }
     }
 
-    private String instrumentName(Instrument instrument) {
-        return switch (instrument) {
-            case BASS_DRUM -> "basedrum";
-            case PIANO -> "harp";
-            case SNARE_DRUM -> "snare";
-            case STICKS -> "hat";
-            case BASS_GUITAR -> "bass";
-            default -> instrument.name().toLowerCase();
-        };
-    }
-
-    private MultiVariant getDirectionalModelJson(String modelName, NoteBlockMechanic mechanic, NoteBlockMechanic parentMechanic) {
-        String itemId = mechanic.getItemID();
-        DirectionalBlock parent = parentMechanic.getDirectional();
-        Variant.Builder variantBuilder = Variant.builder();
-        String subBlockModel = mechanic.getDirectional().getDirectionalModel(mechanic);
-        subBlockModel = subBlockModel != null ? subBlockModel : modelName;
-        variantBuilder.model(Key.key(subBlockModel));
-        // If subModel is specified and is different from parent we don't want to rotate it
-        if (!Objects.equals(subBlockModel, modelName)) return MultiVariant.of(variantBuilder.build());
-
-        if (Objects.equals(parent.getYBlock(), itemId)) return MultiVariant.of(variantBuilder.build());
-        else if (Objects.equals(parent.getXBlock(), itemId)) {
-            variantBuilder.x(90);
-            //content.addProperty("z", 90);
-        } else if (Objects.equals(parent.getZBlock(), itemId)) {
-            variantBuilder.x(90);
-            variantBuilder.y(90);
-        } else if (Objects.equals(parent.getNorthBlock(), itemId))
-            return MultiVariant.of(variantBuilder.build());
-        else if (Objects.equals(parent.getEastBlock(), itemId)) {
-            variantBuilder.y(90);
-        } else if (Objects.equals(parent.getSouthBlock(), itemId))
-            variantBuilder.y(180);
-        else if (Objects.equals(parent.getWestBlock(), itemId)) {
-            //content.addProperty("z", 90);
-            variantBuilder.y(270);
-        } else if (Objects.equals(parent.getUpBlock(), itemId))
-            variantBuilder.y(270);
-        else if (Objects.equals(parent.getDownBlock(), itemId))
-            variantBuilder.x(180);
-
-        return MultiVariant.of(variantBuilder.build());
-    }
-
     @Nullable
-    public static NoteBlockMechanic getBlockMechanic(int customVariation) {
-        return BLOCK_PER_VARIATION.get(customVariation);
-    }
-
-    @Nullable
-    public static NoteBlockMechanic getBlockMechanic(NoteBlock blockData) {
+    public static NoteBlockMechanic getBlockMechanic(@NotNull NoteBlock blockData) {
         return BLOCK_PER_VARIATION.values().stream().filter(m -> m.blockData().equals(blockData)).findFirst().orElse(null);
     }
 
@@ -156,32 +107,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection section) {
-        NoteBlockMechanic mechanic = new NoteBlockMechanic(this, section);
-        if (!Range.between(1, MAX_BLOCK_VARIATION).contains(mechanic.getCustomVariation())) {
-            Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and " + MAX_BLOCK_VARIATION + "!");
-            Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
-            return null;
-        }
-        DirectionalBlock directional = mechanic.getDirectional();
-        String modelName = mechanic.getModel();
-
-        String variantName = "instrument=" + instrumentName(mechanic.blockData().getInstrument()) + ",note=" + mechanic.getCustomVariation() % 25 + ",powered=" + mechanic.blockData().isPowered();
-        if (mechanic.isDirectional() && !directional.isParentBlock()) {
-            NoteBlockMechanic parentMechanic = directional.getParentMechanic();
-            modelName = (parentMechanic.getModel());
-            variants.put(variantName, getDirectionalModelJson(modelName, mechanic, parentMechanic));
-        } else {
-            MultiVariant multiVariant = MultiVariant.of(Variant.builder().model(Key.key(modelName)).build());
-            variants.put(variantName, multiVariant);
-        }
-
-        BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
-        addToImplemented(mechanic);
-        return mechanic;
-    }
-
-    @Override
     public NoteBlockMechanic getMechanic(String itemID) {
         return (NoteBlockMechanic) super.getMechanic(itemID);
     }
@@ -191,8 +116,75 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         return (NoteBlockMechanic) super.getMechanic(itemStack);
     }
 
-    public NoteBlock getNoteBlockData(String itemId) {
-        return instance.getMechanic(itemId).blockData();
+    @Override
+    public Mechanic parse(ConfigurationSection section) {
+        NoteBlockMechanic mechanic = new NoteBlockMechanic(this, section);
+        if (!Range.between(1, MAX_BLOCK_VARIATION).contains(mechanic.getCustomVariation())) {
+            Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and " + MAX_BLOCK_VARIATION + "!");
+            Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
+            return null;
+        }
+        DirectionalBlock directional = mechanic.getDirectional();
+        Key modelKey = mechanic.getModel();
+
+        String variantName = "instrument=" + instrumentName(mechanic.blockData().getInstrument()) + ",note=" + mechanic.blockData().getNote().getId() + ",powered=" + mechanic.blockData().isPowered();
+        if (mechanic.isDirectional() && !directional.isParentBlock()) {
+            NoteBlockMechanic parentMechanic = directional.getParentMechanic();
+            modelKey = (parentMechanic.getModel());
+            variants.put(variantName, getDirectionalModelJson(modelKey, mechanic, parentMechanic));
+        } else {
+            MultiVariant multiVariant = MultiVariant.of(Variant.builder().model(modelKey).build());
+            variants.put(variantName, multiVariant);
+        }
+
+        BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
+        addToImplemented(mechanic);
+        return mechanic;
+    }
+
+    private String instrumentName(Instrument instrument) {
+        return switch (instrument) {
+            case BASS_DRUM -> "basedrum";
+            case PIANO -> "harp";
+            case SNARE_DRUM -> "snare";
+            case STICKS -> "hat";
+            case BASS_GUITAR -> "bass";
+            default -> instrument.name().toLowerCase();
+        };
+    }
+
+    private MultiVariant getDirectionalModelJson(Key modelKey, NoteBlockMechanic mechanic, NoteBlockMechanic parentMechanic) {
+        String itemId = mechanic.getItemID();
+        DirectionalBlock parent = parentMechanic.getDirectional();
+        Variant.Builder variantBuilder = Variant.builder();
+        Key subBlockModel = mechanic.getDirectional().getDirectionalModel(mechanic);
+        subBlockModel = subBlockModel != null ? subBlockModel : modelKey;
+        variantBuilder.model(subBlockModel);
+        // If subModel is specified and is different from parent we don't want to rotate it
+        if (!Objects.equals(subBlockModel, modelKey)) return MultiVariant.of(variantBuilder.build());
+
+        if (Objects.equals(parent.getYBlock(), itemId)) return MultiVariant.of(variantBuilder.build());
+        else if (Objects.equals(parent.getXBlock(), itemId)) {
+            variantBuilder.x(90);
+            //content.addProperty("z", 90);
+        } else if (Objects.equals(parent.getZBlock(), itemId)) {
+            variantBuilder.x(90);
+            variantBuilder.y(90);
+        } else if (Objects.equals(parent.getNorthBlock(), itemId))
+            return MultiVariant.of(variantBuilder.build());
+        else if (Objects.equals(parent.getEastBlock(), itemId)) {
+            variantBuilder.y(90);
+        } else if (Objects.equals(parent.getSouthBlock(), itemId))
+            variantBuilder.y(180);
+        else if (Objects.equals(parent.getWestBlock(), itemId)) {
+            //content.addProperty("z", 90);
+            variantBuilder.y(270);
+        } else if (Objects.equals(parent.getUpBlock(), itemId))
+            variantBuilder.y(270);
+        else if (Objects.equals(parent.getDownBlock(), itemId))
+            variantBuilder.x(180);
+
+        return MultiVariant.of(variantBuilder.build());
     }
 
     public void registerFarmBlock() {

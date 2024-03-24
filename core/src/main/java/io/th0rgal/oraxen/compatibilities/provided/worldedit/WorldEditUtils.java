@@ -80,9 +80,9 @@ public class WorldEditUtils {
             DirectionalBlock dirBlock = mechanic.getDirectional();
 
             if (!dirBlock.isParentBlock()) {
-                return factory.getNoteBlockData(dirBlock.getParentBlock());
+                return factory.getMechanic(dirBlock.getParentBlock()).blockData();
             } else if (dirBlock.isParentBlock() && !direction.equals(input)) {
-                return  factory.getNoteBlockData(getDirectionalID(mechanic, direction));
+                return  factory.getMechanic(getDirectionalID(mechanic, direction)).blockData();
             } else return mechanic.blockData();
         } else return mechanic.blockData();
     }
