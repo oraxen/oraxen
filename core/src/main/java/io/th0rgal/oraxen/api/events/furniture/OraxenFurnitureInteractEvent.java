@@ -91,7 +91,10 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
      */
     @Nullable
     public Location getInteractionPoint() {
-        return interactionPoint;
+        Entity interactionEntity = getInteractionEntity();
+        return interactionPoint != null
+                ? interactionPoint : interactionEntity != null
+                ? interactionEntity.getLocation() : baseEntity.getLocation();
     }
 
     @Override

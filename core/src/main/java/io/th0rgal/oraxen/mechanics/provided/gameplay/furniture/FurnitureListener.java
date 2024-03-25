@@ -359,8 +359,6 @@ public class FurnitureListener implements Listener {
         Entity baseEntity = event.getBaseEntity();
         Location interactionPoint = event.getInteractionPoint();
 
-        if (interactionPoint == null) return;
-
         mechanic.runClickActions(player);
 
         if (mechanic.isStorage()) {

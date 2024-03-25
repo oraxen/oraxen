@@ -27,6 +27,8 @@ public class FurnitureSeat {
             return new FurnitureSeat(seatString);
         else if (offset instanceof Double seatString)
             return new FurnitureSeat(seatString.toString());
+        else if (offset instanceof Integer seatString)
+            return new FurnitureSeat(seatString.toString());
         else return null;
     }
 
@@ -37,13 +39,14 @@ public class FurnitureSeat {
         this.offset = Vector.deserialize(offset);
     }
     public FurnitureSeat(String offset) {
-        List<Double> split = Arrays.stream(offset.split(" ", 3)).map(s -> {
+        List<Double> split = new ArrayList<>(Arrays.stream(offset.split(" ", 3)).map(s -> {
             try {
                 return Double.parseDouble(s);
             } catch (NumberFormatException e) {
                 return 0.0;
             }
-        }).toList();
+        }).toList());
+        while (split.size() < 3) split.add(0.0);
 
         this.offset = Vector.deserialize(Map.of(
                 "x", split.get(0),

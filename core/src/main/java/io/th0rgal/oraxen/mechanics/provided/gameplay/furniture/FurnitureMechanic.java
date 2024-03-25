@@ -32,7 +32,6 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Transformation;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
@@ -174,13 +173,10 @@ public class FurnitureMechanic extends Mechanic {
             hitbox = width > 0 && height > 0 ? new FurnitureHitbox(width, height) : null;
         } else hitbox = !hasBarriers() ? new FurnitureHitbox(1.0f, 1.0f) : null;
 
-        if (section.getBoolean("seat", false)) seats.add(new FurnitureSeat(new Vector()));
-        else {
-            for (Object seatEntry : section.getList("seats", new ArrayList<>())) {
-                FurnitureSeat seat = FurnitureSeat.getSeat(seatEntry);
-                if (seat == null) continue;
-                seats.add(seat);
-            }
+        for (Object seatEntry : section.getList("seats", new ArrayList<>())) {
+            FurnitureSeat seat = FurnitureSeat.getSeat(seatEntry);
+            if (seat == null) continue;
+            seats.add(seat);
         }
 
         ConfigurationSection evoSection = section.getConfigurationSection("evolution");
