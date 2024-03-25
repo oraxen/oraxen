@@ -155,8 +155,10 @@ public class FurnitureMechanic extends Mechanic {
             barriers.add(new BlockLocation(0, 0, 0));
         if (section.isList("barriers")) {
             for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
-                if (barrierObject instanceof String string && string.equals("origin"))
-                    barriers.add(new BlockLocation(0, 0, 0));
+                if (barrierObject instanceof String string)
+                    barriers.add(new BlockLocation(string));
+                else if (barrierObject instanceof Integer integer)
+                    barriers.add(new BlockLocation(integer.toString()));
                 else if (barrierObject instanceof Map<?, ?> barrierMap) {
                     try {
                         barriers.add(new BlockLocation((Map<String, Integer>) barrierMap));
@@ -664,7 +666,7 @@ public class FurnitureMechanic extends Mechanic {
     private List<UUID> spawnSeats(Location location, UUID baseEntity, Float yaw) {
         List<UUID> seatUUIDs = new ArrayList<>();
         for (FurnitureSeat seat : seats) {
-            ArmorStand armorStand = EntityUtils.spawnEntity(location.clone().add(seat.offset()),  ArmorStand.class, (ArmorStand stand) -> {
+            ArmorStand armorStand = EntityUtils.spawnEntity(location.clone().add(seat.offset(yaw)),  ArmorStand.class, (ArmorStand stand) -> {
                 stand.setVisible(false);
                 stand.setRotation(yaw, 0);
                 stand.setInvulnerable(true);

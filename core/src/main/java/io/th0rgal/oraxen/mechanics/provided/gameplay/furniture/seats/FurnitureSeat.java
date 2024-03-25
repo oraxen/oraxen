@@ -25,6 +25,8 @@ public class FurnitureSeat {
             return new FurnitureSeat(seatVector);
         else if (offset instanceof String seatString)
             return new FurnitureSeat(seatString);
+        else if (offset instanceof Double seatString)
+            return new FurnitureSeat(seatString.toString());
         else return null;
     }
 
@@ -54,6 +56,15 @@ public class FurnitureSeat {
         return offset;
     }
 
+    /**
+     * Offset rotated around the baseEntity's yaw
+     * @param yaw Yaw of baseEntity
+     * @return Rotated offset vector
+     */
+    public Vector offset(float yaw) {
+        return rotateOffset(yaw);
+    }
+
     public static void sitOnSeat(Entity baseEntity, Player player, Location interactionPoint) {
         updateLegacySeats(baseEntity);
         Location centeredLoc = BlockHelpers.toCenterLocation(interactionPoint);
@@ -62,6 +73,17 @@ public class FurnitureSeat {
                 .stream().map(Bukkit::getEntity).filter(e -> e instanceof ArmorStand).toList());
         seats.sort(Comparator.comparingDouble(e ->centeredLoc.distanceSquared(e.getLocation())));
         seats.stream().findFirst().ifPresent(seat -> seat.addPassenger(player));
+    }
+
+    private Vector rotateOffset(float angle) {
+        double angleRad = Math.toRadians(angle);
+
+        // Get the coordinates relative to the local y-axis
+        double x = Math.cos(angleRad) * offset.getX() + Math.sin(angleRad) * offset.getZ();
+        double y = offset.getY();
+        double z = Math.sin(angleRad) * offset.getX() + Math.cos(angleRad) * offset.getZ();
+
+        return new Vector(x, y, z);
     }
 
     private static void updateLegacySeats(Entity baseEntity) {

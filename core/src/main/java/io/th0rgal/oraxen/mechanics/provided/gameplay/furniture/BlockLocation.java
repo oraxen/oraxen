@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import com.jeff_media.morepersistentdatatypes.datatypes.serializable.ConfigurationSerializableDataType;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Location;
 import org.bukkit.Utility;
 import org.bukkit.World;
@@ -8,8 +9,7 @@ import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.persistence.PersistentDataType;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class BlockLocation implements ConfigurationSerializable {
     public static PersistentDataType<byte[],BlockLocation> dataType = new ConfigurationSerializableDataType<>(BlockLocation.class);
@@ -30,17 +30,32 @@ public class BlockLocation implements ConfigurationSerializable {
         this.z = location.getBlockZ();
     }
 
-    public BlockLocation(String serializedBlockLocation) {
-        String[] values = serializedBlockLocation.split(",");
-        this.x = Integer.parseInt(values[0]);
-        this.y = Integer.parseInt(values[1]);
-        this.z = Integer.parseInt(values[2]);
-    }
-
     public BlockLocation(Map<String, Integer> coordinatesMap) {
         this.x = coordinatesMap.getOrDefault("x", 0);
         this.y = coordinatesMap.getOrDefault("y", 0);
         this.z = coordinatesMap.getOrDefault("z", 0);
+    }
+
+    public BlockLocation(String location) {
+        if (location.equals("origin")) {
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
+        } else {
+            Logs.logError("l: " + location);
+            List<Integer> split = new ArrayList<>(Arrays.stream(location.split(" ")).map(s -> {
+                try {
+                    return Integer.parseInt(s);
+                } catch (NumberFormatException e) {
+                    return 0;
+                }
+            }).toList());
+            while (split.size() < 3) split.add(0);
+
+            this.x = split.get(0);
+            this.y = split.get(1);
+            this.z = split.get(2);
+        }
     }
 
     @Override
@@ -66,12 +81,11 @@ public class BlockLocation implements ConfigurationSerializable {
 
     public BlockLocation groundRotate(float angle) {
         BlockLocation output = new BlockLocation(x, y, z);
-        float fixedAngle = (360 - angle);
-        double radians = Math.toRadians(fixedAngle);
+        double radians = Math.toRadians(angle);
+
         output.x = ((int) Math.round(Math.cos(radians) * x - Math.sin(radians) * z));
         output.z = ((int) Math.round(Math.sin(radians) * x - Math.cos(radians) * z));
-        if (fixedAngle % 180 > 1)
-            output.z = -output.z;
+
         return output;
     }
 
