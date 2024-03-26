@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
 
 import com.google.gson.JsonObject;
+import fr.euphyllia.energie.model.SchedulerTaskInter;
+import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
@@ -207,7 +209,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
 //        if (saplingList.isEmpty()) return;
 
         saplingTask = new SaplingTask(saplingGrowthCheckDelay);
-        saplingTask.runTaskTimer(OraxenPlugin.get(), 0, saplingGrowthCheckDelay);
+        saplingTask.runAtFixedRate(OraxenPlugin.get(), SchedulerType.SYNC, 0, saplingGrowthCheckDelay);
         sapling = true;
     }
 }

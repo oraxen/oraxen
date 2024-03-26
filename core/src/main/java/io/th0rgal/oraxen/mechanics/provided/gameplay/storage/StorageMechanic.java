@@ -6,6 +6,7 @@ import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
 import dev.triumphteam.gui.guis.Gui;
 import dev.triumphteam.gui.guis.StorageGui;
+import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -258,8 +259,8 @@ public class StorageMechanic {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
+                OraxenPlugin.getScheduler().runDelayed(SchedulerType.SYNC, player, taskInter ->
+                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), null, 3L);
             }
         });
 
@@ -288,7 +289,7 @@ public class StorageMechanic {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
+                OraxenPlugin.getScheduler().runDelayed(SchedulerType.SYNC, location, taskInter ->
                         storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
             }
         });
@@ -320,8 +321,8 @@ public class StorageMechanic {
         // Slight delay to catch stacks sometimes moving too fast
         gui.setDefaultClickAction(event -> {
             if (event.getCursor() != null && event.getCursor().getType() != Material.AIR || event.getCurrentItem() != null) {
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), 3L);
+                OraxenPlugin.getScheduler().runDelayed(SchedulerType.SYNC, baseEntity, taskInter ->
+                        storagePDC.set(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, gui.getInventory().getContents()), null, 3L);
             }
         });
 

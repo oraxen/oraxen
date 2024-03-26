@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import fr.euphyllia.energie.Energie;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Bukkit;
@@ -68,10 +69,7 @@ public class VersionUtil {
     }
 
     public static boolean isFoliaServer() {
-        Server server = Bukkit.getServer();
-        Validate.notNull(server, "Server cannot be null");
-
-        return server.getName().equalsIgnoreCase("Folia");
+        return Energie.isFolia();
     }
 
     public static boolean isSupportedVersion(@NotNull NMSVersion serverVersion, @NotNull NMSVersion... supportedVersions) {

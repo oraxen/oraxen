@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
+import fr.euphyllia.energie.model.SchedulerTaskInter;
+import fr.euphyllia.energie.model.SchedulerType;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent;
@@ -30,11 +32,11 @@ import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 import static io.th0rgal.oraxen.utils.blocksounds.BlockSounds.*;
 
 public class NoteBlockSoundListener implements Listener {
-    private final Map<Location, BukkitTask> breakerPlaySound = new HashMap<>();
+    private final Map<Location, SchedulerTaskInter> breakerPlaySound = new HashMap<>();
 
     @EventHandler
     public void onWorldUnload(WorldUnloadEvent event) {
-        for (Map.Entry<Location, BukkitTask> entry : breakerPlaySound.entrySet()) {
+        for (Map.Entry<Location, SchedulerTaskInter> entry : breakerPlaySound.entrySet()) {
             if (entry.getKey().isWorldLoaded() || entry.getValue().isCancelled()) continue;
             entry.getValue().cancel();
             breakerPlaySound.remove(entry.getKey());
@@ -75,7 +77,7 @@ public class NoteBlockSoundListener implements Listener {
 
         if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM) {
             if (event.getInstaBreak()) {
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
+                OraxenPlugin.getScheduler().runDelayed(SchedulerType.SYNC, location, taskInter ->
                         block.setType(Material.AIR, false), 1);
                 return;
             }
@@ -83,8 +85,9 @@ public class NoteBlockSoundListener implements Listener {
         if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
         if (breakerPlaySound.containsKey(location)) return;
 
-        BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
-                BlockHelpers.playCustomBlockSound(location, VANILLA_WOOD_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH), 2L, 4L);
+        SchedulerTaskInter task = OraxenPlugin.getScheduler().runAtFixedRate(SchedulerType.SYNC, location, taskInter -> {
+            BlockHelpers.playCustomBlockSound(location, VANILLA_WOOD_HIT, VANILLA_HIT_VOLUME, VANILLA_HIT_PITCH);
+        }, 2L, 4L);
         breakerPlaySound.put(location, task);
     }
 
