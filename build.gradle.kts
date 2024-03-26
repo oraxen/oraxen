@@ -123,9 +123,9 @@ allprojects {
         implementation("com.jeff_media:MorePersistentDataTypes:2.4.0")
         implementation("com.jeff-media:persistent-data-serializer:1.0")
         implementation("org.jetbrains:annotations:24.1.0") { isTransitive = false }
-        implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
+        implementation(files("../libs/compile-folia/triumph-gui-3.1.7.jar"))//  implementation("dev.triumphteam:triumph-gui:3.1.7") { exclude("net.kyori") }
         implementation("com.ticxo:PlayerAnimator:R1.2.8") { isChanging = true }
-        implementation("com.github.Euphillya:Energie:a21efa8858")
+        implementation("com.github.Euphillya:Energie:1.2.0")
 
         implementation("me.gabytm.util:actions-spigot:$actionsVersion") { exclude(group = "com.google.guava") }
     }
