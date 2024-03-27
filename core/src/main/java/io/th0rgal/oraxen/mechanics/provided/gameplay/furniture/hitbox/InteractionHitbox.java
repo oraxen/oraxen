@@ -1,0 +1,46 @@
+package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox;
+
+import io.th0rgal.oraxen.utils.ParseUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.bukkit.util.Vector;
+
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+public class InteractionHitbox {
+    private final Vector offset;
+    private final double width;
+    private final double height;
+
+    public static InteractionHitbox DEFAULT = new InteractionHitbox(new Vector(), 1.0, 1.0);
+
+    public InteractionHitbox(Object hitboxObject) {
+        InteractionHitbox hitbox;
+        if (hitboxObject instanceof String string) hitbox = new InteractionHitbox(string);
+        else hitbox = DEFAULT;
+
+        this.offset = hitbox.offset;
+        this.width = hitbox.width;
+        this.height = hitbox.height;
+    }
+
+    public InteractionHitbox(String hitboxString) {
+        List<String> split = new ArrayList<>(List.of(hitboxString.split(" ", 2)));
+        // Add vector offset
+        if (split.size() == 1) split.add("0,0,0");
+
+        List<Double> offsets = new ArrayList<>(Arrays.stream(split.get(1).split(",", 3)).map(s -> ParseUtils.parseDouble(s, 0.0)).toList());
+        while (offsets.size() < 3) offsets.add(0.0);
+
+        this.offset = new Vector(offsets.get(0), offsets.get(1), offsets.get(2));
+        this.width = ParseUtils.parseDouble(StringUtils.substringBefore(split.get(0), ","), 1.0);
+        this.height = ParseUtils.parseDouble(StringUtils.substringAfter(split.get(0), ","), 1.0);
+    }
+
+    public InteractionHitbox(Vector offset, double width, double height) {
+        this.offset = offset;
+        this.width = width;
+        this.height = height;
+    }
+}

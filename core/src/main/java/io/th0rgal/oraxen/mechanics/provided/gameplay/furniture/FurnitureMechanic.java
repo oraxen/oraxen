@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechani
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.BarrierHitbox;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSeat;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
@@ -67,13 +68,11 @@ public class FurnitureMechanic extends Mechanic {
     private final List<ClickAction> clickActions;
     private FurnitureType furnitureType;
     private final DisplayEntityProperties displayEntityProperties;
-    private final FurnitureHitbox hitbox;
     private final boolean isRotatable;
     private final BlockLockerMechanic blockLocker;
     private final RestrictedRotation restrictedRotation;
-
-    public record FurnitureHitbox(float width, float height) {
-    }
+    private final BarrierHitbox barrierHitbox;
+    private final InteractionHitbox interactionHitbox;
 
     public enum RestrictedRotation {
         NONE, STRICT, VERY_STRICT;
@@ -169,9 +168,8 @@ public class FurnitureMechanic extends Mechanic {
 
         ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
         if (hitboxSection != null) {
-            float width = (float) hitboxSection.getDouble("width", 1.0), height = (float) hitboxSection.getDouble("height", 1.0);
-            hitbox = width > 0 && height > 0 ? new FurnitureHitbox(width, height) : null;
-        } else hitbox = !hasBarriers() ? new FurnitureHitbox(1.0f, 1.0f) : null;
+
+        }
 
         for (Object seatEntry : section.getList("seats", new ArrayList<>())) {
             FurnitureSeat seat = FurnitureSeat.getSeat(seatEntry);
@@ -308,7 +306,7 @@ public class FurnitureMechanic extends Mechanic {
         return hitbox != null;
     }
 
-    public FurnitureHitbox getHitbox() {
+    public BarrierHitbox getHitbox() {
         return hitbox;
     }
 

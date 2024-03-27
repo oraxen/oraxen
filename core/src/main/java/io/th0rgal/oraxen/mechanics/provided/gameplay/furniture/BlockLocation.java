@@ -18,6 +18,8 @@ public class BlockLocation implements ConfigurationSerializable {
     private int y;
     private int z;
 
+    public static BlockLocation ZERO = new BlockLocation(0,0,0);
+
     public BlockLocation(int x, int y, int z) {
         this.x = x;
         this.y = y;
