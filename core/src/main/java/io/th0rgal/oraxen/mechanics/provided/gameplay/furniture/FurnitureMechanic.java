@@ -13,6 +13,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSeat;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
@@ -43,7 +44,6 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey BASE_ENTITY_KEY = new NamespacedKey(OraxenPlugin.get(), "base_entity");
     public static final NamespacedKey INTERACTION_KEY = new NamespacedKey(OraxenPlugin.get(), "interaction");
     public static final NamespacedKey MODELENGINE_KEY = new NamespacedKey(OraxenPlugin.get(), "modelengine");
-    public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
     public static final NamespacedKey ROOT_KEY = new NamespacedKey(OraxenPlugin.get(), "root");
     public static final NamespacedKey ORIENTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "orientation");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
@@ -57,16 +57,13 @@ public class FurnitureMechanic extends Mechanic {
     public final boolean farmlandRequired;
     public final boolean farmblockRequired;
     private final List<BlockLocation> barriers;
-    private final boolean hasSeat;
-    private boolean hasSeatYaw;
     private final Drop drop;
     private final EvolvingFurniture evolvingFurniture;
     private final LightMechanic light;
     private final String modelEngineID;
     private final String placedItemId;
     private ItemStack placedItem;
-    private float seatHeight;
-    private float seatYaw;
+    private final List<FurnitureSeat> seats = new ArrayList<>();
     private final List<ClickAction> clickActions;
     private FurnitureType furnitureType;
     private final DisplayEntityProperties displayEntityProperties;
@@ -157,8 +154,10 @@ public class FurnitureMechanic extends Mechanic {
             barriers.add(new BlockLocation(0, 0, 0));
         if (section.isList("barriers")) {
             for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
-                if (barrierObject instanceof String string && string.equals("origin"))
-                    barriers.add(new BlockLocation(0, 0, 0));
+                if (barrierObject instanceof String string)
+                    barriers.add(new BlockLocation(string));
+                else if (barrierObject instanceof Integer integer)
+                    barriers.add(new BlockLocation(integer.toString()));
                 else if (barrierObject instanceof Map<?, ?> barrierMap) {
                     try {
                         barriers.add(new BlockLocation((Map<String, Integer>) barrierMap));
@@ -174,13 +173,11 @@ public class FurnitureMechanic extends Mechanic {
             hitbox = width > 0 && height > 0 ? new FurnitureHitbox(width, height) : null;
         } else hitbox = !hasBarriers() ? new FurnitureHitbox(1.0f, 1.0f) : null;
 
-        ConfigurationSection seatSection = section.getConfigurationSection("seat");
-        if (seatSection != null) {
-            hasSeat = true;
-            seatHeight = (float) seatSection.getDouble("height");
-            hasSeatYaw = seatSection.contains("yaw");
-            if (hasSeatYaw) seatYaw = (float) seatSection.getDouble("yaw");
-        } else hasSeat = false;
+        for (Object seatEntry : section.getList("seats", new ArrayList<>())) {
+            FurnitureSeat seat = FurnitureSeat.getSeat(seatEntry);
+            if (seat == null) continue;
+            seats.add(seat);
+        }
 
         ConfigurationSection evoSection = section.getConfigurationSection("evolution");
         evolvingFurniture = evoSection != null ? new EvolvingFurniture(getItemID(), evoSection) : null;
@@ -236,15 +233,6 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         return null;
-    }
-
-    public static ArmorStand getSeat(Entity baseEntity) {
-        PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
-        if (!pdc.has(SEAT_KEY, DataType.UUID)) return null;
-        UUID seatUUID = pdc.get(SEAT_KEY, DataType.UUID);
-        if (seatUUID == null) return null;
-        Entity seat = Bukkit.getEntity(seatUUID);
-        return seat instanceof ArmorStand ? (ArmorStand) seat : null;
     }
 
     public boolean hasHardness() {
@@ -324,12 +312,12 @@ public class FurnitureMechanic extends Mechanic {
         return hitbox;
     }
 
-    public boolean hasSeat() {
-        return hasSeat;
+    public boolean hasSeats() {
+        return !seats.isEmpty();
     }
 
-    public float getSeatHeight() {
-        return seatHeight;
+    public List<FurnitureSeat> seats() {
+        return seats;
     }
 
     public Drop getDrop() {
@@ -349,7 +337,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public boolean isInteractable() {
-        return isRotatable || hasSeat || isStorage();
+        return isRotatable || hasSeats() || isStorage();
     }
 
     public void setPlacedItem() {
@@ -389,6 +377,7 @@ public class FurnitureMechanic extends Mechanic {
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }
+        if (hasSeats()) spawnSeats(baseEntity);
 
         return baseEntity;
     }
@@ -421,14 +410,8 @@ public class FurnitureMechanic extends Mechanic {
             else {
                 float width = hasHitbox() ? hitbox.width : 1f;
                 float height = hasHitbox() ? hitbox.height : 1f;
-                Entity interaction = spawnInteractionEntity(frame, location, width, height);
-
+                spawnInteractionEntity(frame, location, width, height);
                 Block block = location.getBlock();
-                if (hasSeat() && interaction != null) {
-                    UUID seatUuid = spawnSeat(block, hasSeatYaw ? seatYaw : FurnitureMechanic.getFurnitureYaw(frame));
-                    interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-                    frame.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-                }
                 if (light.hasLightLevel()) light.createBlockLight(block);
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
@@ -437,16 +420,11 @@ public class FurnitureMechanic extends Mechanic {
             float height = hasHitbox() ? hitbox.height : displayEntityProperties.getDisplayHeight();
             boolean isFixed = displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
             Location interactionLoc = location.clone().subtract(0, (hasLimitedPlacing() && limitedPlacing.isRoof() && isFixed) ? 1.5 * (height - 1) : 0, 0);
-            Interaction interaction = spawnInteractionEntity(itemDisplay, interactionLoc, width, height);
+            spawnInteractionEntity(itemDisplay, interactionLoc, width, height);
             Location barrierLoc = EntityUtils.isNone(itemDisplay) && displayEntityProperties.hasScale()
                             ? location.clone().subtract(0, 0.5 * displayEntityProperties.getScale().y(), 0) : location;
 
             if (hasBarriers()) setBarrierHitbox(entity, barrierLoc, yaw);
-            else if (hasSeat() && interaction != null) {
-                UUID seatUuid = spawnSeat(location.getBlock(), hasSeatYaw ? seatYaw : yaw);
-                interaction.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-                itemDisplay.getPersistentDataContainer().set(SEAT_KEY, DataType.UUID, seatUuid);
-            }
             if (light.hasLightLevel()) light.createBlockLight(location.getBlock());
         }
     }
@@ -549,7 +527,6 @@ public class FurnitureMechanic extends Mechanic {
             block.setType(Material.BARRIER);
             PersistentDataContainer data = BlockHelpers.getPDC(block);
             data.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
-            if (hasSeat) data.set(SEAT_KEY, DataType.UUID, spawnSeat(block, hasSeatYaw ? seatYaw : yaw));
             data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location.clone()).toString());
             data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
             data.set(BASE_ENTITY_KEY, DataType.UUID, entity.getUniqueId());
@@ -591,7 +568,6 @@ public class FurnitureMechanic extends Mechanic {
 
         for (Location location : barrierLocations) {
             Block block = location.getBlock();
-            if (hasSeat) removeFurnitureSeat(location);
             if (block.getType() != Material.BARRIER) continue;
             if (!BlockHelpers.getPDC(block).getOrDefault(BASE_ENTITY_KEY, DataType.UUID, UUID.randomUUID()).equals(baseEntity.getUniqueId())) continue;
 
@@ -615,7 +591,7 @@ public class FurnitureMechanic extends Mechanic {
 
     private void removeSubEntitiesOfFurniture(Entity baseEntity) {
         if (light.hasLightLevel()) light.removeBlockLight(baseEntity.getLocation().getBlock());
-        if (hasSeat) removeFurnitureSeat(baseEntity.getLocation());
+        if (hasSeats()) removeFurnitureSeats(baseEntity);
 
         if (OraxenPlugin.supportsDisplayEntities) {
             Interaction interaction = getInteractionEntity(baseEntity);
@@ -623,9 +599,12 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void removeFurnitureSeat(Location location) {
-        ArmorStand seat = getSeat(location);
-        if (seat != null) {
+    private void removeFurnitureSeats(Entity baseEntity) {
+        List<Entity> seats = baseEntity.getPersistentDataContainer()
+                .getOrDefault(FurnitureSeat.SEAT_KEY, DataType.asList(DataType.UUID), new ArrayList<>())
+                .stream().map(Bukkit::getEntity).filter(Objects::nonNull).filter(e -> e instanceof ArmorStand).toList();
+
+        for (Entity seat : seats) {
             seat.getPassengers().forEach(seat::removePassenger);
             if (!seat.isDead()) seat.remove();
         }
@@ -675,28 +654,38 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private UUID spawnSeat(Block target, float yaw) {
-        final ArmorStand seat = EntityUtils.spawnEntity(target.getLocation().add(0.5, seatHeight - 1, 0.5), ArmorStand.class, (ArmorStand stand) -> {
-            stand.setVisible(false);
-            stand.setRotation(yaw, 0);
-            stand.setInvulnerable(true);
-            stand.setPersistent(true);
-            stand.setAI(false);
-            stand.setCollidable(false);
-            stand.setGravity(false);
-            stand.setSilent(true);
-            stand.setCustomNameVisible(false);
-            stand.setCanPickupItems(false);
-            //TODO Maybe marker works here? Was removed for rotation issues but should be fixed
-            stand.addEquipmentLock(EquipmentSlot.HEAD, ArmorStand.LockType.ADDING_OR_CHANGING);
-            stand.addEquipmentLock(EquipmentSlot.HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
-            stand.addEquipmentLock(EquipmentSlot.OFF_HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
-            stand.addEquipmentLock(EquipmentSlot.CHEST, ArmorStand.LockType.ADDING_OR_CHANGING);
-            stand.addEquipmentLock(EquipmentSlot.LEGS, ArmorStand.LockType.ADDING_OR_CHANGING);
-            stand.addEquipmentLock(EquipmentSlot.FEET, ArmorStand.LockType.ADDING_OR_CHANGING);
-            stand.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
-        });
-        return seat.getUniqueId();
+    private void spawnSeats(Entity baseEntity) {
+        List<UUID> seatUUIDs = spawnSeats(baseEntity.getLocation(), baseEntity.getUniqueId(), FurnitureMechanic.getFurnitureYaw(baseEntity));
+        baseEntity.getPersistentDataContainer().set(FurnitureSeat.SEAT_KEY, DataType.asList(DataType.UUID), seatUUIDs);
+    }
+
+    private List<UUID> spawnSeats(Location location, UUID baseEntity, Float yaw) {
+        List<UUID> seatUUIDs = new ArrayList<>();
+        for (FurnitureSeat seat : seats) {
+            ArmorStand armorStand = EntityUtils.spawnEntity(location.clone().add(seat.offset(yaw)),  ArmorStand.class, (ArmorStand stand) -> {
+                stand.setVisible(false);
+                stand.setRotation(yaw, 0);
+                stand.setInvulnerable(true);
+                stand.setPersistent(true);
+                stand.setAI(false);
+                stand.setCollidable(false);
+                stand.setGravity(false);
+                stand.setSilent(true);
+                stand.setCustomNameVisible(false);
+                stand.setCanPickupItems(false);
+                //TODO Maybe marker works here? Was removed for rotation issues but should be fixed
+                stand.addEquipmentLock(EquipmentSlot.HEAD, ArmorStand.LockType.ADDING_OR_CHANGING);
+                stand.addEquipmentLock(EquipmentSlot.HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
+                stand.addEquipmentLock(EquipmentSlot.OFF_HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
+                stand.addEquipmentLock(EquipmentSlot.CHEST, ArmorStand.LockType.ADDING_OR_CHANGING);
+                stand.addEquipmentLock(EquipmentSlot.LEGS, ArmorStand.LockType.ADDING_OR_CHANGING);
+                stand.addEquipmentLock(EquipmentSlot.FEET, ArmorStand.LockType.ADDING_OR_CHANGING);
+                stand.getPersistentDataContainer().set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
+                stand.getPersistentDataContainer().set(FurnitureSeat.SEAT_KEY, DataType.UUID, baseEntity);
+            });
+            if (armorStand != null) seatUUIDs.add(armorStand.getUniqueId());
+        }
+        return seatUUIDs;
     }
 
     @Nullable
@@ -820,27 +809,6 @@ public class FurnitureMechanic extends Mechanic {
 
     public DisplayEntityProperties getDisplayEntityProperties() {
         return displayEntityProperties;
-    }
-
-    public static void sitOnSeat(PersistentDataContainer pdc, Player player) {
-        UUID entityUuid = pdc.has(SEAT_KEY, DataType.UUID) ? pdc.get(SEAT_KEY, DataType.UUID) : null;
-
-        //Convert old seats to new, remove in a good while
-        if (entityUuid == null) {
-            String oldUUID = pdc.has(SEAT_KEY, PersistentDataType.STRING) ? pdc.get(SEAT_KEY, PersistentDataType.STRING) : null;
-            if (oldUUID != null) {
-                entityUuid = UUID.fromString(oldUUID);
-                pdc.remove(SEAT_KEY);
-                pdc.set(SEAT_KEY, DataType.UUID, entityUuid);
-            }
-        }
-
-        if (entityUuid != null) {
-            Entity stand = Bukkit.getEntity(entityUuid);
-            if (stand != null && stand.getPassengers().isEmpty()) {
-                stand.addPassenger(player);
-            }
-        }
     }
 
     public RestrictedRotation getRestrictedRotation() {

@@ -1,8 +1,7 @@
 package io.th0rgal.oraxen.api.events.furniture;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
+import org.bukkit.Location;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
@@ -18,25 +17,24 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     private final FurnitureMechanic mechanic;
     private final Entity baseEntity;
     private final Player player;
-    private final Block block;
-    private final BlockFace blockFace;
-    private final ItemStack itemInHand;
+    @Nullable private final ItemStack itemInHand;
     private final EquipmentSlot hand;
+    @Nullable
+    private final Location interactionPoint;
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
     public OraxenFurnitureInteractEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Entity baseEntity, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand) {
-        this(mechanic, baseEntity, player, itemInHand, hand, null, null);
+        this(mechanic, baseEntity, player, itemInHand, hand, null);
     }
 
-    public OraxenFurnitureInteractEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Entity baseEntity, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @Nullable final Block block, @Nullable final BlockFace blockFace) {
+    public OraxenFurnitureInteractEvent(@NotNull final FurnitureMechanic mechanic, @NotNull final Entity baseEntity, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @Nullable Location interactionPoint) {
         this.player = player;
         this.mechanic = mechanic;
         this.baseEntity = baseEntity;
-        this.block = block;
-        this.blockFace = blockFace;
         this.itemInHand = itemInHand;
         this.hand = hand;
+        this.interactionPoint = interactionPoint;
         this.isCancelled = false;
     }
 
@@ -57,14 +55,6 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return The block that was interacted with, null if the furniture has no hitbox
-     */
-    @Nullable
-    public Block getBlock() {
-        return block;
-    }
-
-    /**
      * @return The base entity of the furniture
      */
     @NotNull
@@ -82,16 +72,9 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
     public Entity getInteractionEntity() { return mechanic.getInteractionEntity(baseEntity); }
 
     /**
-     * @return The block face that was interacted with, null if the furniture has no hitbox
-     */
-    @Nullable
-    public BlockFace getBlockFace() {
-        return blockFace;
-    }
-
-    /**
      * @return The item in the player's hand when they interacted with the furniture
      */
+    @Nullable
     public ItemStack getItemInHand() {
         return itemInHand;
     }
@@ -101,6 +84,17 @@ public class OraxenFurnitureInteractEvent extends Event implements Cancellable {
      */
     public EquipmentSlot getHand() {
         return hand;
+    }
+
+    /**
+     * @return The exa
+     */
+    @Nullable
+    public Location getInteractionPoint() {
+        Entity interactionEntity = getInteractionEntity();
+        return interactionPoint != null
+                ? interactionPoint : interactionEntity != null
+                ? interactionEntity.getLocation() : baseEntity.getLocation();
     }
 
     @Override
