@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.utils.armorequipevent;
 
 import io.th0rgal.oraxen.config.Settings;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.Tag;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.HandlerList;
@@ -10,6 +12,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -35,8 +38,48 @@ public final class ArmorEquipEvent extends PlayerEvent implements Cancellable {
         Bukkit.getServer().getPluginManager().registerEvents(new DispenserArmorListener(), plugin);
     }
 
-    private static List<String> getBlockedMaterialNames() {
-        return Settings.ARMOR_EQUIP_EVENT_BYPASS.toStringList();
+    private static List<Material> getBlockedMaterialNames() {
+        List<Material> list = new ArrayList<>();
+        list.addAll(List.of(
+                Material.FURNACE,
+                Material.CHEST,
+                Material.TRAPPED_CHEST,
+                Material.BEACON,
+                Material.DISPENSER,
+                Material.DROPPER,
+                Material.HOPPER,
+                Material.CRAFTING_TABLE,
+                Material.ENCHANTING_TABLE,
+                Material.ENDER_CHEST,
+                Material.ANVIL,
+                Material.COMPARATOR,
+                Material.BREWING_STAND,
+                Material.CAULDRON,
+                Material.LEVER,
+                Material.DAYLIGHT_DETECTOR,
+                Material.BARREL,
+                Material.BLAST_FURNACE,
+                Material.SMOKER,
+                Material.CARTOGRAPHY_TABLE,
+                Material.COMPOSTER,
+                Material.GRINDSTONE,
+                Material.LECTERN,
+                Material.LOOM,
+                Material.STONECUTTER,
+                Material.BELL
+        ));
+
+        list.addAll(Tag.BEDS.getValues());
+        list.addAll(Tag.FENCE_GATES.getValues());
+        list.addAll(Tag.FENCES.getValues());
+        list.addAll(Tag.TRAPDOORS.getValues());
+        list.addAll(Tag.DOORS.getValues());
+        list.addAll(Tag.BUTTONS.getValues());
+        list.addAll(Tag.SHULKER_BOXES.getValues());
+        list.addAll(Tag.SIGNS.getValues());
+        list.addAll(Tag.WALL_SIGNS.getValues());
+
+        return list;
     }
 
     public static ArmorEquipEvent OraxenHatEquipEvent(Player player, ItemStack oldArmorPiece, ItemStack newArmorPiece) {

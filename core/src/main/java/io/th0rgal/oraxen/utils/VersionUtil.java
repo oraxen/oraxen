@@ -125,6 +125,29 @@ public class VersionUtil {
         return leaked;
     }
 
+//    public static boolean isPremium() {
+//        List<String> split = Arrays.stream(manifest.split(":|\n")).map(String::trim).toList();
+//        return testConnection(split.get(split.indexOf("packUser") + 1), split.get(split.indexOf("packPass") + 1));
+//    }
+
+//    private static boolean testConnection(String usr, String pwd) {
+//            String fileUrl = "https://repo.oraxen.com/assets/defaultPack/DefaultPack.zip";
+//
+//            try {
+//                URL url = new URL(fileUrl);
+//                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
+//
+//                String auth = usr + ":" + pwd;
+//                String encodedAuth = Base64.getEncoder().encodeToString(auth.getBytes());
+//                connection.setRequestProperty("Authorization", "Basic " + encodedAuth);
+//
+//                connection.connect();
+//                return connection.getResponseCode() == 200;
+//            } catch (IOException e) {
+//                return false;
+//            }
+//    }
+
     public static boolean isValidCompiler() {
         List<String> split = Arrays.stream(manifest.split(":|\n")).map(String::trim).toList();
         return Set.of("sivert", "thomas").contains(split.get(split.indexOf("Built-By") + 1).toLowerCase());

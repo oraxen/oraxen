@@ -13,8 +13,8 @@ public class FoodMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new FoodMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new FoodMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }

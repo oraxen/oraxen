@@ -11,6 +11,8 @@ import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucible
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import net.kyori.adventure.key.Key;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -20,11 +22,15 @@ import org.bukkit.entity.TropicalFish;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.inventory.meta.trim.ArmorTrim;
+import org.bukkit.inventory.meta.trim.TrimMaterial;
+import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.util.*;
@@ -44,6 +50,7 @@ public class ItemBuilder {
     private int amount;
     private int durability; // Damageable
     private Color color; // LeatherArmorMeta, PotionMeta, MapMeta & FireWorkEffectMeta
+    private Key trimPattern; // TrimPattern
     private PotionData potionData;
     private List<PotionEffect> potionEffects;
     private OfflinePlayer owningPlayer; // SkullMeta
@@ -105,6 +112,9 @@ public class ItemBuilder {
 
         if (itemMeta instanceof FireworkEffectMeta effectMeta)
             color = effectMeta.hasEffect() ? effectMeta.getEffect().getColors().get(0) : Color.WHITE;
+
+        if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && armorMeta.hasTrim())
+            trimPattern = armorMeta.getTrim().getMaterial().key();
 
         if (itemMeta instanceof SkullMeta skullMeta)
             owningPlayer = skullMeta.getOwningPlayer();
@@ -215,6 +225,34 @@ public class ItemBuilder {
         return this;
     }
 
+    public boolean hasTrimPattern() {
+        return VersionUtil.atOrAbove("1.20") && trimPattern != null && getTrimPattern() != null;
+    }
+
+    @Nullable
+    public Key getTrimPatternKey() {
+        if (!VersionUtil.atOrAbove("1.20")) return null;
+        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type)) return null;
+        return trimPattern;
+    }
+
+    @Nullable
+    public TrimPattern getTrimPattern() {
+        if (!VersionUtil.atOrAbove("1.20")) return null;
+        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type)) return null;
+        if (trimPattern == null) return null;
+        NamespacedKey key = NamespacedKey.fromString(trimPattern.asString());
+        if (key == null) return null;
+        return Registry.TRIM_PATTERN.get(key);
+    }
+
+    public ItemBuilder setTrimPattern(final Key trimKey) {
+        if (!VersionUtil.atOrAbove("1.20")) return this;
+        if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type)) return this;
+        this.trimPattern = trimKey;
+        return this;
+    }
+
     public ItemBuilder setBasePotionData(final PotionData potionData) {
         this.potionData = potionData;
         return this;
@@ -272,6 +310,10 @@ public class ItemBuilder {
             this.itemFlags = new HashSet<>();
         this.itemFlags.addAll(Arrays.asList(itemFlags));
         return this;
+    }
+
+    public List<ItemFlag> getItemFlags() {
+        return itemFlags != null ? new ArrayList<>(itemFlags) : new ArrayList<>();
     }
 
     public ItemBuilder addAttributeModifiers(final Attribute attribute, final AttributeModifier attributeModifier) {
@@ -397,8 +439,17 @@ public class ItemBuilder {
         regen();
         OraxenItems.getMap().entrySet().stream().filter(entry -> entry.getValue().containsValue(this)).findFirst().ifPresent(entry -> {
             YamlConfiguration yamlConfiguration = OraxenYaml.loadConfiguration(entry.getKey());
-            String color = this.color.getRed() + "," + this.color.getGreen() + "," + this.color.getBlue();
-            yamlConfiguration.set(OraxenItems.getIdByItem(this.build()) + ".color", color);
+            if (this.hasColor()) {
+                String color = this.color.getRed() + "," + this.color.getGreen() + "," + this.color.getBlue();
+                yamlConfiguration.set(OraxenItems.getIdByItem(this.build()) + ".color", color);
+            }
+            if (this.hasTrimPattern()) {
+                String trimPattern = this.getTrimPatternKey().asString();
+                yamlConfiguration.set(OraxenItems.getIdByItem(this.build()) + ".trim_pattern", trimPattern);
+            }
+            if (!getItemFlags().isEmpty()) {
+                yamlConfiguration.set(OraxenItems.getIdByItem(this.build()) + ".ItemFlags", this.itemFlags.stream().map(ItemFlag::name).toList());
+            }
             try {
                 yamlConfiguration.save(entry.getKey());
             } catch (IOException e) {
@@ -438,6 +489,11 @@ public class ItemBuilder {
             } catch (IllegalStateException ignored) {
             }
             return effectMeta;
+        }
+
+        if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && hasTrimPattern()) {
+            armorMeta.setTrim(new ArmorTrim(TrimMaterial.REDSTONE, getTrimPattern()));
+            return armorMeta;
         }
 
         if (itemMeta instanceof SkullMeta skullMeta) {

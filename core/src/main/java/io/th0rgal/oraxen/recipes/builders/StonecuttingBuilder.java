@@ -36,7 +36,7 @@ public class StonecuttingBuilder extends RecipeBuilder {
             setSerializedItem(newCraftSection.createSection("result"), result);
             setSerializedItem(newCraftSection.createSection("input"), input);
 
-            if (permission != null) newCraftSection.set("permission", permission);
+            if (permission != null && !permission.isEmpty()) newCraftSection.set("permission", permission);
 
             saveConfig();
             recipeCount++;

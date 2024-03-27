@@ -7,7 +7,6 @@ import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ModelData;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.bukkit.Material;
@@ -31,10 +30,9 @@ public class OraxenItems {
     public static void loadItems() {
         ItemParser.MODEL_DATAS_BY_ID.clear();
         ModelData.DATAS.clear();
-        OraxenPlugin.get().getConfigsManager().assignAllUsedModelDatas();
-        OraxenPlugin.get().getConfigsManager().parseAllItemTemplates();
-        DuplicationHandler.convertOldMigrateItemConfig();
-        map = OraxenPlugin.get().getConfigsManager().parseItemConfig();
+        OraxenPlugin.get().configsManager().assignAllUsedModelDatas();
+        OraxenPlugin.get().configsManager().parseAllItemTemplates();
+        map = OraxenPlugin.get().configsManager().parseItemConfig();
         items = new HashSet<>();
         for (final Map<String, ItemBuilder> subMap : map.values())
             items.addAll(subMap.keySet());
@@ -137,7 +135,7 @@ public class OraxenItems {
     }
 
     public static Stream<Entry<String, ItemBuilder>> entryStream() {
-        return map.values().stream().flatMap(map -> map.entrySet().stream());
+        return map == null ? Stream.empty() : map.values().stream().flatMap(map -> map.entrySet().stream());
     }
 
     public static String[] getItemNames() {

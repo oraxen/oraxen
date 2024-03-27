@@ -12,7 +12,7 @@ import java.util.Map;
 public class SettingsUpdater {
 
     public void handleSettingsUpdate() {
-        YamlConfiguration settings = OraxenPlugin.get().getConfigsManager().getSettings();
+        YamlConfiguration settings = OraxenPlugin.get().configsManager().getSettings();
         String oldSettings = settings.saveToString();
 
         settings = updateKeys(settings, UpdatedSettings.toStringMap());

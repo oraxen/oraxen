@@ -2,10 +2,12 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import net.kyori.adventure.key.Key;
 import org.apache.commons.lang3.Range;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
+import org.jetbrains.annotations.Nullable;
 
 public class DirectionalBlock {
     private final String parentBlock;
@@ -65,6 +67,27 @@ public class DirectionalBlock {
         LOG, FURNACE, DROPPER
     }
 
+    @Nullable
+    public NoteBlockMechanic getDirectionMechanic(BlockFace face, Player player) {
+        if (isLog()) {
+            switch (face) {
+                case NORTH: case SOUTH: return getDirectionMechanic(xBlock);
+                case EAST: case WEST: return getDirectionMechanic(zBlock);
+                case UP: case DOWN: return getDirectionMechanic(yBlock);
+            }
+        } else {
+            switch (getRelativeFacing(player)) {
+                case NORTH: return getDirectionMechanic(northBlock);
+                case SOUTH: return getDirectionMechanic(southBlock);
+                case EAST: return getDirectionMechanic(eastBlock);
+                case WEST: return getDirectionMechanic(westBlock);
+                case UP: return getDirectionMechanic(upBlock);
+                case DOWN: return getDirectionMechanic(downBlock);
+            }
+        }
+        return null;
+    }
+
     public int getDirectionVariation(BlockFace face, Player player) {
         if (isLog()) {
             switch (face) {
@@ -104,11 +127,15 @@ public class DirectionalBlock {
         return face;
     }
 
-    private int getDirectionVariation(String id) {
-        return ((NoteBlockMechanic) NoteBlockMechanicFactory.getInstance().getMechanic(id)).getCustomVariation();
+    private NoteBlockMechanic getDirectionMechanic(String itemId) {
+        return NoteBlockMechanicFactory.getInstance().getMechanic(itemId);
     }
 
-    public String getDirectionalModel(NoteBlockMechanic mechanic) {
-        return mechanic.getSection().getString("model");
+    private int getDirectionVariation(String itemId) {
+        return NoteBlockMechanicFactory.getInstance().getMechanic(itemId).getCustomVariation();
+    }
+
+    public Key getDirectionalModel(NoteBlockMechanic mechanic) {
+        return Key.key(mechanic.getSection().getString("model"));
     }
 }

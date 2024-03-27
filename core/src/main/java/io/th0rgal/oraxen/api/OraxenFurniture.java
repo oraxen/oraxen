@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSeat;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.drops.Drop;
@@ -233,7 +234,24 @@ public class OraxenFurniture {
         if (!FurnitureFactory.isEnabled() || block == null) return null;
         if (block.getType() != Material.BARRIER) return null;
         final String mechanicID = BlockHelpers.getPDC(block).get(FURNITURE_KEY, PersistentDataType.STRING);
-        return (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(mechanicID);
+        return FurnitureFactory.getInstance().getMechanic(mechanicID);
+    }
+
+    @Nullable
+    public static FurnitureMechanic getFurnitureMechanic(Location location) {
+        if (!FurnitureFactory.isEnabled() || location == null) return null;
+        FurnitureMechanic mechanic = getFurnitureMechanic(location.getBlock());
+        Location centerLoc = BlockHelpers.toCenterBlockLocation(location);
+        BoundingBox boundingBox = BoundingBox.of(centerLoc,0.5,1.0,0.5);
+        if (mechanic == null) {
+            Optional<Entity> entity = centerLoc.getNearbyEntities(2.0,2.0,2.0).stream()
+                    .sorted(Comparator.comparingDouble(e -> e.getLocation().distanceSquared(centerLoc)))
+                    .filter(e -> e.getBoundingBox().overlaps(boundingBox))
+                    .findFirst();
+            if (entity.isPresent()) mechanic = getFurnitureMechanic(entity.get());
+        }
+
+        return mechanic;
     }
 
     /**
@@ -247,7 +265,7 @@ public class OraxenFurniture {
         if (!FurnitureFactory.isEnabled() || entity == null) return null;
         final String itemID = entity.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING);
         if (!OraxenItems.exists(itemID)) return null;
-        return (FurnitureMechanic) FurnitureFactory.getInstance().getMechanic(itemID);
+        return FurnitureFactory.getInstance().getMechanic(itemID);
     }
 
     /**
@@ -294,7 +312,7 @@ public class OraxenFurniture {
                             if (interaction.getInteractionWidth() == mechanic.getHitbox().width())
                                 if (interaction.getInteractionHeight() == mechanic.getHitbox().height())
                                     // Check if seat changed, if so remove and place new
-                                    if (oldPdc.has(SEAT_KEY, DataType.UUID) && mechanic.hasSeat())
+                                    if (oldPdc.has(FurnitureSeat.SEAT_KEY, DataType.UUID) && mechanic.hasSeats())
                                         // Check if any displayEntity properties changed, if so remove and place new
                                         if (mechanic.hasDisplayEntityProperties() && mechanic.getDisplayEntityProperties().ensureSameDisplayProperties(entity))
                                             return;

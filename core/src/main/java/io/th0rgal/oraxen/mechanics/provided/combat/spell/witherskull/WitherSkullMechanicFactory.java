@@ -13,8 +13,8 @@ public class WitherSkullMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new WitherSkullMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new WitherSkullMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }

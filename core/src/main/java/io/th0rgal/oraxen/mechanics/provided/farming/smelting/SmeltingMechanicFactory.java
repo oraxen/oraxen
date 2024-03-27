@@ -17,8 +17,8 @@ public class SmeltingMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new SmeltingMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new SmeltingMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }

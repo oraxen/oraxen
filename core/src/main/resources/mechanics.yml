@@ -114,12 +114,6 @@ aura:
 hat:
   enabled: true
 
-skin:
-  enabled: true
-
-skinnable:
-  enabled: true
-
 
 # COMBAT
 

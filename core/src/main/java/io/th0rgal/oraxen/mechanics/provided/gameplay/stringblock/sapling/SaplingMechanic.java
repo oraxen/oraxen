@@ -84,7 +84,7 @@ public class SaplingMechanic {
     }
 
     public File getSchematic() {
-        File schem = new File(OraxenPlugin.get().getConfigsManager().getSchematicsFolder().getAbsolutePath() + "/" + getSchematicName());
+        File schem = new File(OraxenPlugin.get().configsManager().getSchematicsFolder().getAbsolutePath() + "/" + getSchematicName());
         if (!schem.exists()) return null;
         else return schem;
     }

@@ -28,7 +28,7 @@ public class SoundAction extends Action<Player> {
         final String parsed = getMeta().getParsedData(player, context);
 
         try {
-            OraxenPlugin.get().getAudience().player(player).playSound(Sound.sound(Key.key(parsed), source, volume, pitch));
+            OraxenPlugin.get().audience().player(player).playSound(Sound.sound(Key.key(parsed), source, volume, pitch));
         } catch (InvalidKeyException e) {
             e.printStackTrace();
         }

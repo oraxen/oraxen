@@ -1,0 +1,30 @@
+package io.th0rgal.oraxen.pack;
+
+import io.th0rgal.oraxen.OraxenPlugin;
+import team.unnamed.creative.atlas.Atlas;
+import team.unnamed.creative.atlas.AtlasSource;
+import team.unnamed.creative.atlas.SingleAtlasSource;
+import team.unnamed.creative.model.Model;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class AtlasGenerator {
+
+    public static void generateAtlasFile() {
+        List<AtlasSource> sources = new ArrayList<>();
+        for (Model model : OraxenPlugin.get().packGenerator().resourcePack().models()) {
+            sources.addAll(model.textures().layers().stream().map(t -> AtlasSource.single(t.key())).toList());
+            sources.addAll(model.textures().variables().values().stream().map(t -> AtlasSource.single(t.key())).toList());
+            if (model.textures().particle() != null) sources.add(AtlasSource.single(model.textures().particle().key()));
+        }
+
+        // Remove everything in the item and block folders, as vanilla already has them
+        sources.stream().map(SingleAtlasSource.class::cast).filter(r -> {
+            String resource = r.resource().asString().replace("minecraft:", "");
+            return resource.startsWith("item/") || resource.startsWith("block/");
+        }).toList().forEach(sources::remove);
+
+        OraxenPlugin.get().packGenerator().resourcePack().atlas(Atlas.atlas(Atlas.BLOCKS, sources));
+    }
+}

@@ -2,7 +2,6 @@ package io.th0rgal.oraxen;
 
 import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.ProtocolManager;
-import com.ticxo.playeranimator.PlayerAnimatorImpl;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -13,20 +12,18 @@ import io.th0rgal.oraxen.config.*;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
 import io.th0rgal.oraxen.font.packets.TitlePacketListener;
-import io.th0rgal.oraxen.gestures.GestureManager;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
-import io.th0rgal.oraxen.pack.generation.ResourcePack;
-import io.th0rgal.oraxen.pack.upload.UploadManager;
+import io.th0rgal.oraxen.pack.PackGenerator;
+import io.th0rgal.oraxen.pack.server.OraxenPackServer;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
-import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.LU;
 import io.th0rgal.oraxen.utils.NoticeUtils;
-import io.th0rgal.oraxen.utils.OS;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
@@ -43,23 +40,25 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
+import team.unnamed.creative.ResourcePack;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.jar.JarFile;
 
 public class OraxenPlugin extends JavaPlugin {
 
     private static OraxenPlugin oraxen;
-    private static GestureManager gestureManager;
     private ConfigsManager configsManager;
     private ResourcesManager resourceManager;
     private BukkitAudiences audience;
-    private UploadManager uploadManager;
     private FontManager fontManager;
     private HudManager hudManager;
     private SoundManager soundManager;
     private InvManager invManager;
     private ResourcePack resourcePack;
+    private PackGenerator packGenerator;
+    @Nullable private OraxenPackServer packServer;
     private ClickActionManager clickActionManager;
     private ProtocolManager protocolManager;
     public static boolean supportsDisplayEntities;
@@ -90,11 +89,13 @@ public class OraxenPlugin extends JavaPlugin {
     public void onEnable() {
         CommandAPI.onEnable();
         ProtectionLib.init(this);
-        if (!VersionUtil.atOrAbove("1.20.3")) PlayerAnimatorImpl.initialize(this);
         audience = BukkitAudiences.create(this);
+        reloadConfigs();
         clickActionManager = new ClickActionManager(this);
         supportsDisplayEntities = VersionUtil.atOrAbove("1.19.4");
-        reloadConfigs();
+        hudManager = new HudManager(configsManager);
+        fontManager = new FontManager(configsManager);
+        soundManager = new SoundManager(configsManager.getSound());
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
@@ -108,15 +109,9 @@ public class OraxenPlugin extends JavaPlugin {
         } else Logs.logWarning("ProtocolLib is not on your server, some features will not work");
         pluginManager.registerEvents(new CustomArmorListener(), this);
         NMSHandlers.setup();
+        packGenerator = new PackGenerator();
 
-        resourceManager = new ResourcesManager(this);
-        resourcePack = new ResourcePack();
         MechanicsManager.registerNativeMechanics();
-        //CustomBlockData.registerListener(this); //Handle this manually
-        hudManager = new HudManager(configsManager);
-        fontManager = new FontManager(configsManager);
-        soundManager = new SoundManager(configsManager.getSound());
-        if (!VersionUtil.atOrAbove("1.20.3")) gestureManager = new GestureManager();
         OraxenItems.loadItems();
         fontManager.registerEvents();
         fontManager.verifyRequired(); // Verify the required glyph is there
@@ -124,16 +119,14 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager.registerTask();
         hudManager.parsedHudDisplays = hudManager.generateHudDisplays();
         pluginManager.registerEvents(new ItemUpdater(), this);
-        resourcePack.generate();
         RecipesManager.load(this);
         invManager = new InvManager();
         ArmorEquipEvent.registerListener(this);
         new CommandsManager().loadCommands();
+
+        packGenerator.generatePack();
+        packServer = OraxenPackServer.initializeServer();
         postLoading();
-        try {
-            Message.PLUGIN_LOADED.log(AdventureUtils.tagResolver("os", OS.getOs().getPlatformName()));
-        } catch (Exception ignore) {
-        }
         CompatibilitiesManager.enableNativeCompatibilities();
         if (VersionUtil.isCompiled()) NoticeUtils.compileNotice();
         if (VersionUtil.isLeaked()) NoticeUtils.leakNotice();
@@ -141,12 +134,14 @@ public class OraxenPlugin extends JavaPlugin {
 
     private void postLoading() {
         new Metrics(this, 5371);
+        new LU().l();
         Bukkit.getScheduler().runTask(this, () ->
                 Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent()));
     }
 
     @Override
     public void onDisable() {
+        if (packServer != null) packServer.stop();
         unregisterListeners();
         FurnitureFactory.unregisterEvolution();
         for (Player player : Bukkit.getOnlinePlayers())
@@ -163,76 +158,84 @@ public class OraxenPlugin extends JavaPlugin {
         HandlerList.unregisterAll(this);
     }
 
-    public ResourcesManager getResourceManager() {
-        return resourceManager;
+    public Path packPath() {
+        return getDataFolder().toPath().resolve("pack");
     }
 
-    public ProtocolManager getProtocolManager() {
+    public ProtocolManager protocolManager() {
         return protocolManager;
     }
 
-    public GestureManager getGesturesManager() {
-        return gestureManager;
-    }
-
-    public BukkitAudiences getAudience() {
+    public BukkitAudiences audience() {
         return audience;
     }
 
     public void reloadConfigs() {
+        resourceManager = new ResourcesManager(this);
         configsManager = new ConfigsManager(this);
         configsManager.validatesConfig();
     }
 
-    public ConfigsManager getConfigsManager() {
+    public ConfigsManager configsManager() {
         return configsManager;
     }
-
-    public UploadManager getUploadManager() {
-        return uploadManager;
+    public ResourcesManager resourceManager() {
+        return resourceManager;
+    }
+    public void resourceManager(ResourcesManager resourceManager) {
+        this.resourceManager = resourceManager;
     }
 
-    public void setUploadManager(final UploadManager uploadManager) {
-        this.uploadManager = uploadManager;
-    }
-
-    public FontManager getFontManager() {
+    public FontManager fontManager() {
         return fontManager;
     }
 
-    public void setFontManager(final FontManager fontManager) {
+    public void fontManager(final FontManager fontManager) {
         this.fontManager.unregisterEvents();
         this.fontManager = fontManager;
         fontManager.registerEvents();
     }
 
-    public HudManager getHudManager() {
+    public HudManager hudManager() {
         return hudManager;
     }
 
-    public void setHudManager(final HudManager hudManager) {
+    public void hudManager(final HudManager hudManager) {
         this.hudManager.unregisterEvents();
         this.hudManager = hudManager;
         hudManager.registerEvents();
     }
 
-    public SoundManager getSoundManager() {
+    public SoundManager soundManager() {
         return soundManager;
     }
 
-    public void setSoundManager(final SoundManager soundManager) {
+    public void soundManager(final SoundManager soundManager) {
         this.soundManager = soundManager;
     }
 
-    public InvManager getInvManager() {
+    public InvManager invManager() {
         return invManager;
     }
 
-    public ResourcePack getResourcePack() {
-        return resourcePack;
+    public PackGenerator packGenerator() {
+        return packGenerator;
     }
 
-    public ClickActionManager getClickActionManager() {
+    @Nullable
+    public OraxenPackServer packServer() {
+        return packServer;
+    }
+    public void packServer(@Nullable OraxenPackServer server) {
+        if (packServer != null) packServer.stop();
+        packServer = server;
+        if (packServer != null) {
+            packServer.start();
+            packServer.uploadPack();
+        }
+    }
+
+    public ClickActionManager clickActionManager() {
         return clickActionManager;
     }
 }

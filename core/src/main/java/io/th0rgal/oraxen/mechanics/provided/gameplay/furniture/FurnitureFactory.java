@@ -8,6 +8,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.Evoluti
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxListener;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.List;
 
@@ -37,10 +38,10 @@ public class FurnitureFactory extends MechanicFactory {
         );
         evolvingFurnitures = false;
         instance = this;
-        customSounds = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("stringblock_and_furniture", true);
+        customSounds = OraxenPlugin.get().configsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("stringblock_and_furniture", true);
 
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
-        detectViabackwards = OraxenPlugin.get().getConfigsManager().getMechanics().getConfigurationSection("furniture").getBoolean("detect_viabackwards", true);
+        detectViabackwards = OraxenPlugin.get().configsManager().getMechanics().getConfigurationSection("furniture").getBoolean("detect_viabackwards", true);
         //TODO Fix this to not permanently and randomly break furniture
         //if (VersionUtil.isPaperServer()) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurniturePaperListener());
     }
@@ -52,8 +53,8 @@ public class FurnitureFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection itemMechanicConfiguration) {
-        Mechanic mechanic = new FurnitureMechanic(this, itemMechanicConfiguration);
+    public Mechanic parse(ConfigurationSection section) {
+        Mechanic mechanic = new FurnitureMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
     }
@@ -76,7 +77,8 @@ public class FurnitureFactory extends MechanicFactory {
         if (evolutionTask != null)
             evolutionTask.cancel();
         evolutionTask = new EvolutionTask(this, evolutionCheckDelay);
-        evolutionTask.runTaskTimer(OraxenPlugin.get(), 0, evolutionCheckDelay);
+        BukkitTask task = evolutionTask.runTaskTimer(OraxenPlugin.get(), 0, evolutionCheckDelay);
+        MechanicsManager.registerTask(getMechanicID(), task);
         evolvingFurnitures = true;
     }
 

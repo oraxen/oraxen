@@ -6,11 +6,11 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ItemTemplate;
 import io.th0rgal.oraxen.items.ModelData;
-import io.th0rgal.oraxen.pack.generation.DuplicationHandler;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
 import org.apache.commons.io.FileUtils;
 import org.bukkit.Material;
 import org.bukkit.configuration.ConfigurationSection;
@@ -26,7 +26,6 @@ public class ConfigsManager {
 
     private final JavaPlugin plugin;
     private final YamlConfiguration defaultMechanics;
-    private final YamlConfiguration defaultSettings;
     private final YamlConfiguration defaultFont;
     private final YamlConfiguration defaultSound;
     private final YamlConfiguration defaultLanguage;
@@ -40,13 +39,11 @@ public class ConfigsManager {
     private File itemsFolder;
     private File glyphsFolder;
     private File schematicsFolder;
-    private File gesturesFolder;
 
     public ConfigsManager(JavaPlugin plugin) {
         this.plugin = plugin;
         defaultMechanics = extractDefault("mechanics.yml");
-        defaultSettings = extractDefault("settings.yml");
-        defaultFont = extractDefault("font.yml");
+        defaultFont = extractDefault("bitmaps.yml");
         defaultSound = extractDefault("sound.yml");
         defaultLanguage = extractDefault("languages/english.yml");
         defaultHud = extractDefault("hud.yml");
@@ -57,7 +54,8 @@ public class ConfigsManager {
     }
 
     public YamlConfiguration getSettings() {
-        return settings != null ? settings : defaultSettings;
+        if (settings == null) settings = Settings.validateSettings();
+        return settings;
     }
 
     public File getSettingsFile() {
@@ -99,23 +97,23 @@ public class ConfigsManager {
     }
 
     public void validatesConfig() {
-        ResourcesManager tempManager = new ResourcesManager(OraxenPlugin.get());
-        mechanics = validate(tempManager, "mechanics.yml", defaultMechanics);
-        settings = validate(tempManager, "settings.yml", defaultSettings);
-        font = validate(tempManager, "font.yml", defaultFont);
-        hud = validate(tempManager, "hud.yml", defaultHud);
-        sound = validate(tempManager, "sound.yml", defaultSound);
+        ResourcesManager resourcesManager = OraxenPlugin.get().resourceManager();
+        settings = Settings.validateSettings();
+        mechanics = validate(resourcesManager, "mechanics.yml", defaultMechanics);
+        font = validate(resourcesManager, "bitmaps.yml", defaultFont);
+        hud = validate(resourcesManager, "hud.yml", defaultHud);
+        sound = validate(resourcesManager, "sound.yml", defaultSound);
         File languagesFolder = new File(plugin.getDataFolder(), "languages");
         languagesFolder.mkdir();
-        String languageFile = "languages/" + settings.getString(Settings.PLUGIN_LANGUAGE.getPath()) + ".yml";
-        language = validate(tempManager, languageFile, defaultLanguage);
+        String languageFile = "languages/" + Settings.PLUGIN_LANGUAGE + ".yml";
+        language = validate(resourcesManager, languageFile, defaultLanguage);
 
         // check itemsFolder
         itemsFolder = new File(plugin.getDataFolder(), "items");
         if (!itemsFolder.exists()) {
             itemsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                tempManager.extractConfigsInFolder("items", "yml");
+                resourcesManager.extractConfigsInFolder("items", "yml");
         }
 
         // check glyphsFolder
@@ -123,8 +121,8 @@ public class ConfigsManager {
         if (!glyphsFolder.exists()) {
             glyphsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                tempManager.extractConfigsInFolder("glyphs", "yml");
-            else tempManager.extractConfiguration("glyphs/interface.yml");
+                resourcesManager.extractConfigsInFolder("glyphs", "yml");
+            else resourcesManager.extractConfiguration("glyphs/interface.yml");
         }
 
         // check schematicsFolder
@@ -132,15 +130,7 @@ public class ConfigsManager {
         if (!schematicsFolder.exists()) {
             schematicsFolder.mkdirs();
             if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                tempManager.extractConfigsInFolder("schematics", "schem");
-        }
-
-        // check gestures
-        gesturesFolder = new File(plugin.getDataFolder(), "gestures");
-        if (!gesturesFolder.exists()) {
-            gesturesFolder.mkdirs();
-            if (Settings.GENERATE_DEFAULT_CONFIGS.toBool())
-                tempManager.extractConfigsInFolder("gestures", "yml");
+                resourcesManager.extractConfigsInFolder("schematics", "schem");
         }
 
     }
@@ -182,9 +172,7 @@ public class ConfigsManager {
             );
 
     private final List<String> removedYamlKeys =
-            List.of(
-                    "armorpotioneffects"
-            );
+            List.of("armorpotioneffects");
 
     public Collection<Glyph> parseGlyphConfigs() {
         List<File> glyphFiles = getGlyphFiles();
@@ -214,7 +202,7 @@ public class ConfigsManager {
                 Glyph glyph = new Glyph(key, configuration.getConfigurationSection(key), character);
                 if (glyph.isFileChanged())
                     fileChanged = true;
-                glyph.verifyGlyph(output);
+                //glyph.verifyGlyph(output);
                 output.add(glyph);
             }
             if (fileChanged && !Settings.DISABLE_AUTOMATIC_GLYPH_CODE.toBool()) {
@@ -231,13 +219,13 @@ public class ConfigsManager {
 
     public Map<File, Map<String, ItemBuilder>> parseItemConfig() {
         Map<File, Map<String, ItemBuilder>> parseMap = new LinkedHashMap<>();
-        ItemBuilder errorItem = new ItemParser(Settings.ERROR_ITEM.toConfigSection()).buildItem();
+        ItemBuilder errorItem = new ItemBuilder(Material.PODZOL);
         for (File file : getItemFiles()) parseMap.put(file, parseItemConfig(file, errorItem));
         return parseMap;
     }
 
     public void assignAllUsedModelDatas() {
-        Map<Material, Map<Integer, String>> assignedModelDatas = new HashMap<>();
+        Map<Material, Map<Integer, Key>> assignedModelDatas = new HashMap<>();
         for (File file : getItemFiles()) {
             if (!file.exists()) continue;
             YamlConfiguration configuration = OraxenYaml.loadConfiguration(file);
@@ -250,12 +238,12 @@ public class ConfigsManager {
                 Material material = Material.getMaterial(itemSection.getString("material", ""));
                 if (packSection == null || material == null) continue;
                 int modelData = packSection.getInt("custom_model_data", -1);
-                String model = getItemModelFromConfigurationSection(packSection);
+                Key model = getItemModelFromConfigurationSection(packSection);
                 if (modelData == -1) continue;
                 if (assignedModelDatas.containsKey(material) && assignedModelDatas.get(material).containsKey(modelData)) {
                     if (assignedModelDatas.get(material).get(modelData).equals(model)) continue;
                     Logs.logError("CustomModelData " + modelData + " is already assigned to another item with this material but different model");
-                    if (file.getAbsolutePath().equals(DuplicationHandler.getDuplicateItemFile(material).getAbsolutePath()) && Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) {
+                    /*if (file.getAbsolutePath().equals(DuplicationHandler.getDuplicateItemFile(material).getAbsolutePath()) && Settings.RETAIN_CUSTOM_MODEL_DATA.toBool()) {
                         Logs.logWarning("Due to " + Settings.RETAIN_CUSTOM_MODEL_DATA.getPath() + " being enabled,");
                         Logs.logWarning("the model data will not removed from " + file.getName() + ": " + key + ".");
                         Logs.logWarning("There will still be a conflict which you need to solve yourself.");
@@ -264,12 +252,12 @@ public class ConfigsManager {
                         Logs.logWarning("Removing custom model data from " + file.getName() + ": " + key, true);
                         packSection.set("custom_model_data", null);
                         fileChanged = true;
-                    }
+                    }*/
                     continue;
                 }
 
                 assignedModelDatas.computeIfAbsent(material, k -> new HashMap<>()).put(modelData, model);
-                ModelData.DATAS.computeIfAbsent(material, k -> new HashMap<>()).put(key, modelData);
+                ModelData.DATAS.computeIfAbsent(material, k -> new HashMap<>()).put(Key.key(key), modelData);
             }
 
             if (fileChanged) {
@@ -293,12 +281,12 @@ public class ConfigsManager {
         }
     }
 
-    private String getItemModelFromConfigurationSection(ConfigurationSection packSection) {
+    private Key getItemModelFromConfigurationSection(ConfigurationSection packSection) {
         String model = packSection.getString("model", "");
         if (model.isEmpty() && packSection.getBoolean("generate_model", false)) {
             model = packSection.getParent().getName();
         }
-        return model;
+        return Key.key(model);
     }
 
     public Map<String, ItemBuilder> parseItemConfig(File itemFile, ItemBuilder errorItem) {
