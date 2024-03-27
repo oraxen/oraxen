@@ -2,20 +2,16 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.BlockLocation;
 
-public class BarrierHitbox {
-    private final BlockLocation location;
+public class BarrierHitbox extends BlockLocation {
 
-    public BarrierHitbox(Object hitboxObject) {
-        BarrierHitbox hitbox;
+    public BarrierHitbox from(Object hitboxObject) {
         if (hitboxObject instanceof String string) {
-            hitbox = new BarrierHitbox(string);
-            this.location = hitbox.location;
-        } else this.location = BlockLocation.ZERO;
+            return new BarrierHitbox(string);
+        } else return new BarrierHitbox("0 0 0");
     }
 
     public BarrierHitbox(String hitboxString) {
-        this.location = new BlockLocation(hitboxString);
-
+        super(hitboxString);
     }
 
 }

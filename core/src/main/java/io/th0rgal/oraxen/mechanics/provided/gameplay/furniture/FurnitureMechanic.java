@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import com.jeff_media.customblockdata.CustomBlockData;
 import com.jeff_media.morepersistentdatatypes.DataType;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.model.ActiveModel;
@@ -12,7 +11,7 @@ import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechani
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolvingFurniture;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.BarrierHitbox;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.FurnitureHitbox;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSeat;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
@@ -23,7 +22,10 @@ import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.NamespacedKey;
+import org.bukkit.Rotation;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
@@ -48,7 +50,6 @@ public class FurnitureMechanic extends Mechanic {
     public static final NamespacedKey ROOT_KEY = new NamespacedKey(OraxenPlugin.get(), "root");
     public static final NamespacedKey ORIENTATION_KEY = new NamespacedKey(OraxenPlugin.get(), "orientation");
     public static final NamespacedKey EVOLUTION_KEY = new NamespacedKey(OraxenPlugin.get(), "evolution");
-    public static final NamespacedKey BARRIER_KEY = new NamespacedKey(OraxenPlugin.get(), "barriers");
 
     private final int hardness;
     private final LimitedPlacing limitedPlacing;
@@ -57,7 +58,6 @@ public class FurnitureMechanic extends Mechanic {
     private final JukeboxBlock jukebox;
     public final boolean farmlandRequired;
     public final boolean farmblockRequired;
-    private final List<BlockLocation> barriers;
     private final Drop drop;
     private final EvolvingFurniture evolvingFurniture;
     private final LightMechanic light;
@@ -71,8 +71,7 @@ public class FurnitureMechanic extends Mechanic {
     private final boolean isRotatable;
     private final BlockLockerMechanic blockLocker;
     private final RestrictedRotation restrictedRotation;
-    private final BarrierHitbox barrierHitbox;
-    private final InteractionHitbox interactionHitbox;
+    @NotNull private final FurnitureHitbox hitbox;
 
     public enum RestrictedRotation {
         NONE, STRICT, VERY_STRICT;
@@ -148,28 +147,8 @@ public class FurnitureMechanic extends Mechanic {
                 ? new DisplayEntityProperties(displayProperties) : new DisplayEntityProperties()
                 : null;
 
-        barriers = new ArrayList<>();
-        if (section.getBoolean("barrier", false))
-            barriers.add(new BlockLocation(0, 0, 0));
-        if (section.isList("barriers")) {
-            for (Object barrierObject : section.getList("barriers", new ArrayList<>()))
-                if (barrierObject instanceof String string)
-                    barriers.add(new BlockLocation(string));
-                else if (barrierObject instanceof Integer integer)
-                    barriers.add(new BlockLocation(integer.toString()));
-                else if (barrierObject instanceof Map<?, ?> barrierMap) {
-                    try {
-                        barriers.add(new BlockLocation((Map<String, Integer>) barrierMap));
-                    } catch (ClassCastException e) {
-                        Logs.logError("Invalid barrier location: " + barrierMap + " for furniture: " + getItemID());
-                    }
-                }
-        }
-
         ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
-        if (hitboxSection != null) {
-
-        }
+        hitbox = hitboxSection != null ? new FurnitureHitbox(hitboxSection) : FurnitureHitbox.EMPTY;
 
         for (Object seatEntry : section.getList("seats", new ArrayList<>())) {
             FurnitureSeat seat = FurnitureSeat.getSeat(seatEntry);
@@ -199,7 +178,7 @@ public class FurnitureMechanic extends Mechanic {
         clickActions = ClickAction.parseList(section);
 
         if (section.getBoolean("rotatable", false)) {
-            if (barriers.stream().anyMatch(b -> b.getX() != 0 || b.getZ() != 0)) {
+            if (hitbox.barrierHitboxes().stream().anyMatch(b -> b.getX() != 0 || b.getZ() != 0)) {
                 Logs.logWarning("Furniture <gold>" + getItemID() + " </gold>has barriers with non-zero X or Z coordinates.");
                 Logs.logWarning("Furniture rotation will be disabled for this furniture.");
                 isRotatable = false;
@@ -273,40 +252,7 @@ public class FurnitureMechanic extends Mechanic {
         return jukebox;
     }
 
-    public boolean hasBarriers() {
-        return !barriers.isEmpty();
-    }
-
-    /**
-     * Checks if the given entity has barriers.
-     * This method also checks the actual entity in-case the config changed.
-     * @param baseEntity the entity to check
-     * @return true if the entity has barriers
-     */
-    public boolean hasBarriers(@NotNull Entity baseEntity) {
-        return hasBarriers() || !baseEntity.getPersistentDataContainer().getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>()).isEmpty();
-    }
-
-    public List<BlockLocation> getBarriers() {
-        return barriers;
-    }
-
-    /**
-     * Gets the barriers for the given entity.
-     * This method also checks the actual entity in-case the config changed.
-     * @param baseEntity the entity to get the barriers for
-     * @return the barriers for the given entity
-     */
-    public List<BlockLocation> getBarriers(@NotNull Entity baseEntity) {
-        List<BlockLocation> barriers = baseEntity.getPersistentDataContainer().getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>());
-        return barriers.isEmpty() ? this.barriers : barriers;
-    }
-
-    public boolean hasHitbox() {
-        return hitbox != null;
-    }
-
-    public BarrierHitbox getHitbox() {
+    public FurnitureHitbox hitbox() {
         return hitbox;
     }
 
@@ -390,8 +336,7 @@ public class FurnitureMechanic extends Mechanic {
         float scale = displayEntityProperties.hasScale() ? displayEntityProperties.getScale().y() : 1;
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
         if (isFixed && isWall) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
-        float heightCorrection = (hasHitbox() ? hitbox.height : 1) - 1;
-        return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 * heightCorrection : 0), 0);
+        return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 * 1 : 0), 0);
     }
 
     public void setEntityData(Entity entity, float yaw, BlockFace facing) {
@@ -404,25 +349,25 @@ public class FurnitureMechanic extends Mechanic {
         if (entity instanceof ItemFrame frame) {
             setFrameData(frame, item, yaw, facing);
 
-            if (hasBarriers()) setBarrierHitbox(entity, location, yaw);
+            if (false);//(hasBarriers()) setBarrierHitbox(entity, location, yaw);
             else {
-                float width = hasHitbox() ? hitbox.width : 1f;
-                float height = hasHitbox() ? hitbox.height : 1f;
-                spawnInteractionEntity(frame, location, width, height);
+                //float width = hasHitbox() ? hitbox.width : 1f;
+                //float height = hasHitbox() ? hitbox.height : 1f;
+                //spawnInteractionEntity(frame, location, width, height);
                 Block block = location.getBlock();
                 if (light.hasLightLevel()) light.createBlockLight(block);
             }
         } else if (entity instanceof ItemDisplay itemDisplay) {
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
-            float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
-            float height = hasHitbox() ? hitbox.height : displayEntityProperties.getDisplayHeight();
+            //float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
+            //float height = hasHitbox() ? hitbox.height : displayEntityProperties.getDisplayHeight();
             boolean isFixed = displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
-            Location interactionLoc = location.clone().subtract(0, (hasLimitedPlacing() && limitedPlacing.isRoof() && isFixed) ? 1.5 * (height - 1) : 0, 0);
-            spawnInteractionEntity(itemDisplay, interactionLoc, width, height);
+            Location interactionLoc = location.clone().subtract(0, (hasLimitedPlacing() && limitedPlacing.isRoof() && isFixed) ? 1.5 * (1.0 - 1) : 0, 0);
+            //spawnInteractionEntity(itemDisplay, interactionLoc, width, height);
             Location barrierLoc = EntityUtils.isNone(itemDisplay) && displayEntityProperties.hasScale()
                             ? location.clone().subtract(0, 0.5 * displayEntityProperties.getScale().y(), 0) : location;
 
-            if (hasBarriers()) setBarrierHitbox(entity, barrierLoc, yaw);
+            //if (hasBarriers()) setBarrierHitbox(entity, barrierLoc, yaw);
             if (light.hasLightLevel()) light.createBlockLight(location.getBlock());
         }
     }
@@ -454,7 +399,6 @@ public class FurnitureMechanic extends Mechanic {
         entity.setCustomNameVisible(false);
         PersistentDataContainer pdc = entity.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
-        pdc.set(BARRIER_KEY, DataType.asList(BlockLocation.dataType), barriers);
         if (hasEvolution()) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
         if (isStorage() && getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
@@ -518,20 +462,6 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void setBarrierHitbox(Entity entity, Location location, float yaw) {
-        List<Location> barrierLocations = getLocations(yaw, BlockHelpers.toCenterBlockLocation(location), barriers);
-        for (Location barrierLocation : barrierLocations) {
-            Block block = barrierLocation.getBlock();
-            block.setType(Material.BARRIER);
-            PersistentDataContainer data = BlockHelpers.getPDC(block);
-            data.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
-            data.set(ROOT_KEY, PersistentDataType.STRING, new BlockLocation(location.clone()).toString());
-            data.set(ORIENTATION_KEY, PersistentDataType.FLOAT, yaw);
-            data.set(BASE_ENTITY_KEY, DataType.UUID, entity.getUniqueId());
-            if (light.hasLightLevel()) light.createBlockLight(block);
-        }
-    }
-
     void spawnModelEngineFurniture(Entity entity) {
         ModeledEntity modelEntity = ModelEngineAPI.getOrCreateModeledEntity(entity);
         ActiveModel activeModel = ModelEngineAPI.createActiveModel(getModelEngineID());
@@ -561,18 +491,18 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void removeSolid(Entity baseEntity, Location rootLocation, float orientation) {
-        List<BlockLocation> blockLocations = baseEntity.getPersistentDataContainer().getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>());
-        List<Location> barrierLocations = getLocations(orientation, rootLocation, blockLocations.isEmpty() ? getBarriers() : blockLocations);
-
-        for (Location location : barrierLocations) {
-            Block block = location.getBlock();
-            if (block.getType() != Material.BARRIER) continue;
-            if (!BlockHelpers.getPDC(block).getOrDefault(BASE_ENTITY_KEY, DataType.UUID, UUID.randomUUID()).equals(baseEntity.getUniqueId())) continue;
-
-            block.setType(Material.AIR);
-            new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
-            if (light.hasLightLevel()) light.removeBlockLight(block);
-        }
+//        List<BlockLocation> blockLocations = baseEntity.getPersistentDataContainer().getOrDefault(BARRIER_KEY, DataType.asList(BlockLocation.dataType), new ArrayList<>());
+//        List<Location> barrierLocations = getLocations(orientation, rootLocation, blockLocations.isEmpty() ? getBarriers() : blockLocations);
+//
+//        for (Location location : barrierLocations) {
+//            Block block = location.getBlock();
+//            if (block.getType() != Material.BARRIER) continue;
+//            if (!BlockHelpers.getPDC(block).getOrDefault(BASE_ENTITY_KEY, DataType.UUID, UUID.randomUUID()).equals(baseEntity.getUniqueId())) continue;
+//
+//            block.setType(Material.AIR);
+//            new CustomBlockData(location.getBlock(), OraxenPlugin.get()).clear();
+//            if (light.hasLightLevel()) light.removeBlockLight(block);
+//        }
         removeBaseEntity(baseEntity);
     }
 
@@ -616,9 +546,10 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public boolean notEnoughSpace(float yaw, Location rootLocation) {
-        if (!hasBarriers()) return false;
-        return !getLocations(yaw, rootLocation, getBarriers()).stream().map(l -> l.getBlock().getType())
-                .allMatch(BlockHelpers.REPLACEABLE_BLOCKS::contains);
+        return true;
+//        if (!hasBarriers()) return false;
+//        return !getLocations(yaw, rootLocation, getBarriers()).stream().map(l -> l.getBlock().getType())
+//                .allMatch(BlockHelpers.REPLACEABLE_BLOCKS::contains);
     }
 
     public static float getFurnitureYaw(Entity entity) {
@@ -695,14 +626,14 @@ public class FurnitureMechanic extends Mechanic {
 
         if (pdc.has(BASE_ENTITY_KEY, DataType.UUID))
             return Bukkit.getEntity(pdc.getOrDefault(BASE_ENTITY_KEY, DataType.UUID, UUID.randomUUID()));
-        else if (hasBarriers()) for (Entity entity : block.getWorld().getNearbyEntities(originLoc, 1, 1, 1)) {
-            if (entity.getType() == getFurnitureEntityType()
-                    && entity.getLocation().getBlockX() == originLoc.getBlockX()
-                    && entity.getLocation().getBlockY() == originLoc.getBlockY()
-                    && entity.getLocation().getBlockZ() == originLoc.getBlockZ()
-                    && OraxenFurniture.isFurniture(block))
-                return getBaseEntity(entity);
-        }
+//        else if (hasBarriers()) for (Entity entity : block.getWorld().getNearbyEntities(originLoc, 1, 1, 1)) {
+//            if (entity.getType() == getFurnitureEntityType()
+//                    && entity.getLocation().getBlockX() == originLoc.getBlockX()
+//                    && entity.getLocation().getBlockY() == originLoc.getBlockY()
+//                    && entity.getLocation().getBlockZ() == originLoc.getBlockZ()
+//                    && OraxenFurniture.isFurniture(block))
+//                return getBaseEntity(entity);
+//        }
 
         return null;
     }

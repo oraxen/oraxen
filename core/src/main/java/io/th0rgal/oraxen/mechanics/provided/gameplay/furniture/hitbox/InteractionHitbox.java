@@ -43,4 +43,28 @@ public class InteractionHitbox {
         this.width = width;
         this.height = height;
     }
+
+    public Vector offset() {
+        return offset;
+    }
+
+    /**
+     * Offset rotated around the baseEntity's yaw
+     * @param yaw Yaw of baseEntity
+     * @return Rotated offset vector
+     */
+    public Vector offset(float yaw) {
+        return rotateOffset(yaw);
+    }
+
+    private Vector rotateOffset(float angle) {
+        double angleRad = Math.toRadians(angle);
+
+        // Get the coordinates relative to the local y-axis
+        double x = Math.cos(angleRad) * offset.getX() + Math.sin(angleRad) * offset.getZ();
+        double y = offset.getY();
+        double z = Math.sin(angleRad) * offset.getX() + Math.cos(angleRad) * offset.getZ();
+
+        return new Vector(x, y, z);
+    }
 }

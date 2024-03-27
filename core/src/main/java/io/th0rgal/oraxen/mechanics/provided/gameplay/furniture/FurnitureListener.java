@@ -231,7 +231,6 @@ public class FurnitureListener implements Listener {
         if (entity == null) return;
 
         event.setCancelled(true);
-        if (mechanic.hasBarriers(entity) || mechanic.hasHitbox()) return;
         OraxenFurniture.remove(entity, null);
     }
 
@@ -301,7 +300,7 @@ public class FurnitureListener implements Listener {
         Player player = projectile.getShooter() instanceof Player ? (Player) projectile.getShooter() : null;
 
         event.setCancelled(true);
-        if (mechanic.hasBarriers() || !isDamagingProjectile(projectile)) return;
+        if (!mechanic.hitbox().barrierHitboxes().isEmpty() || !isDamagingProjectile(projectile)) return;
         if (player != null && !ProtectionLib.canBreak(player, furniture.getLocation())) return;
 
         OraxenFurniture.remove(furniture, player);

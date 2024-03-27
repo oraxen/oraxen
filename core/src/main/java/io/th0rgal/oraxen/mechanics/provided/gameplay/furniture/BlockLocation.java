@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import com.jeff_media.morepersistentdatatypes.datatypes.serializable.ConfigurationSerializableDataType;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Location;
 import org.bukkit.Utility;
 import org.bukkit.World;
@@ -44,7 +43,6 @@ public class BlockLocation implements ConfigurationSerializable {
             this.y = 0;
             this.z = 0;
         } else {
-            Logs.logError("l: " + location);
             List<Integer> split = new ArrayList<>(Arrays.stream(location.split(" ")).map(s -> {
                 try {
                     return Integer.parseInt(s);

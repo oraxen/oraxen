@@ -309,8 +309,8 @@ public class OraxenFurniture {
                         Interaction interaction = mechanic.getInteractionEntity(entity);
                         // Check if interaction-hitbox changed, if so remove and place new
                         if (interaction != null && mechanic.hasHitbox())
-                            if (interaction.getInteractionWidth() == mechanic.getHitbox().width())
-                                if (interaction.getInteractionHeight() == mechanic.getHitbox().height())
+                            if (interaction.getInteractionWidth() == mechanic.hitbox().width())
+                                if (interaction.getInteractionHeight() == mechanic.hitbox().height())
                                     // Check if seat changed, if so remove and place new
                                     if (oldPdc.has(FurnitureSeat.SEAT_KEY, DataType.UUID) && mechanic.hasSeats())
                                         // Check if any displayEntity properties changed, if so remove and place new
