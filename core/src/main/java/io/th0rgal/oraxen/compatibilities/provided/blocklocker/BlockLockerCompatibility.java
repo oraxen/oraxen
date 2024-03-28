@@ -23,8 +23,8 @@ public class BlockLockerCompatibility extends CompatibilityProvider<BlockLockerP
                 if (noteMechanic != null) blockLocker = noteMechanic.getBlockLocker();
                 StringBlockMechanic stringMechanic = OraxenBlocks.getStringMechanic(block);
                 if (stringMechanic != null) blockLocker = stringMechanic.getBlockLocker();
-                FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
-                if (furnitureMechanic != null) blockLocker = furnitureMechanic.getBlockLocker();
+                FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());
+                if (furnitureMechanic != null) blockLocker = furnitureMechanic.blocklocker();
 
                 return blockLocker != null && blockLocker.canProtect();
             }
@@ -36,8 +36,8 @@ public class BlockLockerCompatibility extends CompatibilityProvider<BlockLockerP
                 if (noteMechanic != null) blockLocker = noteMechanic.getBlockLocker();
                 StringBlockMechanic stringMechanic = OraxenBlocks.getStringMechanic(block);
                 if (stringMechanic != null) blockLocker = stringMechanic.getBlockLocker();
-                FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
-                if (furnitureMechanic != null) blockLocker = furnitureMechanic.getBlockLocker();
+                FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());
+                if (furnitureMechanic != null) blockLocker = furnitureMechanic.blocklocker();
 
                 return blockLocker != null && blockLocker.canProtect() && blockLocker.getProtectionType() == type;
             }});

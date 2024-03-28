@@ -107,7 +107,7 @@ public class StringBlockMechanicListener implements Listener {
             for (BlockFace face : BlockFace.values()) {
                 if (face == BlockFace.SELF && !face.isCartesian()) continue;
                 if (block.getType() == Material.TRIPWIRE || block.getType() == Material.NOTE_BLOCK) break;
-                if (block.getType() == Material.BARRIER && OraxenFurniture.isFurniture(block)) break;
+                if (OraxenFurniture.isFurniture(block.getLocation())) break;
                 if (block.getRelative(face).getType() == Material.TRIPWIRE) {
                     if (player.getGameMode() != GameMode.CREATIVE) block.breakNaturally(player.getInventory().getItemInMainHand(), true);
                     else block.setType(Material.AIR);

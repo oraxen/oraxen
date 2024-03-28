@@ -35,11 +35,11 @@ public class JukeboxListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onInsertDisc(OraxenFurnitureInteractEvent event) {
-        Entity baseEntity = event.getBaseEntity();
-        Player player = event.getPlayer();
+        Entity baseEntity = event.baseEntity();
+        Player player = event.player();
         ItemStack itemStack = player.getInventory().getItemInMainHand();
 
-        if (event.getHand() != EquipmentSlot.HAND) return;
+        if (event.hand() != EquipmentSlot.HAND) return;
 
         boolean played = insertAndPlayDisc(baseEntity, itemStack, player);
         if (!played) return;
@@ -66,8 +66,8 @@ public class JukeboxListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST, ignoreCancelled = true)
     public void onEjectDisc(OraxenFurnitureInteractEvent event) {
-        if (!ejectAndStopDisc(event.getBaseEntity(), event.getPlayer())) return;
-        event.getPlayer().swingMainHand();
+        if (!ejectAndStopDisc(event.baseEntity(), event.player())) return;
+        event.player().swingMainHand();
         event.setCancelled(true);
     }
 

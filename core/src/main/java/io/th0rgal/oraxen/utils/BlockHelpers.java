@@ -169,7 +169,7 @@ public class BlockHelpers {
         if (placedAgainst == null) return false;
 
         NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(placedAgainst);
-        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(placedAgainst);
+        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(placedAgainst.getLocation());
         Material type = placedAgainst.getType();
 
         if (noteBlockMechanic != null) return false;

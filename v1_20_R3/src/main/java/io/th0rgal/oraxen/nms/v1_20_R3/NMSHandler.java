@@ -11,6 +11,7 @@ import io.netty.util.AttributeKey;
 import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.configuration.GlobalConfiguration;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -68,8 +69,12 @@ import java.util.function.Function;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
-    private final Map<Channel, ChannelHandler> encoder = Collections.synchronizedMap(new WeakHashMap<>());
-    private final Map<Channel, ChannelHandler> decoder = Collections.synchronizedMap(new WeakHashMap<>());
+    FurniturePacketManager furniturePacketManager = new FurniturePacketManager();
+
+    @Override
+    public IFurniturePacketManager furniturePacketManager() {
+        return furniturePacketManager;
+    }
 
     @Override
     public boolean tripwireUpdatesDisabled() {
@@ -184,6 +189,9 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         }).collect(HashMap::new, Map::putAll, Map::putAll);
     }
 
+
+    private final Map<Channel, ChannelHandler> encoder = Collections.synchronizedMap(new WeakHashMap<>());
+    private final Map<Channel, ChannelHandler> decoder = Collections.synchronizedMap(new WeakHashMap<>());
     @Override
     public void setupNmsGlyphs() {
         if (!GlyphHandlers.isNms()) return;

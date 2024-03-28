@@ -7,8 +7,10 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution.EvolutionTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxListener;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.scheduler.BukkitTask;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
@@ -44,6 +46,11 @@ public class FurnitureFactory extends MechanicFactory {
         detectViabackwards = OraxenPlugin.get().configsManager().getMechanics().getConfigurationSection("furniture").getBoolean("detect_viabackwards", true);
         //TODO Fix this to not permanently and randomly break furniture
         //if (VersionUtil.isPaperServer()) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurniturePaperListener());
+    }
+
+    @Nullable
+    public IFurniturePacketManager furniturePacketManager() {
+        return NMSHandlers.getHandler() != null ? NMSHandlers.getHandler().furniturePacketManager() : null;
     }
 
     public static boolean setDefaultType(ConfigurationSection mechanicSection) {

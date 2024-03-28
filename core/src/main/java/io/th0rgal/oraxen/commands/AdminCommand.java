@@ -70,7 +70,7 @@ public class AdminCommand {
                         boolean isRandom = (boolean) args.getOptional("random").orElse(false);
                         for (Block block : getBlocks(loc, radius, isRandom)) {
                             if (type.equals("remove")) {
-                                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block);
+                                FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());
                                 if (mechanic != null && (id.isEmpty() || id.equals("all") || mechanic.getItemID().equals(id)))
                                     OraxenFurniture.remove(block.getLocation(), null);
                             }

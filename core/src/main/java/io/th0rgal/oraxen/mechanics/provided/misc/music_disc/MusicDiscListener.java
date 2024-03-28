@@ -91,7 +91,7 @@ public class MusicDiscListener implements Listener {
         String itemID = OraxenItems.getIdByItem(disc);
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(itemID);
-        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
+        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());
 
         if (block.getType() != Material.JUKEBOX && (furnitureMechanic == null || !furnitureMechanic.isJukebox())) return false;
         if (pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK)) return false;
@@ -118,8 +118,8 @@ public class MusicDiscListener implements Listener {
         ItemStack ejectedDisc = pdc.get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
         String itemID = OraxenItems.getIdByItem(ejectedDisc);
         MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(itemID);
-        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
         Location loc = BlockHelpers.toCenterLocation(block.getLocation());
+        FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(loc);
 
         if (block.getType() != Material.JUKEBOX && (furnitureMechanic == null || !furnitureMechanic.isJukebox())) return false;
         if (!pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK)) return false;

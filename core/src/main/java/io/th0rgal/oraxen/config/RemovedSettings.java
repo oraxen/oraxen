@@ -36,6 +36,9 @@ public enum RemovedSettings {
 
     GESTURES_ENABLED("Gestures.enabled"),
 
+    EXPERIMENTAL_FIX_BROKEN_FURNITURE("FurnitureUpdater.experimental_fix_broken_furniture"),
+    EXPERIMENTAL_FURNITURE_TYPE_UPDATE("FurnitureUpdater.experimental_furniture_type_update"),
+
     ;
 
     private final String path;
