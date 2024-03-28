@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.v1_20_R3;
+package io.th0rgal.oraxen.nms.v1_19_R3;
 
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.generator.blueprint.ModelBlueprint;
@@ -22,7 +22,7 @@ import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
+import org.bukkit.craftbukkit.v1_19_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -74,7 +74,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                 InteractionHitbox hitbox = interactionHitboxes.get(i);
                 int entityId = entityIds.get(i);
 
-                Location loc = baseLoc.clone().add(hitbox.offset(baseEntity.getYaw()));
+                Location loc = baseLoc.clone().add(hitbox.offset(baseEntity.getLocation().getYaw()));
                 ClientboundAddEntityPacket addEntityPacket = new ClientboundAddEntityPacket(
                         entityId, UUID.randomUUID(),
                         loc.x(), loc.y(), loc.z(), loc.getPitch(), loc.getYaw(),
@@ -115,7 +115,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     @Override
     public void sendBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
-                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
+                .map(c -> c.groundRotate(baseEntity.getLocation().getYaw()).add(baseEntity.getLocation()))
                 .collect(Collectors.toMap(Position::block, l -> BARRIER_DATA));
         player.sendMultiBlockChange(positions);
 
@@ -141,7 +141,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     @Override
     public void removeBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
-                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
+                .map(c -> c.groundRotate(baseEntity.getLocation().getYaw()).add(baseEntity.getLocation()))
                 .collect(Collectors.toMap(Position::block, l -> AIR_DATA));
         player.sendMultiBlockChange(positions);
     }
