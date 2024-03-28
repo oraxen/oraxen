@@ -88,8 +88,6 @@ public enum Settings {
     UPDATE_FURNITURE("FurnitureUpdater.update_furniture", true),
     UPDATE_FURNITURE_ON_RELOAD("FurnitureUpdater.update_on_reload", false),
     UPDATE_FURNITURE_ON_LOAD("FurnitureUpdater.update_on_load", false),
-    EXPERIMENTAL_FURNITURE_TYPE_UPDATE("FurnitureUpdater.experimental_furniture_type_update", false),
-    EXPERIMENTAL_FIX_BROKEN_FURNITURE("FurnitureUpdater.experimental_fix_broken_furniture", false),
 
     //Misc
     RESET_RECIPES("Misc.reset_recipes", true),

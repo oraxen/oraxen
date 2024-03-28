@@ -3,7 +3,6 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.Mechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
@@ -122,20 +121,10 @@ public class LimitedPlacing {
     }
 
     private String checkIfOraxenItem(Block block) {
+        Mechanic mechanic = OraxenBlocks.getOraxenBlock(block.getBlockData());
+        if (mechanic == null) mechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());
 
-        return switch (block.getType()) {
-            case NOTE_BLOCK, TRIPWIRE -> {
-                Mechanic mechanic = OraxenBlocks.getOraxenBlock(block.getBlockData());
-                if (mechanic == null) yield null;
-                else yield mechanic.getItemID();
-            }
-            case BARRIER -> {
-                FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
-                if (furnitureMechanic != null) yield furnitureMechanic.getItemID();
-                else yield null;
-            }
-            default -> null;
-        };
+        return mechanic != null ? mechanic.getItemID() : null;
     }
 
     public enum LimitedPlacingType {

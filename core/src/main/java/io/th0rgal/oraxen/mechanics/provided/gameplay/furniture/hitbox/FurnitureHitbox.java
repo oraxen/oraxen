@@ -1,8 +1,11 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox;
 
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -38,7 +41,26 @@ public class FurnitureHitbox {
         return interactionHitboxes;
     }
 
-    public void handleHitboxes(Entity baseEntity, FurnitureMechanic mechanic, float yaw) {
+    public void handleHitboxes(Entity baseEntity, FurnitureMechanic mechanic) {
+        for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), 32.0)) {
+            FurnitureFactory.instance.furniturePacketManager().sendInteractionEntityPacket(baseEntity, mechanic, player);
+            FurnitureFactory.instance.furniturePacketManager().sendBarrierHitboxPacket(baseEntity, mechanic, player);
+        }
+    }
 
+    public List<Location> hitboxLocations(Location center, float rotation) {
+        List<Location> hitboxLocations = new ArrayList<>();
+        hitboxLocations.addAll(barrierHitboxLocations(center, rotation));
+        hitboxLocations.addAll(interactionHitboxLocations(center, rotation));
+
+        return hitboxLocations;
+    }
+
+    public List<Location> barrierHitboxLocations(Location center, float rotation) {
+        return barrierHitboxes.stream().map(b -> b.groundRotate(rotation).add(center)).toList();
+    }
+
+    public List<Location> interactionHitboxLocations(Location center, float rotation) {
+        return interactionHitboxes.stream().map(i -> center.add(i.offset(rotation))).toList();
     }
 }
