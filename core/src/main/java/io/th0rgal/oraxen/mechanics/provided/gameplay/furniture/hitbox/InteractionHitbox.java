@@ -1,17 +1,18 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox;
 
 import io.th0rgal.oraxen.utils.ParseUtils;
+import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.lang3.StringUtils;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
 public class InteractionHitbox {
     private final Vector offset;
-    private final double width;
-    private final double height;
+    private final float width;
+    private final float height;
 
     public static InteractionHitbox DEFAULT = new InteractionHitbox(new Vector(), 1.0, 1.0);
 
@@ -34,14 +35,22 @@ public class InteractionHitbox {
         while (offsets.size() < 3) offsets.add(0.0);
 
         this.offset = new Vector(offsets.get(0), offsets.get(1), offsets.get(2));
-        this.width = ParseUtils.parseDouble(StringUtils.substringBefore(split.get(0), ","), 1.0);
-        this.height = ParseUtils.parseDouble(StringUtils.substringAfter(split.get(0), ","), 1.0);
+        this.width = ParseUtils.parseFloat(StringUtils.substringBefore(split.get(0), ","), 1.0f);
+        this.height = ParseUtils.parseFloat(StringUtils.substringAfter(split.get(0), ","), 1.0f);
     }
 
     public InteractionHitbox(Vector offset, double width, double height) {
         this.offset = offset;
-        this.width = width;
-        this.height = height;
+        this.width = (float) width;
+        this.height = (float) height;
+    }
+
+    public float width() {
+        return width;
+    }
+
+    public float height() {
+        return height;
     }
 
     public Vector offset() {
@@ -66,5 +75,35 @@ public class InteractionHitbox {
         double z = Math.sin(angleRad) * offset.getX() + Math.cos(angleRad) * offset.getZ();
 
         return new Vector(x, y, z);
+    }
+
+    public static class Id {
+        private final UUID baseUuid;
+        private final IntList entityIds;
+
+        public Id(UUID baseUuid, IntList entityIds) {
+            this.baseUuid = baseUuid;
+            this.entityIds = entityIds;
+        }
+
+        public Id(UUID baseUuid, Collection<Integer> entityIds) {
+            this.baseUuid = baseUuid;
+            IntList intList = IntList.of();
+            intList.addAll(entityIds);
+            this.entityIds = intList;
+        }
+
+        public UUID baseUUID() {
+            return baseUuid;
+        }
+
+        public Entity baseEntity() {
+            return Bukkit.getEntity(baseUuid);
+        }
+
+        public IntList entityIds() {
+            return entityIds;
+        }
+
     }
 }

@@ -5,21 +5,19 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 public class FurnitureHitbox {
-    public static final FurnitureHitbox EMPTY = new FurnitureHitbox(Set.of(), Set.of());
-    private final Set<BarrierHitbox> barrierHitboxes;
-    private final Set<InteractionHitbox> interactionHitboxes;
+    public static final FurnitureHitbox EMPTY = new FurnitureHitbox(List.of(), List.of());
+    private final List<BarrierHitbox> barrierHitboxes;
+    private final List<InteractionHitbox> interactionHitboxes;
 
     public FurnitureHitbox(@NotNull ConfigurationSection hitboxSection) {
-        Set<BarrierHitbox> barrierHitboxes = new HashSet<>();
+        List<BarrierHitbox> barrierHitboxes = new ArrayList<>();
         for (String barrierString : hitboxSection.getStringList("barrierHitboxes"))
             barrierHitboxes.add(new BarrierHitbox(barrierString));
 
-        Set<InteractionHitbox> interactionHitboxes = new HashSet<>();
+        List<InteractionHitbox> interactionHitboxes = new ArrayList<>();
         for (String interactionString : hitboxSection.getStringList("interactionHitboxes"))
             interactionHitboxes.add(new InteractionHitbox(interactionString));
 
@@ -28,15 +26,15 @@ public class FurnitureHitbox {
     }
 
     public FurnitureHitbox(Collection<BarrierHitbox> barrierHitboxes, Collection<InteractionHitbox> interactionHitboxes) {
-        this.barrierHitboxes = new HashSet<>(barrierHitboxes);
-        this.interactionHitboxes = new HashSet<>(interactionHitboxes);
+        this.barrierHitboxes = new ArrayList<>(barrierHitboxes);
+        this.interactionHitboxes = new ArrayList<>(interactionHitboxes);
     }
 
-    public Set<BarrierHitbox> barrierHitboxes() {
+    public List<BarrierHitbox> barrierHitboxes() {
         return barrierHitboxes;
     }
 
-    public Set<InteractionHitbox> interactionHitboxes() {
+    public List<InteractionHitbox> interactionHitboxes() {
         return interactionHitboxes;
     }
 

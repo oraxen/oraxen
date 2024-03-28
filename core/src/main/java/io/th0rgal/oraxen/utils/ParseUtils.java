@@ -10,6 +10,14 @@ public class ParseUtils {
         }
     }
 
+    public static Float parseFloat(String string, float defaultValue) {
+        try {
+            return Float.parseFloat(string);
+        } catch (NumberFormatException e) {
+            return defaultValue;
+        }
+    }
+
     public static Integer parseInt(String string, int defaultValue) {
         try {
             return Integer.parseInt(string);

@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.nms;
 
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
@@ -13,6 +14,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.Set;
 
 public interface NMSHandler {
+    default IFurniturePacketManager furniturePacketManager() {
+        return new EmptyFurniturePacketManager();
+    }
 
     boolean noteblockUpdatesDisabled();
 
