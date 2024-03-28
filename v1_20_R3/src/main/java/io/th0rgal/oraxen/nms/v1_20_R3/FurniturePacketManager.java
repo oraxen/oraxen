@@ -4,10 +4,14 @@ import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.generator.blueprint.ModelBlueprint;
 import io.papermc.paper.math.BlockPosition;
 import io.papermc.paper.math.Position;
+import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.InteractionHitbox;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
@@ -17,7 +21,6 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Location;
-import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
@@ -29,8 +32,17 @@ import java.util.stream.Collectors;
 
 public class FurniturePacketManager implements IFurniturePacketManager {
 
-    private int INTERACTION_WIDTH_ID = 8;
-    private int INTERACTION_HEIGHT_ID = 9;
+    public FurniturePacketManager() {
+        if (VersionUtil.isPaperServer()) MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", new FurniturePacketListener());
+        else {
+            Logs.logWarning("Seems that your server is a Spigot-server");
+            Logs.logWarning("FurnitureHitboxes will not work due to it relying on Paper-only events");
+            Logs.logWarning("It is heavily recommended to make the upgrade to Paper");
+        }
+    }
+
+    private final int INTERACTION_WIDTH_ID = 8;
+    private final int INTERACTION_HEIGHT_ID = 9;
     private final Map<UUID, Set<FurnitureInteractionHitboxPacket>> interactionHitboxPacketMap = new HashMap<>();
     @Override
     public void sendInteractionEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
@@ -101,9 +113,6 @@ public class FurniturePacketManager implements IFurniturePacketManager {
         IntList entityIds = interactionHitboxIdMap.stream().filter(id -> id.baseUUID().equals(baseEntity.getUniqueId())).findFirst().map(InteractionHitbox.Id::entityIds).orElse(IntList.of());
         ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(entityIds.toIntArray()));
     }
-
-    private BlockData BARRIER_DATA = Material.BARRIER.createBlockData();
-    private BlockData AIR_DATA = Material.AIR.createBlockData();
 
     @Override
     public void sendBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {

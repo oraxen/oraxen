@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox;
 
 import io.th0rgal.oraxen.utils.ParseUtils;
+import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Bukkit;
@@ -88,9 +89,7 @@ public class InteractionHitbox {
 
         public Id(UUID baseUuid, Collection<Integer> entityIds) {
             this.baseUuid = baseUuid;
-            IntList intList = IntList.of();
-            intList.addAll(entityIds);
-            this.entityIds = intList;
+            this.entityIds = new IntArrayList(entityIds);
         }
 
         public UUID baseUUID() {

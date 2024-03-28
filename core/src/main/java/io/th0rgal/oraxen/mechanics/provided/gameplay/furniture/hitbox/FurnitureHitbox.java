@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import org.bukkit.Location;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
@@ -42,9 +43,11 @@ public class FurnitureHitbox {
     }
 
     public void handleHitboxes(Entity baseEntity, FurnitureMechanic mechanic) {
+        IFurniturePacketManager packetManager = FurnitureFactory.instance.furniturePacketManager();
+
         for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), 32.0)) {
-            FurnitureFactory.instance.furniturePacketManager().sendInteractionEntityPacket(baseEntity, mechanic, player);
-            FurnitureFactory.instance.furniturePacketManager().sendBarrierHitboxPacket(baseEntity, mechanic, player);
+            packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
+            packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
         }
     }
 

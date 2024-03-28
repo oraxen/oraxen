@@ -34,7 +34,7 @@ public class EvolutionListener implements Listener {
         if (itemInteracted.getType() != Material.BONE_MEAL) return;
 
         event.setCancelled(true);
-        EvolvingFurniture evolution = mechanic.getEvolution();
+        EvolvingFurniture evolution = mechanic.evolution();
         if (!evolution.isBoneMeal() || evolution.getNextStage() == null) return;
         FurnitureMechanic nextMechanic = (FurnitureMechanic) FurnitureFactory.instance.getMechanic(evolution.getNextStage());
         if (nextMechanic == null) return;

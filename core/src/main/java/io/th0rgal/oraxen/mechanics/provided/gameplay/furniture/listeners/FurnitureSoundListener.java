@@ -1,10 +1,11 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.listeners;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurniturePlaceEvent;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
@@ -121,15 +122,15 @@ public class FurnitureSoundListener implements Listener {
         float volume;
         float pitch;
         if (gameEvent == GameEvent.STEP) {
-            boolean check = blockStandingOn.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasStepSound();
-            sound = (check) ? mechanic.getBlockSounds().getStepSound() : VANILLA_STONE_STEP;
-            volume = (check) ? mechanic.getBlockSounds().getStepVolume() : VANILLA_STEP_VOLUME;
-            pitch = (check) ? mechanic.getBlockSounds().getStepPitch() : VANILLA_STEP_PITCH;
+            boolean check = blockStandingOn.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasStepSound();
+            sound = (check) ? mechanic.blockSounds().getStepSound() : VANILLA_STONE_STEP;
+            volume = (check) ? mechanic.blockSounds().getStepVolume() : VANILLA_STEP_VOLUME;
+            pitch = (check) ? mechanic.blockSounds().getStepPitch() : VANILLA_STEP_PITCH;
         } else if (gameEvent == GameEvent.HIT_GROUND) {
-            boolean check = (blockStandingOn.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.getBlockSounds().hasFallSound());
-            sound = (check) ? mechanic.getBlockSounds().getFallSound() : VANILLA_STONE_FALL;
-            volume = (check) ? mechanic.getBlockSounds().getFallVolume() : VANILLA_FALL_VOLUME;
-            pitch = (check) ? mechanic.getBlockSounds().getFallPitch() : VANILLA_FALL_PITCH;
+            boolean check = (blockStandingOn.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasFallSound());
+            sound = (check) ? mechanic.blockSounds().getFallSound() : VANILLA_STONE_FALL;
+            volume = (check) ? mechanic.blockSounds().getFallVolume() : VANILLA_FALL_VOLUME;
+            pitch = (check) ? mechanic.blockSounds().getFallPitch() : VANILLA_FALL_PITCH;
         } else return;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS, volume, pitch);
@@ -139,7 +140,7 @@ public class FurnitureSoundListener implements Listener {
     public void onPlacingFurniture(final OraxenFurniturePlaceEvent event) {
         final FurnitureMechanic mechanic = event.getMechanic();
         if (!mechanic.hasBlockSounds()) return;
-        BlockSounds blockSounds = mechanic.getBlockSounds();
+        BlockSounds blockSounds = mechanic.blockSounds();
         if (blockSounds.hasPlaceSound())
             BlockHelpers.playCustomBlockSound(event.getBaseEntity().getLocation(), blockSounds.getPlaceSound(), blockSounds.getPlaceVolume(), blockSounds.getPlacePitch());
     }
@@ -149,7 +150,7 @@ public class FurnitureSoundListener implements Listener {
         Location loc = event.getBlock() != null ? event.getBlock().getLocation() : event.getBaseEntity().getLocation();
         final FurnitureMechanic mechanic = event.getMechanic();
         if (!mechanic.hasBlockSounds()) return;
-        BlockSounds blockSounds = mechanic.getBlockSounds();
+        BlockSounds blockSounds = mechanic.blockSounds();
         if (blockSounds.hasBreakSound())
             BlockHelpers.playCustomBlockSound(loc, blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());
     }

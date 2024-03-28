@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.listeners;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
@@ -7,6 +7,9 @@ import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurniturePlaceEvent;
 import io.th0rgal.oraxen.config.Message;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSeat;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
@@ -43,8 +46,6 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic.rotationToYaw;
-
 public class FurnitureListener implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
@@ -68,7 +69,7 @@ public class FurnitureListener implements Listener {
 
         if (!event.getPlayer().isSneaking() && BlockHelpers.isInteractable(block)) return;
 
-        LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
+        LimitedPlacing limitedPlacing = mechanic.limitedPlacing();
         Block belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN);
 
         if (limitedPlacing.isNotPlacableOn(block, blockFace)) event.setCancelled(true);
@@ -119,10 +120,10 @@ public class FurnitureListener implements Listener {
         BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(block, block.getState(), placedAgainst, item, player, true, hand);
 
         final Rotation rotation = getRotation(player.getEyeLocation().getYaw(), mechanic);
-        final float yaw = rotationToYaw(rotation);
+        final float yaw = FurnitureHelpers.rotationToYaw(rotation);
         if (player.getGameMode() == GameMode.ADVENTURE)
             blockPlaceEvent.setCancelled(true);
-        if (mechanic.hasEnoughSpace(block.getLocation(), yaw)) {
+        if (!mechanic.hasEnoughSpace(block.getLocation(), yaw)) {
             blockPlaceEvent.setCancelled(true);
             Message.NOT_ENOUGH_SPACE.send(player);
         }
@@ -270,7 +271,7 @@ public class FurnitureListener implements Listener {
         mechanic.runClickActions(player);
 
         if (mechanic.isStorage()) {
-            StorageMechanic storage = mechanic.getStorage();
+            StorageMechanic storage = mechanic.storage();
             switch (storage.getStorageType()) {
                 case STORAGE, SHULKER -> storage.openStorage(baseEntity, player);
                 case PERSONAL -> storage.openPersonalStorage(player, baseEntity.getLocation(), baseEntity);

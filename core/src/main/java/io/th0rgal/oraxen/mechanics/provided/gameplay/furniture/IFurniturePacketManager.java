@@ -1,8 +1,12 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import com.comphenix.protocol.wrappers.BlockPosition;
+import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.InteractionHitbox;
 import org.bukkit.Bukkit;
+import org.bukkit.Material;
+import org.bukkit.World;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -11,6 +15,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public interface IFurniturePacketManager {
+
+    BlockData BARRIER_DATA = Material.BARRIER.createBlockData();
+    BlockData AIR_DATA = Material.AIR.createBlockData();
 
     Map<UUID, Set<BlockPosition>> barrierHitboxPositionMap = new HashMap<>();
     Set<InteractionHitbox.Id> interactionHitboxIdMap = new HashSet<>();
@@ -38,4 +45,13 @@ public interface IFurniturePacketManager {
     void sendBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player);
     void removeBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic);
     void removeBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player);
+
+    default void removeAllHitboxes() {
+        for (World world : Bukkit.getWorlds()) for (Entity entity : world.getEntities()) {
+            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
+            if (mechanic == null) continue;
+            removeInteractionHitboxPacket(entity, mechanic);
+            removeBarrierHitboxPacket(entity, mechanic);
+        }
+    }
 }

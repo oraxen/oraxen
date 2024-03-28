@@ -40,7 +40,6 @@ import org.bukkit.event.HandlerList;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
-import team.unnamed.creative.ResourcePack;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -56,7 +55,6 @@ public class OraxenPlugin extends JavaPlugin {
     private HudManager hudManager;
     private SoundManager soundManager;
     private InvManager invManager;
-    private ResourcePack resourcePack;
     private PackGenerator packGenerator;
     @Nullable private OraxenPackServer packServer;
     private ClickActionManager clickActionManager;
@@ -144,6 +142,7 @@ public class OraxenPlugin extends JavaPlugin {
         if (packServer != null) packServer.stop();
         unregisterListeners();
         FurnitureFactory.unregisterEvolution();
+        FurnitureFactory.instance.furniturePacketManager().removeAllHitboxes();
         for (Player player : Bukkit.getOnlinePlayers())
             if (GlyphHandlers.isNms()) NMSHandlers.getHandler().uninject(player);
 

@@ -9,6 +9,7 @@ import dev.triumphteam.gui.guis.StorageGui;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -157,7 +158,7 @@ public class StorageMechanic {
                 ? gui.getInventory().getContents() : pdc.getOrDefault(STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
         if (isShulker()) {
             ItemStack defaultItem = OraxenItems.getItemById(mechanic.getItemID()).build();
-            ItemStack shulker = FurnitureMechanic.getFurnitureItem(baseEntity);
+            ItemStack shulker = FurnitureHelpers.furnitureItem(baseEntity);
             ItemMeta shulkerMeta = shulker.getItemMeta();
 
             if (shulkerMeta != null) {
@@ -309,7 +310,7 @@ public class StorageMechanic {
 
     private StorageGui createGui(Entity baseEntity) {
         Location location = baseEntity.getLocation();
-        ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
+        ItemStack furnitureItem = FurnitureHelpers.furnitureItem(baseEntity);
         if (furnitureItem == null) return null;
         PersistentDataContainer storagePDC = baseEntity.getPersistentDataContainer();
         PersistentDataContainer itemPDC = furnitureItem.getItemMeta().getPersistentDataContainer();

@@ -84,7 +84,7 @@ public class JukeboxListener implements Listener {
         if (furnitureMechanic == null || !furnitureMechanic.isJukebox()) return false;
         if (pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK)) return false;
         if (disc == null || !Tag.ITEMS_MUSIC_DISCS.isTagged(disc.getType())) return false;
-        JukeboxBlock jukebox = furnitureMechanic.getJukebox();
+        JukeboxBlock jukebox = furnitureMechanic.jukebox();
         if (!jukebox.hasPermission(player)) return false;
         ItemStack insertedDisc = disc.clone();
         insertedDisc.setAmount(1);
@@ -105,7 +105,7 @@ public class JukeboxListener implements Listener {
         if (!pdc.has(MUSIC_DISC_KEY, DataType.ITEM_STACK)) return false;
         if (item == null || !Tag.ITEMS_MUSIC_DISCS.isTagged(item.getType())) return false;
 
-        JukeboxBlock jukebox = furnitureMechanic.getJukebox();
+        JukeboxBlock jukebox = furnitureMechanic.jukebox();
         if (!jukebox.hasPermission(player)) return false;
 
         baseEntity.getWorld().getNearbyEntities(loc, 32, 32, 32).stream()

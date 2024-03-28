@@ -6,7 +6,6 @@ import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.model.ActiveModel;
 import com.ticxo.modelengine.api.model.ModeledEntity;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
 import io.th0rgal.oraxen.mechanics.Mechanic;
@@ -39,7 +38,10 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 
 public class FurnitureMechanic extends Mechanic {
 
@@ -220,7 +222,7 @@ public class FurnitureMechanic extends Mechanic {
         return limitedPlacing != null;
     }
 
-    public LimitedPlacing getLimitedPlacing() {
+    public LimitedPlacing limitedPlacing() {
         return limitedPlacing;
     }
 
@@ -228,7 +230,7 @@ public class FurnitureMechanic extends Mechanic {
         return storage != null;
     }
 
-    public StorageMechanic getStorage() {
+    public StorageMechanic storage() {
         return storage;
     }
 
@@ -236,7 +238,7 @@ public class FurnitureMechanic extends Mechanic {
         return blockSounds != null;
     }
 
-    public BlockSounds getBlockSounds() {
+    public BlockSounds blockSounds() {
         return blockSounds;
     }
 
@@ -244,7 +246,7 @@ public class FurnitureMechanic extends Mechanic {
         return jukebox != null;
     }
 
-    public JukeboxBlock getJukebox() {
+    public JukeboxBlock jukebox() {
         return jukebox;
     }
 
@@ -260,7 +262,7 @@ public class FurnitureMechanic extends Mechanic {
         return seats;
     }
 
-    public Drop getDrop() {
+    public Drop drop() {
         return drop;
     }
 
@@ -268,7 +270,7 @@ public class FurnitureMechanic extends Mechanic {
         return evolvingFurniture != null;
     }
 
-    public EvolvingFurniture getEvolution() {
+    public EvolvingFurniture evolution() {
         return evolvingFurniture;
     }
 
@@ -314,12 +316,13 @@ public class FurnitureMechanic extends Mechanic {
         item.setAmount(1);
 
         Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, facing), entityClass, (e) -> setEntityData(e, yaw, item, facing));
+        if (baseEntity == null) return null;
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }
-        if (hasSeats() && baseEntity != null) FurnitureSeat.spawnSeats(baseEntity, this);
+        FurnitureSeat.spawnSeats(baseEntity, this);
 
-        hitbox.handleHitboxes(baseEntity, this);
+        //hitbox.handleHitboxes(baseEntity, this);
 
         return baseEntity;
     }
@@ -338,7 +341,7 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void setEntityData(Entity entity, float yaw, BlockFace facing) {
-        setEntityData(entity, yaw, getFurnitureItem(entity), facing);
+        setEntityData(entity, yaw, FurnitureHelpers.furnitureItem(entity), facing);
     }
 
     public void setEntityData(Entity entity, float yaw, ItemStack item, BlockFace facing) {
@@ -376,7 +379,7 @@ public class FurnitureMechanic extends Mechanic {
         PersistentDataContainer pdc = entity.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
         if (hasEvolution()) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
-        if (isStorage() && getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
+        if (isStorage() && storage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
             pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
         }
     }
@@ -426,7 +429,7 @@ public class FurnitureMechanic extends Mechanic {
         frame.setItemDropChance(0);
         frame.setFacingDirection(facing, true);
         frame.setItem(item, false);
-        frame.setRotation(yawToRotation(yaw));
+        frame.setRotation(FurnitureHelpers.yawToRotation(yaw));
 
         if (hasLimitedPlacing()) {
             if (limitedPlacing.isFloor() && !limitedPlacing.isWall() && frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid())
@@ -438,7 +441,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    void spawnModelEngineFurniture(Entity entity) {
+    private void spawnModelEngineFurniture(@NotNull Entity entity) {
         ModeledEntity modelEntity = ModelEngineAPI.getOrCreateModeledEntity(entity);
         ActiveModel activeModel = ModelEngineAPI.createActiveModel(getModelEngineID());
         ModelEngineUtils.addModel(modelEntity, activeModel, true);
@@ -446,30 +449,11 @@ public class FurnitureMechanic extends Mechanic {
         modelEntity.setBaseEntityVisible(false);
     }
 
-    public static ItemStack getFurnitureItem(Entity entity) {
-        return switch (entity.getType()) {
-            case ARMOR_STAND -> ((ArmorStand) entity).getEquipment().getHelmet();
-            case ITEM_DISPLAY -> OraxenPlugin.supportsDisplayEntities ? ((ItemDisplay) entity).getItemStack() : null;
-            default -> ((ItemFrame) entity).getItem();
-        };
-    }
-
-    public static void setFurnitureItem(Entity entity, ItemStack item) {
-        switch (entity.getType()) {
-            case ITEM_FRAME, GLOW_ITEM_FRAME -> ((ItemFrame) entity).setItem(item, false);
-            case ARMOR_STAND -> ((ArmorStand) entity).getEquipment().setHelmet(item);
-            case ITEM_DISPLAY -> {
-                if (OraxenPlugin.supportsDisplayEntities) ((ItemDisplay) entity).setItemStack(item);
-            }
-            default -> {
-            }
-        }
-    }
-
     public void removeBaseEntity(@NotNull Entity baseEntity) {
         if (light.hasLightLevel()) light.removeBlockLight(baseEntity.getLocation().getBlock());
         if (hasSeats()) removeFurnitureSeats(baseEntity);
         FurnitureFactory.instance.furniturePacketManager().removeInteractionHitboxPacket(baseEntity, this);
+        FurnitureFactory.instance.furniturePacketManager().removeBarrierHitboxPacket(baseEntity, this);
 
         if (!baseEntity.isDead()) baseEntity.remove();
     }
@@ -489,29 +473,6 @@ public class FurnitureMechanic extends Mechanic {
         return hitbox.hitboxLocations(rootLocation, yaw).stream().allMatch(l -> l.getBlock().isReplaceable());
     }
 
-    public static float furnitureYaw(Entity entity) {
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
-        if (mechanic == null) return entity.getLocation().getYaw();
-
-        if (entity instanceof ItemFrame itemFrame) {
-            if (mechanic.hasLimitedPlacing() && mechanic.limitedPlacing.isWall() && itemFrame.getFacing().getModY() == 0)
-                return entity.getLocation().getYaw();
-            else return rotationToYaw(itemFrame.getRotation());
-        } else return entity.getLocation().getYaw();
-    }
-
-    public static float rotationToYaw(Rotation rotation) {
-        return (Arrays.asList(Rotation.values()).indexOf(rotation) * 360f) / 8f;
-    }
-
-    public static Rotation yawToRotation(float yaw) {
-        return Rotation.values()[Math.round(yaw / 45f) & 0x7];
-    }
-
-    public boolean hasClickActions() {
-        return !clickActions.isEmpty();
-    }
-
     public void runClickActions(final Player player) {
         for (final ClickAction action : clickActions) {
             if (action.canRun(player)) {
@@ -528,6 +489,7 @@ public class FurnitureMechanic extends Mechanic {
 
     @Nullable
     public Entity baseEntity(Location location) {
+        if (location == null) return null;
         BlockPosition blockPosition = new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
         return FurnitureFactory.instance.furniturePacketManager().baseEntityFromHitbox(blockPosition);
     }
@@ -577,10 +539,11 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void rotateFurniture(Entity baseEntity) {
-        float yaw = FurnitureMechanic.furnitureYaw(baseEntity);
-        Rotation newRotation = rotateClockwise(yawToRotation(yaw));
-        if (baseEntity instanceof ItemFrame frame) frame.setRotation(newRotation);
-        else baseEntity.setRotation(FurnitureMechanic.rotationToYaw(newRotation), baseEntity.getLocation().getPitch());
+        float yaw = FurnitureHelpers.furnitureYaw(baseEntity);
+        yaw = FurnitureHelpers.rotationToYaw(rotateClockwise(FurnitureHelpers.yawToRotation(yaw)));
+        FurnitureHelpers.furnitureYaw(baseEntity, yaw);
+
+        hitbox.handleHitboxes(baseEntity, this);
     }
 
     private Rotation rotateClockwise(Rotation rotation) {
