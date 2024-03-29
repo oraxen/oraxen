@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.utils.drops;
 
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanic;
 import io.th0rgal.oraxen.mechanics.provided.misc.itemtype.ItemTypeMechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -152,7 +152,7 @@ public class Drop {
     public void furnitureSpawns(Entity baseEntity, ItemStack itemInHand) {
         ItemStack baseItem = OraxenItems.getItemById(sourceID).build();
         Location location = BlockHelpers.toBlockLocation(baseEntity.getLocation());
-        ItemStack furnitureItem = FurnitureMechanic.getFurnitureItem(baseEntity);
+        ItemStack furnitureItem = FurnitureHelpers.furnitureItem(baseEntity);
         ItemUtils.editItemMeta(furnitureItem, (itemMeta) -> {
             ItemMeta baseMeta = baseItem.getItemMeta();
             if (baseMeta != null && baseMeta.hasDisplayName())

@@ -89,7 +89,6 @@ allprojects {
     dependencies {
         val actionsVersion = "1.0.0-SNAPSHOT"
 
-        compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
         compileOnly("gs.mclo:java:2.2.1")
 
         compileOnly("net.kyori:adventure-text-minimessage:$adventureVersion")
@@ -135,6 +134,7 @@ allprojects {
 }
 
 dependencies {
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
     implementation(project(path = ":core"))
     SUPPORTED_VERSIONS.forEach { implementation(project(path = ":${it.nmsVersion}", configuration = "reobf")) }
 }

@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.utils;
 
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -82,8 +83,9 @@ public class EntityUtils {
 
             return entity;
         } catch (Exception e) {
+           if (Settings.DEBUG.toBool()) e.printStackTrace();
            Logs.logWarning(e.getMessage()); // Handle the exception according to your needs
-        }
+       }
         return null;
     }
 

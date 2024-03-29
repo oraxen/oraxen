@@ -63,7 +63,7 @@ public class EvolutionTask extends BukkitRunnable {
                         }
                     }
 
-                    EvolvingFurniture evolution = mechanic.getEvolution();
+                    EvolvingFurniture evolution = mechanic.evolution();
                     if (evolution == null) continue;
 
                     int lightBoostTick = 0;

@@ -50,7 +50,7 @@ public class ReloadCommand {
         if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_RELOAD.toBool()) {
             Logs.logInfo("Updating all placed furniture...");
             for (World world : Bukkit.getServer().getWorlds())
-                world.getEntities().stream().filter(OraxenFurniture::isBaseEntity).forEach(OraxenFurniture::updateFurniture);
+                world.getEntities().stream().filter(OraxenFurniture::isFurniture).forEach(OraxenFurniture::updateFurniture);
         }
 
     }

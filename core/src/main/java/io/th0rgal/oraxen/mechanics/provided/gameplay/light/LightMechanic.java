@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.light;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
@@ -77,11 +78,11 @@ public class LightMechanic {
                 if (stringBlockMechanic.hasLight()) stringBlockMechanic.getLight().createBlockLight(block);
                 else continue;
 
-            FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block);
+            FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());
             if (furnitureMechanic != null) {
-                Entity baseEntity = furnitureMechanic.getBaseEntity(block);
+                Entity baseEntity = furnitureMechanic.baseEntity(block);
                 if (!furnitureMechanic.hasLight() || baseEntity == null) continue;
-                furnitureMechanic.setEntityData(baseEntity, FurnitureMechanic.getFurnitureYaw(baseEntity), baseEntity.getFacing());
+                furnitureMechanic.setEntityData(baseEntity, FurnitureHelpers.furnitureYaw(baseEntity), baseEntity.getFacing());
             }
         }
     }
