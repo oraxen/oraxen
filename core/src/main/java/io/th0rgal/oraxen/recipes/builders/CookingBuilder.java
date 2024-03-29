@@ -37,7 +37,7 @@ public class CookingBuilder extends RecipeBuilder {
         newCraftSection.set("cookingTime", cookingTime);
         newCraftSection.set("experience", experience);
 
-        if (permission != null)
+        if (permission != null && !permission.isEmpty())
             newCraftSection.set("permission", permission);
 
         saveConfig();
