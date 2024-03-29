@@ -113,6 +113,7 @@ public enum Settings {
 
     PACK_SERVER_TYPE("Pack.server.type", PackServerType.SELFHOST.name()),
     SELFHOST_PACK_SERVER_PORT("Pack.server.selfhost.port", 8082),
+    SELFHOST_PUBLIC_ADDRESS("Pack.server.selfhost.public_address"),
     POLYMATH_SERVER("Pack.server.polymath.server", "atlas.oraxen.com"),
     POLYMATH_SECRET("Pack.server.polymath.secret", "oraxen"),
 

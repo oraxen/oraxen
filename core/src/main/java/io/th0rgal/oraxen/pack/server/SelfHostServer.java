@@ -5,13 +5,15 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import team.unnamed.creative.BuiltResourcePack;
 import team.unnamed.creative.server.ResourcePackServer;
 import team.unnamed.creative.server.handler.ResourcePackRequestHandler;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URL;
 import java.util.UUID;
 
 public class SelfHostServer implements OraxenPackServer {
@@ -19,13 +21,15 @@ public class SelfHostServer implements OraxenPackServer {
     private ResourcePackServer packServer;
     private final String prompt = Settings.SEND_PACK_PROMPT.toString();
     private final boolean mandatory = Settings.SEND_PACK_MANDATORY.toBool();
+    private final String publicAddress;
 
     public SelfHostServer() {
+        this.publicAddress = publicAddress();
         try {
             BuiltResourcePack builtPack = OraxenPlugin.get().packGenerator().builtPack();
             ResourcePackRequestHandler handler = ResourcePackRequestHandler.fixed(builtPack);
             int serverPort = Settings.SELFHOST_PACK_SERVER_PORT.toInt(8082);
-            packServer = ResourcePackServer.server().address("0.0.0.0", serverPort).handler(handler).pack(builtPack).build();
+            packServer = ResourcePackServer.server().address(serverPort).handler(handler).pack(builtPack).build();
         } catch (IOException e) {
             if (Settings.DEBUG.toBool()) e.printStackTrace();
             else Logs.logWarning(e.getMessage(), true);
@@ -38,8 +42,7 @@ public class SelfHostServer implements OraxenPackServer {
         String hash = OraxenPlugin.get().packGenerator().builtPack().hash();
         byte[] hashArray = OraxenPackServer.hashArray(hash);
         int serverPort = Settings.SELFHOST_PACK_SERVER_PORT.toInt(8082);
-        Logs.logError(Bukkit.getIp());
-        String url = "http://0.0.0.0:" + serverPort + "/" + hash + ".zip";
+        String url = "http://" + publicAddress + ":" + serverPort + "/" + hash + ".zip";
         UUID packUUID = UUID.nameUUIDFromBytes(hashArray);
 
         if (VersionUtil.atOrAbove("1.20.3")) {
@@ -48,21 +51,43 @@ public class SelfHostServer implements OraxenPackServer {
         }
         else if (VersionUtil.isPaperServer()) player.setResourcePack(url, hashArray, AdventureUtils.MINI_MESSAGE.deserialize(prompt), mandatory);
         else player.setResourcePack(url, hashArray, AdventureUtils.parseLegacy(prompt), mandatory);
+    }
 
-
+    @Override
+    public void uploadPack() {
+        String hashPart = "/" + OraxenPlugin.get().packGenerator().builtPack().hash() + ".zip";
+        if (Settings.DEBUG.toBool()) Logs.logSuccess("Resourcepack uploaded and will be dispatched with publicAddress http://" + this.publicAddress + ":" + packServer.address().getPort() + hashPart);
+        else Logs.logSuccess("Resourcepack has been uploaded to SelfHost!");
     }
 
     @Override
     public void start() {
         if (packServer == null) return;
-        Logs.logSuccess("Started Oraxen pack-server...");
+        Logs.logSuccess("Started Self-Host Pack-Server...");
         packServer.start();
     }
 
     @Override
     public void stop() {
         if (packServer == null) return;
-        Logs.logError("Stopping Oraxen pack-server...");
+        Logs.logError("Stopping Self-Host Pack-Server...");
         packServer.stop(0);
+    }
+
+    private String publicAddress() {
+        String urlString = "http://checkip.amazonaws.com/";
+        String publicAddress;
+        try {
+            URL url = new URL(urlString);
+            try (BufferedReader br = new BufferedReader(new InputStreamReader(url.openStream()))) {
+                publicAddress = br.readLine();
+            }
+        } catch (IOException e) {
+            if (Settings.DEBUG.toBool()) e.printStackTrace();
+            Logs.logError("Failed to get publicAddress for SELFHOST server...");
+            Logs.logWarning("You can manually set it in `settings.yml` at ");
+            publicAddress = "0.0.0.0";
+        }
+        return Settings.SELFHOST_PUBLIC_ADDRESS.toString(publicAddress);
     }
 }
