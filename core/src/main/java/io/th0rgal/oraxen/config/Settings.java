@@ -281,7 +281,7 @@ public enum Settings {
             settingsFile.createNewFile();
             settings.save(settingsFile);
         } catch (IOException e) {
-            if (DEBUG.toBool()) e.printStackTrace();
+            if (settings.getBoolean("debug")) e.printStackTrace();
         }
 
         return settings;
