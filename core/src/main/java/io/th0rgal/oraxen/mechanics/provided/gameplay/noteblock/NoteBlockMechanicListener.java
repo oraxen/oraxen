@@ -274,7 +274,16 @@ public class NoteBlockMechanicListener implements Listener {
     }
 
     @EventHandler
-    public void onExplosionDestroy(EntityExplodeEvent event) {
+    public void onEntityExplosion(EntityExplodeEvent event) {
+        for (Block block : new HashSet<>(event.blockList())) {
+            if (!OraxenBlocks.isOraxenNoteBlock(block)) continue;
+            OraxenBlocks.remove(block.getLocation(), null);
+            event.blockList().remove(block);
+        }
+    }
+
+    @EventHandler
+    public void onBlockExplosion(BlockExplodeEvent event) {
         for (Block block : new HashSet<>(event.blockList())) {
             if (!OraxenBlocks.isOraxenNoteBlock(block)) continue;
             OraxenBlocks.remove(block.getLocation(), null);
@@ -476,7 +485,8 @@ public class NoteBlockMechanicListener implements Listener {
             if (targetOraxen.isFalling() && target.getRelative(BlockFace.DOWN).getType().isAir()) {
                 Location fallingLocation = BlockHelpers.toCenterBlockLocation(target.getLocation());
                 OraxenBlocks.remove(target.getLocation(), null);
-                target.getWorld().spawnFallingBlock(fallingLocation, newData);
+                if(fallingLocation.getNearbyEntitiesByType(FallingBlock.class, 0.25).isEmpty())
+                    target.getWorld().spawnFallingBlock(fallingLocation, newData);
                 handleFallingOraxenBlockAbove(target);
             }
 

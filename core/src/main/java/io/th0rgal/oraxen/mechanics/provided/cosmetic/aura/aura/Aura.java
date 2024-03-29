@@ -4,8 +4,10 @@ import fr.euphyllia.energie.model.SchedulerTaskInter;
 import fr.euphyllia.energie.model.SchedulerType;
 import fr.euphyllia.energie.utils.SchedulerTaskRunnable;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.AuraMechanic;
 import org.bukkit.entity.Player;
+
 
 public abstract class Aura {
 
@@ -32,6 +34,7 @@ public abstract class Aura {
     public void start() {
         runnable = getRunnable();
         runnable.runAtFixedRate(OraxenPlugin.get(), SchedulerType.ASYNC, 0L, getDelay());
+        MechanicsManager.registerTask(mechanic.getFactory().getMechanicID(), task);
     }
 
     public void stop() {

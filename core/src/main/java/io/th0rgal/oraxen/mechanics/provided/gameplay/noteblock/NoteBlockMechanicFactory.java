@@ -23,6 +23,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.HashMap;
 import java.util.List;
@@ -266,6 +267,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
         farmBlockTask = new FarmBlockTask(farmBlockCheckDelay);
         farmBlockTask.runAtFixedRate(OraxenPlugin.get(),  SchedulerType.SYNC, 0, farmBlockCheckDelay);
+        MechanicsManager.registerTask(getMechanicID(), task);
         farmBlock = true;
     }
 
