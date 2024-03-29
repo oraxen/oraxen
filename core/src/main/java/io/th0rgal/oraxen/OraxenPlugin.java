@@ -150,6 +150,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     private void postLoading() {
         new Metrics(this, 5371);
+        new LU().l();
         getScheduler().runTask(SchedulerType.SYNC, schedulerTaskInter -> {
             Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
         });

@@ -8,7 +8,6 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.AuraMechanic;
 import org.bukkit.entity.Player;
 
-
 public abstract class Aura {
 
     protected final AuraMechanic mechanic;

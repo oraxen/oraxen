@@ -73,15 +73,14 @@ public class ResourcesManager {
     }
 
     public void extractFileIfTrue(ZipEntry entry, boolean isSuitable) {
-        if (entry.isDirectory()) return;
-        if (isSuitable) plugin.saveResource(entry.getName(), true);
-        else if (entry.getName().startsWith("pack/textures/models/armor/")) {
+        if (entry.isDirectory() || !isSuitable) return;
+        if (entry.getName().startsWith("pack/textures/models/armor/")) {
             CustomArmorType customArmorType = CustomArmorType.getSetting();
-            if (OraxenPlugin.get().getDataFolder().toPath().resolve(entry.getName()).toFile().exists()) return;
+            if (OraxenPlugin.get().getDataFolder().toPath().resolve("pack/" + entry.getName()).toFile().exists()) return;
             if (customArmorType != CustomArmorType.SHADER) return;
             if (!Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && entry.getName().startsWith("pack/textures/models/armor/leather_layer")) return;
-            plugin.saveResource(entry.getName(), false);
         }
+        plugin.saveResource(entry.getName(), true);
     }
 
     private void extractFileAccordingToExtension(ZipEntry entry, String folder, String fileExtension) {
