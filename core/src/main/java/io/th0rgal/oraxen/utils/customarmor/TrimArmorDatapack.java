@@ -13,10 +13,7 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Registry;
-import org.bukkit.Tag;
+import org.bukkit.*;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
@@ -31,8 +28,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class TrimArmorDatapack {
-    private static final File customArmorDatapack = Bukkit.getWorldContainer().toPath().resolve("world/datapacks/oraxen_custom_armor").toFile();
-
+    private static final World defaultWorld = Bukkit.getWorlds().get(0);
+    private static final File customArmorDatapack = defaultWorld.getWorldFolder().toPath().resolve("datapacks/oraxen_custom_armor").toFile();
     private final JsonObject datapackMeta = new JsonObject();
     private final JsonObject sourcesObject = new JsonObject();
     public TrimArmorDatapack() {

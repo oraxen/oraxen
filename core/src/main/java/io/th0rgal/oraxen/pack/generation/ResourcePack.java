@@ -59,13 +59,8 @@ public class ResourcePack {
 
         makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
 
-        if (CustomArmorType.getSetting() == CustomArmorType.TRIMS) {
-            trimArmorDatapack = new TrimArmorDatapack();
-        } else trimArmorDatapack = null;
-
-        if (CustomArmorType.getSetting() == CustomArmorType.SHADER) {
-            shaderArmorTextures = new ShaderArmorTextures();
-        } else shaderArmorTextures = null;
+        trimArmorDatapack = CustomArmorType.getSetting() == CustomArmorType.TRIMS ? new TrimArmorDatapack() : null;
+        shaderArmorTextures = CustomArmorType.getSetting() == CustomArmorType.SHADER ? new ShaderArmorTextures() : null;
 
         if (Settings.GENERATE_DEFAULT_ASSETS.toBool()) extractDefaultFolders();
         extractRequired();
