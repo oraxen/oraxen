@@ -127,11 +127,11 @@ public class TrimArmorDatapack extends CustomArmor {
 
         // If for some reason the atlas exists already, we append to it
         if (trimsAtlas != null) {
-            List<AtlasSource> sources = trimsAtlas.sources();
-            for (AtlasSource source : new ArrayList<>(sources)) {
+            List<AtlasSource> sources = new ArrayList<>(trimsAtlas.sources());
+            for (AtlasSource source : trimsAtlas.sources()) {
                 if (!(source instanceof PalettedPermutationsAtlasSource palletedSource)) continue;
 
-                List<Key> textures = palletedSource.textures();
+                List<Key> textures = new ArrayList<>(palletedSource.textures());
                 for (String armorPrefix : armorPrefixes) {
                     textures.add(Key.key("oraxen:trims/models/armor/" + armorPrefix));
                     textures.add(Key.key("oraxen:trims/models/armor/" + armorPrefix + "_leggings"));
