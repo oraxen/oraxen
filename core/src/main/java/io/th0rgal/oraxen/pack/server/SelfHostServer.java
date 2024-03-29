@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import team.unnamed.creative.BuiltResourcePack;
 import team.unnamed.creative.server.ResourcePackServer;
@@ -25,7 +26,6 @@ public class SelfHostServer implements OraxenPackServer {
             ResourcePackRequestHandler handler = ResourcePackRequestHandler.fixed(builtPack);
             int serverPort = Settings.SELFHOST_PACK_SERVER_PORT.toInt(8082);
             packServer = ResourcePackServer.server().address("0.0.0.0", serverPort).handler(handler).pack(builtPack).build();
-            OraxenPlugin.get().packServer(this);
         } catch (IOException e) {
             if (Settings.DEBUG.toBool()) e.printStackTrace();
             else Logs.logWarning(e.getMessage(), true);
@@ -38,6 +38,7 @@ public class SelfHostServer implements OraxenPackServer {
         String hash = OraxenPlugin.get().packGenerator().builtPack().hash();
         byte[] hashArray = OraxenPackServer.hashArray(hash);
         int serverPort = Settings.SELFHOST_PACK_SERVER_PORT.toInt(8082);
+        Logs.logError(Bukkit.getIp());
         String url = "http://0.0.0.0:" + serverPort + "/" + hash + ".zip";
         UUID packUUID = UUID.nameUUIDFromBytes(hashArray);
 

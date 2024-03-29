@@ -19,6 +19,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.pack.PackGenerator;
+import io.th0rgal.oraxen.pack.server.EmptyServer;
 import io.th0rgal.oraxen.pack.server.OraxenPackServer;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
@@ -124,6 +125,8 @@ public class OraxenPlugin extends JavaPlugin {
 
         packGenerator.generatePack();
         packServer = OraxenPackServer.initializeServer();
+        packServer.start();
+        packServer.uploadPack();
         postLoading();
         CompatibilitiesManager.enableNativeCompatibilities();
         if (VersionUtil.isCompiled()) NoticeUtils.compileNotice();
@@ -221,9 +224,8 @@ public class OraxenPlugin extends JavaPlugin {
         return packGenerator;
     }
 
-    @Nullable
     public OraxenPackServer packServer() {
-        return packServer;
+        return packServer != null ? packServer : new EmptyServer();
     }
     public void packServer(@Nullable OraxenPackServer server) {
         if (packServer != null) packServer.stop();

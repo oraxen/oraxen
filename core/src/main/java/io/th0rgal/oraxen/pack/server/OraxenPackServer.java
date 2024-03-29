@@ -1,21 +1,20 @@
 package io.th0rgal.oraxen.pack.server;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.entity.Player;
-import org.jetbrains.annotations.Nullable;
 
 public interface OraxenPackServer {
 
-    @Nullable
     static OraxenPackServer initializeServer() {
+        OraxenPlugin.get().packServer().stop();
         return switch (PackServerType.fromSetting()) {
             case SELFHOST -> new SelfHostServer();
             case POLYMATH -> new PolymathServer();
-            case NONE -> null;
+            case NONE -> new EmptyServer();
         };
     }
 
-    default boolean uploadPack() {
-        return true;
+    default void uploadPack() {
     }
 
     void sendPack(Player player);
