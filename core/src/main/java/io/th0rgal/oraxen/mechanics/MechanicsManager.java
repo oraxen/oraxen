@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.mechanics;
 
-import fr.euphyllia.energie.model.SchedulerType;
+import fr.euphyllia.energie.model.SchedulerTaskInter;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
@@ -43,7 +43,6 @@ import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.HandlerList;
 import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.io.File;
 import java.io.IOException;
@@ -150,7 +149,7 @@ public class MechanicsManager {
         }
     }
 
-    public static void registerTask(String mechanicId, BukkitTask task) {
+    public static void registerTask(String mechanicId, SchedulerTaskInter task) {
         MECHANIC_TASKS.compute(mechanicId, (key, value) -> {
             if (value == null) value = new ArrayList<>();
             value.add(task.getTaskId());
@@ -159,13 +158,13 @@ public class MechanicsManager {
     }
 
     public static void unregisterTasks() {
-        MECHANIC_TASKS.values().forEach(tasks -> tasks.forEach(Bukkit.getScheduler()::cancelTask));
+        MECHANIC_TASKS.values().forEach(tasks -> tasks.forEach(OraxenPlugin.getScheduler()::cancelTask));
         MECHANIC_TASKS.clear();
     }
 
     public static void unregisterTasks(String mechanicId) {
         MECHANIC_TASKS.computeIfPresent(mechanicId, (key, value) -> {
-            value.forEach(Bukkit.getScheduler()::cancelTask);
+            value.forEach(OraxenPlugin.getScheduler()::cancelTask);
             return Collections.emptyList();
         });
     }

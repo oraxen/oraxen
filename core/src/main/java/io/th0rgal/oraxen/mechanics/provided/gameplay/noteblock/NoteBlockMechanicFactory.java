@@ -266,7 +266,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 //        if (farmblockList.isEmpty()) return;
 
         farmBlockTask = new FarmBlockTask(farmBlockCheckDelay);
-        farmBlockTask.runAtFixedRate(OraxenPlugin.get(),  SchedulerType.SYNC, 0, farmBlockCheckDelay);
+        SchedulerTaskInter task = farmBlockTask.runAtFixedRate(OraxenPlugin.get(),  SchedulerType.SYNC, 0, farmBlockCheckDelay);
         MechanicsManager.registerTask(getMechanicID(), task);
         farmBlock = true;
     }

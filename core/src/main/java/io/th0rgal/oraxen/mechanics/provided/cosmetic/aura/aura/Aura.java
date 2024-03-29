@@ -33,7 +33,7 @@ public abstract class Aura {
 
     public void start() {
         runnable = getRunnable();
-        runnable.runAtFixedRate(OraxenPlugin.get(), SchedulerType.ASYNC, 0L, getDelay());
+        SchedulerTaskInter task = runnable.runAtFixedRate(OraxenPlugin.get(), SchedulerType.ASYNC, 0L, getDelay());
         MechanicsManager.registerTask(mechanic.getFactory().getMechanicID(), task);
     }
 

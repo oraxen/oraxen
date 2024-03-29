@@ -79,7 +79,7 @@ public class FurnitureFactory extends MechanicFactory {
         if (evolutionTask != null)
             evolutionTask.cancel();
         evolutionTask = new EvolutionTask(this, evolutionCheckDelay);
-        evolutionTask.runAtFixedRate(OraxenPlugin.get(), SchedulerType.SYNC,0, evolutionCheckDelay);
+        SchedulerTaskInter task = evolutionTask.runAtFixedRate(OraxenPlugin.get(), SchedulerType.SYNC,0, evolutionCheckDelay);
         MechanicsManager.registerTask(getMechanicID(), task);
         evolvingFurnitures = true;
     }
