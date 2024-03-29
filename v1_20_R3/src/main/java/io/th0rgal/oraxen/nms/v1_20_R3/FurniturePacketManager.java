@@ -6,10 +6,12 @@ import io.papermc.paper.math.BlockPosition;
 import io.papermc.paper.math.Position;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureSubEntity;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.InteractionHitbox;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSeat;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -22,6 +24,7 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
@@ -44,7 +47,9 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     private final int INTERACTION_WIDTH_ID = 8;
     private final int INTERACTION_HEIGHT_ID = 9;
-    private final Map<UUID, Set<FurnitureInteractionHitboxPacket>> interactionHitboxPacketMap = new HashMap<>();
+    private final Map<UUID, Set<FurnitureSubEntityPacket>> interactionHitboxPacketMap = new HashMap<>();
+    private final Map<UUID, Set<FurnitureSubEntityPacket>> furnitureSeatPacketMap = new HashMap<>();
+
     @Override
     public void sendInteractionEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         List<InteractionHitbox> interactionHitboxes = mechanic.hitbox().interactionHitboxes();
@@ -55,9 +60,9 @@ public class FurniturePacketManager implements IFurniturePacketManager {
         }
 
         Location baseLoc = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
-        interactionHitboxPacketMap.computeIfAbsent(baseEntity.getUniqueId(), key -> {
+        interactionHitboxPacketMap.computeIfAbsent(baseEntity.getUniqueId(), baseUuid -> {
             List<Integer> entityIds = interactionHitboxIdMap.stream()
-                    .filter(ids -> ids.baseUUID().equals(baseEntity.getUniqueId()))
+                    .filter(ids -> ids.baseUUID().equals(baseUuid))
                     .findFirst()
                     .map(FurnitureSubEntity::entityIds)
                     .orElseGet(() -> {
@@ -65,12 +70,12 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                         while (newEntityIds.size() < interactionHitboxes.size())
                             newEntityIds.add(net.minecraft.world.entity.Entity.nextEntityId());
 
-                        FurnitureSubEntity subEntity = new FurnitureSubEntity(baseEntity.getUniqueId(), newEntityIds);
-                        interactionHitboxIdMap.add(subEntity);
-                        return subEntity.entityIds();
+                        FurnitureSubEntity id = new FurnitureSubEntity(baseUuid, newEntityIds);
+                        interactionHitboxIdMap.add(id);
+                        return id.entityIds();
                     });
 
-            Set<FurnitureInteractionHitboxPacket> packets = new HashSet<>();
+            Set<FurnitureSubEntityPacket> packets = new HashSet<>();
             for (int i = 0; i < interactionHitboxes.size(); i++) {
                 InteractionHitbox hitbox = interactionHitboxes.get(i);
                 int entityId = entityIds.get(i);
@@ -88,7 +93,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                         new SynchedEntityData.DataValue<>(INTERACTION_HEIGHT_ID, EntityDataSerializers.FLOAT, hitbox.height())
                 ));
 
-                packets.add(new FurnitureInteractionHitboxPacket(entityId, addEntityPacket, metadataPacket));
+                packets.add(new FurnitureSubEntityPacket(entityId, addEntityPacket, metadataPacket));
             }
             return packets;
         }).forEach(packets -> {
@@ -145,5 +150,75 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                 .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
                 .collect(Collectors.toMap(Position::block, l -> AIR_DATA));
         player.sendMultiBlockChange(positions);
+    }
+
+    @Override
+    public void sendSeatPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+        List<FurnitureSeat> seats = mechanic.seats();
+        if (seats.isEmpty()) return;
+
+        Location baseLoc = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
+        furnitureSeatPacketMap.computeIfAbsent(baseEntity.getUniqueId(), baseUuid -> {
+            List<Integer> entityIds = furnitureSeatIdMap.stream()
+                    .filter(subEntities -> subEntities.baseUUID().equals(baseUuid))
+                    .findFirst()
+                    .map(FurnitureSubEntity::entityIds)
+                    .orElseGet(() -> {
+                        List<Integer> newEntityIds = new ArrayList<>(seats.size());
+                        while (newEntityIds.size() < seats.size())
+                            newEntityIds.add(net.minecraft.world.entity.Entity.nextEntityId());
+
+                        FurnitureSubEntity id = new FurnitureSubEntity(baseUuid, newEntityIds);
+                        interactionHitboxIdMap.add(id);
+                        return id.entityIds();
+                    });
+
+            Set<FurnitureSubEntityPacket> packets = new HashSet<>();
+            for (int i = 0; i < seats.size(); i++) {
+                FurnitureSeat seat = seats.get(i);
+                int entityId = entityIds.get(i);
+
+                Location loc = baseLoc.clone().add(seat.offset(baseEntity.getYaw()));
+                ClientboundAddEntityPacket addEntityPacket = new ClientboundAddEntityPacket(
+                        entityId, UUID.randomUUID(),
+                        loc.x(), loc.y(), loc.z(), loc.getPitch(), loc.getYaw(),
+                        EntityType.ARMOR_STAND, 0, Vec3.ZERO, 0.0
+                );
+
+                ClientboundSetEntityDataPacket metadataPacket = new ClientboundSetEntityDataPacket(
+                        entityId, Arrays.asList(
+                        new SynchedEntityData.DataValue<>(0, EntityDataSerializers.BYTE, (byte) 0x20) // Invisible
+                ));
+
+                packets.add(new FurnitureSubEntityPacket(entityId, addEntityPacket, metadataPacket));
+            }
+            return packets;
+        });
+    }
+    @Override
+    public void mountSeatPacket(@NotNull Entity baseEntity, @NotNull Location interactionPoint, @NotNull FurnitureMechanic mechanic, @NotNull Player passenger) {
+        List<FurnitureSeat> seats = mechanic.seats();
+        seats.sort(Comparator.comparingDouble(s -> baseEntity.getLocation().add(s.offset(FurnitureHelpers.furnitureYaw(baseEntity))).distanceSquared(interactionPoint)));
+        seats.stream().findFirst().ifPresent(seat -> {
+            Location seatLoc = baseEntity.getLocation().add(seat.offset(FurnitureHelpers.furnitureYaw(baseEntity)));
+            for (FurnitureSubEntityPacket packet : furnitureSeatPacketMap.getOrDefault(baseEntity.getUniqueId(), new HashSet<>())) {
+                if (!locationFromPacket(baseEntity.getWorld(), packet.addEntity).equals(seatLoc)) continue;
+            }
+        });
+    }
+    private Location locationFromPacket(World world, ClientboundAddEntityPacket packet) {
+        return new Location(world, packet.getX(), packet.getY(), packet.getZ());
+    }
+    @Override
+    public void dismountSeatPacket(@NotNull Entity baseEntity, int seatId, @NotNull FurnitureMechanic mechanic, @NotNull Player passenger) {
+
+    }
+    @Override
+    public void removeSeatPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic) {
+
+    }
+    @Override
+    public void removeSeatPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+
     }
 }

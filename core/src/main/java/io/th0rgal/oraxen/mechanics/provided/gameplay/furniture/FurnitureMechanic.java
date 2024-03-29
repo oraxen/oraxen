@@ -320,7 +320,6 @@ public class FurnitureMechanic extends Mechanic {
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
         }
-        FurnitureSeat.spawnSeats(baseEntity, this);
         if (light.hasLightLevel()) light.createBlockLight(baseEntity.getLocation().getBlock());
 
         return baseEntity;
@@ -482,6 +481,10 @@ public class FurnitureMechanic extends Mechanic {
     @Nullable
     Entity baseEntity(int interactionId) {
         return FurnitureFactory.instance.furniturePacketManager().baseEntityFromHitbox(interactionId);
+    }
+
+    @Nullable Entity baseEntity(Integer seatId) {
+        return FurnitureFactory.instance.furniturePacketManager().baseEntityFromSeat(seatId);
     }
 
     public FurnitureType furnitureType() {

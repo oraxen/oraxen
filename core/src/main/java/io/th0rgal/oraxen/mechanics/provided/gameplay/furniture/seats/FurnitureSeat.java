@@ -2,22 +2,20 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
+import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.utils.BlockHelpers;
-import io.th0rgal.oraxen.utils.EntityUtils;
-import org.bukkit.Bukkit;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.persistence.PersistentDataContainer;
-import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 public class FurnitureSeat {
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
@@ -79,13 +77,17 @@ public class FurnitureSeat {
     }
 
     public static void sitOnSeat(Entity baseEntity, Player player, Location interactionPoint) {
-        updateLegacySeats(baseEntity);
-        Location centeredLoc = BlockHelpers.toCenterLocation(interactionPoint);
-        List<Entity> seats = new ArrayList<>(baseEntity.getPersistentDataContainer()
-                .getOrDefault(SEAT_KEY, DataType.asList(DataType.UUID), List.of())
-                .stream().map(Bukkit::getEntity).filter(e -> e instanceof ArmorStand).toList());
-        seats.sort(Comparator.comparingDouble(e ->centeredLoc.distanceSquared(e.getLocation())));
-        seats.stream().findFirst().ifPresent(seat -> seat.addPassenger(player));
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
+        if (mechanic == null) return;
+        IFurniturePacketManager packetManager = FurnitureFactory.instance.furniturePacketManager();
+        packetManager.mountSeatPacket(baseEntity, interactionPoint, mechanic, player);
+//        updateLegacySeats(baseEntity);
+//        Location centeredLoc = BlockHelpers.toCenterLocation(interactionPoint);
+//        List<Entity> seats = new ArrayList<>(baseEntity.getPersistentDataContainer()
+//                .getOrDefault(SEAT_KEY, DataType.asList(DataType.UUID), List.of())
+//                .stream().map(Bukkit::getEntity).filter(e -> e instanceof ArmorStand).toList());
+//        seats.sort(Comparator.comparingDouble(e ->centeredLoc.distanceSquared(e.getLocation())));
+//        seats.stream().findFirst().ifPresent(seat -> seat.addPassenger(player));
     }
 
     private Vector rotateOffset(float angle) {
@@ -99,45 +101,35 @@ public class FurnitureSeat {
         return new Vector(x, y, z);
     }
 
-    private static void updateLegacySeats(Entity baseEntity) {
-        PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
-        UUID seat = pdc.has(SEAT_KEY, DataType.UUID) ? pdc.get(SEAT_KEY, DataType.UUID) : null;
-        if (seat == null) return;
-        else if (baseEntity.getPersistentDataContainer().has(SEAT_KEY, DataType.asList(DataType.UUID))) {
-            baseEntity.getPersistentDataContainer().remove(SEAT_KEY);
-        }
-        baseEntity.getPersistentDataContainer().set(SEAT_KEY, DataType.asList(DataType.UUID), List.of(seat));
-    }
-
     public static void spawnSeats(Entity baseEntity, FurnitureMechanic mechanic) {
-        Location location = baseEntity.getLocation();
-        float yaw = FurnitureHelpers.furnitureYaw(baseEntity);
-        UUID uuid = baseEntity.getUniqueId();
-        List<UUID> seatUUIDs = new ArrayList<>();
-        for (FurnitureSeat seat : mechanic.seats()) {
-            ArmorStand armorStand = EntityUtils.spawnEntity(location.clone().add(seat.offset(yaw)),  ArmorStand.class, (ArmorStand stand) -> {
-                stand.setVisible(false);
-                stand.setRotation(yaw, 0);
-                stand.setInvulnerable(true);
-                stand.setPersistent(true);
-                stand.setAI(false);
-                stand.setCollidable(false);
-                stand.setGravity(false);
-                stand.setSilent(true);
-                stand.setCustomNameVisible(false);
-                stand.setCanPickupItems(false);
-                //TODO Maybe marker works here? Was removed for rotation issues but should be fixed
-                stand.addEquipmentLock(EquipmentSlot.HEAD, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.OFF_HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.CHEST, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.LEGS, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.FEET, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.getPersistentDataContainer().set(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING, mechanic.getItemID());
-                stand.getPersistentDataContainer().set(FurnitureSeat.SEAT_KEY, DataType.UUID, uuid);
-            });
-            if (armorStand != null) seatUUIDs.add(armorStand.getUniqueId());
-        }
-        baseEntity.getPersistentDataContainer().set(FurnitureSeat.SEAT_KEY, DataType.asList(DataType.UUID), seatUUIDs);
+//        Location location = baseEntity.getLocation();
+//        float yaw = FurnitureHelpers.furnitureYaw(baseEntity);
+//        UUID uuid = baseEntity.getUniqueId();
+//        List<UUID> seatUUIDs = new ArrayList<>();
+//        for (FurnitureSeat seat : mechanic.seats()) {
+//            ArmorStand armorStand = EntityUtils.spawnEntity(location.clone().add(seat.offset(yaw)),  ArmorStand.class, (ArmorStand stand) -> {
+//                stand.setVisible(false);
+//                stand.setRotation(yaw, 0);
+//                stand.setInvulnerable(true);
+//                stand.setPersistent(true);
+//                stand.setAI(false);
+//                stand.setCollidable(false);
+//                stand.setGravity(false);
+//                stand.setSilent(true);
+//                stand.setCustomNameVisible(false);
+//                stand.setCanPickupItems(false);
+//                //TODO Maybe marker works here? Was removed for rotation issues but should be fixed
+//                stand.addEquipmentLock(EquipmentSlot.HEAD, ArmorStand.LockType.ADDING_OR_CHANGING);
+//                stand.addEquipmentLock(EquipmentSlot.HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
+//                stand.addEquipmentLock(EquipmentSlot.OFF_HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
+//                stand.addEquipmentLock(EquipmentSlot.CHEST, ArmorStand.LockType.ADDING_OR_CHANGING);
+//                stand.addEquipmentLock(EquipmentSlot.LEGS, ArmorStand.LockType.ADDING_OR_CHANGING);
+//                stand.addEquipmentLock(EquipmentSlot.FEET, ArmorStand.LockType.ADDING_OR_CHANGING);
+//                stand.getPersistentDataContainer().set(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING, mechanic.getItemID());
+//                stand.getPersistentDataContainer().set(FurnitureSeat.SEAT_KEY, DataType.UUID, uuid);
+//            });
+//            if (armorStand != null) seatUUIDs.add(armorStand.getUniqueId());
+//        }
+//        baseEntity.getPersistentDataContainer().set(FurnitureSeat.SEAT_KEY, DataType.asList(DataType.UUID), seatUUIDs);
     }
 }

@@ -43,6 +43,7 @@ public class FurniturePacketListener implements Listener {
             for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), simulationDistance)) {
                 packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
+                packetManager.sendSeatPacket(baseEntity, mechanic, player);
             }
         }, 1L);
 
@@ -57,6 +58,7 @@ public class FurniturePacketListener implements Listener {
 
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
+        packetManager.removeSeatPacket(baseEntity, mechanic);
     }
 
     @EventHandler
@@ -68,6 +70,7 @@ public class FurniturePacketListener implements Listener {
             if (mechanic == null) return;
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
+            packetManager.sendSeatPacket(baseEntity, mechanic, player);
         }
     }
 
@@ -80,6 +83,7 @@ public class FurniturePacketListener implements Listener {
             if (mechanic == null) return;
             packetManager.removeInteractionHitboxPacket(baseEntity, mechanic, player);
             packetManager.removeBarrierHitboxPacket(baseEntity, mechanic, player);
+            packetManager.removeSeatPacket(baseEntity, mechanic, player);
         }
     }
 
@@ -93,6 +97,7 @@ public class FurniturePacketListener implements Listener {
             if (mechanic == null) return;
             packetManager.removeInteractionHitboxPacket(baseEntity, mechanic, player);
             packetManager.removeBarrierHitboxPacket(baseEntity, mechanic, player);
+            packetManager.removeSeatPacket(baseEntity, mechanic, player);
         }
     }
 

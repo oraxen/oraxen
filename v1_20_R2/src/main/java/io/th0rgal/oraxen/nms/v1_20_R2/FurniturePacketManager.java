@@ -65,9 +65,9 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                         while (newEntityIds.size() < interactionHitboxes.size())
                             newEntityIds.add(net.minecraft.world.entity.Entity.nextEntityId());
 
-                        FurnitureSubEntity subEntity = new FurnitureSubEntity(baseEntity.getUniqueId(), newEntityIds);
-                        interactionHitboxIdMap.add(subEntity);
-                        return subEntity.entityIds();
+                        FurnitureSubEntity id = new FurnitureSubEntity(baseEntity.getUniqueId(), newEntityIds);
+                        interactionHitboxIdMap.add(id);
+                        return id.entityIds();
                     });
 
             Set<FurnitureInteractionHitboxPacket> packets = new HashSet<>();
