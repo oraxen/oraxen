@@ -221,7 +221,7 @@ public class TrimArmorDatapack {
                 if (Settings.CUSTOM_ARMOR_TRIMS_ASSIGN.toBool() && trimPattern != null) {
                     itemBuilder.setTrimPattern(trimPattern.key());
                     changed = true;
-                    if (Settings.DEBUG.toBool()) Logs.logInfo("Assigned trim pattern " + trimPattern.key().asString() + " to " + itemID, true);
+                    Logs.logInfo("Assigned trim pattern " + trimPattern.key().asString() + " to " + itemID, true);
                 } else Logs.logWarning("Custom Armor will not work unless a trim pattern is set.", true);
             }
 
