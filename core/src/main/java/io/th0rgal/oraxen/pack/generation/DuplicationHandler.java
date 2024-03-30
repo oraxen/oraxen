@@ -1,9 +1,6 @@
 package io.th0rgal.oraxen.pack.generation;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.google.gson.*;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.OraxenYaml;
@@ -325,8 +322,18 @@ public class DuplicationHandler {
             return false;
         }
 
-        JsonObject json = JsonParser.parseString(fileContent).getAsJsonObject();
-        List<JsonObject> overrides = new ArrayList<>(json.getAsJsonArray("overrides").asList().stream().filter(JsonElement::isJsonObject).map(JsonElement::getAsJsonObject).toList());
+        JsonObject json;
+        List<JsonObject> overrides;
+
+        try {
+            json = JsonParser.parseString(fileContent).getAsJsonObject();
+            overrides = json.getAsJsonArray("overrides").asList().stream().map(JsonElement::getAsJsonObject).toList();
+        } catch (JsonParseException | NullPointerException e) {
+            Logs.logWarning("Failed to migrate duplicate file-entry, could not parse json");
+            if (Settings.DEBUG.toBool()) e.printStackTrace();
+            return false;
+        }
+
         Map<Integer, List<String>> pullingModels = new HashMap<>();
         Map<Integer, String> chargedModels = new HashMap<>();
         Map<Integer, String> blockingModels = new HashMap<>();
@@ -345,8 +352,8 @@ public class DuplicationHandler {
 
             for (JsonElement element : overrides) {
                 JsonObject predicate = element.getAsJsonObject().get("predicate").getAsJsonObject();
-                String modelPath = element.getAsJsonObject().get("model").getAsString().replaceAll("[^a-zA-Z0-9]+","_");
-                String id = "migrated_" + modelPath;
+                String modelPath = element.getAsJsonObject().get("model").getAsString().replace("\\", "/");
+                String id = "migrated_" + modelPath.replaceAll("[^a-zA-Z0-9]+","_");
                 // Assume if no cmd is in that it is meant to replace the default model
                 int cmd = predicate.has("custom_model_data") ? predicate.get("custom_model_data").getAsInt() : 0;
 

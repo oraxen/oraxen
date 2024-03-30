@@ -59,13 +59,8 @@ public class ResourcePack {
 
         makeDirsIfNotExists(packFolder, new File(packFolder, "assets"));
 
-        if (CustomArmorType.getSetting() == CustomArmorType.TRIMS) {
-            trimArmorDatapack = new TrimArmorDatapack();
-        } else trimArmorDatapack = null;
-
-        if (CustomArmorType.getSetting() == CustomArmorType.SHADER) {
-            shaderArmorTextures = new ShaderArmorTextures();
-        } else shaderArmorTextures = null;
+        trimArmorDatapack = CustomArmorType.getSetting() == CustomArmorType.TRIMS ? new TrimArmorDatapack() : null;
+        shaderArmorTextures = CustomArmorType.getSetting() == CustomArmorType.SHADER ? new ShaderArmorTextures() : null;
 
         if (Settings.GENERATE_DEFAULT_ASSETS.toBool()) extractDefaultFolders();
         extractRequired();
@@ -93,7 +88,7 @@ public class ResourcePack {
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) generateScoreboardHideBackground();
         if (Settings.TEXTURE_SLICER.toBool()) PackSlicer.slicePackFiles();
-        if (CustomArmorType.getSetting() == CustomArmorType.SHADER && Settings.CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool())
+        if (CustomArmorType.getSetting() == CustomArmorType.SHADER && Settings.CUSTOM_ARMOR_SHADER_GENERATE_FILES.toBool())
             ShaderArmorTextures.generateArmorShaderFiles();
 
         for (final Collection<Consumer<File>> packModifiers : packModifiers.values())
@@ -599,22 +594,20 @@ public class ResourcePack {
         // Clear out old datapacks before generating new ones, in case type changed or otherwise
         TrimArmorDatapack.clearOldDataPacks();
 
-        if (customArmorType == CustomArmorType.SHADER && Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && shaderArmorTextures.hasCustomArmors()) {
-            try {
-                String armorPath = "assets/minecraft/textures/models/armor";
-                output.add(new VirtualFile(armorPath, "leather_layer_1.png", shaderArmorTextures.getLayerOne()));
-                output.add(new VirtualFile(armorPath, "leather_layer_2.png", shaderArmorTextures.getLayerTwo()));
-                if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool())
-                    output.addAll(shaderArmorTextures.getOptifineFiles());
-            } catch (IOException e) {
-                e.printStackTrace();
+        switch (customArmorType) {
+            case TRIMS -> trimArmorDatapack.generateTrimAssets(output);
+            case SHADER -> {
+                if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool() && shaderArmorTextures.hasCustomArmors()) try {
+                    String armorPath = "assets/minecraft/textures/models/armor";
+                    output.add(new VirtualFile(armorPath, "leather_layer_1.png", shaderArmorTextures.getLayerOne()));
+                    output.add(new VirtualFile(armorPath, "leather_layer_2.png", shaderArmorTextures.getLayerTwo()));
+                    if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool()) {
+                        output.addAll(shaderArmorTextures.getOptifineFiles());
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
-        } else if (customArmorType == CustomArmorType.TRIMS) {
-            trimArmorDatapack.generateTrimAssets(output);
-            String armorPath = "assets/minecraft/textures/models/armor";
-            //TODO make this configurable
-            //output.add(new VirtualFile(armorPath, "transparent_layer_1.png", OraxenPlugin.get().getResource("pack/textures/models/armor/transparent_layer_1.png")));
-            //output.add(new VirtualFile(armorPath, "transparent_layer_2.png", OraxenPlugin.get().getResource("pack/textures/models/armor/transparent_layer_2.png")));
         }
     }
 
