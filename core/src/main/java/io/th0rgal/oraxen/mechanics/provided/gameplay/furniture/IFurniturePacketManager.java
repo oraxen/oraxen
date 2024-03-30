@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import com.comphenix.protocol.wrappers.BlockPosition;
 import io.th0rgal.oraxen.api.OraxenFurniture;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.InteractionHitbox;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -20,11 +19,11 @@ public interface IFurniturePacketManager {
     BlockData AIR_DATA = Material.AIR.createBlockData();
 
     Map<UUID, Set<BlockPosition>> barrierHitboxPositionMap = new HashMap<>();
-    Set<InteractionHitbox.Id> interactionHitboxIdMap = new HashSet<>();
+    Set<FurnitureSubEntity> interactionHitboxIdMap = new HashSet<>();
 
     @Nullable
     default Entity baseEntityFromHitbox(int interactionId) {
-        for (InteractionHitbox.Id hitbox : interactionHitboxIdMap) {
+        for (FurnitureSubEntity hitbox : interactionHitboxIdMap) {
             if (hitbox.entityIds().contains(interactionId)) return hitbox.baseEntity();
         }
         return null;

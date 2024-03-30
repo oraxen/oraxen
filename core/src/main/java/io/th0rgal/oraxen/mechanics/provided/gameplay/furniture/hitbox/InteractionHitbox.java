@@ -1,14 +1,12 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox;
 
 import io.th0rgal.oraxen.utils.ParseUtils;
-import it.unimi.dsi.fastutil.ints.IntArrayList;
-import it.unimi.dsi.fastutil.ints.IntList;
 import org.apache.commons.lang3.StringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Entity;
 import org.bukkit.util.Vector;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class InteractionHitbox {
     private final Vector offset;
@@ -76,33 +74,5 @@ public class InteractionHitbox {
         double z = Math.sin(angleRad) * offset.getX() + Math.cos(angleRad) * offset.getZ();
 
         return new Vector(x, y, z);
-    }
-
-    public static class Id {
-        private final UUID baseUuid;
-        private final IntList entityIds;
-
-        public Id(UUID baseUuid, IntList entityIds) {
-            this.baseUuid = baseUuid;
-            this.entityIds = entityIds;
-        }
-
-        public Id(UUID baseUuid, Collection<Integer> entityIds) {
-            this.baseUuid = baseUuid;
-            this.entityIds = new IntArrayList(entityIds);
-        }
-
-        public UUID baseUUID() {
-            return baseUuid;
-        }
-
-        public Entity baseEntity() {
-            return Bukkit.getEntity(baseUuid);
-        }
-
-        public IntList entityIds() {
-            return entityIds;
-        }
-
     }
 }
