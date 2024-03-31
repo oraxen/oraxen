@@ -19,8 +19,8 @@ import java.util.UUID;
 public class SelfHostServer implements OraxenPackServer {
 
     private ResourcePackServer packServer;
-    private final String prompt = Settings.SEND_PACK_PROMPT.toString();
-    private final boolean mandatory = Settings.SEND_PACK_MANDATORY.toBool();
+    private final String prompt = Settings.PACK_SEND_PROMPT.toString();
+    private final boolean mandatory = Settings.PACK_SEND_MANDATORY.toBool();
     private final String publicAddress;
 
     public SelfHostServer() {

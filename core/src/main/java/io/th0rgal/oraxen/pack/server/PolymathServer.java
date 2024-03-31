@@ -78,8 +78,8 @@ public class PolymathServer implements OraxenPackServer {
 
     @Override
     public void sendPack(Player player) {
-        String prompt = Settings.SEND_PACK_PROMPT.toString();
-        boolean mandatory = Settings.SEND_PACK_MANDATORY.toBool();
+        String prompt = Settings.PACK_SEND_PROMPT.toString();
+        boolean mandatory = Settings.PACK_SEND_MANDATORY.toBool();
         byte[] hashArray = OraxenPackServer.hashArray(hash);
 
         if (VersionUtil.atOrAbove("1.20.3")) {

@@ -6,14 +6,15 @@ import dev.jorel.commandapi.arguments.TextArgument;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.api.OraxenPack;
 import io.th0rgal.oraxen.api.events.OraxenItemsLoadedEvent;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.recipes.RecipesManager;
+import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
@@ -57,7 +58,13 @@ public class ReloadCommand {
 
     public static void reloadPack(@Nullable CommandSender sender) {
         Message.PACK_REGENERATED.send(sender);
-        OraxenPack.reloadPack();
+        OraxenPlugin.get().fontManager(new FontManager(OraxenPlugin.get().configsManager()));
+        OraxenPlugin.get().soundManager(new SoundManager(OraxenPlugin.get().configsManager().getSound()));
+        OraxenPlugin.get().packGenerator().generatePack();
+        OraxenPlugin.get().packServer().uploadPack();
+        if (Settings.PACK_SEND_RELOAD.toBool()) for (Player player : Bukkit.getOnlinePlayers())
+            OraxenPlugin.get().packServer().sendPack(player);
+        //OraxenPlugin.get().packServer().sendPack();
     }
 
     public static void reloadHud(@Nullable CommandSender sender) {

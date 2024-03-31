@@ -117,13 +117,11 @@ public enum Settings {
     POLYMATH_SERVER("Pack.server.polymath.server", "atlas.oraxen.com"),
     POLYMATH_SECRET("Pack.server.polymath.secret", "oraxen"),
 
-    SEND_PACK("Pack.dispatch.send_pack", true),
-    SEND_ON_RELOAD("Pack.dispatch.send_on_reload", true),
-    SEND_PACK_DELAY("Pack.dispatch.delay", -1),
-    SEND_PACK_MANDATORY("Pack.dispatch.mandatory", true),
-    SEND_PACK_PROMPT("Pack.dispatch.prompt", "<#fa4943>Accept the pack to enjoy a full <b><gradient:#9055FF:#13E2DA>Oraxen</b><#fa4943> experience"),
-    SEND_JOIN_MESSAGE("Pack.dispatch.join_message.enabled", false),
-    JOIN_MESSAGE_DELAY("Pack.dispatch.join_message.delay", -1),
+    PACK_SEND("Pack.dispatch.send_pack", true),
+    PACK_SEND_RELOAD("Pack.dispatch.send_on_reload", true),
+    PACK_SEND_DELAY("Pack.dispatch.delay", -1),
+    PACK_SEND_MANDATORY("Pack.dispatch.mandatory", true),
+    PACK_SEND_PROMPT("Pack.dispatch.prompt", "<#fa4943>Accept the pack to enjoy a full <b><gradient:#9055FF:#13E2DA>Oraxen</b><#fa4943> experience"),
 
     //RECEIVE_ENABLED("Pack.receive.enabled", true),
     //RECEIVE_ALLOWED_ACTIONS("Pack.receive.accepted.actions", new SoundAction()),

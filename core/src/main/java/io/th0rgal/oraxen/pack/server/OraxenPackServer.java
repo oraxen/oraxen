@@ -1,12 +1,19 @@
 package io.th0rgal.oraxen.pack.server;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.pack.PackListener;
+import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;
 
 public interface OraxenPackServer {
 
+    PackListener packListener = new PackListener();
+
     static OraxenPackServer initializeServer() {
         OraxenPlugin.get().packServer().stop();
+        HandlerList.unregisterAll(packListener);
+        Bukkit.getPluginManager().registerEvents(packListener, OraxenPlugin.get());
         return switch (PackServerType.fromSetting()) {
             case SELFHOST -> new SelfHostServer();
             case POLYMATH -> new PolymathServer();

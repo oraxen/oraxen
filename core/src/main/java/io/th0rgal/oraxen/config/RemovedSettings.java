@@ -39,6 +39,9 @@ public enum RemovedSettings {
     EXPERIMENTAL_FIX_BROKEN_FURNITURE("FurnitureUpdater.experimental_fix_broken_furniture"),
     EXPERIMENTAL_FURNITURE_TYPE_UPDATE("FurnitureUpdater.experimental_furniture_type_update"),
 
+    SEND_JOIN_MESSAGE("Pack.dispatch.join_message.enabled"),
+    JOIN_MESSAGE_DELAY("Pack.dispatch.join_message.delay"),
+
     ;
 
     private final String path;
