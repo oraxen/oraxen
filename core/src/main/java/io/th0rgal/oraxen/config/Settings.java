@@ -99,10 +99,7 @@ public enum Settings {
     PACK_GENERATE("Pack.generation.generate", true),
     PACK_EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions", List.of(".zip")),
     FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs", true),
-    VERIFY_PACK_FILES("Pack.generation.verify_pack_files", true),
-    GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path", false),
-    COMPRESSION("Pack.generation.compression", "BEST_COMPRESSION"),
-    PROTECTION("Pack.generation.protection", true),
+
     COMMENT("Pack.generation.comment", """
             The content of this resourcepack
             belongs to the owner of the Oraxen
@@ -117,7 +114,7 @@ public enum Settings {
     POLYMATH_SERVER("Pack.server.polymath.server", "atlas.oraxen.com"),
     POLYMATH_SECRET("Pack.server.polymath.secret", "oraxen"),
 
-    PACK_SEND("Pack.dispatch.send_pack", true),
+    PACK_SEND_ON_JOIN("Pack.dispatch.send_on_join", true),
     PACK_SEND_RELOAD("Pack.dispatch.send_on_reload", true),
     PACK_SEND_DELAY("Pack.dispatch.delay", -1),
     PACK_SEND_MANDATORY("Pack.dispatch.mandatory", true),

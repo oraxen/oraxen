@@ -14,8 +14,8 @@ public class PackListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onPlayerConnect(PlayerJoinEvent event) {
+        if (!Settings.PACK_SEND_ON_JOIN.toBool()) return;
         Player player = event.getPlayer();
-        if (!Settings.PACK_SEND.toBool()) return;
         int delay = (int) Settings.PACK_SEND_DELAY.getValue();
         if (delay <= 0) OraxenPlugin.get().packServer().sendPack(player);
         else Bukkit.getScheduler().runTaskLaterAsynchronously(OraxenPlugin.get(), () ->

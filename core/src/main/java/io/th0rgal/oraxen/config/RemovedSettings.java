@@ -43,6 +43,21 @@ public enum RemovedSettings {
     JOIN_MESSAGE_DELAY("Pack.dispatch.join_message.delay"),
     GENERATE_DEFAULT_ASSETS("Plugin.generation.default_assets"),
 
+    VERIFY_PACK_FILES("Pack.generation.verify_pack_files"),
+    GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path"),
+    COMPRESSION("Pack.generation.compression"),
+    PROTECTION("Pack.generation.protection"),
+
+    RECEIVE_ENABLED("Pack.receive.enabled"),
+    RECEIVE_ALLOWED_ACTIONS("Pack.receive.accepted.actions"),
+    RECEIVE_LOADED_ACTIONS("Pack.receive.loaded.actions"),
+    RECEIVE_FAILED_ACTIONS("Pack.receive.failed_download.actions"),
+    RECEIVE_DENIED_ACTIONS("Pack.receive.denied.actions"),
+    RECEIVE_FAILED_RELOAD_ACTIONS("Pack.receive.failed_reload.actions"),
+    RECEIVE_DOWNLOADED_ACTIONS("Pack.receive.downloaded.actions"),
+    RECEIVE_INVALID_URL_ACTIONS("Pack.receive.invalid_url.actions"),
+    RECEIVE_DISCARDED_ACTIONS("Pack.receive.discarded.actions"),
+
     ;
 
     private final String path;
