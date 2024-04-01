@@ -41,6 +41,7 @@ public enum RemovedSettings {
 
     SEND_JOIN_MESSAGE("Pack.dispatch.join_message.enabled"),
     JOIN_MESSAGE_DELAY("Pack.dispatch.join_message.delay"),
+    GENERATE_DEFAULT_ASSETS("Plugin.generation.default_assets"),
 
     ;
 

@@ -28,8 +28,8 @@ public enum Settings {
     PLUGIN_LANGUAGE("Plugin.language", "english"),
     KEEP_UP_TO_DATE("Plugin.keep_this_up_to_date", true),
     REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only", false),
-    GENERATE_DEFAULT_ASSETS("Plugin.generation.default_assets", true),
-    GENERATE_DEFAULT_CONFIGS("Plugin.generation.default_configs", true),
+    DOWNLOAD_DEFAULT_ASSETS("Plugin.default_content.download_resourcepack", true),
+    GENERATE_DEFAULT_CONFIGS("Plugin.default_content.default_configs", true),
     FORMAT_INVENTORY_TITLES("Plugin.formatting.inventory_titles", true),
     FORMAT_TITLES("Plugin.formatting.titles", true),
     FORMAT_SUBTITLES("Plugin.formatting.subtitles", true),
@@ -96,8 +96,8 @@ public enum Settings {
     HIDE_SCOREBOARD_BACKGROUND("Misc.hide_scoreboard_background", false),
 
     //Pack
-    GENERATE("Pack.generation.generate", true),
-    EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions", List.of(".zip")),
+    PACK_GENERATE("Pack.generation.generate", true),
+    PACK_EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions", List.of(".zip")),
     FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs", true),
     VERIFY_PACK_FILES("Pack.generation.verify_pack_files", true),
     GENERATE_MODEL_BASED_ON_TEXTURE_PATH("Pack.generation.auto_generated_models_follow_texture_path", false),

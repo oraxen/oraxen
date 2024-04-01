@@ -43,7 +43,7 @@ public class PackGenerator {
 
     public PackGenerator() {
         generateDefaultPaths();
-        PackDownloader.downloadDefaultPack();
+        if (Settings.DOWNLOAD_DEFAULT_ASSETS.toBool()) PackDownloader.downloadDefaultPack();
         if (CustomArmorType.getSetting().equals(CustomArmorType.SHADER)) customArmorHandler = new ShaderArmorTextures();
         else if (CustomArmorType.getSetting().equals(CustomArmorType.TRIMS)) customArmorHandler = new TrimArmorDatapack();
         else customArmorHandler = new CustomArmor();
@@ -132,14 +132,15 @@ public class PackGenerator {
     }
 
     private void addImportPacks() {
+        MinecraftResourcePackReader reader = MinecraftResourcePackReader.minecraft();
         for (File file : externalPacks.toFile().listFiles()) {
             if (file == null) continue;
             if (file.isDirectory()) {
                 Logs.logInfo("Importing pack " + file.getName() + "...");
-                mergePack(MinecraftResourcePackReader.minecraft().readFromDirectory(file));
+                mergePack(reader.readFromDirectory(file));
             } else if (file.getName().endsWith(".zip")) {
                 Logs.logInfo("Importing zipped pack " + file.getName() + "...");
-                mergePack(MinecraftResourcePackReader.minecraft().readFromZipFile(file));
+                mergePack(reader.readFromZipFile(file));
             } else {
                 Logs.logError("Skipping unknown file " + file.getName() + " in imports folder");
                 Logs.logError("File is neither a directory nor a zip file");
@@ -253,7 +254,7 @@ public class PackGenerator {
     private final static Set<String> ignoredExtensions = new HashSet<>(Arrays.asList(".json", ".png", ".mcmeta"));
 
     private void removeExcludedFileExtensions() {
-        for (String extension : Settings.EXCLUDED_FILE_EXTENSIONS.toStringList()) {
+        for (String extension : Settings.PACK_EXCLUDED_FILE_EXTENSIONS.toStringList()) {
             extension = extension.startsWith(".") ? extension : "." + extension;
             if (ignoredExtensions.contains(extension)) continue;
             for (Map.Entry<String, Writable> entry : new HashSet<>(resourcePack.unknownFiles().entrySet())) {
