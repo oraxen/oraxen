@@ -8,9 +8,8 @@ plugins {
     id("xyz.jpenilla.run-paper") version "2.2.0"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
     id("io.papermc.paperweight.userdev") version "1.5.11" apply false
-    alias(libs.plugins.shadowjar)
-    alias(libs.plugins.mia.publication)
-    alias(libs.plugins.mia.copyjar)
+    alias(idofrontLibs.plugins.shadowjar)
+    alias(idofrontLibs.plugins.mia.publication)
 }
 
 class NMSVersion(val nmsVersion: String, val serverVersion: String)
@@ -145,29 +144,13 @@ java {
 
 tasks {
 
-    copyJar {
-        destPath.set(project.findProperty("oraxen2_plugin_path")?.toString())
-    }
-
     compileJava {
         options.encoding = Charsets.UTF_8.name()
         options.release.set(17)
     }
 
-    javadoc {
-        options.encoding = Charsets.UTF_8.name()
-    }
-
-    processResources {
-        filesNotMatching(listOf("**/*.png", "**/*.ogg", "**/models/**", "**/textures/**", "**/font/**.json", "**/plugin.yml")) {
-            expand(mapOf(project.version.toString() to pluginVersion))
-        }
-        duplicatesStrategy = DuplicatesStrategy.INCLUDE
-        filteringCharset = Charsets.UTF_8.name()
-    }
-
     runServer {
-        minecraftVersion("1.18.2")
+        minecraftVersion("1.20.4")
     }
 
     shadowJar {
@@ -204,7 +187,6 @@ tasks {
     }
 
     compileJava.get().dependsOn(clean)
-    copyJar.get().dependsOn(jar)
     build.get().dependsOn(shadowJar)
     build.get().dependsOn(publishToMavenLocal)
 }
@@ -242,4 +224,19 @@ bukkit {
         "team.unnamed:creative-serializer-minecraft:$creativeVersion",
         "team.unnamed:creative-server:$creativeVersion",
     )
+}
+
+if (pluginPath != null) {
+    tasks {
+        val defaultPath = findByName("reobfJar") ?: findByName("shadowJar") ?: findByName("jar")
+        // Define the main copy task
+        val copyJar = register<Copy>("copyJar") {
+            this.doNotTrackState("Overwrites the plugin jar to allow for easier reloading")
+            dependsOn(shadowJar, jar)
+            from(defaultPath)
+            into(pluginPath)
+            doLast { println("Copied to plugin directory $pluginPath") }
+        }
+        build.get().dependsOn(copyJar)
+    }
 }

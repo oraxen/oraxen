@@ -1,7 +1,5 @@
 package io.th0rgal.oraxen.items;
 
-import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.utils.Utils;
 import net.kyori.adventure.key.Key;
 import org.bukkit.configuration.ConfigurationSection;
 import team.unnamed.creative.model.ModelTexture;
@@ -98,10 +96,7 @@ public class OraxenMeta {
     // this might not be a very good function name
     private Key readModelName(ConfigurationSection configSection, String configString) {
         String modelName = configSection.getString(configString);
-        List<String> textures = configSection.getStringList("textures");
         ConfigurationSection parent = configSection.getParent();
-        modelName = modelName != null ? modelName : Settings.GENERATE_MODEL_BASED_ON_TEXTURE_PATH.toBool() && !textures.isEmpty() && parent != null
-                ? Utils.getParentDirs(textures.stream().findFirst().get()) + parent.getName() : null;
 
         if (modelName == null && configString.equals("model") && parent != null)
             return Key.key(parent.getName());

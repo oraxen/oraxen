@@ -2,7 +2,7 @@ plugins {
     id("java")
     id("io.papermc.paperweight.userdev") version "1.5.11"
     id("maven-publish")
-    alias(libs.plugins.shadowjar)
+    alias(idofrontLibs.plugins.shadowjar)
     id("org.ajoberstar.grgit.service") version "5.2.0"
 }
 
@@ -63,6 +63,7 @@ class PublishData(private val project: Project) {
         return when {
             branch.contentEquals("master") -> Type.RELEASE
             branch.contentEquals("develop") -> Type.SNAPSHOT
+            branch.contentEquals("2.0/master") -> Type.SNAPSHOT
             else -> Type.DEV
         }
     }
