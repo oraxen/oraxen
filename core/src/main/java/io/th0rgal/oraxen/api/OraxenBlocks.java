@@ -274,7 +274,7 @@ public class OraxenBlocks {
 
             World world = block.getWorld();
 
-            world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector());
+            if (VersionUtil.isPaperServer()) world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector());
             if (VersionUtil.atOrAbove("1.20")) world.playEffect(loc, Effect.STEP_SOUND, block.getBlockData());
         }
         if (drop != null) drop.spawns(loc, itemInHand);
@@ -306,7 +306,7 @@ public class OraxenBlocks {
             else if (hasDropOverride || player.getGameMode() != GameMode.CREATIVE)
                 drop = wireBlockBreakEvent.getDrop();
 
-            block.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
+            if (VersionUtil.isPaperServer()) block.getWorld().sendGameEvent(player, GameEvent.BLOCK_DESTROY, block.getLocation().toVector());
         }
         if (drop != null) drop.spawns(block.getLocation(), itemInHand);
 

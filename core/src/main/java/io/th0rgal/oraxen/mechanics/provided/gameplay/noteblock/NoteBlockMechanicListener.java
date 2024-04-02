@@ -499,7 +499,7 @@ public class NoteBlockMechanicListener implements Listener {
             target.setType(Material.AIR);
             BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
         }
-        target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
+        if (VersionUtil.isPaperServer()) target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
     }
 
     // Used to determine what instrument to use when playing a note depending on below block
