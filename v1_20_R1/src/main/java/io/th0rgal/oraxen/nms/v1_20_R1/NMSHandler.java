@@ -103,7 +103,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         if (serverPlayer.getCooldowns().isOnCooldown(nmsStack.getItem())) return null;
 
         if (!(nmsStack.getItem() instanceof BlockItem blockItem)) {
-            serverPlayer.gameMode.useItem(serverPlayer, serverPlayer.level(), nmsStack, hand);
+            nmsStack.getItem().useOn(new UseOnContext(serverPlayer, hand, hitResult));
+            if (!player.isSneaking()) serverPlayer.gameMode.useItem(serverPlayer, serverPlayer.level(), nmsStack, hand);
             return null;
         }
 
