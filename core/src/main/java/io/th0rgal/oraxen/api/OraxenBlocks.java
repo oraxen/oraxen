@@ -275,7 +275,7 @@ public class OraxenBlocks {
             World world = block.getWorld();
 
             if (VersionUtil.isPaperServer()) world.sendGameEvent(player, GameEvent.BLOCK_DESTROY, loc.toVector());
-            world.playEffect(loc, Effect.STEP_SOUND, VersionUtil.atOrAbove("1.20") ? block.getBlockData() : null);
+            if (VersionUtil.atOrAbove("1.20")) world.playEffect(loc, Effect.STEP_SOUND, block.getBlockData());
         }
         if (drop != null) drop.spawns(loc, itemInHand);
 
