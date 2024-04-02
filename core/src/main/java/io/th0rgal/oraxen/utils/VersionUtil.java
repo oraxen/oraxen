@@ -58,7 +58,7 @@ public class VersionUtil {
     public static boolean isPaperServer() {
         Server server = Bukkit.getServer();
         Validate.notNull(server, "Server cannot be null");
-        if (server.getName().equalsIgnoreCase("Paper")) return true;
+        if (isFoliaServer() || server.getName().equalsIgnoreCase("Paper")) return true;
 
         try {
             Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
