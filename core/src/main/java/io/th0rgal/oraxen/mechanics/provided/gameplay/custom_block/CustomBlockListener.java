@@ -5,12 +5,11 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.custom_block.OraxenBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.custom_block.noteblock.OraxenNoteBlockInteractEvent;
 import io.th0rgal.oraxen.api.events.custom_block.stringblock.OraxenStringBlockInteractEvent;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -116,15 +115,11 @@ public class CustomBlockListener implements Listener {
         final Player player = event.getPlayer();
         final Block placedAgainst = event.getClickedBlock();
         BlockFace face = event.getBlockFace();
-        Logs.debug(1);
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK || placedAgainst == null) return;
-        Logs.debug(2);
 
         CustomBlockMechanic mechanic = OraxenBlocks.getCustomBlockMechanic(itemID);
         if (mechanic == null) return;
-        Logs.debug(3);
         if (!player.isSneaking() && BlockHelpers.isInteractable(placedAgainst)) return;
-        Logs.debug(4);
 
         // Change mechanic according to subMechanic changes
         if (mechanic instanceof NoteBlockMechanic noteMechanic && noteMechanic.isDirectional()) {
