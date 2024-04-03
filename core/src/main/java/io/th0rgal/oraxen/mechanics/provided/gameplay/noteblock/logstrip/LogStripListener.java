@@ -32,10 +32,10 @@ public class LogStripListener implements Listener {
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
         if (mechanic == null) return;
 
-        if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock() && !mechanic.isLog())
-            mechanic = mechanic.getDirectional().getParentMechanic();
+        if (mechanic.isDirectional() && !mechanic.directional().isParentBlock() && !mechanic.isLog())
+            mechanic = mechanic.directional().getParentMechanic();
 
-        LogStripping log = mechanic.getLog();
+        LogStripping log = mechanic.log();
         if (!mechanic.isLog() || !log.canBeStripped()) return;
 
         if (log.hasStrippedDrop()) {

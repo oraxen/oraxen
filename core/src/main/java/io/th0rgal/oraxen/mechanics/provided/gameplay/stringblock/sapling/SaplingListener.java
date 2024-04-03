@@ -39,7 +39,7 @@ public class SaplingListener implements Listener {
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
         if (mechanic == null || !mechanic.isSapling()) return;
 
-        SaplingMechanic sapling = mechanic.getSaplingMechanic();
+        SaplingMechanic sapling = mechanic.sapling();
         if (sapling == null || !sapling.hasSchematic()) return;
         if (sapling.requiresLight() && sapling.getMinLightLevel() > block.getLightLevel()) return;
         if (sapling.requiresWaterSource() && sapling.isUnderWater(block)) return;

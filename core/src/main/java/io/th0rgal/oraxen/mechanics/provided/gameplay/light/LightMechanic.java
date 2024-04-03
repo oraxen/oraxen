@@ -70,12 +70,12 @@ public class LightMechanic {
             block = block.getRelative(face);
             NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(block);
             if (noteBlockMechanic != null)
-                if (noteBlockMechanic.hasLight()) noteBlockMechanic.getLight().createBlockLight(block);
+                if (noteBlockMechanic.hasLight()) noteBlockMechanic.light().createBlockLight(block);
                 else continue;
 
             StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
             if (stringBlockMechanic != null)
-                if (stringBlockMechanic.hasLight()) stringBlockMechanic.getLight().createBlockLight(block);
+                if (stringBlockMechanic.hasLight()) stringBlockMechanic.light().createBlockLight(block);
                 else continue;
 
             FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());

@@ -112,24 +112,24 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     @Override
     public Mechanic parse(ConfigurationSection section) {
         NoteBlockMechanic mechanic = new NoteBlockMechanic(this, section);
-        if (!Range.between(1, MAX_BLOCK_VARIATION).contains(mechanic.getCustomVariation())) {
+        if (!Range.between(1, MAX_BLOCK_VARIATION).contains(mechanic.customVariation())) {
             Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and " + MAX_BLOCK_VARIATION + "!");
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
             return null;
         }
 
-        Key modelKey = mechanic.getModel();
+        Key modelKey = mechanic.model();
         String variantName = "instrument=" + instrumentName(mechanic.blockData().getInstrument()) + ",note=" + mechanic.blockData().getNote().getId() + ",powered=" + mechanic.blockData().isPowered();
-        if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock()) {
-            NoteBlockMechanic parentMechanic = mechanic.getDirectional().getParentMechanic();
-            modelKey = (parentMechanic.getModel());
+        if (mechanic.isDirectional() && !mechanic.directional().isParentBlock()) {
+            NoteBlockMechanic parentMechanic = mechanic.directional().getParentMechanic();
+            modelKey = (parentMechanic.model());
             variants.put(variantName, getDirectionalModelJson(modelKey, mechanic, parentMechanic));
         } else {
             MultiVariant multiVariant = MultiVariant.of(Variant.builder().model(modelKey).build());
             variants.put(variantName, multiVariant);
         }
 
-        BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
+        BLOCK_PER_VARIATION.put(mechanic.customVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
     }
@@ -147,9 +147,9 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
     private MultiVariant getDirectionalModelJson(Key modelKey, NoteBlockMechanic mechanic, NoteBlockMechanic parentMechanic) {
         String itemId = mechanic.getItemID();
-        DirectionalBlock parent = parentMechanic.getDirectional();
+        DirectionalBlock parent = parentMechanic.directional();
         Variant.Builder variantBuilder = Variant.builder();
-        Key subBlockModel = mechanic.getDirectional().getDirectionalModel(mechanic);
+        Key subBlockModel = mechanic.directional().getDirectionalModel(mechanic);
         subBlockModel = subBlockModel != null ? subBlockModel : modelKey;
         variantBuilder.model(subBlockModel);
         // If subModel is specified and is different from parent we don't want to rotate it

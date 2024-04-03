@@ -100,9 +100,9 @@ public class BreakerSystem {
                 // Get these when block is started being broken to minimize checks & allow for proper damage checks later
                 final Drop drop;
                 if (noteMechanic != null)
-                    drop = noteMechanic.getDrop() != null ? noteMechanic.getDrop() : Drop.emptyDrop();
+                    drop = noteMechanic.drop() != null ? noteMechanic.drop() : Drop.emptyDrop();
                 else if (stringMechanic != null)
-                    drop = stringMechanic.getDrop() != null ? stringMechanic.getDrop() : Drop.emptyDrop();
+                    drop = stringMechanic.drop() != null ? stringMechanic.drop() : Drop.emptyDrop();
                 else drop = null;
 
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
@@ -250,13 +250,13 @@ public class BreakerSystem {
                 NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
                 if (!soundSection.getBoolean("noteblock", true)) return null;
-                else return mechanic.getBlockSounds();
+                else return mechanic.blockSounds();
             }
             case TRIPWIRE -> {
                 StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
                 if (mechanic == null || !mechanic.hasBlockSounds()) return null;
                 if (!soundSection.getBoolean("stringblock", true)) return null;
-                else return mechanic.getBlockSounds();
+                else return mechanic.blockSounds();
             }
             default -> {
                 return null;

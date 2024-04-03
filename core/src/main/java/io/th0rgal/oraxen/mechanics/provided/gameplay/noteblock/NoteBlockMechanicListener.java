@@ -57,8 +57,8 @@ public class NoteBlockMechanicListener implements Listener {
             NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(fallingBlock.getBlockData());
             if (mechanic == null || Objects.equals(OraxenBlocks.getOraxenBlock(fallingBlock.getLocation()), mechanic))
                 return;
-            if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
-                mechanic = mechanic.getDirectional().getParentMechanic();
+            if (mechanic.isDirectional() && !mechanic.directional().isParentBlock())
+                mechanic = mechanic.directional().getParentMechanic();
 
             ItemStack itemStack = OraxenItems.getItemById(mechanic.getItemID()).build();
             fallingBlock.setDropItem(false);
@@ -149,7 +149,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (mechanic == null || !mechanic.hasLimitedPlacing()) return;
         if (!event.getPlayer().isSneaking() && BlockHelpers.isInteractable(block)) return;
 
-        LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
+        LimitedPlacing limitedPlacing = mechanic.limitedPlacing();
         Block belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN);
 
         if (limitedPlacing.isNotPlacableOn(block, blockFace)) event.setCancelled(true);
@@ -187,7 +187,7 @@ public class NoteBlockMechanicListener implements Listener {
             }
 
             if (mechanic.isStorage()) {
-                StorageMechanic storageMechanic = mechanic.getStorage();
+                StorageMechanic storageMechanic = mechanic.storage();
                 switch (storageMechanic.getStorageType()) {
                     case STORAGE, SHULKER -> storageMechanic.openStorage(block, player);
                     case PERSONAL -> storageMechanic.openPersonalStorage(player, block.getLocation(), null);
@@ -238,9 +238,9 @@ public class NoteBlockMechanicListener implements Listener {
         if (!player.isSneaking() && BlockHelpers.isInteractable(placedAgainst)) return;
 
         if (mechanic.isDirectional()) {
-            DirectionalBlock directional = mechanic.getDirectional();
+            DirectionalBlock directional = mechanic.directional();
             if (!directional.isParentBlock()) {
-                directional = directional.getParentMechanic().getDirectional();
+                directional = directional.getParentMechanic().directional();
             }
 
             NoteBlockMechanic newMechanic = directional.getDirectionMechanic(face, player);
@@ -354,8 +354,8 @@ public class NoteBlockMechanicListener implements Listener {
             if (mechanic == null) return;
 
             ItemStack item;
-            if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
-                item = OraxenItems.getItemById(mechanic.getDirectional().getParentBlock()).build();
+            if (mechanic.isDirectional() && !mechanic.directional().isParentBlock())
+                item = OraxenItems.getItemById(mechanic.directional().getParentBlock()).build();
             else
                 item = OraxenItems.getItemById(mechanic.getItemID()).build();
             for (int i = 0; i <= 8; i++) {
@@ -401,8 +401,8 @@ public class NoteBlockMechanicListener implements Listener {
                 NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
                 if (mechanic == null) return false;
 
-                if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
-                    mechanic = mechanic.getDirectional().getParentMechanic();
+                if (mechanic.isDirectional() && !mechanic.directional().isParentBlock())
+                    mechanic = mechanic.directional().getParentMechanic();
 
                 return mechanic.hasHardness();
             }
@@ -416,14 +416,14 @@ public class NoteBlockMechanicListener implements Listener {
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
                 NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
                 if (mechanic == null) return 0;
-                if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock())
-                    mechanic = mechanic.getDirectional().getParentMechanic();
+                if (mechanic.isDirectional() && !mechanic.directional().isParentBlock())
+                    mechanic = mechanic.directional().getParentMechanic();
 
-                final long period = mechanic.getHardness();
+                final long period = mechanic.hardness();
                 double modifier = 1;
-                if (mechanic.getDrop().canDrop(tool)) {
+                if (mechanic.drop().canDrop(tool)) {
                     modifier *= 0.4;
-                    final int diff = mechanic.getDrop().getDiff(tool);
+                    final int diff = mechanic.drop().getDiff(tool);
                     if (diff >= 1)
                         modifier *= Math.pow(0.9, diff);
                 }

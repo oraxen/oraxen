@@ -37,7 +37,7 @@ public class SaplingTask extends BukkitRunnable {
                         StringBlockMechanic string = OraxenBlocks.getStringMechanic(block);
                         if (string == null || !string.isSapling()) return;
 
-                        SaplingMechanic sapling = string.getSaplingMechanic();
+                        SaplingMechanic sapling = string.sapling();
                         if (sapling == null || !sapling.hasSchematic()) continue;
                         if (!sapling.canGrowNaturally()) continue;
                         if (sapling.requiresWaterSource() && !sapling.isUnderWater(block)) continue;

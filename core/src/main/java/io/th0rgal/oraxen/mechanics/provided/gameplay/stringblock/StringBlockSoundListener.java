@@ -32,7 +32,7 @@ public class StringBlockSoundListener implements Listener {
             final StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(block);
             block.setType(Material.AIR, false);
             if (mechanic == null) return;
-            BlockSounds blockSounds = mechanic.getBlockSounds();
+            BlockSounds blockSounds = mechanic.blockSounds();
 
             if (mechanic.hasBlockSounds() && blockSounds.hasBreakSound())
                 BlockHelpers.playCustomBlockSound(block.getLocation(), blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());
@@ -43,7 +43,7 @@ public class StringBlockSoundListener implements Listener {
     public void onPlaceString(OraxenStringBlockPlaceEvent event) {
         final StringBlockMechanic mechanic = event.getMechanic();
         if (!mechanic.hasBlockSounds()) return;
-        BlockSounds blockSounds = mechanic.getBlockSounds();
+        BlockSounds blockSounds = mechanic.blockSounds();
         if (blockSounds.hasPlaceSound())
             BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getPlaceSound(), blockSounds.getPlaceVolume(), blockSounds.getPlacePitch());
     }
@@ -52,7 +52,7 @@ public class StringBlockSoundListener implements Listener {
     public void onBreakString(OraxenStringBlockBreakEvent event) {
         final StringBlockMechanic mechanic = event.getMechanic();
         if (!mechanic.hasBlockSounds()) return;
-        BlockSounds blockSounds = mechanic.getBlockSounds();
+        BlockSounds blockSounds = mechanic.blockSounds();
         if (blockSounds.hasBreakSound())
             BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());
     }
@@ -75,7 +75,7 @@ public class StringBlockSoundListener implements Listener {
         float pitch;
 
         if (mechanic == null || !mechanic.hasBlockSounds()) return;
-        BlockSounds blockSounds = mechanic.getBlockSounds();
+        BlockSounds blockSounds = mechanic.blockSounds();
         if (gameEvent == GameEvent.STEP && blockSounds.hasStepSound()) {
             sound = blockSounds.getStepSound();
             volume = blockSounds.getStepVolume();

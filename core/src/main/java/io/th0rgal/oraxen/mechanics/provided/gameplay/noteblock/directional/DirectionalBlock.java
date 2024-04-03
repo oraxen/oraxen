@@ -132,7 +132,7 @@ public class DirectionalBlock {
     }
 
     private int getDirectionVariation(String itemId) {
-        return NoteBlockMechanicFactory.getInstance().getMechanic(itemId).getCustomVariation();
+        return NoteBlockMechanicFactory.getInstance().getMechanic(itemId).customVariation();
     }
 
     public Key getDirectionalModel(NoteBlockMechanic mechanic) {

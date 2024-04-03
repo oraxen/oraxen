@@ -109,15 +109,15 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     @Override
     public Mechanic parse(ConfigurationSection section) {
         StringBlockMechanic mechanic = new StringBlockMechanic(this, section);
-        if (!Range.between(1, MAX_BLOCK_VARIATION).contains(mechanic.getCustomVariation())) {
+        if (!Range.between(1, MAX_BLOCK_VARIATION).contains(mechanic.customVariation())) {
             Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and " + MAX_BLOCK_VARIATION + "!");
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
             return null;
         }
 
-        MultiVariant multiVariant = MultiVariant.of(Variant.builder().model(mechanic.getModel()).build());
+        MultiVariant multiVariant = MultiVariant.of(Variant.builder().model(mechanic.model()).build());
         variants.put(getBlockstateVariantName(mechanic), multiVariant);
-        BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
+        BLOCK_PER_VARIATION.put(mechanic.customVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;
     }

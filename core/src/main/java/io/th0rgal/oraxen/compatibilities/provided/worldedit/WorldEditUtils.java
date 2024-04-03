@@ -77,7 +77,7 @@ public class WorldEditUtils {
         NoteBlockMechanicFactory factory = NoteBlockMechanicFactory.getInstance();
         if (mechanic.isDirectional()) {
             String direction = (input.contains("\\[")) ? input.split("\\[")[1].split("=")[1].split("]")[0] : input;
-            DirectionalBlock dirBlock = mechanic.getDirectional();
+            DirectionalBlock dirBlock = mechanic.directional();
 
             if (!dirBlock.isParentBlock()) {
                 return factory.getMechanic(dirBlock.getParentBlock()).blockData();
@@ -88,7 +88,7 @@ public class WorldEditUtils {
     }
 
     private static String getDirectionalID(NoteBlockMechanic mechanic, String direction) {
-        DirectionalBlock dirBlock = mechanic.getDirectional();
+        DirectionalBlock dirBlock = mechanic.directional();
         if (dirBlock.isLog()) {
             return switch (direction) {
                 case "x" -> dirBlock.getXBlock();
