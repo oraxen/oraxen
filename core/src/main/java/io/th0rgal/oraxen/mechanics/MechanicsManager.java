@@ -70,10 +70,10 @@ public class MechanicsManager {
         registerFactory("repair", RepairMechanicFactory::new);
         registerFactory("durability", DurabilityMechanicFactory::new);
         registerFactory("efficiency", EfficiencyMechanicFactory::new);
-        registerFactory("noteblock", NoteBlockMechanicFactory::new);
-        registerFactory("stringblock", StringBlockMechanicFactory::new);
         registerFactory("furniture", FurnitureFactory::new);
         registerFactory("custom_block", CustomBlockFactory::new);
+        registerFactory("noteblock", NoteBlockMechanicFactory::new);
+        registerFactory("stringblock", StringBlockMechanicFactory::new);
 
         // cosmetic
         registerFactory("aura", AuraMechanicFactory::new);

@@ -93,8 +93,8 @@ public class StringBlockMechanicListener implements Listener {
                 block.setType(Material.AIR, false);
 
                 if (mechanic.hasLight())
-                    mechanic.getLight().removeBlockLight(block);
-                mechanic.getDrop().spawns(block.getLocation(), new ItemStack(Material.AIR));
+                    mechanic.light().removeBlockLight(block);
+                mechanic.drop().spawns(block.getLocation(), new ItemStack(Material.AIR));
             }
         }
 
@@ -162,7 +162,7 @@ public class StringBlockMechanicListener implements Listener {
 
         if (!event.getPlayer().isSneaking() && BlockHelpers.isInteractable(block)) return;
 
-        LimitedPlacing limitedPlacing = mechanic.getLimitedPlacing();
+        LimitedPlacing limitedPlacing = mechanic.limitedPlacing();
         Block belowPlaced = block.getRelative(blockFace).getRelative(BlockFace.DOWN);
 
         if (limitedPlacing.isNotPlacableOn(block, blockFace)) event.setCancelled(true);
@@ -218,7 +218,7 @@ public class StringBlockMechanicListener implements Listener {
 
         Tripwire blockData = mechanic.blockData();
         if (mechanic.hasRandomPlace()) {
-            List<String> randomList = mechanic.getRandomPlaceBlock();
+            List<String> randomList = mechanic.randomPlace();
             String randomBlock = randomList.get(new Random().nextInt(randomList.size()));
             blockData = StringBlockMechanicFactory.getInstance().getMechanic(randomBlock).blockData();
         }
@@ -391,11 +391,11 @@ public class StringBlockMechanicListener implements Listener {
             public long getPeriod(final Player player, final Block block, final ItemStack tool) {
                 final StringBlockMechanic tripwireMechanic = OraxenBlocks.getStringMechanic(block);
                 if (tripwireMechanic == null) return 0;
-                final long period = tripwireMechanic.getHardness();
+                final long period = tripwireMechanic.hardness();
                 double modifier = 1;
-                if (tripwireMechanic.getDrop().canDrop(tool)) {
+                if (tripwireMechanic.drop().canDrop(tool)) {
                     modifier *= 0.4;
-                    final int diff = tripwireMechanic.getDrop().getDiff(tool);
+                    final int diff = tripwireMechanic.drop().getDiff(tool);
                     if (diff >= 1)
                         modifier *= Math.pow(0.9, diff);
                 }
