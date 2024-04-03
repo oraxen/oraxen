@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
-import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.directional.DirectionalBlock;
@@ -110,7 +109,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     }
 
     @Override
-    public Mechanic parse(ConfigurationSection section) {
+    public NoteBlockMechanic parse(ConfigurationSection section) {
         NoteBlockMechanic mechanic = new NoteBlockMechanic(this, section);
         if (!Range.between(1, MAX_BLOCK_VARIATION).contains(mechanic.customVariation())) {
             Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and " + MAX_BLOCK_VARIATION + "!");
