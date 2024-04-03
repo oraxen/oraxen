@@ -2,8 +2,8 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
-import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockBreakEvent;
-import io.th0rgal.oraxen.api.events.noteblock.OraxenNoteBlockPlaceEvent;
+import io.th0rgal.oraxen.api.events.custom_block.noteblock.OraxenNoteBlockBreakEvent;
+import io.th0rgal.oraxen.api.events.custom_block.noteblock.OraxenNoteBlockPlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.protectionlib.ProtectionLib;

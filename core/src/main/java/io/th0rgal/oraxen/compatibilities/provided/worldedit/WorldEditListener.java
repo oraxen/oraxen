@@ -24,5 +24,5 @@ public class WorldEditListener implements Listener {
     }
 
     private static final List<String> oraxenBlockIDs = OraxenItems.getEntries().stream()
-            .map(entry -> entry.getKey().toLowerCase()).filter(OraxenBlocks::isOraxenBlock).toList();
+            .map(entry -> entry.getKey().toLowerCase()).filter(OraxenBlocks::isCustomBlock).toList();
 }

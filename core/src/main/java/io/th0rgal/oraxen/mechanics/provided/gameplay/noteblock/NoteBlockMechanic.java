@@ -6,14 +6,11 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMec
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripping;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
-import io.th0rgal.oraxen.utils.actions.ClickAction;
 import org.bukkit.Instrument;
 import org.bukkit.Material;
 import org.bukkit.Note;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
-
-import java.util.List;
 
 public class NoteBlockMechanic extends CustomBlockMechanic {
 
@@ -21,14 +18,12 @@ public class NoteBlockMechanic extends CustomBlockMechanic {
     private final boolean isFalling;
     private final LogStripping logStripping;
     private final DirectionalBlock directionalBlock;
-    private final List<ClickAction> clickActions;
     private final StorageMechanic storage;
 
     public NoteBlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         // Creates an instance of CustomBlockMechanic and applies the below
         super(mechanicFactory, section);
 
-        clickActions = ClickAction.parseList(section);
         canIgnite = section.getBoolean("can_ignite", false);
         isFalling = section.getBoolean("is_falling", false);
 

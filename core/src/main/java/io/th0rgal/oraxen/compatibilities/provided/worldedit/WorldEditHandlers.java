@@ -96,7 +96,7 @@ public class WorldEditHandlers {
                 BlockData blockData = BukkitAdapter.adapt(block);
                 World world = Bukkit.getWorld(event.getWorld().getName());
                 Location loc = new Location(world, pos.getX(), pos.getY(), pos.getZ());
-                Mechanic mechanic = OraxenBlocks.getOraxenBlock(blockData);
+                Mechanic mechanic = OraxenBlocks.getCustomBlockMechanic(blockData);
                 if (blockData.getMaterial() == Material.NOTE_BLOCK) {
                     if (mechanic != null && Settings.WORLDEDIT_NOTEBLOCKS.toBool()) {
                         Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> OraxenBlocks.place(mechanic.getItemID(), loc), 1L);
@@ -107,7 +107,7 @@ public class WorldEditHandlers {
                     }
                 } else {
                     if (world == null) return super.setBlock(pos, block);
-                    Mechanic replacingMechanic = OraxenBlocks.getOraxenBlock(loc);
+                    Mechanic replacingMechanic = OraxenBlocks.getCustomBlockMechanic(loc);
                     if (replacingMechanic == null) return super.setBlock(pos, block);
                     if (replacingMechanic instanceof StringBlockMechanic && !Settings.WORLDEDIT_STRINGBLOCKS.toBool())
                         return super.setBlock(pos, block);

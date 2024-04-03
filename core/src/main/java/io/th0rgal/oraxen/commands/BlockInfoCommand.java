@@ -31,7 +31,7 @@ public class BlockInfoCommand {
                     if (argument == null) return;
                     if (argument.equals("all")) {
                         for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
-                            if (!OraxenBlocks.isOraxenBlock(entry.getKey())) continue;
+                            if (!OraxenBlocks.isCustomBlock(entry.getKey())) continue;
                             sendBlockInfo(audience, entry.getKey());
                         }
                     } else {

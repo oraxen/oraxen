@@ -20,7 +20,7 @@ public class BlockLockerCompatibility extends CompatibilityProvider<BlockLockerP
             @Override
             public boolean canProtect(Block block) {
                 BlockLockerMechanic blockLocker = null;
-                CustomBlockMechanic customBlockMechanic = OraxenBlocks.getOraxenBlock(block.getBlockData());
+                CustomBlockMechanic customBlockMechanic = OraxenBlocks.getCustomBlockMechanic(block.getBlockData());
                 if (customBlockMechanic != null) blockLocker = customBlockMechanic.blockLocker();
 
                 if (blockLocker == null) {

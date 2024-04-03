@@ -149,7 +149,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         String itemId = mechanic.getItemID();
         DirectionalBlock parent = parentMechanic.directional();
         Variant.Builder variantBuilder = Variant.builder();
-        Key subBlockModel = mechanic.directional().getDirectionalModel(mechanic);
+        Key subBlockModel = mechanic.directional().directionalModel(mechanic);
         subBlockModel = subBlockModel != null ? subBlockModel : modelKey;
         variantBuilder.model(subBlockModel);
         // If subModel is specified and is different from parent we don't want to rotate it

@@ -1,39 +1,36 @@
-package io.th0rgal.oraxen.api.events.noteblock;
+package io.th0rgal.oraxen.api.events.custom_block.stringblock;
 
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.bukkit.inventory.EquipmentSlot;
-import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 
-public class OraxenNoteBlockPlaceEvent extends Event implements Cancellable {
+public class OraxenStringBlockBreakEvent extends Event implements Cancellable {
 
-    private final NoteBlockMechanic mechanic;
+    private final StringBlockMechanic mechanic;
     private final Player player;
     private final Block block;
-    private final ItemStack itemInHand;
-    private final EquipmentSlot hand;
+    private Drop drop;
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenNoteBlockPlaceEvent(@NotNull final NoteBlockMechanic mechanic, @NotNull final Block block, @NotNull final Player player, @NotNull final ItemStack itemInHand, @NotNull final EquipmentSlot hand) {
+    public OraxenStringBlockBreakEvent(@NotNull final StringBlockMechanic mechanic, @NotNull final Block block, @NotNull final Player player) {
         this.mechanic = mechanic;
         this.player = player;
         this.block = block;
-        this.itemInHand = itemInHand;
-        this.hand = hand;
+        this.drop = mechanic.drop();
         this.isCancelled = false;
     }
 
     /**
-     * @return The NoteBlockMechanic of this block
+     * @return The StringBlockMechanic of this block
      */
     @NotNull
-    public NoteBlockMechanic getMechanic() {
+    public StringBlockMechanic getMechanic() {
         return mechanic;
     }
 
@@ -54,24 +51,19 @@ public class OraxenNoteBlockPlaceEvent extends Event implements Cancellable {
     }
 
     /**
-     * Gets the item in the player's hand when they placed the furniture.
-     *
-     * @return The ItemStack for the item in the player's hand when they
-     *     placed the furniture
+     * @return The drop of the block
      */
     @NotNull
-    public ItemStack getItemInHand() {
-        return itemInHand;
+    public Drop getDrop() {
+        return drop;
     }
 
     /**
-     * Gets the hand used to place the furniture.
-     *
-     * @return The EquipmentSlot for the hand used to place the furniture
+     * Set the drop of the block
+     * @param drop the new drop
      */
-    @NotNull
-    public EquipmentSlot getHand() {
-        return hand;
+    public void setDrop(Drop drop) {
+        this.drop = drop;
     }
 
     @Override

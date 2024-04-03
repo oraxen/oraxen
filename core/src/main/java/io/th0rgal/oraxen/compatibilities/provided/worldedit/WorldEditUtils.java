@@ -59,7 +59,7 @@ public class WorldEditUtils {
             if (!input.startsWith("oraxen:") || input.endsWith(":")) return null;
             String id = input.split(":")[1].split("\\[")[0]; // Potential arguments
             boolean hasArguments = input.contains("[");
-            if (id.equals(input) || !OraxenBlocks.isOraxenBlock(id)) return null;
+            if (id.equals(input) || !OraxenBlocks.isCustomBlock(id)) return null;
 
             NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(id);
             BlockData blockData = OraxenBlocks.getOraxenBlockData(id);

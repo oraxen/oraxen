@@ -12,8 +12,8 @@ import org.bukkit.inventory.ItemStack;
 
 public class CustomBlockFactory extends MechanicFactory {
 
-    public CustomBlockFactory(ConfigurationSection section) {
-        super(section);
+    public CustomBlockFactory(String mechanicId) {
+        super(mechanicId);
 
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new CustomBlockListener());
     }

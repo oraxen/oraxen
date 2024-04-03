@@ -1,6 +1,6 @@
-package io.th0rgal.oraxen.api.events.noteblock;
+package io.th0rgal.oraxen.api.events.custom_block;
 
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
@@ -13,9 +13,9 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
+public class OraxenBlockInteractEvent extends Event implements Cancellable {
 
-    private final NoteBlockMechanic mechanic;
+    private final CustomBlockMechanic mechanic;
     private final Block block;
     private final Player player;
     private final ItemStack itemInHand;
@@ -26,7 +26,7 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
     private static final HandlerList HANDLERS = new HandlerList();
 
     @Deprecated
-    public OraxenNoteBlockInteractEvent(@NotNull final NoteBlockMechanic mechanic, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @NotNull final Block block, @NotNull final BlockFace blockFace) {
+    public OraxenBlockInteractEvent(@NotNull final CustomBlockMechanic mechanic, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @NotNull final Block block, @NotNull final BlockFace blockFace) {
         this.mechanic = mechanic;
         this.block = block;
         this.player = player;
@@ -37,7 +37,7 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
         this.isCancelled = false;
     }
 
-    public OraxenNoteBlockInteractEvent(@NotNull final NoteBlockMechanic mechanic, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @NotNull final Block block, @NotNull final BlockFace blockFace, @NotNull final Action action) {
+    public OraxenBlockInteractEvent(@NotNull final CustomBlockMechanic mechanic, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @NotNull final Block block, @NotNull final BlockFace blockFace, @NotNull final Action action) {
         this.mechanic = mechanic;
         this.block = block;
         this.player = player;
@@ -52,7 +52,7 @@ public class OraxenNoteBlockInteractEvent extends Event implements Cancellable {
      * @return The NoteBlockMechanic of this block
      */
     @NotNull
-    public NoteBlockMechanic getMechanic() {
+    public CustomBlockMechanic getMechanic() {
         return mechanic;
     }
 

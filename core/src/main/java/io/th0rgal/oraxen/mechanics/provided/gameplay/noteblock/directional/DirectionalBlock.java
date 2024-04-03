@@ -41,12 +41,14 @@ public class DirectionalBlock {
     }
     public boolean isParentBlock() { return parentBlock == null; }
     public String getParentBlock() { return parentBlock; }
+
+    @Nullable
     public NoteBlockMechanic getParentMechanic() {
         if (parentBlock == null) return null;
-        else return (NoteBlockMechanic) NoteBlockMechanicFactory.getInstance().getMechanic(parentBlock);
+        else return NoteBlockMechanicFactory.getInstance().getMechanic(parentBlock);
     }
 
-    public DirectionalType getDirectionalType() { return directionalType; }
+    public DirectionalType type() { return directionalType; }
     public boolean isLog() { return directionalType == DirectionalType.LOG; }
     public boolean isFurnace() { return directionalType == DirectionalType.FURNACE; }
     public boolean isDropper() { return directionalType == DirectionalType.DROPPER; }
@@ -68,47 +70,47 @@ public class DirectionalBlock {
     }
 
     @Nullable
-    public NoteBlockMechanic getDirectionMechanic(BlockFace face, Player player) {
+    public NoteBlockMechanic directionMechanic(BlockFace face, Player player) {
         if (isLog()) {
             switch (face) {
-                case NORTH: case SOUTH: return getDirectionMechanic(xBlock);
-                case EAST: case WEST: return getDirectionMechanic(zBlock);
-                case UP: case DOWN: return getDirectionMechanic(yBlock);
+                case NORTH: case SOUTH: return directionMechanic(xBlock);
+                case EAST: case WEST: return directionMechanic(zBlock);
+                case UP: case DOWN: return directionMechanic(yBlock);
             }
         } else {
-            switch (getRelativeFacing(player)) {
-                case NORTH: return getDirectionMechanic(northBlock);
-                case SOUTH: return getDirectionMechanic(southBlock);
-                case EAST: return getDirectionMechanic(eastBlock);
-                case WEST: return getDirectionMechanic(westBlock);
-                case UP: return getDirectionMechanic(upBlock);
-                case DOWN: return getDirectionMechanic(downBlock);
+            switch (relativeFacing(player)) {
+                case NORTH: return directionMechanic(northBlock);
+                case SOUTH: return directionMechanic(southBlock);
+                case EAST: return directionMechanic(eastBlock);
+                case WEST: return directionMechanic(westBlock);
+                case UP: return directionMechanic(upBlock);
+                case DOWN: return directionMechanic(downBlock);
             }
         }
         return null;
     }
 
-    public int getDirectionVariation(BlockFace face, Player player) {
+    public int directionVariation(BlockFace face, Player player) {
         if (isLog()) {
             switch (face) {
-                case NORTH: case SOUTH: return getDirectionVariation(xBlock);
-                case EAST: case WEST: return getDirectionVariation(zBlock);
-                case UP: case DOWN: return getDirectionVariation(yBlock);
+                case NORTH: case SOUTH: return directionVariation(xBlock);
+                case EAST: case WEST: return directionVariation(zBlock);
+                case UP: case DOWN: return directionVariation(yBlock);
             }
         } else {
-            switch (getRelativeFacing(player)) {
-                case NORTH: return getDirectionVariation(northBlock);
-                case SOUTH: return getDirectionVariation(southBlock);
-                case EAST: return getDirectionVariation(eastBlock);
-                case WEST: return getDirectionVariation(westBlock);
-                case UP: return getDirectionVariation(upBlock);
-                case DOWN: return getDirectionVariation(downBlock);
+            switch (relativeFacing(player)) {
+                case NORTH: return directionVariation(northBlock);
+                case SOUTH: return directionVariation(southBlock);
+                case EAST: return directionVariation(eastBlock);
+                case WEST: return directionVariation(westBlock);
+                case UP: return directionVariation(upBlock);
+                case DOWN: return directionVariation(downBlock);
             }
         }
         return 0;
     }
 
-    private BlockFace getRelativeFacing(Player player) {
+    private BlockFace relativeFacing(Player player) {
         double yaw = player.getLocation().getYaw();
         double pitch = player.getLocation().getPitch();
         BlockFace face = BlockFace.SELF;
@@ -127,15 +129,15 @@ public class DirectionalBlock {
         return face;
     }
 
-    private NoteBlockMechanic getDirectionMechanic(String itemId) {
+    private NoteBlockMechanic directionMechanic(String itemId) {
         return NoteBlockMechanicFactory.getInstance().getMechanic(itemId);
     }
 
-    private int getDirectionVariation(String itemId) {
+    private int directionVariation(String itemId) {
         return NoteBlockMechanicFactory.getInstance().getMechanic(itemId).customVariation();
     }
 
-    public Key getDirectionalModel(NoteBlockMechanic mechanic) {
+    public Key directionalModel(NoteBlockMechanic mechanic) {
         return Key.key(mechanic.getSection().getString("model"));
     }
 }

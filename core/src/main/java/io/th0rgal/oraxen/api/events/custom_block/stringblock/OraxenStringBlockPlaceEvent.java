@@ -1,8 +1,7 @@
-package io.th0rgal.oraxen.api.events.stringblock;
+package io.th0rgal.oraxen.api.events.custom_block.stringblock;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
@@ -12,25 +11,23 @@ import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class OraxenStringBlockInteractEvent extends Event implements Cancellable {
+public class OraxenStringBlockPlaceEvent extends Event implements Cancellable {
 
     private final StringBlockMechanic mechanic;
     private final Player player;
     private final Block block;
     private final ItemStack itemInHand;
     private final EquipmentSlot hand;
-    private final BlockFace blockFace;
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenStringBlockInteractEvent(@NotNull final StringBlockMechanic mechanic, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @NotNull final Block block, @NotNull final BlockFace blockFace) {
+    public OraxenStringBlockPlaceEvent(@NotNull final StringBlockMechanic mechanic, @NotNull final Block block, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand) {
         this.mechanic = mechanic;
-        this.itemInHand = itemInHand;
-        this.block = block;
         this.player = player;
-        this.isCancelled = false;
+        this.block = block;
+        this.itemInHand = itemInHand;
         this.hand = hand;
-        this.blockFace = blockFace;
+        this.isCancelled = false;
     }
 
     /**
@@ -42,7 +39,7 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     }
 
     /**
-     * @return The player who interacted with this StringBlock
+     * @return The player who broke this block, or null if the event is not triggered by player
      */
     @NotNull
     public Player getPlayer() {
@@ -50,7 +47,7 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     }
 
     /**
-     * @return The StringBlock that was interacted with
+     * @return The block that was placed
      */
     @NotNull
     public Block getBlock() {
@@ -58,15 +55,10 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     }
 
     /**
-     * @return Clicked block face
-     */
-    @NotNull
-    public BlockFace getBlockFace() {
-        return blockFace;
-    }
-
-    /**
-     * @return The item in hand when the player interacted with the string block
+     * Gets the item in the player's hand when they placed the furniture.
+     *
+     * @return The ItemStack for the item in the player's hand when they
+     *     placed the furniture
      */
     @Nullable
     public ItemStack getItemInHand() {
@@ -74,7 +66,9 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     }
 
     /**
-     * @return The hand used to perform interaction
+     * Gets the hand which the item was placed with.
+     *
+     * @return The hand used to place the item
      */
     @NotNull
     public EquipmentSlot getHand() {
@@ -102,3 +96,4 @@ public class OraxenStringBlockInteractEvent extends Event implements Cancellable
     }
 
 }
+
