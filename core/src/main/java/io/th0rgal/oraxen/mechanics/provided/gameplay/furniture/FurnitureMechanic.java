@@ -55,7 +55,6 @@ public class FurnitureMechanic extends Mechanic {
     private final BlockSounds blockSounds;
     private final JukeboxBlock jukebox;
     public final boolean farmlandRequired;
-    public final boolean farmblockRequired;
     private final Drop drop;
     private final EvolvingFurniture evolvingFurniture;
     private final LightMechanic light;
@@ -114,7 +113,6 @@ public class FurnitureMechanic extends Mechanic {
         placedItemId = section.getString("item", null);
         modelEngineID = section.getString("modelengine_id", null);
         farmlandRequired = section.getBoolean("farmland_required", false);
-        farmblockRequired = section.getBoolean("farmblock_required", false);
         light = new LightMechanic(section);
         restrictedRotation = RestrictedRotation.fromString(section.getString("restricted_rotation", "STRICT"));
 

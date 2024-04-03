@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -45,22 +44,6 @@ public class EvolutionTask extends BukkitRunnable {
                     if (mechanic.farmlandRequired && blockBelow.getType() != Material.FARMLAND) {
                         OraxenFurniture.remove(entity, null);
                         continue;
-                    }
-
-                    if (mechanic.farmblockRequired) {
-                        NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(blockBelow);
-                        if (noteMechanic == null || !noteMechanic.hasDryout()) {
-                            OraxenFurniture.remove(entity, null);
-                            continue;
-                        }
-                        FarmBlockDryout dryoutMechanic = noteMechanic.getDryout();
-                        if (!dryoutMechanic.isFarmBlock()) {
-                            OraxenFurniture.remove(entity, null);
-                            continue;
-                        } else if (!dryoutMechanic.isMoistFarmBlock()) {
-                            pdc.set(FurnitureMechanic.EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
-                            continue;
-                        }
                     }
 
                     EvolvingFurniture evolution = mechanic.evolution();

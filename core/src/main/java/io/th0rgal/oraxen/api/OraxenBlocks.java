@@ -32,7 +32,6 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic.FARMBLOCK_KEY;
 import static io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic.SAPLING_KEY;
 
 public class OraxenBlocks {
@@ -167,10 +166,6 @@ public class OraxenBlocks {
 
         if (mechanic.hasLight()) {
             mechanic.getLight().createBlockLight(block);
-        }
-
-        if (mechanic.hasDryout() && mechanic.getDryout().isFarmBlock()) {
-            pdc.set(FARMBLOCK_KEY, PersistentDataType.STRING, mechanic.getItemID());
         }
 
         if (mechanic.isStorage() && mechanic.getStorage().getStorageType() == StorageMechanic.StorageType.STORAGE) {

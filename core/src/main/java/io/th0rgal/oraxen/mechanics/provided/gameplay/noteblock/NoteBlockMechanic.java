@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.compatibilities.provided.blocklocker.BlockLockerMechanic;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
@@ -8,7 +7,6 @@ import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockDryout;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripping;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
@@ -17,7 +15,6 @@ import io.th0rgal.oraxen.utils.drops.Drop;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Instrument;
 import org.bukkit.Material;
-import org.bukkit.NamespacedKey;
 import org.bukkit.Note;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
@@ -28,7 +25,6 @@ import java.util.List;
 
 public class NoteBlockMechanic extends Mechanic {
 
-    public static final NamespacedKey FARMBLOCK_KEY = new NamespacedKey(OraxenPlugin.get(), "farmblock");
     private final int customVariation;
     private final Drop drop;
     private final LimitedPlacing limitedPlacing;
@@ -39,7 +35,6 @@ public class NoteBlockMechanic extends Mechanic {
     private final LightMechanic light;
     private final boolean canIgnite;
     private final boolean isFalling;
-    private final FarmBlockDryout farmBlockDryout;
     private final LogStripping logStripping;
     private final DirectionalBlock directionalBlock;
     private final List<ClickAction> clickActions;
@@ -68,10 +63,6 @@ public class NoteBlockMechanic extends Mechanic {
 
         ConfigurationSection dropSection = section.getConfigurationSection("drop");
         drop = dropSection != null ? Drop.createDrop(NoteBlockMechanicFactory.getInstance().toolTypes, dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
-
-        ConfigurationSection farmBlockSection = section.getConfigurationSection("farmblock");
-        farmBlockDryout = farmBlockSection != null ? new FarmBlockDryout(getItemID(), farmBlockSection) : null;
-        if (farmBlockDryout != null) ((NoteBlockMechanicFactory) getFactory()).registerFarmBlock();
 
         ConfigurationSection logStripSection = section.getConfigurationSection("logStrip");
         logStripping = logStripSection != null ? new LogStripping(logStripSection) : null;
@@ -132,9 +123,6 @@ public class NoteBlockMechanic extends Mechanic {
 
     public boolean hasBlockSounds() { return blockSounds != null; }
     public BlockSounds getBlockSounds() { return blockSounds; }
-
-    public boolean hasDryout() { return farmBlockDryout != null; }
-    public FarmBlockDryout getDryout() { return farmBlockDryout; }
 
     public boolean isLog() {
         if (isDirectional() && !getDirectional().isParentBlock()) {

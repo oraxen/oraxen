@@ -146,7 +146,7 @@ grape_seeds:
     furniture:
       item: grape_stage0
       barrier: false
-      farmblock_required: true
+      farmland_required: true
       evolution:
         delay: 10000
         probability: 0.5
@@ -175,7 +175,7 @@ grape_stage1:
   Mechanics:
     furniture:
       barrier: false
-      farmblock_required: true
+      farmland_required: true
       evolution:
         delay: 10000
         probability: 0.5
@@ -195,7 +195,7 @@ grape_stage2:
   Mechanics:
     furniture:
       barrier: false
-      farmblock_required: true
+      farmland_required: true
       evolution:
         delay: 10000
         probability: 0.5
@@ -215,7 +215,7 @@ grape_stage3:
   Mechanics:
     furniture:
       barrier: false
-      farmblock_required: true
+      farmland_required: true
       evolution:
         delay: 10000
         probability: 0.5
@@ -235,7 +235,7 @@ grape_stage4:
   Mechanics:
     furniture:
       barrier: false
-      farmblock_required: true
+      farmland_required: true
       evolution:
         delay: 10000
         probability: 0.5

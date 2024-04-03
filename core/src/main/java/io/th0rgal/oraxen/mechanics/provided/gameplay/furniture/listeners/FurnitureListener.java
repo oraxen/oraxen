@@ -110,13 +110,6 @@ public class FurnitureListener implements Listener {
         Block farm = block.getRelative(BlockFace.DOWN);
         if (mechanic.farmlandRequired && farm.getType() != Material.FARMLAND) return;
 
-        if (mechanic.farmblockRequired) {
-            if (farm.getType() != Material.NOTE_BLOCK) return;
-            NoteBlockMechanic farmMechanic = OraxenBlocks.getNoteBlockMechanic(farm);
-            if (farmMechanic == null || !farmMechanic.hasDryout()) return;
-            if (!farmMechanic.getDryout().isFarmBlock()) return;
-        }
-
         BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(block, block.getState(), placedAgainst, item, player, true, hand);
 
         final Rotation rotation = getRotation(player.getEyeLocation().getYaw(), mechanic);

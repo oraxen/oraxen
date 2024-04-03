@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional.DirectionalBlock;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.farmblock.FarmBlockTask;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip.LogStripListener;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -18,7 +17,6 @@ import org.bukkit.block.Block;
 import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import team.unnamed.creative.blockstate.BlockState;
@@ -38,9 +36,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     private final Map<String, MultiVariant> variants = new HashMap<>();
     private static NoteBlockMechanicFactory instance;
     public final List<String> toolTypes;
-    private boolean farmBlock;
-    private static FarmBlockTask farmBlockTask;
-    public final int farmBlockCheckDelay;
     public final boolean customSounds;
     private final boolean removeMineableTag;
 
@@ -49,8 +44,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         instance = this;
         variants.put("instrument=harp,powered=false,note=0", MultiVariant.of(Variant.builder().model(Key.key("block/note_block")).build()));
         toolTypes = section.getStringList("tool_types");
-        farmBlockCheckDelay = section.getInt("farmblock_check_delay");
-        farmBlock = false;
         customSounds = OraxenPlugin.get().configsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("noteblock_and_block", true);
         removeMineableTag = section.getBoolean("remove_mineable_tag", false);
 
@@ -185,26 +178,6 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
             variantBuilder.x(180);
 
         return MultiVariant.of(variantBuilder.build());
-    }
-
-    public void registerFarmBlock() {
-        if (farmBlock) return;
-        if (farmBlockTask != null) farmBlockTask.cancel();
-
-//        // Dont register if there is no farmblocks in configs
-//        List<String> farmblockList = new ArrayList<>();
-//        for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
-//            String id = OraxenItems.getIdByItem(itemBuilder.build());
-//            NoteBlockMechanic mechanic = (NoteBlockMechanic) NoteBlockMechanicFactory.getInstance().getMechanic(id);
-//            if (mechanic == null || !mechanic.hasDryout()) continue;
-//            farmblockList.add(id);
-//        }
-//        if (farmblockList.isEmpty()) return;
-
-        farmBlockTask = new FarmBlockTask(farmBlockCheckDelay);
-        BukkitTask task = farmBlockTask.runTaskTimer(OraxenPlugin.get(), 0, farmBlockCheckDelay);
-        MechanicsManager.registerTask(getMechanicID(), task);
-        farmBlock = true;
     }
 
 }
