@@ -117,6 +117,13 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
             return null;
         }
 
+        NoteBlockMechanic existingMechanic = BLOCK_PER_VARIATION.get(mechanic.customVariation());
+        if (!allowedSameVariation(mechanic, existingMechanic)) {
+            Logs.logError(mechanic.getItemID() + " is set to use custom_variation " + mechanic.customVariation() + " but it is already used by " + existingMechanic.getItemID());
+            Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
+            return null;
+        }
+
         Key modelKey = mechanic.model();
         String variantName = "instrument=" + instrumentName(mechanic.blockData().getInstrument()) + ",note=" + mechanic.blockData().getNote().getId() + ",powered=" + mechanic.blockData().isPowered();
         if (mechanic.isDirectional() && !mechanic.directional().isParentBlock()) {
@@ -142,6 +149,15 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
             case BASS_GUITAR -> "bass";
             default -> instrument.name().toLowerCase();
         };
+    }
+
+    private boolean allowedSameVariation(NoteBlockMechanic mechanic, NoteBlockMechanic oldMechanic) {
+        if (oldMechanic == null) return true;
+        if (mechanic == oldMechanic) return true;
+        if (!mechanic.isDirectional()) return false;
+        if (!oldMechanic.isDirectional()) return false;
+        if (mechanic.equals(oldMechanic.directional().getParentMechanic())) return true;
+        return oldMechanic.equals(mechanic.directional().getParentMechanic());
     }
 
     private MultiVariant getDirectionalModelJson(Key modelKey, NoteBlockMechanic mechanic, NoteBlockMechanic parentMechanic) {

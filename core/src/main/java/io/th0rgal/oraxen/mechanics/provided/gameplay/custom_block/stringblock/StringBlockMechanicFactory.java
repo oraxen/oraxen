@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.sapling.SaplingListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.sapling.SaplingTask;
 import io.th0rgal.oraxen.nms.NMSHandlers;
@@ -110,6 +111,13 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         StringBlockMechanic mechanic = new StringBlockMechanic(this, section);
         if (!Range.between(1, MAX_BLOCK_VARIATION).contains(mechanic.customVariation())) {
             Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and " + MAX_BLOCK_VARIATION + "!");
+            Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
+            return null;
+        }
+
+        StringBlockMechanic existingMechanic = BLOCK_PER_VARIATION.get(mechanic.customVariation());
+        if (existingMechanic != null && existingMechanic != mechanic) {
+            Logs.logError(mechanic.getItemID() + " is set to use custom_variation " + mechanic.customVariation() + " but it is already used by " + existingMechanic.getItemID());
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
             return null;
         }
