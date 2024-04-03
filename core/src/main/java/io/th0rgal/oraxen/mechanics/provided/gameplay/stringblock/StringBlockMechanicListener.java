@@ -421,13 +421,14 @@ public class StringBlockMechanicListener implements Listener {
 
         StringBlockMechanic mechanic = OraxenBlocks.getStringMechanic(newData);
         // Store oldData incase event(s) is cancelled, set the target blockData
+        Block blockAbove = target.getRelative(BlockFace.UP);
         final BlockData oldData = target.getBlockData();
+        final BlockData oldDataAbove = blockAbove.getBlockData();
         target.setBlockData(newData);
 
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, hand);
 
         Range<Integer> worldHeightRange = Range.between(target.getWorld().getMinHeight(), target.getWorld().getMaxHeight() - 1);
-        Block blockAbove = target.getRelative(BlockFace.UP);
         if (mechanic != null && mechanic.isTall()) {
             if (!BlockHelpers.REPLACEABLE_BLOCKS.contains(blockAbove.getType()) || !worldHeightRange.contains(blockAbove.getY()))
                 blockPlaceEvent.setCancelled(true);
@@ -441,16 +442,17 @@ public class StringBlockMechanicListener implements Listener {
         // Call the event and check if it is cancelled, if so reset BlockData
         if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) {
             target.setBlockData(oldData);
+            if (mechanic != null && mechanic.isTall()) blockAbove.setBlockData(oldDataAbove);
             return;
         }
 
-        final String sound;
         if (mechanic != null) {
             OraxenBlocks.place(mechanic.getItemID(), target.getLocation());
 
             OraxenStringBlockPlaceEvent oraxenPlaceEvent = new OraxenStringBlockPlaceEvent(mechanic, target, player, item, hand);
             if (!EventUtils.callEvent(oraxenPlaceEvent)) {
                 target.setBlockData(oldData);
+                if (mechanic.isTall()) blockAbove.setBlockData(oldDataAbove);
                 return;
             }
 
