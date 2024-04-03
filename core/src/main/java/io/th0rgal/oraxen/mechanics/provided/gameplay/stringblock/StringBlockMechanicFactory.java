@@ -28,6 +28,7 @@ import java.util.Map;
 public class StringBlockMechanicFactory extends MechanicFactory {
 
     public static final Map<Integer, StringBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
+    public static final Integer MAX_BLOCK_VARIATION = 127;
     private final Map<String, MultiVariant> variants = new HashMap<>();
     private static StringBlockMechanicFactory instance;
     public final List<String> toolTypes;
@@ -108,14 +109,14 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     @Override
     public Mechanic parse(ConfigurationSection section) {
         StringBlockMechanic mechanic = new StringBlockMechanic(this, section);
-        if (!Range.between(1, 127).contains(mechanic.getCustomVariation())) {
-            Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and 127!");
+        if (!Range.between(1, MAX_BLOCK_VARIATION).contains(mechanic.getCustomVariation())) {
+            Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and " + MAX_BLOCK_VARIATION + "!");
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
+            return null;
         }
 
-        String variantName = getBlockstateVariantName(mechanic);
         MultiVariant multiVariant = MultiVariant.of(Variant.builder().model(mechanic.getModel()).build());
-        variants.put(variantName, multiVariant);
+        variants.put(getBlockstateVariantName(mechanic), multiVariant);
         BLOCK_PER_VARIATION.put(mechanic.getCustomVariation(), mechanic);
         addToImplemented(mechanic);
         return mechanic;

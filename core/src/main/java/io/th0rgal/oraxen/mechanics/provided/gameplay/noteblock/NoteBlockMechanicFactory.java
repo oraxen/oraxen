@@ -117,12 +117,11 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
             return null;
         }
-        DirectionalBlock directional = mechanic.getDirectional();
-        Key modelKey = mechanic.getModel();
 
+        Key modelKey = mechanic.getModel();
         String variantName = "instrument=" + instrumentName(mechanic.blockData().getInstrument()) + ",note=" + mechanic.blockData().getNote().getId() + ",powered=" + mechanic.blockData().isPowered();
-        if (mechanic.isDirectional() && !directional.isParentBlock()) {
-            NoteBlockMechanic parentMechanic = directional.getParentMechanic();
+        if (mechanic.isDirectional() && !mechanic.getDirectional().isParentBlock()) {
+            NoteBlockMechanic parentMechanic = mechanic.getDirectional().getParentMechanic();
             modelKey = (parentMechanic.getModel());
             variants.put(variantName, getDirectionalModelJson(modelKey, mechanic, parentMechanic));
         } else {
