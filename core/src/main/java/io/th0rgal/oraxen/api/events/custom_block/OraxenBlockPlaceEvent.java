@@ -2,42 +2,35 @@ package io.th0rgal.oraxen.api.events.custom_block;
 
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
-import org.bukkit.event.block.Action;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
-public class OraxenBlockInteractEvent extends Event implements Cancellable {
+public class OraxenBlockPlaceEvent extends Event implements Cancellable {
 
     private final CustomBlockMechanic mechanic;
-    private final Block block;
     private final Player player;
+    private final Block block;
     private final ItemStack itemInHand;
-    private final BlockFace blockFace;
     private final EquipmentSlot hand;
-    private final Action action;
     private boolean isCancelled;
     private static final HandlerList HANDLERS = new HandlerList();
 
-    public OraxenBlockInteractEvent(@NotNull final CustomBlockMechanic mechanic, @NotNull final Player player, @Nullable final ItemStack itemInHand, @NotNull final EquipmentSlot hand, @NotNull final Block block, @NotNull final BlockFace blockFace, @NotNull final Action action) {
+    public OraxenBlockPlaceEvent(@NotNull final CustomBlockMechanic mechanic, @NotNull final Block block, @NotNull final Player player, @NotNull final ItemStack itemInHand, @NotNull final EquipmentSlot hand) {
         this.mechanic = mechanic;
-        this.block = block;
         this.player = player;
+        this.block = block;
         this.itemInHand = itemInHand;
-        this.blockFace = blockFace;
         this.hand = hand;
-        this.action = action;
         this.isCancelled = false;
     }
 
     /**
-     * @return The NoteBlockMechanic of this block
+     * @return The CustomBlockMechanic of this block
      */
     @NotNull
     public CustomBlockMechanic getMechanic() {
@@ -45,7 +38,7 @@ public class OraxenBlockInteractEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return The player who interacted with this block
+     * @return The player who broke this block
      */
     @NotNull
     public Player getPlayer() {
@@ -53,7 +46,7 @@ public class OraxenBlockInteractEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return The block that was interacted with
+     * @return The block that was broken
      */
     @NotNull
     public Block getBlock() {
@@ -61,35 +54,24 @@ public class OraxenBlockInteractEvent extends Event implements Cancellable {
     }
 
     /**
-     * @return The BlockFace that was clicked
+     * Gets the item in the player's hand when they placed the furniture.
+     *
+     * @return The ItemStack for the item in the player's hand when they
+     *     placed the furniture
      */
     @NotNull
-    public BlockFace getBlockFace() {
-        return blockFace;
-    }
-
-    /**
-     * @return The item in hand when the player interacted with the note block
-     */
-    @Nullable
     public ItemStack getItemInHand() {
         return itemInHand;
     }
 
     /**
-     * @return The hand used to perform interaction
+     * Gets the hand used to place the furniture.
+     *
+     * @return The EquipmentSlot for the hand used to place the furniture
      */
     @NotNull
     public EquipmentSlot getHand() {
         return hand;
-    }
-
-    /**
-     * @return The type of interaction
-     */
-    @NotNull
-    public Action getAction() {
-        return action;
     }
 
     @Override
@@ -101,7 +83,6 @@ public class OraxenBlockInteractEvent extends Event implements Cancellable {
     public void setCancelled(boolean cancel) {
         isCancelled = cancel;
     }
-
 
     @NotNull
     @Override

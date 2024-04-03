@@ -50,7 +50,7 @@ public class CustomBlockListener implements Listener {
         if (mechanic instanceof NoteBlockMechanic noteMechanic)
             customBlockEvent = new OraxenNoteBlockInteractEvent(noteMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace(), event.getAction());
         else if (mechanic instanceof StringBlockMechanic stringMechanic)
-            customBlockEvent = new OraxenStringBlockInteractEvent(stringMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace());
+            customBlockEvent = new OraxenStringBlockInteractEvent(stringMechanic, event.getPlayer(), event.getItem(), event.getHand(), block, event.getBlockFace(), event.getAction());
         else return;
 
         if (!EventUtils.callEvent(customBlockEvent)) event.setUseInteractedBlock(Event.Result.DENY);

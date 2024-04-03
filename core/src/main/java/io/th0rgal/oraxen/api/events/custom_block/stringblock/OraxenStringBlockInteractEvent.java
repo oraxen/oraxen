@@ -15,18 +15,15 @@ import org.jetbrains.annotations.Nullable;
 
 public class OraxenStringBlockInteractEvent extends OraxenBlockInteractEvent implements Cancellable {
 
-    public OraxenStringBlockInteractEvent(@NotNull CustomBlockMechanic mechanic, @NotNull Player player, @Nullable ItemStack itemInHand, @NotNull EquipmentSlot hand, @NotNull Block block, @NotNull BlockFace blockFace) {
-        super(mechanic, player, itemInHand, hand, block, blockFace);
-    }
-
     public OraxenStringBlockInteractEvent(@NotNull CustomBlockMechanic mechanic, @NotNull Player player, @Nullable ItemStack itemInHand, @NotNull EquipmentSlot hand, @NotNull Block block, @NotNull BlockFace blockFace, @NotNull Action action) {
         super(mechanic, player, itemInHand, hand, block, blockFace, action);
     }
 
     /**
-     * @return The NoteBlockMechanic of this block
+     * @return The StringBlockMechanic of this block
      */
     @NotNull
+    @Override
     public StringBlockMechanic getMechanic() {
         return (StringBlockMechanic) super.getMechanic();
     }
