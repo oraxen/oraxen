@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.logstrip;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.logstrip;
 
 import org.bukkit.configuration.ConfigurationSection;
 

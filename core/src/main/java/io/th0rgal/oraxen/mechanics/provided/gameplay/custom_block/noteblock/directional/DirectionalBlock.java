@@ -1,7 +1,7 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.directional;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.directional;
 
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.lang3.Range;
 import org.bukkit.block.BlockFace;

@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.sapling;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import org.bukkit.Material;

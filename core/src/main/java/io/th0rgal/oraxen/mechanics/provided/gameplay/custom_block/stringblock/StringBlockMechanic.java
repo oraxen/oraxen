@@ -1,9 +1,9 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock;
 
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.sapling.SaplingMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.sapling.SaplingMechanic;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.block.BlockFace;

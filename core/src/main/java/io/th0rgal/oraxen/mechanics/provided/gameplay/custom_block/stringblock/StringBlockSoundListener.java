@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock;
 
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.events.custom_block.stringblock.OraxenStringBlockBreakEvent;

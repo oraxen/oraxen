@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock;
 
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import io.th0rgal.oraxen.OraxenPlugin;

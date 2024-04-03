@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock;
 
 import org.bukkit.Location;
 import org.bukkit.Material;

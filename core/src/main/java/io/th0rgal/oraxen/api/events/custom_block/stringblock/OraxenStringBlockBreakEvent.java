@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.api.events.custom_block.stringblock;
 
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;

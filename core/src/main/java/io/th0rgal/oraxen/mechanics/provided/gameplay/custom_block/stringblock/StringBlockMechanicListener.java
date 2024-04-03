@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock;
+package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock;
 
 import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
