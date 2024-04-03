@@ -25,17 +25,17 @@ public class SaplingMechanic {
     private final boolean shouldCopyEntities;
 
     public SaplingMechanic(String itemId, ConfigurationSection section) {
-        canGrowNaturally = section.getBoolean("canGrowNaturally", true);
-        naturalGrowthTime = section.getInt("naturalGrowthTime", 6000); // Default of 5 mins
-        canGrowFromBoneMeal = section.getBoolean("canGrowFromBoneMeal", true);
-        boneMealGrowthSpeedup = Math.min(section.getInt("boneMealGrowthSpeedup", naturalGrowthTime/5), naturalGrowthTime);
-        growSound = section.getString("growSound", null);
-        minLightLevel = section.getInt("minLightLevel", 0);
-        requiresWaterSource = section.getBoolean("requiresWaterSource", false);
-        schematicName = section.getString("schematicName", null);
-        shouldReplaceBlocks = section.getBoolean("shouldReplaceBlocks", false);
-        shouldCopyBiomes = section.getBoolean("shouldCopyBiomes", false);
-        shouldCopyEntities = section.getBoolean("shouldCopyEntities", false);
+        canGrowNaturally = section.getBoolean("grows_naturally", true);
+        naturalGrowthTime = section.getInt("natural_growth_time", 6000); // Default of 5 mins
+        canGrowFromBoneMeal = section.getBoolean("grows_from_bonemeal", true);
+        boneMealGrowthSpeedup = Math.min(section.getInt("bonemeal_growth_speedup", naturalGrowthTime/5), naturalGrowthTime);
+        growSound = section.getString("grow_sound", null);
+        minLightLevel = section.getInt("min_light_level", 0);
+        requiresWaterSource = section.getBoolean("requires_water_source", false);
+        schematicName = section.getString("schematic", null);
+        shouldReplaceBlocks = section.getBoolean("replace_blocks", false);
+        shouldCopyBiomes = section.getBoolean("copy_biomes", false);
+        shouldCopyEntities = section.getBoolean("copy_entities", false);
     }
 
     public boolean requiresWaterSource() {
