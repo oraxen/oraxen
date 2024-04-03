@@ -101,7 +101,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         BlockPlaceContext placeContext = new BlockPlaceContext(new UseOnContext(serverPlayer, hand, hitResult));
 
         if (!(nmsStack.getItem() instanceof BlockItem blockItem)) {
-            serverPlayer.gameMode.useItem(serverPlayer, serverPlayer.level, nmsStack, hand);
+            nmsStack.getItem().useOn(new UseOnContext(serverPlayer, hand, hitResult));
+            if (!player.isSneaking()) serverPlayer.gameMode.useItem(serverPlayer, serverPlayer.level, nmsStack, hand);
             return null;
         }
 

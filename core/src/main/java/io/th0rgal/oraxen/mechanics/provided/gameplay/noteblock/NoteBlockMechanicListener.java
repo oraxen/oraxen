@@ -441,10 +441,7 @@ public class NoteBlockMechanicListener implements Listener {
         final Material type = placedAgainst.getType();
 
         if (BlockHelpers.isReplaceable(type)) target = placedAgainst;
-        else {
-            target = placedAgainst.getRelative(face);
-            if (!BlockHelpers.isReplaceable(target.getType())) return;
-        }
+        else target = placedAgainst.getRelative(face);
 
         final NoteBlockMechanic againstMechanic = OraxenBlocks.getNoteBlockMechanic(placedAgainst);
         // Store oldData incase event(s) is cancelled, set the target blockData
@@ -496,7 +493,7 @@ public class NoteBlockMechanicListener implements Listener {
             if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
             Utils.swingHand(player, hand);
         } else {
-            target.setType(Material.AIR);
+            target.setBlockData(oldData);
             BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
         }
         if (VersionUtil.isPaperServer()) target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
