@@ -129,8 +129,11 @@ public class WorldEditHandlers {
                     bukkitValues = (Map<String, Tag>) tag.getValue().get("BukkitValues").getValue();
                 } catch (Exception ignored) {
                 }
-                if (bukkitValues == null || bukkitValues.get("oraxen:furniture") == null) return null;
-                String furnitureId = bukkitValues.get("oraxen:furniture").getValue().toString();
+                if (bukkitValues == null) return null;
+                Tag furnitureTag = bukkitValues.get("oraxen:furniture");
+                if (furnitureTag == null) return null;
+
+                String furnitureId = furnitureTag.getValue().toString();
                 return OraxenFurniture.getFurnitureMechanic(furnitureId);
             }
         });
