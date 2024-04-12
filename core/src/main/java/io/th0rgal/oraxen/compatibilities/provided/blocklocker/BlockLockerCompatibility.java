@@ -3,9 +3,10 @@ package io.th0rgal.oraxen.compatibilities.provided.blocklocker;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.compatibilities.CompatibilityProvider;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
 import nl.rutgerkok.blocklocker.BlockLockerAPIv2;
 import nl.rutgerkok.blocklocker.ProtectableBlocksSettings;
 import nl.rutgerkok.blocklocker.ProtectionType;
@@ -19,12 +20,13 @@ public class BlockLockerCompatibility extends CompatibilityProvider<BlockLockerP
             @Override
             public boolean canProtect(Block block) {
                 BlockLockerMechanic blockLocker = null;
-                NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(block);
-                if (noteMechanic != null) blockLocker = noteMechanic.getBlockLocker();
-                StringBlockMechanic stringMechanic = OraxenBlocks.getStringMechanic(block);
-                if (stringMechanic != null) blockLocker = stringMechanic.getBlockLocker();
-                FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());
-                if (furnitureMechanic != null) blockLocker = furnitureMechanic.blocklocker();
+                CustomBlockMechanic customBlockMechanic = OraxenBlocks.getCustomBlockMechanic(block.getBlockData());
+                if (customBlockMechanic != null) blockLocker = customBlockMechanic.blockLocker();
+
+                if (blockLocker == null) {
+                    FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());
+                    if (furnitureMechanic != null) blockLocker = furnitureMechanic.blocklocker();
+                }
 
                 return blockLocker != null && blockLocker.canProtect();
             }
@@ -33,9 +35,9 @@ public class BlockLockerCompatibility extends CompatibilityProvider<BlockLockerP
             public boolean canProtect(ProtectionType type, Block block) {
                 BlockLockerMechanic blockLocker = null;
                 NoteBlockMechanic noteMechanic = OraxenBlocks.getNoteBlockMechanic(block);
-                if (noteMechanic != null) blockLocker = noteMechanic.getBlockLocker();
+                if (noteMechanic != null) blockLocker = noteMechanic.blockLocker();
                 StringBlockMechanic stringMechanic = OraxenBlocks.getStringMechanic(block);
-                if (stringMechanic != null) blockLocker = stringMechanic.getBlockLocker();
+                if (stringMechanic != null) blockLocker = stringMechanic.blockLocker();
                 FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());
                 if (furnitureMechanic != null) blockLocker = furnitureMechanic.blocklocker();
 

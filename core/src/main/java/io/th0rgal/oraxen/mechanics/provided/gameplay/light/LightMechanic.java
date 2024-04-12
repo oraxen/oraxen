@@ -4,8 +4,8 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -70,12 +70,12 @@ public class LightMechanic {
             block = block.getRelative(face);
             NoteBlockMechanic noteBlockMechanic = OraxenBlocks.getNoteBlockMechanic(block);
             if (noteBlockMechanic != null)
-                if (noteBlockMechanic.hasLight()) noteBlockMechanic.getLight().createBlockLight(block);
+                if (noteBlockMechanic.hasLight()) noteBlockMechanic.light().createBlockLight(block);
                 else continue;
 
             StringBlockMechanic stringBlockMechanic = OraxenBlocks.getStringMechanic(block);
             if (stringBlockMechanic != null)
-                if (stringBlockMechanic.hasLight()) stringBlockMechanic.getLight().createBlockLight(block);
+                if (stringBlockMechanic.hasLight()) stringBlockMechanic.light().createBlockLight(block);
                 else continue;
 
             FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());

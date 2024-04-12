@@ -31,6 +31,7 @@ public abstract class MechanicFactory {
     public abstract Mechanic parse(ConfigurationSection section);
 
     protected void addToImplemented(Mechanic mechanic) {
+        if (mechanic == null) return;
         mechanicByItem.put(mechanic.getItemID(), mechanic);
     }
 

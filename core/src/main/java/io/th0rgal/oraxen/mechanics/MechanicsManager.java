@@ -19,9 +19,9 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFac
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.repair.RepairMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.armor_effects.ArmorEffectsFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.commands.CommandsMechanicFactory;
@@ -70,10 +70,10 @@ public class MechanicsManager {
         registerFactory("repair", RepairMechanicFactory::new);
         registerFactory("durability", DurabilityMechanicFactory::new);
         registerFactory("efficiency", EfficiencyMechanicFactory::new);
+        registerFactory("furniture", FurnitureFactory::new);
         registerFactory("noteblock", NoteBlockMechanicFactory::new);
         registerFactory("stringblock", StringBlockMechanicFactory::new);
-        registerFactory("furniture", FurnitureFactory::new);
-        registerFactory("custom_block", CustomBlockFactory::new);
+        registerMechanicFactory("custom_block", new CustomBlockFactory("custom_block"), NoteBlockMechanicFactory.isEnabled() || StringBlockMechanicFactory.isEnabled());
 
         // cosmetic
         registerFactory("aura", AuraMechanicFactory::new);

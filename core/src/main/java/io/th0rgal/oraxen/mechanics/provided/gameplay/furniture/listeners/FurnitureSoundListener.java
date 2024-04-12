@@ -6,7 +6,7 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurniturePlaceEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.protectionlib.ProtectionLib;

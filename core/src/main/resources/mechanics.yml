@@ -40,17 +40,6 @@ custom_block_sounds:
   noteblock: true
   stringblock: true
 
-# legacy blocks using mushroom stems, prefer to use noteblock
-block:
-  tool_types:
-    - WOODEN
-    - STONE
-    - IRON
-    - GOLDEN
-    - DIAMOND
-    - NETHERITE
-  enabled: false
-
 noteblock:
   tool_types:
     - WOODEN

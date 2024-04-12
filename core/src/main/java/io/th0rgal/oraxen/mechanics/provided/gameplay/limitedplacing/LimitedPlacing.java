@@ -70,7 +70,7 @@ public class LimitedPlacing {
     }
 
     private List<String> getLimitedOraxenBlocks(List<String> list) {
-        return list.stream().filter(e -> OraxenBlocks.isOraxenBlock(e) || OraxenFurniture.isFurniture(e)).toList();
+        return list.stream().filter(e -> OraxenBlocks.isCustomBlock(e) || OraxenFurniture.isFurniture(e)).toList();
     }
 
     private Set<Tag<Material>> getLimitedBlockTags(List<String> list) {
@@ -121,7 +121,7 @@ public class LimitedPlacing {
     }
 
     private String checkIfOraxenItem(Block block) {
-        Mechanic mechanic = OraxenBlocks.getOraxenBlock(block.getBlockData());
+        Mechanic mechanic = OraxenBlocks.getCustomBlockMechanic(block.getBlockData());
         if (mechanic == null) mechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());
 
         return mechanic != null ? mechanic.getItemID() : null;

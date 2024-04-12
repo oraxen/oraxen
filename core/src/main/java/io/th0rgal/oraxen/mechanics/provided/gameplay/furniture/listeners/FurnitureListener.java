@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.listeners;
 
-import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureBreakEvent;
@@ -12,7 +11,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSeat;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;

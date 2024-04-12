@@ -7,10 +7,10 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.audience.Audience;
@@ -31,7 +31,7 @@ public class BlockInfoCommand {
                     if (argument == null) return;
                     if (argument.equals("all")) {
                         for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
-                            if (!OraxenBlocks.isOraxenBlock(entry.getKey())) continue;
+                            if (!OraxenBlocks.isCustomBlock(entry.getKey())) continue;
                             sendBlockInfo(audience, entry.getKey());
                         }
                     } else {
