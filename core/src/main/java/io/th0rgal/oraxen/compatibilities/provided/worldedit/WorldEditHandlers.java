@@ -130,7 +130,10 @@ public class WorldEditHandlers {
                 } catch (Exception ignored) {
                 }
                 if (bukkitValues == null) return null;
-                String furnitureId = bukkitValues.get("oraxen:furniture").getValue().toString();
+                Tag furnitureTag = bukkitValues.get("oraxen:furniture");
+                if (furnitureTag == null) return null;
+
+                String furnitureId = furnitureTag.getValue().toString();
                 return OraxenFurniture.getFurnitureMechanic(furnitureId);
             }
         });
