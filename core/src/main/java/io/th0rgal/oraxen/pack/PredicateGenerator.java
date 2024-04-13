@@ -10,13 +10,11 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import org.bukkit.inventory.meta.PotionMeta;
+import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.base.Vector3Float;
 import team.unnamed.creative.model.*;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PredicateGenerator {
 
@@ -31,6 +29,13 @@ public class PredicateGenerator {
                 .overrides(generateBaseModelOverrides(material));
     }
 
+    private record ComparableItemBuilder(ItemBuilder builder) implements Comparable<ComparableItemBuilder> {
+        @Override
+        public int compareTo(@NotNull ComparableItemBuilder other) {
+            return Integer.compare(builder.getOraxenMeta().customModelData(), other.builder.getOraxenMeta().customModelData());
+        }
+    }
+
     /**
      * Generates the base model overrides for the given material
      * This looks up all ItemBuilders using this material and generates the overrides for them
@@ -40,7 +45,7 @@ public class PredicateGenerator {
      */
     private static List<ItemOverride> generateBaseModelOverrides(Material material) {
         List<ItemOverride> overrides = Lists.newArrayList();
-        List<ItemBuilder> itemBuilders = OraxenItems.getItems().stream().filter(i -> i.getType() == material).toList();
+        List<ItemBuilder> itemBuilders = OraxenItems.getItems().stream().filter(i -> i.getType() == material).map(ComparableItemBuilder::new).sorted().map(i -> i.builder).toList();
 
         switch (material) {
             case SHIELD -> overrides.add(ItemOverride.of(Key.key("item/shield_blocking"), ItemPredicate.blocking()));

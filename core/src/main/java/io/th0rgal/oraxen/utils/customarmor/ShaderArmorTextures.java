@@ -5,9 +5,12 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
+import io.th0rgal.oraxen.items.OraxenMeta;
+import io.th0rgal.oraxen.items.OraxenTexturesMeta;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
 import org.bukkit.inventory.ItemStack;
@@ -15,6 +18,7 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
 import team.unnamed.creative.base.Writable;
 import team.unnamed.creative.model.ModelTexture;
+import team.unnamed.creative.model.ModelTextures;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -408,12 +412,18 @@ public class ShaderArmorTextures extends CustomArmor {
     }
 
     private int armorColor(String parentFolder) {
-        return OraxenItems.getEntries().stream().filter(e ->
-                e.getValue().build().getType().toString().startsWith("LEATHER_") &&
-                        e.getValue().hasOraxenMeta() && e.getValue().getOraxenMeta().modelTextures() != null &&
-                        !e.getValue().getOraxenMeta().modelTextures().layers().isEmpty() &&
-                        e.getValue().getOraxenMeta().modelTextures().layers().get(0).key().asString().contains(parentFolder)
-        ).map(s -> s.getValue().getColor()).findFirst().orElse(Color.WHITE).asRGB();
+        return OraxenItems.getEntries().stream().filter(e -> {
+            if (e.getValue().build().getType().toString().startsWith("LEATHER_") && e.getValue().hasOraxenMeta()) {
+                OraxenTexturesMeta meta = e.getValue().getOraxenMeta().texturesMeta();
+                if (meta == null) return false;
+                ModelTextures modelTextures = meta.modelTextures();
+                if (modelTextures.layers().isEmpty()) return false;
+                Key key = modelTextures.layers().get(0).key();
+                if (key == null) return false;
+                return key.asString().contains(parentFolder);
+            }
+            return false;
+        }).map(s -> s.getValue().getColor()).findFirst().orElse(Color.WHITE).asRGB();
     }
 
     private List<VirtualFile> optifineAnimFiles(InputStream armorFile, String fileName, String parentFolder) {
@@ -503,7 +513,7 @@ public class ShaderArmorTextures extends CustomArmor {
             ItemBuilder builder = entry.getValue();
             String armorType = StringUtils.substringBeforeLast(itemId, "_");
             if (!builder.hasOraxenMeta()) continue;
-            List<ModelTexture> layerList = builder.getOraxenMeta().modelTextures().layers();
+            List<ModelTexture> layerList = builder.getOraxenMeta().texturesMeta().modelTextures().layers();
 
             boolean isArmor = builder.build().getType().toString().contains("LEATHER_");
             boolean inLayerList = layers.keySet().stream().anyMatch(s -> s.contains(armorType));
