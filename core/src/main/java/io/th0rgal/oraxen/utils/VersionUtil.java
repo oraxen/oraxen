@@ -1,16 +1,14 @@
 package io.th0rgal.oraxen.utils;
 
-import fr.euphyllia.energie.Energie;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.apache.commons.lang3.Validate;
-import org.bukkit.Bukkit;
-import org.bukkit.Server;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
 
 public class VersionUtil {
     private static final Map<NMSVersion, Map<Integer, MinecraftVersion>> versionMap = new HashMap<>();
+    private static final boolean IS_PAPER;
+    private static final boolean IS_FOLIA;
 
     public enum NMSVersion {
         v1_20_R3,
@@ -29,6 +27,8 @@ public class VersionUtil {
     }
 
     static {
+        IS_PAPER = hasClass("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
+        IS_FOLIA = hasClass("io.papermc.paper.threadedregions.RegionizedServer");
         versionMap.put(NMSVersion.v1_20_R3, Map.of(11, new MinecraftVersion("1.20.3"), 12, new MinecraftVersion("1.20.4")));
         versionMap.put(NMSVersion.v1_20_R2, Map.of(10, new MinecraftVersion("1.20.2")));
         versionMap.put(NMSVersion.v1_20_R1, Map.of(8, new MinecraftVersion("1.20"), 9, new MinecraftVersion("1.20.1")));
@@ -53,23 +53,16 @@ public class VersionUtil {
 
     /**
      * @return true if the server is Paper or false of not
-     * @throws IllegalArgumentException if server is null
      */
     public static boolean isPaperServer() {
-        Server server = Bukkit.getServer();
-        Validate.notNull(server, "Server cannot be null");
-        if (isFoliaServer() || server.getName().equalsIgnoreCase("Paper")) return true;
-
-        try {
-            Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
-            return true;
-        } catch (ClassNotFoundException e) {
-            return false;
-        }
+        return IS_PAPER;
     }
 
+    /**
+     * @return true if the server is Folia or false of not
+     */
     public static boolean isFoliaServer() {
-        return Energie.isFolia();
+        return IS_FOLIA;
     }
 
     public static boolean isSupportedVersion(@NotNull NMSVersion serverVersion, @NotNull NMSVersion... supportedVersions) {
@@ -126,5 +119,14 @@ public class VersionUtil {
     public static boolean isValidCompiler() {
         List<String> split = Arrays.stream(manifest.split(":|\n")).map(String::trim).toList();
         return Set.of("sivert", "thomas").contains(split.get(split.indexOf("Built-By") + 1).toLowerCase());
+    }
+
+    private static boolean hasClass(String className) {
+        try {
+            Class.forName(className);
+            return true;
+        } catch (ClassNotFoundException var2) {
+            return false;
+        }
     }
 }
