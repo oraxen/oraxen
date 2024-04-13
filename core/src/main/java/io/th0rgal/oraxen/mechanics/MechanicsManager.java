@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
-import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.mechanics.provided.combat.lifeleech.LifeLeechMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.energyblast.EnergyBlastMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.fireball.FireballMechanicFactory;
@@ -10,18 +9,17 @@ import io.th0rgal.oraxen.mechanics.provided.combat.spell.thor.ThorMechanicFactor
 import io.th0rgal.oraxen.mechanics.provided.combat.spell.witherskull.WitherSkullMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.aura.AuraMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.cosmetic.hat.HatMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.farming.bedrockbreak.BedrockBreakMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.bigmining.BigMiningMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.bottledexp.BottledExpMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.harvesting.HarvestingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.farming.smelting.SmeltingMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.durability.DurabilityMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency.EfficiencyMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.repair.RepairMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.armor_effects.ArmorEffectsFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.backpack.BackpackMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.commands.CommandsMechanicFactory;
@@ -91,8 +89,6 @@ public class MechanicsManager {
         registerFactory("smelting", SmeltingMechanicFactory::new);
         registerFactory("bottledexp", BottledExpMechanicFactory::new);
         registerFactory("harvesting", HarvestingMechanicFactory::new);
-        if (CompatibilitiesManager.hasPlugin("ProtocolLib"))
-            registerFactory("bedrockbreak", BedrockBreakMechanicFactory::new);
 
         Bukkit.getScheduler().callSyncMethod(OraxenPlugin.get(), () -> {
             Bukkit.getPluginManager().callEvent(new OraxenNativeMechanicsRegisteredEvent());
