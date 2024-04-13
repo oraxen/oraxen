@@ -10,6 +10,8 @@ import java.util.*;
 
 public class VersionUtil {
     private static final Map<NMSVersion, Map<Integer, MinecraftVersion>> versionMap = new HashMap<>();
+    private static int IS_PAPER = -1;
+    private static int IS_FOLIA = -1;
 
     public enum NMSVersion {
         v1_20_R3,
@@ -28,6 +30,8 @@ public class VersionUtil {
     }
 
     static {
+        initializePaperCheck();
+        initializeFoliaCheck();
         versionMap.put(NMSVersion.v1_20_R3, Map.of(11, new MinecraftVersion("1.20.3"), 12, new MinecraftVersion("1.20.4")));
         versionMap.put(NMSVersion.v1_20_R2, Map.of(10, new MinecraftVersion("1.20.2")));
         versionMap.put(NMSVersion.v1_20_R1, Map.of(8, new MinecraftVersion("1.20"), 9, new MinecraftVersion("1.20.1")));
@@ -55,23 +59,35 @@ public class VersionUtil {
      * @throws IllegalArgumentException if server is null
      */
     public static boolean isPaperServer() {
+        return IS_PAPER == 1;
+    }
+
+    private static void initializePaperCheck() {
         Server server = Bukkit.getServer();
         Validate.notNull(server, "Server cannot be null");
-        if (server.getName().equalsIgnoreCase("Paper")) return true;
-
         try {
             Class.forName("com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent");
-            return true;
+            IS_PAPER = 1;
         } catch (ClassNotFoundException e) {
-            return false;
+            IS_PAPER = 0;
         }
     }
 
     public static boolean isFoliaServer() {
+        return IS_FOLIA == 1;
+    }
+
+    private static void initializeFoliaCheck() {
         Server server = Bukkit.getServer();
         Validate.notNull(server, "Server cannot be null");
-
-        return server.getName().equalsIgnoreCase("Folia");
+        try {
+            Class.forName("io.papermc.paper.threadedregions.RegionizedServer");
+            IS_PAPER = 1;
+            IS_FOLIA = 1;
+        } catch (ClassNotFoundException e) {
+            IS_PAPER = 0;
+            IS_FOLIA = 0;
+        }
     }
 
     public static boolean isSupportedVersion(@NotNull NMSVersion serverVersion, @NotNull NMSVersion... supportedVersions) {
