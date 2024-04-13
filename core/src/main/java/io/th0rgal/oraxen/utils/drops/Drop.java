@@ -94,7 +94,7 @@ public class Drop {
     public boolean isToolEnough(ItemStack itemInHand) {
         if (bestTool != null && !bestTool.isEmpty()) {
             String itemID = OraxenItems.getIdByItem(itemInHand);
-            String type = (itemInHand == null ? Material.AIR : itemInHand.getType()).toString().toUpperCase();
+            String type = (itemInHand == null ? Material.AIR : itemInHand.getType()).name();
             if (bestTool.equals(itemID)) return true;
             else if (bestTool.equals(type)) return true;
             else return type.endsWith(bestTool.toUpperCase());

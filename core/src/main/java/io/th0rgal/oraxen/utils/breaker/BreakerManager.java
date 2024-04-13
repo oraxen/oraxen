@@ -22,10 +22,12 @@ import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Map;
+import java.util.Random;
 import java.util.UUID;
 
 public class BreakerManager {
 
+    private final Random SOURCE_RANDOM = new Random();
     private final Map<UUID, ActiveBreakerData> activeBreakerDataMap;
 
     public BreakerManager(Map<UUID, ActiveBreakerData> activeBreakerDataMap) {
@@ -33,15 +35,24 @@ public class BreakerManager {
     }
 
     @Nullable
-    public ActiveBreakerData getActiveBreakerData(Player player) {
+    public ActiveBreakerData activeBreakerData(Player player) {
         return this.activeBreakerDataMap.get(player.getUniqueId());
     }
 
-    public void startBlockBreak(Player player, Location location, CustomBlockMechanic mechanic) {
+    public void startBlockBreak(Player player, Block block, CustomBlockMechanic mechanic) {
         OraxenPlugin.get().breakerManager().stopBlockBreak(player);
+
+        Event customBlockEvent;
+        if (mechanic instanceof NoteBlockMechanic noteMechanic)
+            customBlockEvent = new OraxenNoteBlockDamageEvent(noteMechanic, block, player);
+        else if (mechanic instanceof StringBlockMechanic stringMechanic)
+            customBlockEvent = new OraxenStringBlockDamageEvent(stringMechanic, block, player);
+        else return;
+        if (!EventUtils.callEvent(customBlockEvent)) return;
+
         int breakTime = mechanic.breakTime(player);
         PacketHelpers.applyMiningFatigue(player);
-        ActiveBreakerData activeBreakerData = new ActiveBreakerData(player, location, mechanic, breakTime, 0, createBreakScheduler(breakTime, player.getUniqueId()));
+        ActiveBreakerData activeBreakerData = new ActiveBreakerData(player, block.getLocation(), mechanic, breakTime, 0, createBreakScheduler(breakTime, player.getUniqueId()));
         activeBreakerDataMap.put(player.getUniqueId(), activeBreakerData);
     }
 
@@ -51,8 +62,11 @@ public class BreakerManager {
 
         activeBreakerData.bukkitTask.cancel();
         activeBreakerDataMap.remove(player.getUniqueId());
-        PacketHelpers.removeMiningFatigue(player);
-        player.sendBlockDamage(activeBreakerData.location, 0f, activeBreakerData.location.hashCode());
+        if (player.isOnline()) {
+            PacketHelpers.removeMiningFatigue(player);
+            activeBreakerData.resetProgress();
+            activeBreakerData.sendBreakProgress();
+        }
     }
 
     private BukkitTask createBreakScheduler(double blockBreakTime, UUID uuid) {
@@ -62,34 +76,34 @@ public class BreakerManager {
             Player player = activeBreakerData.breaker;
             final Block block = activeBreakerData.location.getBlock();
             CustomBlockMechanic mechanic = OraxenBlocks.getCustomBlockMechanic(block.getBlockData());
-            if (mechanic == null) return;
 
-            if (!activeBreakerData.isBroken()) {
-                Event customBlockEvent;
-                if (mechanic instanceof NoteBlockMechanic noteMechanic)
-                    customBlockEvent = new OraxenNoteBlockDamageEvent(noteMechanic, block, player);
-                else if (mechanic instanceof StringBlockMechanic stringMechanic)
-                    customBlockEvent = new OraxenStringBlockDamageEvent(stringMechanic, block, player);
-                else return;
-                if (!EventUtils.callEvent(customBlockEvent)) {
-                    activeBreakerData.resetProgress();
-                } else {
-                    activeBreakerData.addBreakTimeProgress(blockBreakTime / mechanic.breakTime(player));
-                    activeBreakerData.sendBreakProgress();
-                }
+            if (!player.isOnline() || mechanic == null || mechanic.customVariation() != activeBreakerData.mechanic.customVariation()) {
+                OraxenPlugin.get().breakerManager().stopBlockBreak(player);
+            } else if (!activeBreakerData.isBroken()) {
+                activeBreakerData.addBreakTimeProgress(blockBreakTime / mechanic.breakTime(player));
+                activeBreakerData.sendBreakProgress();
             } else if (EventUtils.callEvent(new BlockBreakEvent(block, player)) && ProtectionLib.canBreak(player, block.getLocation())) {
                 activeBreakerData.resetProgress();
                 activeBreakerData.sendBreakProgress();
+
+                for (ActiveBreakerData alterBreakerData : activeBreakerDataMap.values()) {
+                    if (alterBreakerData.breaker.getUniqueId().equals(uuid)) continue;
+                    if (!alterBreakerData.location.equals(activeBreakerData.location)) continue;
+
+                    OraxenPlugin.get().breakerManager().stopBlockBreak(alterBreakerData.breaker);
+                }
+
                 ItemUtils.damageItem(player, mechanic.drop(), player.getInventory().getItemInMainHand());
                 block.setType(Material.AIR);
                 activeBreakerData.bukkitTask.cancel();
                 this.activeBreakerDataMap.remove(uuid);
             }
-        }, 1, 1);
+        }, (long) (blockBreakTime / 11), (long) (blockBreakTime / 11));
     }
 
-    private static class ActiveBreakerData {
+    public static class ActiveBreakerData {
         public static final float MAX_DAMAGE = 1f;
+        private final int sourceId;
         private final Player breaker;
         private final Location location;
         private final CustomBlockMechanic mechanic;
@@ -105,6 +119,7 @@ public class BreakerManager {
                 int breakTimeProgress,
                 BukkitTask bukkitTask
         ) {
+            this.sourceId = OraxenPlugin.get().breakerManager().SOURCE_RANDOM.nextInt();
             this.breaker = breaker;
             this.location = location;
             this.mechanic = mechanic;
@@ -130,7 +145,7 @@ public class BreakerManager {
         }
 
         public void sendBreakProgress() {
-            breaker.sendBlockDamage(location, calculateDamage(), location.hashCode());
+            breaker.sendBlockDamage(location, calculateDamage(), sourceId);
         }
 
         public float calculateDamage() {
