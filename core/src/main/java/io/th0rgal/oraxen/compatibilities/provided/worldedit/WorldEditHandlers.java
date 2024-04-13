@@ -17,9 +17,9 @@ import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.Mechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -124,13 +124,17 @@ public class WorldEditHandlers {
             private FurnitureMechanic getFurnitureMechanic(@NotNull BaseEntity entity) {
                 if (!entity.hasNbtData() || !furnitureTypes.contains(entity.getType())) return null;
                 CompoundTag tag = entity.getNbtData();
+                if (tag == null) return null;
                 Map<String, Tag> bukkitValues = null;
                 try {
                     bukkitValues = (Map<String, Tag>) tag.getValue().get("BukkitValues").getValue();
                 } catch (Exception ignored) {
                 }
                 if (bukkitValues == null) return null;
-                String furnitureId = bukkitValues.get("oraxen:furniture").getValue().toString();
+                Tag furnitureTag = bukkitValues.get("oraxen:furniture");
+                if (furnitureTag == null) return null;
+
+                String furnitureId = furnitureTag.getValue().toString();
                 return OraxenFurniture.getFurnitureMechanic(furnitureId);
             }
         });

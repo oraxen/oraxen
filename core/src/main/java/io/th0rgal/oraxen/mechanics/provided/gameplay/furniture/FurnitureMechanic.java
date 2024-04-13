@@ -38,10 +38,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 public class FurnitureMechanic extends Mechanic {
 
@@ -74,14 +71,15 @@ public class FurnitureMechanic extends Mechanic {
         NONE, STRICT, VERY_STRICT;
 
         public static RestrictedRotation fromString(String string) {
-            try {
-                return RestrictedRotation.valueOf(string);
-            } catch (IllegalArgumentException e) {
+            Optional<RestrictedRotation> rotation = Arrays.stream(RestrictedRotation.values())
+                    .filter(e -> e.name().equals(string))
+                    .findFirst();
+            return rotation.orElseGet(() -> {
                 Logs.logError("Invalid restricted rotation: " + string);
                 Logs.logError("Allowed ones are: " + Arrays.toString(RestrictedRotation.values()));
                 Logs.logWarning("Setting to STRICT");
                 return STRICT;
-            }
+            });
         }
     }
 

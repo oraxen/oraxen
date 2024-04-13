@@ -11,7 +11,6 @@ import io.netty.util.AttributeKey;
 import io.papermc.paper.adventure.PaperAdventure;
 import io.papermc.paper.configuration.GlobalConfiguration;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
@@ -70,6 +69,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
 
+@SuppressWarnings("unused")
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
@@ -103,7 +103,8 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         BlockPlaceContext placeContext = new BlockPlaceContext(new UseOnContext(serverPlayer, hand, hitResult));
 
         if (!(nmsStack.getItem() instanceof BlockItem blockItem)) {
-            serverPlayer.gameMode.useItem(serverPlayer, serverPlayer.level(), nmsStack, hand);
+            nmsStack.getItem().useOn(new UseOnContext(serverPlayer, hand, hitResult));
+            if (!player.isSneaking()) serverPlayer.gameMode.useItem(serverPlayer, serverPlayer.level(), nmsStack, hand);
             return null;
         }
 
