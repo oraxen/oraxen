@@ -8,14 +8,16 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMec
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.utils.EventUtils;
-import io.th0rgal.oraxen.utils.logs.Logs;
+import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.PacketHelpers;
+import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
-import org.bukkit.potion.PotionEffectType;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.scheduler.BukkitTask;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,22 +38,21 @@ public class BreakerManager {
     }
 
     public void startBlockBreak(Player player, Location location, CustomBlockMechanic mechanic) {
+        OraxenPlugin.get().breakerManager().stopBlockBreak(player);
         int breakTime = mechanic.breakTime(player);
+        PacketHelpers.applyMiningFatigue(player);
         ActiveBreakerData activeBreakerData = new ActiveBreakerData(player, location, mechanic, breakTime, 0, createBreakScheduler(breakTime, player.getUniqueId()));
-        activeBreakerDataMap.compute(player.getUniqueId(), (uuid, existingActiveBreaker) -> {
-           if (existingActiveBreaker != null) existingActiveBreaker.bukkitTask.cancel();
-           return activeBreakerData;
-        });
+        activeBreakerDataMap.put(player.getUniqueId(), activeBreakerData);
     }
 
     public void stopBlockBreak(Player player) {
         final ActiveBreakerData activeBreakerData = activeBreakerDataMap.get(player.getUniqueId());
         if (activeBreakerData == null) return;
 
-        player.sendBlockDamage(activeBreakerData.location, 0f);
         activeBreakerData.bukkitTask.cancel();
         activeBreakerDataMap.remove(player.getUniqueId());
-        player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+        PacketHelpers.removeMiningFatigue(player);
+        player.sendBlockDamage(activeBreakerData.location, 0f, activeBreakerData.location.hashCode());
     }
 
     private BukkitTask createBreakScheduler(double blockBreakTime, UUID uuid) {
@@ -76,9 +77,10 @@ public class BreakerManager {
                     activeBreakerData.addBreakTimeProgress(blockBreakTime / mechanic.breakTime(player));
                     activeBreakerData.sendBreakProgress();
                 }
-            } else {
+            } else if (EventUtils.callEvent(new BlockBreakEvent(block, player)) && ProtectionLib.canBreak(player, block.getLocation())) {
                 activeBreakerData.resetProgress();
                 activeBreakerData.sendBreakProgress();
+                ItemUtils.damageItem(player, mechanic.drop(), player.getInventory().getItemInMainHand());
                 block.setType(Material.AIR);
                 activeBreakerData.bukkitTask.cancel();
                 this.activeBreakerDataMap.remove(uuid);
@@ -128,14 +130,13 @@ public class BreakerManager {
         }
 
         public void sendBreakProgress() {
-            Logs.debug(calculateDamage());
             breaker.sendBlockDamage(location, calculateDamage(), location.hashCode());
         }
 
-        public byte calculateDamage() {
+        public float calculateDamage() {
             final double percentage = this.breakTimeProgress / this.totalBreakTime;
             final double damage = MAX_DAMAGE * percentage;
-            return (byte) (Math.min(damage, MAX_DAMAGE) - 1);
+            return (float) (Math.min(damage, MAX_DAMAGE));
         }
 
         public boolean isBroken() {

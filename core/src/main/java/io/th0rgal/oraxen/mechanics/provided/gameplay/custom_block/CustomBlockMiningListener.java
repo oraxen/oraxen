@@ -9,6 +9,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageAbortEvent;
 import org.bukkit.event.block.BlockDamageEvent;
 
@@ -22,14 +23,18 @@ public class CustomBlockMiningListener implements Listener {
 
         CustomBlockMechanic mechanic = OraxenBlocks.getCustomBlockMechanic(block.getBlockData());
         if (mechanic == null || player.getGameMode() == GameMode.CREATIVE) return;
-        double breakTime = mechanic.breakTime(player);
-        if (breakTime == 0L) return;
 
+        event.setCancelled(true);
         OraxenPlugin.get().breakerManager().startBlockBreak(player, location, mechanic);
     }
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onDamageAbort(BlockDamageAbortEvent event) {
+        OraxenPlugin.get().breakerManager().stopBlockBreak(event.getPlayer());
+    }
+
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onBlockBreak(BlockBreakEvent event) {
         OraxenPlugin.get().breakerManager().stopBlockBreak(event.getPlayer());
     }
 }

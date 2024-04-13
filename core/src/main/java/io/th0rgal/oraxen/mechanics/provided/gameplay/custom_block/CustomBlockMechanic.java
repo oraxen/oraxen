@@ -9,7 +9,6 @@ import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.breaker.ToolTypeSpeedModifier;
 import io.th0rgal.oraxen.utils.drops.Drop;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -154,8 +153,6 @@ public abstract class CustomBlockMechanic extends Mechanic {
             multiplier /= 5;
 
         if (!player.isOnGround()) multiplier /= 5;
-
-        Logs.debug(multiplier, "multiplier: ");
 
         return multiplier;
     }
