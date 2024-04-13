@@ -27,8 +27,8 @@ public class Drop {
     private final List<Loot> loots;
     final boolean silktouch;
     final boolean fortune;
-    String minimalType;
-    private final List<String> bestTools;
+    private String minimalType;
+    private String bestTool;
     final String sourceID;
 
     @SuppressWarnings("unchecked")
@@ -36,18 +36,18 @@ public class Drop {
         List<Loot> loots = ((List<LinkedHashMap<String, Object>>) dropSection.getList("loots", new ArrayList<>())).stream().map(c -> new Loot(c, sourceID)).toList();
         return new Drop(toolTypes, loots, dropSection.getBoolean("silktouch"),
                 dropSection.getBoolean("fortune"), sourceID,
-                dropSection.getString("minimal_type", ""), dropSection.getStringList("best_tools"));
+                dropSection.getString("minimal_type", ""), dropSection.getString("best_tool"));
     }
 
     public Drop(List<String> hierarchy, List<Loot> loots, boolean silktouch, boolean fortune, String sourceID,
-                String minimalType, List<String> bestTools) {
+                String minimalType, String bestTool) {
         this.hierarchy = hierarchy;
         this.loots = loots;
         this.silktouch = silktouch;
         this.fortune = fortune;
         this.sourceID = sourceID;
         this.minimalType = minimalType;
-        this.bestTools = bestTools;
+        this.bestTool = bestTool;
     }
 
     public Drop(List<Loot> loots, boolean silktouch, boolean fortune, String sourceID) {
@@ -55,7 +55,6 @@ public class Drop {
         this.silktouch = silktouch;
         this.fortune = fortune;
         this.sourceID = sourceID;
-        this.bestTools = new ArrayList<>();
     }
 
     public static Drop emptyDrop() {
@@ -65,7 +64,7 @@ public class Drop {
         return new Drop(loots, false, false, "");
     }
     public static Drop clone(Drop drop, List<Loot> newLoots) {
-        return new Drop(drop.hierarchy, newLoots, drop.silktouch, drop.fortune, drop.sourceID, drop.minimalType, drop.bestTools);
+        return new Drop(drop.hierarchy, newLoots, drop.silktouch, drop.fortune, drop.sourceID, drop.minimalType, drop.bestTool);
     }
 
     public String getItemType(ItemStack itemInHand) {
@@ -93,12 +92,12 @@ public class Drop {
     }
 
     public boolean isToolEnough(ItemStack itemInHand) {
-        if (!bestTools.isEmpty()) {
+        if (bestTool != null && !bestTool.isEmpty()) {
             String itemID = OraxenItems.getIdByItem(itemInHand);
             String type = (itemInHand == null ? Material.AIR : itemInHand.getType()).toString().toUpperCase();
-            if (itemID != null && bestTools.stream().anyMatch(itemID::equalsIgnoreCase)) return true;
-            else if (bestTools.contains(type)) return true;
-            else return bestTools.stream().anyMatch(toolName -> type.endsWith(toolName.toUpperCase()));
+            if (bestTool.equals(itemID)) return true;
+            else if (bestTool.equals(type)) return true;
+            else return type.endsWith(bestTool.toUpperCase());
         } else return true;
     }
 
@@ -122,8 +121,8 @@ public class Drop {
         return minimalType;
     }
 
-    public List<String> getBestTools() {
-        return bestTools;
+    public String bestTool() {
+        return bestTool;
     }
 
     public List<String> getHierarchy() {

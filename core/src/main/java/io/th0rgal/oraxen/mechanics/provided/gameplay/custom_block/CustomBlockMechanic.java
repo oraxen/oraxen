@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.breaker.ToolTypeSpeedModifier;
 import io.th0rgal.oraxen.utils.drops.Drop;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
@@ -76,11 +77,21 @@ public abstract class CustomBlockMechanic extends Mechanic {
         return this.blockData;
     }
 
-    public boolean hasLimitedPlacing() { return limitedPlacing != null; }
-    public LimitedPlacing limitedPlacing() { return limitedPlacing; }
+    public boolean hasLimitedPlacing() {
+        return limitedPlacing != null;
+    }
 
-    public boolean hasBlockSounds() { return blockSounds != null; }
-    public BlockSounds blockSounds() { return blockSounds; }
+    public LimitedPlacing limitedPlacing() {
+        return limitedPlacing;
+    }
+
+    public boolean hasBlockSounds() {
+        return blockSounds != null;
+    }
+
+    public BlockSounds blockSounds() {
+        return blockSounds;
+    }
 
     public Key model() {
         return model;
@@ -94,9 +105,15 @@ public abstract class CustomBlockMechanic extends Mechanic {
         return drop;
     }
 
-    public long breakTime(Player player) {
-        double breakTime = speedMultiplier(player) / hardness / 30;
-        return breakTime > 1 ? 0L : (long) (1 / breakTime) / 20;
+    /**
+     * Calculates the time it should take for a Player to break this CustomBlock
+     *
+     * @param player The Player breaking the block
+     * @return Time in ticks it takes for player to break this block
+     */
+    public double breakTime(Player player) {
+        double damage = speedMultiplier(player) / hardness / 30;
+        return damage > 1 ? 0 : (int) Math.ceil(1 / damage);
     }
 
     public boolean hasHardness() {
@@ -111,34 +128,34 @@ public abstract class CustomBlockMechanic extends Mechanic {
         ItemStack itemInMainHand = player.getInventory().getItemInMainHand();
         AtomicReference<Float> speedMultiplier = new AtomicReference<>((float) 1);
 
-        List<ToolTypeSpeedModifier> validToolTypes = ToolTypeSpeedModifier.VANILLA.stream().filter(t -> t.getToolType().contains(itemInMainHand.getType()))
-                .sorted(Comparator.comparingDouble(ToolTypeSpeedModifier::getSpeedModifier))
-                .toList();
-
-
-
-        /*// Find first validToolTypes that contains the block material
-        // If none found, use the first validToolTypes
-        validToolTypes.stream().filter(t -> t.getMaterials().contains(block.getType()))
-                .findFirst().ifPresentOrElse(toolTypeSpeedModifier -> speedMultiplier.set(toolTypeSpeedModifier.getSpeedModifier()), () ->
-                        speedMultiplier.set(validToolTypes.stream().findFirst().get().getSpeedModifier()));*/
+        ToolTypeSpeedModifier.VANILLA.stream()
+                .filter(t -> t.toolTypes().contains(itemInMainHand.getType()))
+                .min(Comparator.comparingDouble(ToolTypeSpeedModifier::speedModifier))
+                .ifPresentOrElse(
+                        t -> speedMultiplier.set(this.drop.isToolEnough(itemInMainHand)
+                                ? t.speedModifier() : ToolTypeSpeedModifier.EMPTY.speedModifier()),
+                        () -> speedMultiplier.set(ToolTypeSpeedModifier.EMPTY.speedModifier())
+                );
 
         float multiplier = speedMultiplier.get();
-        if (itemInMainHand.containsEnchantment(Enchantment.DIG_SPEED))
-            multiplier *= 1f + (itemInMainHand.getEnchantmentLevel(Enchantment.DIG_SPEED) ^ 2 + 1);
+
+        final int efficiencyLevel = itemInMainHand.getEnchantmentLevel(Enchantment.DIG_SPEED);
+        if (efficiencyLevel != 0) multiplier += (float) (Math.pow(efficiencyLevel, 2) + 1);
 
         PotionEffect haste = player.getPotionEffect(PotionEffectType.FAST_DIGGING);
-        if (haste != null) multiplier *= 1f + (0.2F * haste.getAmplifier() + 1);
+        if (haste != null) multiplier *= 0.2f * haste.getAmplifier() + 1;
 
         // Whilst the player has this when they start digging, period is calculated before it is applied
         PotionEffect miningFatigue = player.getPotionEffect(PotionEffectType.SLOW_DIGGING);
-        if (miningFatigue != null) multiplier *= 1f - (0.3F * miningFatigue.getAmplifier() + 1);
+        if (miningFatigue != null) multiplier *= (float) Math.pow(0.3, Math.min(miningFatigue.getAmplifier(), 4));
 
         ItemStack helmet = player.getEquipment().getHelmet();
         if (player.isInWater() && (helmet == null || !helmet.containsEnchantment(Enchantment.WATER_WORKER)))
             multiplier /= 5;
 
         if (!player.isOnGround()) multiplier /= 5;
+
+        Logs.debug(multiplier, "multiplier: ");
 
         return multiplier;
     }
@@ -151,7 +168,9 @@ public abstract class CustomBlockMechanic extends Mechanic {
         return light;
     }
 
-    public boolean hasClickActions() { return !clickActions.isEmpty(); }
+    public boolean hasClickActions() {
+        return !clickActions.isEmpty();
+    }
 
     public void runClickActions(final Player player) {
         for (final ClickAction action : clickActions) {

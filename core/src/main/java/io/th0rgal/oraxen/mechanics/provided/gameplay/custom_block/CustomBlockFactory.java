@@ -20,7 +20,7 @@ public class CustomBlockFactory extends MechanicFactory {
     public CustomBlockFactory(String mechanicId) {
         super(mechanicId);
         instance = this;
-        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new CustomBlockListener());
+        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new CustomBlockListener(), new CustomBlockMiningListener());
     }
 
     public static boolean isEnabled() {
