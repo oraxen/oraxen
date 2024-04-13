@@ -111,7 +111,7 @@ public abstract class CustomBlockMechanic extends Mechanic {
      * @param player The Player breaking the block
      * @return Time in ticks it takes for player to break this block
      */
-    public double breakTime(Player player) {
+    public int breakTime(Player player) {
         double damage = speedMultiplier(player) / hardness / 30;
         return damage > 1 ? 0 : (int) Math.ceil(1 / damage);
     }
