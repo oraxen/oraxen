@@ -47,10 +47,12 @@ public class ShaderArmorTextures {
     }
 
     public ShaderArmorTextures() {
-        this(DEFAULT_RESOLUTION);
-    }
+        int resolution = DEFAULT_RESOLUTION;
+        try {
+            resolution = (int) Settings.CUSTOM_ARMOR_SHADER_RESOLUTION.getValue();
+        } catch (NumberFormatException ignored) {
 
-    public ShaderArmorTextures(int resolution) {
+        }
         this.resolution = resolution;
         try {
             shaderType = ShaderType.valueOf(Settings.CUSTOM_ARMOR_SHADER_TYPE.toString().toUpperCase());
@@ -60,7 +62,6 @@ public class ShaderArmorTextures {
             Logs.logWarning("Defaulting to FANCY");
             shaderType = ShaderType.FANCY;
         }
-        //this.layer1Height = resolution * HEIGHT_RATIO;
     }
 
     public static boolean isSameArmorType(ItemStack firstItem, ItemStack secondItem) {
