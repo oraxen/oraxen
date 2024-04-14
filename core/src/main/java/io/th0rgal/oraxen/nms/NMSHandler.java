@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.nms;
 
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
@@ -38,7 +39,7 @@ public interface NMSHandler {
      * @param itemStack       The ItemStack the player placed the block with
      * @return The corrected BlockData
      */
-    @Nullable BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack);
+    @Nullable Enum<InteractionResult> correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack);
     BlockHitResult getPlayerPOVHitResult(Level world, net.minecraft.world.entity.player.Player player, ClipContext.Fluid fluidHandling);
 
     /**Removes mineable/axe tag from noteblocks for custom blocks */

@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.nms.NMSHandlers;
+import net.minecraft.world.InteractionResult;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
 import org.bukkit.block.Sign;
@@ -193,17 +194,18 @@ public class BlockHelpers {
             return Objects.equals(Settings.BLOCK_CORRECTION.toString(), "NMS") ? NMS : LEGACY;
         }
     }
-    public static void correctAllBlockStates(Block placedAgainst, Player player, EquipmentSlot hand, BlockFace face, ItemStack item, BlockData newData) {
+    public static Enum<InteractionResult> correctAllBlockStates(Block placedAgainst, Player player, EquipmentSlot hand, BlockFace face, ItemStack item, BlockData newData) {
         Block target = placedAgainst.getRelative(face);
         BlockData correctedData;
+        Enum<InteractionResult> result = null;
         if (NMSHandlers.getHandler() != null && BlockCorrection.useNMS()) {
             //TODO Fix boats, currently Item#use in BoatItem calls PlayerInteractEvent
             // thus causing a StackOverflow, find a workaround
-            if (Tag.ITEMS_BOATS.isTagged(item.getType())) return;
-            NMSHandlers.getHandler().correctBlockStates(player, hand, item);
+            if (Tag.ITEMS_BOATS.isTagged(item.getType())) return null;
+            result = NMSHandlers.getHandler().correctBlockStates(player, hand, item);
         }
         else {
-            if (newData == null) return;
+            if (newData == null) return null;
             // If not using NMS-method, the BlockData needs to be set beforehand
             BlockData oldData = target.getBlockData();
             target.setBlockData(newData);
@@ -214,7 +216,7 @@ public class BlockHelpers {
         }
 
         if (target.getState() instanceof Sign sign) player.openSign(sign);
-
+        return result;
     }
 
     private static BlockData oldCorrectBlockData(Block block, Player player, BlockFace face, ItemStack item) {

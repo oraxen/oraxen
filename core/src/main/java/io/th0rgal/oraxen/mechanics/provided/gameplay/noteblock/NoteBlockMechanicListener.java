@@ -16,6 +16,7 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
 import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import io.th0rgal.protectionlib.ProtectionLib;
+import net.minecraft.world.InteractionResult;
 import org.apache.commons.lang3.Range;
 import org.bukkit.*;
 import org.bukkit.block.Block;
@@ -439,29 +440,43 @@ public class NoteBlockMechanicListener implements Listener {
                                      final Block placedAgainst, final BlockFace face, final BlockData newData) {
         final Block target;
         final Material type = placedAgainst.getType();
+        final NoteBlockMechanic targetOraxen = OraxenBlocks.getNoteBlockMechanic(newData);
 
         if (BlockHelpers.isReplaceable(type)) target = placedAgainst;
-        else target = placedAgainst.getRelative(face);
+        else {
+            target = placedAgainst.getRelative(face);
+            if (targetOraxen != null && !BlockHelpers.isReplaceable(target.getType())) return;
+        }
 
         final NoteBlockMechanic againstMechanic = OraxenBlocks.getNoteBlockMechanic(placedAgainst);
         // Store oldData incase event(s) is cancelled, set the target blockData
         // newData might be null in some scenarios
         final BlockData oldData = target.getBlockData();
-        if (newData != null) {
-            target.setBlockData(newData);
-            final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, hand);
-            final Material material = newData.getMaterial();
 
-            if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions()))
-                blockPlaceEvent.setCancelled(true);
-            if (BlockHelpers.isStandingInside(player, target) || !ProtectionLib.canBuild(player, target.getLocation()))
+        Enum<InteractionResult> result = null;
+        if (targetOraxen == null) {
+            target.setBlockData(oldData);
+            result = BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
+        }
+
+        if (newData != null) {
+            if (result == null) target.setBlockData(newData);
+            else target.setBlockData(target.getBlockData());
+            final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, hand);
+
+            if (!ProtectionLib.canBuild(player, target.getLocation()))
                 blockPlaceEvent.setCancelled(true);
             if (!Range.between(target.getWorld().getMinHeight(), target.getWorld().getMaxHeight() - 1).contains(target.getY()))
                 blockPlaceEvent.setCancelled(true);
-            if (Tag.WOODEN_DOORS.isTagged(material) && (!target.canPlace(newData) || !target.getRelative(BlockFace.UP).isEmpty()))
+            if (againstMechanic != null && (againstMechanic.isStorage() || againstMechanic.hasClickActions()))
                 blockPlaceEvent.setCancelled(true);
-            if (Tag.WOODEN_PRESSURE_PLATES.isTagged(material) && !target.canPlace(newData))
-                blockPlaceEvent.setCancelled(true);
+
+            if (targetOraxen != null || !BlockHelpers.BlockCorrection.useNMS()) {
+                if (BlockHelpers.isStandingInside(player, target))
+                    blockPlaceEvent.setCancelled(true);
+            } else {
+                if (result == null) blockPlaceEvent.setCancelled(true);
+            }
 
             // Call the event and check if it is cancelled, if so reset BlockData
             if (!EventUtils.callEvent(blockPlaceEvent) || !blockPlaceEvent.canBuild()) {
@@ -471,7 +486,6 @@ public class NoteBlockMechanicListener implements Listener {
         }
 
         // This method is run for placing on custom blocks aswell, so this should not be called for vanilla blocks
-        NoteBlockMechanic targetOraxen = OraxenBlocks.getNoteBlockMechanic(newData);
         if (targetOraxen != null) {
 
             OraxenBlocks.place(targetOraxen.getItemID(), target.getLocation());
@@ -492,9 +506,6 @@ public class NoteBlockMechanicListener implements Listener {
 
             if (player.getGameMode() != GameMode.CREATIVE) item.setAmount(item.getAmount() - 1);
             Utils.swingHand(player, hand);
-        } else {
-            target.setBlockData(oldData);
-            BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
         }
         if (VersionUtil.isPaperServer()) target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
     }
