@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMec
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.logstrip.LogStripping;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
+import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import org.bukkit.Instrument;
 import org.bukkit.Material;
 import org.bukkit.Note;
@@ -103,6 +104,12 @@ public class NoteBlockMechanic extends CustomBlockMechanic {
     public boolean hasLight() {
         NoteBlockMechanic parentMechanic = directionalBlock != null ? directionalBlock.getParentMechanic() : null;
         return parentMechanic != null ? super.hasLight() || parentMechanic.hasLight() : super.hasLight();
+    }
+
+    @Override
+    public BlockSounds blockSounds() {
+        NoteBlockMechanic parentMechanic = directionalBlock != null ? directionalBlock.getParentMechanic() : null;
+        return parentMechanic == null ? super.blockSounds() : super.blockSounds() == null ? parentMechanic.blockSounds() : super.blockSounds();
     }
 
     public boolean isInteractable() {

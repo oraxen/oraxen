@@ -117,10 +117,10 @@ public class BreakerManager {
                 activeBreakerData.breakerSoundTask.cancel();
             } else {
                 String sound = switch (mechanic.type()) {
-                    case NOTEBLOCK -> mechanic.blockSounds().hasHitSound() ? mechanic.blockSounds().getHitSound() : "required.wood.hit";
-                   case STRINGBLOCK -> mechanic.blockSounds().hasHitSound() ? mechanic.blockSounds().getHitSound() : "block.tripwire.detach";
+                    case NOTEBLOCK -> mechanic.blockSounds().hasHitSound() ? mechanic.blockSounds().hitSound() : "required.wood.hit";
+                   case STRINGBLOCK -> mechanic.blockSounds().hasHitSound() ? mechanic.blockSounds().hitSound() : "block.tripwire.detach";
                 };
-                BlockHelpers.playCustomBlockSound(activeBreakerData.location, sound, mechanic.blockSounds().getHitVolume(), mechanic.blockSounds().getHitPitch());
+                BlockHelpers.playCustomBlockSound(block.getLocation(), sound, mechanic.blockSounds().hitVolume(), mechanic.blockSounds().hitPitch());
             }
         }, 0, 4L);
     }

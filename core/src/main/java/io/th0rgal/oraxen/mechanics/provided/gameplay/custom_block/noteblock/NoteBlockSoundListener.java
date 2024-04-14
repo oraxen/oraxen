@@ -113,22 +113,19 @@ public class NoteBlockSoundListener implements Listener {
             return;
 
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
-        if (mechanic != null && mechanic.isDirectional() && !mechanic.directional().isParentBlock())
-            mechanic = mechanic.directional().getParentMechanic();
-
         String sound;
         float volume;
         float pitch;
         if (gameEvent == GameEvent.STEP) {
             boolean check = block.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasStepSound();
-            sound = (check) ? mechanic.blockSounds().getStepSound() : VANILLA_WOOD_STEP;
-            volume = (check) ? mechanic.blockSounds().getStepVolume() : VANILLA_STEP_VOLUME;
-            pitch = (check) ? mechanic.blockSounds().getStepPitch() : VANILLA_STEP_PITCH;
+            sound = (check) ? mechanic.blockSounds().stepSound() : VANILLA_WOOD_STEP;
+            volume = (check) ? mechanic.blockSounds().stepVolume() : VANILLA_STEP_VOLUME;
+            pitch = (check) ? mechanic.blockSounds().stepPitch() : VANILLA_STEP_PITCH;
         } else if (gameEvent == GameEvent.HIT_GROUND) {
             boolean check = (block.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasFallSound());
-            sound = (check) ? mechanic.blockSounds().getFallSound() : VANILLA_WOOD_FALL;
-            volume = (check) ? mechanic.blockSounds().getFallVolume() : VANILLA_FALL_VOLUME;
-            pitch = (check) ? mechanic.blockSounds().getFallPitch() : VANILLA_FALL_PITCH;
+            sound = (check) ? mechanic.blockSounds().fallSound() : VANILLA_WOOD_FALL;
+            volume = (check) ? mechanic.blockSounds().fallVolume() : VANILLA_FALL_VOLUME;
+            pitch = (check) ? mechanic.blockSounds().fallPitch() : VANILLA_FALL_PITCH;
         } else return;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS, volume, pitch);
@@ -136,24 +133,15 @@ public class NoteBlockSoundListener implements Listener {
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onPlacing(final OraxenNoteBlockPlaceEvent event) {
-        NoteBlockMechanic mechanic = event.getMechanic();
-        if (mechanic.isDirectional() && !mechanic.directional().isParentBlock())
-            mechanic = mechanic.directional().getParentMechanic();
-        if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.blockSounds().hasPlaceSound()) return;
-
-        BlockSounds blockSounds = mechanic.blockSounds();
-        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getPlaceSound(), blockSounds.getPlaceVolume(), blockSounds.getPlacePitch());
+        BlockSounds blockSounds = event.getMechanic().blockSounds();
+        if (blockSounds == null || !blockSounds.hasPlaceSound()) return;
+        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.placeSound(), blockSounds.placeVolume(), blockSounds.placePitch());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onBreaking(final OraxenNoteBlockBreakEvent event) {
-        NoteBlockMechanic mechanic = event.getMechanic();
-        if (mechanic.isDirectional() && !mechanic.directional().isParentBlock())
-            mechanic = mechanic.directional().getParentMechanic();
-        if (mechanic == null || !mechanic.hasBlockSounds() || !mechanic.blockSounds().hasBreakSound()) return;
-
-        BlockSounds blockSounds = mechanic.blockSounds();
-        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());
-
+        BlockSounds blockSounds = event.getMechanic().blockSounds();
+        if (blockSounds == null || !blockSounds.hasBreakSound()) return;
+        BlockHelpers.playCustomBlockSound(event.getBlock().getLocation(), blockSounds.breakSound(), blockSounds.breakVolume(), blockSounds.breakPitch());
     }
 }
