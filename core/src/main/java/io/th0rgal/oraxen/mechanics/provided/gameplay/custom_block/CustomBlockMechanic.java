@@ -43,7 +43,7 @@ public abstract class CustomBlockMechanic extends Mechanic {
     public CustomBlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
 
-        type = CustomBlockType.fromString(section.getString("type", ""));
+        type = CustomBlockType.fromMechanicSection(section);
         model = Key.key(section.getString("model", section.getParent().getString("Pack.model", getItemID())));
         customVariation = section.getInt("custom_variation");
         hardness = section.getInt("hardness", 1);
