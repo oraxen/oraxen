@@ -55,13 +55,13 @@ public class WorldEditHandlers {
     }
 
 
-    @Subscribe
+    @Subscribe @SuppressWarnings("unused")
     public void onEditSession(EditSessionEvent event) {
         if (event.getWorld() == null) return;
 
         event.setExtent(new AbstractDelegateExtent(event.getExtent()) {
 
-            @Override
+            @Override @SuppressWarnings("unchecked")
             public Entity createEntity(com.sk89q.worldedit.util.Location location, BaseEntity baseEntity) {
                 if (!Settings.WORLDEDIT_FURNITURE.toBool()) return super.createEntity(location, baseEntity);
                 if (baseEntity == null || baseEntity.getType() == BukkitAdapter.adapt(EntityType.INTERACTION)) return null;
@@ -120,7 +120,7 @@ public class WorldEditHandlers {
                 return super.setBlock(pos, block);
             }
 
-            @Nullable
+            @Nullable @SuppressWarnings("unchecked")
             private FurnitureMechanic getFurnitureMechanic(@NotNull BaseEntity entity) {
                 if (!entity.hasNbtData() || !furnitureTypes.contains(entity.getType())) return null;
                 CompoundTag tag = entity.getNbtData();

@@ -107,6 +107,14 @@ public class StringBlockMechanicListener implements Listener {
         event.setUseItemInHand(Event.Result.DENY);
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBreakingTall(final BlockBreakEvent event) {
+        Block block = event.getBlock().getRelative(BlockFace.DOWN);
+        if (event.getBlock().getType() != Material.TRIPWIRE || OraxenBlocks.isOraxenStringBlock(event.getBlock())) return;
+        event.setDropItems(false);
+        OraxenBlocks.remove(block.getLocation(), event.getPlayer());
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onWaterUpdate(final BlockFromToEvent event) {
         final Block changed = event.getToBlock();
