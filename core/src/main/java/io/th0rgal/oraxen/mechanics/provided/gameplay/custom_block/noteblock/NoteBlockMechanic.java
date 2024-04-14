@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMec
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.logstrip.LogStripping;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
+import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import org.bukkit.Instrument;
 import org.bukkit.Material;
 import org.bukkit.Note;
@@ -75,38 +76,40 @@ public class NoteBlockMechanic extends CustomBlockMechanic {
     public StorageMechanic storage() { return storage; }
 
     public boolean isLog() {
-        if (isDirectional() && !directionalBlock.isParentBlock()) {
-            return logStripping != null || directionalBlock.getParentMechanic().isLog();
-        } else return logStripping != null;
+        NoteBlockMechanic parentMechanic = directionalBlock != null ? directionalBlock.getParentMechanic() : null;
+        return parentMechanic != null ? logStripping != null || parentMechanic.isLog() : logStripping != null;
     }
     public LogStripping log() { return logStripping; }
 
     public boolean isFalling() {
-        if (isDirectional() && !directionalBlock.isParentBlock()) {
-            return isFalling || directionalBlock.getParentMechanic().isFalling();
-        } else return isFalling;
+        NoteBlockMechanic parentMechanic = directionalBlock != null ? directionalBlock.getParentMechanic() : null;
+        return parentMechanic != null ? isFalling || parentMechanic.isFalling() : isFalling;
+    }
+
+    public boolean canIgnite() {
+        NoteBlockMechanic parentMechanic = directionalBlock != null ? directionalBlock.getParentMechanic() : null;
+        return parentMechanic != null ? canIgnite || parentMechanic.canIgnite() : canIgnite;
     }
 
     public boolean isDirectional() { return directionalBlock != null; }
     public DirectionalBlock directional() { return directionalBlock; }
 
-    public boolean hasHardness() {
-        if (isDirectional() && !directionalBlock.isParentBlock()) {
-            return hardness() != -1 || directionalBlock.getParentMechanic().hasHardness();
-        } else return hardness() != -1;
+    @Override
+    public int hardness() {
+        NoteBlockMechanic parentMechanic = directionalBlock != null ? directionalBlock.getParentMechanic() : null;
+        return parentMechanic != null ? parentMechanic.hardness() : super.hardness();
     }
 
     @Override
     public boolean hasLight() {
-        if (isDirectional() && !directionalBlock.isParentBlock()) {
-            return light().hasLightLevel() || directionalBlock.getParentMechanic().light().hasLightLevel();
-        } else return light().hasLightLevel();
+        NoteBlockMechanic parentMechanic = directionalBlock != null ? directionalBlock.getParentMechanic() : null;
+        return parentMechanic != null ? super.hasLight() || parentMechanic.hasLight() : super.hasLight();
     }
 
-    public boolean canIgnite() {
-        if (isDirectional() && !directionalBlock.isParentBlock()) {
-            return canIgnite || directionalBlock.getParentMechanic().canIgnite();
-        } else return canIgnite;
+    @Override
+    public BlockSounds blockSounds() {
+        NoteBlockMechanic parentMechanic = directionalBlock != null ? directionalBlock.getParentMechanic() : null;
+        return parentMechanic == null ? super.blockSounds() : super.blockSounds() == null ? parentMechanic.blockSounds() : super.blockSounds();
     }
 
     public boolean isInteractable() {

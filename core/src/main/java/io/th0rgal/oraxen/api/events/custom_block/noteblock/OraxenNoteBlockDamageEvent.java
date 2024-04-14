@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.api.events.custom_block.noteblock;
 
 import io.th0rgal.oraxen.api.events.custom_block.OraxenBlockDamageEvent;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Player;
@@ -21,7 +20,7 @@ public class OraxenNoteBlockDamageEvent extends OraxenBlockDamageEvent implement
      * @param block    The block that was damaged
      * @param player   The player who damaged this block
      */
-    public OraxenNoteBlockDamageEvent(@NotNull CustomBlockMechanic mechanic, @NotNull Block block, @NotNull Player player) {
+    public OraxenNoteBlockDamageEvent(@NotNull NoteBlockMechanic mechanic, @NotNull Block block, @NotNull Player player) {
         super(mechanic, block, player);
     }
 

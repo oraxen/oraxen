@@ -28,7 +28,7 @@ import io.th0rgal.oraxen.utils.NoticeUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
-import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
+import io.th0rgal.oraxen.utils.breaker.BreakerManager;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -44,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
 
 public class OraxenPlugin extends JavaPlugin {
@@ -60,6 +61,7 @@ public class OraxenPlugin extends JavaPlugin {
     @Nullable private OraxenPackServer packServer;
     private ClickActionManager clickActionManager;
     private ProtocolManager protocolManager;
+    private BreakerManager breakerManager;
     public static boolean supportsDisplayEntities;
 
     public OraxenPlugin() {
@@ -95,13 +97,13 @@ public class OraxenPlugin extends JavaPlugin {
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSound());
+        breakerManager = new BreakerManager(new ConcurrentHashMap<>());
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
         final PluginManager pluginManager = Bukkit.getPluginManager();
         if (pluginManager.isPluginEnabled("ProtocolLib")) {
             protocolManager = ProtocolLibrary.getProtocolManager();
-            new BreakerSystem().registerListener();
             if (Settings.FORMAT_INVENTORY_TITLES.toBool())
                 protocolManager.addPacketListener(new InventoryPacketListener());
             protocolManager.addPacketListener(new TitlePacketListener());
@@ -214,6 +216,10 @@ public class OraxenPlugin extends JavaPlugin {
 
     public void soundManager(final SoundManager soundManager) {
         this.soundManager = soundManager;
+    }
+
+    public BreakerManager breakerManager() {
+        return breakerManager;
     }
 
     public InvManager invManager() {

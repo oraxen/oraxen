@@ -10,8 +10,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
-import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
-import io.th0rgal.oraxen.utils.breaker.HardnessModifier;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
@@ -35,11 +33,6 @@ import java.util.*;
 import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
 
 public class NoteBlockMechanicListener implements Listener {
-
-    public NoteBlockMechanicListener() {
-        BreakerSystem.MODIFIERS.add(getHardnessModifier());
-    }
-
     public static class NoteBlockMechanicPaperListener implements Listener {
 
         @EventHandler
@@ -213,48 +206,6 @@ public class NoteBlockMechanicListener implements Listener {
             block.getWorld().playSound(block.getLocation(), Sound.ITEM_FLINTANDSTEEL_USE, 1, 1);
             block.getRelative(BlockFace.UP).setType(Material.FIRE);
         }
-    }
-
-    private HardnessModifier getHardnessModifier() {
-        return new HardnessModifier() {
-
-            @Override
-            public boolean isTriggered(final Player player, final Block block, final ItemStack tool) {
-                if (block.getType() != Material.NOTE_BLOCK)
-                    return false;
-
-                NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
-                if (mechanic == null) return false;
-
-                if (mechanic.isDirectional() && !mechanic.directional().isParentBlock())
-                    mechanic = mechanic.directional().getParentMechanic();
-
-                return mechanic.hasHardness();
-            }
-
-            @Override
-            public void breakBlock(final Player player, final Block block, final ItemStack tool) {
-                block.setType(Material.AIR);
-            }
-
-            @Override
-            public long getPeriod(final Player player, final Block block, final ItemStack tool) {
-                NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
-                if (mechanic == null) return 0;
-                if (mechanic.isDirectional() && !mechanic.directional().isParentBlock())
-                    mechanic = mechanic.directional().getParentMechanic();
-
-                final long period = mechanic.hardness();
-                double modifier = 1;
-                if (mechanic.drop().canDrop(tool)) {
-                    modifier *= 0.4;
-                    final int diff = mechanic.drop().getDiff(tool);
-                    if (diff >= 1)
-                        modifier *= Math.pow(0.9, diff);
-                }
-                return (long) (period * modifier);
-            }
-        };
     }
 
     // Used to determine what instrument to use when playing a note depending on below block
