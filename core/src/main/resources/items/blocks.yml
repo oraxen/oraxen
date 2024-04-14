@@ -15,7 +15,8 @@ amethyst_ore:
     textures:
       - default/amethyst_ore
   Mechanics:
-    noteblock:
+    custom_block:
+      type: NOTEBLOCK
       block_sounds:
         break_sound: block.stone.break
         place_sound: block.stone.place
@@ -41,7 +42,8 @@ ruby_ore:
     textures:
       - default/ruby_ore
   Mechanics:
-    noteblock:
+    custom_block:
+      type: NOTEBLOCK
       block_sounds:
         break_sound: block.stone.break
         place_sound: block.stone.place
@@ -68,7 +70,8 @@ onyx_ore:
     textures:
       - default/onyx_ore
   Mechanics:
-    noteblock:
+    custom_block:
+      type: NOTEBLOCK
       block_sounds:
         break_sound: block.stone.break
         place_sound: block.stone.place
@@ -94,7 +97,8 @@ orax_ore:
     textures:
       - default/orax_ore
   Mechanics:
-    noteblock:
+    custom_block:
+      type: NOTEBLOCK
       block_sounds:
         break_sound: block.stone.break
         place_sound: block.stone.place
