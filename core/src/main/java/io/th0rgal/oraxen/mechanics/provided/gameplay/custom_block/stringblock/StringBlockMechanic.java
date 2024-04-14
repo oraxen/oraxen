@@ -10,7 +10,6 @@ import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.configuration.ConfigurationSection;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class StringBlockMechanic extends CustomBlockMechanic {
@@ -26,9 +25,7 @@ public class StringBlockMechanic extends CustomBlockMechanic {
 
         isTall = section.getBoolean("is_tall");
         placeableOnWater = section.getBoolean("placeable_on_water");
-
-        ConfigurationSection randomPlaceSection = section.getConfigurationSection("random_place");
-        randomPlace = randomPlaceSection != null ? randomPlaceSection.getStringList("blocks") : new ArrayList<>();
+        randomPlace = section.getStringList("random_place");
 
         ConfigurationSection saplingSection = section.getConfigurationSection("sapling");
         sapling = saplingSection != null ? new SaplingMechanic(getItemID(), saplingSection) : null;
