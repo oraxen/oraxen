@@ -24,11 +24,12 @@ import org.bukkit.event.Event;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 public class CustomBlockHelpers {
 
     public static void makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
-                                            final Block placedAgainst, final BlockFace face, final BlockData newData) {
+                                            final Block placedAgainst, final BlockFace face, @Nullable final CustomBlockMechanic newMechanic, final BlockData newData) {
         final Block target;
         final Material type = placedAgainst.getType();
         final Range<Integer> worldHeightRange = Range.between(placedAgainst.getWorld().getMinHeight(), placedAgainst.getWorld().getMaxHeight() - 1);
@@ -42,7 +43,6 @@ public class CustomBlockHelpers {
 
         final Block blockAbove = target.getRelative(BlockFace.UP);
 
-        CustomBlockMechanic newMechanic = OraxenBlocks.getCustomBlockMechanic(newData);
         final BlockData oldData = target.getBlockData();
         target.setBlockData(newData);
 

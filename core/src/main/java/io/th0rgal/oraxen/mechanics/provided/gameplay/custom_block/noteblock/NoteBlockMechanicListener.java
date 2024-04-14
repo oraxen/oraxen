@@ -131,7 +131,7 @@ public class NoteBlockMechanicListener implements Listener {
         if (type == Material.AIR) return;
 
         BlockData newData = type.isBlock() ? type.createBlockData() : null;
-        CustomBlockHelpers.makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), newData);
+        CustomBlockHelpers.makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), null, newData);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

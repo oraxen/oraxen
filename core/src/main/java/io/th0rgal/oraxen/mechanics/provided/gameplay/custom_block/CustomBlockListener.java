@@ -140,7 +140,7 @@ public class CustomBlockListener implements Listener {
             if (placedAgainst.getRelative(face).isLiquid()) return;
         }
 
-        CustomBlockHelpers.makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, face, mechanic.blockData());
+        CustomBlockHelpers.makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, face, mechanic, mechanic.blockData());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

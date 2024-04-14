@@ -17,13 +17,15 @@ public class StringBlockMechanic extends CustomBlockMechanic {
     private final List<String> randomPlace;
     private final SaplingMechanic sapling;
     private final boolean isTall;
+    private final boolean placeableOnWater;
 
 
     public StringBlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         // Creates an instance of CustomBlockMechanic and applies the below
         super(mechanicFactory, section);
 
-        isTall = section.getBoolean("is_tall", false);
+        isTall = section.getBoolean("is_tall");
+        placeableOnWater = section.getBoolean("placeable_on_water");
 
         ConfigurationSection randomPlaceSection = section.getConfigurationSection("random_place");
         randomPlace = randomPlaceSection != null ? randomPlaceSection.getStringList("blocks") : new ArrayList<>();
@@ -60,10 +62,21 @@ public class StringBlockMechanic extends CustomBlockMechanic {
         return tripwire;
     }
 
-    public boolean isSapling() { return sapling != null; }
-    public SaplingMechanic sapling() { return sapling; }
+    public boolean isSapling() {
+        return sapling != null;
+    }
 
-    public boolean isTall() { return isTall; }
+    public SaplingMechanic sapling() {
+        return sapling;
+    }
+
+    public boolean isTall() {
+        return isTall;
+    }
+
+    public boolean isPlaceableOnWater() {
+        return placeableOnWater;
+    }
 
     public boolean hasRandomPlace() {
         return !randomPlace.isEmpty();
@@ -72,7 +85,6 @@ public class StringBlockMechanic extends CustomBlockMechanic {
     public List<String> randomPlace() {
         return randomPlace;
     }
-
 
 
 }
