@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.api.events.custom_block.stringblock.OraxenStringBlockDa
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.PacketHelpers;
@@ -52,7 +53,7 @@ public class BreakerManager {
 
         int breakTime = mechanic.breakTime(player);
         PacketHelpers.applyMiningFatigue(player);
-        ActiveBreakerData activeBreakerData = new ActiveBreakerData(player, block.getLocation(), mechanic, breakTime, 0, createBreakScheduler(breakTime, player.getUniqueId()));
+        ActiveBreakerData activeBreakerData = new ActiveBreakerData(player, block.getLocation(), mechanic, breakTime, 0, createBreakScheduler(breakTime, player.getUniqueId()), createBreakSoundScheduler(player.getUniqueId()));
         activeBreakerDataMap.put(player.getUniqueId(), activeBreakerData);
     }
 
@@ -60,7 +61,7 @@ public class BreakerManager {
         final ActiveBreakerData activeBreakerData = activeBreakerDataMap.get(player.getUniqueId());
         if (activeBreakerData == null) return;
 
-        activeBreakerData.bukkitTask.cancel();
+        activeBreakerData.cancelTasks();
         activeBreakerDataMap.remove(player.getUniqueId());
         if (player.isOnline()) {
             PacketHelpers.removeMiningFatigue(player);
@@ -69,10 +70,11 @@ public class BreakerManager {
         }
     }
 
-    private BukkitTask createBreakScheduler(double blockBreakTime, UUID uuid) {
+    private BukkitTask createBreakScheduler(double blockBreakTime, UUID breakerUUID) {
 
         return Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () -> {
-            final ActiveBreakerData activeBreakerData = this.activeBreakerDataMap.get(uuid);
+            final ActiveBreakerData activeBreakerData = this.activeBreakerDataMap.get(breakerUUID);
+            if (activeBreakerData == null) return;
             Player player = activeBreakerData.breaker;
             final Block block = activeBreakerData.location.getBlock();
             CustomBlockMechanic mechanic = OraxenBlocks.getCustomBlockMechanic(block.getBlockData());
@@ -87,7 +89,7 @@ public class BreakerManager {
                 activeBreakerData.sendBreakProgress();
 
                 for (ActiveBreakerData alterBreakerData : activeBreakerDataMap.values()) {
-                    if (alterBreakerData.breaker.getUniqueId().equals(uuid)) continue;
+                    if (alterBreakerData.breaker.getUniqueId().equals(breakerUUID)) continue;
                     if (!alterBreakerData.location.equals(activeBreakerData.location)) continue;
 
                     OraxenPlugin.get().breakerManager().stopBlockBreak(alterBreakerData.breaker);
@@ -95,10 +97,32 @@ public class BreakerManager {
 
                 ItemUtils.damageItem(player, mechanic.drop(), player.getInventory().getItemInMainHand());
                 block.setType(Material.AIR);
-                activeBreakerData.bukkitTask.cancel();
-                this.activeBreakerDataMap.remove(uuid);
+                activeBreakerData.cancelTasks();
+                this.activeBreakerDataMap.remove(breakerUUID);
             }
-        }, (long) (blockBreakTime / 11), (long) (blockBreakTime / 11));
+        }, 1,1);
+    }
+
+    private BukkitTask createBreakSoundScheduler(UUID breakerUUID) {
+        return Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () -> {
+            final ActiveBreakerData activeBreakerData = this.activeBreakerDataMap.get(breakerUUID);
+            if (activeBreakerData == null) return;
+            Player player = activeBreakerData.breaker;
+            final Block block = activeBreakerData.location.getBlock();
+            CustomBlockMechanic mechanic = OraxenBlocks.getCustomBlockMechanic(block.getBlockData());
+
+            if (!player.isOnline() || mechanic == null || mechanic.customVariation() != activeBreakerData.mechanic.customVariation()) {
+                OraxenPlugin.get().breakerManager().stopBlockBreak(player);
+            } else if (!mechanic.hasBlockSounds() || !mechanic.blockSounds().hasHitSound()) {
+                activeBreakerData.breakerSoundTask.cancel();
+            } else {
+                String sound = switch (mechanic.type()) {
+                    case NOTEBLOCK -> mechanic.blockSounds().hasHitSound() ? mechanic.blockSounds().getHitSound() : "required.wood.hit";
+                   case STRINGBLOCK -> mechanic.blockSounds().hasHitSound() ? mechanic.blockSounds().getHitSound() : "block.tripwire.detach";
+                };
+                BlockHelpers.playCustomBlockSound(activeBreakerData.location, sound, mechanic.blockSounds().getHitVolume(), mechanic.blockSounds().getHitPitch());
+            }
+        }, 0, 4L);
     }
 
     public static class ActiveBreakerData {
@@ -109,7 +133,8 @@ public class BreakerManager {
         private final CustomBlockMechanic mechanic;
         private final int totalBreakTime;
         private double breakTimeProgress;
-        private final BukkitTask bukkitTask;
+        private final BukkitTask breakerTask;
+        private final BukkitTask breakerSoundTask;
 
         public ActiveBreakerData(
                 Player breaker,
@@ -117,7 +142,8 @@ public class BreakerManager {
                 CustomBlockMechanic mechanic,
                 int totalBreakTime,
                 int breakTimeProgress,
-                BukkitTask bukkitTask
+                BukkitTask breakerTask,
+                BukkitTask breakerSoundTask
         ) {
             this.sourceId = OraxenPlugin.get().breakerManager().SOURCE_RANDOM.nextInt();
             this.breaker = breaker;
@@ -125,7 +151,8 @@ public class BreakerManager {
             this.mechanic = mechanic;
             this.totalBreakTime = totalBreakTime;
             this.breakTimeProgress = breakTimeProgress;
-            this.bukkitTask = bukkitTask;
+            this.breakerTask = breakerTask;
+            this.breakerSoundTask = breakerSoundTask;
         }
 
         public int totalBreakTime() {
@@ -160,6 +187,11 @@ public class BreakerManager {
 
         public void resetProgress() {
             this.breakTimeProgress = 0;
+        }
+
+        public void cancelTasks() {
+            if (breakerTask != null) breakerTask.cancel();
+            if (breakerSoundTask != null) breakerSoundTask.cancel();
         }
     }
 }
