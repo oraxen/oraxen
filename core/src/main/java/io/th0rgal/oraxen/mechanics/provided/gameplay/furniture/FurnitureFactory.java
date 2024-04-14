@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.listeners.Furnitu
 import io.th0rgal.oraxen.nms.EmptyFurniturePacketManager;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.List;
@@ -29,6 +30,7 @@ public class FurnitureFactory extends MechanicFactory {
 
     public FurnitureFactory(ConfigurationSection section) {
         super(section);
+        instance = this;
         if (OraxenPlugin.supportsDisplayEntities)
             defaultFurnitureType = FurnitureMechanic.FurnitureType.getType(section.getString("default_furniture_type", "DISPLAY_ENTITY"));
         else defaultFurnitureType = FurnitureMechanic.FurnitureType.ITEM_FRAME;
@@ -36,12 +38,11 @@ public class FurnitureFactory extends MechanicFactory {
         evolutionCheckDelay = section.getInt("evolution_check_delay");
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new FurnitureListener(),
-                new FurnitureUpdater(),
                 new EvolutionListener(),
                 new JukeboxListener()
         );
+        FurnitureUpdater.registerListener();
         evolvingFurnitures = false;
-        instance = this;
         customSounds = OraxenPlugin.get().configsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("stringblock_and_furniture", true);
 
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
@@ -50,12 +51,6 @@ public class FurnitureFactory extends MechanicFactory {
 
     public IFurniturePacketManager furniturePacketManager() {
         return NMSHandlers.getHandler() != null ? NMSHandlers.getHandler().furniturePacketManager() : new EmptyFurniturePacketManager();
-    }
-
-    public static boolean setDefaultType(ConfigurationSection mechanicSection) {
-        if (mechanicSection.isSet("type")) return true;
-        mechanicSection.set("type", defaultFurnitureType.toString());
-        return false;
     }
 
     @Override
@@ -71,10 +66,6 @@ public class FurnitureFactory extends MechanicFactory {
 
     public static FurnitureFactory getInstance() {
         return instance;
-    }
-
-    public static EvolutionTask getEvolutionTask() {
-        return evolutionTask;
     }
 
     public void registerEvolution() {
@@ -99,7 +90,7 @@ public class FurnitureFactory extends MechanicFactory {
     }
 
     @Override
-    public FurnitureMechanic getMechanic(org.bukkit.inventory.ItemStack itemStack) {
+    public FurnitureMechanic getMechanic(ItemStack itemStack) {
         return (FurnitureMechanic) super.getMechanic(itemStack);
     }
 

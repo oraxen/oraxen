@@ -319,8 +319,7 @@ public class FurnitureMechanic extends Mechanic {
             spawnModelEngineFurniture(baseEntity);
         }
         FurnitureSeat.spawnSeats(baseEntity, this);
-
-        //hitbox.handleHitboxes(baseEntity, this);
+        if (light.hasLightLevel()) light.createBlockLight(baseEntity.getLocation().getBlock());
 
         return baseEntity;
     }
@@ -335,7 +334,7 @@ public class FurnitureMechanic extends Mechanic {
         float scale = displayEntityProperties.hasScale() ? displayEntityProperties.getScale().y() : 1;
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
         if (isFixed && isWall) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
-        return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 * 1 : 0), 0);
+        return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 : 0), 0);
     }
 
     public void setEntityData(Entity entity, float yaw, BlockFace facing) {
@@ -344,31 +343,10 @@ public class FurnitureMechanic extends Mechanic {
 
     public void setEntityData(Entity entity, float yaw, ItemStack item, BlockFace facing) {
         setBaseFurnitureData(entity);
-        Location location = entity.getLocation();
-        if (entity instanceof ItemFrame frame) {
+        if (entity instanceof ItemFrame frame)
             setFrameData(frame, item, yaw, facing);
-
-            if (false);//(hasBarriers()) setBarrierHitbox(entity, location, yaw);
-            else {
-                //float width = hasHitbox() ? hitbox.width : 1f;
-                //float height = hasHitbox() ? hitbox.height : 1f;
-                //spawnInteractionEntity(frame, location, width, height);
-                Block block = location.getBlock();
-                if (light.hasLightLevel()) light.createBlockLight(block);
-            }
-        } else if (entity instanceof ItemDisplay itemDisplay) {
+        else if (entity instanceof ItemDisplay itemDisplay)
             setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
-            //float width = hasHitbox() ? hitbox.width : displayEntityProperties.getDisplayWidth();
-            //float height = hasHitbox() ? hitbox.height : displayEntityProperties.getDisplayHeight();
-            boolean isFixed = displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
-            Location interactionLoc = location.clone().subtract(0, (hasLimitedPlacing() && limitedPlacing.isRoof() && isFixed) ? 1.5 * (1.0 - 1) : 0, 0);
-            //spawnInteractionEntity(itemDisplay, interactionLoc, width, height);
-            Location barrierLoc = EntityUtils.isNone(itemDisplay) && displayEntityProperties.hasScale()
-                            ? location.clone().subtract(0, 0.5 * displayEntityProperties.getScale().y(), 0) : location;
-
-            //if (hasBarriers()) setBarrierHitbox(entity, barrierLoc, yaw);
-            if (light.hasLightLevel()) light.createBlockLight(location.getBlock());
-        }
     }
 
     private void setBaseFurnitureData(Entity entity) {
@@ -391,7 +369,7 @@ public class FurnitureMechanic extends Mechanic {
         if (properties.hasTrackingRotation()) itemDisplay.setBillboard(properties.getTrackingRotation());
         if (properties.hasShadowRadius()) itemDisplay.setShadowRadius(properties.getShadowRadius());
         if (properties.hasShadowStrength()) itemDisplay.setShadowStrength(properties.getShadowStrength());
-        //if (properties.hasGlowColor()) itemDisplay.setGlowColorOverride(properties.getGlowColor());
+        if (properties.hasGlowColor()) itemDisplay.setGlowColorOverride(properties.getGlowColor());
         if (properties.hasBrightness()) itemDisplay.setBrightness(displayEntityProperties.getBrightness());
 
         itemDisplay.setDisplayWidth(properties.getDisplayWidth());
@@ -509,8 +487,7 @@ public class FurnitureMechanic extends Mechanic {
         return switch (furnitureType) {
             case ITEM_FRAME -> EntityType.ITEM_FRAME;
             case GLOW_ITEM_FRAME -> EntityType.GLOW_ITEM_FRAME;
-            case DISPLAY_ENTITY ->
-                    OraxenPlugin.supportsDisplayEntities ? EntityType.ITEM_DISPLAY : EntityType.ITEM_FRAME;
+            case DISPLAY_ENTITY -> OraxenPlugin.supportsDisplayEntities ? EntityType.ITEM_DISPLAY : EntityType.ITEM_FRAME;
             //case ARMOR_STAND -> EntityType.ARMOR_STAND;
         };
     }
