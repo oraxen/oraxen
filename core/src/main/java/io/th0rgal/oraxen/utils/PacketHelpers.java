@@ -24,7 +24,7 @@ public class PacketHelpers {
             PacketContainer packet = new PacketContainer(PacketType.Play.Server.ENTITY_EFFECT);
             packet.getIntegers().write(0, player.getEntityId()).write(1, -1);
             packet.getEffectTypes().write(0, PotionEffectType.SLOW_DIGGING);
-            packet.getBytes().write(0, (byte) 0).write(1, (byte) 0);
+            packet.getBytes().write(0, (byte) -1).write(1, (byte) 0);
             ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
         } else player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING, -1, Integer.MAX_VALUE, false, false, false));
     }
