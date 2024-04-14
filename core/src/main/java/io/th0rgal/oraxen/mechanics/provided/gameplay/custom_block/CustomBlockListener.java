@@ -130,11 +130,14 @@ public class CustomBlockListener implements Listener {
                 noteMechanic = noteMechanic.directional().getParentMechanic();
                 if (noteMechanic != null) mechanic = noteMechanic;
             }
-        } else if (mechanic instanceof StringBlockMechanic stringMechanic && stringMechanic.hasRandomPlace()) {
-            List<String> randomList = stringMechanic.randomPlace();
-            String randomBlock = randomList.get(new Random().nextInt(randomList.size()));
-            stringMechanic = OraxenBlocks.getStringMechanic(randomBlock);
+        } else if (mechanic instanceof StringBlockMechanic stringMechanic) {
+            if (stringMechanic.hasRandomPlace()) {
+                List<String> randomList = stringMechanic.randomPlace();
+                String randomBlock = randomList.get(new Random().nextInt(randomList.size()));
+                stringMechanic = OraxenBlocks.getStringMechanic(randomBlock);
+            }
             if (stringMechanic != null) mechanic = stringMechanic;
+            if (placedAgainst.getRelative(face).isLiquid()) return;
         }
 
         CustomBlockHelpers.makePlayerPlaceBlock(player, event.getHand(), item, placedAgainst, face, mechanic.blockData());
