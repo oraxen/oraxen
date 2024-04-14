@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.font.FontEvents;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.pack.server.PackServerType;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
@@ -74,7 +73,6 @@ public enum Settings {
     CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR("CustomArmor.shader_settings.generate_shader_compatible_armor", true),
 
     // Custom Blocks
-    BLOCK_CORRECTION("CustomBlocks.block_correction", BlockHelpers.BlockCorrection.NMS.name()),
     LEGACY_NOTEBLOCKS("CustomBlocks.use_legacy_noteblocks", VersionUtil.atOrAbove("1.20")),
     LEGACY_STRINGBLOCKS("CustomBlocks.use_legacy_stringblocks", false),
 

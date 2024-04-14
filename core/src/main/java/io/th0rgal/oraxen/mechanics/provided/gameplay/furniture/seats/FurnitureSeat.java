@@ -23,6 +23,7 @@ public class FurnitureSeat {
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
 
     private final Vector offset;
+    @SuppressWarnings("unsafe")
     public static FurnitureSeat getSeat(Object offset) {
         if (offset instanceof Map<?,?> seatMap)
             return new FurnitureSeat((Map<String, Object>) seatMap);

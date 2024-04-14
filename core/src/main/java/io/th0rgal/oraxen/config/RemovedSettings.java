@@ -58,6 +58,8 @@ public enum RemovedSettings {
     RECEIVE_INVALID_URL_ACTIONS("Pack.receive.invalid_url.actions"),
     RECEIVE_DISCARDED_ACTIONS("Pack.receive.discarded.actions"),
 
+    BLOCK_CORRECTION("CustomBlocks.block_correction"),
+
     ;
 
     private final String path;

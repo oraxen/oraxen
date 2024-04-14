@@ -6,18 +6,17 @@ import io.th0rgal.oraxen.api.events.custom_block.stringblock.OraxenStringBlockPl
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteMechanicHelpers;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.apache.commons.lang3.Range;
-import org.bukkit.GameEvent;
-import org.bukkit.GameMode;
-import org.bukkit.Location;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.block.Sign;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
@@ -105,7 +104,12 @@ public class CustomBlockHelpers {
             Utils.swingHand(player, hand);
         } else {
             target.setType(Material.AIR);
-            BlockHelpers.correctAllBlockStates(placedAgainst, player, hand, face, item, newData);
+            //TODO Fix boats, currently Item#use in BoatItem calls PlayerInteractEvent
+            // thus causing a StackOverflow, find a workaround
+            if (Tag.ITEMS_BOATS.isTagged(item.getType())) return;
+            NMSHandlers.getHandler().correctBlockStates(player, hand, item);
+
+            if (placedAgainst.getRelative(face).getState() instanceof Sign sign) player.openSign(sign);
         }
         if (VersionUtil.isPaperServer()) target.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, target.getLocation().toVector());
 
