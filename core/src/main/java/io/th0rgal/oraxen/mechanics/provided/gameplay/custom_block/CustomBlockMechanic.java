@@ -38,6 +38,7 @@ public abstract class CustomBlockMechanic extends Mechanic {
     private final LimitedPlacing limitedPlacing;
     private final List<ClickAction> clickActions;
     private final BlockLockerMechanic blockLocker;
+    private final boolean blastResistant;
 
     public CustomBlockMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section);
@@ -50,6 +51,7 @@ public abstract class CustomBlockMechanic extends Mechanic {
 
         clickActions = ClickAction.parseList(section);
         light = new LightMechanic(section);
+        blastResistant = section.getBoolean("blast_resistant");
 
         ConfigurationSection dropSection = section.getConfigurationSection("drop");
         drop = dropSection != null ? Drop.createDrop(CustomBlockFactory.getInstance().toolTypes(type), dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
@@ -76,32 +78,12 @@ public abstract class CustomBlockMechanic extends Mechanic {
         return this.blockData;
     }
 
-    public boolean hasLimitedPlacing() {
-        return limitedPlacing != null;
-    }
-
-    public LimitedPlacing limitedPlacing() {
-        return limitedPlacing;
-    }
-
-    public boolean hasBlockSounds() {
-        return blockSounds != null;
-    }
-
-    public BlockSounds blockSounds() {
-        return blockSounds;
-    }
-
     public Key model() {
         return model;
     }
 
     public int customVariation() {
         return customVariation;
-    }
-
-    public Drop drop() {
-        return drop;
     }
 
     /**
@@ -153,12 +135,32 @@ public abstract class CustomBlockMechanic extends Mechanic {
         return multiplier;
     }
 
+    public Drop drop() {
+        return drop;
+    }
+
     public boolean hasLight() {
         return light.hasLightLevel();
     }
 
     public LightMechanic light() {
         return light;
+    }
+
+    public boolean hasLimitedPlacing() {
+        return limitedPlacing != null;
+    }
+
+    public LimitedPlacing limitedPlacing() {
+        return limitedPlacing;
+    }
+
+    public boolean hasBlockSounds() {
+        return blockSounds != null;
+    }
+
+    public BlockSounds blockSounds() {
+        return blockSounds;
     }
 
     public boolean hasClickActions() {
@@ -175,5 +177,9 @@ public abstract class CustomBlockMechanic extends Mechanic {
 
     public BlockLockerMechanic blockLocker() {
         return blockLocker;
+    }
+
+    public boolean isBlastResistant() {
+        return blastResistant;
     }
 }
