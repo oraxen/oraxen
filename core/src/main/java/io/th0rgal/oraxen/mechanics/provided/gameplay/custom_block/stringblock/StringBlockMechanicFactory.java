@@ -3,7 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockType;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.sapling.SaplingListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.sapling.SaplingTask;
 import io.th0rgal.oraxen.nms.NMSHandlers;
@@ -37,6 +37,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     private final int saplingGrowthCheckDelay;
     public final boolean customSounds;
     public final boolean disableVanillaString;
+    private boolean notifyOfDeprecation = true;
 
     public StringBlockMechanicFactory(ConfigurationSection section) {
         super(section);
@@ -109,6 +110,14 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     @Override
     public StringBlockMechanic parse(ConfigurationSection section) {
         StringBlockMechanic mechanic = new StringBlockMechanic(this, section);
+
+        // Deprecation notice
+        if (section.getName().equals(getMechanicID()) && notifyOfDeprecation) {
+            notifyOfDeprecation = false;
+            Logs.logError(mechanic.getItemID() + " is using Mechanics.stringblock which is deprecated...");
+            Logs.logWarning("It is recommended to use the new format, Mechanics.custom_block.type: " + CustomBlockType.STRINGBLOCK);
+        }
+
         if (!Range.between(1, MAX_BLOCK_VARIATION).contains(mechanic.customVariation())) {
             Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and " + MAX_BLOCK_VARIATION + "!");
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");

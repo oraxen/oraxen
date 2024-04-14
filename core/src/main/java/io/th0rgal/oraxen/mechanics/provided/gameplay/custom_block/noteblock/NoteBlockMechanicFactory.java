@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockType;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.directional.DirectionalBlock;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.logstrip.LogStripListener;
 import io.th0rgal.oraxen.nms.NMSHandlers;
@@ -37,6 +38,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public final List<String> toolTypes;
     public final boolean customSounds;
     private final boolean removeMineableTag;
+    private boolean notifyOfDeprecation = true;
 
     public NoteBlockMechanicFactory(ConfigurationSection section) {
         super(section);
@@ -111,6 +113,14 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     @Override
     public NoteBlockMechanic parse(ConfigurationSection section) {
         NoteBlockMechanic mechanic = new NoteBlockMechanic(this, section);
+
+        // Deprecation notice
+        if (section.getName().equals(getMechanicID()) && notifyOfDeprecation) {
+            notifyOfDeprecation = false;
+            Logs.logError(mechanic.getItemID() + " is using Mechanics.noteblock which is deprecated...");
+            Logs.logWarning("It is recommended to use the new format, Mechanics.custom_block.type: " + CustomBlockType.NOTEBLOCK);
+        }
+
         if (!Range.between(1, MAX_BLOCK_VARIATION).contains(mechanic.customVariation())) {
             Logs.logError("The custom variation of the block " + mechanic.getItemID() + " is not between 1 and " + MAX_BLOCK_VARIATION + "!");
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
