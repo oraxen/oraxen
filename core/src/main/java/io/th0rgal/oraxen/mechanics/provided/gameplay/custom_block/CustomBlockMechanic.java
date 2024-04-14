@@ -135,17 +135,17 @@ public abstract class CustomBlockMechanic extends Mechanic {
         float multiplier = speedMultiplier.get();
 
         final int efficiencyLevel = itemInMainHand.getEnchantmentLevel(Enchantment.DIG_SPEED);
-        if (efficiencyLevel != 0) multiplier += (float) (Math.pow(efficiencyLevel, 2) + 1);
+        if (multiplier > 1.0F && efficiencyLevel != 0) multiplier += (float) (Math.pow(efficiencyLevel, 2) + 1);
 
         PotionEffect haste = player.getPotionEffect(PotionEffectType.FAST_DIGGING);
-        if (haste != null) multiplier *= 0.2f * haste.getAmplifier() + 1;
+        if (haste != null) multiplier *= 1.0F + (float) (haste.getAmplifier() + 1) * 0.2F;
 
         // Whilst the player has this when they start digging, period is calculated before it is applied
         PotionEffect miningFatigue = player.getPotionEffect(PotionEffectType.SLOW_DIGGING);
         if (miningFatigue != null) multiplier *= (float) Math.pow(0.3, Math.min(miningFatigue.getAmplifier(), 4));
 
         ItemStack helmet = player.getEquipment().getHelmet();
-        if (player.isInWater() && (helmet == null || !helmet.containsEnchantment(Enchantment.WATER_WORKER)))
+        if (player.isUnderWater() && (helmet == null || !helmet.containsEnchantment(Enchantment.WATER_WORKER)))
             multiplier /= 5;
 
         if (!player.isOnGround()) multiplier /= 5;
