@@ -96,7 +96,7 @@ public class OraxenPlugin extends JavaPlugin {
         supportsDisplayEntities = VersionUtil.atOrAbove("1.19.4");
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
-        soundManager = new SoundManager(configsManager.getSound());
+        soundManager = new SoundManager(configsManager.getSounds());
         breakerManager = new BreakerManager(new ConcurrentHashMap<>());
 
         if (Settings.KEEP_UP_TO_DATE.toBool())

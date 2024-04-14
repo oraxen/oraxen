@@ -1,0 +1,125 @@
+settings:
+  # Should Oraxen automatically generate sounds.json according to your settings?
+  generate_sounds: true
+
+# List of all sounds to register by namespace
+# [namespace.soundKey.replace] Whether or not the original sound should be replaced
+# [namespace.soundKey.subtitle] The subtitle text, if any, that should show when the sound is played
+# [namespace.soundKey.sounds] List of all soundEntries
+# Each SoundEntry have some optional additional properties
+# The simplest is just providing the soundPath of the .ogg file in the form of "namespace:path.ogg"
+# Optionally, use this format for specifying further options: (explanations can be found at https://minecraft.fandom.com/wiki/Sounds.json#File_structure)
+# soundKey:
+#   sounds:
+#     - id: minecraft:something/sound.ogg
+#       stream: false
+#       type: FILE # File means the ID points to a file, if EVENT, you can specify another soundEntryID to reference
+#       volume: 1.0
+#       pitch: 1.0
+#       preload: false
+#       weight: 1
+#       attenuation_distance: 16
+sounds:
+  minecraft:
+    block.wood.step: # Required for custom sounds
+      replace: true
+    block.wood.place:
+      replace: true
+    block.wood.break:
+      replace: true
+    block.wood.fall:
+      replace: true
+    block.wood.hit:
+      replace: true
+
+    block.stone.step: # Required for custom furniture sounds
+      replace: true
+    block.stone.place:
+      replace: true
+    block.stone.break:
+      replace: true
+    block.stone.fall:
+      replace: true
+    block.stone.hit:
+      replace: true
+  oraxen:
+    required.wood.hit: # Required for custom sounds
+      subtitle: "subtitles.block.generic.hit"
+      sounds:
+        - step/wood1
+        - step/wood2
+        - step/wood3
+        - step/wood4
+        - step/wood5
+        - step/wood6
+    required.wood.place:
+      subtitle: "subtitles.block.generic.place"
+      sounds:
+        - id: dig/wood1
+        - id: dig/wood2
+        - id: dig/wood3
+        - id: dig/wood4
+    required.wood.break:
+      subtitle: "subtitles.block.generic.break"
+      sounds:
+        - id: dig/wood1
+        - id: dig/wood2
+        - id: dig/wood3
+        - id: dig/wood4
+    required.wood.step:
+      subtitle: "subtitles.block.generic.footsteps"
+      sounds:
+        - id: step/wood1
+        - id: step/wood2
+        - id: step/wood3
+        - id: step/wood4
+        - id: step/wood5
+        - id: step/wood6
+    required.wood.fall:
+      sounds:
+        - id: step/wood1
+        - id: step/wood2
+        - id: step/wood3
+        - id: step/wood4
+        - id: step/wood5
+        - id: step/wood6
+    required.stone.hit: # Required for custom furniture sounds
+      subtitle: "subtitles.block.generic.hit"
+      sounds:
+        - id: step/stone1
+        - id: step/stone2
+        - id: step/stone3
+        - id: step/stone4
+        - id: step/stone5
+        - id: step/stone6
+    required.stone.place:
+      subtitle: "subtitles.block.generic.place"
+      sounds:
+        - id: dig/stone1
+        - id: dig/stone2
+        - id: dig/stone3
+        - id: dig/stone4
+    required.stone.break:
+      subtitle: "subtitles.block.generic.break"
+      sounds:
+        - id: dig/stone1
+        - id: dig/stone2
+        - id: dig/stone3
+        - id: dig/stone4
+    required.stone.step:
+      subtitle: "subtitles.block.generic.footsteps"
+      sounds:
+        - id: step/stone1
+        - id: step/stone2
+        - id: step/stone3
+        - id: step/stone4
+        - id: step/stone5
+        - id: step/stone6
+    required.stone.fall:
+      sounds:
+        - id: step/stone1
+        - id: step/stone2
+        - id: step/stone3
+        - id: step/stone4
+        - id: step/stone5
+        - id: step/stone6

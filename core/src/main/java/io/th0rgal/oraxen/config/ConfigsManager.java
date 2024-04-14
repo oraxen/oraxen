@@ -27,13 +27,13 @@ public class ConfigsManager {
     private final JavaPlugin plugin;
     private final YamlConfiguration defaultMechanics;
     private final YamlConfiguration defaultFont;
-    private final YamlConfiguration defaultSound;
+    private final YamlConfiguration defaultSounds;
     private final YamlConfiguration defaultLanguage;
     private final YamlConfiguration defaultHud;
     private YamlConfiguration mechanics;
     private YamlConfiguration settings;
     private YamlConfiguration font;
-    private YamlConfiguration sound;
+    private YamlConfiguration sounds;
     private YamlConfiguration language;
     private YamlConfiguration hud;
     private File itemsFolder;
@@ -44,7 +44,7 @@ public class ConfigsManager {
         this.plugin = plugin;
         defaultMechanics = extractDefault("mechanics.yml");
         defaultFont = extractDefault("bitmaps.yml");
-        defaultSound = extractDefault("sound.yml");
+        defaultSounds = extractDefault("sounds.yml");
         defaultLanguage = extractDefault("languages/english.yml");
         defaultHud = extractDefault("hud.yml");
     }
@@ -74,8 +74,8 @@ public class ConfigsManager {
         return hud != null ? hud : defaultHud;
     }
 
-    public YamlConfiguration getSound() {
-        return sound != null ? sound : defaultSound;
+    public YamlConfiguration getSounds() {
+        return sounds != null ? sounds : defaultSounds;
     }
 
     public File getSchematicsFolder() {
@@ -102,7 +102,7 @@ public class ConfigsManager {
         mechanics = validate(resourcesManager, "mechanics.yml", defaultMechanics);
         font = validate(resourcesManager, "bitmaps.yml", defaultFont);
         hud = validate(resourcesManager, "hud.yml", defaultHud);
-        sound = validate(resourcesManager, "sound.yml", defaultSound);
+        sounds = validate(resourcesManager, "sounds.yml", defaultSounds);
         File languagesFolder = new File(plugin.getDataFolder(), "languages");
         languagesFolder.mkdir();
         String languageFile = "languages/" + Settings.PLUGIN_LANGUAGE + ".yml";

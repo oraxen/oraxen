@@ -61,6 +61,7 @@ public class PackGenerator {
 
         addItemPackFiles();
         addGlyphFiles();
+        addSoundFile();
         parseLanguageFiles();
         customArmorHandler.generateNeededFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
@@ -117,6 +118,18 @@ public class PackGenerator {
         for (Map.Entry<Key, List<FontProvider>> entry : fontGlyphs.entrySet()) {
             if (entry.getValue().isEmpty()) continue;
             resourcePack.font(Font.font(entry.getKey(), entry.getValue()));
+        }
+    }
+
+    private void addSoundFile() {
+        for (SoundRegistry customSoundRegistry : OraxenPlugin.get().soundManager().customSoundRegistries()) {
+            SoundRegistry existingRegistry = resourcePack.soundRegistry(customSoundRegistry.namespace());
+            if (existingRegistry == null) resourcePack.soundRegistry(customSoundRegistry);
+            else {
+                existingRegistry.sounds().addAll(customSoundRegistry.sounds());
+                SoundRegistry newRegistry = SoundRegistry.soundRegistry(existingRegistry.namespace(), existingRegistry.sounds());
+                resourcePack.soundRegistry(newRegistry);
+            }
         }
     }
 
