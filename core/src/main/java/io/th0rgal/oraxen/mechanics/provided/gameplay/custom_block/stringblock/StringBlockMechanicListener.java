@@ -4,6 +4,7 @@ import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.api.events.custom_block.stringblock.OraxenStringBlockPlaceEvent;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -113,6 +114,14 @@ public class StringBlockMechanicListener implements Listener {
         if (event.getBlock().getType() != Material.TRIPWIRE || OraxenBlocks.isOraxenStringBlock(event.getBlock())) return;
         event.setDropItems(false);
         OraxenBlocks.remove(block.getLocation(), event.getPlayer());
+    }
+
+    @EventHandler
+    public void onPlaceStringOnString(OraxenStringBlockPlaceEvent event) {
+        Block block = event.getBlock();
+        Block below = block.getRelative(BlockFace.DOWN);
+        if (OraxenBlocks.isOraxenStringBlock(below)) event.setCancelled(true);
+        if (below.getType() == Material.TRIPWIRE && OraxenBlocks.isOraxenStringBlock(below.getRelative(BlockFace.DOWN))) event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
