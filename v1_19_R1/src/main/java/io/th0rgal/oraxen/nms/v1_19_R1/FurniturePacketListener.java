@@ -7,6 +7,7 @@ import io.papermc.paper.event.packet.PlayerChunkLoadEvent;
 import io.papermc.paper.event.packet.PlayerChunkUnloadEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.api.events.OraxenNativeMechanicsRegisteredEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureInteractEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
@@ -27,6 +28,19 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
 public class FurniturePacketListener implements Listener {
+
+    double simulationDistance = Math.pow((Bukkit.getServer().getSimulationDistance() * 16.0), 2.0);
+
+    @EventHandler
+    public void onFurnitureFactory(OraxenNativeMechanicsRegisteredEvent event) {
+        for (Player player : Bukkit.getOnlinePlayers()) for (Entity baseEntity : player.getNearbyEntities(simulationDistance, simulationDistance, simulationDistance)) {
+            FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
+            IFurniturePacketManager packetManager = FurnitureFactory.instance.furniturePacketManager();
+            if (mechanic == null) continue;
+            packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
+            packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
+        }
+    }
 
     @EventHandler
     public void onFurnitureAdded(EntityAddToWorldEvent event) {

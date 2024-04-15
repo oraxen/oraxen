@@ -13,7 +13,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.Interactio
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import it.unimi.dsi.fastutil.ints.IntList;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
@@ -34,7 +33,8 @@ import java.util.stream.Collectors;
 public class FurniturePacketManager implements IFurniturePacketManager {
 
     public FurniturePacketManager() {
-        if (VersionUtil.isPaperServer()) MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", new FurniturePacketListener());
+        if (VersionUtil.isPaperServer())
+            MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", new FurniturePacketListener());
         else {
             Logs.logWarning("Seems that your server is a Spigot-server");
             Logs.logWarning("FurnitureHitboxes will not work due to it relying on Paper-only events");
@@ -57,7 +57,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
         Location baseLoc = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
         interactionHitboxPacketMap.computeIfAbsent(baseEntity.getUniqueId(), key -> {
             List<Integer> entityIds = interactionHitboxIdMap.stream()
-                    .filter(ids -> ids.baseUUID().equals(baseEntity.getUniqueId()))
+                    .filter(subEntity -> subEntity.baseUUID().equals(baseEntity.getUniqueId()))
                     .findFirst()
                     .map(FurnitureSubEntity::entityIds)
                     .orElseGet(() -> {
@@ -109,8 +109,12 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void removeInteractionHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        IntList entityIds = interactionHitboxIdMap.stream().filter(id -> id.baseUUID().equals(baseEntity.getUniqueId())).findFirst().map(FurnitureSubEntity::entityIds).orElse(IntList.of());
-        ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(entityIds.toIntArray()));
+        interactionHitboxIdMap.stream().filter(subEntity -> subEntity.baseUUID().equals(baseEntity.getUniqueId()))
+                .findFirst().ifPresent(subEntity ->
+                {
+                    ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(subEntity.entityIds().toIntArray()));
+                }
+                );
     }
 
     @Override

@@ -17,7 +17,7 @@ public enum CustomBlockType {
                 .findFirst().orElseGet(() -> {
                     String itemId = section.getParent().getParent().getName();
                     Logs.logError("No CustomBlock-type defined in " + itemId);
-                    Logs.logError("Valid types are: " + StringUtils.join(CustomBlockType.names()));
+                    Logs.logError("Valid types are: " + StringUtils.join(CustomBlockType.names(), ", "));
                     return null;
                 });
     }
