@@ -337,6 +337,7 @@ public class OraxenBlocks {
 
     @Nullable
     public static CustomBlockMechanic getCustomBlockMechanic(BlockData blockData) {
+        if (blockData == null) return null;
         return switch (blockData.getMaterial()) {
             case NOTE_BLOCK -> getNoteBlockMechanic(blockData);
             case TRIPWIRE -> getStringMechanic(blockData);
