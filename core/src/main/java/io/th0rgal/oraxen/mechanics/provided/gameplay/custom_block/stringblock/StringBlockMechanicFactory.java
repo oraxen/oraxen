@@ -125,7 +125,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         }
 
         StringBlockMechanic existingMechanic = BLOCK_PER_VARIATION.get(mechanic.customVariation());
-        if (existingMechanic != null && existingMechanic != mechanic) {
+        if (existingMechanic != null && !existingMechanic.getItemID().equals(mechanic.getItemID())) {
             Logs.logError(mechanic.getItemID() + " is set to use custom_variation " + mechanic.customVariation() + " but it is already used by " + existingMechanic.getItemID());
             Logs.logWarning("The item has failed to build for now to prevent bugs and issues.");
             return null;

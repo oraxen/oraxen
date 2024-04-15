@@ -163,7 +163,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
     private boolean allowedSameVariation(NoteBlockMechanic mechanic, NoteBlockMechanic oldMechanic) {
         if (oldMechanic == null) return true;
-        if (mechanic == oldMechanic) return true;
+        if (mechanic.getItemID().equals(oldMechanic.getItemID())) return true;
         if (!mechanic.isDirectional()) return false;
         if (!oldMechanic.isDirectional()) return false;
         if (mechanic.equals(oldMechanic.directional().getParentMechanic())) return true;
