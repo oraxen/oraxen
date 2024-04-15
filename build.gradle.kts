@@ -199,9 +199,9 @@ bukkit {
     apiVersion = "1.19"
     authors = listOf("th0rgal", "boy0000")
     softDepend = listOf(
-        "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro",
-        "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
-        "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards", "HuskClaims", "BentoBox"
+        "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs",
+        "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
+        "ModelEngine", "CrashClaim", "HuskClaims", "BentoBox"
     )
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")

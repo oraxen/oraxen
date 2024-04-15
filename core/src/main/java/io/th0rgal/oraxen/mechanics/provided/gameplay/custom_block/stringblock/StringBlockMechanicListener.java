@@ -4,9 +4,13 @@ import io.papermc.paper.event.entity.EntityInsideBlockEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.custom_block.stringblock.OraxenStringBlockPlaceEvent;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockHelpers;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import org.bukkit.Bukkit;
+import org.bukkit.FluidCollisionMode;
 import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -17,14 +21,13 @@ import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.BlockBreakEvent;
-import org.bukkit.event.block.BlockFromToEvent;
-import org.bukkit.event.block.BlockPhysicsEvent;
-import org.bukkit.event.block.BlockPistonExtendEvent;
+import org.bukkit.event.block.*;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.RayTraceResult;
 
 import java.util.List;
+import java.util.Random;
 
 public class StringBlockMechanicListener implements Listener {
 
@@ -106,6 +109,32 @@ public class StringBlockMechanicListener implements Listener {
         if (!StringBlockMechanicFactory.getInstance().disableVanillaString) return;
 
         event.setUseItemInHand(Event.Result.DENY);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onPlaceableOnWater(PlayerInteractEvent event) {
+        final ItemStack item = event.getItem();
+        final String itemID = OraxenItems.getIdByItem(item);
+        final Player player = event.getPlayer();
+        final RayTraceResult result = player.rayTraceBlocks(5.0, FluidCollisionMode.SOURCE_ONLY);
+        Block placedAgainst = result != null ? result.getHitBlock() : null;
+        CustomBlockMechanic mechanic = OraxenBlocks.getCustomBlockMechanic(itemID);
+
+        if (mechanic == null || placedAgainst == null || !placedAgainst.isLiquid()) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+
+        if (!(mechanic instanceof StringBlockMechanic stringMechanic)) return;
+        if (stringMechanic.hasRandomPlace()) {
+            List<String> randomList = stringMechanic.randomPlace();
+            String randomBlock = randomList.get(new Random().nextInt(randomList.size()));
+            stringMechanic = OraxenBlocks.getStringMechanic(randomBlock);
+        }
+        if (stringMechanic != null) mechanic = stringMechanic;
+        if (!((StringBlockMechanic) mechanic).isPlaceableOnWater()) return;
+        Block target = placedAgainst.getRelative(BlockFace.UP);
+        if (target.getType() != Material.AIR) return;
+
+        CustomBlockHelpers.makePlayerPlaceBlock(player, event.getHand(), item, target, event.getBlockFace(), mechanic, mechanic.blockData());
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)

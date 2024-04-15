@@ -49,28 +49,17 @@ public class ShaderArmorTextures extends CustomArmor {
     }
 
     public enum ShaderType {
-        FANCY, LESS_FANCY;
-
-        public static ShaderType fromSetting() {
-            try {
-                return ShaderType.valueOf(Settings.CUSTOM_ARMOR_SHADER_TYPE.toString().toUpperCase());
-            } catch (IllegalArgumentException e) {
-                Logs.logError("Invalid value for CUSTOM_ARMOR_SHADER_TYPE: " + Settings.CUSTOM_ARMOR_SHADER_TYPE.getValue());
-                Logs.logWarning("Valid values are: FANCY, LESS_FANCY");
-                Logs.logWarning("Defaulting to FANCY");
-                return ShaderType.FANCY;
-            }
-        }
+        FANCY, LESS_FANCY
     }
 
     public ShaderArmorTextures() {
-        this(DEFAULT_RESOLUTION);
-    }
-
-    public ShaderArmorTextures(int resolution) {
-        this.resolution = resolution;
-        this.shaderType = ShaderType.fromSetting();
-        //this.layer1Height = resolution * HEIGHT_RATIO;
+        this.resolution = Settings.CUSTOM_ARMOR_SHADER_RESOLUTION.toInt(DEFAULT_RESOLUTION);
+        this.shaderType = Settings.CUSTOM_ARMOR_SHADER_TYPE.toEnumOrGet(ShaderType.class, () -> {
+            Logs.logError("Invalid value for CUSTOM_ARMOR_SHADER_TYPE: " + Settings.CUSTOM_ARMOR_SHADER_TYPE);
+            Logs.logWarning("Valid values are: FANCY, LESS_FANCY");
+            Logs.logWarning("Defaulting to FANCY");
+            return ShaderType.FANCY;
+        });
     }
 
     public static boolean isSameArmorType(ItemStack firstItem, ItemStack secondItem) {

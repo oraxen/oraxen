@@ -28,7 +28,7 @@ public class NoteBlockMechanic extends CustomBlockMechanic {
         canIgnite = section.getBoolean("can_ignite", false);
         isFalling = section.getBoolean("is_falling", false);
 
-        ConfigurationSection logStripSection = section.getConfigurationSection("logStrip");
+        ConfigurationSection logStripSection = section.getConfigurationSection("log_strip");
         logStripping = logStripSection != null ? new LogStripping(logStripSection) : null;
 
         ConfigurationSection directionalSection = section.getConfigurationSection("directional");

@@ -66,6 +66,7 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+@SuppressWarnings("unused")
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private final Map<Channel, ChannelHandler> encoder = Collections.synchronizedMap(new WeakHashMap<>());

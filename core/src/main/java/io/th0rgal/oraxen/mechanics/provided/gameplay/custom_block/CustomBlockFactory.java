@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import org.apache.commons.lang3.StringUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
@@ -42,12 +41,9 @@ public class CustomBlockFactory extends MechanicFactory {
     @Override
     public CustomBlockMechanic parse(ConfigurationSection section) {
         String itemId = section.getParent().getParent().getName();
-        CustomBlockType type = CustomBlockType.fromString(section.getString("type", ""));
+        CustomBlockType type = CustomBlockType.fromMechanicSection(section);
         CustomBlockMechanic mechanic = null;
-        if (type == null) {
-            Logs.logError("No CustomBlock-type defined in " + itemId);
-            Logs.logError("Valid types are: " + StringUtils.join(CustomBlockType.names()));
-        } else if (type == CustomBlockType.NOTEBLOCK) {
+        if (type == CustomBlockType.NOTEBLOCK) {
             if (NoteBlockMechanicFactory.isEnabled())
                 mechanic = NoteBlockMechanicFactory.getInstance().parse(section);
             else Logs.logError(itemId + " attempted to use " + type.name() + "-type but it has been disabled");

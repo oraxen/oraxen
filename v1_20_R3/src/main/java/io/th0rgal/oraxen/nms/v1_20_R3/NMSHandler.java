@@ -47,7 +47,10 @@ import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import org.bukkit.*;
+import org.bukkit.Bukkit;
+import org.bukkit.SoundCategory;
+import org.bukkit.SoundGroup;
+import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
@@ -66,6 +69,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
 
+@SuppressWarnings("unused")
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     FurniturePacketManager furniturePacketManager = new FurniturePacketManager();

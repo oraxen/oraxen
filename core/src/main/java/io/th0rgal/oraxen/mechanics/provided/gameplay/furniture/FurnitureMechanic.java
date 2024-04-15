@@ -68,20 +68,22 @@ public class FurnitureMechanic extends Mechanic {
     private final boolean isRotatable;
     private final BlockLockerMechanic blockLocker;
     private final RestrictedRotation restrictedRotation;
-    @NotNull private final FurnitureHitbox hitbox;
+    @NotNull
+    private final FurnitureHitbox hitbox;
 
     public enum RestrictedRotation {
         NONE, STRICT, VERY_STRICT;
 
         public static RestrictedRotation fromString(String string) {
-            try {
-                return RestrictedRotation.valueOf(string);
-            } catch (IllegalArgumentException e) {
-                Logs.logError("Invalid restricted rotation: " + string);
-                Logs.logError("Allowed ones are: " + Arrays.toString(RestrictedRotation.values()));
-                Logs.logWarning("Setting to STRICT");
-                return STRICT;
-            }
+            return Arrays.stream(RestrictedRotation.values())
+                    .filter(e -> e.name().equals(string))
+                    .findFirst()
+                    .orElseGet(() -> {
+                        Logs.logError("Invalid restricted rotation: " + string);
+                        Logs.logError("Allowed ones are: " + Arrays.toString(RestrictedRotation.values()));
+                        Logs.logWarning("Setting to STRICT");
+                        return STRICT;
+                    });
         }
     }
 
@@ -330,10 +332,12 @@ public class FurnitureMechanic extends Mechanic {
         boolean isRoof = hasLimitedPlacing() && limitedPlacing.isRoof();
         boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
         if (furnitureType != FurnitureType.DISPLAY_ENTITY || !hasDisplayEntityProperties()) return correctedLocation;
-        if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall && !isRoof) return correctedLocation;
+        if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall && !isRoof)
+            return correctedLocation;
         float scale = displayEntityProperties.hasScale() ? displayEntityProperties.getScale().y() : 1;
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
-        if (isFixed && isWall) correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
+        if (isFixed && isWall)
+            correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
         return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 : 0), 0);
     }
 
@@ -393,8 +397,8 @@ public class FurnitureMechanic extends Mechanic {
                 else if (limitedPlacing.isRoof()) pitch = 90;
                 else pitch = 0;
             else pitch = 0;
-        }
-        else pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
+        } else
+            pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
 
         itemDisplay.setTransformation(transform);
         itemDisplay.setRotation(yaw, pitch);
@@ -470,11 +474,13 @@ public class FurnitureMechanic extends Mechanic {
         return FurnitureFactory.instance.furniturePacketManager().baseEntityFromHitbox(blockPosition);
     }
 
-    @Nullable Entity baseEntity(BlockPosition blockPosition) {
+    @Nullable
+    Entity baseEntity(BlockPosition blockPosition) {
         return FurnitureFactory.instance.furniturePacketManager().baseEntityFromHitbox(blockPosition);
     }
 
-    @Nullable Entity baseEntity(int interactionId) {
+    @Nullable
+    Entity baseEntity(int interactionId) {
         return FurnitureFactory.instance.furniturePacketManager().baseEntityFromHitbox(interactionId);
     }
 
@@ -487,7 +493,8 @@ public class FurnitureMechanic extends Mechanic {
         return switch (furnitureType) {
             case ITEM_FRAME -> EntityType.ITEM_FRAME;
             case GLOW_ITEM_FRAME -> EntityType.GLOW_ITEM_FRAME;
-            case DISPLAY_ENTITY -> OraxenPlugin.supportsDisplayEntities ? EntityType.ITEM_DISPLAY : EntityType.ITEM_FRAME;
+            case DISPLAY_ENTITY ->
+                    OraxenPlugin.supportsDisplayEntities ? EntityType.ITEM_DISPLAY : EntityType.ITEM_FRAME;
             //case ARMOR_STAND -> EntityType.ARMOR_STAND;
         };
     }
