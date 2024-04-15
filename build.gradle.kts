@@ -52,7 +52,7 @@ val commandApiVersion = "9.3.0"
 val adventureVersion = "4.15.0"
 val platformVersion = "4.3.2"
 val googleGsonVersion = "2.10.1"
-val creativeVersion = "1.7.0"
+val creativeVersion = "1.7.1"
 group = "io.th0rgal"
 version = pluginVersion
 

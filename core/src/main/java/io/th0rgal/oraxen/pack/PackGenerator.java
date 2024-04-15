@@ -26,6 +26,7 @@ import team.unnamed.creative.metadata.pack.PackMeta;
 import team.unnamed.creative.model.Model;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter;
+import team.unnamed.creative.sound.SoundEvent;
 import team.unnamed.creative.sound.SoundRegistry;
 
 import java.io.File;
@@ -124,11 +125,12 @@ public class PackGenerator {
     private void addSoundFile() {
         for (SoundRegistry customSoundRegistry : OraxenPlugin.get().soundManager().customSoundRegistries()) {
             SoundRegistry existingRegistry = resourcePack.soundRegistry(customSoundRegistry.namespace());
-            if (existingRegistry == null) resourcePack.soundRegistry(customSoundRegistry);
+            if (existingRegistry == null) customSoundRegistry.addTo(resourcePack);
             else {
-                existingRegistry.sounds().addAll(customSoundRegistry.sounds());
-                SoundRegistry newRegistry = SoundRegistry.soundRegistry(existingRegistry.namespace(), existingRegistry.sounds());
-                resourcePack.soundRegistry(newRegistry);
+                Collection<SoundEvent> mergedEvents = new HashSet<>();
+                mergedEvents.addAll(existingRegistry.sounds());
+                mergedEvents.addAll(customSoundRegistry.sounds());
+                SoundRegistry.soundRegistry().namespace(existingRegistry.namespace()).sounds(mergedEvents).build().addTo(resourcePack);
             }
         }
     }
