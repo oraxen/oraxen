@@ -176,31 +176,34 @@ public class PackGenerator {
         importedPack.models().forEach(model -> {
             Model baseModel = resourcePack.model(model.key());
             if (baseModel != null) model.overrides().addAll(baseModel.overrides());
-            resourcePack.model(model);
+            model.addTo(resourcePack);
         });
 
         importedPack.fonts().forEach(font -> {
             Font baseFont = resourcePack.font(font.key());
             if (baseFont != null) font.providers().addAll(baseFont.providers());
-            resourcePack.font(font);
+            font.addTo(resourcePack);
         });
 
         importedPack.soundRegistries().forEach(soundRegistry -> {
             SoundRegistry baseRegistry = resourcePack.soundRegistry(soundRegistry.namespace());
-            if (baseRegistry != null) soundRegistry.sounds().addAll(baseRegistry.sounds());
-            resourcePack.soundRegistry(soundRegistry);
+            if (baseRegistry != null) {
+                Collection<SoundEvent> mergedEvents = new HashSet<>(baseRegistry.sounds());
+                mergedEvents.addAll(soundRegistry.sounds());
+                SoundRegistry.soundRegistry(baseRegistry.namespace(), mergedEvents).addTo(resourcePack);
+            } else soundRegistry.addTo(resourcePack);
         });
 
         importedPack.atlases().forEach(atlas -> {
             Atlas baseAtlas = resourcePack.atlas(atlas.key());
             if (baseAtlas != null) atlas.sources().forEach(source -> baseAtlas.toBuilder().addSource(source));
-            resourcePack.atlas(atlas);
+            atlas.addTo(resourcePack);
         });
 
         importedPack.languages().forEach(language -> {
             Language baseLanguage = resourcePack.language(language.key());
             if (baseLanguage != null) baseLanguage.translations().putAll(language.translations());
-            resourcePack.language(language);
+            language.addTo(resourcePack);
         });
     }
 
