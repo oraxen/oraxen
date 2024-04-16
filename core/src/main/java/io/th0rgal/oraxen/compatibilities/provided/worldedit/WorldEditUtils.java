@@ -74,7 +74,7 @@ public class WorldEditUtils {
     }
 
     private static BlockData parseNoteBlock(NoteBlockMechanic mechanic, String input) {
-        NoteBlockMechanicFactory factory = NoteBlockMechanicFactory.getInstance();
+        NoteBlockMechanicFactory factory = NoteBlockMechanicFactory.get();
         if (mechanic.isDirectional()) {
             String direction = (input.contains("\\[")) ? input.split("\\[")[1].split("=")[1].split("]")[0] : input;
             DirectionalBlock dirBlock = mechanic.directional();

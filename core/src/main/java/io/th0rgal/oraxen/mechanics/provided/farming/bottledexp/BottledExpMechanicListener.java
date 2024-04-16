@@ -30,7 +30,7 @@ public class BottledExpMechanicListener implements Listener {
         if (action != Action.LEFT_CLICK_AIR && action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
         if (item == null || factory.isNotImplementedIn(itemID)) return;
 
-        BottledExpMechanic mechanic = (BottledExpMechanic) factory.getMechanic(itemID);
+        BottledExpMechanic mechanic = factory.getMechanic(itemID);
         if (mechanic == null) return;
         ItemStack bottlesStack = new ItemStack(Material.EXPERIENCE_BOTTLE,
                 mechanic.getBottleEquivalent(player.getLevel(), player.getExp()));

@@ -64,7 +64,7 @@ public class FurnitureFactory extends MechanicFactory {
         return instance != null;
     }
 
-    public static FurnitureFactory getInstance() {
+    public static FurnitureFactory get() {
         return instance;
     }
 

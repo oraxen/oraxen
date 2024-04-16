@@ -106,7 +106,7 @@ public class StringBlockMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlacingString(PlayerInteractEvent event) {
         if (event.getItem() == null || event.getItem().getType() != Material.STRING) return;
-        if (!StringBlockMechanicFactory.getInstance().disableVanillaString) return;
+        if (!StringBlockMechanicFactory.get().disableVanillaString) return;
 
         event.setUseItemInHand(Event.Result.DENY);
     }

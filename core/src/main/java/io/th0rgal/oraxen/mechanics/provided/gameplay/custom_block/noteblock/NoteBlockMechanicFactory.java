@@ -80,7 +80,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         return instance != null;
     }
 
-    public static NoteBlockMechanicFactory getInstance() {
+    public static NoteBlockMechanicFactory get() {
         return instance;
     }
 

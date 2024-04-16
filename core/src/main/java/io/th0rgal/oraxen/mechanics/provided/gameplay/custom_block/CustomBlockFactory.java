@@ -26,15 +26,15 @@ public class CustomBlockFactory extends MechanicFactory {
         return instance != null;
     }
 
-    public static CustomBlockFactory getInstance() {
+    public static CustomBlockFactory get() {
         return instance;
     }
 
     public List<String> toolTypes(CustomBlockType type) {
         if (type == CustomBlockType.STRINGBLOCK && StringBlockMechanicFactory.isEnabled())
-            return StringBlockMechanicFactory.getInstance().toolTypes;
+            return StringBlockMechanicFactory.get().toolTypes;
         else if (type == CustomBlockType.NOTEBLOCK && NoteBlockMechanicFactory.isEnabled())
-            return NoteBlockMechanicFactory.getInstance().toolTypes;
+            return NoteBlockMechanicFactory.get().toolTypes;
         else return new ArrayList<>();
     }
 
@@ -45,11 +45,11 @@ public class CustomBlockFactory extends MechanicFactory {
         CustomBlockMechanic mechanic = null;
         if (type == CustomBlockType.NOTEBLOCK) {
             if (NoteBlockMechanicFactory.isEnabled())
-                mechanic = NoteBlockMechanicFactory.getInstance().parse(section);
+                mechanic = NoteBlockMechanicFactory.get().parse(section);
             else Logs.logError(itemId + " attempted to use " + type.name() + "-type but it has been disabled");
         } else if (type == CustomBlockType.STRINGBLOCK) {
             if (StringBlockMechanicFactory.isEnabled())
-                mechanic = StringBlockMechanicFactory.getInstance().parse(section);
+                mechanic = StringBlockMechanicFactory.get().parse(section);
             else Logs.logError(itemId + " attempted to use " + type.name() + "-type but it has been disabled");
         }
 

@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 
 public class CommandsMechanicFactory extends MechanicFactory {
 
@@ -18,5 +19,15 @@ public class CommandsMechanicFactory extends MechanicFactory {
         Mechanic mechanic = new CommandsMechanic(this, section);
         addToImplemented(mechanic);
         return mechanic;
+    }
+
+    @Override
+    public CommandsMechanic getMechanic(String itemID) {
+        return (CommandsMechanic) super.getMechanic(itemID);
+    }
+
+    @Override
+    public CommandsMechanic getMechanic(ItemStack itemStack) {
+        return (CommandsMechanic) super.getMechanic(itemStack);
     }
 }

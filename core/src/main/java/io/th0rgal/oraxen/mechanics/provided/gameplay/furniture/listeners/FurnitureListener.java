@@ -157,11 +157,11 @@ public class FurnitureListener implements Listener {
     private FurnitureMechanic getMechanic(ItemStack item, Player player, @NotNull Location placed) {
         final String itemID = OraxenItems.getIdByItem(item);
         if (itemID == null) return null;
-        if (FurnitureFactory.getInstance().isNotImplementedIn(itemID) || BlockHelpers.isStandingInside(player, placed.getBlock())) return null;
+        if (FurnitureFactory.get().isNotImplementedIn(itemID) || BlockHelpers.isStandingInside(player, placed.getBlock())) return null;
         if (!ProtectionLib.canBuild(player, placed)) return null;
         if (OraxenFurniture.isFurniture(placed)) return null;
 
-        return FurnitureFactory.getInstance().getMechanic(item);
+        return FurnitureFactory.get().getMechanic(item);
     }
 
     private Rotation getRotation(final double yaw, FurnitureMechanic mechanic) {

@@ -58,7 +58,7 @@ public class OraxenFurniture {
      * @return true if the itemID has a FurnitureMechanic, otherwise false
      */
     public static boolean isFurniture(String itemID) {
-        return FurnitureFactory.isEnabled() && !FurnitureFactory.getInstance().isNotImplementedIn(itemID);
+        return FurnitureFactory.isEnabled() && !FurnitureFactory.get().isNotImplementedIn(itemID);
     }
 
     public static boolean isFurniture(Entity entity) {
@@ -235,7 +235,7 @@ public class OraxenFurniture {
         if (!FurnitureFactory.isEnabled() || baseEntity == null) return null;
         final String itemID = baseEntity.getPersistentDataContainer().get(FURNITURE_KEY, PersistentDataType.STRING);
         if (!OraxenItems.exists(itemID) || FurnitureSeat.isSeat(baseEntity)) return null;
-        return FurnitureFactory.getInstance().getMechanic(itemID);
+        return FurnitureFactory.get().getMechanic(itemID);
     }
 
     /**
@@ -247,7 +247,7 @@ public class OraxenFurniture {
      */
     public static FurnitureMechanic getFurnitureMechanic(String itemID) {
         if (!FurnitureFactory.isEnabled() || !OraxenItems.exists(itemID)) return null;
-        return FurnitureFactory.getInstance().getMechanic(itemID);
+        return FurnitureFactory.get().getMechanic(itemID);
     }
 
     /**

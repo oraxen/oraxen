@@ -46,14 +46,14 @@ public class BlockInfoCommand {
     private void sendBlockInfo(Audience sender, String itemId) {
         sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>ItemID: <aqua>" + itemId));
         if (OraxenBlocks.isOraxenNoteBlock(itemId)) {
-            NoteBlockMechanic mechanic = NoteBlockMechanicFactory.getInstance().getMechanic(itemId);
+            NoteBlockMechanic mechanic = NoteBlockMechanicFactory.get().getMechanic(itemId);
             if (mechanic == null) return;
             NoteBlock data = mechanic.blockData();
             sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>Instrument: " + data.getInstrument()));
             sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>Note: " + data.getNote().getId()));
             sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>Powered: " + data.isPowered()));
         } else if (OraxenBlocks.isOraxenStringBlock(itemId)) {
-            StringBlockMechanic mechanic = StringBlockMechanicFactory.getInstance().getMechanic(itemId);
+            StringBlockMechanic mechanic = StringBlockMechanicFactory.get().getMechanic(itemId);
             if (mechanic == null) return;
             Tripwire data = mechanic.blockData();
             sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>Facing: " + data.getFaces()));

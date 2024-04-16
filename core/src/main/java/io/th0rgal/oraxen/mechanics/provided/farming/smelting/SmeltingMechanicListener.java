@@ -21,9 +21,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class SmeltingMechanicListener implements Listener {
 
-    private final MechanicFactory factory;
+    private final SmeltingMechanicFactory factory;
 
-    public SmeltingMechanicListener(MechanicFactory factory) {
+    public SmeltingMechanicListener(SmeltingMechanicFactory factory) {
         this.factory = factory;
     }
 
@@ -55,7 +55,7 @@ public class SmeltingMechanicListener implements Listener {
         assert location.getWorld() != null;
         location.getWorld().dropItemNaturally(location, loot);
 
-        SmeltingMechanic mechanic = (SmeltingMechanic) factory.getMechanic(itemID);
+        SmeltingMechanic mechanic = factory.getMechanic(itemID);
         if (mechanic != null && mechanic.playSound())
             location.getWorld().playSound(location, Sound.ENTITY_GUARDIAN_ATTACK, 0.10f, 0.8f);
     }

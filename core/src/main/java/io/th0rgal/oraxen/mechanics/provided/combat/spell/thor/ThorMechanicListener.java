@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.combat.spell.thor;
 
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -18,9 +17,9 @@ import org.bukkit.inventory.ItemStack;
 
 public class ThorMechanicListener implements Listener {
 
-    private final MechanicFactory factory;
+    private final ThorMechanicFactory factory;
 
-    public ThorMechanicListener(MechanicFactory factory) {
+    public ThorMechanicListener(ThorMechanicFactory factory) {
         this.factory = factory;
     }
 
@@ -29,7 +28,7 @@ public class ThorMechanicListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
         String itemID = OraxenItems.getIdByItem(item);
-        ThorMechanic mechanic = (ThorMechanic) factory.getMechanic(item);
+        ThorMechanic mechanic = factory.getMechanic(item);
         Block block = event.getClickedBlock();
         Location targetBlock = player.getTargetBlock(null, 50).getLocation();
 

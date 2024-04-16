@@ -80,7 +80,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         return instance != null;
     }
 
-    public static StringBlockMechanicFactory getInstance() {
+    public static StringBlockMechanicFactory get() {
         return instance;
     }
 

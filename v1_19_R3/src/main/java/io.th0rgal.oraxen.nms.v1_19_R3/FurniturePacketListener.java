@@ -47,7 +47,7 @@ public class FurniturePacketListener implements Listener {
         Entity baseEntity = event.getEntity();
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null) return;
-        IFurniturePacketManager packetManager = FurnitureFactory.getInstance().furniturePacketManager();
+        IFurniturePacketManager packetManager = FurnitureFactory.get().furniturePacketManager();
 
         double simulationDistance = Math.pow((Bukkit.getServer().getSimulationDistance() * 16.0), 2.0);
 
@@ -66,7 +66,7 @@ public class FurniturePacketListener implements Listener {
         Entity baseEntity = event.getEntity();
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null) return;
-        IFurniturePacketManager packetManager = FurnitureFactory.getInstance().furniturePacketManager();
+        IFurniturePacketManager packetManager = FurnitureFactory.get().furniturePacketManager();
 
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);

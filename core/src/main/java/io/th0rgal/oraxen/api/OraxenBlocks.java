@@ -112,7 +112,7 @@ public class OraxenBlocks {
      * @return true if the itemID has a NoteBlockMechanic, otherwise false
      */
     public static boolean isOraxenNoteBlock(String itemID) {
-        return !NoteBlockMechanicFactory.getInstance().isNotImplementedIn(itemID);
+        return !NoteBlockMechanicFactory.get().isNotImplementedIn(itemID);
     }
 
     public static boolean isOraxenNoteBlock(ItemStack item) {
@@ -136,7 +136,7 @@ public class OraxenBlocks {
      * @return true if the itemID has a StringBlockMechanic, otherwise false
      */
     public static boolean isOraxenStringBlock(String itemID) {
-        return StringBlockMechanicFactory.isEnabled() && !StringBlockMechanicFactory.getInstance().isNotImplementedIn(itemID);
+        return StringBlockMechanicFactory.isEnabled() && !StringBlockMechanicFactory.get().isNotImplementedIn(itemID);
     }
 
     public static void place(String itemID, Location location) {
@@ -157,9 +157,9 @@ public class OraxenBlocks {
     @Nullable
     public static BlockData getOraxenBlockData(String itemID) {
         if (isOraxenNoteBlock(itemID)) {
-            return NoteBlockMechanicFactory.getInstance().getMechanic(itemID).blockData();
+            return NoteBlockMechanicFactory.get().getMechanic(itemID).blockData();
         } else if (isOraxenStringBlock(itemID)) {
-            return StringBlockMechanicFactory.getInstance().getMechanic(itemID).blockData();
+            return StringBlockMechanicFactory.get().getMechanic(itemID).blockData();
         } else return null;
     }
 
@@ -351,9 +351,9 @@ public class OraxenBlocks {
     @Nullable
     public static CustomBlockMechanic getCustomBlockMechanic(String itemID) {
         CustomBlockMechanic mechanic = null;
-        if (NoteBlockMechanicFactory.isEnabled()) mechanic = NoteBlockMechanicFactory.getInstance().getMechanic(itemID);
+        if (NoteBlockMechanicFactory.isEnabled()) mechanic = NoteBlockMechanicFactory.get().getMechanic(itemID);
         if (mechanic != null) return mechanic;
-        if (StringBlockMechanicFactory.isEnabled()) mechanic = StringBlockMechanicFactory.getInstance().getMechanic(itemID);
+        if (StringBlockMechanicFactory.isEnabled()) mechanic = StringBlockMechanicFactory.get().getMechanic(itemID);
 
         return mechanic;
     }
@@ -373,7 +373,7 @@ public class OraxenBlocks {
     @Nullable
     public static NoteBlockMechanic getNoteBlockMechanic(String itemID) {
         if (!NoteBlockMechanicFactory.isEnabled()) return null;
-        return NoteBlockMechanicFactory.getInstance().getMechanic(itemID);
+        return NoteBlockMechanicFactory.get().getMechanic(itemID);
     }
 
     @Nullable
@@ -393,6 +393,6 @@ public class OraxenBlocks {
     @Nullable
     public static StringBlockMechanic getStringMechanic(String itemID) {
         if (!StringBlockMechanicFactory.isEnabled()) return null;
-        return StringBlockMechanicFactory.getInstance().getMechanic(itemID);
+        return StringBlockMechanicFactory.get().getMechanic(itemID);
     }
 }

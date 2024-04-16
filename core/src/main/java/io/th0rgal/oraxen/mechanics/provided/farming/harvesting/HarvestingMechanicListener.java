@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.farming.harvesting;
 
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -28,12 +27,6 @@ import java.util.Objects;
 
 public class HarvestingMechanicListener implements Listener {
 
-    private final MechanicFactory factory;
-
-    public HarvestingMechanicListener(final MechanicFactory factory) {
-        this.factory = factory;
-    }
-
     private static List<Block> getNearbyBlocks(final Location location, final int radius, final int height) {
         final List<Block> blocks = new ArrayList<>();
         for (int x = location.getBlockX() - Math.floorDiv(radius, 2); x <= location.getBlockX()
@@ -52,10 +45,10 @@ public class HarvestingMechanicListener implements Listener {
         final ItemStack item = event.getPlayer().getInventory().getItemInMainHand();
         final String itemID = OraxenItems.getIdByItem(item);
         final Player player = event.getPlayer();
-        final HarvestingMechanic mechanic = (HarvestingMechanic) factory.getMechanic(itemID);
+        final HarvestingMechanic mechanic = HarvestingMechanicFactory.get().getMechanic(itemID);
 
         if (event.getHand() != EquipmentSlot.HAND || !event.getAction().equals(Action.RIGHT_CLICK_BLOCK)) return;
-        if (clickedBlock == null || factory.isNotImplementedIn(itemID) || mechanic == null) return;
+        if (clickedBlock == null || mechanic == null) return;
 
         final Timer playerTimer = mechanic.getTimer(player);
 

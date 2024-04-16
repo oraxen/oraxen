@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.combat.spell.energyblast;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.VectorUtils;
@@ -30,9 +29,9 @@ import org.bukkit.util.Vector;
 
 public class EnergyBlastMechanicManager implements Listener {
 
-    private final MechanicFactory factory;
+    private final EnergyBlastMechanicFactory factory;
 
-    public EnergyBlastMechanicManager(MechanicFactory factory) {
+    public EnergyBlastMechanicManager(EnergyBlastMechanicFactory factory) {
         this.factory = factory;
     }
 
@@ -41,7 +40,7 @@ public class EnergyBlastMechanicManager implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
         String itemID = OraxenItems.getIdByItem(item);
-        EnergyBlastMechanic mechanic = (EnergyBlastMechanic) factory.getMechanic(item);
+        EnergyBlastMechanic mechanic = factory.getMechanic(item);
         Block block = event.getClickedBlock();
         Location location = block != null ? block.getLocation() : player.getLocation();
 

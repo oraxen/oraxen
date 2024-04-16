@@ -2,8 +2,8 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanic;
+import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanicFactory;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -13,13 +13,11 @@ import static io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscList
 
 public class JukeboxBlock {
 
-    private final MechanicFactory factory;
     private final String permission;
     private final double volume;
     private final double pitch;
 
-    public JukeboxBlock(MechanicFactory factory, ConfigurationSection section) {
-        this.factory = factory;
+    public JukeboxBlock(ConfigurationSection section) {
         this.volume = section.getDouble("volume", 1);
         this.pitch = section.getDouble("pitch", 1);
         this.permission = section.getString("permission");
@@ -28,7 +26,7 @@ public class JukeboxBlock {
     public String getPlayingSong(Entity baseEntity) {
         ItemStack disc = baseEntity.getPersistentDataContainer().get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
         if (disc == null) return null;
-        MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(OraxenItems.getIdByItem(disc));
+        MusicDiscMechanic mechanic = MusicDiscMechanicFactory.get().getMechanic(OraxenItems.getIdByItem(disc));
         return (mechanic != null && !mechanic.hasNoSong()) ? mechanic.getSong()
                 : disc.getType().isRecord() ? disc.getType().toString().toLowerCase().replace("music_disc_", "minecraft:music_disc.") : null;
     }

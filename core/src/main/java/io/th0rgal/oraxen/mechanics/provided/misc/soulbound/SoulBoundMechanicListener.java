@@ -35,7 +35,7 @@ public class SoulBoundMechanicListener implements Listener {
             if (itemID == null || factory.isNotImplementedIn(itemID))
                 continue;
 
-            SoulBoundMechanic mechanic = (SoulBoundMechanic) factory.getMechanic(itemID);
+            SoulBoundMechanic mechanic = factory.getMechanic(itemID);
             if (random.nextInt(100) >= mechanic.getLoseChance() * 100)
                 items.add(drop);
         }

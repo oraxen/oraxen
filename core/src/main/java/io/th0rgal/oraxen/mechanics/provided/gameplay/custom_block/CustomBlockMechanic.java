@@ -54,7 +54,7 @@ public abstract class CustomBlockMechanic extends Mechanic {
         blastResistant = section.getBoolean("blast_resistant");
 
         ConfigurationSection dropSection = section.getConfigurationSection("drop");
-        drop = dropSection != null ? Drop.createDrop(CustomBlockFactory.getInstance().toolTypes(type), dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
+        drop = dropSection != null ? Drop.createDrop(CustomBlockFactory.get().toolTypes(type), dropSection, getItemID()) : new Drop(new ArrayList<>(), false, false, getItemID());
 
         ConfigurationSection limitedPlacingSection = section.getConfigurationSection("limited_placing");
         limitedPlacing = limitedPlacingSection != null ? new LimitedPlacing(limitedPlacingSection) : null;

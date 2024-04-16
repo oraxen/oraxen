@@ -74,7 +74,7 @@ public class Drop {
             String[] content = itemInHand.getType().toString().split("_");
             return content.length >= 2 ? content[0] : "";
         } else {
-            ItemTypeMechanic mechanic = (ItemTypeMechanic) factory.getMechanic(itemID);
+            ItemTypeMechanic mechanic = factory.getMechanic(itemID);
             return mechanic.itemType;
         }
     }
