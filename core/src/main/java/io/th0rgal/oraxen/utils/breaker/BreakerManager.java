@@ -89,7 +89,7 @@ public class BreakerManager {
                 activeBreakerData.sendBreakProgress();
 
                 for (ActiveBreakerData alterBreakerData : activeBreakerDataMap.values()) {
-                    if (alterBreakerData.breaker.getUniqueId().equals(breakerUUID)) continue;
+                    if (!alterBreakerData.breaker.getUniqueId().equals(breakerUUID)) continue;
                     if (!alterBreakerData.location.equals(activeBreakerData.location)) continue;
 
                     OraxenPlugin.get().breakerManager().stopBlockBreak(alterBreakerData.breaker);
@@ -99,7 +99,7 @@ public class BreakerManager {
                 block.setType(Material.AIR);
                 activeBreakerData.cancelTasks();
                 this.activeBreakerDataMap.remove(breakerUUID);
-            }
+            } else activeBreakerData.cancelTasks();
         }, 1,1);
     }
 
