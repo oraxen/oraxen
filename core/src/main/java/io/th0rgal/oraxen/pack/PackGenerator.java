@@ -7,6 +7,7 @@ import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ModelEngineUtils;
+import io.th0rgal.oraxen.utils.ParseUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmor;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
@@ -23,6 +24,8 @@ import team.unnamed.creative.font.Font;
 import team.unnamed.creative.font.FontProvider;
 import team.unnamed.creative.lang.Language;
 import team.unnamed.creative.metadata.pack.PackMeta;
+import team.unnamed.creative.model.ItemOverride;
+import team.unnamed.creative.model.ItemPredicate;
 import team.unnamed.creative.model.Model;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter;
@@ -69,6 +72,7 @@ public class PackGenerator {
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
 
         removeExcludedFileExtensions();
+        sortModelOverrides();
 
         PackSlicer.processInputs(resourcePack);
 
@@ -76,6 +80,16 @@ public class PackGenerator {
 
         builtPack = MinecraftResourcePackWriter.minecraft().build(resourcePack);
         Logs.logSuccess("Finished generating resourcepack!", true);
+    }
+
+    private void sortModelOverrides() {
+        for (Model model : resourcePack.models()) {
+            List<ItemOverride> sortedOverrides = model.overrides();
+            sortedOverrides.sort(Comparator.comparingInt(o -> {
+                Optional<ItemPredicate> cmd = o.predicate().stream().filter(p -> p.name().equals("custom_model_data")).findFirst();
+                return cmd.isPresent() ? ParseUtils.parseInt(cmd.get().value().toString(), 0) : 0;
+            }));
+        }
     }
 
     public ResourcePack resourcePack() {
