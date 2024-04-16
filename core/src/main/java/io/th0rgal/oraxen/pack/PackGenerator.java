@@ -148,7 +148,7 @@ public class PackGenerator {
 
     private void addImportPacks() {
         MinecraftResourcePackReader reader = MinecraftResourcePackReader.minecraft();
-        for (File file : externalPacks.toFile().listFiles()) {
+        for (File file : Objects.requireNonNullElse(externalPacks.toFile().listFiles(), new File[]{})) {
             if (file == null) continue;
             if (file.isDirectory()) {
                 Logs.logInfo("Importing pack " + file.getName() + "...");
