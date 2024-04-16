@@ -85,11 +85,12 @@ public class BreakerManager {
                 activeBreakerData.addBreakTimeProgress(blockBreakTime / mechanic.breakTime(player));
                 activeBreakerData.sendBreakProgress();
             } else if (EventUtils.callEvent(new BlockBreakEvent(block, player)) && ProtectionLib.canBreak(player, block.getLocation())) {
+                PacketHelpers.removeMiningFatigue(player);
                 activeBreakerData.resetProgress();
                 activeBreakerData.sendBreakProgress();
 
                 for (ActiveBreakerData alterBreakerData : activeBreakerDataMap.values()) {
-                    if (!alterBreakerData.breaker.getUniqueId().equals(breakerUUID)) continue;
+                    if (alterBreakerData.breaker.getUniqueId().equals(breakerUUID)) continue;
                     if (!alterBreakerData.location.equals(activeBreakerData.location)) continue;
 
                     OraxenPlugin.get().breakerManager().stopBlockBreak(alterBreakerData.breaker);
