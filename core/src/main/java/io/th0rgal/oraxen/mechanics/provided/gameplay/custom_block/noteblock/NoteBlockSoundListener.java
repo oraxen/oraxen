@@ -61,7 +61,7 @@ public class NoteBlockSoundListener implements Listener {
             breakerPlaySound.remove(location);
         }
         if (block.getBlockData().getSoundGroup().getBreakSound() != Sound.BLOCK_WOOD_BREAK) return;
-        if (OraxenBlocks.isOraxenNoteBlock(block) || block.getType() == Material.MUSHROOM_STEM) return;
+        if (OraxenBlocks.isOraxenNoteBlock(block)) return;
 
         if (!event.isCancelled() && ProtectionLib.canBreak(event.getPlayer(), location))
             BlockHelpers.playCustomBlockSound(location, VANILLA_WOOD_BREAK, VANILLA_BREAK_VOLUME, VANILLA_BREAK_PITCH);
@@ -73,14 +73,8 @@ public class NoteBlockSoundListener implements Listener {
         Location location = block.getLocation();
         SoundGroup soundGroup = block.getBlockData().getSoundGroup();
 
-        if (block.getType() == Material.NOTE_BLOCK || block.getType() == Material.MUSHROOM_STEM) {
-            if (event.getInstaBreak()) {
-                Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                        block.setType(Material.AIR, false), 1);
-                return;
-            }
-        }
         if (soundGroup.getHitSound() != Sound.BLOCK_WOOD_HIT) return;
+        if (OraxenBlocks.isOraxenNoteBlock(block)) return;
         if (breakerPlaySound.containsKey(location)) return;
 
         BukkitTask task = Bukkit.getScheduler().runTaskTimer(OraxenPlugin.get(), () ->
