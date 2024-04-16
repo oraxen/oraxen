@@ -19,6 +19,7 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.block.sign.Side;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
@@ -40,6 +41,7 @@ public class CustomBlockHelpers {
         else {
             target = placedAgainst.getRelative(face);
             if (newMechanic != null && !BlockHelpers.isReplaceable(target.getType())) return;
+            else if (Tag.DOORS.isTagged(target.getType())) return;
         }
 
         final Block blockAbove = target.getRelative(BlockFace.UP);
@@ -50,7 +52,8 @@ public class CustomBlockHelpers {
             // thus causing a StackOverflow, find a workaround
             if (Tag.ITEMS_BOATS.isTagged(itemMaterial)) return;
             result = NMSHandlers.getHandler().correctBlockStates(player, hand, item);
-            if (placedAgainst.getRelative(face).getState() instanceof Sign sign) player.openSign(sign);
+            if (target.getState() instanceof Sign sign && target.getType() != oldData.getMaterial())
+                player.openSign(sign, Side.FRONT);
         }
 
         if (newData != null)
@@ -69,7 +72,7 @@ public class CustomBlockHelpers {
         } else {
             if (!itemMaterial.isBlock() && itemMaterial != Material.FLINT_AND_STEEL && itemMaterial != Material.FIRE_CHARGE && itemMaterial != Material.STRING)
                 return;
-            if (blockPlaceEvent.getBlockPlaced().getBlockData().equals(oldData)) blockPlaceEvent.setCancelled(true);
+            if (target.getBlockData().equals(oldData)) blockPlaceEvent.setCancelled(true);
             if (result == null) blockPlaceEvent.setCancelled(true);
         }
 
