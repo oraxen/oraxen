@@ -32,6 +32,7 @@ public class CustomBlockHelpers {
     public static void makePlayerPlaceBlock(final Player player, final EquipmentSlot hand, final ItemStack item,
                                             final Block placedAgainst, final BlockFace face, @Nullable final CustomBlockMechanic newMechanic, final BlockData newData) {
         final Block target;
+        final Material itemMaterial = item.getType();
         final Material type = placedAgainst.getType();
         final Range<Integer> worldHeightRange = Range.between(placedAgainst.getWorld().getMinHeight(), placedAgainst.getWorld().getMaxHeight() - 1);
 
@@ -47,7 +48,7 @@ public class CustomBlockHelpers {
         if (newMechanic == null) {
             //TODO Fix boats, currently Item#use in BoatItem calls PlayerInteractEvent
             // thus causing a StackOverflow, find a workaround
-            if (Tag.ITEMS_BOATS.isTagged(item.getType())) return;
+            if (Tag.ITEMS_BOATS.isTagged(itemMaterial)) return;
             result = NMSHandlers.getHandler().correctBlockStates(player, hand, item);
             if (placedAgainst.getRelative(face).getState() instanceof Sign sign) player.openSign(sign);
         }
@@ -65,7 +66,12 @@ public class CustomBlockHelpers {
 
         if (newMechanic != null) {
             if (BlockHelpers.isStandingInside(player, target)) blockPlaceEvent.setCancelled(true);
-        } else if (result == null) blockPlaceEvent.setCancelled(true);
+        } else {
+            if (!itemMaterial.isBlock() && itemMaterial != Material.FLINT_AND_STEEL && itemMaterial != Material.FIRE_CHARGE && itemMaterial != Material.STRING)
+                return;
+            if (blockPlaceEvent.getBlockPlaced().getBlockData().equals(oldData)) blockPlaceEvent.setCancelled(true);
+            if (result == null) blockPlaceEvent.setCancelled(true);
+        }
 
         // Handling placing against noteblock
         if (OraxenBlocks.getCustomBlockMechanic(target.getBlockData()) instanceof NoteBlockMechanic noteMechanic) {
