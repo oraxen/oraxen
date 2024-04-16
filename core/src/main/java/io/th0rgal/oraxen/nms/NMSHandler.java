@@ -41,7 +41,7 @@ public interface NMSHandler {
      * @param player          The player that placed the block
      * @param slot            The hand the player placed the block with
      * @param itemStack       The ItemStack the player placed the block with
-     * @return The corrected BlockData
+     * @return The enum interaction result
      */
     @Nullable Enum<InteractionResult> correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack);
     BlockHitResult getPlayerPOVHitResult(Level world, net.minecraft.world.entity.player.Player player, ClipContext.Fluid fluidHandling);
