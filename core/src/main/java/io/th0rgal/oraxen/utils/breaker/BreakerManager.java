@@ -99,7 +99,7 @@ public class BreakerManager {
                 block.setType(Material.AIR);
                 activeBreakerData.cancelTasks();
                 this.activeBreakerDataMap.remove(breakerUUID);
-            } else activeBreakerData.cancelTasks();
+            } else OraxenPlugin.get().breakerManager().stopBlockBreak(player);
         }, 1,1);
     }
 
