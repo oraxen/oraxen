@@ -43,7 +43,7 @@ public class ModelGenerator {
     }
 
     public static Model.Builder generateModelBuilder(OraxenMeta oraxenMeta) {
-        final String parent = oraxenMeta.parentModelKey().asMinimalString();
+        final String parent = oraxenMeta.parentModelKey().value();
         ModelTextures.Builder textures = oraxenMeta.modelTextures().toBuilder();
 
         if (oraxenMeta.modelTextures().variables().isEmpty()) {
