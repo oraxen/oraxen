@@ -34,8 +34,6 @@ public class CustomBlockHelpers {
         final Block target;
         final Material type = placedAgainst.getType();
         final Range<Integer> worldHeightRange = Range.between(placedAgainst.getWorld().getMinHeight(), placedAgainst.getWorld().getMaxHeight() - 1);
-        CustomBlockMechanic newMechanic = null;
-        if (newData != null) newMechanic = OraxenBlocks.getCustomBlockMechanic(newData);
 
         if (BlockHelpers.isReplaceable(type)) target = placedAgainst;
         else {

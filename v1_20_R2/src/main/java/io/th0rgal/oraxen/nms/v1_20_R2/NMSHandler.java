@@ -51,7 +51,6 @@ import org.bukkit.SoundCategory;
 import org.bukkit.SoundGroup;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_20_R2.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_20_R2.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -104,10 +103,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         if (!(nmsStack.getItem() instanceof BlockItem blockItem)) {
             InteractionResult result = nmsStack.getItem().useOn(new UseOnContext(serverPlayer, hand, hitResult));
-            if (!player.isSneaking()) {
-                return serverPlayer.gameMode.useItem(serverPlayer, serverPlayer.level(), nmsStack, hand);
-            }
-            return result;
+            return player.isSneaking() ? result : serverPlayer.gameMode.useItem(serverPlayer, serverPlayer.level(), nmsStack, hand);
         }
 
         // Shulker-Boxes are DirectionalPlace based unlike other directional-blocks

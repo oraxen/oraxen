@@ -108,10 +108,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
         if (!(nmsStack.getItem() instanceof BlockItem blockItem)) {
             InteractionResult result = nmsStack.getItem().useOn(new UseOnContext(serverPlayer, hand, hitResult));
-            if (!player.isSneaking()) {
-                return serverPlayer.gameMode.useItem(serverPlayer, serverPlayer.level(), nmsStack, hand);
-            }
-            return result;
+            return player.isSneaking() ? result : serverPlayer.gameMode.useItem(serverPlayer, serverPlayer.level(), nmsStack, hand);
         }
 
         // Shulker-Boxes are DirectionalPlace based unlike other directional-blocks
