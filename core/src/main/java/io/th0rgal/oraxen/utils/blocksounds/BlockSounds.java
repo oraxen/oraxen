@@ -5,17 +5,17 @@ import org.bukkit.configuration.ConfigurationSection;
 
 public class BlockSounds {
 
-    public static String VANILLA_STONE_PLACE = "minecraft:required.stone.place";
-    public static String VANILLA_STONE_BREAK = "minecraft:required.stone.break";
-    public static String VANILLA_STONE_HIT = "minecraft:required.stone.hit";
-    public static String VANILLA_STONE_STEP = "minecraft:required.stone.step";
-    public static String VANILLA_STONE_FALL = "minecraft:required.stone.fall";
+    public static String VANILLA_STONE_PLACE = "oraxen:required.stone.place";
+    public static String VANILLA_STONE_BREAK = "oraxen:required.stone.break";
+    public static String VANILLA_STONE_HIT = "oraxen:required.stone.hit";
+    public static String VANILLA_STONE_STEP = "oraxen:required.stone.step";
+    public static String VANILLA_STONE_FALL = "oraxen:required.stone.fall";
 
-    public static String VANILLA_WOOD_PLACE = "minecraft:required.wood.place";
-    public static String VANILLA_WOOD_BREAK = "minecraft:required.wood.break";
-    public static String VANILLA_WOOD_HIT = "minecraft:required.wood.hit";
-    public static String VANILLA_WOOD_STEP = "minecraft:required.wood.step";
-    public static String VANILLA_WOOD_FALL = "minecraft:required.wood.fall";
+    public static String VANILLA_WOOD_PLACE = "oraxen:required.wood.place";
+    public static String VANILLA_WOOD_BREAK = "oraxen:required.wood.break";
+    public static String VANILLA_WOOD_HIT = "oraxen:required.wood.hit";
+    public static String VANILLA_WOOD_STEP = "oraxen:required.wood.step";
+    public static String VANILLA_WOOD_FALL = "oraxen:required.wood.fall";
 
     public static float VANILLA_PLACE_VOLUME = 1.0f;
     public static float VANILLA_PLACE_PITCH = 0.8f;

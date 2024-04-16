@@ -45,7 +45,7 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
         instance = this;
         variants.put("instrument=harp,powered=false,note=0", MultiVariant.of(Variant.builder().model(Key.key("block/note_block")).build()));
         toolTypes = section.getStringList("tool_types");
-        customSounds = OraxenPlugin.get().configsManager().getMechanics().getConfigurationSection("custom_block_sounds").getBoolean("noteblock_and_block", true);
+        customSounds = OraxenPlugin.get().configsManager().getMechanics().getBoolean("custom_block_sounds.noteblock", true);
         removeMineableTag = section.getBoolean("remove_mineable_tag", false);
 
         BlockState noteState = OraxenPlugin.get().packGenerator().resourcePack().blockState(Key.key("minecraft:note_block"));

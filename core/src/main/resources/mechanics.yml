@@ -38,7 +38,7 @@ misc:
 # If both mechanics are disabled, this will force the sound system for those off
 custom_block_sounds:
   noteblock: true
-  stringblock: true
+  stringblock_and_furniture: true
 
 noteblock:
   tool_types:

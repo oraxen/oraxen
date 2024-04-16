@@ -24,7 +24,6 @@ public enum RemovedSettings {
     SHIELD_DISPLAY("Misc.shield_display"),
     BOW_DISPLAY("Misc.bow_display"),
     CROSSBOW_DISPLAY("Misc.crossbow_display"),
-    PACK_IMPORT("Pack.import"),
     GENERATE_ATLAS_FILE("Pack.generation.atlas.generate"),
     EXCLUDE_MALFORMED_ATLAS("Pack.generation.atlas.exclude_malformed_from_atlas"),
     ATLAS_GENERATION_TYPE("Pack.generation.atlas.type"),

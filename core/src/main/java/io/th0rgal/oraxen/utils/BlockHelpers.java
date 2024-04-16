@@ -64,10 +64,10 @@ public class BlockHelpers {
         if (mechanics == null) return sound;
 
         sound = sound.replace("minecraft:", "");
-        if (sound.startsWith("block.wood") && mechanics.getBoolean("noteblock_and_block")) {
-            return sound.replace("block.wood", "required.wood");
+        if (sound.startsWith("block.wood") && mechanics.getBoolean("noteblock")) {
+            return sound.replace("block.wood", "oraxen:required.wood");
         } else if (sound.startsWith("block.stone") && mechanics.getBoolean("stringblock_and_furniture")) {
-                return sound.replace("block.stone", "required.stone");
+                return sound.replace("block.stone", "oraxen:required.stone");
         } else return sound;
     }
 

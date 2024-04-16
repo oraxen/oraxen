@@ -1,5 +1,8 @@
 package io.th0rgal.oraxen.sound;
 
+import io.th0rgal.oraxen.config.Settings;
+import io.th0rgal.oraxen.utils.ParseUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -37,18 +40,24 @@ public class SoundManager {
                 for (Object object : soundSection.getList("sounds", new ArrayList<>())) {
                     if (object instanceof String soundEntry)
                         soundEntries.add(SoundEntry.soundEntry().key(Key.key(soundEntry)).build());
-                    else if (object instanceof ConfigurationSection soundEntry) {
-                        soundEntries.add(SoundEntry.soundEntry().key(Key.key(soundEntry.getString("id")))
-                                .stream(soundEntry.getBoolean("stream", SoundEntry.DEFAULT_STREAM))
-                                .attenuationDistance(soundEntry.getInt("attenuation_distance", SoundEntry.DEFAULT_ATTENUATION_DISTANCE))
-                                .pitch((float) soundEntry.getDouble("pitch"))
-                                .volume((float) soundEntry.getDouble("volume"))
-                                .preload(soundEntry.getBoolean("preload", SoundEntry.DEFAULT_PRELOAD))
-                                .type(Arrays.stream(SoundEntry.Type.values()).filter(t -> t.equals(soundEntry.getString("type"))).findFirst().orElse(SoundEntry.DEFAULT_TYPE))
-                                .weight(soundEntry.getInt("weight", SoundEntry.DEFAULT_WEIGHT))
-                                .build()
-                        );
-                    }
+                    else if (object instanceof Map<?,?> entry) {
+                        try {
+                            Map<String, Object> soundEntry = (Map<String, Object>) entry;
+                            soundEntries.add(SoundEntry.soundEntry().key(Key.key(soundEntry.getOrDefault("id", "").toString()))
+                                    .stream((Boolean) soundEntry.getOrDefault("stream", SoundEntry.DEFAULT_STREAM))
+                                    .attenuationDistance((Integer) soundEntry.getOrDefault("attenuation_distance", SoundEntry.DEFAULT_ATTENUATION_DISTANCE))
+                                    .pitch(Math.max(ParseUtils.parseFloat(soundEntry.getOrDefault("pitch", "").toString(), SoundEntry.DEFAULT_PITCH), 0.00001f))
+                                    .volume(Math.max(ParseUtils.parseFloat(soundEntry.getOrDefault("volume", "").toString(), SoundEntry.DEFAULT_VOLUME), 0.00001f))
+                                    .preload((Boolean) soundEntry.getOrDefault("preload", SoundEntry.DEFAULT_PRELOAD))
+                                    .type(Arrays.stream(SoundEntry.Type.values()).filter(t -> t.name().equals(soundEntry.get("type"))).findFirst().orElse(SoundEntry.DEFAULT_TYPE))
+                                    .weight((Integer) soundEntry.getOrDefault("weight", SoundEntry.DEFAULT_WEIGHT))
+                                    .build()
+                            );
+                        } catch (Exception e) {
+                            Logs.logWarning("Failed to parse sound-entry " + soundId);
+                            if (Settings.DEBUG.toBool()) e.printStackTrace();
+                        }
+                    } else Logs.logWarning("Failed to parse sound-entry " + soundId);
                 }
 
                 SoundEvent soundEvent = SoundEvent.soundEvent().key(soundKey)
@@ -57,7 +66,7 @@ public class SoundManager {
                         .subtitle(soundSection.getString("subtitle")).build();
 
                 // Skip soundEvents where it is "empty"
-                if (soundEvent.equals(SoundEvent.soundEvent(soundKey, SoundEvent.DEFAULT_REPLACE, null, new ArrayList<>()))) continue;
+                if (soundEvent.equals(SoundEvent.soundEvent().key(soundKey).build())) continue;
                 soundEvents.add(soundEvent);
             }
 
