@@ -101,25 +101,23 @@ public class NoteBlockSoundListener implements Listener {
         Block block = BlockHelpers.getBlockStandingOn(entity);
         EntityDamageEvent cause = entity.getLastDamageCause();
 
-        if (gameEvent == GameEvent.HIT_GROUND && cause != null && cause.getCause() != EntityDamageEvent.DamageCause.FALL)
-            return;
-        if (block == null || block.getType().isAir() || block.getBlockData().getSoundGroup().getStepSound() != Sound.BLOCK_WOOD_STEP)
-            return;
+        if (gameEvent == GameEvent.HIT_GROUND && cause != null && cause.getCause() != EntityDamageEvent.DamageCause.FALL) return;
+        if (block == null || block.getType().isAir() || block.getBlockData().getSoundGroup().getStepSound() != Sound.BLOCK_WOOD_STEP) return;
 
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(block);
         String sound;
         float volume;
         float pitch;
         if (gameEvent == GameEvent.STEP) {
-            boolean check = block.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasStepSound();
-            sound = (check) ? mechanic.blockSounds().stepSound() : VANILLA_WOOD_STEP;
-            volume = (check) ? mechanic.blockSounds().stepVolume() : VANILLA_STEP_VOLUME;
-            pitch = (check) ? mechanic.blockSounds().stepPitch() : VANILLA_STEP_PITCH;
+            boolean hasStepSound = mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasStepSound();
+            sound = (hasStepSound) ? mechanic.blockSounds().stepSound() : VANILLA_WOOD_STEP;
+            volume = (hasStepSound) ? mechanic.blockSounds().stepVolume() : VANILLA_STEP_VOLUME;
+            pitch = (hasStepSound) ? mechanic.blockSounds().stepPitch() : VANILLA_STEP_PITCH;
         } else if (gameEvent == GameEvent.HIT_GROUND) {
-            boolean check = (block.getType() == Material.NOTE_BLOCK && mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasFallSound());
-            sound = (check) ? mechanic.blockSounds().fallSound() : VANILLA_WOOD_FALL;
-            volume = (check) ? mechanic.blockSounds().fallVolume() : VANILLA_FALL_VOLUME;
-            pitch = (check) ? mechanic.blockSounds().fallPitch() : VANILLA_FALL_PITCH;
+            boolean hasFallSound = mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasFallSound();
+            sound = (hasFallSound) ? mechanic.blockSounds().fallSound() : VANILLA_WOOD_FALL;
+            volume = (hasFallSound) ? mechanic.blockSounds().fallVolume() : VANILLA_FALL_VOLUME;
+            pitch = (hasFallSound) ? mechanic.blockSounds().fallPitch() : VANILLA_FALL_PITCH;
         } else return;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS, volume, pitch);

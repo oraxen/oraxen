@@ -6,8 +6,13 @@ import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.bukkit.block.data.BlockData;
+import org.bukkit.block.data.type.NoteBlock;
+import org.bukkit.block.data.type.Tripwire;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -55,6 +60,13 @@ public class CustomBlockFactory extends MechanicFactory {
 
         addToImplemented(mechanic);
         return mechanic;
+    }
+
+    @Nullable
+    public static CustomBlockMechanic getMechanic(@NotNull BlockData blockData) {
+        if (blockData instanceof NoteBlock noteBlock) return NoteBlockMechanicFactory.getMechanic(noteBlock);
+        else if (blockData instanceof Tripwire tripwire) return StringBlockMechanicFactory.getMechanic(tripwire);
+        else return null;
     }
 
     @Override

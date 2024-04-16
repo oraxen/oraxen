@@ -60,20 +60,15 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
         // Physics-related stuff
         if (VersionUtil.isPaperServer())
-            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPaperListener());
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicPaperListener());
         if (!VersionUtil.isPaperServer() || !NMSHandlers.isNoteblockUpdatesDisabled())
-            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicListener.NoteBlockMechanicPhysicsListener());
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new NoteBlockMechanicPhysicsListener());
         if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1") && !NMSHandlers.isNoteblockUpdatesDisabled()) {
             Logs.logError("Papers block-updates.disable-noteblock-updates is not enabled.");
             Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with noteblocks");
             Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");
             Logs.logWarning("You can enable this setting in ServerFolder/config/paper-global.yml", true);
         }
-    }
-
-    @Nullable
-    public static NoteBlockMechanic getBlockMechanic(@NotNull NoteBlock blockData) {
-        return BLOCK_PER_VARIATION.values().stream().filter(m -> m.blockData().equals(blockData)).findFirst().orElse(null);
     }
 
     public static boolean isEnabled() {
@@ -98,6 +93,11 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public static void setBlockModel(Block block, String itemId) {
         NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(itemId);
         if (mechanic != null) block.setBlockData(mechanic.blockData());
+    }
+
+    @Nullable
+    public static NoteBlockMechanic getMechanic(@NotNull NoteBlock blockData) {
+        return BLOCK_PER_VARIATION.values().stream().filter(m -> m.blockData().equals(blockData)).findFirst().orElse(null);
     }
 
     @Override

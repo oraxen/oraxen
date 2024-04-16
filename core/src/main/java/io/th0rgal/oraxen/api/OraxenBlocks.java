@@ -361,13 +361,13 @@ public class OraxenBlocks {
     public static NoteBlockMechanic getNoteBlockMechanic(BlockData data) {
         if (!NoteBlockMechanicFactory.isEnabled()) return null;
         if (!(data instanceof NoteBlock noteBlock)) return null;
-        return NoteBlockMechanicFactory.getBlockMechanic(noteBlock);
+        return NoteBlockMechanicFactory.getMechanic(noteBlock);
     }
 
     public static NoteBlockMechanic getNoteBlockMechanic(Block block) {
         if (!NoteBlockMechanicFactory.isEnabled()) return null;
         if (!(block.getBlockData() instanceof NoteBlock noteBlock)) return null;
-        return NoteBlockMechanicFactory.getBlockMechanic(noteBlock);
+        return NoteBlockMechanicFactory.getMechanic(noteBlock);
     }
 
     @Nullable
@@ -380,14 +380,14 @@ public class OraxenBlocks {
     public static StringBlockMechanic getStringMechanic(BlockData blockData) {
         if (!StringBlockMechanicFactory.isEnabled()) return null;
         if (!(blockData instanceof Tripwire tripwire)) return null;
-        return StringBlockMechanicFactory.getBlockMechanic(tripwire);
+        return StringBlockMechanicFactory.getMechanic(tripwire);
     }
 
     @Nullable
     public static StringBlockMechanic getStringMechanic(Block block) {
         if (!StringBlockMechanicFactory.isEnabled()) return null;
         if (!(block.getBlockData() instanceof Tripwire tripwire)) return null;
-        return StringBlockMechanicFactory.getBlockMechanic(tripwire);
+        return StringBlockMechanicFactory.getMechanic(tripwire);
     }
 
     @Nullable

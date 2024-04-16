@@ -1,117 +1,39 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock;
 
-import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
-import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.api.events.custom_block.noteblock.OraxenNoteBlockInteractEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockHelpers;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
-import io.th0rgal.oraxen.utils.VersionUtil;
-import org.bukkit.*;
+import org.bukkit.Instrument;
+import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
-import org.bukkit.block.data.type.NoteBlock;
 import org.bukkit.entity.FallingBlock;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.block.*;
+import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockIgniteEvent;
+import org.bukkit.event.block.NotePlayEvent;
 import org.bukkit.event.entity.EntityChangeBlockEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.world.GenericGameEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 
-import java.util.*;
-
-import static io.th0rgal.oraxen.utils.BlockHelpers.isLoaded;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class NoteBlockMechanicListener implements Listener {
-    public static class NoteBlockMechanicPaperListener implements Listener {
 
-        @EventHandler
-        public void onFallingBlockLandOnCarpet(EntityRemoveFromWorldEvent event) {
-            if (!(event.getEntity() instanceof FallingBlock fallingBlock)) return;
-            NoteBlockMechanic mechanic = OraxenBlocks.getNoteBlockMechanic(fallingBlock.getBlockData());
-            if (mechanic == null || Objects.equals(OraxenBlocks.getCustomBlockMechanic(fallingBlock.getLocation()), mechanic))
-                return;
-            if (mechanic.isDirectional() && !mechanic.directional().isParentBlock())
-                mechanic = mechanic.directional().getParentMechanic();
-
-            ItemStack itemStack = OraxenItems.getItemById(mechanic.getItemID()).build();
-            fallingBlock.setDropItem(false);
-            fallingBlock.getWorld().dropItemNaturally(fallingBlock.getLocation(), itemStack);
-        }
-    }
-
-    public static class NoteBlockMechanicPhysicsListener implements Listener {
-        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-        public void onPistonPush(BlockPistonExtendEvent event) {
-            if (event.getBlocks().stream().anyMatch(block -> block.getType().equals(Material.NOTE_BLOCK)))
-                event.setCancelled(true);
-        }
-
-        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-        public void onPistonPull(BlockPistonRetractEvent event) {
-            if (event.getBlocks().stream().anyMatch(block -> block.getType().equals(Material.NOTE_BLOCK)))
-                event.setCancelled(true);
-        }
-
-        @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
-        public void onBlockPhysics(final BlockPhysicsEvent event) {
-            final Block block = event.getBlock();
-            final Block aboveBlock = block.getRelative(BlockFace.UP);
-            final Block belowBlock = block.getRelative(BlockFace.DOWN);
-            // If block below is NoteBlock, it will be affected by the break
-            // Call updateAndCheck from it to fix vertical stack of NoteBlocks
-            // if belowBlock is not a NoteBlock we must ensure the above is not, if it is call updateAndCheck from block
-            if (belowBlock.getType() == Material.NOTE_BLOCK) {
-                event.setCancelled(true);
-                updateAndCheck(belowBlock);
-            } else if (aboveBlock.getType() == Material.NOTE_BLOCK) {
-                event.setCancelled(true);
-                updateAndCheck(aboveBlock);
-            }
-            if (block.getType() == Material.NOTE_BLOCK) {
-                event.setCancelled(true);
-                updateAndCheck(block);
-            }
-        }
-
-        @EventHandler(priority = EventPriority.HIGHEST)
-        public void onNoteblockPowered(final GenericGameEvent event) {
-            Block block = event.getLocation().getBlock();
-
-            Location eLoc = block.getLocation();
-            if (!isLoaded(event.getLocation()) || !isLoaded(eLoc)) return;
-
-            // This GameEvent only exists in 1.19
-            // If server is 1.18 check if its there and if not return
-            // If 1.19 we can check if this event is fired
-            if (!VersionUtil.atOrAbove("1.19")) return;
-            if (event.getEvent() != GameEvent.NOTE_BLOCK_PLAY) return;
-            if (block.getType() != Material.NOTE_BLOCK) return;
-            NoteBlock data = (NoteBlock) block.getBlockData().clone();
-            Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> block.setBlockData(data, false), 1L);
-        }
-
-        public void updateAndCheck(Block block) {
-            final Block blockAbove = block.getRelative(BlockFace.UP);
-            if (blockAbove.getType() == Material.NOTE_BLOCK)
-                blockAbove.getState().update(true, true);
-            Block nextBlock = blockAbove.getRelative(BlockFace.UP);
-            if (nextBlock.getType() == Material.NOTE_BLOCK) updateAndCheck(blockAbove);
-        }
-    }
-
-    // TODO Make this function less of a clusterfuck and more readable
-    // Make sure this isnt handling it together with above when placing CB against CB
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlaceAgainstNoteBlock(PlayerInteractEvent event) {
         Block block = event.getClickedBlock();

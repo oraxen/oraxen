@@ -61,19 +61,15 @@ public class StringBlockMechanicFactory extends MechanicFactory {
 
         // Physics-related stuff
         if (VersionUtil.isPaperServer())
-            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener.StringBlockMechanicPaperListener());
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicPaperListener());
         if (!VersionUtil.isPaperServer() || !NMSHandlers.isTripwireUpdatesDisabled())
-            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener.StringBlockMechanicPhysicsListener());
+            MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicPhysicsListener());
         if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1") && !NMSHandlers.isTripwireUpdatesDisabled()) {
             Logs.logError("Papers block-updates.disable-tripwire-updates is not enabled.");
             Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with tripwires");
             Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");
             Logs.logWarning("You can enable this setting in ServerFolder/config/paper-global.yml", true);
         }
-    }
-
-    public static StringBlockMechanic getBlockMechanic(@NotNull Tripwire blockData) {
-        return BLOCK_PER_VARIATION.values().stream().filter(m -> m.blockData().equals(blockData)).findFirst().orElse(null);
     }
 
     public static boolean isEnabled() {
@@ -95,6 +91,10 @@ public class StringBlockMechanicFactory extends MechanicFactory {
         final MechanicFactory mechanicFactory = MechanicsManager.getMechanicFactory("stringblock");
         StringBlockMechanic stringBlockMechanic = (StringBlockMechanic) mechanicFactory.getMechanic(itemId);
         block.setBlockData(stringBlockMechanic.blockData());
+    }
+
+    public static StringBlockMechanic getMechanic(@NotNull Tripwire blockData) {
+        return BLOCK_PER_VARIATION.values().stream().filter(m -> m.blockData().equals(blockData)).findFirst().orElse(null);
     }
 
     @Override

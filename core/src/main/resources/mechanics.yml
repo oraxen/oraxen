@@ -77,7 +77,6 @@ furniture:
   # ticks between each check for plant growth
   evolution_check_delay: 200
   enabled: true
-  detect_viabackwards: true  # Blocks use of Item Display Furniture when server allows clients below 1.19.4
 
 durability:
   enabled: true

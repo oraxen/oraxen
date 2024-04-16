@@ -122,15 +122,15 @@ public class FurnitureSoundListener implements Listener {
         float volume;
         float pitch;
         if (gameEvent == GameEvent.STEP) {
-            boolean check = blockStandingOn.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasStepSound();
-            sound = (check) ? mechanic.blockSounds().stepSound() : VANILLA_STONE_STEP;
-            volume = (check) ? mechanic.blockSounds().stepVolume() : VANILLA_STEP_VOLUME;
-            pitch = (check) ? mechanic.blockSounds().stepPitch() : VANILLA_STEP_PITCH;
+            boolean hasStepSound = mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasStepSound();
+            sound = (hasStepSound) ? mechanic.blockSounds().stepSound() : VANILLA_STONE_STEP;
+            volume = (hasStepSound) ? mechanic.blockSounds().stepVolume() : VANILLA_STEP_VOLUME;
+            pitch = (hasStepSound) ? mechanic.blockSounds().stepPitch() : VANILLA_STEP_PITCH;
         } else if (gameEvent == GameEvent.HIT_GROUND) {
-            boolean check = (blockStandingOn.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasFallSound());
-            sound = (check) ? mechanic.blockSounds().fallSound() : VANILLA_STONE_FALL;
-            volume = (check) ? mechanic.blockSounds().fallVolume() : VANILLA_FALL_VOLUME;
-            pitch = (check) ? mechanic.blockSounds().fallPitch() : VANILLA_FALL_PITCH;
+            boolean hasFallSound = mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasFallSound();
+            sound = (hasFallSound) ? mechanic.blockSounds().fallSound() : VANILLA_STONE_FALL;
+            volume = (hasFallSound) ? mechanic.blockSounds().fallVolume() : VANILLA_FALL_VOLUME;
+            pitch = (hasFallSound) ? mechanic.blockSounds().fallPitch() : VANILLA_FALL_PITCH;
         } else return;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS, volume, pitch);
