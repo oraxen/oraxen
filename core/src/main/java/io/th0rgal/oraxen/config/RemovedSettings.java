@@ -59,6 +59,7 @@ public enum RemovedSettings {
     RECEIVE_DISCARDED_ACTIONS("Pack.receive.discarded.actions"),
 
     BLOCK_CORRECTION("CustomBlocks.block_correction"),
+    DOWNLOAD_DEFAULT_ASSETS("Plugin.default_content.download_resourcepack"),
 
     ;
 

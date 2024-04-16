@@ -26,8 +26,6 @@ public enum Settings {
     PLUGIN_LANGUAGE("Plugin.language", "english"),
     KEEP_UP_TO_DATE("Plugin.keep_this_up_to_date", true),
     REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only", false),
-    DOWNLOAD_DEFAULT_ASSETS("Plugin.default_content.download_resourcepack", true),
-    GENERATE_DEFAULT_CONFIGS("Plugin.default_content.default_configs", true),
     FORMAT_INVENTORY_TITLES("Plugin.formatting.inventory_titles", true),
     FORMAT_TITLES("Plugin.formatting.titles", true),
     FORMAT_SUBTITLES("Plugin.formatting.subtitles", true),
@@ -54,6 +52,7 @@ public enum Settings {
     // Config Tools
     //CONFIGS_VERSION("configs_version", "false"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater", true),
+    GENERATE_DEFAULT_CONFIGS("ConfigTools.generate_default_configs", true),
     DISABLE_AUTOMATIC_MODEL_DATA("ConfigsTools.disable_automatic_model_data", false),
     DISABLE_AUTOMATIC_GLYPH_CODE("ConfigsTools.disable_automatic_glyph_code", false),
     SKIPPED_MODEL_DATA_NUMBERS("ConfigsTools.skipped_model_data_numbers", List.of()),
@@ -94,6 +93,9 @@ public enum Settings {
 
     //Pack
     PACK_GENERATE("Pack.generation.generate", true),
+    PACK_IMPORT_DEFAULT("Pack.import.default_assets", true),
+    PACK_IMPORT_EXTERNAL("Pack.import.external_packs", true),
+    PACK_IMPORT_MODEL_ENGINE("Pack.import.modelengine", true),
     PACK_EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions", List.of(".zip")),
     FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs", true),
 

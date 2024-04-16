@@ -29,6 +29,7 @@ public enum UpdatedSettings {
     GENERATE_CUSTOM_ARMOR_TEXTURES("Pack.generation.generate_custom_armor_textures", "CustomArmor.shader_settings.generate_custom_armor_textures"),
     AUTOMATICALLY_GENERATE_SHADER_COMPATIBLE_ARMOR("Pack.generation.automatically_generate_shader_compatible_armor", "CustomArmor.shader_settings.generate_shader_compatible_armor"),
     PACK_SEND_ON_JOIN("Pack.dispatch.send_pack", "Pack.dispatch.send_on_join"),
+    GENERATE_DEFAULT_CONFIGS("Plugin.default_content.default_configs", "ConfigTools.generate_default_configs"),
     ;
 
     private final String path;

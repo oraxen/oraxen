@@ -47,7 +47,7 @@ public class PackGenerator {
 
     public PackGenerator() {
         generateDefaultPaths();
-        if (Settings.DOWNLOAD_DEFAULT_ASSETS.toBool()) PackDownloader.downloadDefaultPack();
+        if (Settings.PACK_IMPORT_DEFAULT.toBool()) PackDownloader.downloadDefaultPack();
         if (CustomArmorType.getSetting().equals(CustomArmorType.SHADER)) customArmorHandler = new ShaderArmorTextures();
         else if (CustomArmorType.getSetting().equals(CustomArmorType.TRIMS)) customArmorHandler = new TrimArmorDatapack();
         else customArmorHandler = new CustomArmor();
@@ -60,8 +60,9 @@ public class PackGenerator {
         for (Map.Entry<String, Writable> entry : new HashSet<>(resourcePack.unknownFiles().entrySet()))
             if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
 
-        addImportPacks();
-        importModelEnginePack();
+        if (Settings.PACK_IMPORT_DEFAULT.toBool()) importDefaultPack();
+        if (Settings.PACK_IMPORT_EXTERNAL.toBool()) importExternalPacks();
+        if (Settings.PACK_IMPORT_MODEL_ENGINE.toBool()) importModelEnginePack();
 
         addItemPackFiles();
         addGlyphFiles();
@@ -102,14 +103,6 @@ public class PackGenerator {
 
     public BuiltResourcePack builtPack() {
         return builtPack;
-    }
-
-    private void importModelEnginePack() {
-        if (!ModelEngineUtils.isModelEngineEnabled()) return;
-        File megPack = ModelEngineAPI.getAPI().getDataFolder().toPath().resolve("resource pack.zip").toFile();
-        if (!megPack.exists()) return;
-        mergePack(MinecraftResourcePackReader.minecraft().readFromZipFile(megPack));
-        Logs.logSuccess("Imported ModelEngine pack successfully!");
     }
 
     private void addGlyphFiles() {
@@ -160,10 +153,17 @@ public class PackGenerator {
         resourcePack.unknownFile("assets/minecraft/shaders/core/" + fileName, writable);
     }
 
-    private void addImportPacks() {
+    private void importDefaultPack() {
+        File defaultPack = externalPacks.resolve("DefaultPack.zip").toFile();
+        if (!defaultPack.exists()) return;
+        Logs.logInfo("Importing DefaultPack...");
+        mergePack(MinecraftResourcePackReader.minecraft().readFromZipFile(defaultPack));
+    }
+
+    private void importExternalPacks() {
         MinecraftResourcePackReader reader = MinecraftResourcePackReader.minecraft();
         for (File file : Objects.requireNonNullElse(externalPacks.toFile().listFiles(), new File[]{})) {
-            if (file == null) continue;
+            if (file == null || file.getName().equals("DefaultPack.zip")) continue;
             if (file.isDirectory()) {
                 Logs.logInfo("Importing pack " + file.getName() + "...");
                 mergePack(reader.readFromDirectory(file));
@@ -175,6 +175,14 @@ public class PackGenerator {
                 Logs.logError("File is neither a directory nor a zip file");
             }
         }
+    }
+
+    private void importModelEnginePack() {
+        if (!ModelEngineUtils.isModelEngineEnabled()) return;
+        File megPack = ModelEngineAPI.getAPI().getDataFolder().toPath().resolve("resource pack.zip").toFile();
+        if (!megPack.exists()) return;
+        mergePack(MinecraftResourcePackReader.minecraft().readFromZipFile(megPack));
+        Logs.logSuccess("Imported ModelEngine pack successfully!");
     }
 
     private void mergePack(ResourcePack importedPack) {
