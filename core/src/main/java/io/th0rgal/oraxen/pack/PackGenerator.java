@@ -55,14 +55,14 @@ public class PackGenerator {
 
     public void generatePack() {
         Logs.logInfo("Generating resourcepack...");
+        if (Settings.PACK_IMPORT_DEFAULT.toBool()) importDefaultPack();
+        if (Settings.PACK_IMPORT_EXTERNAL.toBool()) importExternalPacks();
+        if (Settings.PACK_IMPORT_MODEL_ENGINE.toBool()) importModelEnginePack();
+
         mergePack(MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile()));
         resourcePack.removeUnknownFile("pack.zip");
         for (Map.Entry<String, Writable> entry : new HashSet<>(resourcePack.unknownFiles().entrySet()))
             if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
-
-        if (Settings.PACK_IMPORT_DEFAULT.toBool()) importDefaultPack();
-        if (Settings.PACK_IMPORT_EXTERNAL.toBool()) importExternalPacks();
-        if (Settings.PACK_IMPORT_MODEL_ENGINE.toBool()) importModelEnginePack();
 
         addItemPackFiles();
         addGlyphFiles();
