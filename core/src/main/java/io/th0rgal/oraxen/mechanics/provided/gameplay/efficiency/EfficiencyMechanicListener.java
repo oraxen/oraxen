@@ -26,6 +26,7 @@ public class EfficiencyMechanicListener implements Listener {
                 final Player player = event.getPlayer();
                 if (player.getGameMode() == GameMode.CREATIVE) return;
                 final EfficiencyMechanic mechanic = EfficiencyMechanicFactory.get().getMechanic(player.getInventory().getItemInMainHand());
+                if (mechanic == null) return;
                 final StructureModifier<EnumWrappers.PlayerDigType> data = packet
                         .getEnumModifier(EnumWrappers.PlayerDigType.class, 2);
                 EnumWrappers.PlayerDigType type;
