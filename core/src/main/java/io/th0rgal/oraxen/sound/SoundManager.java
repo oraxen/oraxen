@@ -26,11 +26,11 @@ public class SoundManager {
 
     public Collection<SoundRegistry> parseCustomSounds(ConfigurationSection section) {
         final Collection<SoundRegistry> soundRegistries = new ArrayList<>();
-        for (String namespace : section.getKeys(false)) {
+        for (String namespace : new LinkedHashSet<>(section.getKeys(false))) {
             final Collection<SoundEvent> soundEvents = new ArrayList<>();
             ConfigurationSection namespaceSection = section.getConfigurationSection(namespace);
             if (namespaceSection == null) continue;
-            for (String soundId : namespaceSection.getKeys(true)) {
+            for (String soundId : new LinkedHashSet<>(namespaceSection.getKeys(true))) {
                 Key soundKey = Key.key(namespace, soundId);
                 ConfigurationSection soundSection = namespaceSection.getConfigurationSection(soundId);
                 if (soundSection == null) continue;
@@ -42,7 +42,7 @@ public class SoundManager {
                         soundEntries.add(SoundEntry.soundEntry().key(Key.key(soundEntry)).build());
                     else if (object instanceof Map<?,?> entry) {
                         try {
-                            Map<String, Object> soundEntry = (Map<String, Object>) entry;
+                            LinkedHashMap<String, Object> soundEntry = (LinkedHashMap<String, Object>) entry;
                             soundEntries.add(SoundEntry.soundEntry().key(Key.key(soundEntry.getOrDefault("id", "").toString()))
                                     .stream((Boolean) soundEntry.getOrDefault("stream", SoundEntry.DEFAULT_STREAM))
                                     .attenuationDistance((Integer) soundEntry.getOrDefault("attenuation_distance", SoundEntry.DEFAULT_ATTENUATION_DISTANCE))
@@ -77,7 +77,7 @@ public class SoundManager {
     }
 
     public Collection<SoundRegistry> customSoundRegistries() {
-        return new ArrayList<>(customSoundRegistries);
+        return new LinkedHashSet<>(customSoundRegistries);
     }
 
     public boolean generateSounds() {
