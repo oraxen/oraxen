@@ -44,6 +44,7 @@ public class PackGenerator {
     @NotNull private ResourcePack resourcePack = ResourcePack.resourcePack();
     private BuiltResourcePack builtPack;
     private final CustomArmor customArmorHandler;
+    private final PackObfuscator packObfuscator;
 
     public PackGenerator() {
         generateDefaultPaths();
@@ -51,6 +52,7 @@ public class PackGenerator {
         if (CustomArmorType.getSetting().equals(CustomArmorType.SHADER)) customArmorHandler = new ShaderArmorTextures();
         else if (CustomArmorType.getSetting().equals(CustomArmorType.TRIMS)) customArmorHandler = new TrimArmorDatapack();
         else customArmorHandler = new CustomArmor();
+        packObfuscator = new PackObfuscator(resourcePack);
     }
 
     public void generatePack() {
@@ -71,6 +73,7 @@ public class PackGenerator {
         customArmorHandler.generateNeededFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
+        if (Settings.PACK_OBFUSCATE.toBool()) packObfuscator.obfuscatePack();
 
         removeExcludedFileExtensions();
         sortModelOverrides();
