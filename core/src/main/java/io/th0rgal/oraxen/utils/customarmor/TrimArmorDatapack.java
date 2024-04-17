@@ -39,7 +39,6 @@ public class TrimArmorDatapack extends CustomArmor {
     private final Map<String, Key> permutations = new HashMap<>();
 
     public TrimArmorDatapack() {
-        clearOldDataPacks();
         JsonObject data = new JsonObject();
         data.addProperty("description", "Datapack for Oraxens Custom Armor trims");
         data.addProperty("pack_format", 26);
