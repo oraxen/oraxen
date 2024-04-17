@@ -176,24 +176,29 @@ public class TrimArmorDatapack extends CustomArmor {
     }
 
     private void copyArmorLayerTextures(ResourcePack resourcePack) throws IOException {
-        String armorPath = "assets/minecraft/textures/models/armor/";
-        String vanillaTrimPath = "assets/minecraft/textures/trims/models/armor/";
-        String oraxenTrimPath = "assets/oraxen/textures/trims/models/armor/";
+        String armorPath = "minecraft:models/armor/";
+        String vanillaTrimPath = "minecraft:trims/models/armor/";
+        String oraxenTrimPath = "oraxen:trims/models/armor/";
         String material = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase();
 
         resourcePack.textures().stream().filter(t ->
-                t.key().asString().endsWith("_armor_layer_1.png") || t.key().asString().endsWith("_armor_layer_2.png")
-        ).toList().forEach( t -> {
-            String armorPrefix = armorPrefix(t);
-            if (t.key().asString().endsWith("_armor_layer_1.png"))
-                resourcePack.texture(t.toBuilder().key(Key.key(oraxenTrimPath + armorPrefix + ".png")).build());
-            else if (t.key().asString().endsWith("_armor_layer_2.png"))
-                resourcePack.texture(t.toBuilder().key(Key.key(oraxenTrimPath + armorPrefix + "_leggings.png")).build());
+                t.key().asString().endsWith("_layer_1.png") || t.key().asString().endsWith("_layer_2.png")
+        ).toList().forEach( armorTexture -> {
+            String armorPrefix = armorPrefix(armorTexture);
+            if (armorTexture.key().asString().endsWith("_armor_layer_1.png"))
+                resourcePack.texture(Key.key(oraxenTrimPath + armorPrefix + ".png"), armorTexture.data());
+            else if (armorTexture.key().asString().endsWith("_armor_layer_2.png"))
+                resourcePack.texture(Key.key(oraxenTrimPath + armorPrefix + "_leggings.png"), armorTexture.data());
 
-            if (t.key().asString().equals(armorPath + material + "_layer_1.png"))
-                resourcePack.texture(t.toBuilder().key(Key.key(vanillaTrimPath + material + ".png")).build());
-            else if (t.key().asString().equals(armorPath + material + "_layer_2.png"))
-                resourcePack.texture(t.toBuilder().key(Key.key(vanillaTrimPath + material + "_leggings.png")).build());
+            if (armorTexture.key().asString().equals(armorPath + material + "_layer_1.png"))
+                resourcePack.texture(Key.key(vanillaTrimPath + material + ".png"), armorTexture.data());
+            else if (armorTexture.key().asString().equals(armorPath + material + "_layer_2.png"))
+                resourcePack.texture(Key.key(vanillaTrimPath + material + "_leggings.png"), armorTexture.data());
+        });
+
+        Optional.ofNullable(resourcePack.texture(Key.key(armorPath + "transparent_layer.png"))).ifPresent(transparent -> {
+            resourcePack.texture(Key.key(armorPath + material + "_layer_1.png"), transparent.data());
+            resourcePack.texture(Key.key(armorPath + material + "_layer_2.png"), transparent.data());
         });
     }
 
@@ -260,10 +265,14 @@ public class TrimArmorDatapack extends CustomArmor {
 
     private String armorPrefix(Texture texture) {
         String textureKey = texture.key().asString();
-        return textureKey.endsWith("_armor_layer_1")
-                ? StringUtils.substringAfterLast(StringUtils.substringBefore(textureKey, "_armor_layer_1"), "/")
-                : textureKey.endsWith("_armor_layer_2")
-                ? StringUtils.substringAfterLast(StringUtils.substringBefore(textureKey, "_armor_layer_2"), "/")
+        return textureKey.endsWith("_armor_layer_1.png")
+                ? StringUtils.substringAfterLast(StringUtils.substringBefore(textureKey, "_armor_layer_1.png"), "/")
+                : textureKey.endsWith("_armor_layer_2.png")
+                ? StringUtils.substringAfterLast(StringUtils.substringBefore(textureKey, "_armor_layer_2.png"), "/")
+                : textureKey.endsWith("_layer_1.png")
+                ? StringUtils.substringAfterLast(StringUtils.substringBefore(textureKey, "_layer_1.png"), "/")
+                : textureKey.endsWith("_layer_2.png")
+                ? StringUtils.substringAfterLast(StringUtils.substringBefore(textureKey, "_layer_2.png"), "/")
                 : "";
     }
 
