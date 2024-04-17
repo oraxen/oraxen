@@ -155,7 +155,7 @@ public class Drop {
         ItemUtils.editItemMeta(furnitureItem, (itemMeta) -> {
             ItemMeta baseMeta = baseItem.getItemMeta();
             if (baseMeta != null && baseMeta.hasDisplayName())
-                itemMeta.setDisplayName(baseMeta.getDisplayName());
+                ItemUtils.displayName(itemMeta, baseMeta);
         });
 
         if (!canDrop(itemInHand) || !location.isWorldLoaded()) return;

@@ -17,12 +17,12 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats.FurnitureSe
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.storage.StorageMechanic;
-import io.th0rgal.oraxen.mechanics.provided.misc.music_disc.MusicDiscMechanicFactory;
 import io.th0rgal.oraxen.utils.*;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
@@ -312,7 +312,7 @@ public class FurnitureMechanic extends Mechanic {
 
         ItemStack item;
         if (evolvingFurniture == null) {
-            item = ItemUtils.editItemMeta(originalItem.clone(), meta -> meta.setDisplayName(""));
+            item = ItemUtils.editItemMeta(originalItem.clone(), meta -> ItemUtils.displayName(meta, Component.empty()));
         } else item = placedItem;
         item.setAmount(1);
 
