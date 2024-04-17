@@ -36,7 +36,7 @@ public class TrimArmorDatapack extends CustomArmor {
     private final boolean datapackEnabled;
     private final JsonObject datapackMeta = new JsonObject();
     private final Key palleteKey;
-    private final Map<String, Key> permutations = new HashMap<>();
+    private final Map<String, Key> permutations = new LinkedHashMap<>();
 
     public TrimArmorDatapack() {
         JsonObject data = new JsonObject();
@@ -75,7 +75,7 @@ public class TrimArmorDatapack extends CustomArmor {
 
     private void generateTrimAssets() {
         ResourcePack resourcePack = OraxenPlugin.get().packGenerator().resourcePack();
-        Set<String> armorPrefixes = armorPrefixes(resourcePack);
+        LinkedHashSet<String> armorPrefixes = armorPrefixes(resourcePack);
         customArmorDatapack.toPath().resolve("data").toFile().mkdirs();
         writeMCMeta();
         writeVanillaTrimPattern();
@@ -117,7 +117,7 @@ public class TrimArmorDatapack extends CustomArmor {
         }
     }
 
-    private static void writeCustomTrimPatterns(Set<String> armorPrefixes) {
+    private static void writeCustomTrimPatterns(LinkedHashSet<String> armorPrefixes) {
         for (String armorPrefix : armorPrefixes) {
             File armorJson = TrimArmorDatapack.customArmorDatapack.toPath().resolve("data/oraxen/trim_pattern/" + armorPrefix + ".json").toFile();
             armorJson.getParentFile().mkdirs();
@@ -136,7 +136,7 @@ public class TrimArmorDatapack extends CustomArmor {
         }
     }
 
-    private void writeTrimAtlas(ResourcePack resourcePack, Set<String> armorPrefixes) {
+    private void writeTrimAtlas(ResourcePack resourcePack, LinkedHashSet<String> armorPrefixes) {
         Atlas trimsAtlas = resourcePack.atlas(Key.key("armor_trims"));
 
         // If for some reason the atlas exists already, we append to it
@@ -156,7 +156,7 @@ public class TrimArmorDatapack extends CustomArmor {
                 textures.add(Key.key("minecraft:trims/models/armor/" +  trimMat + "_leggings"));
 
                 sources.remove(palletedSource);
-                sources.add(AtlasSource.palettedPermutations(textures, palletedSource.paletteKey(), palletedSource.permutations()));
+                sources.add(AtlasSource.palettedPermutations(new LinkedHashSet<>(textures).stream().toList(), palletedSource.paletteKey(), palletedSource.permutations()));
             }
 
             resourcePack.atlas(trimsAtlas.toBuilder().sources(sources).build());
@@ -171,7 +171,7 @@ public class TrimArmorDatapack extends CustomArmor {
             textures.add(Key.key("minecraft:trims/models/armor/" + trimMat));
             textures.add(Key.key("minecraft:trims/models/armor/" +  trimMat + "_leggings"));
 
-            resourcePack.atlas(Atlas.atlas().key(Key.key("armor_trims")).addSource(AtlasSource.palettedPermutations(textures, palleteKey, permutations)).build());
+            resourcePack.atlas(Atlas.atlas().key(Key.key("armor_trims")).addSource(AtlasSource.palettedPermutations(new LinkedHashSet<>(textures).stream().toList(), palleteKey, permutations)).build());
         }
     }
 
@@ -183,7 +183,7 @@ public class TrimArmorDatapack extends CustomArmor {
 
         resourcePack.textures().stream().filter(t ->
                 t.key().asString().endsWith("_layer_1.png") || t.key().asString().endsWith("_layer_2.png")
-        ).toList().forEach( armorTexture -> {
+        ).collect(Collectors.toCollection(LinkedHashSet::new)).forEach( armorTexture -> {
             String armorPrefix = armorPrefix(armorTexture);
             if (armorTexture.key().asString().endsWith("_armor_layer_1.png"))
                 resourcePack.texture(Key.key(oraxenTrimPath + armorPrefix + ".png"), armorTexture.data());
@@ -259,8 +259,8 @@ public class TrimArmorDatapack extends CustomArmor {
         }
     }
 
-    private Set<String> armorPrefixes(ResourcePack resourcePack) {
-        return resourcePack.textures().stream().map(this::armorPrefix).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
+    private LinkedHashSet<String> armorPrefixes(ResourcePack resourcePack) {
+        return resourcePack.textures().stream().map(this::armorPrefix).filter(StringUtils::isNotBlank).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private String armorPrefix(Texture texture) {

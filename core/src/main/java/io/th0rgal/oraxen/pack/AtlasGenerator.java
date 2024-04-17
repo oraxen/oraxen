@@ -7,15 +7,17 @@ import team.unnamed.creative.atlas.SingleAtlasSource;
 import team.unnamed.creative.model.Model;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class AtlasGenerator {
 
     public static void generateAtlasFile() {
         List<AtlasSource> sources = new ArrayList<>();
         for (Model model : OraxenPlugin.get().packGenerator().resourcePack().models()) {
-            sources.addAll(model.textures().layers().stream().map(t -> AtlasSource.single(t.key())).toList());
-            sources.addAll(model.textures().variables().values().stream().map(t -> AtlasSource.single(t.key())).toList());
+            sources.addAll(model.textures().layers().stream().map(t -> AtlasSource.single(t.key())).collect(Collectors.toCollection(LinkedHashSet::new)));
+            sources.addAll(model.textures().variables().values().stream().map(t -> AtlasSource.single(t.key())).collect(Collectors.toCollection(LinkedHashSet::new)));
             if (model.textures().particle() != null) sources.add(AtlasSource.single(model.textures().particle().key()));
         }
 
