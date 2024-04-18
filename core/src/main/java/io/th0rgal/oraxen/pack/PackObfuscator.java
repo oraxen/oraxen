@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.pack;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.io.FileUtils;
@@ -28,9 +29,23 @@ import java.util.*;
 public class PackObfuscator {
 
     private ResourcePack resourcePack;
+    private PackObfuscationType obfuscationType;
 
     public PackObfuscator(ResourcePack resourcePack) {
         this.resourcePack = resourcePack;
+        this.obfuscationType = Settings.PACK_OBFUSCATION_TYPE.toEnumOrGet(PackObfuscationType.class, () -> {
+            Logs.logError("Invalid PackObfuscation type: " + Settings.PACK_OBFUSCATION_TYPE + ", defaulting to " + PackObfuscationType.FULL, true);
+            Logs.logError("Valid options are: " + StringUtils.join(Arrays.stream(PackObfuscationType.values()).map(Enum::name).toList(), ", "), true);
+            return PackObfuscationType.FULL;
+        });
+    }
+
+    public PackObfuscationType obfuscationType() {
+        return obfuscationType;
+    }
+
+    public enum PackObfuscationType {
+        FILENAME, NAMESPACE, FULL, NONE
     }
 
     private final File cachedPackZip = OraxenPlugin.get().packPath().resolve("cachedPack.zip").toFile();
@@ -153,7 +168,7 @@ public class PackObfuscator {
         } else return obfuscate(obfuscateModelTextures(model));
     }
     private Model obfuscate(Model model) {
-        Model obfuscatedModel = obfuscateModelOverrides(model).toBuilder().key(Key.key(UUID.randomUUID().toString())).build();
+        Model obfuscatedModel = obfuscateModelOverrides(model).toBuilder().key(obfuscatedKey(model.key())).build();
         obfuscatedModels.add(new ObfuscatedModel(model, obfuscatedModel));
         return obfuscatedModel;
     }
@@ -206,7 +221,7 @@ public class PackObfuscator {
     }
 
     private Texture obfuscate(Texture texture, boolean isItemTexture) {
-        Texture obfTexture = texture.toBuilder().key(Key.key(UUID.randomUUID() + ".png")).build();
+        Texture obfTexture = texture.toBuilder().key(keyPng(obfuscatedKey(texture.key()))).build();
         obfuscatedTextures.add(new ObfuscatedTexture(texture, obfTexture, isItemTexture));
         return obfTexture;
     }
@@ -246,7 +261,20 @@ public class PackObfuscator {
         private final static List<Key> defaultBlockKeys = Arrays.stream(Material.values()).filter(m -> !m.isLegacy() && m.isBlock()).map(m -> Key.key("minecraft", "block/" + m.getKey().value())).toList();
     }
 
+    private Key obfuscatedKey(Key key) {
+        return switch (obfuscationType) {
+            case NONE -> key;
+            case FULL -> Key.key(UUID.randomUUID().toString(), UUID.randomUUID().toString());
+            case NAMESPACE -> Key.key(UUID.randomUUID().toString(), key.value());
+            case FILENAME -> Key.key(key.namespace(), UUID.randomUUID().toString());
+        };
+    }
+
     private Key keyNoPng(Texture texture) {
         return Key.key(StringUtils.removeEnd(texture.key().asString(), ".png"));
+    }
+
+    private Key keyPng(Key key) {
+        return Key.key(StringUtils.appendIfMissing(key.asString(), ".png"));
     }
 }

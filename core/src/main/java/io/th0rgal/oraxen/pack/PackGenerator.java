@@ -84,10 +84,10 @@ public class PackGenerator {
 
         PackSlicer.processInputs(resourcePack);
 
-        File cachedPackFile = OraxenPlugin.get().packPath().resolve("cache/cachedPack").toFile();
+        File cachedZip = OraxenPlugin.get().packPath().resolve("cachedPack.zip").toFile();
         File packZip = OraxenPlugin.get().packPath().resolve("pack.zip").toFile();
-        if (Settings.PACK_OBFUSCATE.toBool()) resourcePack = packObfuscator.obfuscatePack();
-        else cachedPackFile.delete();
+        if (packObfuscator.obfuscationType() != PackObfuscator.PackObfuscationType.NONE) resourcePack = packObfuscator.obfuscatePack();
+        else cachedZip.delete();
 
         if (Settings.PACK_ZIP.toBool()) writer.writeToZipFile(packZip, resourcePack);
         builtPack = writer.build(resourcePack);

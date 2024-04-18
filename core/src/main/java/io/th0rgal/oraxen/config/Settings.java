@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.config;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.FontEvents;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
+import io.th0rgal.oraxen.pack.PackObfuscator;
 import io.th0rgal.oraxen.pack.server.PackServerType;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
@@ -93,7 +94,7 @@ public enum Settings {
 
     //Pack
     PACK_GENERATE("Pack.generation.generate", true),
-    PACK_OBFUSCATE("Pack.generation.obfuscate", true),
+    PACK_OBFUSCATION_TYPE("Pack.obfuscation.type", PackObfuscator.PackObfuscationType.FULL.name()),
     PACK_ZIP("Pack.generation.generate_zip", true),
     PACK_IMPORT_DEFAULT("Pack.import.default_assets", true),
     PACK_IMPORT_EXTERNAL("Pack.import.external_packs", true),
