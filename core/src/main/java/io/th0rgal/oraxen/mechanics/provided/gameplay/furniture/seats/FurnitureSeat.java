@@ -45,7 +45,7 @@ public class FurnitureSeat {
         this.offset = Vector.deserialize(offset);
     }
     public FurnitureSeat(String offset) {
-        List<Double> split = new ArrayList<>(Arrays.stream(offset.split(" ", 3)).map(s -> {
+        List<Double> split = new ArrayList<>(Arrays.stream(offset.split(",", 3)).map(s -> {
             try {
                 return Double.parseDouble(s);
             } catch (NumberFormatException e) {

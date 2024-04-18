@@ -6,15 +6,17 @@ import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.VirtualFile;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.key.Key;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Color;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.inventory.meta.LeatherArmorMeta;
+import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.base.Writable;
 import team.unnamed.creative.model.ModelTexture;
+import team.unnamed.creative.texture.Texture;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -42,10 +44,18 @@ public class ShaderArmorTextures extends CustomArmor {
     private int layer2Width = 0;
     private int layer2Height = 0;
     private final ShaderType shaderType;
+    private ResourcePack resourcePack;
 
     @Override
     public void generateNeededFiles() {
+        resourcePack = OraxenPlugin.get().packGenerator().resourcePack();
         generateArmorShaderFiles();
+        for (Texture texture : resourcePack.textures()) registerImage(texture);
+        if (Settings.CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR.toBool())
+            optifineFiles().forEach(resourcePack::texture);
+
+        resourcePack.texture(Key.key("minecraft:models/armor/leather_layer_1.png"), layerOneData());
+        resourcePack.texture(Key.key("minecraft:models/armor/leather_layer_2.png"), layerTwoData());
     }
 
     public enum ShaderType {
@@ -74,19 +84,18 @@ public class ShaderArmorTextures extends CustomArmor {
         return StringUtils.substringBeforeLast(itemId, "_");
     }
 
-    public boolean registerImage(File file) {
-        String name = file.getName();
+    public void registerImage(Texture texture) {
+        String name = StringUtils.substringAfterLast(texture.key().value(), "/");
 
-        if (!name.endsWith(".png")) return false;
-        if (!name.contains("armor_layer") && !name.contains("leather_layer")) return false;
-        if (!Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool()) return false;
+        if (!Settings.CUSTOM_ARMOR_SHADER_GENERATE_CUSTOM_TEXTURES.toBool()) return;
+        if (!name.endsWith(".png") || !name.contains("armor_layer") && !name.contains("leather_layer")) return;
 
         BufferedImage img;
-        try {
-            img = ImageIO.read(file);
+        try(ByteArrayInputStream inputStream = new ByteArrayInputStream(texture.data().toByteArray())) {
+            img = ImageIO.read(inputStream);
         } catch (IOException e) {
             OraxenPlugin.get().getLogger().warning("Error while reading " + name + ": " + e.getMessage());
-            return false;
+            return;
         }
 
         if (name.equals("leather_layer_1.png")) {
@@ -96,7 +105,7 @@ public class ShaderArmorTextures extends CustomArmor {
             layer1 = img;
             layer1Width = shaderType == ShaderType.FANCY ? layer1Width + layer1.getWidth() : getLayerWidth();
             layer1Height = shaderType == ShaderType.FANCY ? getLayerHeight() : layer1Height + layer1.getHeight();
-            return true;
+            return;
         } else if (name.equals("leather_layer_2.png")) {
             img = rescaleArmorImage(img);
             img = initLayer(img);
@@ -104,10 +113,10 @@ public class ShaderArmorTextures extends CustomArmor {
             layer2 = img;
             layer2Width = shaderType == ShaderType.FANCY ? layer2Width + layer2.getWidth() : getLayerWidth();
             layer2Height = shaderType == ShaderType.FANCY ? getLayerHeight() : layer2Height + layer2.getHeight();
-            return true;
+            return;
         }
 
-        return name.contains("armor_layer_") && handleArmorLayer(name, file);
+        if (name.contains("armor_layer_")) handleArmorLayer(name, texture);
     }
 
     private int getLayerWidth() {
@@ -140,7 +149,7 @@ public class ShaderArmorTextures extends CustomArmor {
         return output;
     }
 
-    private boolean handleArmorLayer(String name, File file) {
+    private boolean handleArmorLayer(String name, Texture texture) {
         String prefix = name.split("armor_layer_")[0];
 
         // Skip actually editing the emissive image,
@@ -148,8 +157,8 @@ public class ShaderArmorTextures extends CustomArmor {
         if (name.endsWith("_e.png")) return false;
 
         BufferedImage original;
-        try {
-            original = ImageIO.read(file);
+        try(ByteArrayInputStream inputStream = new ByteArrayInputStream(texture.data().toByteArray())) {
+            original = ImageIO.read(inputStream);
         } catch (IOException e) {
             OraxenPlugin.get().getLogger().warning("Error while reading " + name + ": " + e.getMessage());
             return false;
@@ -165,12 +174,12 @@ public class ShaderArmorTextures extends CustomArmor {
         // if a file exists with same name + _e it should be emissive
         // This should not be edited, simply added to the width and pixel should be edited
         // on the original image
-        File emissiveFile = file.getParentFile().toPath().toAbsolutePath().resolve(name.replace(".png", "_e.png")).toFile();
-        boolean isEmissive = Files.exists(emissiveFile.toPath());
-        if (isEmissive) {
+        Key emissiveKey = Key.key(StringUtils.removeEnd(texture.key().value(), ".png") + "_e.png");
+        Texture emissiveTexture = resourcePack.texture(emissiveKey);
+        if (emissiveTexture != null) {
             BufferedImage emissive;
-            try {
-                emissive = ImageIO.read(emissiveFile);
+            try(ByteArrayInputStream inputStream = new ByteArrayInputStream(emissiveTexture.data().toByteArray())) {
+                emissive = ImageIO.read(inputStream);
             } catch (IOException e) {
                 OraxenPlugin.get().getLogger().warning("Error while reading " + name + ": " + e.getMessage());
                 return false;
@@ -307,16 +316,16 @@ public class ShaderArmorTextures extends CustomArmor {
         return !(layers1.isEmpty() || layers2.isEmpty() || layer1 == null || layer2 == null);
     }
 
-    public InputStream getLayerOne() throws IOException {
-        return getInputStream(layer1Width, layer1Height, layer1, layers1);
+    public Writable layerOneData() {
+        return layerWritable(layer1Width, layer1Height, layer1, layers1);
     }
 
-    public InputStream getLayerTwo() throws IOException {
-        return getInputStream(layer2Width, layer2Height, layer2, layers2);
+    public Writable layerTwoData() {
+        return layerWritable(layer2Width, layer2Height, layer2, layers2);
     }
 
-    private final String OPTIFINE_ARMOR_PATH = "assets/minecraft/optifine/cit/armors/";
-    private final String OPTIFINE_ARMOR_ANIMATION_PATH = "assets/minecraft/optifine/anim/";
+    private final String OPTIFINE_ARMOR_KEY = "minecraft:optifine/cit/armors/";
+    private final String OPTIFINE_ARMOR_ANIMATION_KEY = "minecraft:optifine/anim/";
 
     private InputStream rescaleArmorImage(File original) {
         try {
@@ -365,32 +374,31 @@ public class ShaderArmorTextures extends CustomArmor {
         }
     }
 
-    public Set<VirtualFile> getOptifineFiles() throws FileNotFoundException {
-        Set<VirtualFile> optifineFiles = new HashSet<>(generateLeatherArmors());
+    public List<Texture> optifineFiles() {
+        List<Texture> optifineFiles = new ArrayList<>(generateLeatherArmors());
 
         for (Map.Entry<String, InputStream> armorFile : allArmors().entrySet()) {
             String fileName = armorFile.getKey();
-            String parentFolder = StringUtils.substringBefore(fileName, "_");
-            String path = OPTIFINE_ARMOR_PATH + parentFolder;
-            optifineFiles.add(new VirtualFile(path, fileName, armorFile.getValue()));
+            String armorPrefix = StringUtils.substringBefore(fileName, "_");
+            try {
+                optifineFiles.add(Texture.texture(Key.key(OPTIFINE_ARMOR_KEY + armorPrefix + "/" + fileName), Writable.copyInputStream(armorFile.getValue())));
+            } catch (IOException e) {
+                e.printStackTrace();
+                continue;
+            }
             if (fileName.endsWith("_e.png")) continue;
 
+            String optifineUnknownFile = "assets/minecarft/optifine/cit/armors/" + armorPrefix + "/" + armorPrefix + ".properties";
             // Avoid duplicate properties files as this is called for both layers, but only needs 1 property file
-            if (optifineFiles.stream().map(VirtualFile::getPath).anyMatch(
-                    p -> Objects.equals(p, path + "/" + parentFolder + ".properties"))) continue;
+            if (resourcePack.unknownFiles().keySet().stream().anyMatch(optifineUnknownFile::equals)) continue;
 
-            String colorProperty = "nbt.display.color=" + armorColor(parentFolder);
+            String colorProperty = "nbt.display.color=" + armorColor(armorPrefix);
             String propContent = armorPropertyFile(fileName, colorProperty, 1);
 
-            try {
-                ByteArrayInputStream inputStream = new ByteArrayInputStream(propContent.getBytes(StandardCharsets.UTF_8));
-                optifineFiles.add(new VirtualFile(path, parentFolder + ".properties", inputStream));
-                inputStream.close();
+            try(ByteArrayInputStream inputStream = new ByteArrayInputStream(propContent.getBytes(StandardCharsets.UTF_8))) {
+                resourcePack.unknownFile(optifineUnknownFile, Writable.copyInputStream(inputStream));
             } catch (IOException ignored) {
             }
-
-            if (fileName.endsWith("_a.png"))
-                optifineFiles.addAll(optifineAnimFiles(armorFile.getValue(), fileName, parentFolder));
         }
 
         return optifineFiles;
@@ -405,61 +413,27 @@ public class ShaderArmorTextures extends CustomArmor {
         ).map(s -> s.getValue().getColor()).findFirst().orElse(Color.WHITE).asRGB();
     }
 
-    private List<VirtualFile> optifineAnimFiles(InputStream armorFile, String fileName, String parentFolder) {
-        List<VirtualFile> optifineFiles = new ArrayList<>();
-        int height;
-        int width;
-        try {
-            BufferedImage image = ImageIO.read(armorFile);
-            height = image.getHeight();
-            width = image.getWidth();
-        } catch (IOException e) {
-            Logs.logError("Error while reading " + fileName + ": " + e.getMessage());
-            return optifineFiles;
-        }
-        String animPropContent = optifineArmorAnimPropertyFile(parentFolder, fileName, width, height, height / getLayerHeight());
-        ByteArrayInputStream animInputStream = new ByteArrayInputStream(animPropContent.getBytes(StandardCharsets.UTF_8));
-        optifineFiles.add(new VirtualFile(OPTIFINE_ARMOR_ANIMATION_PATH + parentFolder, parentFolder + "_anim.properties", animInputStream));
-        //TODO Adds a corrupted file, probably the armorFile inputstream
-        optifineFiles.add(new VirtualFile(OPTIFINE_ARMOR_ANIMATION_PATH + parentFolder, fileName, armorFile));
-        return optifineFiles;
-    }
+    private List<Texture> generateLeatherArmors() {
+        List<Texture> leatherArmors = new ArrayList<>();
 
-    private String optifineArmorAnimPropertyFile(String parentFolder, String fileName, int width, int height, int frames) {
-        StringBuilder string = new StringBuilder("""
-                from=~/anim/""" + fileName + "\n" + """
-                to=""" + OPTIFINE_ARMOR_PATH + parentFolder + "/" + fileName + "\n" + """
-                y=0""" + "\n" + """
-                x=0""" + "\n" + """
-                h=""" + height + "\n" + """
-                w=""" + width + "\n");
-
-        for (int i = 0; i < frames; i++) {
-            string.append("""
-                    tile.""").append(i).append("=").append(i).append("\n").append("""
-                    duration.""").append(i).append("=").append(animatedArmorFramerate() / frames).append("\n");
-        }
-        return string.toString();
-    }
-
-    private List<VirtualFile> generateLeatherArmors() {
-        List<VirtualFile> leatherArmors = new ArrayList<>();
-        String absolute = OraxenPlugin.get().getDataFolder().getAbsolutePath() + "/pack/textures/models/armor";
-        File leatherFile1 = new File(absolute, "/leather_layer_1.png");
-        File leatherFile2 = new File(absolute, "/leather_layer_2.png");
-        File leatherFileOverlay = new File(absolute, "/leather_layer_1_overlay.png");
-        String leatherPath = OPTIFINE_ARMOR_PATH + "leather";
+        Texture leatherLayerOne = resourcePack.texture(Key.key("models/armor/leather_layer_1.png"));
+        Texture leatherLayerTwo = resourcePack.texture(Key.key("models/armor/leather_layer_2.png"));
+        Texture leatherOverlay = resourcePack.texture(Key.key("models/armor/leather_layer_1_overlay.png"));
 
         // If someone deletes required or compiles, don't fail simply break leather shader armor
-        if (!leatherFile1.exists() || !leatherFile2.exists() || !leatherFileOverlay.exists()) return leatherArmors;
+        if (leatherLayerOne == null || leatherLayerTwo == null || leatherOverlay == null) return leatherArmors;
 
-        leatherArmors.add(new VirtualFile(leatherPath, "leather_armor_layer_1.png", rescaleArmorImage(leatherFile1)));
-        leatherArmors.add(new VirtualFile(leatherPath, "leather_armor_layer_2.png", rescaleArmorImage(leatherFile2)));
-        leatherArmors.add(new VirtualFile(leatherPath, "leather_armor_overlay.png", rescaleArmorImage(leatherFileOverlay)));
+        leatherArmors.add(leatherLayerOne.toBuilder().key(Key.key(OPTIFINE_ARMOR_KEY + "leather/leather_armor_layer_1.png")).build());
+        leatherArmors.add(leatherLayerTwo.toBuilder().key(Key.key(OPTIFINE_ARMOR_KEY + "leather/leather_armor_layer_2.png")).build());
+        leatherArmors.add(leatherOverlay.toBuilder().key(Key.key(OPTIFINE_ARMOR_KEY + "leather/leather_armor_overlay.png")).build());
 
         String content = correctLeatherPropertyFile(armorPropertyFile("leather_armor_layer_1.png", "", 0));
         ByteArrayInputStream inputStream = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
-        leatherArmors.add(new VirtualFile(leatherPath, "leather.properties", inputStream));
+        try {
+            resourcePack.unknownFile("assets/minecraft/optifine/cit/armors/leather.properties", Writable.copyInputStream(inputStream));
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
 
         return leatherArmors;
     }
@@ -491,7 +465,7 @@ public class ShaderArmorTextures extends CustomArmor {
             String itemId = entry.getKey();
             ItemBuilder builder = entry.getValue();
             String armorType = StringUtils.substringBeforeLast(itemId, "_");
-            if (!builder.hasOraxenMeta()) continue;
+            if (!builder.hasOraxenMeta() || builder.getOraxenMeta().modelTextures() == null) continue;
             List<ModelTexture> layerList = builder.getOraxenMeta().modelTextures().layers();
 
             boolean isArmor = builder.build().getType().toString().contains("LEATHER_");
@@ -560,11 +534,19 @@ public class ShaderArmorTextures extends CustomArmor {
         return specifiedColors;
     }
 
-    private InputStream getInputStream(int layerWidth, int layerHeight, BufferedImage layer, List<BufferedImage> layers) throws IOException {
+    private Writable layerWritable(int layerWidth, int layerHeight, BufferedImage layer, List<BufferedImage> layers) {
         layers.add(0, layer);
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ImageIO.write(mergeImages(layerWidth, layerHeight, layers.toArray(new BufferedImage[0])), "png", outputStream);
-        return new ByteArrayInputStream(outputStream.toByteArray());
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
+            ImageIO.write(mergeImages(layerWidth, layerHeight, layers.toArray(new BufferedImage[0])), "png", outputStream);
+            try (ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray())) {
+                return Writable.copyInputStream(inputStream);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return Writable.EMPTY;
     }
 
     private void setPixel(WritableRaster raster, int x, int y, Color color) {
@@ -600,10 +582,11 @@ public class ShaderArmorTextures extends CustomArmor {
     private static class FancyArmorShaders {
         private static void generateArmorShaderFiles() {
             String file = "assets/minecraft/shaders/core/rendertype_armor_cutout_no_cull";
-            OraxenPlugin.get().packGenerator().resourcePack().unknownFile(file + ".json", shaderJson());
-            OraxenPlugin.get().packGenerator().resourcePack().unknownFile(file + ".vsh", shaderVsh());
-            OraxenPlugin.get().packGenerator().resourcePack().unknownFile(file + ".fsh", shaderFsh());
-            OraxenPlugin.get().packGenerator().resourcePack().unknownFile("LICENSE.md", license());
+            ResourcePack resourcePack = OraxenPlugin.get().packGenerator().resourcePack();
+            resourcePack.unknownFile(file + ".json", shaderJson());
+            resourcePack.unknownFile(file + ".vsh", shaderVsh());
+            resourcePack.unknownFile(file + ".fsh", shaderFsh());
+            resourcePack.unknownFile("LICENSE.md", license());
         }
 
         private static Writable shaderVsh() {

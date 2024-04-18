@@ -8,7 +8,9 @@ table:
         roof: false
         floor: true
         wall: false
-      barrier: true
+      hitbox:
+        barrierHitboxes:
+          - 0,0,0
       light: 5
       drop:
         silktouch: false
@@ -25,11 +27,12 @@ cart:
     furniture:
       type: DISPLAY_ENTITY
       hitbox:
-        width: 1.0
-        height: 1.0
+        barrierHitboxes:
+          - 0,0,0
+        interactionHitboxes:
+          - 1 1 0,0,0 # width height offsetX,offsetY,offsetZ
       display_entity_properties:
         display_transform: FIXED
-      barrier: true
       limited_placing:
         roof: false
         floor: true
@@ -49,17 +52,18 @@ chair:
     furniture:
       type: DISPLAY_ENTITY
       hitbox:
-        width: 1.0
-        height: 2.0
+        barrierHitboxes:
+          - 0,0,0
+        interactionHitboxes:
+          - 1 2 0,0,0 # width height offsetX,offsetY,offsetZ
       display_entity_properties:
         display_transform: FIXED
-      barrier: true
       limited_placing:
         roof: false
         floor: true
         wall: false
-      seat:
-        height: 0
+      seats:
+        - 0,0,0 #offsetX,offsetY,offsetZ
       drop:
         silktouch: false
         loots:
@@ -76,19 +80,18 @@ coach:
       type: DISPLAY_ENTITY
       display_entity_properties:
         display_transform: FIXED
-      barrier: true
+      hitbox:
+        barrierHitboxes:
+          - 0,0,0
+          - 0,0,1
+          - 0,0,2
+          - 1,0,0
+          - 1,0,1
+          - 1,0,2
       limited_placing:
         roof: false
         floor: true
         wall: false
-      barriers:
-        - origin # Shorthand for { x: 0, y: 0, z: 0 }
-        - z: 1 # If not specified, coord is 0 -> { x: 0, y: 0, z: 1 }
-        - z: 2
-        - x: 1
-        - { x: 1, z: 1 }
-        - x: 1
-          z: 2
       drop:
         silktouch: false
         loots:
@@ -111,7 +114,6 @@ shelf:
         block_types: []
         block_tags: []
         oraxen_blocks: []
-      barrier: false
       drop:
         silktouch: false
         loots:

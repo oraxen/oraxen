@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFactory;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ModelEngineUtils;
 import io.th0rgal.oraxen.utils.ParseUtils;
@@ -63,9 +64,10 @@ public class PackGenerator {
 
         mergePack(MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile()));
         resourcePack.removeUnknownFile("pack.zip");
-        for (Map.Entry<String, Writable> entry : new HashSet<>(resourcePack.unknownFiles().entrySet()))
+        for (Map.Entry<String, Writable> entry : new LinkedHashSet<>(resourcePack.unknownFiles().entrySet()))
             if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
 
+        CustomBlockFactory.get().blockStates().forEach(resourcePack::blockState);
         addItemPackFiles();
         addGlyphFiles();
         addSoundFile();
@@ -87,12 +89,12 @@ public class PackGenerator {
     }
 
     private void sortModelOverrides() {
-        for (Model model : resourcePack.models()) {
-            List<ItemOverride> sortedOverrides = model.overrides();
-            sortedOverrides.sort(Comparator.comparingInt(o -> {
+        for (Model model : new ArrayList<>(resourcePack.models())) {
+            List<ItemOverride> sortedOverrides = new LinkedHashSet<>(model.overrides()).stream().sorted(Comparator.comparingInt(o -> {
                 Optional<ItemPredicate> cmd = o.predicate().stream().filter(p -> p.name().equals("custom_model_data")).findFirst();
                 return cmd.isPresent() ? ParseUtils.parseInt(cmd.get().value().toString(), 0) : 0;
-            }));
+            })).toList();
+            model.toBuilder().overrides(sortedOverrides).build().addTo(resourcePack);
         }
     }
 
@@ -109,7 +111,7 @@ public class PackGenerator {
     }
 
     private void addGlyphFiles() {
-        Map<Key, List<FontProvider>> fontGlyphs = new HashMap<>();
+        Map<Key, List<FontProvider>> fontGlyphs = new LinkedHashMap<>();
         for (Glyph glyph : OraxenPlugin.get().fontManager().glyphs()) {
             if (!glyph.hasBitmap()) fontGlyphs.compute(glyph.font(), (key, providers) -> {
                 if (providers == null) providers = new ArrayList<>();
@@ -137,7 +139,7 @@ public class PackGenerator {
             SoundRegistry existingRegistry = resourcePack.soundRegistry(customSoundRegistry.namespace());
             if (existingRegistry == null) customSoundRegistry.addTo(resourcePack);
             else {
-                Collection<SoundEvent> mergedEvents = new HashSet<>();
+                Collection<SoundEvent> mergedEvents = new LinkedHashSet<>();
                 mergedEvents.addAll(existingRegistry.sounds());
                 mergedEvents.addAll(customSoundRegistry.sounds());
                 SoundRegistry.soundRegistry().namespace(existingRegistry.namespace()).sounds(mergedEvents).build().addTo(resourcePack);
@@ -213,7 +215,7 @@ public class PackGenerator {
         importedPack.soundRegistries().forEach(soundRegistry -> {
             SoundRegistry baseRegistry = resourcePack.soundRegistry(soundRegistry.namespace());
             if (baseRegistry != null) {
-                Collection<SoundEvent> mergedEvents = new HashSet<>(baseRegistry.sounds());
+                Collection<SoundEvent> mergedEvents = new LinkedHashSet<>(baseRegistry.sounds());
                 mergedEvents.addAll(soundRegistry.sounds());
                 SoundRegistry.soundRegistry(baseRegistry.namespace(), mergedEvents).addTo(resourcePack);
             } else soundRegistry.addTo(resourcePack);
@@ -250,7 +252,7 @@ public class PackGenerator {
     private void parseLanguageFiles() {
         parseGlobalLanguage();
         for (Language language : new ArrayList<>(resourcePack.languages())) {
-            for (Map.Entry<String, String> entry : new HashSet<>(language.translations().entrySet())) {
+            for (Map.Entry<String, String> entry : new LinkedHashSet<>(language.translations().entrySet())) {
                 language.translations().put(entry.getKey(), AdventureUtils.parseLegacyThroughMiniMessage(entry.getValue()));
                 language.translations().remove("DO_NOT_ALTER_THIS_LINE");
             }
@@ -266,9 +268,9 @@ public class PackGenerator {
         for (Key langKey : availableLanguageCodes) {
             Language language = resourcePack.language(langKey);
             if (language == null) language = Language.language(langKey, Map.of());
-            Map<String, String> newTranslations = new HashMap<>(language.translations());
+            Map<String, String> newTranslations = new LinkedHashMap<>(language.translations());
 
-            for (Map.Entry<String, String> globalEntry : new HashSet<>(globalLanguage.translations().entrySet())) {
+            for (Map.Entry<String, String> globalEntry : new LinkedHashSet<>(globalLanguage.translations().entrySet())) {
                 newTranslations.putIfAbsent(globalEntry.getKey(), globalEntry.getValue());
             }
             resourcePack.language(Language.language(langKey, newTranslations));
@@ -276,7 +278,7 @@ public class PackGenerator {
         resourcePack.removeLanguage(Key.key("global"));
     }
 
-    private static final Set<Key> availableLanguageCodes = new HashSet<>(Arrays.asList(
+    private static final Set<Key> availableLanguageCodes = new LinkedHashSet<>(Arrays.asList(
             "af_za", "ar_sa", "ast_es", "az_az", "ba_ru",
             "bar", "be_by", "bg_bg", "br_fr", "brb", "bs_ba", "ca_es", "cs_cz",
             "cy_gb", "da_dk", "de_at", "de_ch", "de_de", "el_gr", "en_au", "en_ca",
@@ -292,15 +294,15 @@ public class PackGenerator {
             "pt_pt", "qya_aa", "ro_ro", "rpr", "ru_ru", "ry_ua", "se_no", "sk_sk",
             "sl_si", "so_so", "sq_al", "sr_sp", "sv_se", "sxu", "szl", "ta_in",
             "th_th", "tl_ph", "tlh_aa", "tok", "tr_tr", "tt_ru", "uk_ua", "val_es",
-            "vec_it", "vi_vn", "yi_de", "yo_ng", "zh_cn", "zh_hk", "zh_tw", "zlm_arab")).stream().map(Key::key).collect(Collectors.toSet());
+            "vec_it", "vi_vn", "yi_de", "yo_ng", "zh_cn", "zh_hk", "zh_tw", "zlm_arab")).stream().map(Key::key).collect(Collectors.toCollection(LinkedHashSet::new));
 
-    private final static Set<String> ignoredExtensions = new HashSet<>(Arrays.asList(".json", ".png", ".mcmeta"));
+    private final static Set<String> ignoredExtensions = new LinkedHashSet<>(Arrays.asList(".json", ".png", ".mcmeta"));
 
     private void removeExcludedFileExtensions() {
         for (String extension : Settings.PACK_EXCLUDED_FILE_EXTENSIONS.toStringList()) {
             extension = extension.startsWith(".") ? extension : "." + extension;
             if (ignoredExtensions.contains(extension)) continue;
-            for (Map.Entry<String, Writable> entry : new HashSet<>(resourcePack.unknownFiles().entrySet())) {
+            for (Map.Entry<String, Writable> entry : new LinkedHashSet<>(resourcePack.unknownFiles().entrySet())) {
                 if (entry.getKey().endsWith(extension)) resourcePack.removeUnknownFile(entry.getKey());
             }
         }

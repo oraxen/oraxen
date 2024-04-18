@@ -96,6 +96,7 @@ public class NoteBlockSoundListener implements Listener {
         GameEvent gameEvent = event.getEvent();
         if (!(entity instanceof LivingEntity livingEntity) || !isLoaded(entity.getLocation())) return;
         if (gameEvent == GameEvent.HIT_GROUND && livingEntity.getFallDistance() < 4.0) return;
+        if (gameEvent == GameEvent.STEP && (livingEntity.isSneaking() || livingEntity.isInWater() || livingEntity.isInLava() || livingEntity.isSwimming())) return;
         Block block = BlockHelpers.getBlockStandingOn(entity);
 
         if (block == null || block.getType().isAir() || block.getBlockData().getSoundGroup().getStepSound() != Sound.BLOCK_WOOD_STEP) return;

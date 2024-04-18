@@ -13,6 +13,7 @@ import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import team.unnamed.creative.blockstate.BlockState;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,6 +34,14 @@ public class CustomBlockFactory extends MechanicFactory {
 
     public static CustomBlockFactory get() {
         return instance;
+    }
+
+    public List<BlockState> blockStates() {
+        List<BlockState> blockStates = new ArrayList<>();
+        if (NoteBlockMechanicFactory.isEnabled()) blockStates.add(NoteBlockMechanicFactory.get().generateBlockStateFile());
+        if (StringBlockMechanicFactory.isEnabled()) blockStates.add(StringBlockMechanicFactory.get().generateBlockState());
+
+        return blockStates;
     }
 
     public List<String> toolTypes(CustomBlockType type) {

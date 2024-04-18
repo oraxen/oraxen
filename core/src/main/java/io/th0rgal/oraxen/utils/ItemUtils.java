@@ -24,6 +24,24 @@ public class ItemUtils {
         itemStack.setAmount(Math.max(0, itemStack.getAmount() - amount));
     }
 
+    public static void displayName(ItemStack itemStack, Component component) {
+        editItemMeta(itemStack, itemMeta -> {
+            if (VersionUtil.isPaperServer()) itemMeta.displayName(component);
+            else itemMeta.setDisplayName(AdventureUtils.LEGACY_SERIALIZER.serialize(component));
+        });
+    }
+
+    public static void displayName(ItemMeta itemMeta, Component component) {
+        if (VersionUtil.isPaperServer()) itemMeta.displayName(component);
+        else itemMeta.setDisplayName(AdventureUtils.LEGACY_SERIALIZER.serialize(component));
+    }
+
+    public static void displayName(ItemMeta itemMeta, ItemMeta otherMeta) {
+        if (itemMeta == null) return;
+        if (VersionUtil.isPaperServer()) itemMeta.displayName(otherMeta.displayName());
+        else itemMeta.setDisplayName(otherMeta.getDisplayName());
+    }
+
     public static void lore(ItemStack itemStack, List<Component> components) {
         if (VersionUtil.isPaperServer()) itemStack.lore(components);
         else itemStack.setLore(components.stream().map(AdventureUtils.LEGACY_SERIALIZER::serialize).toList());

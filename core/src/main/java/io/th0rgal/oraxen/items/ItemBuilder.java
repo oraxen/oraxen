@@ -59,7 +59,6 @@ public class ItemBuilder {
     private DyeColor bodyColor; // TropicalFishBucketMeta
     private TropicalFish.Pattern pattern;
     private DyeColor patternColor;
-    private String displayName;
     private boolean unbreakable;
     private boolean unstackable;
     private Set<ItemFlag> itemFlags;
@@ -67,6 +66,7 @@ public class ItemBuilder {
     private Multimap<Attribute, AttributeModifier> attributeModifiers;
     private boolean hasCustomModelData;
     private int customModelData;
+    private Component displayName;
     private List<Component> lore;
     private ItemStack finalItemStack;
 
@@ -127,8 +127,15 @@ public class ItemBuilder {
             patternColor = tropicalFishBucketMeta.getPatternColor();
         }
 
-        if (itemMeta.hasDisplayName())
-            displayName = itemMeta.getDisplayName();
+        if (itemMeta.hasDisplayName()) {
+            if (VersionUtil.isPaperServer()) displayName = itemMeta.displayName();
+            else displayName = AdventureUtils.LEGACY_SERIALIZER.deserialize(itemMeta.getDisplayName());
+        }
+
+        if (itemMeta.hasLore()) {
+            if (VersionUtil.isPaperServer()) lore = itemMeta.lore();
+            else lore = itemMeta.getLore().stream().map(l -> AdventureUtils.LEGACY_SERIALIZER.deserialize(l).asComponent()).toList();
+        }
 
         unbreakable = itemMeta.isUnbreakable();
         unstackable = itemMeta.getPersistentDataContainer().has(UNSTACKABLE_KEY, DataType.UUID);
@@ -143,11 +150,6 @@ public class ItemBuilder {
         hasCustomModelData = itemMeta.hasCustomModelData();
         if (itemMeta.hasCustomModelData())
             customModelData = itemMeta.getCustomModelData();
-
-        if (itemMeta.hasLore()) {
-            if (VersionUtil.isPaperServer()) lore = itemMeta.lore();
-            else lore = itemMeta.getLore().stream().map(l -> AdventureUtils.LEGACY_SERIALIZER.deserialize(l).asComponent()).toList();
-        }
 
         persistentDataContainer = itemMeta.getPersistentDataContainer();
 
@@ -171,11 +173,20 @@ public class ItemBuilder {
         return this;
     }
 
+    @Deprecated
     public String getDisplayName() {
-        return displayName != null ? displayName : AdventureUtils.MINI_MESSAGE.serialize(itemStack.displayName());
+        return displayName != null ? AdventureUtils.MINI_MESSAGE.serialize(displayName) : "";
+    }
+    public Component displayName() {
+        return displayName != null ? displayName : Component.empty();
     }
 
-    public ItemBuilder setDisplayName(final String displayName) {
+    @Deprecated
+    public ItemBuilder setDisplayName(String displayName) {
+        this.displayName = AdventureUtils.LEGACY_SERIALIZER.deserialize(displayName);
+        return this;
+    }
+    public ItemBuilder displayName(Component displayName) {
         this.displayName = displayName;
         return this;
     }
@@ -409,8 +420,8 @@ public class ItemBuilder {
         assert itemMeta != null;
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
         if (displayName != null) {
-            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
-            itemMeta.setDisplayName(displayName);
+            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(displayName));
+            ItemUtils.displayName(itemMeta, displayName);
         }
 
         itemMeta.setUnbreakable(unbreakable);

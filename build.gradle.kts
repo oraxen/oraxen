@@ -115,9 +115,13 @@ allprojects {
         compileOnly("com.willfp:eco:6.65.5")
         compileOnly("com.willfp:libreforge:4.36.0")
         compileOnly("nl.rutgerkok:blocklocker:1.10.4-SNAPSHOT")
-        compileOnly("team.unnamed:creative-api:$creativeVersion")
-        compileOnly("team.unnamed:creative-serializer-minecraft:$creativeVersion")
-        compileOnly("team.unnamed:creative-server:$creativeVersion")
+        //compileOnly("team.unnamed:creative-api:$creativeVersion")
+        //compileOnly("team.unnamed:creative-serializer-minecraft:$creativeVersion")
+        //compileOnly("team.unnamed:creative-server:$creativeVersion")
+
+        implementation(files("../libs/creative-api-1.7.1.jar"))
+        implementation(files("../libs/creative-serializer-minecraft-1.7.1.jar"))
+        implementation(files("../libs/creative-server-1.7.1.jar"))
 
         implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.5.0")
@@ -220,9 +224,9 @@ bukkit {
         "net.kyori:adventure-platform-bukkit:$platformVersion",
         "com.google.code.gson:gson:$googleGsonVersion",
         "gs.mclo:java:2.2.1",
-        "team.unnamed:creative-api:$creativeVersion",
-        "team.unnamed:creative-serializer-minecraft:$creativeVersion",
-        "team.unnamed:creative-server:$creativeVersion",
+        //"team.unnamed:creative-api:$creativeVersion",
+        //"team.unnamed:creative-serializer-minecraft:$creativeVersion",
+        //"team.unnamed:creative-server:$creativeVersion",
     )
 }
 

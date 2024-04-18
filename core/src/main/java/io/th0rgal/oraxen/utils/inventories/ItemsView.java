@@ -13,6 +13,7 @@ import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.Utils;
+import net.kyori.adventure.text.Component;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Material;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -65,13 +66,13 @@ public class ItemsView {
 
         ItemStack nextPage = (Settings.ORAXEN_INV_NEXT_ICON.getValue() == null
                 ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById(Settings.ORAXEN_INV_NEXT_ICON.toString()))
-                .setDisplayName("Next Page").build();
+                .displayName(Component.text("Next Page")).build();
         ItemStack previousPage = (Settings.ORAXEN_INV_PREVIOUS_ICON.getValue() == null
                 ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById(Settings.ORAXEN_INV_PREVIOUS_ICON.toString()))
-                .setDisplayName("Previous Page").build();
+                .displayName(Component.text("Previous Page")).build();
         ItemStack exitIcon = (Settings.ORAXEN_INV_EXIT.getValue() == null
                 ? new ItemBuilder(Material.BARRIER) : OraxenItems.getItemById(Settings.ORAXEN_INV_EXIT.toString()))
-                .setDisplayName("Exit").build();
+                .displayName(Component.text("Exit")).build();
 
         if (mainGui instanceof PaginatedGui paginated) {
             if (paginated.getPagesNum() > 1) {
@@ -109,13 +110,13 @@ public class ItemsView {
 
         ItemStack nextPage = (Settings.ORAXEN_INV_NEXT_ICON.getValue() == null
                 ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById(Settings.ORAXEN_INV_NEXT_ICON.toString()))
-                .setDisplayName("Next Page").build();
+                .displayName(Component.text("Next Page")).build();
         ItemStack previousPage = (Settings.ORAXEN_INV_PREVIOUS_ICON.getValue() == null
                 ? new ItemBuilder(Material.ARROW) : OraxenItems.getItemById(Settings.ORAXEN_INV_PREVIOUS_ICON.toString()))
-                .setDisplayName("Previous Page").build();
+                .displayName(Component.text("Previous Page")).build();
         ItemStack exitIcon = (Settings.ORAXEN_INV_EXIT.getValue() == null
                 ? new ItemBuilder(Material.BARRIER) : OraxenItems.getItemById(Settings.ORAXEN_INV_EXIT.toString()))
-                .setDisplayName("Exit").build();
+                .displayName(Component.text("Exit")).build();
 
         if (gui.getPagesNum() > 1) {
             gui.setItem(6, 2, new GuiItem(previousPage, event -> gui.previous()));
@@ -131,28 +132,28 @@ public class ItemsView {
         ItemStack itemStack;
         String fileName = Utils.removeExtension(file.getName());
         String material = settings.getString(String.format("oraxen_inventory.menu_layout.%s.icon", fileName), "PAPER");
-        String displayName = ItemParser.parseComponentDisplayName(settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), "<green>" + file.getName()));
+        Component displayName = ItemParser.parseComponentDisplayName(settings.getString(String.format("oraxen_inventory.menu_layout.%s.displayname", fileName), "<green>" + file.getName()));
         try {
             itemStack = new ItemBuilder(OraxenItems.getItemById(material).getReferenceClone())
                     .addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
-                    .setDisplayName(displayName)
+                    .displayName(displayName)
                     .setLore(new ArrayList<>())
                     .build();
         } catch (final Exception e) {
             try {
                 itemStack = new ItemBuilder(Material.getMaterial(material.toUpperCase()))
                         .addItemFlags(ItemFlag.HIDE_ATTRIBUTES)
-                        .setDisplayName(displayName)
+                        .displayName(displayName)
                         .build();
             } catch (final Exception ignored) {
                 itemStack = new ItemBuilder(Material.PAPER)
-                        .setDisplayName(displayName)
+                        .displayName(displayName)
                         .build();
             }
         }
 
         // avoid possible bug if isOraxenItems is available but can't be an itemstack
-        if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).setDisplayName(displayName).build();
+        if (itemStack == null) itemStack = new ItemBuilder(Material.PAPER).displayName(displayName).build();
         int slot = settings.getInt(String.format("oraxen_inventory.menu_layout.%s.slot", Utils.removeExtension(file.getName())), -1) - 1;
         return Pair.of(itemStack, Math.max(slot, -1));
     }

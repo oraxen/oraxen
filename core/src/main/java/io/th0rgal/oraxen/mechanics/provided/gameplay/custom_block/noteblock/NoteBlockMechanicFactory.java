@@ -23,17 +23,13 @@ import team.unnamed.creative.blockstate.BlockState;
 import team.unnamed.creative.blockstate.MultiVariant;
 import team.unnamed.creative.blockstate.Variant;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class NoteBlockMechanicFactory extends MechanicFactory {
 
     private static final Integer MAX_PER_INSTRUMENT = 50;
     public static final Integer MAX_BLOCK_VARIATION = Instrument.values().length * MAX_PER_INSTRUMENT - 1;
     public static final Map<Integer, NoteBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
-    private final Map<String, MultiVariant> variants = new HashMap<>();
     private static NoteBlockMechanicFactory instance;
     public final List<String> toolTypes;
     public final boolean customSounds;
@@ -43,16 +39,11 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
     public NoteBlockMechanicFactory(ConfigurationSection section) {
         super(section);
         instance = this;
-        variants.put("instrument=harp,powered=false,note=0", MultiVariant.of(Variant.builder().model(Key.key("block/note_block")).build()));
+
         toolTypes = section.getStringList("tool_types");
         customSounds = OraxenPlugin.get().configsManager().getMechanics().getBoolean("custom_block_sounds.noteblock", true);
         removeMineableTag = section.getBoolean("remove_mineable_tag", false);
 
-        BlockState noteState = OraxenPlugin.get().packGenerator().resourcePack().blockState(Key.key("minecraft:note_block"));
-        if (noteState != null) noteState.variants().putAll(variants);
-        else noteState = BlockState.of(Key.key("minecraft:note_block"), variants);
-
-        OraxenPlugin.get().packGenerator().resourcePack().blockState(noteState);
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),
                 new NoteBlockMechanicListener(),
                 new LogStripListener());
@@ -81,6 +72,15 @@ public class NoteBlockMechanicFactory extends MechanicFactory {
 
     public boolean removeMineableTag() {
         return removeMineableTag;
+    }
+
+    private final Map<String, MultiVariant> variants = new LinkedHashMap<>();
+    public BlockState generateBlockStateFile() {
+        Key noteKey = Key.key("minecraft:note_block");
+        variants.put("instrument=harp,powered=false,note=0", MultiVariant.of(Variant.builder().model(Key.key("block/note_block")).build()));
+        BlockState noteState = OraxenPlugin.get().packGenerator().resourcePack().blockState(noteKey);
+        if (noteState != null) variants.putAll(noteState.variants());
+        return BlockState.of(noteKey, variants);
     }
 
 
