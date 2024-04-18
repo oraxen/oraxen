@@ -13,6 +13,7 @@ import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.pack.PackGenerator;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -24,7 +25,6 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.Nullable;
-import team.unnamed.creative.ResourcePack;
 
 public class ReloadCommand {
 
@@ -61,12 +61,11 @@ public class ReloadCommand {
         Message.PACK_REGENERATED.send(sender);
         OraxenPlugin.get().fontManager(new FontManager(OraxenPlugin.get().configsManager()));
         OraxenPlugin.get().soundManager(new SoundManager(OraxenPlugin.get().configsManager().getSounds()));
-        OraxenPlugin.get().packGenerator().resourcePack(ResourcePack.resourcePack());
+        OraxenPlugin.get().packGenerator(new PackGenerator());
         OraxenPlugin.get().packGenerator().generatePack();
         OraxenPlugin.get().packServer().uploadPack();
         if (Settings.PACK_SEND_RELOAD.toBool()) for (Player player : Bukkit.getOnlinePlayers())
             OraxenPlugin.get().packServer().sendPack(player);
-        //OraxenPlugin.get().packServer().sendPack();
     }
 
     public static void reloadHud(@Nullable CommandSender sender) {

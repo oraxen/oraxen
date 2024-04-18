@@ -29,7 +29,6 @@ public class StringBlockMechanicFactory extends MechanicFactory {
 
     public static final Map<Integer, StringBlockMechanic> BLOCK_PER_VARIATION = new HashMap<>();
     public static final Integer MAX_BLOCK_VARIATION = 127;
-    private final Map<String, MultiVariant> variants = new HashMap<>();
     private static StringBlockMechanicFactory instance;
     public final List<String> toolTypes;
     private boolean sapling;
@@ -42,19 +41,11 @@ public class StringBlockMechanicFactory extends MechanicFactory {
     public StringBlockMechanicFactory(ConfigurationSection section) {
         super(section);
         instance = this;
-        variants.put("east=false,west=false,south=false,north=false,attached=false,disarmed=false,powered=false", MultiVariant.of(Variant.builder().model(Key.key("block/barrier")).build()));
         toolTypes = section.getStringList("tool_types");
         saplingGrowthCheckDelay = section.getInt("sapling_growth_check_delay");
         sapling = false;
         customSounds = OraxenPlugin.get().configsManager().getMechanics().getBoolean("custom_block_sounds.stringblock_and_furniture", true);
         disableVanillaString = section.getBoolean("disable_vanilla_strings", true);
-
-        // this modifier should be executed when all the items have been parsed, just
-        // before zipping the pack
-        BlockState tripwireState = OraxenPlugin.get().packGenerator().resourcePack().blockState(Key.key("minecraft:tripwire"));
-        if (tripwireState != null) tripwireState.variants().putAll(variants);
-        else tripwireState = BlockState.of(Key.key("minecraft:tripwire"), variants);
-        OraxenPlugin.get().packGenerator().resourcePack().blockState(tripwireState);
 
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicListener(), new SaplingListener());
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockSoundListener());
@@ -78,6 +69,16 @@ public class StringBlockMechanicFactory extends MechanicFactory {
 
     public static StringBlockMechanicFactory get() {
         return instance;
+    }
+
+    private final Map<String, MultiVariant> variants = new HashMap<>();
+    public BlockState generateBlockState() {
+        Key stringKey = Key.key("minecraft:tripwire");
+        variants.put("east=false,west=false,south=false,north=false,attached=false,disarmed=false,powered=false", MultiVariant.of(Variant.builder().model(Key.key("block/barrier")).build()));
+        BlockState stringState = OraxenPlugin.get().packGenerator().resourcePack().blockState(stringKey);
+        if (stringState != null) variants.putAll(stringState.variants());
+
+        return BlockState.of(stringKey, variants);
     }
 
 

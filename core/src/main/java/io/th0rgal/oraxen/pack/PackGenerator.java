@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.font.Glyph;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.CustomBlockFactory;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.ModelEngineUtils;
 import io.th0rgal.oraxen.utils.ParseUtils;
@@ -54,7 +55,6 @@ public class PackGenerator {
     }
 
     public void generatePack() {
-        resourcePack = ResourcePack.resourcePack();
         Logs.logInfo("Generating resourcepack...");
         if (Settings.PACK_IMPORT_DEFAULT.toBool()) importDefaultPack();
         if (Settings.PACK_IMPORT_EXTERNAL.toBool()) importExternalPacks();
@@ -65,6 +65,7 @@ public class PackGenerator {
         for (Map.Entry<String, Writable> entry : new LinkedHashSet<>(resourcePack.unknownFiles().entrySet()))
             if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
 
+        CustomBlockFactory.get().blockStates().forEach(resourcePack::blockState);
         addItemPackFiles();
         addGlyphFiles();
         addSoundFile();

@@ -230,6 +230,10 @@ public class OraxenPlugin extends JavaPlugin {
         return packGenerator;
     }
 
+    public void packGenerator(PackGenerator packGenerator) {
+        this.packGenerator = packGenerator;
+    }
+
     public OraxenPackServer packServer() {
         return packServer != null ? packServer : new EmptyServer();
     }

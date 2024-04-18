@@ -48,16 +48,6 @@ public class ShaderArmorTextures extends CustomArmor {
 
     @Override
     public void generateNeededFiles() {
-        layer1 = null;
-        layer1Width = 0;
-        layer1Height = 0;
-        layers1.clear();
-        layer2 = null;
-        layer2Width = 0;
-        layer2Height = 0;
-        layers2.clear();
-
-
         resourcePack = OraxenPlugin.get().packGenerator().resourcePack();
         generateArmorShaderFiles();
         for (Texture texture : resourcePack.textures()) registerImage(texture);
