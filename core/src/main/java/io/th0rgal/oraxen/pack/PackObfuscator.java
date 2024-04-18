@@ -1,7 +1,9 @@
 package io.th0rgal.oraxen.pack;
 
+import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.bukkit.Material;
 import team.unnamed.creative.ResourcePack;
@@ -15,23 +17,63 @@ import team.unnamed.creative.model.ItemOverride;
 import team.unnamed.creative.model.Model;
 import team.unnamed.creative.model.ModelTexture;
 import team.unnamed.creative.model.ModelTextures;
+import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
+import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter;
 import team.unnamed.creative.texture.Texture;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.*;
 
 public class PackObfuscator {
 
-    private final ResourcePack resourcePack;
+    private ResourcePack resourcePack;
 
     public PackObfuscator(ResourcePack resourcePack) {
         this.resourcePack = resourcePack;
     }
 
-    public void obfuscatePack() {
-        Logs.logInfo("Obfuscating OraxenPack...");
-        obfuscateModels();
-        obfuscateFonts();
-        obfuscateTextures();
+    private final File cachedPackZip = OraxenPlugin.get().packPath().resolve("cachedPack.zip").toFile();
+    private final File tempPackFile = OraxenPlugin.get().packPath().resolve("obfuscationCache/tempPack").toFile();
+    private final File cachedPackFile = OraxenPlugin.get().packPath().resolve("obfuscationCache/cachedPack").toFile();
+    private final File packZip = OraxenPlugin.get().packPath().resolve("pack.zip").toFile();
+    private final MinecraftResourcePackReader reader = MinecraftResourcePackReader.minecraft();
+    private final MinecraftResourcePackWriter writer = MinecraftResourcePackWriter.minecraft();
+
+    public ResourcePack obfuscatePack() {
+        if (!checkCachedPack()) {
+            Logs.logInfo("Obfuscating OraxenPack...");
+            obfuscateModels();
+            obfuscateFonts();
+            obfuscateTextures();
+        }
+
+        return resourcePack;
+    }
+
+    private boolean checkCachedPack() {
+        // Write current resourcePack to a directory
+        writer.writeToDirectory(tempPackFile, resourcePack);
+
+        // If the cachedPackZip exists, read it to a pack and write it to a normal directory
+        if (cachedPackZip.exists()) writer.writeToDirectory(cachedPackFile, reader.readFromZipFile(cachedPackZip));
+        // Get hash of cachedPack by reading from directory
+        String cachedHash = cachedPackFile.exists() ? writer.build(reader.readFromDirectory(cachedPackFile)).hash() : "";
+        // Get the hash of the current resourcePack by reading from the temp directory
+        String tempHash = writer.build(reader.readFromDirectory(tempPackFile)).hash();
+        // Compare the hashes
+        if (!tempHash.equals(cachedHash)) writer.writeToZipFile(cachedPackZip, resourcePack);
+        // If they are the same read from packZip
+        else if (packZip.exists()) resourcePack = reader.readFromZipFile(packZip);
+        else return false;
+        // Delete the tempPackDir for next check
+        try {
+            FileUtils.deleteDirectory(tempPackFile.getParentFile());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return tempHash.equals(cachedHash);
     }
 
     private record ObfuscatedModel(Model originalModel, Model obfuscatedModel) {

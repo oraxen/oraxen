@@ -94,6 +94,7 @@ public enum Settings {
     //Pack
     PACK_GENERATE("Pack.generation.generate", true),
     PACK_OBFUSCATE("Pack.generation.obfuscate", true),
+    PACK_ZIP("Pack.generation.generate_zip", true),
     PACK_IMPORT_DEFAULT("Pack.import.default_assets", true),
     PACK_IMPORT_EXTERNAL("Pack.import.external_packs", true),
     PACK_IMPORT_MODEL_ENGINE("Pack.import.modelengine", true),

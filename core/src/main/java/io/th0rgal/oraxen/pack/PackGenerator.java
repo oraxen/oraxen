@@ -46,6 +46,8 @@ public class PackGenerator {
     private BuiltResourcePack builtPack;
     private final CustomArmor customArmorHandler;
     private final PackObfuscator packObfuscator;
+    private final MinecraftResourcePackReader reader = MinecraftResourcePackReader.minecraft();
+    private final MinecraftResourcePackWriter writer = MinecraftResourcePackWriter.minecraft();
 
     public PackGenerator() {
         generateDefaultPaths();
@@ -62,10 +64,11 @@ public class PackGenerator {
         if (Settings.PACK_IMPORT_EXTERNAL.toBool()) importExternalPacks();
         if (Settings.PACK_IMPORT_MODEL_ENGINE.toBool()) importModelEnginePack();
 
-        mergePack(MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile()));
+        mergePack(reader.readFromDirectory(OraxenPlugin.get().packPath().toFile()));
         resourcePack.removeUnknownFile("pack.zip");
         for (Map.Entry<String, Writable> entry : new LinkedHashSet<>(resourcePack.unknownFiles().entrySet()))
             if (entry.getKey().startsWith("external_packs/")) resourcePack.removeUnknownFile(entry.getKey());
+            else if (entry.getKey().startsWith("obfuscationCache/")) resourcePack.removeUnknownFile(entry.getKey());
 
         CustomBlockFactory.get().blockStates().forEach(resourcePack::blockState);
         addItemPackFiles();
@@ -75,16 +78,19 @@ public class PackGenerator {
         customArmorHandler.generateNeededFiles();
         if (Settings.HIDE_SCOREBOARD_NUMBERS.toBool()) hideScoreboardNumbers();
         if (Settings.HIDE_SCOREBOARD_BACKGROUND.toBool()) hideScoreboardBackground();
-        if (Settings.PACK_OBFUSCATE.toBool()) packObfuscator.obfuscatePack();
 
         removeExcludedFileExtensions();
         sortModelOverrides();
 
         PackSlicer.processInputs(resourcePack);
 
-        MinecraftResourcePackWriter.minecraft().writeToZipFile(OraxenPlugin.get().packPath().resolve("pack.zip").toFile(), resourcePack);
+        File cachedPackFile = OraxenPlugin.get().packPath().resolve("cache/cachedPack").toFile();
+        File packZip = OraxenPlugin.get().packPath().resolve("pack.zip").toFile();
+        if (Settings.PACK_OBFUSCATE.toBool()) resourcePack = packObfuscator.obfuscatePack();
+        else cachedPackFile.delete();
 
-        builtPack = MinecraftResourcePackWriter.minecraft().build(resourcePack);
+        if (Settings.PACK_ZIP.toBool()) writer.writeToZipFile(packZip, resourcePack);
+        builtPack = writer.build(resourcePack);
         Logs.logSuccess("Finished generating resourcepack!", true);
     }
 
@@ -162,11 +168,10 @@ public class PackGenerator {
         File defaultPack = externalPacks.resolve("DefaultPack.zip").toFile();
         if (!defaultPack.exists()) return;
         Logs.logInfo("Importing DefaultPack...");
-        mergePack(MinecraftResourcePackReader.minecraft().readFromZipFile(defaultPack));
+        mergePack(reader.readFromZipFile(defaultPack));
     }
 
     private void importExternalPacks() {
-        MinecraftResourcePackReader reader = MinecraftResourcePackReader.minecraft();
         for (File file : Objects.requireNonNullElse(externalPacks.toFile().listFiles(), new File[]{})) {
             if (file == null || file.getName().equals("DefaultPack.zip")) continue;
             if (file.isDirectory()) {
@@ -186,7 +191,7 @@ public class PackGenerator {
         if (!ModelEngineUtils.isModelEngineEnabled()) return;
         File megPack = ModelEngineAPI.getAPI().getDataFolder().toPath().resolve("resource pack.zip").toFile();
         if (!megPack.exists()) return;
-        mergePack(MinecraftResourcePackReader.minecraft().readFromZipFile(megPack));
+        mergePack(reader.readFromZipFile(megPack));
         Logs.logSuccess("Imported ModelEngine pack successfully!");
     }
 
