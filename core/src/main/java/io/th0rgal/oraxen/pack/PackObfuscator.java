@@ -25,6 +25,7 @@ import team.unnamed.creative.texture.Texture;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.*;
 
 public class PackObfuscator {
@@ -57,7 +58,7 @@ public class PackObfuscator {
     private final MinecraftResourcePackWriter writer = MinecraftResourcePackWriter.minecraft();
 
     public ResourcePack obfuscatePack() {
-        if (true) {
+        if (!checkCachedPack()) {
             Logs.logInfo("Obfuscating OraxenPack...");
             obfuscateModels();
             obfuscateFonts();
@@ -68,6 +69,15 @@ public class PackObfuscator {
     }
 
     private boolean checkCachedPack() {
+        // If we should not cache obfuscation, return
+        if (!Settings.PACK_CACHE_OBFUSCATION.toBool()) {
+            try {
+                Files.deleteIfExists(cachedPackFile.toPath());
+            } catch (IOException ignored) {
+            }
+            return false;
+        }
+
         // Write current resourcePack to a directory
         writer.writeToDirectory(tempPackFile, resourcePack);
 
