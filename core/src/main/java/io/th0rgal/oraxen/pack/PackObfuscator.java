@@ -21,6 +21,10 @@ import team.unnamed.creative.model.ModelTexture;
 import team.unnamed.creative.model.ModelTextures;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackWriter;
+import team.unnamed.creative.sound.Sound;
+import team.unnamed.creative.sound.SoundEntry;
+import team.unnamed.creative.sound.SoundEvent;
+import team.unnamed.creative.sound.SoundRegistry;
 import team.unnamed.creative.texture.Texture;
 
 import java.io.File;
@@ -65,6 +69,7 @@ public class PackObfuscator {
             obfuscateModels();
             obfuscateFonts();
             obfuscateTextures();
+            obfuscateSounds();
         }
 
         return resourcePack;
@@ -106,6 +111,7 @@ public class PackObfuscator {
 
     private final Set<ObfuscatedModel> obfuscatedModels = new HashSet<>();
     private final Set<ObfuscatedTexture> obfuscatedTextures = new HashSet<>();
+    private final Set<ObfuscatedSound> obfuscatedSounds = new HashSet<>();
 
     private record ObfuscatedModel(Model originalModel, Model obfuscatedModel) {
         public boolean containsKey(Key modelKey) {
@@ -117,6 +123,12 @@ public class PackObfuscator {
         public boolean containsKey(Key textureKey) {
             Key key = isItemTexture ? keyPng(textureKey) : keyNoPng(textureKey);
             return originalTexture.key().equals(key) || obfuscatedTexture.key().equals(key);
+        }
+    }
+
+    private record ObfuscatedSound(Sound originalSound, Sound obfuscatedSound) {
+        public boolean containsKey(Key soundKey) {
+            return originalSound.key().equals(soundKey) || obfuscatedSound.key().equals(soundKey);
         }
     }
 
@@ -168,7 +180,6 @@ public class PackObfuscator {
 
     private void obfuscateAtlases() {
         resourcePack.atlases().stream().map(atlas -> {
-                    Logs.logError(atlas.key().asString());
                     List<AtlasSource> nonSingleSources = new ArrayList<>(atlas.sources().stream()
                             .filter(Predicate.not(s -> s instanceof SingleAtlasSource)).toList());
                     Set<SingleAtlasSource> obfSources = atlas.sources().stream().filter(s -> s instanceof SingleAtlasSource)
@@ -181,6 +192,31 @@ public class PackObfuscator {
                     return atlas.toBuilder().sources(nonSingleSources).build();
                 }
         ).forEach(resourcePack::atlas);
+    }
+
+    private void obfuscateSounds() {
+        resourcePack.sounds().stream().map(sound -> {
+            Sound obfSound = Sound.sound(obfuscatedKey(sound.key()), sound.data());
+            obfuscatedSounds.add(new ObfuscatedSound(sound, obfSound));
+            return obfSound;
+        }).forEach(resourcePack::sound);
+
+        resourcePack.soundRegistries().stream().map(soundRegistry -> {
+            List<SoundEvent> obfSoundEvents = soundRegistry.sounds().stream().map(soundEvent -> {
+                List<SoundEntry> obfEntries = soundEvent.sounds().stream().map(soundEntry ->
+                        obfuscatedSounds.stream().filter(obf -> obf.containsKey(soundEntry.key())).findFirst()
+                        .map(obf -> soundEntry.toBuilder().key(obf.obfuscatedSound.key()).build())
+                        .orElse(soundEntry)).toList();
+
+                return soundEvent.toBuilder().sounds(obfEntries).build();
+            }).toList();
+            return SoundRegistry.soundRegistry(soundRegistry.namespace(), obfSoundEvents);
+        }).forEach(resourcePack::soundRegistry);
+
+        obfuscatedSounds.forEach(obf -> {
+            resourcePack.removeSound(obf.originalSound.key());
+            obf.obfuscatedSound.addTo(resourcePack);
+        });
     }
 
     private Model obfuscateModel(Model model) {
