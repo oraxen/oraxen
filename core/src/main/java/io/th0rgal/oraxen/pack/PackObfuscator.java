@@ -10,6 +10,7 @@ import org.bukkit.Material;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.AtlasSource;
 import team.unnamed.creative.atlas.SingleAtlasSource;
+import team.unnamed.creative.blockstate.BlockState;
 import team.unnamed.creative.blockstate.MultiVariant;
 import team.unnamed.creative.blockstate.Selector;
 import team.unnamed.creative.blockstate.Variant;
@@ -56,7 +57,7 @@ public class PackObfuscator {
     private final MinecraftResourcePackWriter writer = MinecraftResourcePackWriter.minecraft();
 
     public ResourcePack obfuscatePack() {
-        if (!checkCachedPack()) {
+        if (true) {
             Logs.logInfo("Obfuscating OraxenPack...");
             obfuscateModels();
             obfuscateFonts();
@@ -116,18 +117,12 @@ public class PackObfuscator {
                     Selector.of(selector.condition(), MultiVariant.of(selector.variant().variants().stream().map(this::obfuscateBlockstateVariant).toList()))
             ).toList();
 
-            blockState.multipart().clear();
-            blockState.multipart().addAll(multiparts);
-
-            Map<String, MultiVariant> variants = new HashMap<>();
-
+            Map<String, MultiVariant> variants = new LinkedHashMap<>();
             blockState.variants().entrySet().stream()
                     .map(e -> Map.entry(e.getKey(), MultiVariant.of(e.getValue().variants().stream().map(this::obfuscateBlockstateVariant).toList()))).toList()
                     .forEach(e -> variants.put(e.getKey(), e.getValue()));
-            blockState.variants().clear();
-            blockState.variants().putAll(variants);
 
-            blockState.addTo(resourcePack);
+            BlockState.of(blockState.key(), variants, multiparts).addTo(resourcePack);
         });
     }
     private void obfuscateFonts() {
@@ -234,6 +229,7 @@ public class PackObfuscator {
 
     private Variant obfuscateBlockstateVariant(Variant variant) {
         Key model = obfuscatedModels.stream().filter(o -> o.originalModel.key().equals(variant.model())).findFirst().map(o -> o.obfuscatedModel.key()).orElse(variant.model());
+        Logs.logError(model.asString());
         return Variant.builder().model(model).uvLock(variant.uvLock()).weight(variant.weight()).x(variant.x()).y(variant.y()).build();
     }
 
