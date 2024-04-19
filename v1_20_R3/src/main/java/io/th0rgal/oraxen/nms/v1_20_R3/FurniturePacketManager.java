@@ -48,7 +48,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     @Override
     public void sendInteractionEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         List<InteractionHitbox> interactionHitboxes = mechanic.hitbox().interactionHitboxes();
-        if (interactionHitboxes.isEmpty()) return;
+        if (interactionHitboxes.isEmpty() || baseEntity.isDead()) return;
         if (mechanic.isModelEngine()) {
             ModelBlueprint blueprint = ModelEngineAPI.getBlueprint(mechanic.getModelEngineID());
             if (blueprint != null && blueprint.getMainHitbox() != null) return;
@@ -119,9 +119,11 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void sendBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+        if (baseEntity.isDead()) return;
+
         Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
-                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
-                .collect(Collectors.toMap(Position::block, l -> BARRIER_DATA));
+                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation())).collect(Collectors.toSet())
+                .stream().collect(Collectors.toMap(Position::block, l -> BARRIER_DATA));
         player.sendMultiBlockChange(positions);
 
         for (BlockPosition position : positions.keySet().stream().map(Position::toBlock).toList()) {
@@ -146,8 +148,8 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     @Override
     public void removeBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         Map<Position, BlockData> positions = mechanic.hitbox().barrierHitboxes().stream()
-                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation()))
-                .collect(Collectors.toMap(Position::block, l -> AIR_DATA));
+                .map(c -> c.groundRotate(baseEntity.getYaw()).add(baseEntity.getLocation())).collect(Collectors.toSet())
+                .stream().collect(Collectors.toMap(Position::block, l -> AIR_DATA));
         player.sendMultiBlockChange(positions);
     }
 }

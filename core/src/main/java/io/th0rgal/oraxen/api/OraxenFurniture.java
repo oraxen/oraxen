@@ -11,6 +11,7 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import org.bukkit.*;
+import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -195,6 +196,12 @@ public class OraxenFurniture {
         // Check if the mechanic or the baseEntity has barriers tied to it
         mechanic.removeBaseEntity(baseEntity);
         return true;
+    }
+
+    @Nullable
+    public static FurnitureMechanic getFurnitureMechanic(Block block) {
+        if (!FurnitureFactory.isEnabled() || block == null) return null;
+        return getFurnitureMechanic(block.getLocation());
     }
 
     /**

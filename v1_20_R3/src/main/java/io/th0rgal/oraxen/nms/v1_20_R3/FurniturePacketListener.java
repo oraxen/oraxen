@@ -15,11 +15,13 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketM
 import io.th0rgal.oraxen.utils.EventUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
@@ -27,6 +29,8 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.Vector;
+
+import java.util.Optional;
 
 public class FurniturePacketListener implements Listener {
 
@@ -81,7 +85,7 @@ public class FurniturePacketListener implements Listener {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
             if (mechanic == null) return;
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
-            packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
+            packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
         }
     }
 
@@ -146,17 +150,21 @@ public class FurniturePacketListener implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteractBarrierHitbox(PlayerInteractEvent event) {
+        if (event.getAction() == Action.PHYSICAL) return;
         Player player = event.getPlayer();
+        Block clickedBlock = event.getClickedBlock();
         Location interactionPoint = event.getInteractionPoint();
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(interactionPoint);
+        FurnitureMechanic mechanic = Optional.ofNullable(OraxenFurniture.getFurnitureMechanic(clickedBlock))
+                .orElse(OraxenFurniture.getFurnitureMechanic(interactionPoint));
+
         if (mechanic == null) return;
-        Entity baseEntity = mechanic.baseEntity(interactionPoint);
+        Entity baseEntity = Optional.ofNullable(mechanic.baseEntity(clickedBlock)).orElse(mechanic.baseEntity(interactionPoint));
         if (baseEntity == null) return;
 
         EventUtils.callEvent(new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), event.getHand(), interactionPoint));
         // Resend the hitbox as client removes the "ghost block"
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                FurnitureFactory.instance.furniturePacketManager().sendBarrierHitboxPacket(baseEntity, mechanic, player)
+                        FurnitureFactory.instance.furniturePacketManager().sendBarrierHitboxPacket(baseEntity, mechanic, player)
         , 1L);
     }
 }

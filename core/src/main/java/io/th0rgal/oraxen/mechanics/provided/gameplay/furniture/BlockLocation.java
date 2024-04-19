@@ -43,7 +43,7 @@ public class BlockLocation implements ConfigurationSerializable {
             this.y = 0;
             this.z = 0;
         } else {
-            List<Integer> split = new ArrayList<>(Arrays.stream(location.split(" ")).map(s -> {
+            List<Integer> split = new ArrayList<>(Arrays.stream(location.split(",")).map(s -> {
                 try {
                     return Integer.parseInt(s);
                 } catch (NumberFormatException e) {
