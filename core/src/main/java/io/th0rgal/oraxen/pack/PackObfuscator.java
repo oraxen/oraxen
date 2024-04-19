@@ -27,6 +27,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class PackObfuscator {
 
@@ -166,11 +168,17 @@ public class PackObfuscator {
 
     private void obfuscateAtlases() {
         resourcePack.atlases().stream().map(atlas -> {
-                    List<SingleAtlasSource> sources = obfuscatedTextures.stream()
-                            .filter(ObfuscatedTexture::isItemTexture)
-                            .map(obf -> keyNoPng(obf.obfuscatedTexture.key()))
-                            .map(AtlasSource::single).toList();
-                    return atlas.toBuilder().sources(sources.stream().map(a -> (AtlasSource) a).toList()).build();
+                    Logs.logError(atlas.key().asString());
+                    List<AtlasSource> nonSingleSources = new ArrayList<>(atlas.sources().stream()
+                            .filter(Predicate.not(s -> s instanceof SingleAtlasSource)).toList());
+                    Set<SingleAtlasSource> obfSources = atlas.sources().stream().filter(s -> s instanceof SingleAtlasSource)
+                            .map(s -> (SingleAtlasSource) s).map(singleSource -> obfuscatedTextures.stream()
+                                    .filter(obf -> obf.containsKey(singleSource.resource()))
+                                    .map(obf -> AtlasSource.single(keyNoPng(obf.obfuscatedTexture.key()))).findFirst()
+                                    .orElse(singleSource)).collect(Collectors.toSet());
+
+                    nonSingleSources.addAll(obfSources);
+                    return atlas.toBuilder().sources(nonSingleSources).build();
                 }
         ).forEach(resourcePack::atlas);
     }
