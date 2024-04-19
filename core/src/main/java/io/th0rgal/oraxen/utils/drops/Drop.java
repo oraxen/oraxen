@@ -205,7 +205,7 @@ public class Drop {
             ItemStack item = loot.getItem(fortuneMultiplier);
 
             if (!canDrop(itemInHand) || item == null) continue;
-            if (ThreadLocalRandom.current().nextInt(loot.getProbability()) != 0) continue;
+            if (Math.random() > loot.getProbability()) continue;
 
             droppedLoots.add(loot);
         }
