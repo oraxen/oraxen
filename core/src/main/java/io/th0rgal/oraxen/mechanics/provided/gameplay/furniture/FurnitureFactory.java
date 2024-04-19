@@ -10,12 +10,15 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.jukebox.JukeboxLi
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.listeners.FurnitureListener;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.listeners.FurnitureSoundListener;
 import io.th0rgal.oraxen.nms.EmptyFurniturePacketManager;
+import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
 import java.util.List;
+import java.util.Optional;
 
 public class FurnitureFactory extends MechanicFactory {
 
@@ -26,6 +29,7 @@ public class FurnitureFactory extends MechanicFactory {
     private boolean evolvingFurnitures;
     private static EvolutionTask evolutionTask;
     public final boolean customSounds;
+    public double simulationRadius = Math.pow((Bukkit.getServer().getSimulationDistance() * 16.0), 2.0);
 
     public FurnitureFactory(ConfigurationSection section) {
         super(section);
@@ -48,7 +52,7 @@ public class FurnitureFactory extends MechanicFactory {
     }
 
     public IFurniturePacketManager furniturePacketManager() {
-        return NMSHandlers.getHandler() != null ? NMSHandlers.getHandler().furniturePacketManager() : new EmptyFurniturePacketManager();
+        return Optional.ofNullable(NMSHandlers.handler()).map(NMSHandler::furniturePacketManager).orElse(new EmptyFurniturePacketManager());
     }
 
     @Override

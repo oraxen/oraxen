@@ -109,7 +109,7 @@ public class OraxenPlugin extends JavaPlugin {
             protocolManager.addPacketListener(new TitlePacketListener());
         } else Logs.logWarning("ProtocolLib is not on your server, some features will not work");
         pluginManager.registerEvents(new CustomArmorListener(), this);
-        NMSHandlers.setup();
+        NMSHandlers.setupHandler();
         packGenerator = new PackGenerator();
 
         MechanicsManager.registerNativeMechanics();

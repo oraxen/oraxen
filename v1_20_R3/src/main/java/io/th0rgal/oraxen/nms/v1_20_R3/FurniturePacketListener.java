@@ -34,11 +34,10 @@ import java.util.Optional;
 
 public class FurniturePacketListener implements Listener {
 
-    double simulationDistance = Math.pow((Bukkit.getServer().getSimulationDistance() * 16.0), 2.0);
-
     @EventHandler
     public void onFurnitureFactory(OraxenNativeMechanicsRegisteredEvent event) {
-        for (Player player : Bukkit.getOnlinePlayers()) for (Entity baseEntity : player.getNearbyEntities(simulationDistance, simulationDistance, simulationDistance)) {
+        double r = FurnitureFactory.get().simulationRadius;
+        for (Player player : Bukkit.getOnlinePlayers()) for (Entity baseEntity : player.getNearbyEntities(r,r,r)) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
             IFurniturePacketManager packetManager = FurnitureFactory.instance.furniturePacketManager();
             if (mechanic == null) continue;
@@ -54,11 +53,9 @@ public class FurniturePacketListener implements Listener {
         if (mechanic == null) return;
         IFurniturePacketManager packetManager = FurnitureFactory.get().furniturePacketManager();
 
-        double simulationDistance = Math.pow((Bukkit.getServer().getSimulationDistance() * 16.0), 2.0);
-
         // Delay 1 tick, otherwise barrier at 0,0,0 will be updated client-side due to entity spawning after
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
-            for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), simulationDistance)) {
+            for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
                 packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
             }
@@ -156,8 +153,8 @@ public class FurniturePacketListener implements Listener {
         Location interactionPoint = event.getInteractionPoint();
         FurnitureMechanic mechanic = Optional.ofNullable(OraxenFurniture.getFurnitureMechanic(clickedBlock))
                 .orElse(OraxenFurniture.getFurnitureMechanic(interactionPoint));
-
         if (mechanic == null) return;
+
         Entity baseEntity = Optional.ofNullable(mechanic.baseEntity(clickedBlock)).orElse(mechanic.baseEntity(interactionPoint));
         if (baseEntity == null) return;
 
@@ -165,6 +162,6 @@ public class FurniturePacketListener implements Listener {
         // Resend the hitbox as client removes the "ghost block"
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
                         FurnitureFactory.instance.furniturePacketManager().sendBarrierHitboxPacket(baseEntity, mechanic, player)
-        , 1L);
+                , 1L);
     }
 }

@@ -464,6 +464,7 @@ public class FurnitureMechanic extends Mechanic {
 
     @Nullable
     public Entity baseEntity(Block block) {
+        if (block == null) return null;
         BlockPosition blockPosition = new BlockPosition(block.getX(), block.getY(), block.getZ());
         return FurnitureFactory.instance.furniturePacketManager().baseEntityFromHitbox(blockPosition);
     }
