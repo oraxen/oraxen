@@ -151,8 +151,8 @@ public class PackObfuscator {
 
             Map<String, MultiVariant> variants = new LinkedHashMap<>();
             blockState.variants().entrySet().stream()
-                    .map(e -> Map.entry(e.getKey(), MultiVariant.of(e.getValue().variants().stream().map(this::obfuscateBlockstateVariant).toList()))).toList()
-                    .forEach(e -> variants.put(e.getKey(), e.getValue()));
+                    .map(e -> Map.entry(e.getKey(), MultiVariant.of(e.getValue().variants().stream().map(this::obfuscateBlockstateVariant).toList())))
+                    .toList().forEach(e -> variants.put(e.getKey(), e.getValue()));
 
             BlockState.of(blockState.key(), variants, multiparts).addTo(resourcePack);
         });
@@ -167,7 +167,7 @@ public class PackObfuscator {
                             } else return provider;
                         }
                 ).toList())
-        ).forEach(resourcePack::font);
+        ).toList().forEach(resourcePack::font);
     }
 
     private void obfuscateTextures() {
@@ -191,7 +191,7 @@ public class PackObfuscator {
                     nonSingleSources.addAll(obfSources);
                     return atlas.toBuilder().sources(nonSingleSources).build();
                 }
-        ).forEach(resourcePack::atlas);
+        ).toList().forEach(resourcePack::atlas);
     }
 
     private void obfuscateSounds() {
@@ -199,7 +199,7 @@ public class PackObfuscator {
             Sound obfSound = Sound.sound(obfuscatedKey(sound.key()), sound.data());
             obfuscatedSounds.add(new ObfuscatedSound(sound, obfSound));
             return obfSound;
-        }).forEach(resourcePack::sound);
+        }).toList().forEach(resourcePack::sound);
 
         resourcePack.soundRegistries().stream().map(soundRegistry -> {
             List<SoundEvent> obfSoundEvents = soundRegistry.sounds().stream().map(soundEvent -> {
@@ -211,7 +211,7 @@ public class PackObfuscator {
                 return soundEvent.toBuilder().sounds(obfEntries).build();
             }).toList();
             return SoundRegistry.soundRegistry(soundRegistry.namespace(), obfSoundEvents);
-        }).forEach(resourcePack::soundRegistry);
+        }).toList().forEach(resourcePack::soundRegistry);
 
         obfuscatedSounds.forEach(obf -> {
             resourcePack.removeSound(obf.originalSound.key());
