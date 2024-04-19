@@ -6,10 +6,7 @@ import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.Atlas;
 import team.unnamed.creative.base.Writable;
-import team.unnamed.creative.font.Font;
-import team.unnamed.creative.lang.Language;
 import team.unnamed.creative.metadata.pack.PackMeta;
-import team.unnamed.creative.model.Model;
 import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
 import team.unnamed.creative.sound.SoundEvent;
 import team.unnamed.creative.sound.SoundRegistry;
@@ -17,6 +14,7 @@ import team.unnamed.creative.sound.SoundRegistry;
 import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
+import java.util.Optional;
 
 public class OraxenPack {
 
@@ -51,14 +49,12 @@ public class OraxenPack {
         if (packIcon != null) resourcePack.icon(packIcon);
 
         importedPack.models().forEach(model -> {
-            Model baseModel = resourcePack.model(model.key());
-            if (baseModel != null) model.overrides().addAll(baseModel.overrides());
+            Optional.ofNullable(resourcePack.model(model.key())).ifPresent(base -> model.overrides().addAll(base.overrides()));
             model.addTo(resourcePack);
         });
 
         importedPack.fonts().forEach(font -> {
-            Font baseFont = resourcePack.font(font.key());
-            if (baseFont != null) font.providers().addAll(baseFont.providers());
+            Optional.ofNullable(resourcePack.font(font.key())).ifPresent(base -> font.providers().addAll(base.providers()));
             font.addTo(resourcePack);
         });
 
@@ -78,8 +74,7 @@ public class OraxenPack {
         });
 
         importedPack.languages().forEach(language -> {
-            Language baseLanguage = resourcePack.language(language.key());
-            if (baseLanguage != null) baseLanguage.translations().putAll(language.translations());
+            Optional.ofNullable(resourcePack.language(language.key())).ifPresent(base -> language.translations().putAll(base.translations()));
             language.addTo(resourcePack);
         });
     }
