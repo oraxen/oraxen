@@ -6,7 +6,7 @@ import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.entity.Player;
-import team.unnamed.creative.BuiltResourcePack;
+import team.unnamed.creative.base.Writable;
 import team.unnamed.creative.server.ResourcePackServer;
 import team.unnamed.creative.server.handler.ResourcePackRequestHandler;
 
@@ -14,6 +14,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Collections;
 import java.util.UUID;
 
 public class SelfHostServer implements OraxenPackServer {
@@ -26,16 +27,21 @@ public class SelfHostServer implements OraxenPackServer {
     public SelfHostServer() {
         this.publicAddress = publicAddress();
         try {
-            BuiltResourcePack builtPack = OraxenPlugin.get().packGenerator().builtPack();
-            ResourcePackRequestHandler handler = ResourcePackRequestHandler.fixed(builtPack);
             int serverPort = Settings.SELFHOST_PACK_SERVER_PORT.toInt(8082);
-            packServer = ResourcePackServer.server().address(serverPort).handler(handler).pack(builtPack).build();
+            packServer = ResourcePackServer.server().address(serverPort).handler(handler).build();
         } catch (IOException e) {
             if (Settings.DEBUG.toBool()) e.printStackTrace();
             else Logs.logWarning(e.getMessage(), true);
             Logs.logError("Failed to start Oraxen pack-server");
         }
     }
+
+    private final ResourcePackRequestHandler handler = (request, exchange) -> {
+        Writable packData = OraxenPlugin.get().packGenerator().builtPack().data();
+        exchange.getResponseHeaders().put("Content-Type", Collections.singletonList("application/zip"));
+        exchange.sendResponseHeaders(200, packData.toByteArray().length);
+        exchange.getResponseBody().write(packData.toByteArray());
+    };
 
     @Override
     public void sendPack(Player player) {
