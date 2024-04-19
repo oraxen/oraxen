@@ -111,7 +111,7 @@ public enum Settings {
             conditions of Oraxen
             """.trim()),
 
-    PACK_SERVER_TYPE("Pack.server.type", PackServerType.SELFHOST.name()),
+    PACK_SERVER_TYPE("Pack.server.type", PackServerType.POLYMATH.name()),
     SELFHOST_PACK_SERVER_PORT("Pack.server.selfhost.port", 8082),
     SELFHOST_PUBLIC_ADDRESS("Pack.server.selfhost.public_address"),
     POLYMATH_SERVER("Pack.server.polymath.server", "atlas.oraxen.com"),
