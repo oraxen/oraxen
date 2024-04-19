@@ -113,11 +113,11 @@ public class Drop {
         return fortune;
     }
 
-    public String getSourceID() {
+    public String sourceId() {
         return sourceID;
     }
 
-    public String getMinimalType() {
+    public String minimalType() {
         return minimalType;
     }
 
@@ -125,15 +125,15 @@ public class Drop {
         return bestTool;
     }
 
-    public List<String> getHierarchy() {
+    public List<String> hierarchy() {
         return hierarchy;
     }
 
-    public List<Loot> getLoots() {
+    public List<Loot> loots() {
         return loots;
     }
 
-    public Drop setLoots(List<Loot> loots) {
+    public Drop loots(List<Loot> loots) {
         this.loots.clear();
         this.loots.addAll(loots);
         return this;
@@ -196,7 +196,7 @@ public class Drop {
      * @param player the player that triggered this drop
      * @return the loots that will drop
      */
-    public List<Loot> getLootToDrop(Player player) {
+    public List<Loot> lootToDrop(Player player) {
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
         int fortuneMultiplier = getFortuneMultiplier(itemInHand);
         List<Loot> droppedLoots = new ArrayList<>();
