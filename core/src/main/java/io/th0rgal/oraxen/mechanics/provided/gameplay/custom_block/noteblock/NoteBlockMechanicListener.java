@@ -76,7 +76,7 @@ public class NoteBlockMechanicListener implements Listener {
     // If block is not a custom block, play the correct sound according to the below block or default
     @EventHandler(priority = EventPriority.NORMAL)
     public void onNotePlayed(final NotePlayEvent event) {
-        if (event.getInstrument() != Instrument.PIANO) event.setCancelled(true);
+        if (OraxenBlocks.isOraxenNoteBlock(event.getBlock())) event.setCancelled(true);
         else {
             if (instrumentMap.isEmpty()) instrumentMap = getInstrumentMap();
             String blockType = event.getBlock().getRelative(BlockFace.DOWN).getType().toString().toLowerCase();
