@@ -26,6 +26,7 @@ import team.unnamed.creative.texture.Texture;
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class PackObfuscator {
 
@@ -79,7 +80,7 @@ public class PackObfuscator {
         String tempHash = writer.build(reader.readFromDirectory(tempPackFile)).hash();
         // Compare the hashes
         if (!tempHash.equals(cachedHash)) writer.writeToZipFile(cachedPackZip, resourcePack);
-        // If they are the same read from packZip
+            // If they are the same read from packZip
         else if (packZip.exists()) resourcePack = reader.readFromZipFile(packZip);
         else return false;
         // Delete the tempPackDir for next check
@@ -93,9 +94,16 @@ public class PackObfuscator {
     }
 
     private record ObfuscatedModel(Model originalModel, Model obfuscatedModel) {
+        public boolean containsKey(Key modelKey) {
+            return originalModel.key().equals(modelKey) || obfuscatedModel.key().equals(modelKey);
+        }
     }
 
     private record ObfuscatedTexture(Texture originalTexture, Texture obfuscatedTexture, boolean isItemTexture) {
+        public boolean containsKey(Key textureKey) {
+            Key key = isItemTexture ? keyPng(textureKey) : keyNoPng(textureKey);
+            return originalTexture.key().equals(key) || obfuscatedTexture.key().equals(key);
+        }
     }
 
     private final Set<ObfuscatedModel> obfuscatedModels = new HashSet<>();
@@ -111,6 +119,7 @@ public class PackObfuscator {
 
         obfuscateBlockStates();
     }
+
     private void obfuscateBlockStates() {
         resourcePack.blockStates().forEach(blockState -> {
             List<Selector> multiparts = blockState.multipart().stream().map(selector ->
@@ -125,6 +134,7 @@ public class PackObfuscator {
             BlockState.of(blockState.key(), variants, multiparts).addTo(resourcePack);
         });
     }
+
     private void obfuscateFonts() {
         resourcePack.fonts().stream().map(font ->
                 font.providers(font.providers().stream().map(provider -> {
@@ -136,6 +146,7 @@ public class PackObfuscator {
                 ).toList())
         ).forEach(resourcePack::font);
     }
+
     private void obfuscateTextures() {
         obfuscatedTextures.forEach(obf -> {
             resourcePack.removeTexture(obf.originalTexture.key());
@@ -143,11 +154,12 @@ public class PackObfuscator {
         });
         obfuscateAtlases();
     }
+
     private void obfuscateAtlases() {
         resourcePack.atlases().stream().map(atlas -> {
                     List<SingleAtlasSource> sources = obfuscatedTextures.stream()
                             .filter(ObfuscatedTexture::isItemTexture)
-                            .map(obf -> keyNoPng(obf.obfuscatedTexture))
+                            .map(obf -> keyNoPng(obf.obfuscatedTexture.key()))
                             .map(AtlasSource::single).toList();
                     return atlas.toBuilder().sources(sources.stream().map(a -> (AtlasSource) a).toList()).build();
                 }
@@ -155,6 +167,10 @@ public class PackObfuscator {
     }
 
     private Model obfuscateModel(Model model) {
+        if (model.key().asString().contains("_ore")) Logs.logSuccess("Obfuscating " + model.key().asString() + "...");
+        Optional<ObfuscatedModel> obfuscatedModel = obfuscatedModels.stream().filter(obf -> obf.containsKey(model.key())).findFirst();
+        if (obfuscatedModel.isPresent()) return obfuscatedModel.get().obfuscatedModel();
+
         if (VanillaKeys.isVanilla(model)) {
             List<Key> textureKeys = allTexturesOfModel(model);
             if (obfuscatedTextures.stream().anyMatch(obf -> textureKeys.contains(obf.originalTexture.key())))
@@ -162,42 +178,58 @@ public class PackObfuscator {
             return obfuscateModelOverrides(model);
         } else return obfuscate(obfuscateModelTextures(model));
     }
+
     private Model obfuscate(Model model) {
-        Model obfuscatedModel = obfuscateModelOverrides(model).toBuilder().key(obfuscatedKey(model.key())).build();
-        obfuscatedModels.add(new ObfuscatedModel(model, obfuscatedModel));
-        return obfuscatedModel;
+        return obfuscatedModels.stream().filter(obf -> obf.containsKey(model.key())).findFirst().orElseGet(() -> {
+            if (model.key().asString().contains("_ore"))
+                Logs.logWarning("Obfuscating model " + model.key().asString() + "...");
+            Model obfuscatedModel = obfuscateModelOverrides(model).toBuilder().key(obfuscatedKey(model.key())).build();
+            ObfuscatedModel obf = new ObfuscatedModel(model, obfuscatedModel);
+            if (model.key().asString().contains("_ore"))
+                Logs.logWarning(obf.originalModel.key().asString() + ": " + obf.obfuscatedModel.key().asString());
+            obfuscatedModels.add(obf);
+            return obf;
+        }).obfuscatedModel;
     }
+
     private Model obfuscateModelOverrides(Model model) {
-        Model obfOverride = model.toBuilder().overrides(model.overrides().stream().map(override -> {
+        return model.toBuilder().overrides(model.overrides().stream().map(override -> {
             if (VanillaKeys.isVanilla(override.model())) return override;
 
-            Key obfKey = resourcePack.models().stream().filter(m -> m.key().equals(override.model())).findFirst().map(m -> obfuscateModel(m).key())
-                    .orElse(obfuscatedModels.stream().filter(o -> o.originalModel.key() == override.model() || o.obfuscatedModel.key().equals(override.model().key())).map(o -> o.obfuscatedModel.key()).findFirst()
-                            .orElse(override.model())
-                    );
+            Key obfKey = obfuscatedModels.stream().filter(obf -> obf.containsKey(override.model())).map(obf -> obf.obfuscatedModel.key()).findFirst()
+                    .orElse(Optional.ofNullable(resourcePack.model(override.model()))
+                            .map(m -> {
+                                Model obfuscatedModel = obfuscateModel(m);
+                                obfuscatedModels.add(new ObfuscatedModel(model, obfuscatedModel));
+                                return obfuscatedModel;
+                            }).map(Model::key).stream().findFirst()
+                            .orElse(override.model()));
             return ItemOverride.of(obfKey, override.predicate());
         }).toList()).build();
-
-        obfuscatedModels.add(new ObfuscatedModel(model, obfOverride));
-        return obfOverride;
     }
+
     private Model obfuscateModelTextures(Model model) {
+        if (model.key().asString().contains("_ore"))
+            Logs.debug("Obfuscating ModelTextures for " + model.key().asString());
+        Optional<ObfuscatedModel> obfModel = obfuscatedModels.stream().filter(obf -> obf.containsKey(model.key())).findFirst();
+        if (obfModel.isPresent()) return obfModel.get().obfuscatedModel();
+
         List<ModelTexture> layers = model.textures().layers().stream().filter(l -> l.key() != null).map(modelTexture -> {
             Texture obfTexture = obfuscateItemTexture(modelTexture);
             if (obfTexture == null) return modelTexture;
-            else return ModelTexture.ofKey(keyNoPng(obfTexture));
+            else return ModelTexture.ofKey(keyNoPng(obfTexture.key()));
         }).toList();
 
         Map<String, ModelTexture> variables = new HashMap<>();
-        for (Map.Entry<String, ModelTexture> entry : model.textures().variables().entrySet()) {
-            Texture obfTexture = obfuscateItemTexture(entry.getValue());
-            variables.put(entry.getKey(), obfTexture != null ? ModelTexture.ofKey(keyNoPng(obfTexture)) : entry.getValue());
-        }
+        model.textures().variables().forEach((key, modelTexture) -> {
+            Texture obfTexture = obfuscateItemTexture(modelTexture);
+            variables.put(key, obfTexture != null ? ModelTexture.ofKey(keyNoPng(obfTexture.key())) : modelTexture);
+        });
 
         ModelTextures.Builder builder = ModelTextures.builder().layers(layers).variables(variables);
         Optional.ofNullable(model.textures().particle()).ifPresentOrElse(
                 p -> Optional.ofNullable(obfuscateItemTexture(p)).ifPresentOrElse(
-                        o -> builder.particle(ModelTexture.ofKey(keyNoPng(o))),
+                        o -> builder.particle(ModelTexture.ofKey(keyNoPng(o.key()))),
                         () -> builder.particle(model.textures().particle())
                 ),
                 () -> builder.particle(model.textures().particle())
@@ -205,6 +237,7 @@ public class PackObfuscator {
 
         return model.toBuilder().textures(builder.build()).build();
     }
+
     private List<Key> allTexturesOfModel(Model model) {
         List<Key> textureKeys = new ArrayList<>();
         for (ModelTexture layer : model.textures().layers())
@@ -216,20 +249,26 @@ public class PackObfuscator {
     }
 
     private Texture obfuscate(Texture texture, boolean isItemTexture) {
-        Texture obfTexture = texture.toBuilder().key(keyPng(obfuscatedKey(texture.key()))).build();
-        obfuscatedTextures.add(new ObfuscatedTexture(texture, obfTexture, isItemTexture));
-        return obfTexture;
+        return obfuscatedTextures.stream().filter(obf -> obf.containsKey(texture.key())).findFirst()
+                .map(ObfuscatedTexture::obfuscatedTexture)
+                .orElseGet(() -> {
+                    Texture obf = texture.toBuilder().key(keyPng(obfuscatedKey(texture.key()))).build();
+                    obfuscatedTextures.add(new ObfuscatedTexture(texture, obf, isItemTexture));
+                    return obf;
+                });
     }
+
     private Texture obfuscateItemTexture(ModelTexture modelTexture) {
-        Key keyPng = modelTexture.key() != null ? Key.key(StringUtils.appendIfMissing(modelTexture.key().asString(), ".png")) : null;
-        return obfuscatedTextures.stream().filter(t -> t.originalTexture.key().equals(keyPng)).findFirst().map(ObfuscatedTexture::obfuscatedTexture)
-                .orElse(resourcePack.textures().stream().filter(t -> t.key().equals(keyPng)).findFirst().map(t -> obfuscate(t, true))
+        return obfuscatedTextures.stream().filter(obf -> obf.containsKey(modelTexture.key())).findFirst().map(ObfuscatedTexture::obfuscatedTexture)
+                .orElse(resourcePack.textures().stream().filter(t -> t.key().equals(keyPng(modelTexture.key()))).findFirst().map(t -> obfuscate(t, true))
                         .orElse(null));
     }
 
     private Variant obfuscateBlockstateVariant(Variant variant) {
-        Key model = obfuscatedModels.stream().filter(o -> o.originalModel.key().equals(variant.model())).findFirst().map(o -> o.obfuscatedModel.key()).orElse(variant.model());
-        Logs.logError(model.asString());
+        Logs.logSuccess(StringUtils.join(obfuscatedModels.stream().filter(obf -> obf.originalModel.key().asString().contains("_ore")).map(obf -> obf.originalModel.key().asString()).collect(Collectors.toSet()), ", "));
+        Key model = obfuscatedModels.stream().filter(obf -> obf.containsKey(variant.model())).findFirst().map(o -> o.obfuscatedModel.key()).orElse(variant.model());
+        if (variant.model().asString().contains("_ore"))
+            Logs.logError(variant.model().asString() + ": " + model.key().asString());
         return Variant.builder().model(model).uvLock(variant.uvLock()).weight(variant.weight()).x(variant.x()).y(variant.y()).build();
     }
 
@@ -266,11 +305,11 @@ public class PackObfuscator {
         };
     }
 
-    private Key keyNoPng(Texture texture) {
-        return Key.key(StringUtils.removeEnd(texture.key().asString(), ".png"));
+    private static Key keyNoPng(Key key) {
+        return Key.key(StringUtils.removeEnd(key.asString(), ".png"));
     }
 
-    private Key keyPng(Key key) {
-        return Key.key(StringUtils.appendIfMissing(key.asString(), ".png"));
+    private static Key keyPng(Key key) {
+        return key != null ? Key.key(StringUtils.appendIfMissing(key.asString(), ".png")) : null;
     }
 }
