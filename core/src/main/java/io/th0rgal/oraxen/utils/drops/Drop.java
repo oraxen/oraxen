@@ -166,11 +166,11 @@ public class Drop {
         } else {
             // Drop all the items that aren't the furniture item
             dropLoot(loots.stream().filter(loot ->
-                    !loot.getItemStack().equals(baseItem)).toList(), location, getFortuneMultiplier(itemInHand));
+                    !loot.itemStack().equals(baseItem)).toList(), location, getFortuneMultiplier(itemInHand));
             // Filter loots down to only the furniture item and drop the item in the actual Furniture to preseve color etc.
             dropLoot(loots.stream()
-                    .filter(loot -> loot.getItemStack().equals(baseItem))
-                    .map(loot -> new Loot(sourceID, furnitureItem, loot.getProbability(), 1, loot.getMaxAmount()))
+                    .filter(loot -> loot.itemStack().equals(baseItem))
+                    .map(loot -> new Loot(sourceID, furnitureItem, loot.probability(), loot.amount()))
                     .toList(), location, getFortuneMultiplier(itemInHand));
         }
     }

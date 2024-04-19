@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.pack;
 
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.api.events.OraxenPack;
 import io.th0rgal.oraxen.api.events.resourcepack.OraxenPostPackGenerateEvent;
 import io.th0rgal.oraxen.api.events.resourcepack.OraxenPrePackGenerateEvent;
 import io.th0rgal.oraxen.config.Settings;
@@ -62,7 +63,7 @@ public class PackGenerator {
         if (Settings.PACK_IMPORT_EXTERNAL.toBool()) importExternalPacks();
         if (Settings.PACK_IMPORT_MODEL_ENGINE.toBool()) importModelEnginePack();
 
-        PackUtils.mergePack(resourcePack, MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile()));
+        OraxenPack.mergePack(resourcePack, MinecraftResourcePackReader.minecraft().readFromDirectory(OraxenPlugin.get().packPath().toFile()));
 
         resourcePack.removeUnknownFile("pack.zip");
         for (Map.Entry<String, Writable> entry : new LinkedHashSet<>(resourcePack.unknownFiles().entrySet()))
@@ -172,7 +173,7 @@ public class PackGenerator {
         if (!defaultPack.exists()) return;
         Logs.logInfo("Importing DefaultPack...");
 
-        PackUtils.mergePack(resourcePack, MinecraftResourcePackReader.minecraft().readFromZipFile(defaultPack));
+        OraxenPack.mergePack(resourcePack, MinecraftResourcePackReader.minecraft().readFromZipFile(defaultPack));
 
     }
 
@@ -181,10 +182,10 @@ public class PackGenerator {
             if (file == null || file.getName().equals("DefaultPack.zip")) continue;
             if (file.isDirectory()) {
                 Logs.logInfo("Importing pack " + file.getName() + "...");
-                PackUtils.mergePack(resourcePack, reader.readFromDirectory(file));
+                OraxenPack.mergePack(resourcePack, reader.readFromDirectory(file));
             } else if (file.getName().endsWith(".zip")) {
                 Logs.logInfo("Importing zipped pack " + file.getName() + "...");
-                PackUtils.mergePack(resourcePack, reader.readFromZipFile(file));
+                OraxenPack.mergePack(resourcePack, reader.readFromZipFile(file));
             } else {
                 Logs.logError("Skipping unknown file " + file.getName() + " in imports folder");
                 Logs.logError("File is neither a directory nor a zip file");
@@ -197,7 +198,7 @@ public class PackGenerator {
         File megPack = ModelEngineAPI.getAPI().getDataFolder().toPath().resolve("resource pack.zip").toFile();
         if (!megPack.exists()) return;
 
-        PackUtils.mergePack(resourcePack, MinecraftResourcePackReader.minecraft().readFromZipFile(megPack));
+        OraxenPack.mergePack(resourcePack, MinecraftResourcePackReader.minecraft().readFromZipFile(megPack));
         Logs.logSuccess("Imported ModelEngine pack successfully!");
     }
 

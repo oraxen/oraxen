@@ -1,6 +1,8 @@
-package io.th0rgal.oraxen.utils;
+package io.th0rgal.oraxen.api.events;
 
-import org.apache.commons.lang3.StringUtils;
+import io.th0rgal.oraxen.OraxenPlugin;
+import org.bukkit.entity.Player;
+import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.Atlas;
 import team.unnamed.creative.base.Writable;
@@ -8,6 +10,7 @@ import team.unnamed.creative.font.Font;
 import team.unnamed.creative.lang.Language;
 import team.unnamed.creative.metadata.pack.PackMeta;
 import team.unnamed.creative.model.Model;
+import team.unnamed.creative.serialize.minecraft.MinecraftResourcePackReader;
 import team.unnamed.creative.sound.SoundEvent;
 import team.unnamed.creative.sound.SoundRegistry;
 
@@ -15,16 +18,26 @@ import java.io.File;
 import java.util.Collection;
 import java.util.LinkedHashSet;
 
-public class PackUtils {
+public class OraxenPack {
 
-    public static String getFinalPackPath(File file) {
-        String filePath = StringUtils.substringAfter(file.getAbsolutePath().replace("\\", "/"), "Oraxen/pack");
-        return filePath.startsWith("assets") ? filePath : "assets/minecraft/" + filePath;
+    public static void sendPack(Player player) {
+        OraxenPlugin.get().packServer().sendPack(player);
     }
 
-    public static String getShortenedPackPath(File file) {
-        String filePath = StringUtils.substringAfter(file.getAbsolutePath().replace("\\", "/"), "Oraxen/pack");
-        return filePath;
+    public static ResourcePack resourcePack() {
+        return OraxenPlugin.get().packGenerator().resourcePack();
+    }
+
+    public static void mergePackFromZip(@NotNull File zipFile) {
+        if (!zipFile.exists()) return;
+        ResourcePack zipPack = MinecraftResourcePackReader.minecraft().readFromZipFile(zipFile);
+        mergePack(resourcePack(), zipPack);
+    }
+
+    public static void mergePackFromDirectory(@NotNull File directory) {
+        if (!directory.exists() || !directory.isDirectory()) return;
+        ResourcePack zipPack = MinecraftResourcePackReader.minecraft().readFromDirectory(directory);
+        mergePack(resourcePack(), zipPack);
     }
 
     public static void mergePack(ResourcePack resourcePack, ResourcePack importedPack) {

@@ -48,6 +48,13 @@ public class Loot {
         this.amount = new IntRange(minAmount, maxAmount);
     }
 
+    public Loot(String sourceID, ItemStack itemStack, double probability, IntRange amount) {
+        this.sourceID = sourceID;
+        this.itemStack = itemStack;
+        this.probability = Math.min(1.0, probability);
+        this.amount = amount;
+    }
+
     public ItemStack itemStack() {
         if (itemStack != null) return ItemUpdater.updateItem(itemStack);
 
