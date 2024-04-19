@@ -125,9 +125,9 @@ public class OraxenPlugin extends JavaPlugin {
         ArmorEquipEvent.registerListener(this);
         new CommandsManager().loadCommands();
 
-        packGenerator.generatePack();
         packServer = OraxenPackServer.initializeServer();
         packServer.start();
+        packGenerator.generatePack();
         packServer.uploadPack();
         postLoading();
         CompatibilitiesManager.enableNativeCompatibilities();
