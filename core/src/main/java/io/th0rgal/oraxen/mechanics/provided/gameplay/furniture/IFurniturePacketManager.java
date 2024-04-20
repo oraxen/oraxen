@@ -18,15 +18,24 @@ public interface IFurniturePacketManager {
     BlockData BARRIER_DATA = Material.BARRIER.createBlockData();
     BlockData AIR_DATA = Material.AIR.createBlockData();
 
+    Set<FurnitureBaseEntity> furnitureEntityMap = new HashSet<>();
     Map<UUID, Set<BlockPosition>> barrierHitboxPositionMap = new HashMap<>();
     Set<FurnitureSubEntity> interactionHitboxIdMap = new HashSet<>();
 
+    default Optional<FurnitureBaseEntity> furnitureFromBaseEntity(@NotNull Entity baseEntity) {
+        return furnitureEntityMap.stream().filter(f -> f.baseUUID().equals(baseEntity.getUniqueId())).findFirst();
+    }
+
+    @Nullable
+    default Entity baseEntityFromFurniture(int furnitureId) {
+        return furnitureEntityMap.stream().filter(f -> f.entityIds().contains(furnitureId))
+                .map(FurnitureBaseEntity::baseEntity).findFirst().orElse(null);
+    }
+
     @Nullable
     default Entity baseEntityFromHitbox(int interactionId) {
-        for (FurnitureSubEntity hitbox : interactionHitboxIdMap) {
-            if (hitbox.entityIds().contains(interactionId)) return hitbox.baseEntity();
-        }
-        return null;
+        return interactionHitboxIdMap.stream().filter(h -> h.entityIds().contains(interactionId))
+                .map(FurnitureSubEntity::baseEntity).findFirst().orElse(null);
     }
 
     @Nullable
@@ -36,6 +45,10 @@ public interface IFurniturePacketManager {
         }
         return null;
     }
+
+    default void sendFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {}
+    default void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic) {}
+    default void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {}
 
     void sendInteractionEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player);
     void removeInteractionHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic);

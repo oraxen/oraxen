@@ -88,26 +88,6 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    public enum FurnitureType {
-        ITEM_FRAME, GLOW_ITEM_FRAME, DISPLAY_ENTITY;//, ARMOR_STAND;
-
-        public static List<Class<? extends Entity>> furnitureEntityClasses() {
-            List<Class<? extends Entity>> list = new ArrayList<>(List.of(ItemFrame.class, GlowItemFrame.class, ArmorStand.class));
-            if (OraxenPlugin.supportsDisplayEntities) list.add(ItemDisplay.class);
-            return list;
-        }
-
-        public static FurnitureType getType(String type) {
-            try {
-                return FurnitureType.valueOf(type);
-            } catch (IllegalArgumentException e) {
-                Logs.logError("Invalid furniture type: " + type + ", set in mechanics.yml.");
-                Logs.logWarning("Using default " + (OraxenPlugin.supportsDisplayEntities ? "DISPLAY_ENTITY" : "ITEM_FRAME"), true);
-                return OraxenPlugin.supportsDisplayEntities ? DISPLAY_ENTITY : ITEM_FRAME;
-            }
-        }
-    }
-
     @SuppressWarnings("unchecked")
     public FurnitureMechanic(MechanicFactory mechanicFactory, ConfigurationSection section) {
         super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY, PersistentDataType.BYTE, (byte) 1));
@@ -331,11 +311,11 @@ public class FurnitureMechanic extends Mechanic {
         Location correctedLocation = BlockHelpers.toCenterBlockLocation(baseLocation);
         boolean isWall = hasLimitedPlacing() && limitedPlacing.isWall();
         boolean isRoof = hasLimitedPlacing() && limitedPlacing.isRoof();
-        boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.getDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+        boolean isFixed = hasDisplayEntityProperties() && displayEntityProperties.displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
         if (furnitureType != FurnitureType.DISPLAY_ENTITY || !hasDisplayEntityProperties()) return correctedLocation;
-        if (displayEntityProperties.getDisplayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall && !isRoof)
+        if (displayEntityProperties.displayTransform() != ItemDisplay.ItemDisplayTransform.NONE && !isWall && !isRoof)
             return correctedLocation;
-        float scale = displayEntityProperties.hasScale() ? displayEntityProperties.getScale().y() : 1;
+        float scale = displayEntityProperties.hasScale() ? displayEntityProperties.scale().y() : 1;
         // Since roof-furniture need to be more or less flipped, we have to add 0.5 (0.49 or it is "inside" the block above) to the Y coordinate
         if (isFixed && isWall)
             correctedLocation.add(-facing.getModX() * (0.49 * scale), 0, -facing.getModZ() * (0.49 * scale));
@@ -366,26 +346,26 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Float yaw, DisplayEntityProperties properties) {
-        itemDisplay.setItemDisplayTransform(properties.getDisplayTransform());
-        if (properties.hasSpecifiedViewRange()) itemDisplay.setViewRange(properties.getViewRange());
+        itemDisplay.setItemDisplayTransform(properties.displayTransform());
+        if (properties.hasSpecifiedViewRange()) itemDisplay.setViewRange(properties.viewRange());
         if (properties.hasInterpolationDuration())
-            itemDisplay.setInterpolationDuration(properties.getInterpolationDuration());
-        if (properties.hasInterpolationDelay()) itemDisplay.setInterpolationDelay(properties.getInterpolationDelay());
-        if (properties.hasTrackingRotation()) itemDisplay.setBillboard(properties.getTrackingRotation());
-        if (properties.hasShadowRadius()) itemDisplay.setShadowRadius(properties.getShadowRadius());
-        if (properties.hasShadowStrength()) itemDisplay.setShadowStrength(properties.getShadowStrength());
-        if (properties.hasGlowColor()) itemDisplay.setGlowColorOverride(properties.getGlowColor());
-        if (properties.hasBrightness()) itemDisplay.setBrightness(displayEntityProperties.getBrightness());
+            itemDisplay.setInterpolationDuration(properties.interpolationDuration());
+        if (properties.hasInterpolationDelay()) itemDisplay.setInterpolationDelay(properties.interpolationDelay());
+        if (properties.hasTrackingRotation()) itemDisplay.setBillboard(properties.trackingRotation());
+        if (properties.hasShadowRadius()) itemDisplay.setShadowRadius(properties.shadowRadius());
+        if (properties.hasShadowStrength()) itemDisplay.setShadowStrength(properties.shadowStrength());
+        if (properties.hasGlowColor()) itemDisplay.setGlowColorOverride(properties.glowColor());
+        if (properties.hasBrightness()) itemDisplay.setBrightness(displayEntityProperties.brightness());
 
-        itemDisplay.setDisplayWidth(properties.getDisplayWidth());
-        itemDisplay.setDisplayHeight(properties.getDisplayHeight());
+        itemDisplay.setDisplayWidth(properties.displayWidth());
+        itemDisplay.setDisplayHeight(properties.displayHeight());
         itemDisplay.setItemStack(item);
 
         // Set scale to .5 if FIXED aka ItemFrame to fix size. Also flip it 90 degrees on pitch
-        boolean isFixed = properties.getDisplayTransform().equals(ItemDisplay.ItemDisplayTransform.FIXED);
+        boolean isFixed = properties.displayTransform().equals(ItemDisplay.ItemDisplayTransform.FIXED);
         Transformation transform = itemDisplay.getTransformation();
         if (properties.hasScale()) {
-            transform.getScale().set(properties.getScale());
+            transform.getScale().set(properties.scale());
         } else transform.getScale().set(isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : new Vector3f(1f, 1f, 1f));
 
         // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation

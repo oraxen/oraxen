@@ -22,7 +22,7 @@ import java.util.Optional;
 
 public class FurnitureFactory extends MechanicFactory {
 
-    public static FurnitureMechanic.FurnitureType defaultFurnitureType;
+    public static FurnitureType defaultFurnitureType;
     public static FurnitureFactory instance;
     public final List<String> toolTypes;
     public final int evolutionCheckDelay;
@@ -35,8 +35,8 @@ public class FurnitureFactory extends MechanicFactory {
         super(section);
         instance = this;
         if (OraxenPlugin.supportsDisplayEntities)
-            defaultFurnitureType = FurnitureMechanic.FurnitureType.getType(section.getString("default_furniture_type", "DISPLAY_ENTITY"));
-        else defaultFurnitureType = FurnitureMechanic.FurnitureType.ITEM_FRAME;
+            defaultFurnitureType = FurnitureType.getType(section.getString("default_furniture_type", "DISPLAY_ENTITY"));
+        else defaultFurnitureType = FurnitureType.ITEM_FRAME;
         toolTypes = section.getStringList("tool_types");
         evolutionCheckDelay = section.getInt("evolution_check_delay");
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),

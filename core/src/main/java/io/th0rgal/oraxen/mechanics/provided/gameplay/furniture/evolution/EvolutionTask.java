@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.evolution;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureType;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -29,7 +30,7 @@ public class EvolutionTask extends BukkitRunnable {
     @Override
     public void run() {
         for (World world : Bukkit.getWorlds())
-            for (Class<? extends Entity> entityClass : FurnitureMechanic.FurnitureType.furnitureEntityClasses())
+            for (Class<? extends Entity> entityClass : FurnitureType.furnitureEntityClasses())
                 for (Entity entity : world.getEntitiesByClass(entityClass)) {
                     Location entityLoc = entity.getLocation();
                     PersistentDataContainer pdc = entity.getPersistentDataContainer();
