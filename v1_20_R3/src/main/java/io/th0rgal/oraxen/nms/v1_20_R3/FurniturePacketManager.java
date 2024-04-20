@@ -22,7 +22,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -44,10 +43,6 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     private final int INTERACTION_WIDTH_ID = 8;
     private final int INTERACTION_HEIGHT_ID = 9;
-    private final int ITEM_FRAME_ITEM_ID = 8;
-    private final int ITEM_FRAME_ROTATION_ID = 9;
-    private final int ITEM_DISPLAY_ITEM_ID = 23;
-    private final int ITEM_DISPLAY_TRANSFORM_ID = 24;
     private final Map<UUID, Set<FurnitureInteractionHitboxPacket>> interactionHitboxPacketMap = new HashMap<>();
     private final Map<UUID, Set<FurnitureBasePacket>> furnitureBasePacketMap = new HashMap<>();
 
@@ -56,40 +51,16 @@ public class FurniturePacketManager implements IFurniturePacketManager {
         if (baseEntity.isDead()) return;
         if (mechanic.isModelEngine() && ModelEngineAPI.getBlueprint(mechanic.getModelEngineID()) != null) return;
 
-        Location baseLoc = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
         furnitureBasePacketMap.computeIfAbsent(baseEntity.getUniqueId(), key -> {
-            FurnitureBaseEntity furnitureBase = furnitureFromBaseEntity(baseEntity).orElseGet(() -> {
-                for (FurnitureType type : FurnitureType.values()) {
-                    furnitureEntityMap.add(new FurnitureBaseEntity(baseEntity.getUniqueId(), type, net.minecraft.world.entity.Entity.nextEntityId()));
-                }
-                return furnitureFromBaseEntity(baseEntity).orElse(null);
+            FurnitureBaseEntity furnitureBase = furnitureBaseFromBaseEntity(baseEntity).orElseGet(() -> {
+                furnitureBaseMap.add(new FurnitureBaseEntity(baseEntity.getUniqueId()));
+                return furnitureBaseFromBaseEntity(baseEntity).orElse(null);
             });
             if (furnitureBase == null) return new HashSet<>();
-
-            Set<FurnitureBasePacket> packets = new HashSet<>();
-            for (FurnitureType type : FurnitureType.values()) {
-                int entityId = furnitureBase.entityId(type);
-
-                EntityType<?> entityType = type == FurnitureType.DISPLAY_ENTITY ? EntityType.ITEM_DISPLAY : type == FurnitureType.ITEM_FRAME ? EntityType.ITEM_FRAME : EntityType.GLOW_ITEM_FRAME;
-                ClientboundAddEntityPacket addEntityPacket = new ClientboundAddEntityPacket(
-                        entityId, UUID.randomUUID(),
-                        baseLoc.x(), baseLoc.y(), baseLoc.z(), baseLoc.getPitch(), baseLoc.getYaw(),
-                        entityType, 0, Vec3.ZERO, 0.0
-                );
-
-                ClientboundSetEntityDataPacket metadataPacket = new ClientboundSetEntityDataPacket(
-                        entityId, Arrays.asList(
-                        new SynchedEntityData.DataValue<>(type == FurnitureType.DISPLAY_ENTITY ? ITEM_DISPLAY_ITEM_ID : ITEM_FRAME_ITEM_ID, EntityDataSerializers.ITEM_STACK, CraftItemStack.asNMSCopy(FurnitureHelpers.furnitureItem(baseEntity))),
-                        new SynchedEntityData.DataValue<>(type == FurnitureType.DISPLAY_ENTITY ? ITEM_DISPLAY_TRANSFORM_ID : ITEM_FRAME_ROTATION_ID, EntityDataSerializers.INT, (type == FurnitureType.DISPLAY_ENTITY ? mechanic.displayEntityProperties().displayTransform() : FurnitureHelpers.yawToRotation(baseEntity.getYaw())).ordinal())
-                ));
-
-                packets.add(new FurnitureBasePacket(type, entityId, addEntityPacket, metadataPacket));
-            }
-
-            return packets;
+            return Arrays.stream(FurnitureType.values()).map(type -> new FurnitureBasePacket(furnitureBase, baseEntity, type)).collect(Collectors.toSet());
         }).forEach(packets -> {
             ((CraftPlayer) player).getHandle().connection.send(packets.addEntity);
-            ((CraftPlayer) player).getHandle().connection.send(packets.metadata);
+            ((CraftPlayer) player).getHandle().connection.send(packets.metadataPacket());
         });
     }
 
@@ -102,7 +73,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        furnitureEntityMap.stream().filter(f -> f.baseUUID().equals(baseEntity.getUniqueId())).findFirst().ifPresent(base ->
+        furnitureBaseMap.stream().filter(f -> f.baseUUID().equals(baseEntity.getUniqueId())).findFirst().ifPresent(base ->
                 ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(base.entityIds().toIntArray()))
         );
     }

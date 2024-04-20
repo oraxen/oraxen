@@ -51,7 +51,7 @@ public class FurnitureFactory extends MechanicFactory {
         if (customSounds) MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new FurnitureSoundListener());
     }
 
-    public IFurniturePacketManager furniturePacketManager() {
+    public IFurniturePacketManager packetManager() {
         return Optional.ofNullable(NMSHandlers.handler()).map(NMSHandler::furniturePacketManager).orElse(new EmptyFurniturePacketManager());
     }
 

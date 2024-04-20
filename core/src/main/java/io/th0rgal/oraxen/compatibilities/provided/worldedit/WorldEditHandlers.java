@@ -25,8 +25,8 @@ import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -82,10 +82,9 @@ public class WorldEditHandlers {
                 baseEntity.setNbtData(new CompoundTag(compoundTagMap));
 
                 Bukkit.getScheduler().scheduleSyncDelayedTask(OraxenPlugin.get(), () -> {
-                    List<org.bukkit.entity.Entity> entities = bukkitLocation.getNearbyEntities(0.5, 0.5, 0.5).stream().toList();
-                    List<org.bukkit.entity.Entity> nearbyEntities = entities.stream().sorted(Comparator.comparingDouble(entity -> entity.getLocation().distance(bukkitLocation))).toList();
-                    nearbyEntities.stream().findFirst().ifPresent(e ->
-                            mechanic.setEntityData(e, e.getLocation().getYaw(), BlockFace.NORTH));
+                    List<ArmorStand> baseEntities = new ArrayList<>(bukkitLocation.getNearbyEntitiesByType(ArmorStand.class, 0.5).stream().toList());
+                    baseEntities.sort(Comparator.comparingDouble(entity -> entity.getLocation().distance(bukkitLocation)));
+                    baseEntities.stream().findFirst().ifPresent(a -> mechanic.setBaseFurnitureData(a, a.getBodyYaw()));
                 }, 1L);
 
                 return super.createEntity(location, baseEntity);

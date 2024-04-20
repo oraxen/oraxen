@@ -78,12 +78,12 @@ public class LightMechanic {
                 if (stringBlockMechanic.hasLight()) stringBlockMechanic.light().createBlockLight(block);
                 else continue;
 
-            FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());
+            /*FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());
             if (furnitureMechanic != null) {
                 Entity baseEntity = furnitureMechanic.baseEntity(block);
                 if (!furnitureMechanic.hasLight() || baseEntity == null) continue;
                 furnitureMechanic.setEntityData(baseEntity, FurnitureHelpers.furnitureYaw(baseEntity), baseEntity.getFacing());
-            }
+            }*/
         }
     }
 

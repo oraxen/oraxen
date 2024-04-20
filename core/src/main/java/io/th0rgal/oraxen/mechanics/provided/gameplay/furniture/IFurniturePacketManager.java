@@ -18,17 +18,17 @@ public interface IFurniturePacketManager {
     BlockData BARRIER_DATA = Material.BARRIER.createBlockData();
     BlockData AIR_DATA = Material.AIR.createBlockData();
 
-    Set<FurnitureBaseEntity> furnitureEntityMap = new HashSet<>();
+    Set<FurnitureBaseEntity> furnitureBaseMap = new HashSet<>();
     Map<UUID, Set<BlockPosition>> barrierHitboxPositionMap = new HashMap<>();
     Set<FurnitureSubEntity> interactionHitboxIdMap = new HashSet<>();
 
-    default Optional<FurnitureBaseEntity> furnitureFromBaseEntity(@NotNull Entity baseEntity) {
-        return furnitureEntityMap.stream().filter(f -> f.baseUUID().equals(baseEntity.getUniqueId())).findFirst();
+    default Optional<FurnitureBaseEntity> furnitureBaseFromBaseEntity(@NotNull Entity baseEntity) {
+        return furnitureBaseMap.stream().filter(f -> f.baseUUID().equals(baseEntity.getUniqueId())).findFirst();
     }
 
     @Nullable
-    default Entity baseEntityFromFurniture(int furnitureId) {
-        return furnitureEntityMap.stream().filter(f -> f.entityIds().contains(furnitureId))
+    default Entity baseEntityFromFurnitureBase(int furnitureBaseId) {
+        return furnitureBaseMap.stream().filter(f -> f.entityIds().contains(furnitureBaseId))
                 .map(FurnitureBaseEntity::baseEntity).findFirst().orElse(null);
     }
 

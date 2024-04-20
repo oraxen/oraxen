@@ -31,13 +31,12 @@ import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.*;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,8 +59,6 @@ public class FurnitureMechanic extends Mechanic {
     private final EvolvingFurniture evolvingFurniture;
     private final LightMechanic light;
     private final String modelEngineID;
-    private final String placedItemId;
-    private ItemStack placedItem;
     private final List<FurnitureSeat> seats = new ArrayList<>();
     private final List<ClickAction> clickActions;
     private FurnitureType furnitureType;
@@ -93,7 +90,6 @@ public class FurnitureMechanic extends Mechanic {
         super(mechanicFactory, section, itemBuilder -> itemBuilder.setCustomTag(FURNITURE_KEY, PersistentDataType.BYTE, (byte) 1));
 
         hardness = section.getInt("hardness", 1);
-        placedItemId = section.getString("item", null);
         modelEngineID = section.getString("modelengine_id", null);
         farmlandRequired = section.getBoolean("farmland_required", false);
         light = new LightMechanic(section);
@@ -263,40 +259,24 @@ public class FurnitureMechanic extends Mechanic {
         return isRotatable || hasSeats() || isStorage();
     }
 
-    public void setPlacedItem() {
-        if (placedItem == null) {
-            placedItem = OraxenItems.getItemById(placedItemId != null ? placedItemId : getItemID()).build();
-            //Utils.editItemMeta(placedItem, meta -> meta.setDisplayName(""));
-        }
-    }
-
     public Entity place(Location location) {
-        setPlacedItem();
-        return place(location, placedItem, 0f, BlockFace.NORTH, true);
+        return place(location, 0f, BlockFace.NORTH, true);
     }
 
-    public Entity place(Location location, Float yaw, BlockFace facing) {
-        setPlacedItem();
-        return place(location, placedItem, yaw, facing, true);
+    public Entity place(Location location, float yaw, BlockFace facing) {
+        return place(location, yaw, facing, true);
     }
 
-    public Entity place(Location location, ItemStack originalItem, Float yaw, BlockFace facing, boolean checkSpace) {
+    public Entity place(Location location, float yaw, BlockFace facing, boolean checkSpace) {
         if (!location.isWorldLoaded()) return null;
         if (checkSpace && !this.hasEnoughSpace(location, yaw)) return null;
         assert location.getWorld() != null;
-        setPlacedItem();
-        assert location.getWorld() != null;
 
-        Class<? extends Entity> entityClass = furnitureEntityType().getEntityClass();
-        if (entityClass == null) entityClass = ItemFrame.class;
-
-        ItemStack item;
-        if (evolvingFurniture == null) {
-            item = ItemUtils.editItemMeta(originalItem.clone(), meta -> ItemUtils.displayName(meta, Component.empty()));
-        } else item = placedItem;
+        ItemStack item = OraxenItems.getItemById(getItemID()).build();
+        ItemUtils.editItemMeta(item, meta -> ItemUtils.displayName(meta, Component.empty()));
         item.setAmount(1);
 
-        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, facing), entityClass, (e) -> setEntityData(e, yaw, item, facing));
+        ArmorStand baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, facing), ArmorStand.class, a -> setBaseFurnitureData(a, yaw));
         if (baseEntity == null) return null;
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
@@ -322,22 +302,15 @@ public class FurnitureMechanic extends Mechanic {
         return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 : 0), 0);
     }
 
-    public void setEntityData(Entity entity, float yaw, BlockFace facing) {
-        setEntityData(entity, yaw, FurnitureHelpers.furnitureItem(entity), facing);
-    }
+    public void setBaseFurnitureData(ArmorStand baseEntity, float yaw) {
+        baseEntity.setPersistent(true);
+        baseEntity.setCustomNameVisible(false);
+        baseEntity.setDisabledSlots(EquipmentSlot.values());
+        baseEntity.setMarker(true);
+        baseEntity.setVisible(true);
+        baseEntity.setRotation(yaw, 0f);
 
-    public void setEntityData(Entity entity, float yaw, ItemStack item, BlockFace facing) {
-        setBaseFurnitureData(entity);
-        if (entity instanceof ItemFrame frame)
-            setFrameData(frame, item, yaw, facing);
-        else if (entity instanceof ItemDisplay itemDisplay)
-            setItemDisplayData(itemDisplay, item, yaw, displayEntityProperties);
-    }
-
-    private void setBaseFurnitureData(Entity entity) {
-        entity.setPersistent(true);
-        entity.setCustomNameVisible(false);
-        PersistentDataContainer pdc = entity.getPersistentDataContainer();
+        PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
         if (hasEvolution()) pdc.set(EVOLUTION_KEY, PersistentDataType.INTEGER, 0);
         if (isStorage() && storage().getStorageType() == StorageMechanic.StorageType.STORAGE) {
@@ -345,7 +318,7 @@ public class FurnitureMechanic extends Mechanic {
         }
     }
 
-    private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Float yaw, DisplayEntityProperties properties) {
+    /*private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Float yaw, DisplayEntityProperties properties) {
         itemDisplay.setItemDisplayTransform(properties.displayTransform());
         if (properties.hasSpecifiedViewRange()) itemDisplay.setViewRange(properties.viewRange());
         if (properties.hasInterpolationDuration())
@@ -400,7 +373,7 @@ public class FurnitureMechanic extends Mechanic {
             else if (limitedPlacing.isRoof() && facing == BlockFace.DOWN)
                 frame.setFacingDirection(BlockFace.DOWN, true);
         }
-    }
+    }*/
 
     private void spawnModelEngineFurniture(@NotNull Entity entity) {
         ModeledEntity modelEntity = ModelEngineAPI.getOrCreateModeledEntity(entity);
@@ -413,8 +386,8 @@ public class FurnitureMechanic extends Mechanic {
     public void removeBaseEntity(@NotNull Entity baseEntity) {
         if (light.hasLightLevel()) light.removeBlockLight(baseEntity.getLocation().getBlock());
         if (hasSeats()) removeFurnitureSeats(baseEntity);
-        FurnitureFactory.instance.furniturePacketManager().removeInteractionHitboxPacket(baseEntity, this);
-        FurnitureFactory.instance.furniturePacketManager().removeBarrierHitboxPacket(baseEntity, this);
+        FurnitureFactory.instance.packetManager().removeInteractionHitboxPacket(baseEntity, this);
+        FurnitureFactory.instance.packetManager().removeBarrierHitboxPacket(baseEntity, this);
 
         if (!baseEntity.isDead()) baseEntity.remove();
     }
@@ -446,48 +419,28 @@ public class FurnitureMechanic extends Mechanic {
     public Entity baseEntity(Block block) {
         if (block == null) return null;
         BlockPosition blockPosition = new BlockPosition(block.getX(), block.getY(), block.getZ());
-        return FurnitureFactory.instance.furniturePacketManager().baseEntityFromHitbox(blockPosition);
+        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
     }
 
     @Nullable
     public Entity baseEntity(Location location) {
         if (location == null) return null;
         BlockPosition blockPosition = new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-        return FurnitureFactory.instance.furniturePacketManager().baseEntityFromHitbox(blockPosition);
+        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
     }
 
     @Nullable
     Entity baseEntity(BlockPosition blockPosition) {
-        return FurnitureFactory.instance.furniturePacketManager().baseEntityFromHitbox(blockPosition);
+        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
     }
 
     @Nullable
     Entity baseEntity(int interactionId) {
-        return FurnitureFactory.instance.furniturePacketManager().baseEntityFromHitbox(interactionId);
+        return FurnitureFactory.instance.packetManager().baseEntityFromHitbox(interactionId);
     }
 
     public FurnitureType furnitureType() {
         return furnitureType;
-    }
-
-    public EntityType furnitureEntityType() {
-
-        return switch (furnitureType) {
-            case ITEM_FRAME -> EntityType.ITEM_FRAME;
-            case GLOW_ITEM_FRAME -> EntityType.GLOW_ITEM_FRAME;
-            case DISPLAY_ENTITY ->
-                    OraxenPlugin.supportsDisplayEntities ? EntityType.ITEM_DISPLAY : EntityType.ITEM_FRAME;
-            //case ARMOR_STAND -> EntityType.ARMOR_STAND;
-        };
-    }
-
-    public Class<? extends Entity> furnitureEntityClass() {
-        return switch (furnitureType) {
-            case ITEM_FRAME -> ItemFrame.class;
-            case GLOW_ITEM_FRAME -> GlowItemFrame.class;
-            case DISPLAY_ENTITY -> OraxenPlugin.supportsDisplayEntities ? ItemDisplay.class : ItemFrame.class;
-            //case ARMOR_STAND -> ArmorStand.class;
-        };
     }
 
     public boolean hasDisplayEntityProperties() {

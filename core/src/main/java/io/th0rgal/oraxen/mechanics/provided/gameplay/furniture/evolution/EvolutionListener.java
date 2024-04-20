@@ -36,7 +36,7 @@ public class EvolutionListener implements Listener {
         event.setCancelled(true);
         EvolvingFurniture evolution = mechanic.evolution();
         if (!evolution.isBoneMeal() || evolution.getNextStage() == null) return;
-        FurnitureMechanic nextMechanic = (FurnitureMechanic) FurnitureFactory.instance.getMechanic(evolution.getNextStage());
+        FurnitureMechanic nextMechanic = FurnitureFactory.instance.getMechanic(evolution.getNextStage());
         if (nextMechanic == null) return;
 
         itemInteracted.setAmount(itemInteracted.getAmount() - 1);
@@ -44,7 +44,7 @@ public class EvolutionListener implements Listener {
         if (randomChance(evolution.getBoneMealChance())) {
 
             OraxenFurniture.remove(baseEntity, null);
-            nextMechanic.place(baseEntity.getLocation(), baseEntity.getLocation().getYaw(), baseEntity.getFacing());
+            nextMechanic.place(baseEntity.getLocation());
         }
     }
 

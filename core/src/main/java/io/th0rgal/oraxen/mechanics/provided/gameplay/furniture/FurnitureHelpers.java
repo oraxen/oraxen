@@ -1,14 +1,11 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
-import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import org.bukkit.Rotation;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.ItemFrame;
-import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 
@@ -42,20 +39,14 @@ public class FurnitureHelpers {
         return Rotation.values()[Math.round(yaw / 45f) & 0x7];
     }
 
-    public static ItemStack furnitureItem(Entity entity) {
-        return switch (entity.getType()) {
-            case ARMOR_STAND -> ((ArmorStand) entity).getEquipment().getHelmet();
-            case ITEM_DISPLAY -> OraxenPlugin.supportsDisplayEntities ? ((ItemDisplay) entity).getItemStack() : null;
-            default -> ((ItemFrame) entity).getItem();
-        };
+    @Nullable
+    public static ItemStack furnitureItem(Entity baseEntity) {
+        return FurnitureFactory.instance.packetManager().furnitureBaseFromBaseEntity(baseEntity).map(FurnitureBaseEntity::itemStack).orElse(null);
     }
 
-    public static void furnitureItem(Entity entity, ItemStack item) {
-        if (entity instanceof ItemFrame itemFrame)
-            itemFrame.setItem(item, false);
-        else if (entity instanceof ArmorStand armorStand)
-            armorStand.setItem(EquipmentSlot.HEAD, item);
-        else if (OraxenPlugin.supportsDisplayEntities && entity instanceof ItemDisplay itemDisplay)
-            itemDisplay.setItemStack(item);
+    public static void furnitureItem(Entity baseEntity, ItemStack itemStack) {
+        FurnitureFactory.instance.packetManager().furnitureBaseFromBaseEntity(baseEntity).ifPresent(furnitureBase -> {
+            furnitureBase.itemStack(itemStack);
+        });
     }
 }
