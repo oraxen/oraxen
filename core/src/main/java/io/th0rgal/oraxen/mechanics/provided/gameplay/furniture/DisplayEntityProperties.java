@@ -93,7 +93,7 @@ public class DisplayEntityProperties {
         return viewRange != null;
     }
 
-    public int viewRange() {
+    public Integer viewRange() {
         return viewRange;
     }
 
@@ -137,7 +137,7 @@ public class DisplayEntityProperties {
         return shadowStrength != null;
     }
 
-    public float shadowStrength() {
+    public Float shadowStrength() {
         return shadowStrength;
     }
 
@@ -145,15 +145,15 @@ public class DisplayEntityProperties {
         return shadowRadius != null;
     }
 
-    public float shadowRadius() {
+    public Float shadowRadius() {
         return shadowRadius;
     }
 
-    public float displayWidth() {
+    public Float displayWidth() {
         return displayWidth;
     }
 
-    public float displayHeight() {
+    public Float displayHeight() {
         return displayHeight;
     }
 

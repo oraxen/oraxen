@@ -53,14 +53,20 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
         furnitureBasePacketMap.computeIfAbsent(baseEntity.getUniqueId(), key -> {
             FurnitureBaseEntity furnitureBase = furnitureBaseFromBaseEntity(baseEntity).orElseGet(() -> {
-                furnitureBaseMap.add(new FurnitureBaseEntity(baseEntity.getUniqueId()));
+                furnitureBaseMap.add(new FurnitureBaseEntity(baseEntity, mechanic));
                 return furnitureBaseFromBaseEntity(baseEntity).orElse(null);
             });
             if (furnitureBase == null) return new HashSet<>();
             return Arrays.stream(FurnitureType.values()).map(type -> new FurnitureBasePacket(furnitureBase, baseEntity, type)).collect(Collectors.toSet());
-        }).forEach(packets -> {
-            ((CraftPlayer) player).getHandle().connection.send(packets.addEntity);
-            ((CraftPlayer) player).getHandle().connection.send(packets.metadataPacket());
+        }).stream().filter(basePacket -> {
+            if (mechanic.furnitureType() != FurnitureType.DISPLAY_ENTITY) return basePacket.type == mechanic.furnitureType();
+            if (!OraxenPlugin.supportsDisplayEntities) return basePacket.type == mechanic.furnitureType();
+            if (VersionUtil.atOrAbove(player, 762)) return basePacket.type == mechanic.furnitureType();
+
+            return basePacket.type != FurnitureType.DISPLAY_ENTITY;
+        }).findFirst().ifPresent(basePacket -> {
+            ((CraftPlayer) player).getHandle().connection.send(basePacket.entityPacket());
+            ((CraftPlayer) player).getHandle().connection.send(basePacket.metadataPacket());
         });
     }
 

@@ -307,7 +307,7 @@ public class FurnitureMechanic extends Mechanic {
         baseEntity.setCustomNameVisible(false);
         baseEntity.setDisabledSlots(EquipmentSlot.values());
         baseEntity.setMarker(true);
-        baseEntity.setVisible(true);
+        baseEntity.setVisible(false);
         baseEntity.setRotation(yaw, 0f);
 
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();

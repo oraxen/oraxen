@@ -1,9 +1,11 @@
 package io.th0rgal.oraxen.utils;
 
+import com.comphenix.protocol.ProtocolLibrary;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Bukkit;
 import org.bukkit.Server;
+import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -44,6 +46,10 @@ public class VersionUtil {
 
     public static boolean matchesServer(String server) {
         return MinecraftVersion.getCurrentVersion().equals(new MinecraftVersion(server));
+    }
+
+    public static boolean atOrAbove(Player player, int protocolVersion) {
+        return ProtocolLibrary.getProtocolManager().getProtocolVersion(player) >= protocolVersion;
     }
 
     public static boolean atOrAbove(String versionString) {

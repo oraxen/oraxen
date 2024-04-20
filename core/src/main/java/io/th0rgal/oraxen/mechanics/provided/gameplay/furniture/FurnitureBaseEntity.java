@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import io.th0rgal.oraxen.api.OraxenItems;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
 import org.bukkit.Bukkit;
@@ -16,8 +17,9 @@ public class FurnitureBaseEntity {
     private final UUID baseUuid;
     private final Map<FurnitureType, Integer> entityIds;
 
-    public FurnitureBaseEntity(UUID baseUuid) {
-        this.baseUuid = baseUuid;
+    public FurnitureBaseEntity(Entity baseEntity, FurnitureMechanic mechanic) {
+        this.itemStack = OraxenItems.getItemById(mechanic.getItemID()).build();
+        this.baseUuid = baseEntity.getUniqueId();
         this.entityIds = Arrays.stream(FurnitureType.values()).map(type -> Map.entry(type, net.minecraft.world.entity.Entity.nextEntityId()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
