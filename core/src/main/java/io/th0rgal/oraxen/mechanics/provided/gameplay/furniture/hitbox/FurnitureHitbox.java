@@ -46,6 +46,7 @@ public class FurnitureHitbox {
         IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
 
         for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), 32.0)) {
+            packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
         }

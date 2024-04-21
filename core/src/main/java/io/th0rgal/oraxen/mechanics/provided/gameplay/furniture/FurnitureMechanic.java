@@ -386,6 +386,7 @@ public class FurnitureMechanic extends Mechanic {
     public void removeBaseEntity(@NotNull Entity baseEntity) {
         if (light.hasLightLevel()) light.removeBlockLight(baseEntity.getLocation().getBlock());
         if (hasSeats()) removeFurnitureSeats(baseEntity);
+        FurnitureFactory.instance.packetManager().removeFurnitureEntityPacket(baseEntity, this);
         FurnitureFactory.instance.packetManager().removeInteractionHitboxPacket(baseEntity, this);
         FurnitureFactory.instance.packetManager().removeBarrierHitboxPacket(baseEntity, this);
 
@@ -409,9 +410,7 @@ public class FurnitureMechanic extends Mechanic {
 
     public void runClickActions(final Player player) {
         for (final ClickAction action : clickActions) {
-            if (action.canRun(player)) {
-                action.performActions(player);
-            }
+            if (action.canRun(player)) action.performActions(player);
         }
     }
 
