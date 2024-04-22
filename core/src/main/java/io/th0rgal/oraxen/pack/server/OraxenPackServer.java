@@ -1,10 +1,15 @@
 package io.th0rgal.oraxen.pack.server;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.pack.PackListener;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 public interface OraxenPackServer {
 
@@ -14,7 +19,15 @@ public interface OraxenPackServer {
         OraxenPlugin.get().packServer().stop();
         HandlerList.unregisterAll(packListener);
         Bukkit.getPluginManager().registerEvents(packListener, OraxenPlugin.get());
-        return switch (PackServerType.fromSetting()) {
+        PackServerType type = Settings.PACK_SERVER_TYPE.toEnumOrGet(PackServerType.class, () -> {
+            Logs.logError("Invalid PackServer-type specified: " + Settings.PACK_SERVER_TYPE);
+            Logs.logError("Valid types are: " + Arrays.stream(PackServerType.values()).map(Enum::name).collect(Collectors.joining(", ")));
+            return PackServerType.NONE;
+        });
+
+        Logs.logInfo("PackServer set to " + type.name());
+
+        return switch (type) {
             case SELFHOST -> new SelfHostServer();
             case POLYMATH -> new PolymathServer();
             case NONE -> new EmptyServer();

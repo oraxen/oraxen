@@ -1,6 +1,5 @@
 package io.th0rgal.oraxen.mechanics.provided.misc.commands;
 
-import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Message;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.timers.Timer;
@@ -22,21 +21,11 @@ public class CommandsMechanicListener implements Listener {
 
     @EventHandler(priority = EventPriority.NORMAL)
     public void onInteract(PlayerInteractEvent event) {
-        Action action = event.getAction();
-        if (action != Action.LEFT_CLICK_AIR && action != Action.RIGHT_CLICK_AIR && action != Action.LEFT_CLICK_BLOCK
-                && action != Action.RIGHT_CLICK_BLOCK)
-            return;
-
-        ItemStack item = event.getItem();
-        if (item == null)
-            return;
-
-        String itemID = OraxenItems.getIdByItem(item);
-        if (factory.isNotImplementedIn(itemID))
-            return;
-
-        CommandsMechanic mechanic = (CommandsMechanic) factory.getMechanic(itemID);
         Player player = event.getPlayer();
+        Action action = event.getAction();
+        ItemStack item = event.getItem();
+        CommandsMechanic mechanic = factory.getMechanic(item);
+        if (action == Action.PHYSICAL || item == null || mechanic == null) return;
 
         if (!mechanic.hasPermission(player)) {
             Message.NO_PERMISSION.send(player, AdventureUtils.tagResolver("permission", mechanic.getPermission()));

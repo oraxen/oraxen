@@ -24,21 +24,15 @@ import java.util.regex.Pattern;
 public class GlyphHandlers {
 
     public enum GlyphHandler {
-        NMS, VANILLA;
-
-        public static GlyphHandler get() {
-            try {
-                return GlyphHandler.valueOf(Settings.GLYPH_HANDLER.toString());
-            } catch (IllegalArgumentException e) {
-                Logs.logError("Invalid glyph handler: " + Settings.GLYPH_HANDLER + ", defaulting to VANILLA", true);
-                Logs.logError("Valid options are: NMS, VANILLA", true);
-                return GlyphHandler.VANILLA;
-            }
-        }
+        NMS, VANILLA
     }
 
     public static boolean isNms() {
-        return GlyphHandler.get() == GlyphHandler.NMS;
+        return Settings.GLYPH_HANDLER.toEnumOrGet(GlyphHandler.class, () -> {
+            Logs.logError("Invalid glyph handler: " + Settings.GLYPH_HANDLER + ", defaulting to VANILLA", true);
+            Logs.logError("Valid options are: NMS, VANILLA", true);
+            return GlyphHandler.VANILLA;
+        }) == GlyphHandler.NMS;
     }
 
     public static Component transform(Component component, @Nullable Player player, boolean isUtf) {

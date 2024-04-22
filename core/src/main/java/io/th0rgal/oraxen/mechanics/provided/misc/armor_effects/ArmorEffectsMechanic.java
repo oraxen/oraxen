@@ -36,7 +36,7 @@ public class ArmorEffectsMechanic extends Mechanic {
             return;
         }
 
-        int duration = section.getInt("duration", ArmorEffectsFactory.getInstance().getDelay());
+        int duration = section.getInt("duration", ArmorEffectsFactory.get().getDelay());
         int amplifier = section.getInt("amplifier", 0);
         boolean ambient = section.getBoolean("ambient", false);
         boolean particles = section.getBoolean("particles", true);
@@ -53,7 +53,7 @@ public class ArmorEffectsMechanic extends Mechanic {
     public static void addEffects(Player player) {
         for (int armorSlot : ArmorEffectsMechanic.ARMOR_SLOTS) {
             ItemStack armorPiece = player.getInventory().getItem(armorSlot);
-            ArmorEffectsMechanic mechanic = (ArmorEffectsMechanic) ArmorEffectsFactory.getInstance().getMechanic(armorPiece);
+            ArmorEffectsMechanic mechanic = ArmorEffectsFactory.get().getMechanic(armorPiece);
             if (mechanic == null) continue;
 
             Set<PotionEffect> finalArmorEffects = new HashSet<>();

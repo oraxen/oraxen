@@ -3,9 +3,9 @@ package io.th0rgal.oraxen.config;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.font.FontEvents;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
+import io.th0rgal.oraxen.pack.PackObfuscator;
 import io.th0rgal.oraxen.pack.server.PackServerType;
 import io.th0rgal.oraxen.utils.AdventureUtils;
-import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorType;
@@ -18,9 +18,8 @@ import org.bukkit.configuration.file.YamlConfiguration;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Supplier;
 
 public enum Settings {
     // Generic Plugin stuff
@@ -28,8 +27,6 @@ public enum Settings {
     PLUGIN_LANGUAGE("Plugin.language", "english"),
     KEEP_UP_TO_DATE("Plugin.keep_this_up_to_date", true),
     REPAIR_COMMAND_ORAXEN_DURABILITY("Plugin.commands.repair.oraxen_durability_only", false),
-    DOWNLOAD_DEFAULT_ASSETS("Plugin.default_content.download_resourcepack", true),
-    GENERATE_DEFAULT_CONFIGS("Plugin.default_content.default_configs", true),
     FORMAT_INVENTORY_TITLES("Plugin.formatting.inventory_titles", true),
     FORMAT_TITLES("Plugin.formatting.titles", true),
     FORMAT_SUBTITLES("Plugin.formatting.subtitles", true),
@@ -56,6 +53,7 @@ public enum Settings {
     // Config Tools
     //CONFIGS_VERSION("configs_version", "false"),
     UPDATE_CONFIGS("ConfigsTools.enable_configs_updater", true),
+    GENERATE_DEFAULT_CONFIGS("ConfigTools.generate_default_configs", true),
     DISABLE_AUTOMATIC_MODEL_DATA("ConfigsTools.disable_automatic_model_data", false),
     DISABLE_AUTOMATIC_GLYPH_CODE("ConfigsTools.disable_automatic_glyph_code", false),
     SKIPPED_MODEL_DATA_NUMBERS("ConfigsTools.skipped_model_data_numbers", List.of()),
@@ -74,7 +72,6 @@ public enum Settings {
     CUSTOM_ARMOR_SHADER_GENERATE_SHADER_COMPATIBLE_ARMOR("CustomArmor.shader_settings.generate_shader_compatible_armor", true),
 
     // Custom Blocks
-    BLOCK_CORRECTION("CustomBlocks.block_correction", BlockHelpers.BlockCorrection.NMS.name()),
     LEGACY_NOTEBLOCKS("CustomBlocks.use_legacy_noteblocks", VersionUtil.atOrAbove("1.20")),
     LEGACY_STRINGBLOCKS("CustomBlocks.use_legacy_stringblocks", false),
 
@@ -97,6 +94,12 @@ public enum Settings {
 
     //Pack
     PACK_GENERATE("Pack.generation.generate", true),
+    PACK_OBFUSCATION_TYPE("Pack.obfuscation.type", PackObfuscator.PackObfuscationType.FULL.name()),
+    PACK_CACHE_OBFUSCATION("Pack.obfuscation.cache", true),
+    PACK_ZIP("Pack.generation.generate_zip", true),
+    PACK_IMPORT_DEFAULT("Pack.import.default_assets", true),
+    PACK_IMPORT_EXTERNAL("Pack.import.external_packs", true),
+    PACK_IMPORT_MODEL_ENGINE("Pack.import.modelengine", true),
     PACK_EXCLUDED_FILE_EXTENSIONS("Pack.generation.excluded_file_extensions", List.of(".zip")),
     FIX_FORCE_UNICODE_GLYPHS("Pack.generation.fix_force_unicode_glyphs", true),
 
@@ -108,7 +111,7 @@ public enum Settings {
             conditions of Oraxen
             """.trim()),
 
-    PACK_SERVER_TYPE("Pack.server.type", PackServerType.SELFHOST.name()),
+    PACK_SERVER_TYPE("Pack.server.type", PackServerType.POLYMATH.name()),
     SELFHOST_PACK_SERVER_PORT("Pack.server.selfhost.port", 8082),
     SELFHOST_PUBLIC_ADDRESS("Pack.server.selfhost.public_address"),
     POLYMATH_SERVER("Pack.server.polymath.server", "atlas.oraxen.com"),
@@ -227,6 +230,21 @@ public enum Settings {
     @Override
     public String toString() {
         return String.valueOf(getValue());
+    }
+
+    @FunctionalInterface
+    public interface MissingHandler<T> {
+        T handle(String value);
+    }
+
+    public <T extends Enum<T>> T toEnum(Class<T> enumClass, T defaultValue) {
+        Optional<T> enumValue = Arrays.stream(enumClass.getEnumConstants()).filter(e -> e.name().equals(toString())).findFirst();
+        return enumValue.orElse(defaultValue);
+    }
+
+    public <T extends Enum<T>> T toEnumOrGet(Class<T> enumClass, Supplier<? extends T> supplier) {
+        Optional<T> enumValue = Arrays.stream(enumClass.getEnumConstants()).filter(e -> e.name().equals(toString())).findFirst();
+        return enumValue.orElseGet(supplier);
     }
 
     public Component toComponent() {

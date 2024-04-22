@@ -9,14 +9,12 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.bukkit.Bukkit;
-import org.bukkit.NamespacedKey;
-import org.bukkit.Registry;
-import org.bukkit.Tag;
+import org.bukkit.*;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ArmorMeta;
 import org.bukkit.inventory.meta.trim.TrimPattern;
+import org.bukkit.packs.DataPack;
 import team.unnamed.creative.ResourcePack;
 import team.unnamed.creative.atlas.Atlas;
 import team.unnamed.creative.atlas.AtlasSource;
@@ -29,14 +27,18 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
 
+@SuppressWarnings({"deprecation", "CallToPrintStackTrace", "ResultOfMethodCallIgnored", "UnstableApiUsage"})
 public class TrimArmorDatapack extends CustomArmor {
-    private static final File customArmorDatapack = Bukkit.getWorldContainer().toPath().resolve("world/datapacks/oraxen_custom_armor").toFile();
-
+    private static final World defaultWorld = Bukkit.getWorlds().get(0);
+    private static final Key datapackKey = Key.key("minecraft:file/oraxen_custom_armor");
+    private static final File customArmorDatapack = defaultWorld.getWorldFolder().toPath().resolve("datapacks/oraxen_custom_armor").toFile();
+    private final boolean isFirstInstall;
+    private final boolean datapackEnabled;
     private final JsonObject datapackMeta = new JsonObject();
     private final Key palleteKey;
-    private final Map<String, Key> permutations = new HashMap<>();
+    private final Map<String, Key> permutations = new LinkedHashMap<>();
+
     public TrimArmorDatapack() {
-        clearOldDataPacks();
         JsonObject data = new JsonObject();
         data.addProperty("description", "Datapack for Oraxens Custom Armor trims");
         data.addProperty("pack_format", 26);
@@ -53,6 +55,9 @@ public class TrimArmorDatapack extends CustomArmor {
         permutations.put("emerald", Key.key("trims/color_palettes/emerald"));
         permutations.put("lapis", Key.key("trims/color_palettes/lapis"));
         permutations.put("amethyst", Key.key("trims/color_palettes/amethyst"));
+
+        this.isFirstInstall = isFirstInstall();
+        this.datapackEnabled = isDatapackEnabled();
     }
 
     @Override
@@ -70,11 +75,11 @@ public class TrimArmorDatapack extends CustomArmor {
 
     private void generateTrimAssets() {
         ResourcePack resourcePack = OraxenPlugin.get().packGenerator().resourcePack();
-        Set<String> armorPrefixes = armorPrefixes(resourcePack);
+        LinkedHashSet<String> armorPrefixes = armorPrefixes(resourcePack);
         customArmorDatapack.toPath().resolve("data").toFile().mkdirs();
-        writeMCMeta(customArmorDatapack);
-        writeVanillaTrimPattern(customArmorDatapack);
-        writeCustomTrimPatterns(customArmorDatapack, armorPrefixes);
+        writeMCMeta();
+        writeVanillaTrimPattern();
+        writeCustomTrimPatterns(armorPrefixes);
         writeTrimAtlas(resourcePack, armorPrefixes);
         try {
             copyArmorLayerTextures(resourcePack);
@@ -82,11 +87,20 @@ public class TrimArmorDatapack extends CustomArmor {
             Logs.logError("Failed to copy armor-layer textures");
             if (Settings.DEBUG.toBool()) e.printStackTrace();
         }
-        checkOraxenArmorItems();
+
+        if (isFirstInstall) {
+            Logs.logError("Oraxen's Custom-Armor datapack could not be found...");
+            Logs.logWarning("The first time CustomArmor.armor_type is set to TRIMS in settings.yml");
+            Logs.logWarning("you need to restart your server so that the DataPack is enabled...");
+            Logs.logWarning("Custom-Armor will not work, please restart your server once!", true);
+        } else if (!datapackEnabled) {
+            Logs.logError("Oraxen's Custom-Armor datapack is not enabled...");
+            Logs.logWarning("Custom-Armor will not work, please restart your server!", true);
+        } else checkOraxenArmorItems();
     }
 
-    private static void writeVanillaTrimPattern(File datapack) {
-        File vanillaArmorJson = datapack.toPath().resolve("data/minecraft/trim_pattern/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase() + ".json").toFile();
+    private static void writeVanillaTrimPattern() {
+        File vanillaArmorJson = TrimArmorDatapack.customArmorDatapack.toPath().resolve("data/minecraft/trim_pattern/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase() + ".json").toFile();
         vanillaArmorJson.getParentFile().mkdirs();
         JsonObject vanillaTrimPattern = new JsonObject();
         JsonObject description = new JsonObject();
@@ -103,9 +117,9 @@ public class TrimArmorDatapack extends CustomArmor {
         }
     }
 
-    private static void writeCustomTrimPatterns(File datapack, Set<String> armorPrefixes) {
+    private static void writeCustomTrimPatterns(LinkedHashSet<String> armorPrefixes) {
         for (String armorPrefix : armorPrefixes) {
-            File armorJson = datapack.toPath().resolve("data/oraxen/trim_pattern/" + armorPrefix + ".json").toFile();
+            File armorJson = TrimArmorDatapack.customArmorDatapack.toPath().resolve("data/oraxen/trim_pattern/" + armorPrefix + ".json").toFile();
             armorJson.getParentFile().mkdirs();
             JsonObject trimPattern = new JsonObject();
             JsonObject description = new JsonObject();
@@ -122,7 +136,7 @@ public class TrimArmorDatapack extends CustomArmor {
         }
     }
 
-    private void writeTrimAtlas(ResourcePack resourcePack, Set<String> armorPrefixes) {
+    private void writeTrimAtlas(ResourcePack resourcePack, LinkedHashSet<String> armorPrefixes) {
         Atlas trimsAtlas = resourcePack.atlas(Key.key("armor_trims"));
 
         // If for some reason the atlas exists already, we append to it
@@ -142,7 +156,7 @@ public class TrimArmorDatapack extends CustomArmor {
                 textures.add(Key.key("minecraft:trims/models/armor/" +  trimMat + "_leggings"));
 
                 sources.remove(palletedSource);
-                sources.add(AtlasSource.palettedPermutations(textures, palletedSource.paletteKey(), palletedSource.permutations()));
+                sources.add(AtlasSource.palettedPermutations(new LinkedHashSet<>(textures).stream().toList(), palletedSource.paletteKey(), palletedSource.permutations()));
             }
 
             resourcePack.atlas(trimsAtlas.toBuilder().sources(sources).build());
@@ -157,35 +171,40 @@ public class TrimArmorDatapack extends CustomArmor {
             textures.add(Key.key("minecraft:trims/models/armor/" + trimMat));
             textures.add(Key.key("minecraft:trims/models/armor/" +  trimMat + "_leggings"));
 
-            resourcePack.atlas(Atlas.atlas().key(Key.key("armor_trims")).addSource(AtlasSource.palettedPermutations(textures, palleteKey, permutations)).build());
+            resourcePack.atlas(Atlas.atlas().key(Key.key("armor_trims")).addSource(AtlasSource.palettedPermutations(new LinkedHashSet<>(textures).stream().toList(), palleteKey, permutations)).build());
         }
     }
 
     private void copyArmorLayerTextures(ResourcePack resourcePack) throws IOException {
-        String armorPath = "assets/minecraft/textures/models/armor/";
-        String vanillaTrimPath = "assets/minecraft/textures/trims/models/armor/";
-        String oraxenTrimPath = "assets/oraxen/textures/trims/models/armor/";
+        String armorPath = "minecraft:models/armor/";
+        String vanillaTrimPath = "minecraft:trims/models/armor/";
+        String oraxenTrimPath = "oraxen:trims/models/armor/";
         String material = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase();
 
         resourcePack.textures().stream().filter(t ->
-                t.key().asString().endsWith("_armor_layer_1.png") || t.key().asString().endsWith("_armor_layer_2.png")
-        ).toList().forEach( t -> {
-            String armorPrefix = armorPrefix(t);
-            if (t.key().asString().endsWith("_armor_layer_1.png"))
-                resourcePack.texture(t.toBuilder().key(Key.key(oraxenTrimPath + armorPrefix + ".png")).build());
-            else if (t.key().asString().endsWith("_armor_layer_2.png"))
-                resourcePack.texture(t.toBuilder().key(Key.key(oraxenTrimPath + armorPrefix + "_leggings.png")).build());
+                t.key().asString().endsWith("_layer_1.png") || t.key().asString().endsWith("_layer_2.png")
+        ).collect(Collectors.toCollection(LinkedHashSet::new)).forEach( armorTexture -> {
+            String armorPrefix = armorPrefix(armorTexture);
+            if (armorTexture.key().asString().endsWith("_armor_layer_1.png"))
+                resourcePack.texture(Key.key(oraxenTrimPath + armorPrefix + ".png"), armorTexture.data());
+            else if (armorTexture.key().asString().endsWith("_armor_layer_2.png"))
+                resourcePack.texture(Key.key(oraxenTrimPath + armorPrefix + "_leggings.png"), armorTexture.data());
 
-            if (t.key().asString().equals(armorPath + material + "_layer_1.png"))
-                resourcePack.texture(t.toBuilder().key(Key.key(vanillaTrimPath + material + ".png")).build());
-            else if (t.key().asString().equals(armorPath + material + "_layer_2.png"))
-                resourcePack.texture(t.toBuilder().key(Key.key(vanillaTrimPath + material + "_leggings.png")).build());
+            if (armorTexture.key().asString().equals(armorPath + material + "_layer_1.png"))
+                resourcePack.texture(Key.key(vanillaTrimPath + material + ".png"), armorTexture.data());
+            else if (armorTexture.key().asString().equals(armorPath + material + "_layer_2.png"))
+                resourcePack.texture(Key.key(vanillaTrimPath + material + "_leggings.png"), armorTexture.data());
+        });
+
+        Optional.ofNullable(resourcePack.texture(Key.key(armorPath + "transparent_layer.png"))).ifPresent(transparent -> {
+            resourcePack.texture(Key.key(armorPath + material + "_layer_1.png"), transparent.data());
+            resourcePack.texture(Key.key(armorPath + material + "_layer_2.png"), transparent.data());
         });
     }
 
-    private void writeMCMeta(File datapack) {
+    private void writeMCMeta() {
         try {
-            File packMeta = datapack.toPath().resolve("pack.mcmeta").toFile();
+            File packMeta = TrimArmorDatapack.customArmorDatapack.toPath().resolve("pack.mcmeta").toFile();
             packMeta.createNewFile();
             FileUtils.writeStringToFile(packMeta, datapackMeta.toString(), StandardCharsets.UTF_8);
         } catch (IOException e) {
@@ -194,11 +213,15 @@ public class TrimArmorDatapack extends CustomArmor {
     }
 
     private void checkOraxenArmorItems() {
+        // No need to log for all 4 armor pieces, so skip to minimise log spam
+        List<String> skippedArmorType = new ArrayList<>();
         for (ItemBuilder itemBuilder : OraxenItems.getItems()) {
             String itemID = OraxenItems.getIdByItem(itemBuilder);
             ItemStack itemStack = itemBuilder.build();
+            String armorPrefix = StringUtils.substringBeforeLast(itemID,"_");
             boolean changed = false;
 
+            if (skippedArmorType.contains(armorPrefix)) continue;
             if (itemStack == null || !Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(itemBuilder.getType())) continue;
             if (!itemStack.hasItemMeta() || !(itemStack.getItemMeta() instanceof ArmorMeta)) continue;
             if (!itemStack.getType().name().toUpperCase().startsWith(Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toUpperCase())) continue;
@@ -213,32 +236,58 @@ public class TrimArmorDatapack extends CustomArmor {
                 } else Logs.logWarning("Custom Armors are recommended to have the HIDE_ARMOR_TRIM flag set.", true);
             }
             if (!itemBuilder.hasTrimPattern() && CustomArmorType.getSetting() == CustomArmorType.TRIMS) {
-                String armorPrefix = StringUtils.substringBeforeLast(itemID,"_");
-                Logs.logWarning("Item " + itemID + " does not have a trim pattern set.");
-                Logs.logWarning("Oraxen has been configured to use Trims for custom-armor due to " + Settings.CUSTOM_ARMOR_TYPE.getPath() + " setting");
 
                 TrimPattern trimPattern = Registry.TRIM_PATTERN.get(NamespacedKey.fromString("oraxen:" + armorPrefix));
-                if (Settings.CUSTOM_ARMOR_TRIMS_ASSIGN.toBool() && trimPattern != null) {
+                if (trimPattern == null) {
+                    Logs.logError("Could not get trim-pattern for " + itemID + ": oraxen:" + armorPrefix);
+                    Logs.logWarning("Ensure that the  DataPack is enabled `/datapack list` and restart your server");
+                    skippedArmorType.add(armorPrefix);
+                } else if (!Settings.CUSTOM_ARMOR_TRIMS_ASSIGN.toBool()) {
+                    Logs.logWarning("Item " + itemID + " does not have a trim pattern set.");
+                    Logs.logWarning("Oraxen has been configured to use Trims for custom-armor due to " + Settings.CUSTOM_ARMOR_TYPE.getPath() + " setting");
+                    Logs.logWarning("Custom Armor will not work unless a trim pattern is set.", true);
+                    skippedArmorType.add(armorPrefix);
+                } else {
                     itemBuilder.setTrimPattern(trimPattern.key());
                     changed = true;
-                    if (Settings.DEBUG.toBool()) Logs.logInfo("Assigned trim pattern " + trimPattern.key().asString() + " to " + itemID, true);
-                } else Logs.logWarning("Custom Armor will not work unless a trim pattern is set.", true);
+                    Logs.logWarning("Item " + itemID + " does not have a trim pattern set.");
+                    Logs.logInfo("Assigned trim pattern " + trimPattern.key().asString() + " to " + itemID, true);
+                }
             }
 
             if (changed) itemBuilder.save();
         }
     }
 
-    private Set<String> armorPrefixes(ResourcePack resourcePack) {
-        return resourcePack.textures().stream().map(this::armorPrefix).filter(StringUtils::isNotBlank).collect(Collectors.toSet());
+    private LinkedHashSet<String> armorPrefixes(ResourcePack resourcePack) {
+        return resourcePack.textures().stream().map(this::armorPrefix).filter(StringUtils::isNotBlank).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     private String armorPrefix(Texture texture) {
         String textureKey = texture.key().asString();
-        return textureKey.endsWith("_armor_layer_1")
-                ? StringUtils.substringAfterLast(StringUtils.substringBefore(textureKey, "_armor_layer_1"), "/")
-                : textureKey.endsWith("_armor_layer_2")
-                ? StringUtils.substringAfterLast(StringUtils.substringBefore(textureKey, "_armor_layer_2"), "/")
+        return textureKey.endsWith("_armor_layer_1.png")
+                ? StringUtils.substringAfterLast(StringUtils.substringBefore(textureKey, "_armor_layer_1.png"), "/")
+                : textureKey.endsWith("_armor_layer_2.png")
+                ? StringUtils.substringAfterLast(StringUtils.substringBefore(textureKey, "_armor_layer_2.png"), "/")
+                : textureKey.endsWith("_layer_1.png")
+                ? StringUtils.substringAfterLast(StringUtils.substringBefore(textureKey, "_layer_1.png"), "/")
+                : textureKey.endsWith("_layer_2.png")
+                ? StringUtils.substringAfterLast(StringUtils.substringBefore(textureKey, "_layer_2.png"), "/")
                 : "";
+    }
+
+    private boolean isFirstInstall() {
+        return Bukkit.getDataPackManager().getDataPacks().stream().noneMatch(d -> datapackKey.equals(d.key()));
+    }
+
+    private boolean isDatapackEnabled() {
+        for (DataPack dataPack : Bukkit.getDataPackManager().getEnabledDataPacks(defaultWorld)) {
+            if (datapackKey.equals(dataPack.key())) return true;
+        }
+        for (DataPack dataPack : Bukkit.getDataPackManager().getDisabledDataPacks(defaultWorld)) {
+            if (datapackKey.equals(dataPack.key())) return false;
+        }
+
+        return false;
     }
 }

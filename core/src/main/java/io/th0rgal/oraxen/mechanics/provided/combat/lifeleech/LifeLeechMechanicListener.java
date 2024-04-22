@@ -13,9 +13,9 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 
 public class LifeLeechMechanicListener implements Listener {
 
-    private final MechanicFactory factory;
+    private final LifeLeechMechanicFactory factory;
 
-    public LifeLeechMechanicListener(MechanicFactory factory) {
+    public LifeLeechMechanicListener(LifeLeechMechanicFactory factory) {
         this.factory = factory;
     }
 
@@ -27,7 +27,7 @@ public class LifeLeechMechanicListener implements Listener {
 
         String itemID = OraxenItems.getIdByItem(damager.getInventory().getItemInMainHand());
         if (!OraxenItems.exists(itemID)) return;
-        LifeLeechMechanic mechanic = (LifeLeechMechanic) factory.getMechanic(itemID);
+        LifeLeechMechanic mechanic = factory.getMechanic(itemID);
         if (mechanic == null) return;
 
         double maxHealth = damager.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();

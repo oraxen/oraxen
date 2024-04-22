@@ -10,9 +10,11 @@ import io.th0rgal.oraxen.compatibilities.provided.mmoitems.WrappedMMOItem;
 import io.th0rgal.oraxen.compatibilities.provided.mythiccrucible.WrappedCrucibleItem;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.OraxenYaml;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.key.Key;
+import net.kyori.adventure.text.Component;
 import org.bukkit.*;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
@@ -57,7 +59,6 @@ public class ItemBuilder {
     private DyeColor bodyColor; // TropicalFishBucketMeta
     private TropicalFish.Pattern pattern;
     private DyeColor patternColor;
-    private String displayName;
     private boolean unbreakable;
     private boolean unstackable;
     private Set<ItemFlag> itemFlags;
@@ -65,7 +66,8 @@ public class ItemBuilder {
     private Multimap<Attribute, AttributeModifier> attributeModifiers;
     private boolean hasCustomModelData;
     private int customModelData;
-    private List<String> lore;
+    private Component displayName;
+    private List<Component> lore;
     private ItemStack finalItemStack;
 
     public ItemBuilder(final Material material) {
@@ -125,8 +127,15 @@ public class ItemBuilder {
             patternColor = tropicalFishBucketMeta.getPatternColor();
         }
 
-        if (itemMeta.hasDisplayName())
-            displayName = itemMeta.getDisplayName();
+        if (itemMeta.hasDisplayName()) {
+            if (VersionUtil.isPaperServer()) displayName = itemMeta.displayName();
+            else displayName = AdventureUtils.LEGACY_SERIALIZER.deserialize(itemMeta.getDisplayName());
+        }
+
+        if (itemMeta.hasLore()) {
+            if (VersionUtil.isPaperServer()) lore = itemMeta.lore();
+            else lore = itemMeta.getLore().stream().map(l -> AdventureUtils.LEGACY_SERIALIZER.deserialize(l).asComponent()).toList();
+        }
 
         unbreakable = itemMeta.isUnbreakable();
         unstackable = itemMeta.getPersistentDataContainer().has(UNSTACKABLE_KEY, DataType.UUID);
@@ -141,9 +150,6 @@ public class ItemBuilder {
         hasCustomModelData = itemMeta.hasCustomModelData();
         if (itemMeta.hasCustomModelData())
             customModelData = itemMeta.getCustomModelData();
-
-        if (itemMeta.hasLore())
-            lore = itemMeta.getLore();
 
         persistentDataContainer = itemMeta.getPersistentDataContainer();
 
@@ -167,11 +173,20 @@ public class ItemBuilder {
         return this;
     }
 
+    @Deprecated
     public String getDisplayName() {
-        return displayName != null ? displayName : AdventureUtils.MINI_MESSAGE.serialize(itemStack.displayName());
+        return displayName != null ? AdventureUtils.MINI_MESSAGE.serialize(displayName) : "";
+    }
+    public Component displayName() {
+        return displayName != null ? displayName : Component.empty();
     }
 
-    public ItemBuilder setDisplayName(final String displayName) {
+    @Deprecated
+    public ItemBuilder setDisplayName(String displayName) {
+        this.displayName = AdventureUtils.LEGACY_SERIALIZER.deserialize(displayName);
+        return this;
+    }
+    public ItemBuilder displayName(Component displayName) {
         this.displayName = displayName;
         return this;
     }
@@ -180,11 +195,22 @@ public class ItemBuilder {
         return lore != null && !lore.isEmpty();
     }
 
+    @Deprecated
     public List<String> getLore() {
+        return lore != null ? lore.stream().map(AdventureUtils.MINI_MESSAGE::serialize).toList() : new ArrayList<>();
+    }
+
+    public List<Component> lore() {
         return lore != null ? lore : new ArrayList<>();
     }
 
+    @Deprecated
     public ItemBuilder setLore(final List<String> lore) {
+        this.lore = lore.stream().map(l -> AdventureUtils.LEGACY_SERIALIZER.deserialize(l).asComponent()).toList();
+        return this;
+    }
+
+    public ItemBuilder lore(final List<Component> lore) {
         this.lore = lore;
         return this;
     }
@@ -394,8 +420,8 @@ public class ItemBuilder {
         assert itemMeta != null;
         PersistentDataContainer pdc = itemMeta.getPersistentDataContainer();
         if (displayName != null) {
-            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, displayName);
-            itemMeta.setDisplayName(displayName);
+            pdc.set(ORIGINAL_NAME_KEY, DataType.STRING, AdventureUtils.MINI_MESSAGE.serialize(displayName));
+            ItemUtils.displayName(itemMeta, displayName);
         }
 
         itemMeta.setUnbreakable(unbreakable);
@@ -427,7 +453,7 @@ public class ItemBuilder {
             for (final Map.Entry<PersistentDataSpace, Object> dataSpace : persistentDataMap.entrySet())
                 pdc.set(dataSpace.getKey().namespacedKey(), (PersistentDataType<?, Object>) dataSpace.getKey().dataType(), dataSpace.getValue());
 
-        itemMeta.setLore(lore);
+        ItemUtils.lore(itemMeta, lore);
 
         itemStack.setItemMeta(itemMeta);
         finalItemStack = itemStack;

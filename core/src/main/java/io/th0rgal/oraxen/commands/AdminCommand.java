@@ -29,7 +29,7 @@ public class AdminCommand {
                 .withOptionalArguments(new BooleanArgument("random"))
                 .executesPlayer((player, args) -> {
                     String id = (String) args.get("block");
-                    if (!OraxenBlocks.isOraxenBlock(id)) {
+                    if (!OraxenBlocks.isCustomBlock(id)) {
                         OraxenPlugin.get().audience().player(player).sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<red>Unknown OraxenBlock: <yellow>" + id));
                     } else {
                         Location loc = (Location) args.getOptional("location").orElse(player.getLocation());

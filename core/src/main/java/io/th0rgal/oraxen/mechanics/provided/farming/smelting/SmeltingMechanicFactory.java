@@ -5,6 +5,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.inventory.ItemStack;
 
 public class SmeltingMechanicFactory extends MechanicFactory {
 
@@ -23,7 +24,17 @@ public class SmeltingMechanicFactory extends MechanicFactory {
         return mechanic;
     }
 
-    public static SmeltingMechanicFactory getInstance() {
+    @Override
+    public SmeltingMechanic getMechanic(String itemID) {
+        return (SmeltingMechanic) super.getMechanic(itemID);
+    }
+
+    @Override
+    public SmeltingMechanic getMechanic(ItemStack itemStack) {
+        return (SmeltingMechanic) super.getMechanic(itemStack);
+    }
+
+    public static SmeltingMechanicFactory get() {
         return instance;
     }
 

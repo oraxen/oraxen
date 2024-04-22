@@ -13,7 +13,8 @@ brunnera:
     textures:
       - default/flowers/brunnera.png # .png extension is not mandatory
   Mechanics:
-    stringblock:
+    custom_block:
+      type: STRINGBLOCK
       break_sound: block.grass.break
       place_sound: block.grass.place
       custom_variation: 1
@@ -33,7 +34,8 @@ daffodil:
     textures:
       - default/flowers/daffodil.png # .png extension is not mandatory
   Mechanics:
-    stringblock:
+    custom_block:
+      type: STRINGBLOCK
       break_sound: block.grass.break
       place_sound: block.grass.place
       custom_variation: 2
@@ -53,7 +55,8 @@ dailily:
     textures:
       - default/flowers/dailily.png # .png extension is not mandatory
   Mechanics:
-    stringblock:
+    custom_block:
+      type: STRINGBLOCK
       break_sound: block.grass.break
       place_sound: block.grass.place
       custom_variation: 3

@@ -120,7 +120,7 @@ public class BackpackListener implements Listener {
 
     private void openBackpack(Player player) {
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
-        BackpackMechanic mechanic = (BackpackMechanic) factory.getMechanic(OraxenItems.getIdByItem(itemInHand));
+        BackpackMechanic mechanic = factory.getMechanic(OraxenItems.getIdByItem(itemInHand));
         StorageGui gui = createGUI(mechanic, itemInHand);
         if (gui == null) return;
         gui.open(player);

@@ -28,7 +28,7 @@ import io.th0rgal.oraxen.utils.NoticeUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.actions.ClickActionManager;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
-import io.th0rgal.oraxen.utils.breaker.BreakerSystem;
+import io.th0rgal.oraxen.utils.breaker.BreakerManager;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
@@ -44,6 +44,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.jar.JarFile;
 
 public class OraxenPlugin extends JavaPlugin {
@@ -60,6 +61,7 @@ public class OraxenPlugin extends JavaPlugin {
     @Nullable private OraxenPackServer packServer;
     private ClickActionManager clickActionManager;
     private ProtocolManager protocolManager;
+    private BreakerManager breakerManager;
     public static boolean supportsDisplayEntities;
 
     public OraxenPlugin() {
@@ -94,20 +96,20 @@ public class OraxenPlugin extends JavaPlugin {
         supportsDisplayEntities = VersionUtil.atOrAbove("1.19.4");
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
-        soundManager = new SoundManager(configsManager.getSound());
+        soundManager = new SoundManager(configsManager.getSounds());
+        breakerManager = new BreakerManager(new ConcurrentHashMap<>());
 
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
         final PluginManager pluginManager = Bukkit.getPluginManager();
         if (pluginManager.isPluginEnabled("ProtocolLib")) {
             protocolManager = ProtocolLibrary.getProtocolManager();
-            new BreakerSystem().registerListener();
             if (Settings.FORMAT_INVENTORY_TITLES.toBool())
                 protocolManager.addPacketListener(new InventoryPacketListener());
             protocolManager.addPacketListener(new TitlePacketListener());
         } else Logs.logWarning("ProtocolLib is not on your server, some features will not work");
         pluginManager.registerEvents(new CustomArmorListener(), this);
-        NMSHandlers.setup();
+        NMSHandlers.setupHandler();
         packGenerator = new PackGenerator();
 
         MechanicsManager.registerNativeMechanics();
@@ -123,9 +125,9 @@ public class OraxenPlugin extends JavaPlugin {
         ArmorEquipEvent.registerListener(this);
         new CommandsManager().loadCommands();
 
-        packGenerator.generatePack();
         packServer = OraxenPackServer.initializeServer();
         packServer.start();
+        packGenerator.generatePack();
         packServer.uploadPack();
         postLoading();
         CompatibilitiesManager.enableNativeCompatibilities();
@@ -216,12 +218,20 @@ public class OraxenPlugin extends JavaPlugin {
         this.soundManager = soundManager;
     }
 
+    public BreakerManager breakerManager() {
+        return breakerManager;
+    }
+
     public InvManager invManager() {
         return invManager;
     }
 
     public PackGenerator packGenerator() {
         return packGenerator;
+    }
+
+    public void packGenerator(PackGenerator packGenerator) {
+        this.packGenerator = packGenerator;
     }
 
     public OraxenPackServer packServer() {

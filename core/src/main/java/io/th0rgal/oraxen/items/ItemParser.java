@@ -14,6 +14,8 @@ import io.th0rgal.oraxen.utils.Utils;
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
+import net.kyori.adventure.text.format.Style;
+import net.kyori.adventure.text.format.TextDecoration;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.attribute.Attribute;
@@ -86,17 +88,16 @@ public class ItemParser {
         return templateItem != null;
     }
 
-    public static String parseComponentDisplayName(String miniString) {
-        if (miniString.isEmpty()) return miniString;
-        Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
-        // If it has no formatting, set color to WHITE to prevent Italic
-        return AdventureUtils.LEGACY_SERIALIZER.serialize(component.colorIfAbsent(NamedTextColor.WHITE));
+    public static Component parseComponentDisplayName(String miniString) {
+        if (miniString.isEmpty()) return Component.empty();
+        Component displayName = AdventureUtils.MINI_MESSAGE.deserialize(miniString).colorIfAbsent(NamedTextColor.WHITE);
+        if (!displayName.style().hasDecoration(TextDecoration.ITALIC))
+            return displayName.mergeStyle(Component.empty().style(Style.style().decoration(TextDecoration.ITALIC, TextDecoration.State.FALSE).build()));
+        return displayName;
     }
 
-    public static String parseComponentLore(String miniString) {
-        Component component = AdventureUtils.MINI_MESSAGE.deserialize(miniString);
-        // If it has no formatting, set color to WHITE to prevent Italic
-        return AdventureUtils.LEGACY_SERIALIZER.serialize(component);
+    public static Component parseComponentLore(String miniString) {
+        return AdventureUtils.MINI_MESSAGE.deserialize(miniString);
     }
 
     public ItemBuilder buildItem() {
@@ -112,10 +113,10 @@ public class ItemParser {
     }
 
     private ItemBuilder applyConfig(ItemBuilder item) {
-        item.setDisplayName(parseComponentDisplayName(section.getString("displayname", "")));
+        item.displayName(parseComponentDisplayName(section.getString("displayname", "")));
 
         //if (section.contains("type")) item.setType(Material.getMaterial(section.getString("type", "PAPER")));
-        if (section.contains("lore")) item.setLore(section.getStringList("lore").stream().map(ItemParser::parseComponentLore).toList());
+        if (section.contains("lore")) item.lore(section.getStringList("lore").stream().map(ItemParser::parseComponentLore).toList());
         if (section.contains("durability")) item.setDurability((short) section.getInt("durability"));
         if (section.contains("unbreakable")) item.setUnbreakable(section.getBoolean("unbreakable", false));
         if (section.contains("unstackable")) item.setUnstackable(section.getBoolean("unstackable", false));

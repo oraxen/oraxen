@@ -90,7 +90,7 @@ public class MusicDiscListener implements Listener {
     private boolean insertAndPlayCustomDisc(Block block, ItemStack disc, @Nullable Player player) {
         String itemID = OraxenItems.getIdByItem(disc);
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
-        MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(itemID);
+        MusicDiscMechanic mechanic = factory.getMechanic(itemID);
         FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(block.getLocation());
 
         if (block.getType() != Material.JUKEBOX && (furnitureMechanic == null || !furnitureMechanic.isJukebox())) return false;
@@ -117,7 +117,7 @@ public class MusicDiscListener implements Listener {
         PersistentDataContainer pdc = BlockHelpers.getPDC(block);
         ItemStack ejectedDisc = pdc.get(MUSIC_DISC_KEY, DataType.ITEM_STACK);
         String itemID = OraxenItems.getIdByItem(ejectedDisc);
-        MusicDiscMechanic mechanic = (MusicDiscMechanic) factory.getMechanic(itemID);
+        MusicDiscMechanic mechanic = factory.getMechanic(itemID);
         Location loc = BlockHelpers.toCenterLocation(block.getLocation());
         FurnitureMechanic furnitureMechanic = OraxenFurniture.getFurnitureMechanic(loc);
 

@@ -1,10 +1,9 @@
-package io.th0rgal.oraxen.nms.v1_19_R2;
+package io.th0rgal.oraxen.nms.v1_19_R1;
 
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
-import io.th0rgal.oraxen.nms.v1_19_R1.FurniturePacketListener;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Location;

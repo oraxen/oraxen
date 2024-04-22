@@ -52,7 +52,7 @@ val commandApiVersion = "9.3.0"
 val adventureVersion = "4.15.0"
 val platformVersion = "4.3.2"
 val googleGsonVersion = "2.10.1"
-val creativeVersion = "1.7.0"
+val creativeVersion = "1.7.2"
 group = "io.th0rgal"
 version = pluginVersion
 
@@ -199,9 +199,9 @@ bukkit {
     apiVersion = "1.19"
     authors = listOf("th0rgal", "boy0000")
     softDepend = listOf(
-        "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs", "BossShopPro",
-        "CrateReloaded", "ItemBridge", "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
-        "NBTAPI", "ModelEngine", "CrashClaim", "ViaBackwards", "HuskClaims", "BentoBox"
+        "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs",
+        "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
+        "ModelEngine", "CrashClaim", "HuskClaims", "BentoBox"
     )
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")

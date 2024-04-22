@@ -27,8 +27,8 @@ public class Drop {
     private final List<Loot> loots;
     final boolean silktouch;
     final boolean fortune;
-    String minimalType;
-    private final List<String> bestTools;
+    private String minimalType;
+    private String bestTool;
     final String sourceID;
 
     @SuppressWarnings("unchecked")
@@ -36,18 +36,18 @@ public class Drop {
         List<Loot> loots = ((List<LinkedHashMap<String, Object>>) dropSection.getList("loots", new ArrayList<>())).stream().map(c -> new Loot(c, sourceID)).toList();
         return new Drop(toolTypes, loots, dropSection.getBoolean("silktouch"),
                 dropSection.getBoolean("fortune"), sourceID,
-                dropSection.getString("minimal_type", ""), dropSection.getStringList("best_tools"));
+                dropSection.getString("minimal_type", ""), dropSection.getString("best_tool"));
     }
 
     public Drop(List<String> hierarchy, List<Loot> loots, boolean silktouch, boolean fortune, String sourceID,
-                String minimalType, List<String> bestTools) {
+                String minimalType, String bestTool) {
         this.hierarchy = hierarchy;
         this.loots = loots;
         this.silktouch = silktouch;
         this.fortune = fortune;
         this.sourceID = sourceID;
         this.minimalType = minimalType;
-        this.bestTools = bestTools;
+        this.bestTool = bestTool;
     }
 
     public Drop(List<Loot> loots, boolean silktouch, boolean fortune, String sourceID) {
@@ -55,7 +55,6 @@ public class Drop {
         this.silktouch = silktouch;
         this.fortune = fortune;
         this.sourceID = sourceID;
-        this.bestTools = new ArrayList<>();
     }
 
     public static Drop emptyDrop() {
@@ -65,7 +64,7 @@ public class Drop {
         return new Drop(loots, false, false, "");
     }
     public static Drop clone(Drop drop, List<Loot> newLoots) {
-        return new Drop(drop.hierarchy, newLoots, drop.silktouch, drop.fortune, drop.sourceID, drop.minimalType, drop.bestTools);
+        return new Drop(drop.hierarchy, newLoots, drop.silktouch, drop.fortune, drop.sourceID, drop.minimalType, drop.bestTool);
     }
 
     public String getItemType(ItemStack itemInHand) {
@@ -75,7 +74,7 @@ public class Drop {
             String[] content = itemInHand.getType().toString().split("_");
             return content.length >= 2 ? content[0] : "";
         } else {
-            ItemTypeMechanic mechanic = (ItemTypeMechanic) factory.getMechanic(itemID);
+            ItemTypeMechanic mechanic = factory.getMechanic(itemID);
             return mechanic.itemType;
         }
     }
@@ -93,12 +92,12 @@ public class Drop {
     }
 
     public boolean isToolEnough(ItemStack itemInHand) {
-        if (!bestTools.isEmpty()) {
+        if (bestTool != null && !bestTool.isEmpty()) {
             String itemID = OraxenItems.getIdByItem(itemInHand);
-            String type = (itemInHand == null ? Material.AIR : itemInHand.getType()).toString().toUpperCase();
-            if (itemID != null && bestTools.stream().anyMatch(itemID::equalsIgnoreCase)) return true;
-            else if (bestTools.contains(type)) return true;
-            else return bestTools.stream().anyMatch(toolName -> type.endsWith(toolName.toUpperCase()));
+            String type = (itemInHand == null ? Material.AIR : itemInHand.getType()).name();
+            if (bestTool.equals(itemID)) return true;
+            else if (bestTool.equals(type)) return true;
+            else return type.endsWith(bestTool.toUpperCase());
         } else return true;
     }
 
@@ -114,27 +113,27 @@ public class Drop {
         return fortune;
     }
 
-    public String getSourceID() {
+    public String sourceId() {
         return sourceID;
     }
 
-    public String getMinimalType() {
+    public String minimalType() {
         return minimalType;
     }
 
-    public List<String> getBestTools() {
-        return bestTools;
+    public String bestTool() {
+        return bestTool;
     }
 
-    public List<String> getHierarchy() {
+    public List<String> hierarchy() {
         return hierarchy;
     }
 
-    public List<Loot> getLoots() {
+    public List<Loot> loots() {
         return loots;
     }
 
-    public Drop setLoots(List<Loot> loots) {
+    public Drop loots(List<Loot> loots) {
         this.loots.clear();
         this.loots.addAll(loots);
         return this;
@@ -156,7 +155,7 @@ public class Drop {
         ItemUtils.editItemMeta(furnitureItem, (itemMeta) -> {
             ItemMeta baseMeta = baseItem.getItemMeta();
             if (baseMeta != null && baseMeta.hasDisplayName())
-                itemMeta.setDisplayName(baseMeta.getDisplayName());
+                ItemUtils.displayName(itemMeta, baseMeta);
         });
 
         if (!canDrop(itemInHand) || !location.isWorldLoaded()) return;
@@ -167,11 +166,11 @@ public class Drop {
         } else {
             // Drop all the items that aren't the furniture item
             dropLoot(loots.stream().filter(loot ->
-                    !loot.getItemStack().equals(baseItem)).toList(), location, getFortuneMultiplier(itemInHand));
+                    !loot.itemStack().equals(baseItem)).toList(), location, getFortuneMultiplier(itemInHand));
             // Filter loots down to only the furniture item and drop the item in the actual Furniture to preseve color etc.
             dropLoot(loots.stream()
-                    .filter(loot -> loot.getItemStack().equals(baseItem))
-                    .map(loot -> new Loot(sourceID, furnitureItem, loot.getProbability(), 1, loot.getMaxAmount()))
+                    .filter(loot -> loot.itemStack().equals(baseItem))
+                    .map(loot -> new Loot(sourceID, furnitureItem, loot.probability(), loot.amount()))
                     .toList(), location, getFortuneMultiplier(itemInHand));
         }
     }
@@ -197,7 +196,7 @@ public class Drop {
      * @param player the player that triggered this drop
      * @return the loots that will drop
      */
-    public List<Loot> getLootToDrop(Player player) {
+    public List<Loot> lootToDrop(Player player) {
         ItemStack itemInHand = player.getInventory().getItemInMainHand();
         int fortuneMultiplier = getFortuneMultiplier(itemInHand);
         List<Loot> droppedLoots = new ArrayList<>();
@@ -205,7 +204,7 @@ public class Drop {
             ItemStack item = loot.getItem(fortuneMultiplier);
 
             if (!canDrop(itemInHand) || item == null) continue;
-            if (ThreadLocalRandom.current().nextInt(loot.getProbability()) != 0) continue;
+            if (Math.random() > loot.probability()) continue;
 
             droppedLoots.add(loot);
         }

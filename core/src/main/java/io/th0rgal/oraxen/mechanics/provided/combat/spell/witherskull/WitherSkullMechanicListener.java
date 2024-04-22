@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.combat.spell.witherskull;
 
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -20,9 +19,9 @@ import org.bukkit.util.Vector;
 
 public class WitherSkullMechanicListener implements Listener {
 
-    private final MechanicFactory factory;
+    private final WitherSkullMechanicFactory factory;
 
-    public WitherSkullMechanicListener(MechanicFactory factory) {
+    public WitherSkullMechanicListener(WitherSkullMechanicFactory factory) {
         this.factory = factory;
     }
 
@@ -31,7 +30,7 @@ public class WitherSkullMechanicListener implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
         String itemID = OraxenItems.getIdByItem(item);
-        WitherSkullMechanic mechanic = (WitherSkullMechanic) factory.getMechanic(item);
+        WitherSkullMechanic mechanic = factory.getMechanic(item);
         Block block = event.getClickedBlock();
         Location location = block != null ? block.getLocation() : player.getLocation();
 

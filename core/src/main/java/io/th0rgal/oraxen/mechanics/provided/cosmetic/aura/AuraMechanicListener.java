@@ -47,7 +47,7 @@ public class AuraMechanicListener implements Listener {
         String itemID = OraxenItems.getIdByItem(item);
 
         if (factory.isNotImplementedIn(itemID)) disable(player);
-        else enable(player, (AuraMechanic) factory.getMechanic(itemID));
+        else enable(player, factory.getMechanic(itemID));
 
     }
 

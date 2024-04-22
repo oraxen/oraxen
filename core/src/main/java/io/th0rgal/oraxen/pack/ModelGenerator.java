@@ -11,6 +11,7 @@ import org.jetbrains.annotations.NotNull;
 import team.unnamed.creative.model.Model;
 import team.unnamed.creative.texture.Texture;
 
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,7 +19,7 @@ public class ModelGenerator {
 
     public static void generateBaseItemModels() {
         // Generate the baseItem model and add all needed overrides
-        for (Material baseMaterial : OraxenItems.getItems().stream().map(ItemBuilder::getType).collect(Collectors.toSet())) {
+        for (Material baseMaterial : OraxenItems.getItems().stream().map(ItemBuilder::getType).collect(Collectors.toCollection(LinkedHashSet::new))) {
             Key baseModelKey = PredicateGenerator.vanillaModelKey(baseMaterial);
             // Get the baseModel if it exists in the pack
             Model existingBaseModel = OraxenPlugin.get().packGenerator().resourcePack().model(baseModelKey);
@@ -45,7 +46,6 @@ public class ModelGenerator {
             OraxenPlugin.get().packGenerator().resourcePack().model(texturesMeta.model().build());
         }
     }
-
 //    public static Model.Builder generateModelBuilder(OraxenMeta oraxenMeta) {
 //        final String parent = oraxenMeta.parentModelKey().asMinimalString();
 //        ModelTextures.Builder textures = oraxenMeta.modelTextures().toBuilder();

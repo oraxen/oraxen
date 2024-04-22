@@ -23,6 +23,7 @@ public class FurnitureSeat {
     public static final NamespacedKey SEAT_KEY = new NamespacedKey(OraxenPlugin.get(), "seat");
 
     private final Vector offset;
+    @SuppressWarnings({"unsafe", "unchecked"})
     public static FurnitureSeat getSeat(Object offset) {
         if (offset instanceof Map<?,?> seatMap)
             return new FurnitureSeat((Map<String, Object>) seatMap);
@@ -44,7 +45,7 @@ public class FurnitureSeat {
         this.offset = Vector.deserialize(offset);
     }
     public FurnitureSeat(String offset) {
-        List<Double> split = new ArrayList<>(Arrays.stream(offset.split(" ", 3)).map(s -> {
+        List<Double> split = new ArrayList<>(Arrays.stream(offset.split(",", 3)).map(s -> {
             try {
                 return Double.parseDouble(s);
             } catch (NumberFormatException e) {

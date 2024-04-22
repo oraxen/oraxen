@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.combat.spell.fireball;
 
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -18,9 +17,9 @@ import org.bukkit.inventory.ItemStack;
 
 public class FireballMechanicManager implements Listener {
 
-    private final MechanicFactory factory;
+    private final FireballMechanicFactory factory;
 
-    public FireballMechanicManager(MechanicFactory factory) {
+    public FireballMechanicManager(FireballMechanicFactory factory) {
         this.factory = factory;
     }
 
@@ -29,7 +28,7 @@ public class FireballMechanicManager implements Listener {
         Player player = event.getPlayer();
         ItemStack item = event.getItem();
         String itemID = OraxenItems.getIdByItem(item);
-        FireballMechanic mechanic = (FireballMechanic) factory.getMechanic(item);
+        FireballMechanic mechanic = factory.getMechanic(item);
         Block block = event.getClickedBlock();
         Location location = block != null ? block.getLocation() : player.getLocation();
 

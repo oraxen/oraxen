@@ -6,7 +6,7 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurnitureBreakEvent;
 import io.th0rgal.oraxen.api.events.furniture.OraxenFurniturePlaceEvent;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -122,15 +122,15 @@ public class FurnitureSoundListener implements Listener {
         float volume;
         float pitch;
         if (gameEvent == GameEvent.STEP) {
-            boolean check = blockStandingOn.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasStepSound();
-            sound = (check) ? mechanic.blockSounds().getStepSound() : VANILLA_STONE_STEP;
-            volume = (check) ? mechanic.blockSounds().getStepVolume() : VANILLA_STEP_VOLUME;
-            pitch = (check) ? mechanic.blockSounds().getStepPitch() : VANILLA_STEP_PITCH;
+            boolean hasStepSound = mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasStepSound();
+            sound = (hasStepSound) ? mechanic.blockSounds().stepSound() : VANILLA_STONE_STEP;
+            volume = (hasStepSound) ? mechanic.blockSounds().stepVolume() : VANILLA_STEP_VOLUME;
+            pitch = (hasStepSound) ? mechanic.blockSounds().stepPitch() : VANILLA_STEP_PITCH;
         } else if (gameEvent == GameEvent.HIT_GROUND) {
-            boolean check = (blockStandingOn.getType() == Material.BARRIER && mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasFallSound());
-            sound = (check) ? mechanic.blockSounds().getFallSound() : VANILLA_STONE_FALL;
-            volume = (check) ? mechanic.blockSounds().getFallVolume() : VANILLA_FALL_VOLUME;
-            pitch = (check) ? mechanic.blockSounds().getFallPitch() : VANILLA_FALL_PITCH;
+            boolean hasFallSound = mechanic != null && mechanic.hasBlockSounds() && mechanic.blockSounds().hasFallSound();
+            sound = (hasFallSound) ? mechanic.blockSounds().fallSound() : VANILLA_STONE_FALL;
+            volume = (hasFallSound) ? mechanic.blockSounds().fallVolume() : VANILLA_FALL_VOLUME;
+            pitch = (hasFallSound) ? mechanic.blockSounds().fallPitch() : VANILLA_FALL_PITCH;
         } else return;
 
         BlockHelpers.playCustomBlockSound(entity.getLocation(), sound, SoundCategory.PLAYERS, volume, pitch);
@@ -142,7 +142,7 @@ public class FurnitureSoundListener implements Listener {
         if (!mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.blockSounds();
         if (blockSounds.hasPlaceSound())
-            BlockHelpers.playCustomBlockSound(event.getBaseEntity().getLocation(), blockSounds.getPlaceSound(), blockSounds.getPlaceVolume(), blockSounds.getPlacePitch());
+            BlockHelpers.playCustomBlockSound(event.getBaseEntity().getLocation(), blockSounds.placeSound(), blockSounds.placeVolume(), blockSounds.placePitch());
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -152,6 +152,6 @@ public class FurnitureSoundListener implements Listener {
         if (!mechanic.hasBlockSounds()) return;
         BlockSounds blockSounds = mechanic.blockSounds();
         if (blockSounds.hasBreakSound())
-            BlockHelpers.playCustomBlockSound(loc, blockSounds.getBreakSound(), blockSounds.getBreakVolume(), blockSounds.getBreakPitch());
+            BlockHelpers.playCustomBlockSound(loc, blockSounds.breakSound(), blockSounds.breakVolume(), blockSounds.breakPitch());
     }
 }

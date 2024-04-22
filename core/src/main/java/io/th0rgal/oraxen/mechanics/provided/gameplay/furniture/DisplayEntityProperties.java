@@ -1,6 +1,8 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
+import io.th0rgal.oraxen.utils.Utils;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import org.bukkit.Color;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
@@ -12,7 +14,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 public class DisplayEntityProperties {
-    //private final Color glowColor;
+    private final Color glowColor;
     private Integer viewRange;
     private final Display.Brightness brightness;
     private ItemDisplay.ItemDisplayTransform displayTransform;
@@ -35,11 +37,12 @@ public class DisplayEntityProperties {
         this.brightness = null;
         this.trackingRotation = null;
         this.viewRange = null;
+        this.glowColor = null;
     }
 
     public DisplayEntityProperties(ConfigurationSection configSection) {
         String itemID = configSection.getParent().getParent().getParent().getName();
-        //glowColor = Utils.toColor(configSection.getString("glow_color", ""));
+        glowColor = Utils.toColor(configSection.getString("glow_color", ""));
         viewRange = configSection.getInt("view_range");
         interpolationDuration = configSection.getInt("interpolation_duration");
         interpolationDelay = configSection.getInt("interpolation_delay");
@@ -84,8 +87,8 @@ public class DisplayEntityProperties {
 
     }
 
-    //public boolean hasGlowColor() { return glowColor != null; }
-    //public Color getGlowColor() { return glowColor; }
+    public boolean hasGlowColor() { return glowColor != null; }
+    public Color getGlowColor() { return glowColor; }
     public boolean hasSpecifiedViewRange() {
         return viewRange != null;
     }

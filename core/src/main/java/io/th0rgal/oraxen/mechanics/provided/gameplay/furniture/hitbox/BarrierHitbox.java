@@ -7,7 +7,7 @@ public class BarrierHitbox extends BlockLocation {
     public BarrierHitbox from(Object hitboxObject) {
         if (hitboxObject instanceof String string) {
             return new BarrierHitbox(string);
-        } else return new BarrierHitbox("0 0 0");
+        } else return new BarrierHitbox("0,0,0");
     }
 
     public BarrierHitbox(String hitboxString) {

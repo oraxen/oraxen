@@ -1,6 +1,6 @@
 package io.th0rgal.oraxen.nms;
 
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -14,7 +14,7 @@ public class NMSListeners implements Listener {
         if (NMSHandlers.getHandler() == null) return;
 
         if (GlyphHandlers.isNms()) NMSHandlers.getHandler().inject(player);
-        if (NoteBlockMechanicFactory.isEnabled() && NoteBlockMechanicFactory.getInstance().removeMineableTag())
+        if (NoteBlockMechanicFactory.isEnabled() && NoteBlockMechanicFactory.get().removeMineableTag())
             NMSHandlers.getHandler().customBlockDefaultTools(player);
     }
 }

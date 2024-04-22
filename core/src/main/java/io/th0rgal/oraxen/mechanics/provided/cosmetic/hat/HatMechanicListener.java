@@ -1,7 +1,6 @@
 package io.th0rgal.oraxen.mechanics.provided.cosmetic.hat;
 
 import io.th0rgal.oraxen.api.OraxenItems;
-import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import org.bukkit.GameMode;
@@ -21,9 +20,9 @@ import org.bukkit.inventory.*;
 
 public class HatMechanicListener implements Listener {
 
-    private final MechanicFactory factory;
+    private final HatMechanicFactory factory;
 
-    public HatMechanicListener(final MechanicFactory factory) {
+    public HatMechanicListener(final HatMechanicFactory factory) {
         this.factory = factory;
     }
 

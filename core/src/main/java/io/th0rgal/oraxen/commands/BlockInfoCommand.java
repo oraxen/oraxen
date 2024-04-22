@@ -7,10 +7,10 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenBlocks;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.items.ItemBuilder;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanicFactory;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanicFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanicFactory;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.audience.Audience;
@@ -31,7 +31,7 @@ public class BlockInfoCommand {
                     if (argument == null) return;
                     if (argument.equals("all")) {
                         for (Map.Entry<String, ItemBuilder> entry : OraxenItems.getEntries()) {
-                            if (!OraxenBlocks.isOraxenBlock(entry.getKey())) continue;
+                            if (!OraxenBlocks.isCustomBlock(entry.getKey())) continue;
                             sendBlockInfo(audience, entry.getKey());
                         }
                     } else {
@@ -46,14 +46,14 @@ public class BlockInfoCommand {
     private void sendBlockInfo(Audience sender, String itemId) {
         sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>ItemID: <aqua>" + itemId));
         if (OraxenBlocks.isOraxenNoteBlock(itemId)) {
-            NoteBlockMechanic mechanic = NoteBlockMechanicFactory.getInstance().getMechanic(itemId);
+            NoteBlockMechanic mechanic = NoteBlockMechanicFactory.get().getMechanic(itemId);
             if (mechanic == null) return;
             NoteBlock data = mechanic.blockData();
             sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>Instrument: " + data.getInstrument()));
             sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>Note: " + data.getNote().getId()));
             sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>Powered: " + data.isPowered()));
         } else if (OraxenBlocks.isOraxenStringBlock(itemId)) {
-            StringBlockMechanic mechanic = StringBlockMechanicFactory.getInstance().getMechanic(itemId);
+            StringBlockMechanic mechanic = StringBlockMechanicFactory.get().getMechanic(itemId);
             if (mechanic == null) return;
             Tripwire data = mechanic.blockData();
             sender.sendMessage(AdventureUtils.MINI_MESSAGE.deserialize("<dark_aqua>Facing: " + data.getFaces()));

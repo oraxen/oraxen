@@ -24,7 +24,7 @@ public class FoodMechanicListener implements Listener {
     @EventHandler(priority = EventPriority.LOWEST)
     private void registerReplacements(OraxenItemsLoadedEvent event) {
         for (String itemID : factory.getItems()) {
-            FoodMechanic foodMechanic = (FoodMechanic) factory.getMechanic(itemID);
+            FoodMechanic foodMechanic = factory.getMechanic(itemID);
             ConfigurationSection replacementSection = foodMechanic.getSection().getConfigurationSection("replacement");
             if (replacementSection != null) foodMechanic.registerReplacement(replacementSection);
         }
@@ -36,7 +36,7 @@ public class FoodMechanicListener implements Listener {
         PlayerInventory inventory = player.getInventory();
         String itemID = OraxenItems.getIdByItem(event.getItem());
         if (itemID == null || factory.isNotImplementedIn(itemID)) return;
-        FoodMechanic mechanic = (FoodMechanic) factory.getMechanic(itemID);
+        FoodMechanic mechanic = factory.getMechanic(itemID);
         event.setCancelled(true);
 
         if (player.getGameMode() != GameMode.CREATIVE) {

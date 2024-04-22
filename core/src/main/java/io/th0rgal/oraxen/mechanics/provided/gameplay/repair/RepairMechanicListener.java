@@ -27,7 +27,7 @@ public class RepairMechanicListener implements Listener {
         if (factory.isNotImplementedIn(itemID)) return;
 
         DurabilityMechanicFactory durabilityFactory = DurabilityMechanicFactory.get();
-        RepairMechanic repairMechanic = (RepairMechanic) factory.getMechanic(itemID);
+        RepairMechanic repairMechanic = factory.getMechanic(itemID);
 
         ItemStack toRepair = event.getCurrentItem();
         if (toRepair == null) return;
@@ -43,7 +43,7 @@ public class RepairMechanicListener implements Listener {
 
             damageable.setDamage(repairMechanic.getFinalDamage(toRepair.getType().getMaxDurability(), damageable.getDamage()));
         } else {
-            DurabilityMechanic durabilityMechanic = (DurabilityMechanic) durabilityFactory.getMechanic(toRepairId);
+            DurabilityMechanic durabilityMechanic = durabilityFactory.getMechanic(toRepairId);
             PersistentDataContainer pdc = toRepairMeta.getPersistentDataContainer();
 
             int realMaxDurability = durabilityMechanic.getItemMaxDurability();

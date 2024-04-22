@@ -125,8 +125,8 @@ public class ItemUpdater implements Listener {
             itemMeta.setCustomModelData(cmd);
 
             // If OraxenItem has no lore, we should assume that 3rd-party plugin has added lore
-            if (Settings.OVERRIDE_ITEM_LORE.toBool()) itemMeta.setLore(newMeta.getLore());
-            else itemMeta.setLore(oldMeta.getLore());
+            if (Settings.OVERRIDE_ITEM_LORE.toBool()) ItemUtils.lore(itemMeta, newMeta);
+            else ItemUtils.lore(itemMeta, oldMeta);
 
             // Only change AttributeModifiers if the new item has some
             if (newMeta.hasAttributeModifiers()) itemMeta.setAttributeModifiers(newMeta.getAttributeModifiers());
@@ -166,14 +166,14 @@ public class ItemUpdater implements Listener {
             String oldDisplayName = AdventureUtils.parseLegacy(oldMeta.getDisplayName());
             String originalName = AdventureUtils.parseLegacy(oldPdc.getOrDefault(ORIGINAL_NAME_KEY, DataType.STRING, ""));
             if (Settings.OVERRIDE_RENAMED_ITEMS.toBool()) {
-                itemMeta.setDisplayName(newMeta.getDisplayName());
+                ItemUtils.displayName(itemMeta, newMeta);
             } else if (!originalName.equals(oldDisplayName)) {
-                itemMeta.setDisplayName(oldMeta.getDisplayName());
+                ItemUtils.displayName(itemMeta, oldMeta);
             } else {
-                itemMeta.setDisplayName(newMeta.getDisplayName());
+                ItemUtils.displayName(itemMeta, newMeta);
             }
 
-            itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, newMeta.getDisplayName());
+            itemPdc.set(ORIGINAL_NAME_KEY, DataType.STRING, VersionUtil.isPaperServer() ? AdventureUtils.MINI_MESSAGE.serialize(newMeta.displayName()) : newMeta.getDisplayName());
             // If the item is not unstackable, we should remove the unstackable tag
             if (!newItemBuilder.isUnstackable()) itemPdc.remove(UNSTACKABLE_KEY);
         });

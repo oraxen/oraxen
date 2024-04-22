@@ -38,18 +38,7 @@ misc:
 # If both mechanics are disabled, this will force the sound system for those off
 custom_block_sounds:
   noteblock: true
-  stringblock: true
-
-# legacy blocks using mushroom stems, prefer to use noteblock
-block:
-  tool_types:
-    - WOODEN
-    - STONE
-    - IRON
-    - GOLDEN
-    - DIAMOND
-    - NETHERITE
-  enabled: false
+  stringblock_and_furniture: true
 
 noteblock:
   tool_types:
@@ -88,7 +77,6 @@ furniture:
   # ticks between each check for plant growth
   evolution_check_delay: 200
   enabled: true
-  detect_viabackwards: true  # Blocks use of Item Display Furniture when server allows clients below 1.19.4
 
 durability:
   enabled: true
@@ -148,11 +136,6 @@ smelting:
 bottledexp:
   enabled: true
   durability_cost: 10
-
-bedrockbreak:
-  enabled: true
-  disable_on_first_layer: false # Set it on true to avoid player breaking the ground ...completely
-  durability_cost: 500
 
 harvesting:
   enabled: true

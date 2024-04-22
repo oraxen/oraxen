@@ -13,6 +13,9 @@ import io.th0rgal.oraxen.font.FontManager;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.nms.NMSHandlers;
+import io.th0rgal.oraxen.pack.PackGenerator;
 import io.th0rgal.oraxen.recipes.RecipesManager;
 import io.th0rgal.oraxen.sound.SoundManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -20,15 +23,19 @@ import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
+
 public class ReloadCommand {
 
     public static void reloadItems(@Nullable CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "items"));
+        Optional.ofNullable(FurnitureFactory.get()).ifPresent(p -> p.furniturePacketManager().removeAllHitboxes());
         OraxenItems.loadItems();
         OraxenPlugin.get().invManager().regen();
         Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
@@ -50,8 +57,8 @@ public class ReloadCommand {
 
         if (Settings.UPDATE_FURNITURE.toBool() && Settings.UPDATE_FURNITURE_ON_RELOAD.toBool()) {
             Logs.logInfo("Updating all placed furniture...");
-            for (World world : Bukkit.getServer().getWorlds())
-                world.getEntities().stream().filter(OraxenFurniture::isFurniture).forEach(OraxenFurniture::updateFurniture);
+            for (World world : Bukkit.getServer().getWorlds()) for (Entity baseEntity : world.getEntities())
+                OraxenFurniture.updateFurniture(baseEntity);
         }
 
     }
@@ -59,12 +66,12 @@ public class ReloadCommand {
     public static void reloadPack(@Nullable CommandSender sender) {
         Message.PACK_REGENERATED.send(sender);
         OraxenPlugin.get().fontManager(new FontManager(OraxenPlugin.get().configsManager()));
-        OraxenPlugin.get().soundManager(new SoundManager(OraxenPlugin.get().configsManager().getSound()));
+        OraxenPlugin.get().soundManager(new SoundManager(OraxenPlugin.get().configsManager().getSounds()));
+        OraxenPlugin.get().packGenerator(new PackGenerator());
         OraxenPlugin.get().packGenerator().generatePack();
         OraxenPlugin.get().packServer().uploadPack();
         if (Settings.PACK_SEND_RELOAD.toBool()) for (Player player : Bukkit.getOnlinePlayers())
             OraxenPlugin.get().packServer().sendPack(player);
-        //OraxenPlugin.get().packServer().sendPack();
     }
 
     public static void reloadHud(@Nullable CommandSender sender) {
@@ -97,9 +104,11 @@ public class ReloadCommand {
                         case "RECIPES" -> reloadRecipes(sender);
                         case "CONFIGS" -> OraxenPlugin.get().reloadConfigs();
                         default -> {
+                            Optional.ofNullable(FurnitureFactory.get()).ifPresent(f -> f.furniturePacketManager().removeAllHitboxes());
                             MechanicsManager.unloadListeners();
                             MechanicsManager.unregisterTasks();
                             MechanicsManager.registerNativeMechanics();
+                            NMSHandlers.resetHandler();
                             OraxenPlugin.get().reloadConfigs();
                             reloadItems(sender);
                             reloadPack(sender);
