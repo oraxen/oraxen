@@ -293,7 +293,7 @@ public class PredicatesGenerator {
         String materialName = material.name().toLowerCase();
         if (material == Material.SNOW)
             return "block/snow_height2";
-        if (material == Material.FISHING_ROD)
+        if (material == Material.FISHING_ROD || material == Material.WARPED_FUNGUS_ON_A_STICK || material == Material.CARROT_ON_A_STICK)
             return "item/handheld_rod";
         if (material == Material.SCAFFOLDING)
             return "block/scaffolding_stable";
