@@ -113,9 +113,8 @@ public class CustomBlockHelpers {
             }
 
             BlockData blockBelowData = blockBelow.getBlockData();
-            if (oldData instanceof Bisected) {
-                if (blockBelowData instanceof Bisected)
-                    blockBelow.breakNaturally(true);
+            if (oldData instanceof Bisected && blockBelowData instanceof Bisected) {
+                blockBelow.breakNaturally(true);
             }
 
             if (!blockBelow.canPlace(blockBelowData)) blockBelow.breakNaturally(true);
