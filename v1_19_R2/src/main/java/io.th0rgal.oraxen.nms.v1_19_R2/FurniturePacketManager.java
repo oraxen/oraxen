@@ -3,22 +3,17 @@ package io.th0rgal.oraxen.nms.v1_19_R2;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.*;
-import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureBaseEntity;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureType;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
-import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
-import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
-import net.minecraft.network.syncher.EntityDataSerializers;
-import net.minecraft.network.syncher.SynchedEntityData;
-import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_19_R2.entity.CraftPlayer;
-import org.bukkit.craftbukkit.v1_19_R2.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
@@ -46,40 +41,22 @@ public class FurniturePacketManager implements IFurniturePacketManager {
         if (baseEntity.isDead()) return;
         if (mechanic.isModelEngine() && ModelEngineAPI.getBlueprint(mechanic.getModelEngineID()) != null) return;
 
-        Location baseLoc = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
         furnitureBasePacketMap.computeIfAbsent(baseEntity.getUniqueId(), key -> {
             FurnitureBaseEntity furnitureBase = furnitureBaseFromBaseEntity(baseEntity).orElseGet(() -> {
-                for (FurnitureType type : FurnitureType.values()) {
-                    //furnitureBaseMap.add(new FurnitureBaseEntity(baseEntity.getUniqueId(), type, net.minecraft.world.entity.Entity.nextEntityId()));
-                }
+                furnitureBaseMap.add(new FurnitureBaseEntity(baseEntity, mechanic));
                 return furnitureBaseFromBaseEntity(baseEntity).orElse(null);
             });
             if (furnitureBase == null) return new HashSet<>();
+            return Arrays.stream(FurnitureType.values()).map(type -> new FurnitureBasePacket(furnitureBase, baseEntity, type)).collect(Collectors.toSet());
+        }).stream().filter(basePacket -> {
+            if (mechanic.furnitureType() != FurnitureType.DISPLAY_ENTITY) return basePacket.type == mechanic.furnitureType();
+            if (!OraxenPlugin.supportsDisplayEntities) return basePacket.type == mechanic.furnitureType();
+            if (VersionUtil.atOrAbove(player, 762)) return basePacket.type == mechanic.furnitureType();
 
-            Set<FurnitureBasePacket> packets = new HashSet<>();
-            for (FurnitureType type : FurnitureType.values()) {
-                int entityId = furnitureBase.entityId(type);
-
-                EntityType<?> entityType = type == FurnitureType.ITEM_FRAME ? EntityType.ITEM_FRAME : EntityType.GLOW_ITEM_FRAME;
-                ClientboundAddEntityPacket addEntityPacket = new ClientboundAddEntityPacket(
-                        entityId, UUID.randomUUID(),
-                        baseLoc.x(), baseLoc.y(), baseLoc.z(), baseLoc.getPitch(), baseLoc.getYaw(),
-                        entityType, 0, Vec3.ZERO, 0.0
-                );
-
-                ClientboundSetEntityDataPacket metadataPacket = new ClientboundSetEntityDataPacket(
-                        entityId, Arrays.asList(
-                        new SynchedEntityData.DataValue<>(ITEM_FRAME_ITEM_ID, EntityDataSerializers.ITEM_STACK, CraftItemStack.asNMSCopy(FurnitureHelpers.furnitureItem(baseEntity))),
-                        new SynchedEntityData.DataValue<>(ITEM_FRAME_ROTATION_ID, EntityDataSerializers.INT, FurnitureHelpers.yawToRotation(baseEntity.getLocation().getYaw()).ordinal())
-                ));
-
-                packets.add(new FurnitureBasePacket(type, entityId, addEntityPacket, metadataPacket));
-            }
-
-            return packets;
-        }).forEach(packets -> {
-            ((CraftPlayer) player).getHandle().connection.send(packets.addEntity);
-            ((CraftPlayer) player).getHandle().connection.send(packets.metadata);
+            return basePacket.type != FurnitureType.DISPLAY_ENTITY;
+        }).findFirst().ifPresent(basePacket -> {
+            ((CraftPlayer) player).getHandle().connection.send(basePacket.entityPacket());
+            ((CraftPlayer) player).getHandle().connection.send(basePacket.metadataPacket());
         });
     }
 

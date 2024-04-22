@@ -40,6 +40,8 @@ public class FurniturePacketListener implements Listener {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
             IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
             if (mechanic == null) continue;
+
+            packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
         }
@@ -55,6 +57,7 @@ public class FurniturePacketListener implements Listener {
         // Delay 1 tick, otherwise barrier at 0,0,0 will be updated client-side due to entity spawning after
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
+                packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
             }
@@ -69,6 +72,7 @@ public class FurniturePacketListener implements Listener {
         if (mechanic == null) return;
         IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
 
+        packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
     }
@@ -80,6 +84,7 @@ public class FurniturePacketListener implements Listener {
         for (Entity baseEntity : event.getChunk().getEntities()) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
             if (mechanic == null) return;
+            packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
         }
@@ -92,6 +97,7 @@ public class FurniturePacketListener implements Listener {
         if (packetManager != null) for (Entity baseEntity : event.getChunk().getEntities()) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
             if (mechanic == null) return;
+            packetManager.removeFurnitureEntityPacket(baseEntity, mechanic, player);
             packetManager.removeInteractionHitboxPacket(baseEntity, mechanic, player);
             packetManager.removeBarrierHitboxPacket(baseEntity, mechanic, player);
         }
@@ -105,6 +111,7 @@ public class FurniturePacketListener implements Listener {
         for (Entity baseEntity : event.getFrom().getEntities()) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
             if (mechanic == null) return;
+            packetManager.removeFurnitureEntityPacket(baseEntity, mechanic, player);
             packetManager.removeInteractionHitboxPacket(baseEntity, mechanic, player);
             packetManager.removeBarrierHitboxPacket(baseEntity, mechanic, player);
         }
@@ -158,7 +165,6 @@ public class FurniturePacketListener implements Listener {
         EventUtils.callEvent(new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), event.getHand(), interactionPoint));
         // Resend the hitbox as client removes the "ghost block"
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
-                        FurnitureFactory.instance.packetManager().sendBarrierHitboxPacket(baseEntity, mechanic, player)
-                , 1L);
+                FurnitureFactory.instance.packetManager().sendBarrierHitboxPacket(baseEntity, mechanic, player), 1L);
     }
 }
