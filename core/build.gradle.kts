@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("io.papermc.paperweight.userdev") version "1.5.11"
+    //id("io.papermc.paperweight.userdev") version "1.5.11"
     id("maven-publish")
     alias(idofrontLibs.plugins.shadowjar)
     id("org.ajoberstar.grgit.service") version "5.2.0"
@@ -15,7 +15,8 @@ tasks {
 }
 
 dependencies {
-    paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
+    compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
+    //paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
 
     val pluginVersion: String by project
     val commandApiVersion = "9.3.0"
@@ -25,11 +26,13 @@ dependencies {
     val creativeVersion = "1.7.2"
     testCompileOnly("junit:junit:4.13.1")
     testImplementation(idofrontLibs.minecraft.mockbukkit)
+    testImplementation("dev.jorel:commandapi-bukkit-shade:$commandApiVersion")
     testImplementation("com.comphenix.protocol:ProtocolLib:5.1.0")
     testImplementation("net.kyori:adventure-text-minimessage:$adventureVersion")
     testImplementation("net.kyori:adventure-text-serializer-plain:$adventureVersion")
     testImplementation("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
     testImplementation("net.kyori:adventure-platform-bukkit:$platformVersion")
+    implementation("org.apache.commons:commons-lang3:3.14.0")
 }
 
 java {
