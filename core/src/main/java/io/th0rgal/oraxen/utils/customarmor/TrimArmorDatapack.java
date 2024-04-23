@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 public class TrimArmorDatapack extends CustomArmor {
     private static final World defaultWorld = Bukkit.getWorlds().get(0);
     private static final Key datapackKey = Key.key("minecraft:file/oraxen_custom_armor");
-    private static final File customArmorDatapack = defaultWorld.getWorldFolder().toPath().resolve("datapacks/oraxen_custom_armor").toFile();
+    private final File customArmorDatapack;
     private final boolean isFirstInstall;
     private final boolean datapackEnabled;
     private final JsonObject datapackMeta = new JsonObject();
@@ -39,6 +39,10 @@ public class TrimArmorDatapack extends CustomArmor {
     private final Map<String, Key> permutations = new LinkedHashMap<>();
 
     public TrimArmorDatapack() {
+        customArmorDatapack = !OraxenPlugin.isUnitTest()
+                ? defaultWorld.getWorldFolder().toPath().resolve("datapacks/oraxen_custom_armor").toFile()
+                : Bukkit.getServer().getPluginsFolder();
+
         JsonObject data = new JsonObject();
         data.addProperty("description", "Datapack for Oraxens Custom Armor trims");
         data.addProperty("pack_format", 26);
@@ -65,7 +69,7 @@ public class TrimArmorDatapack extends CustomArmor {
         generateTrimAssets();
     }
 
-    public static void clearOldDataPacks() {
+    public void clearOldDataPacks() {
         try {
             FileUtils.deleteDirectory(customArmorDatapack);
         } catch (IOException e) {
@@ -99,8 +103,8 @@ public class TrimArmorDatapack extends CustomArmor {
         } else checkOraxenArmorItems();
     }
 
-    private static void writeVanillaTrimPattern() {
-        File vanillaArmorJson = TrimArmorDatapack.customArmorDatapack.toPath().resolve("data/minecraft/trim_pattern/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase() + ".json").toFile();
+    private void writeVanillaTrimPattern() {
+        File vanillaArmorJson = customArmorDatapack.toPath().resolve("data/minecraft/trim_pattern/" + Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString().toLowerCase() + ".json").toFile();
         vanillaArmorJson.getParentFile().mkdirs();
         JsonObject vanillaTrimPattern = new JsonObject();
         JsonObject description = new JsonObject();
@@ -117,9 +121,9 @@ public class TrimArmorDatapack extends CustomArmor {
         }
     }
 
-    private static void writeCustomTrimPatterns(LinkedHashSet<String> armorPrefixes) {
+    private void writeCustomTrimPatterns(LinkedHashSet<String> armorPrefixes) {
         for (String armorPrefix : armorPrefixes) {
-            File armorJson = TrimArmorDatapack.customArmorDatapack.toPath().resolve("data/oraxen/trim_pattern/" + armorPrefix + ".json").toFile();
+            File armorJson = customArmorDatapack.toPath().resolve("data/oraxen/trim_pattern/" + armorPrefix + ".json").toFile();
             armorJson.getParentFile().mkdirs();
             JsonObject trimPattern = new JsonObject();
             JsonObject description = new JsonObject();
@@ -204,7 +208,7 @@ public class TrimArmorDatapack extends CustomArmor {
 
     private void writeMCMeta() {
         try {
-            File packMeta = TrimArmorDatapack.customArmorDatapack.toPath().resolve("pack.mcmeta").toFile();
+            File packMeta = customArmorDatapack.toPath().resolve("pack.mcmeta").toFile();
             packMeta.createNewFile();
             FileUtils.writeStringToFile(packMeta, datapackMeta.toString(), StandardCharsets.UTF_8);
         } catch (IOException e) {

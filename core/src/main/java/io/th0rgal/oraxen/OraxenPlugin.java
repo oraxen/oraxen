@@ -77,15 +77,24 @@ public class OraxenPlugin extends JavaPlugin {
         }
     }
 
+    public static boolean isUnitTest() {
+        try {
+            Class.forName("be.seeseemelk.mockbukkit.MockBukkit");
+            return true;
+        } catch (ClassNotFoundException e) {
+            return false;
+        }
+    }
+
     @Override
     public void onLoad() {
-        CommandAPI.onLoad(new CommandAPIBukkitConfig(this).silentLogs(true));
+        if (!isUnitTest()) CommandAPI.onLoad(new CommandAPIBukkitConfig(this).silentLogs(true));
     }
 
     @Override
     public void onEnable() {
         oraxen = this;
-        CommandAPI.onEnable();
+        if (!isUnitTest()) CommandAPI.onEnable();
         ProtectionLib.init(this);
         audience = BukkitAudiences.create(this);
         reloadConfigs();
@@ -143,8 +152,11 @@ public class OraxenPlugin extends JavaPlugin {
     public void onDisable() {
         if (packServer != null) packServer.stop();
         unregisterListeners();
-        FurnitureFactory.unregisterEvolution();
-        FurnitureFactory.instance.furniturePacketManager().removeAllHitboxes();
+
+        if (FurnitureFactory.isEnabled()) {
+            FurnitureFactory.unregisterEvolution();
+            FurnitureFactory.instance.furniturePacketManager().removeAllHitboxes();
+        }
         for (Player player : Bukkit.getOnlinePlayers())
             if (GlyphHandlers.isNms()) NMSHandlers.getHandler().uninject(player);
 

@@ -15,8 +15,8 @@ public class OraxenMockPlugin {
     @BeforeEach
     public void setUp() {
         server = MockBukkit.mock();
-        plugin = MockBukkit.load(OraxenPlugin.class);
         world = server.addSimpleWorld("world");
+        plugin = MockBukkit.load(OraxenPlugin.class);
     }
 
     @AfterEach

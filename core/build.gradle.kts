@@ -32,7 +32,9 @@ dependencies {
     testImplementation("net.kyori:adventure-text-serializer-plain:$adventureVersion")
     testImplementation("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
     testImplementation("net.kyori:adventure-platform-bukkit:$platformVersion")
-    implementation("org.apache.commons:commons-lang3:3.14.0")
+    testImplementation("team.unnamed:creative-api:$creativeVersion")
+    testImplementation("team.unnamed:creative-serializer-minecraft:$creativeVersion")
+    testImplementation("team.unnamed:creative-server:$creativeVersion")
 }
 
 java {
