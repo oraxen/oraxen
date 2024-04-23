@@ -1,0 +1,4 @@
+name: Oraxen
+version: 2.0-snapshot
+main: io.th0rgal.oraxen.OraxenPlugin
+api-version: "1.20"

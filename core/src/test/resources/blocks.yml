@@ -1,0 +1,53 @@
+# Material list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/Material.html
+# EntityType list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/entity/EntityType.html
+# Attribute list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/attribute/Attribute.html
+# Potion effects list for latest spigot version: https://hub.spigotmc.org/javadocs/spigot/org/bukkit/potion/PotionEffectType.html
+# Random UUID generator: https://www.uuidgenerator.net/
+# Color codes: https://docs.adventure.kyori.net/minimessage.html#format
+
+
+amethyst_ore:
+  Pack:
+    parent_model: block/cube_all
+    textures:
+    - default/amethyst_ore
+  Mechanics:
+    custom_block:
+      type: NOTEBLOCK
+      custom_variation: 1
+      model: amethyst_ore
+
+ruby_ore:
+  Pack:
+    parent_model: block/cube_all
+    textures:
+    - default/ruby_ore
+  Mechanics:
+    custom_block:
+      type: NOTEBLOCK
+      custom_variation: 2
+      model: ruby_ore
+
+
+onyx_ore:
+  Pack:
+    generate_model: true
+    parent_model: block/cube_all
+    textures:
+    - default/onyx_ore
+  Mechanics:
+    custom_block:
+      type: NOTEBLOCK
+      custom_variation: 3
+      model: onyx_ore
+
+orax_ore:
+  Pack:
+    parent_model: block/cube_all
+    textures:
+    - default/orax_ore
+  Mechanics:
+    custom_block:
+      type: NOTEBLOCK
+      custom_variation: 4
+      model: orax_ore

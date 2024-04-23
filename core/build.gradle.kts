@@ -4,6 +4,7 @@ plugins {
     id("maven-publish")
     alias(idofrontLibs.plugins.shadowjar)
     id("org.ajoberstar.grgit.service") version "5.2.0"
+    id(idofrontLibs.plugins.mia.testing.get().pluginId)
 }
 
 val pluginVersion = project.property("pluginVersion") as String
@@ -15,6 +16,20 @@ tasks {
 
 dependencies {
     paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
+
+    val pluginVersion: String by project
+    val commandApiVersion = "9.3.0"
+    val adventureVersion = "4.15.0"
+    val platformVersion = "4.3.2"
+    val googleGsonVersion = "2.10.1"
+    val creativeVersion = "1.7.2"
+    testCompileOnly("junit:junit:4.13.1")
+    testImplementation(idofrontLibs.minecraft.mockbukkit)
+    testImplementation("com.comphenix.protocol:ProtocolLib:5.1.0")
+    testImplementation("net.kyori:adventure-text-minimessage:$adventureVersion")
+    testImplementation("net.kyori:adventure-text-serializer-plain:$adventureVersion")
+    testImplementation("net.kyori:adventure-text-serializer-ansi:$adventureVersion")
+    testImplementation("net.kyori:adventure-platform-bukkit:$platformVersion")
 }
 
 java {

@@ -64,10 +64,6 @@ public class OraxenPlugin extends JavaPlugin {
     private BreakerManager breakerManager;
     public static boolean supportsDisplayEntities;
 
-    public OraxenPlugin() {
-        oraxen = this;
-    }
-
     public static OraxenPlugin get() {
         return oraxen;
     }
@@ -88,6 +84,7 @@ public class OraxenPlugin extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        oraxen = this;
         CommandAPI.onEnable();
         ProtectionLib.init(this);
         audience = BukkitAudiences.create(this);
