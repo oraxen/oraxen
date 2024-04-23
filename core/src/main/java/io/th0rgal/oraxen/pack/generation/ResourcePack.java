@@ -673,7 +673,7 @@ public class ResourcePack {
             "vec_it", "vi_vn", "yi_de", "yo_ng", "zh_cn", "zh_hk", "zh_tw", "zlm_arab"));
 
     private void hideScoreboardNumbers() {
-        if (VersionUtil.atOrAbove("1.20.3")) {
+        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.3")) {
             OraxenPlugin.get().getProtocolManager().addPacketListener(new ScoreboardPacketListener());
         } else { // Pre 1.20.3 rely on shaders
             writeStringToVirtual("assets/minecraft/shaders/core/", "rendertype_text.json", getScoreboardJson());
