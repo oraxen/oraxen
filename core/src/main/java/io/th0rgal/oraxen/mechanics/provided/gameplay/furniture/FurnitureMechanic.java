@@ -30,10 +30,7 @@ import org.bukkit.Rotation;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemDisplay;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -323,63 +320,6 @@ public class FurnitureMechanic extends Mechanic {
             pdc.set(StorageMechanic.STORAGE_KEY, DataType.ITEM_STACK_ARRAY, new ItemStack[]{});
         }
     }
-
-    /*private void setItemDisplayData(ItemDisplay itemDisplay, ItemStack item, Float yaw, DisplayEntityProperties properties) {
-        itemDisplay.setItemDisplayTransform(properties.displayTransform());
-        if (properties.hasSpecifiedViewRange()) itemDisplay.setViewRange(properties.viewRange());
-        if (properties.hasInterpolationDuration())
-            itemDisplay.setInterpolationDuration(properties.interpolationDuration());
-        if (properties.hasInterpolationDelay()) itemDisplay.setInterpolationDelay(properties.interpolationDelay());
-        if (properties.hasTrackingRotation()) itemDisplay.setBillboard(properties.trackingRotation());
-        if (properties.hasShadowRadius()) itemDisplay.setShadowRadius(properties.shadowRadius());
-        if (properties.hasShadowStrength()) itemDisplay.setShadowStrength(properties.shadowStrength());
-        if (properties.hasGlowColor()) itemDisplay.setGlowColorOverride(properties.glowColor());
-        if (properties.hasBrightness()) itemDisplay.setBrightness(displayEntityProperties.brightness());
-
-        itemDisplay.setDisplayWidth(properties.displayWidth());
-        itemDisplay.setDisplayHeight(properties.displayHeight());
-        itemDisplay.setItemStack(item);
-
-        // Set scale to .5 if FIXED aka ItemFrame to fix size. Also flip it 90 degrees on pitch
-        boolean isFixed = properties.displayTransform().equals(ItemDisplay.ItemDisplayTransform.FIXED);
-        Transformation transform = itemDisplay.getTransformation();
-        if (properties.hasScale()) {
-            transform.getScale().set(properties.scale());
-        } else transform.getScale().set(isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : new Vector3f(1f, 1f, 1f));
-
-        // since FIXED is meant to mimic ItemFrames, we rotate it to match the ItemFrame's rotation
-        // 1.20 Fixes this, will break for 1.19.4 but added disclaimer in console
-        float pitch;
-        yaw = (VersionUtil.atOrAbove("1.20.1") && (!hasLimitedPlacing() || !limitedPlacing.isRoof() || !isFixed)) ? yaw : yaw - 180;
-        if (VersionUtil.atOrAbove("1.20.1")) {
-            if (hasLimitedPlacing() && isFixed)
-                if (limitedPlacing.isFloor()) pitch = -90;
-                else if (limitedPlacing.isRoof()) pitch = 90;
-                else pitch = 0;
-            else pitch = 0;
-        } else
-            pitch = isFixed && hasLimitedPlacing() ? limitedPlacing.isFloor() ? 90 : limitedPlacing.isWall() ? 0 : limitedPlacing.isRoof() ? -90 : 0 : 0;
-
-        itemDisplay.setTransformation(transform);
-        itemDisplay.setRotation(yaw, pitch);
-    }
-
-    private void setFrameData(ItemFrame frame, ItemStack item, float yaw, BlockFace facing) {
-        frame.setVisible(false);
-        frame.setItemDropChance(0);
-        frame.setFacingDirection(facing, true);
-        frame.setItem(item, false);
-        frame.setRotation(FurnitureHelpers.yawToRotation(yaw));
-
-        if (hasLimitedPlacing()) {
-            if (limitedPlacing.isFloor() && !limitedPlacing.isWall() && frame.getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid())
-                frame.setFacingDirection(BlockFace.UP, true);
-            else if (limitedPlacing.isWall() && facing.getModY() == 0)
-                frame.setRotation(Rotation.NONE);
-            else if (limitedPlacing.isRoof() && facing == BlockFace.DOWN)
-                frame.setFacingDirection(BlockFace.DOWN, true);
-        }
-    }*/
 
     private void spawnModelEngineFurniture(@NotNull Entity entity) {
         ModeledEntity modelEntity = ModelEngineAPI.getOrCreateModeledEntity(entity);
