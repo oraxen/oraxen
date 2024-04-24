@@ -2,6 +2,7 @@ package io.th0rgal.oraxen.utils;
 
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Entity;
@@ -27,6 +28,11 @@ public class EntityUtils {
 
     public static boolean isNone(ItemDisplay itemDisplay) {
         return itemDisplay.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.NONE;
+    }
+
+    public static void customName(Entity entity, Component customName) {
+        if (VersionUtil.isPaperServer()) entity.customName(customName);
+        else entity.setCustomName(AdventureUtils.LEGACY_SERIALIZER.serialize(customName));
     }
 
     public void teleport(@NotNull Location location, @NotNull Entity entity, PlayerTeleportEvent.TeleportCause cause) {

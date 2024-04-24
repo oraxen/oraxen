@@ -30,7 +30,10 @@ import org.bukkit.Rotation;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.*;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -304,11 +307,14 @@ public class FurnitureMechanic extends Mechanic {
 
     public void setBaseFurnitureData(ArmorStand baseEntity, float yaw) {
         baseEntity.setPersistent(true);
-        baseEntity.setCustomNameVisible(false);
         baseEntity.setDisabledSlots(EquipmentSlot.values());
         baseEntity.setMarker(true);
         baseEntity.setVisible(false);
         baseEntity.setRotation(yaw, 0f);
+        baseEntity.setCustomNameVisible(false);
+        Component customName = OraxenItems.getItemById(this.getItemID()).displayName();
+        if (customName == Component.empty()) customName = Component.text(getItemID());
+        EntityUtils.customName(baseEntity, customName);
 
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
