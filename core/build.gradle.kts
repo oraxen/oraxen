@@ -35,6 +35,14 @@ dependencies {
     testImplementation("team.unnamed:creative-api:$creativeVersion")
     testImplementation("team.unnamed:creative-serializer-minecraft:$creativeVersion")
     testImplementation("team.unnamed:creative-server:$creativeVersion")
+    testImplementation("io.lumine:Mythic-Dist:5.3.5")
+    testImplementation("io.lumine:MythicCrucible:1.6.0-SNAPSHOT")
+    testImplementation("io.lumine:MythicLib:1.1.6")
+    testImplementation("io.lumine:MythicLib-dist:1.6.2-SNAPSHOT")
+    testImplementation("net.Indyuce:MMOItems-API:6.9.5-SNAPSHOT")
+    testImplementation("com.willfp:EcoItems:5.23.0")
+    testImplementation("com.willfp:eco:6.65.5")
+    testImplementation("com.willfp:libreforge:4.36.0")
 }
 
 java {
