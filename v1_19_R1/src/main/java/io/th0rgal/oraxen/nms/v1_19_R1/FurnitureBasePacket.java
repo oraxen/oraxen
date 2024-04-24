@@ -4,7 +4,9 @@ import io.netty.buffer.Unpooled;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureBaseEntity;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureType;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import net.minecraft.core.Direction;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
@@ -14,8 +16,10 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Location;
+import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_19_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.Player;
 
 import java.util.Arrays;
 import java.util.UUID;
@@ -27,10 +31,10 @@ public class FurnitureBasePacket {
 
     public final FurnitureType type;
     public final Integer entityId;
-    private final ClientboundAddEntityPacket addEntity;
-    private final ClientboundSetEntityDataPacket metadata;
+    private final ClientboundAddEntityPacket entityPacket;
+    private final ClientboundSetEntityDataPacket metadataPacket;
 
-    public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, Entity baseEntity, FurnitureType type) {
+    public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, Entity baseEntity, FurnitureType type, Player player) {
         Location baseLoc = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
         FriendlyByteBuf friendlyByteBuf = new FriendlyByteBuf(Unpooled.buffer());
 
@@ -38,10 +42,10 @@ public class FurnitureBasePacket {
         this.entityId = baseEntity.getEntityId();
 
         EntityType<?> entityType = type == FurnitureType.ITEM_FRAME ? EntityType.ITEM_FRAME : EntityType.GLOW_ITEM_FRAME;
-        this.addEntity = new ClientboundAddEntityPacket(
+        this.entityPacket = new ClientboundAddEntityPacket(
                 entityId, UUID.randomUUID(),
                 baseLoc.getX(), baseLoc.getY(), baseLoc.getZ(), baseLoc.getPitch(), baseLoc.getYaw(),
-                entityType, 0, Vec3.ZERO, 0.0
+                entityType, entityData(furnitureBase), Vec3.ZERO, 0.0
         );
 
         friendlyByteBuf.writeVarInt(entityId);
@@ -50,21 +54,28 @@ public class FurnitureBasePacket {
                 new SynchedEntityData.DataItem<>(new EntityDataAccessor<>(ITEM_FRAME_ROTATION_ID, EntityDataSerializers.INT), FurnitureHelpers.yawToRotation(baseEntity.getLocation().getYaw()).ordinal())
         ), friendlyByteBuf);
 
-        this.metadata = new ClientboundSetEntityDataPacket(friendlyByteBuf);
-    }
-
-    public FurnitureBasePacket(FurnitureType type, int entityId, ClientboundAddEntityPacket addEntity, ClientboundSetEntityDataPacket metadata) {
-        this.type = type;
-        this.entityId = entityId;
-        this.addEntity = addEntity;
-        this.metadata = metadata;
+        this.metadataPacket = new ClientboundSetEntityDataPacket(friendlyByteBuf);
     }
 
     public ClientboundAddEntityPacket entityPacket() {
-        return this.addEntity;
+        return this.entityPacket;
     }
 
     public ClientboundSetEntityDataPacket metadataPacket() {
-        return this.metadata;
+        return this.metadataPacket;
+    }
+
+    private int entityData(FurnitureBaseEntity furnitureBase) {
+        // https://wiki.vg/Object_Data#Item_Frame
+        if (type == FurnitureType.ITEM_FRAME || type == FurnitureType.GLOW_ITEM_FRAME) {
+            LimitedPlacing limitedPlacing = furnitureBase.mechanic().limitedPlacing();
+            if (!furnitureBase.mechanic().hasLimitedPlacing()) return Direction.UP.ordinal();
+            if (limitedPlacing.isFloor() && !limitedPlacing.isWall() && furnitureBase.baseEntity().getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid())
+                return Direction.UP.ordinal();
+            if (limitedPlacing.isRoof()/* && facing == BlockFace.DOWN*/)
+                return Direction.DOWN.ordinal();
+        }
+
+        return 0;
     }
 }

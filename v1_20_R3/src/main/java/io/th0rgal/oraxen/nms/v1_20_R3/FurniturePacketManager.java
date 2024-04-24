@@ -67,7 +67,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
             return basePacket.type != FurnitureType.DISPLAY_ENTITY;
         }).findFirst().ifPresent(basePacket -> {
             ServerGamePacketListenerImpl connection = ((CraftPlayer) player).getHandle().connection;
-            //connection.send(new ClientboundRemoveEntitiesPacket(basePacket.entityId));
+            connection.send(new ClientboundRemoveEntitiesPacket(basePacket.entityId));
             connection.send(basePacket.entityPacket());
             connection.send(basePacket.metadataPacket());
         });

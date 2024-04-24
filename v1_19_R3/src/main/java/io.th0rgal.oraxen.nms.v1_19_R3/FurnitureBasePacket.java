@@ -4,7 +4,10 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.DisplayEntityProp
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureBaseEntity;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureType;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.VersionUtil;
+import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.syncher.EntityDataSerializers;
@@ -12,8 +15,11 @@ import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Location;
+import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_19_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,37 +46,65 @@ public class FurnitureBasePacket {
 
     public final FurnitureType type;
     public final Integer entityId;
-    private final ClientboundAddEntityPacket addEntity;
-    private final ClientboundSetEntityDataPacket metadata;
+    private final ClientboundAddEntityPacket entityPacket;
+    private final ClientboundSetEntityDataPacket metadataPacket;
 
-    public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, Entity baseEntity, FurnitureType type) {
+    public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, Entity baseEntity, FurnitureType type, Player player) {
         this.type = type;
         this.entityId = baseEntity.getEntityId();
         Location baseLoc = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
         EntityType<?> entityType = type == FurnitureType.DISPLAY_ENTITY ? EntityType.ITEM_DISPLAY : type == FurnitureType.ITEM_FRAME ? EntityType.ITEM_FRAME : EntityType.GLOW_ITEM_FRAME;
 
-        this.addEntity = new ClientboundAddEntityPacket(
+        this.entityPacket = new ClientboundAddEntityPacket(
                 entityId, UUID.randomUUID(),
-                baseLoc.x(), baseLoc.y(), baseLoc.z(), baseLoc.getPitch(), baseLoc.getYaw(),
-                entityType, 0, Vec3.ZERO, 0.0
+                baseLoc.x(), baseLoc.y(), baseLoc.z(), pitch(furnitureBase, baseLoc.getPitch(), player), yaw(furnitureBase, baseLoc.getYaw(), player),
+                entityType, entityData(furnitureBase), Vec3.ZERO, 0.0
         );
 
-        this.metadata = new ClientboundSetEntityDataPacket(entityId, dataValues(furnitureBase));
-    }
-
-    public FurnitureBasePacket(FurnitureType type, int entityId, ClientboundAddEntityPacket addEntity, ClientboundSetEntityDataPacket metadata) {
-        this.type = type;
-        this.entityId = entityId;
-        this.addEntity = addEntity;
-        this.metadata = metadata;
+        this.metadataPacket = new ClientboundSetEntityDataPacket(entityId, dataValues(furnitureBase));
     }
 
     public ClientboundAddEntityPacket entityPacket() {
-        return this.addEntity;
+        return this.entityPacket;
     }
 
     public ClientboundSetEntityDataPacket metadataPacket() {
-        return this.metadata;
+        return this.metadataPacket;
+    }
+
+    private float pitch(FurnitureBaseEntity furnitureBase, float initialPitch, Player player) {
+        if (type != FurnitureType.DISPLAY_ENTITY) return initialPitch;
+        LimitedPlacing lp = furnitureBase.mechanic().limitedPlacing();
+        boolean isFixed = furnitureBase.mechanic().displayEntityProperties().displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+
+        if (VersionUtil.atOrAbove(player, 763)) {
+            return lp != null && isFixed ? lp.isFloor() ? -90 : lp.isRoof() ? 90 : initialPitch : initialPitch;
+        } else return lp != null && isFixed ? lp.isFloor() ? 90 : lp.isRoof() ? -90 : initialPitch : initialPitch;
+    }
+
+    private float yaw(FurnitureBaseEntity furnitureBase, float initialYaw, Player player) {
+        if (type != FurnitureType.DISPLAY_ENTITY) return initialYaw;
+        LimitedPlacing limitedPlacing = furnitureBase.mechanic().limitedPlacing();
+        boolean isFixed = furnitureBase.mechanic().displayEntityProperties().displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+
+        if (VersionUtil.atOrAbove(player, 763) && (limitedPlacing == null || !limitedPlacing.isRoof() || !isFixed))
+            return initialYaw;
+        else return initialYaw - 180;
+
+    }
+
+    private int entityData(FurnitureBaseEntity furnitureBase) {
+        // https://wiki.vg/Object_Data#Item_Frame
+        if (type == FurnitureType.ITEM_FRAME || type == FurnitureType.GLOW_ITEM_FRAME) {
+            LimitedPlacing limitedPlacing = furnitureBase.mechanic().limitedPlacing();
+            if (!furnitureBase.mechanic().hasLimitedPlacing()) return Direction.UP.ordinal();
+            if (limitedPlacing.isFloor() && !limitedPlacing.isWall() && furnitureBase.baseEntity().getLocation().getBlock().getRelative(BlockFace.DOWN).getType().isSolid())
+                return Direction.UP.ordinal();
+            if (limitedPlacing.isRoof()/* && facing == BlockFace.DOWN*/)
+                return Direction.DOWN.ordinal();
+        }
+
+        return 0;
     }
 
     private List<SynchedEntityData.DataValue<?>> dataValues(FurnitureBaseEntity furnitureBase) {

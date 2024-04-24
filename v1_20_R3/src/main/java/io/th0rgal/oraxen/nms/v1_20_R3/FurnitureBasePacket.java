@@ -47,8 +47,8 @@ public class FurnitureBasePacket {
 
     public final FurnitureType type;
     public final Integer entityId;
-    private final ClientboundAddEntityPacket addEntity;
-    private final ClientboundSetEntityDataPacket metadata;
+    private final ClientboundAddEntityPacket entityPacket;
+    private final ClientboundSetEntityDataPacket metadataPacket;
 
     public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, Entity baseEntity, FurnitureType type, Player player) {
         this.type = type;
@@ -56,21 +56,21 @@ public class FurnitureBasePacket {
         Location baseLoc = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
         EntityType<?> entityType = type == FurnitureType.DISPLAY_ENTITY ? EntityType.ITEM_DISPLAY : type == FurnitureType.ITEM_FRAME ? EntityType.ITEM_FRAME : EntityType.GLOW_ITEM_FRAME;
 
-        this.addEntity = new ClientboundAddEntityPacket(
+        this.entityPacket = new ClientboundAddEntityPacket(
                 entityId, baseEntity.getUniqueId(),
                 baseLoc.x(), baseLoc.y(), baseLoc.z(), pitch(furnitureBase, baseLoc.getPitch(), player), yaw(furnitureBase, baseLoc.getYaw(), player),
                 entityType, entityData(furnitureBase), Vec3.ZERO, 0.0
         );
 
-        this.metadata = new ClientboundSetEntityDataPacket(entityId, dataValues(furnitureBase));
+        this.metadataPacket = new ClientboundSetEntityDataPacket(entityId, dataValues(furnitureBase));
     }
 
     public ClientboundAddEntityPacket entityPacket() {
-        return this.addEntity;
+        return this.entityPacket;
     }
 
     public ClientboundSetEntityDataPacket metadataPacket() {
-        return this.metadata;
+        return this.metadataPacket;
     }
 
     private float pitch(FurnitureBaseEntity furnitureBase, float initialPitch, Player player) {

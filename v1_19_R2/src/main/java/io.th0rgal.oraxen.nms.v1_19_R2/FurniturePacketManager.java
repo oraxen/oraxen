@@ -48,7 +48,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                 return furnitureBaseFromBaseEntity(baseEntity).orElse(null);
             });
             if (furnitureBase == null) return new HashSet<>();
-            return Arrays.stream(FurnitureType.values()).map(type -> new FurnitureBasePacket(furnitureBase, baseEntity, type)).collect(Collectors.toSet());
+            return Arrays.stream(FurnitureType.values()).map(type -> new FurnitureBasePacket(furnitureBase, baseEntity, type, player)).collect(Collectors.toSet());
         }).stream().filter(basePacket -> {
             if (mechanic.furnitureType() != FurnitureType.DISPLAY_ENTITY) return basePacket.type == mechanic.furnitureType();
             if (!OraxenPlugin.supportsDisplayEntities) return basePacket.type == mechanic.furnitureType();
