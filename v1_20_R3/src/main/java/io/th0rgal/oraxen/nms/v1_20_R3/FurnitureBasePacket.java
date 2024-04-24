@@ -14,6 +14,8 @@ import net.minecraft.world.phys.Vec3;
 import org.bukkit.Location;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,16 +71,21 @@ public class FurnitureBasePacket {
         List<SynchedEntityData.DataValue<?>> data = new ArrayList<>();
         if (type == FurnitureType.DISPLAY_ENTITY) {
             DisplayEntityProperties displayProp = furnitureBase.mechanic().displayEntityProperties();
+            boolean isFixed = displayProp.displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+
             data.add(new SynchedEntityData.DataValue<>(DISPLAY_WIDTH_ID, EntityDataSerializers.FLOAT, displayProp.displayWidth()));
             data.add(new SynchedEntityData.DataValue<>(DISPLAY_HEIGHT_ID, EntityDataSerializers.FLOAT, displayProp.displayHeight()));
 
-            Optional.ofNullable(displayProp.scale()).ifPresent(scale -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_SCALE_ID, EntityDataSerializers.VECTOR3, displayProp.scale())));
             Optional.ofNullable(displayProp.viewRange()).ifPresent(viewRange  -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_VIEW_RANGE_ID, EntityDataSerializers.FLOAT, (float) viewRange)));
             Optional.ofNullable(displayProp.shadowRadius()).ifPresent(shadowRadius  -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_SHADOW_RADIUS_ID, EntityDataSerializers.FLOAT, shadowRadius)));
             Optional.ofNullable(displayProp.shadowStrength()).ifPresent(shadowStrength  -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_SHADOW_STRENGTH_ID, EntityDataSerializers.FLOAT, shadowStrength)));
             Optional.ofNullable(displayProp.trackingRotation()).ifPresent(tracking ->data.add(new SynchedEntityData.DataValue<>(DISPLAY_BILLBOARD_ID, EntityDataSerializers.BYTE, (byte) tracking.ordinal())));
             Optional.ofNullable(displayProp.brightness()).ifPresent(brightness -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_BRIGHTNESS_ID, EntityDataSerializers.INT, (brightness.getBlockLight() << 4 | brightness.getSkyLight() << 20))));
             Optional.ofNullable(displayProp.glowColor()).ifPresent(glow -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_GLOW_ID, EntityDataSerializers.INT, glow.asRGB())));
+            Optional.ofNullable(displayProp.scale()).ifPresentOrElse(
+                    scale -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_SCALE_ID, EntityDataSerializers.VECTOR3, displayProp.scale())),
+                    () -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_SCALE_ID, EntityDataSerializers.VECTOR3, isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : new Vector3f(1f, 1f, 1f)))
+            );
 
             data.add(new SynchedEntityData.DataValue<>(ITEM_DISPLAY_ITEM_ID, EntityDataSerializers.ITEM_STACK, CraftItemStack.asNMSCopy(furnitureBase.itemStack())));
             data.add(new SynchedEntityData.DataValue<>(ITEM_DISPLAY_TRANSFORM_ID, EntityDataSerializers.BYTE, (byte) displayProp.displayTransform().ordinal()));
