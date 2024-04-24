@@ -7,7 +7,7 @@ plugins {
     //id("com.github.johnrengelman.shadow") version "8.1.1"
     id("xyz.jpenilla.run-paper") version "2.2.0"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
-    id("io.papermc.paperweight.userdev") version "1.5.11" apply false
+    id("io.papermc.paperweight.userdev") version "1.5.15" apply false
     alias(idofrontLibs.plugins.shadowjar)
     alias(idofrontLibs.plugins.mia.publication)
 }
