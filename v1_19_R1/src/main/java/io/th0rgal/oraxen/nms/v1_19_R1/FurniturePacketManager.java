@@ -10,6 +10,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketM
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
@@ -55,8 +56,10 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
             return basePacket.type != FurnitureType.DISPLAY_ENTITY;
         }).findFirst().ifPresent(basePacket -> {
-            ((CraftPlayer) player).getHandle().connection.send(basePacket.entityPacket());
-            ((CraftPlayer) player).getHandle().connection.send(basePacket.metadataPacket());
+            ServerGamePacketListenerImpl connection = ((CraftPlayer) player).getHandle().connection;
+            connection.send(new ClientboundRemoveEntitiesPacket(basePacket.entityId));
+            connection.send(basePacket.entityPacket());
+            connection.send(basePacket.metadataPacket());
         });
     }
 
@@ -70,7 +73,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     @Override
     public void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         furnitureBaseMap.stream().filter(f -> f.baseUUID().equals(baseEntity.getUniqueId())).findFirst().ifPresent(base ->
-                ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(base.entityIds().toIntArray()))
+                ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(base.entityId()))
         );
     }
 

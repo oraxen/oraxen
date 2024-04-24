@@ -30,7 +30,7 @@ public class FurnitureBasePacket {
 
     public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, Entity baseEntity, FurnitureType type) {
         this.type = type;
-        this.entityId = furnitureBase.entityId(type);
+        this.entityId = baseEntity.getEntityId();
         Location baseLoc = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
         EntityType<?> entityType = type == FurnitureType.ITEM_FRAME ? EntityType.ITEM_FRAME : EntityType.GLOW_ITEM_FRAME;
 

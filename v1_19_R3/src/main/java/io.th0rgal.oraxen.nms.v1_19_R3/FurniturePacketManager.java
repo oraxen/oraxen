@@ -16,6 +16,7 @@ import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
@@ -65,8 +66,10 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
             return basePacket.type != FurnitureType.DISPLAY_ENTITY;
         }).findFirst().ifPresent(basePacket -> {
-            ((CraftPlayer) player).getHandle().connection.send(basePacket.entityPacket());
-            ((CraftPlayer) player).getHandle().connection.send(basePacket.metadataPacket());
+            ServerGamePacketListenerImpl connection = ((CraftPlayer) player).getHandle().connection;
+            connection.send(new ClientboundRemoveEntitiesPacket(basePacket.entityId));
+            connection.send(basePacket.entityPacket());
+            connection.send(basePacket.metadataPacket());
         });
     }
 
@@ -80,7 +83,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     @Override
     public void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         furnitureBaseMap.stream().filter(f -> f.baseUUID().equals(baseEntity.getUniqueId())).findFirst().ifPresent(base ->
-                ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(base.entityIds().toIntArray()))
+                ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(base.entityId()))
         );
     }
 

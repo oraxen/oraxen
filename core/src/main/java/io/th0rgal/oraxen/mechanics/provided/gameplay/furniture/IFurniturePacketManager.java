@@ -23,12 +23,12 @@ public interface IFurniturePacketManager {
     Set<FurnitureSubEntity> interactionHitboxIdMap = new HashSet<>();
 
     default Optional<FurnitureBaseEntity> furnitureBaseFromBaseEntity(@NotNull Entity baseEntity) {
-        return furnitureBaseMap.stream().filter(f -> f.baseUUID().equals(baseEntity.getUniqueId())).findFirst();
+        return furnitureBaseMap.stream().filter(f -> f.entityId() == baseEntity.getEntityId()).findFirst();
     }
 
     @Nullable
     default Entity baseEntityFromFurnitureBase(int furnitureBaseId) {
-        return furnitureBaseMap.stream().filter(f -> f.entityIds().contains(furnitureBaseId))
+        return furnitureBaseMap.stream().filter(f -> f.entityId() == furnitureBaseId)
                 .map(FurnitureBaseEntity::baseEntity).findFirst().orElse(null);
     }
 

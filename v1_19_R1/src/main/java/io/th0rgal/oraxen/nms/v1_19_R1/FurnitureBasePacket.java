@@ -35,7 +35,7 @@ public class FurnitureBasePacket {
         FriendlyByteBuf friendlyByteBuf = new FriendlyByteBuf(Unpooled.buffer());
 
         this.type = type;
-        this.entityId = furnitureBase.entityId(type);
+        this.entityId = baseEntity.getEntityId();
 
         EntityType<?> entityType = type == FurnitureType.ITEM_FRAME ? EntityType.ITEM_FRAME : EntityType.GLOW_ITEM_FRAME;
         this.addEntity = new ClientboundAddEntityPacket(

@@ -18,7 +18,6 @@ import org.bukkit.entity.Entity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 public class FurnitureBasePacket {
 
@@ -45,24 +44,17 @@ public class FurnitureBasePacket {
 
     public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, Entity baseEntity, FurnitureType type) {
         this.type = type;
-        this.entityId = furnitureBase.entityId(type);
+        this.entityId = baseEntity.getEntityId();
         Location baseLoc = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
         EntityType<?> entityType = type == FurnitureType.DISPLAY_ENTITY ? EntityType.ITEM_DISPLAY : type == FurnitureType.ITEM_FRAME ? EntityType.ITEM_FRAME : EntityType.GLOW_ITEM_FRAME;
 
         this.addEntity = new ClientboundAddEntityPacket(
-                entityId, UUID.randomUUID(),
+                entityId, baseEntity.getUniqueId(),
                 baseLoc.x(), baseLoc.y(), baseLoc.z(), baseLoc.getPitch(), baseLoc.getYaw(),
                 entityType, 0, Vec3.ZERO, 0.0
         );
 
         this.metadata = new ClientboundSetEntityDataPacket(entityId, dataValues(furnitureBase));
-    }
-
-    public FurnitureBasePacket(FurnitureType type, int entityId, ClientboundAddEntityPacket addEntity, ClientboundSetEntityDataPacket metadata) {
-        this.type = type;
-        this.entityId = entityId;
-        this.addEntity = addEntity;
-        this.metadata = metadata;
     }
 
     public ClientboundAddEntityPacket entityPacket() {
@@ -84,12 +76,12 @@ public class FurnitureBasePacket {
             Optional.ofNullable(displayProp.viewRange()).ifPresent(viewRange  -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_VIEW_RANGE_ID, EntityDataSerializers.FLOAT, (float) viewRange)));
             Optional.ofNullable(displayProp.shadowRadius()).ifPresent(shadowRadius  -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_SHADOW_RADIUS_ID, EntityDataSerializers.FLOAT, shadowRadius)));
             Optional.ofNullable(displayProp.shadowStrength()).ifPresent(shadowStrength  -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_SHADOW_STRENGTH_ID, EntityDataSerializers.FLOAT, shadowStrength)));
-            Optional.ofNullable(displayProp.trackingRotation()).ifPresent(tracking ->data.add(new SynchedEntityData.DataValue<>(DISPLAY_BILLBOARD_ID, EntityDataSerializers.INT, tracking.ordinal())));
+            Optional.ofNullable(displayProp.trackingRotation()).ifPresent(tracking ->data.add(new SynchedEntityData.DataValue<>(DISPLAY_BILLBOARD_ID, EntityDataSerializers.BYTE, (byte) tracking.ordinal())));
             Optional.ofNullable(displayProp.brightness()).ifPresent(brightness -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_BRIGHTNESS_ID, EntityDataSerializers.INT, (brightness.getBlockLight() << 4 | brightness.getSkyLight() << 20))));
             Optional.ofNullable(displayProp.glowColor()).ifPresent(glow -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_GLOW_ID, EntityDataSerializers.INT, glow.asRGB())));
 
             data.add(new SynchedEntityData.DataValue<>(ITEM_DISPLAY_ITEM_ID, EntityDataSerializers.ITEM_STACK, CraftItemStack.asNMSCopy(furnitureBase.itemStack())));
-            data.add(new SynchedEntityData.DataValue<>(ITEM_DISPLAY_TRANSFORM_ID, EntityDataSerializers.INT, displayProp.displayTransform().ordinal()));
+            data.add(new SynchedEntityData.DataValue<>(ITEM_DISPLAY_TRANSFORM_ID, EntityDataSerializers.BYTE, (byte) displayProp.displayTransform().ordinal()));
         } else {
             data.add(new SynchedEntityData.DataValue<>(ITEM_FRAME_ITEM_ID, EntityDataSerializers.ITEM_STACK, CraftItemStack.asNMSCopy(furnitureBase.itemStack())));
             data.add(new SynchedEntityData.DataValue<>(ITEM_FRAME_ROTATION_ID, EntityDataSerializers.INT, FurnitureHelpers.yawToRotation(furnitureBase.baseEntity().getYaw()).ordinal()));
