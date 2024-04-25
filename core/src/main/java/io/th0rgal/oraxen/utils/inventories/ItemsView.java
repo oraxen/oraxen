@@ -12,6 +12,7 @@ import io.th0rgal.oraxen.items.ItemBuilder;
 import io.th0rgal.oraxen.items.ItemParser;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.utils.AdventureUtils;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.Utils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.bukkit.Material;
@@ -51,8 +52,7 @@ public class ItemsView {
         for (Map.Entry<File, PaginatedGui> entry : files.entrySet()) {
             int slot = getItemStack(entry.getKey()).getRight();
             if (slot == -1) continue;
-            GuiItem guiItem = new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked()));
-            pageItems.add(slot, guiItem);
+            pageItems.add(slot, new GuiItem(getItemStack(entry.getKey()).getLeft(), e -> entry.getValue().open(e.getWhoClicked())));
         }
 
         // Add all items without a specified slot to the earliest available slot
@@ -100,11 +100,9 @@ public class ItemsView {
         for (ItemBuilder builder : items) {
             if (builder == null) continue;
             ItemStack itemStack = builder.build();
-            if (itemStack == null || itemStack.getType().isAir()) continue;
+            if (ItemUtils.isEmpty(itemStack)) continue;
 
-            GuiItem guiItem = new GuiItem(itemStack);
-            guiItem.setAction(e -> e.getWhoClicked().getInventory().addItem(ItemUpdater.updateItem(guiItem.getItemStack())));
-            gui.addItem(guiItem);
+            gui.addItem(new GuiItem(itemStack, e -> e.getWhoClicked().getInventory().addItem(ItemUpdater.updateItem(e.getCurrentItem().clone()))));
         }
 
         ItemStack nextPage = (Settings.ORAXEN_INV_NEXT_ICON.getValue() == null
