@@ -12,6 +12,7 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
+import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -29,6 +30,7 @@ import org.joml.Vector3f;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 public class FurnitureBasePacket {
 
@@ -55,12 +57,12 @@ public class FurnitureBasePacket {
 
     public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, Entity baseEntity, FurnitureType type, Player player) {
         this.type = type;
-        this.entityId = baseEntity.getEntityId();
+        this.entityId = furnitureBase.entityId(type);
         Location baseLoc = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
         EntityType<?> entityType = type == FurnitureType.DISPLAY_ENTITY ? EntityType.ITEM_DISPLAY : type == FurnitureType.ITEM_FRAME ? EntityType.ITEM_FRAME : EntityType.GLOW_ITEM_FRAME;
 
         this.entityPacket = new ClientboundAddEntityPacket(
-                entityId, baseEntity.getUniqueId(),
+                entityId, UUID.randomUUID(),
                 baseLoc.x(), baseLoc.y(), baseLoc.z(), pitch(furnitureBase, baseLoc.getPitch(), player), yaw(furnitureBase, baseLoc.getYaw(), player),
                 entityType, entityData(furnitureBase), Vec3.ZERO, 0.0
         );
@@ -74,6 +76,10 @@ public class FurnitureBasePacket {
 
     public ClientboundSetEntityDataPacket metadataPacket() {
         return this.metadataPacket;
+    }
+
+    public int entityId() {
+        return this.entityId;
     }
 
     private float pitch(FurnitureBaseEntity furnitureBase, float initialPitch, Player player) {
@@ -149,6 +155,6 @@ public class FurnitureBasePacket {
     }
 
     public ClientboundBundlePacket bundlePackets() {
-        return new ClientboundBundlePacket(List.of(entityPacket, metadataPacket));
+        return new ClientboundBundlePacket(List.of(new ClientboundRemoveEntitiesPacket(entityId), entityPacket, metadataPacket));
     }
 }

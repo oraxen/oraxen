@@ -30,10 +30,7 @@ import org.bukkit.Rotation;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.ArmorStand;
-import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemDisplay;
-import org.bukkit.entity.Player;
+import org.bukkit.entity.*;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -394,6 +391,14 @@ public class FurnitureMechanic extends Mechanic {
 
     public FurnitureType furnitureType() {
         return furnitureType;
+    }
+
+    public FurnitureType furnitureType(Player player) {
+        if (furnitureType != FurnitureType.DISPLAY_ENTITY) return furnitureType;
+        if (VersionUtil.atOrAbove(player, 762)) return furnitureType;
+        if (FurnitureFactory.defaultFurnitureType != FurnitureType.DISPLAY_ENTITY) return FurnitureFactory.defaultFurnitureType;
+
+        return FurnitureType.ITEM_FRAME;
     }
 
     public boolean hasDisplayEntityProperties() {
