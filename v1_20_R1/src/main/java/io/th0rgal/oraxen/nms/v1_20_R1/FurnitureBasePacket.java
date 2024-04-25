@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -130,5 +131,9 @@ public class FurnitureBasePacket {
         }
 
         return data;
+    }
+
+    public ClientboundBundlePacket bundlePackets() {
+        return new ClientboundBundlePacket(List.of(entityPacket, metadataPacket));
     }
 }

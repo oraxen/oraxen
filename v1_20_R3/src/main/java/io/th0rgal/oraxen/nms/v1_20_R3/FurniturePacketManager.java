@@ -67,9 +67,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
             return basePacket.type != FurnitureType.DISPLAY_ENTITY;
         }).findFirst().ifPresent(basePacket -> {
             ServerGamePacketListenerImpl connection = ((CraftPlayer) player).getHandle().connection;
-            connection.send(new ClientboundRemoveEntitiesPacket(basePacket.entityId));
-            connection.send(basePacket.entityPacket());
-            connection.send(basePacket.metadataPacket());
+            connection.send(basePacket.bundlePackets());
         });
     }
 
@@ -134,10 +132,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                 packets.add(new FurnitureInteractionHitboxPacket(entityId, addEntityPacket, metadataPacket));
             }
             return packets;
-        }).forEach(packets -> {
-            ((CraftPlayer) player).getHandle().connection.send(packets.addEntity);
-            ((CraftPlayer) player).getHandle().connection.send(packets.metadata);
-        });
+        }).forEach(packets -> ((CraftPlayer) player).getHandle().connection.send(packets.bundlePackets()));
 
     }
 

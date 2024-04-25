@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
+import net.minecraft.network.protocol.game.ClientboundBundlePacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -117,6 +118,7 @@ public class FurnitureBasePacket {
             DisplayEntityProperties displayProp = furnitureBase.mechanic().displayEntityProperties();
             boolean isFixed = displayProp.displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
 
+            data.add(new SynchedEntityData.DataValue<>(9, EntityDataSerializers.INT, 0));
             data.add(new SynchedEntityData.DataValue<>(DISPLAY_WIDTH_ID, EntityDataSerializers.FLOAT, displayProp.displayWidth()));
             data.add(new SynchedEntityData.DataValue<>(DISPLAY_HEIGHT_ID, EntityDataSerializers.FLOAT, displayProp.displayHeight()));
 
@@ -139,5 +141,9 @@ public class FurnitureBasePacket {
         }
 
         return data;
+    }
+
+    public ClientboundBundlePacket bundlePackets() {
+        return new ClientboundBundlePacket(List.of(entityPacket, metadataPacket));
     }
 }
