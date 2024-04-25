@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import io.th0rgal.oraxen.OraxenPlugin;
+import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.entity.*;
 
@@ -22,6 +23,18 @@ public enum FurnitureType {
             case GLOW_ITEM_FRAME -> EntityType.GLOW_ITEM_FRAME;
             case DISPLAY_ENTITY -> EntityType.ITEM_DISPLAY;
         };
+    }
+
+    /**
+     * Checks the players version to ensure supported entity-type
+     * @param player The player to check against
+     * @return A supported EntityType for a given Player
+     */
+    public EntityType entityType(Player player) {
+        if (this != DISPLAY_ENTITY) return entityType();
+        if (VersionUtil.atOrAbove(player, 762)) return entityType();
+
+        else return EntityType.ITEM_FRAME;
     }
 
     public static FurnitureType getType(String type) {

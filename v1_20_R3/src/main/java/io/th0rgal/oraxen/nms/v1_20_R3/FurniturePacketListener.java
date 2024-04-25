@@ -23,6 +23,7 @@ import org.bukkit.Location;
 import org.bukkit.block.Block;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -41,11 +42,26 @@ import java.util.Optional;
 public class FurniturePacketListener extends PacketAdapter implements Listener {
 
     public FurniturePacketListener() {
-        super(OraxenPlugin.get(), ListenerPriority.MONITOR, PacketType.Play.Server.ENTITY_TELEPORT);
+        super(OraxenPlugin.get(), ListenerPriority.MONITOR, PacketType.Play.Server.ENTITY_TELEPORT, PacketType.Play.Server.SPAWN_ENTITY);
     }
 
     @Override
     public void onPacketSending(PacketEvent event) {
+        if (event.getPacketType() == PacketType.Play.Server.SPAWN_ENTITY)
+            handleEntitySpawnPacket(event);
+        else if (event.getPacketType() == PacketType.Play.Server.ENTITY_TELEPORT)
+            handleEntityTeleportPacket(event);
+    }
+
+    private void handleEntitySpawnPacket(PacketEvent event) {
+        //TODO Cancel packet if its the initial baseEntity and not the custom sent packet entity
+        PacketContainer packet = event.getPacket();
+        Player player = event.getPlayer();
+        int entityId = packet.getIntegers().read(0);
+        EntityType entityType = packet.getEntityTypeModifier().read(0);
+    }
+
+    private void handleEntityTeleportPacket(PacketEvent event) {
         PacketContainer packet = event.getPacket();
         Player player = event.getPlayer();
         int entityId = packet.getIntegers().read(0);
