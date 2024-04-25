@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.nms.v1_20_R3;
 
+import io.papermc.paper.adventure.PaperAdventure;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.DisplayEntityProperties;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureBaseEntity;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
@@ -7,6 +8,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureType;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import net.kyori.adventure.text.Component;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
@@ -113,7 +115,10 @@ public class FurnitureBasePacket {
         List<SynchedEntityData.DataValue<?>> data = new ArrayList<>();
         LimitedPlacing limitedPlacing = furnitureBase.mechanic().limitedPlacing();
 
-        data.add(new SynchedEntityData.DataValue<>(0, EntityDataSerializers.BYTE, (byte) 0x20));
+        data.add(new SynchedEntityData.DataValue<>(0, EntityDataSerializers.BYTE, (byte) 0));
+        data.add(new SynchedEntityData.DataValue<>(2, EntityDataSerializers.OPTIONAL_COMPONENT, Optional.of(PaperAdventure.asVanilla(Component.empty()))));
+        data.add(new SynchedEntityData.DataValue<>(3, EntityDataSerializers.BOOLEAN, false));
+
         if (type == FurnitureType.DISPLAY_ENTITY) {
             DisplayEntityProperties displayProp = furnitureBase.mechanic().displayEntityProperties();
             boolean isFixed = displayProp.displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;

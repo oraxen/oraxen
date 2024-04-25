@@ -2,6 +2,8 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.api.OraxenItems;
+import io.th0rgal.oraxen.utils.ItemUtils;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
@@ -15,12 +17,15 @@ public class FurnitureBaseEntity {
     private final int baseEntityId;
 
     public FurnitureBaseEntity(Entity baseEntity, FurnitureMechanic mechanic) {
-        this.itemStack = OraxenItems.getItemById(mechanic.getItemID()).build();
+        ItemStack furnitureItem = OraxenItems.getItemById(mechanic.getItemID()).build().clone();
+        ItemUtils.displayName(furnitureItem, Component.empty());
+        this.itemStack = furnitureItem;
         this.baseUuid = baseEntity.getUniqueId();
         this.baseEntityId = baseEntity.getEntityId();
     }
 
     public FurnitureBaseEntity(Entity baseEntity, ItemStack itemStack) {
+        ItemUtils.displayName(itemStack.clone(), Component.empty());
         this.itemStack = itemStack;
         this.baseUuid = baseEntity.getUniqueId();
         this.baseEntityId = baseEntity.getEntityId();
@@ -30,6 +35,7 @@ public class FurnitureBaseEntity {
         return this.itemStack;
     }
     public void itemStack(ItemStack itemStack) {
+        ItemUtils.displayName(itemStack.clone(), Component.empty());
         this.itemStack = itemStack;
     }
 
