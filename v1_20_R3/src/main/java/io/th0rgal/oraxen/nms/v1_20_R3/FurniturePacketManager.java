@@ -1,5 +1,7 @@
 package io.th0rgal.oraxen.nms.v1_20_R3;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.generator.blueprint.ModelBlueprint;
 import io.papermc.paper.math.BlockPosition;
@@ -33,9 +35,15 @@ import java.util.stream.Collectors;
 public class FurniturePacketManager implements IFurniturePacketManager {
 
     public FurniturePacketManager() {
-        if (VersionUtil.isPaperServer())
-            MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", new FurniturePacketListener());
-        else {
+        if (VersionUtil.isPaperServer()) {
+            FurniturePacketListener furniturePacketListener = new FurniturePacketListener();
+            MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", furniturePacketListener);
+            ProtocolLibrary.getProtocolManager().getPacketListeners().asList().stream()
+                    .filter(l -> l.getPlugin().equals(OraxenPlugin.get()))
+                            .filter(l -> l.getSendingWhitelist().getTypes().containsAll(List.of(PacketType.Play.Server.SPAWN_ENTITY, PacketType.Play.Server.ENTITY_METADATA)))
+                                    .findFirst().ifPresent(l -> ProtocolLibrary.getProtocolManager().removePacketListener(l));
+            ProtocolLibrary.getProtocolManager().addPacketListener(furniturePacketListener);
+        } else {
             Logs.logWarning("Seems that your server is a Spigot-server");
             Logs.logWarning("FurnitureHitboxes will not work due to it relying on Paper-only events");
             Logs.logWarning("It is heavily recommended to make the upgrade to Paper");
@@ -45,7 +53,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     private final int INTERACTION_WIDTH_ID = 8;
     private final int INTERACTION_HEIGHT_ID = 9;
     private final Map<UUID, Set<FurnitureInteractionHitboxPacket>> interactionHitboxPacketMap = new HashMap<>();
-    private final Map<Integer, Set<FurnitureBasePacket>> furnitureBasePacketMap = new HashMap<>();
+    public static final Map<Integer, Set<FurnitureBasePacket>> furnitureBasePacketMap = new HashMap<>();
 
     @Override
     public void sendFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {

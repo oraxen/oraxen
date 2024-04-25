@@ -16,6 +16,14 @@ public enum FurnitureType {
         return list;
     }
 
+    public EntityType entityType() {
+        return switch (this) {
+            case ITEM_FRAME -> EntityType.ITEM_FRAME;
+            case GLOW_ITEM_FRAME -> EntityType.GLOW_ITEM_FRAME;
+            case DISPLAY_ENTITY -> EntityType.ITEM_DISPLAY;
+        };
+    }
+
     public static FurnitureType getType(String type) {
         try {
             return FurnitureType.valueOf(type);
