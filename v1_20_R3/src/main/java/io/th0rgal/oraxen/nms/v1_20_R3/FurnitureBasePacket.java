@@ -115,7 +115,7 @@ public class FurnitureBasePacket {
         List<SynchedEntityData.DataValue<?>> data = new ArrayList<>();
         LimitedPlacing limitedPlacing = furnitureBase.mechanic().limitedPlacing();
 
-        data.add(new SynchedEntityData.DataValue<>(0, EntityDataSerializers.BYTE, (byte) 0));
+        data.add(new SynchedEntityData.DataValue<>(0, EntityDataSerializers.BYTE, (byte) 0x20));
         data.add(new SynchedEntityData.DataValue<>(2, EntityDataSerializers.OPTIONAL_COMPONENT, Optional.of(PaperAdventure.asVanilla(Component.empty()))));
         data.add(new SynchedEntityData.DataValue<>(3, EntityDataSerializers.BOOLEAN, false));
 
