@@ -3,7 +3,7 @@ table:
   material: PAPER
   Mechanics:
     furniture:
-      type: ITEM_FRAME # Valid types are ITEM_FRAME, GLOW_ITEM_FRAME & DISPLAY_ENTITY if server is 1.19.4>
+      type: DISPLAY_ENTITY # Valid types are ITEM_FRAME, GLOW_ITEM_FRAME & DISPLAY_ENTITY if server is 1.19.4>
       limited_placing:
         roof: false
         floor: true
@@ -29,8 +29,6 @@ cart:
       hitbox:
         barrierHitboxes:
           - 0,0,0
-        interactionHitboxes:
-          - 1 1 0,0,0 # width height offsetX,offsetY,offsetZ
       display_entity_properties:
         display_transform: FIXED
       limited_placing:
@@ -55,7 +53,7 @@ chair:
         barrierHitboxes:
           - 0,0,0
         interactionHitboxes:
-          - 1 2 0,0,0 # width height offsetX,offsetY,offsetZ
+          - 1 1 0,1,0 # width height offsetX,offsetY,offsetZ
       display_entity_properties:
         display_transform: FIXED
       limited_placing:
@@ -105,7 +103,10 @@ shelf:
   material: PAPER
   Mechanics:
     furniture:
-      type: ITEM_FRAME
+      type: DISPLAY_ENTITY
+      hitbox:
+        interactionHitboxes:
+          - 1,1 0,0,0
       limited_placing:
         roof: false
         floor: false
