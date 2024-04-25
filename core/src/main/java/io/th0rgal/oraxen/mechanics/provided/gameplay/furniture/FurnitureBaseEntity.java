@@ -5,7 +5,6 @@ import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.ItemUtils;
 import it.unimi.dsi.fastutil.ints.IntArrayList;
 import it.unimi.dsi.fastutil.ints.IntList;
-import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.inventory.ItemStack;
@@ -26,7 +25,7 @@ public class FurnitureBaseEntity {
     public FurnitureBaseEntity(Entity baseEntity, FurnitureMechanic mechanic) {
         this.mechanic = mechanic;
         ItemStack furnitureItem = OraxenItems.getItemById(mechanic.getItemID()).build().clone();
-        ItemUtils.displayName(furnitureItem, Component.empty());
+        ItemUtils.displayName(furnitureItem, null);
         this.itemStack = furnitureItem;
         this.baseUuid = baseEntity.getUniqueId();
         this.entityIds = Arrays.stream(FurnitureType.values()).map(type -> Map.entry(type, net.minecraft.world.entity.Entity.nextEntityId()))
@@ -37,7 +36,7 @@ public class FurnitureBaseEntity {
         return this.itemStack;
     }
     public void itemStack(ItemStack itemStack) {
-        ItemUtils.displayName(itemStack.clone(), Component.empty());
+        ItemUtils.displayName(itemStack.clone(), null);
         this.itemStack = itemStack;
     }
 

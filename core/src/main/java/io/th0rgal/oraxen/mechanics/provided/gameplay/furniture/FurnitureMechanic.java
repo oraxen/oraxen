@@ -30,7 +30,10 @@ import org.bukkit.Rotation;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.entity.*;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
@@ -356,7 +359,9 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public boolean hasEnoughSpace(Location rootLocation, float yaw) {
-        return hitbox.hitboxLocations(rootLocation, yaw).stream().allMatch(l -> l.getBlock().isReplaceable());
+        List<Location> hitboxLocations = hitbox.hitboxLocations(rootLocation, yaw);
+        if (!hitboxLocations.isEmpty()) return hitboxLocations.stream().allMatch(l -> l.getBlock().isReplaceable());
+        else return true; //TODO Check location for existing entity via BoundingBox
     }
 
     public void runClickActions(final Player player) {

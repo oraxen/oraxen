@@ -9,9 +9,11 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class ItemUtils {
@@ -24,10 +26,10 @@ public class ItemUtils {
         itemStack.setAmount(Math.max(0, itemStack.getAmount() - amount));
     }
 
-    public static void displayName(ItemStack itemStack, Component component) {
+    public static void displayName(ItemStack itemStack, @Nullable Component component) {
         editItemMeta(itemStack, itemMeta -> {
             if (VersionUtil.isPaperServer()) itemMeta.displayName(component);
-            else itemMeta.setDisplayName(AdventureUtils.LEGACY_SERIALIZER.serialize(component));
+            else itemMeta.setDisplayName(Optional.ofNullable(component).map(AdventureUtils.LEGACY_SERIALIZER::serialize).orElse(null));
         });
     }
 
