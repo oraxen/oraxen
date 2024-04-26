@@ -64,17 +64,9 @@ public class FurniturePacketManager implements IFurniturePacketManager {
             return base;
         });
 
-        Arrays.stream(FurnitureType.values())
-                .map(type -> new FurnitureBasePacket(furnitureBase, baseEntity, type, player))
-                .filter(basePacket -> {
-                    if (mechanic.furnitureType() != FurnitureType.DISPLAY_ENTITY)
-                        return basePacket.type == mechanic.furnitureType();
-                    if (!OraxenPlugin.supportsDisplayEntities) return basePacket.type == mechanic.furnitureType();
-                    if (VersionUtil.atOrAbove(player, 762)) return basePacket.type == mechanic.furnitureType();
-
-                    return basePacket.type != FurnitureType.DISPLAY_ENTITY;
-                }).findFirst()
-                .ifPresent(basePacket -> ((CraftPlayer) player).getHandle().connection.send(basePacket.bundlePackets()));
+        FurnitureType type = mechanic.furnitureType(player);
+        FurnitureBasePacket basePacket = new FurnitureBasePacket(furnitureBase, baseEntity, type, player);
+        ((CraftPlayer) player).getHandle().connection.send(basePacket.bundlePackets());
     }
 
     @Override

@@ -33,34 +33,22 @@ public class FurniturePacketManager implements IFurniturePacketManager {
         }
     }
 
-    private final int ITEM_FRAME_ITEM_ID = 8;
-    private final int ITEM_FRAME_ROTATION_ID = 9;
-    private final Map<UUID, Set<FurnitureBasePacket>> furnitureBasePacketMap = new HashMap<>();
-
     @Override
     public void sendFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         if (baseEntity.isDead()) return;
         if (mechanic.isModelEngine() && ModelEngineAPI.getBlueprint(mechanic.getModelEngineID()) != null) return;
 
-        furnitureBasePacketMap.computeIfAbsent(baseEntity.getUniqueId(), key -> {
-            FurnitureBaseEntity furnitureBase = furnitureBaseFromBaseEntity(baseEntity).orElseGet(() -> {
-                furnitureBaseMap.add(new FurnitureBaseEntity(baseEntity, mechanic));
-                return furnitureBaseFromBaseEntity(baseEntity).orElse(null);
-            });
-            if (furnitureBase == null) return new HashSet<>();
-            return Arrays.stream(FurnitureType.values()).map(type -> new FurnitureBasePacket(furnitureBase, baseEntity, type, player)).collect(Collectors.toSet());
-        }).stream().filter(basePacket -> {
-            if (mechanic.furnitureType() != FurnitureType.DISPLAY_ENTITY) return basePacket.type == mechanic.furnitureType();
-            if (!OraxenPlugin.supportsDisplayEntities) return basePacket.type == mechanic.furnitureType();
-            if (VersionUtil.atOrAbove(player, 762)) return basePacket.type == mechanic.furnitureType();
-
-            return basePacket.type != FurnitureType.DISPLAY_ENTITY;
-        }).findFirst().ifPresent(basePacket -> {
-            ServerGamePacketListenerImpl connection = ((CraftPlayer) player).getHandle().connection;
-            connection.send(new ClientboundRemoveEntitiesPacket(basePacket.entityId));
-            connection.send(basePacket.entityPacket());
-            connection.send(basePacket.metadataPacket());
+        FurnitureBaseEntity furnitureBase = furnitureBaseFromBaseEntity(baseEntity).orElseGet(() -> {
+            FurnitureBaseEntity base = new FurnitureBaseEntity(baseEntity, mechanic);
+            furnitureBaseMap.add(base);
+            return base;
         });
+
+        FurnitureType type = mechanic.furnitureType(player);
+        FurnitureBasePacket basePacket = new FurnitureBasePacket(furnitureBase, baseEntity, type, player);
+        ServerGamePacketListenerImpl connection = ((CraftPlayer) player).getHandle().connection;
+        connection.send(basePacket.entityPacket());
+        connection.send(basePacket.metadataPacket());
     }
 
     @Override
