@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EntityUtils;
@@ -111,7 +110,7 @@ public class FurnitureSeat {
 
     public static void spawnSeats(Entity baseEntity, FurnitureMechanic mechanic) {
         Location location = baseEntity.getLocation();
-        float yaw = FurnitureHelpers.furnitureYaw(baseEntity);
+        float yaw = baseEntity.getLocation().getYaw();
         UUID uuid = baseEntity.getUniqueId();
         List<UUID> seatUUIDs = new ArrayList<>();
         for (FurnitureSeat seat : mechanic.seats()) {

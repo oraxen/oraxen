@@ -26,9 +26,7 @@ public class FurnitureHelpers {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null) return;
 
-        if (baseEntity instanceof ItemFrame itemFrame) {
-            itemFrame.setRotation(yawToRotation(yaw));
-        } else baseEntity.setRotation(yaw, baseEntity.getPitch());
+        baseEntity.setRotation(yaw, baseEntity.getLocation().getPitch());
     }
 
     public static float rotationToYaw(Rotation rotation) {

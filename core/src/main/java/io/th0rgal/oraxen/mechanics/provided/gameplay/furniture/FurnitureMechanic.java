@@ -26,7 +26,6 @@ import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.NamespacedKey;
-import org.bukkit.Rotation;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
@@ -419,16 +418,10 @@ public class FurnitureMechanic extends Mechanic {
     }
 
     public void rotateFurniture(Entity baseEntity) {
-        float yaw = FurnitureHelpers.furnitureYaw(baseEntity);
-        yaw = FurnitureHelpers.rotationToYaw(rotateClockwise(FurnitureHelpers.yawToRotation(yaw)));
+        float yaw = baseEntity.getLocation().getYaw() + (restrictedRotation == RestrictedRotation.VERY_STRICT ? 45F : 22.5F);
         FurnitureHelpers.furnitureYaw(baseEntity, yaw);
 
         hitbox.handleHitboxes(baseEntity, this);
-    }
-
-    private Rotation rotateClockwise(Rotation rotation) {
-        int offset = restrictedRotation == RestrictedRotation.VERY_STRICT ? 2 : 1;
-        return Rotation.values()[(rotation.ordinal() + offset) & 0x7];
     }
 
     public BlockLockerMechanic blocklocker() {
