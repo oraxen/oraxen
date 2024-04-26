@@ -58,10 +58,11 @@ public interface IFurniturePacketManager {
     void removeBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic);
     void removeBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player);
 
-    default void removeAllHitboxes() {
+    default void removeAllFurniturePackets() {
         for (World world : Bukkit.getWorlds()) for (Entity entity : world.getEntities()) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
             if (mechanic == null) continue;
+            removeFurnitureEntityPacket(entity, mechanic);
             removeInteractionHitboxPacket(entity, mechanic);
             removeBarrierHitboxPacket(entity, mechanic);
         }

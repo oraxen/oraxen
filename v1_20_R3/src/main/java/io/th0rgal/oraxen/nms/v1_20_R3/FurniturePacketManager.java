@@ -39,8 +39,8 @@ public class FurniturePacketManager implements IFurniturePacketManager {
             MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", furniturePacketListener);
             ProtocolLibrary.getProtocolManager().getPacketListeners().asList().stream()
                     .filter(l -> l.getPlugin().equals(OraxenPlugin.get()))
-                            .filter(l -> l.getSendingWhitelist().getTypes().containsAll(List.of(PacketType.Play.Server.SPAWN_ENTITY, PacketType.Play.Server.ENTITY_METADATA)))
-                                    .findFirst().ifPresent(l -> ProtocolLibrary.getProtocolManager().removePacketListener(l));
+                    .filter(l -> l.getSendingWhitelist().getTypes().containsAll(List.of(PacketType.Play.Server.SPAWN_ENTITY, PacketType.Play.Server.ENTITY_METADATA)))
+                    .findFirst().ifPresent(l -> ProtocolLibrary.getProtocolManager().removePacketListener(l));
             ProtocolLibrary.getProtocolManager().addPacketListener(furniturePacketListener);
         } else {
             Logs.logWarning("Seems that your server is a Spigot-server");
@@ -52,35 +52,35 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     private final int INTERACTION_WIDTH_ID = 8;
     private final int INTERACTION_HEIGHT_ID = 9;
     private final Map<UUID, Set<FurnitureInteractionHitboxPacket>> interactionHitboxPacketMap = new HashMap<>();
-    public static final Map<UUID, Set<FurnitureBasePacket>> furnitureBasePacketMap = new HashMap<>();
 
     @Override
     public void sendFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         if (baseEntity.isDead()) return;
         if (mechanic.isModelEngine() && ModelEngineAPI.getBlueprint(mechanic.getModelEngineID()) != null) return;
 
-        furnitureBasePacketMap.computeIfAbsent(baseEntity.getUniqueId(), uuid -> {
-            FurnitureBaseEntity furnitureBase = furnitureBaseFromBaseEntity(baseEntity).orElseGet(() -> {
-                FurnitureBaseEntity base = new FurnitureBaseEntity(baseEntity, mechanic);
-                furnitureBaseMap.add(base);
-                return base;
-            });
+        FurnitureBaseEntity furnitureBase = furnitureBaseFromBaseEntity(baseEntity).orElseGet(() -> {
+            FurnitureBaseEntity base = new FurnitureBaseEntity(baseEntity, mechanic);
+            furnitureBaseMap.add(base);
+            return base;
+        });
 
-            return Arrays.stream(FurnitureType.values()).map(type -> new FurnitureBasePacket(furnitureBase, baseEntity, type, player)).collect(Collectors.toSet());
-        }).stream().filter(basePacket -> {
-            if (mechanic.furnitureType() != FurnitureType.DISPLAY_ENTITY) return basePacket.type == mechanic.furnitureType();
-            if (!OraxenPlugin.supportsDisplayEntities) return basePacket.type == mechanic.furnitureType();
-            if (VersionUtil.atOrAbove(player, 762)) return basePacket.type == mechanic.furnitureType();
+        Arrays.stream(FurnitureType.values())
+                .map(type -> new FurnitureBasePacket(furnitureBase, baseEntity, type, player))
+                .filter(basePacket -> {
+                    if (mechanic.furnitureType() != FurnitureType.DISPLAY_ENTITY)
+                        return basePacket.type == mechanic.furnitureType();
+                    if (!OraxenPlugin.supportsDisplayEntities) return basePacket.type == mechanic.furnitureType();
+                    if (VersionUtil.atOrAbove(player, 762)) return basePacket.type == mechanic.furnitureType();
 
-            return basePacket.type != FurnitureType.DISPLAY_ENTITY;
-        }).findFirst().ifPresent(basePacket -> ((CraftPlayer) player).getHandle().connection.send(basePacket.bundlePackets()));
+                    return basePacket.type != FurnitureType.DISPLAY_ENTITY;
+                }).findFirst()
+                .ifPresent(basePacket -> ((CraftPlayer) player).getHandle().connection.send(basePacket.bundlePackets()));
     }
 
     @Override
     public void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic) {
         for (Player player : Bukkit.getOnlinePlayers())
             removeFurnitureEntityPacket(baseEntity, mechanic, player);
-
     }
 
     @Override

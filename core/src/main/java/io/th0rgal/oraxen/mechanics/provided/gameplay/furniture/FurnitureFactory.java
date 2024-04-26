@@ -86,6 +86,11 @@ public class FurnitureFactory extends MechanicFactory {
             evolutionTask.cancel();
     }
 
+    public static void removeAllFurniturePackets() {
+        if (instance == null) return;
+        instance.packetManager().removeAllFurniturePackets();
+    }
+
     @Override
     public FurnitureMechanic getMechanic(String itemID) {
         return (FurnitureMechanic) super.getMechanic(itemID);

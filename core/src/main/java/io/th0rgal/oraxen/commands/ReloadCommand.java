@@ -35,7 +35,7 @@ public class ReloadCommand {
 
     public static void reloadItems(@Nullable CommandSender sender) {
         Message.RELOAD.send(sender, AdventureUtils.tagResolver("reloaded", "items"));
-        Optional.ofNullable(FurnitureFactory.get()).ifPresent(p -> p.packetManager().removeAllHitboxes());
+        Optional.ofNullable(FurnitureFactory.get()).ifPresent(p -> p.packetManager().removeAllFurniturePackets());
         OraxenItems.loadItems();
         OraxenPlugin.get().invManager().regen();
         Bukkit.getPluginManager().callEvent(new OraxenItemsLoadedEvent());
@@ -104,7 +104,7 @@ public class ReloadCommand {
                         case "RECIPES" -> reloadRecipes(sender);
                         case "CONFIGS" -> OraxenPlugin.get().reloadConfigs();
                         default -> {
-                            Optional.ofNullable(FurnitureFactory.get()).ifPresent(f -> f.packetManager().removeAllHitboxes());
+                            Optional.ofNullable(FurnitureFactory.get()).ifPresent(f -> f.packetManager().removeAllFurniturePackets());
                             MechanicsManager.unloadListeners();
                             MechanicsManager.unregisterTasks();
                             MechanicsManager.registerNativeMechanics();

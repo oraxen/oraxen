@@ -147,7 +147,7 @@ public class OraxenPlugin extends JavaPlugin {
         if (packServer != null) packServer.stop();
         unregisterListeners();
         FurnitureFactory.unregisterEvolution();
-        FurnitureFactory.instance.packetManager().removeAllHitboxes();
+        FurnitureFactory.removeAllFurniturePackets();
         for (Player player : Bukkit.getOnlinePlayers())
             if (GlyphHandlers.isNms()) NMSHandlers.getHandler().uninject(player);
 
