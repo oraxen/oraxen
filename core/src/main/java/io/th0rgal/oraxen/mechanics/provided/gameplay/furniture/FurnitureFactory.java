@@ -14,6 +14,9 @@ import io.th0rgal.oraxen.nms.NMSHandler;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.entity.ArmorStand;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.ItemDisplay;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -23,6 +26,7 @@ import java.util.Optional;
 public class FurnitureFactory extends MechanicFactory {
 
     public static FurnitureType defaultFurnitureType;
+    public static Class<? extends Entity> defaultEntityClass;
     public static FurnitureFactory instance;
     public final List<String> toolTypes;
     public final int evolutionCheckDelay;
@@ -34,9 +38,14 @@ public class FurnitureFactory extends MechanicFactory {
     public FurnitureFactory(ConfigurationSection section) {
         super(section);
         instance = this;
-        if (OraxenPlugin.supportsDisplayEntities)
+        if (OraxenPlugin.supportsDisplayEntities) {
             defaultFurnitureType = FurnitureType.getType(section.getString("default_furniture_type", "DISPLAY_ENTITY"));
-        else defaultFurnitureType = FurnitureType.ITEM_FRAME;
+            defaultEntityClass = ItemDisplay.class;
+        }
+        else {
+            defaultFurnitureType = FurnitureType.ITEM_FRAME;
+            defaultEntityClass = ArmorStand.class;
+        }
         toolTypes = section.getStringList("tool_types");
         evolutionCheckDelay = section.getInt("evolution_check_delay");
         MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(),

@@ -255,6 +255,8 @@ public class OraxenFurniture {
         ItemStack newItem = ItemUpdater.updateItem(FurnitureHelpers.furnitureItem(baseEntity));
         FurnitureHelpers.furnitureItem(baseEntity, newItem);
 
+        //TODO Update the baseEntity from ArmorStand -> ItemDisplay if server went from 1.19.x to 1.20.x for example
+
         IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
         packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);

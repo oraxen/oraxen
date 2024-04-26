@@ -278,7 +278,7 @@ public class FurnitureMechanic extends Mechanic {
         ItemUtils.editItemMeta(item, meta -> ItemUtils.displayName(meta, Component.empty()));
         item.setAmount(1);
 
-        ArmorStand baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, facing), ArmorStand.class, a -> setBaseFurnitureData(a, yaw));
+        Entity baseEntity = EntityUtils.spawnEntity(correctedSpawnLocation(location, facing), FurnitureFactory.defaultEntityClass, e -> setBaseFurnitureData(e, yaw));
         if (baseEntity == null) return null;
         if (this.isModelEngine() && PluginUtils.isEnabled("ModelEngine")) {
             spawnModelEngineFurniture(baseEntity);
@@ -304,21 +304,24 @@ public class FurnitureMechanic extends Mechanic {
         return correctedLocation.add(0, (0.5 * scale) + (isRoof ? isFixed ? 0.49 : -1 : 0), 0);
     }
 
-    public void setBaseFurnitureData(ArmorStand baseEntity, float yaw) {
+    public void setBaseFurnitureData(Entity baseEntity, float yaw) {
         baseEntity.setPersistent(true);
-        baseEntity.setDisabledSlots(EquipmentSlot.values());
-        baseEntity.setMarker(true);
-        baseEntity.setVisible(false);
         baseEntity.setInvulnerable(true);
-        baseEntity.setCanMove(false);
-        baseEntity.setCanTick(false);
-        baseEntity.setCanPickupItems(false);
         baseEntity.setRotation(yaw, 0f);
         baseEntity.setSilent(true);
         baseEntity.setCustomNameVisible(false);
         Component customName = OraxenItems.getItemById(this.getItemID()).displayName();
         if (customName == Component.empty()) customName = Component.text(getItemID());
         EntityUtils.customName(baseEntity, customName);
+
+        if (baseEntity instanceof ArmorStand armorStand) {
+            armorStand.setDisabledSlots(EquipmentSlot.values());
+            armorStand.setMarker(true);
+            armorStand.setVisible(false);
+            armorStand.setCanMove(false);
+            armorStand.setCanTick(false);
+            armorStand.setCanPickupItems(false);
+        }
 
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();
         pdc.set(FURNITURE_KEY, PersistentDataType.STRING, getItemID());
