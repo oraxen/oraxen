@@ -6,7 +6,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureBaseEnti
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureType;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
-import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.Direction;
@@ -58,7 +57,7 @@ public class FurnitureBasePacket {
     public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, Entity baseEntity, FurnitureType type, Player player) {
         this.type = type;
         this.entityId = furnitureBase.entityId(type);
-        Location baseLoc = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
+        Location baseLoc = baseEntity.getLocation();
         EntityType<?> entityType = type == FurnitureType.DISPLAY_ENTITY ? EntityType.ITEM_DISPLAY : type == FurnitureType.ITEM_FRAME ? EntityType.ITEM_FRAME : EntityType.GLOW_ITEM_FRAME;
 
         this.entityPacket = new ClientboundAddEntityPacket(

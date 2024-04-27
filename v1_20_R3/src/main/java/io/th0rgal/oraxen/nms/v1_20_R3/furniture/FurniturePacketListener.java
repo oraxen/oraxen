@@ -31,6 +31,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockDamageEvent;
+import org.bukkit.event.entity.EntityTeleportEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -114,6 +115,24 @@ public class FurniturePacketListener extends PacketAdapter implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onFurnitureRemoval(EntityRemoveFromWorldEvent event) {
+        Entity baseEntity = event.getEntity();
+        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
+        if (mechanic == null) return;
+        IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
+
+        packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
+        packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
+        packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
+
+        for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
+            packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
+            packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
+            packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
+        }
+    }
+
+    @EventHandler
+    public void onFurnitureTeleport(EntityTeleportEvent event) {
         Entity baseEntity = event.getEntity();
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null) return;

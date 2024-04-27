@@ -10,7 +10,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.*;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.InteractionHitbox;
-import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
@@ -37,11 +37,16 @@ public class FurniturePacketManager implements IFurniturePacketManager {
         if (VersionUtil.isPaperServer()) {
             FurniturePacketListener furniturePacketListener = new FurniturePacketListener();
             MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", furniturePacketListener);
+
             ProtocolLibrary.getProtocolManager().getPacketListeners().asList().stream()
                     .filter(l -> l.getPlugin().equals(OraxenPlugin.get()))
                     .filter(l -> l.getSendingWhitelist().getTypes().containsAll(List.of(PacketType.Play.Server.SPAWN_ENTITY, PacketType.Play.Server.ENTITY_METADATA)))
                     .findFirst().ifPresent(l -> ProtocolLibrary.getProtocolManager().removePacketListener(l));
             ProtocolLibrary.getProtocolManager().addPacketListener(furniturePacketListener);
+
+            if (PluginUtils.isEnabled("AxiomPaper"))
+                Bukkit.getMessenger().registerIncomingPluginChannel(OraxenPlugin.get(), "axiom:manipulate_entity", new AxiomCompatibility());
+
         } else {
             Logs.logWarning("Seems that your server is a Spigot-server");
             Logs.logWarning("FurnitureHitboxes will not work due to it relying on Paper-only events");
@@ -92,7 +97,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
             if (blueprint != null && blueprint.getMainHitbox() != null) return;
         }
 
-        Location baseLoc = BlockHelpers.toCenterBlockLocation(baseEntity.getLocation());
+        Location baseLoc = baseEntity.getLocation();
         interactionHitboxPacketMap.computeIfAbsent(baseEntity.getUniqueId(), key -> {
             List<Integer> entityIds = interactionHitboxIdMap.stream()
                     .filter(subEntity -> subEntity.baseUUID().equals(baseEntity.getUniqueId()))

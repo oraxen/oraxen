@@ -118,6 +118,7 @@ allprojects {
         compileOnly("team.unnamed:creative-api:$creativeVersion")
         compileOnly("team.unnamed:creative-serializer-minecraft:$creativeVersion")
         compileOnly("team.unnamed:creative-server:$creativeVersion")
+        compileOnly(files("../libs/compile/AxiomPaper-1.5.9.jar"))
 
         implementation("org.bstats:bstats-bukkit:3.0.0")
         implementation("io.th0rgal:protectionlib:1.5.0")
@@ -201,7 +202,7 @@ bukkit {
     softDepend = listOf(
         "LightAPI", "PlaceholderAPI", "MythicMobs", "MMOItems", "MythicCrucible", "MythicMobs",
         "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
-        "ModelEngine", "CrashClaim", "HuskClaims", "BentoBox"
+        "ModelEngine", "CrashClaim", "HuskClaims", "BentoBox", "AxiomPaper"
     )
     depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
