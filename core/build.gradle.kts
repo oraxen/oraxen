@@ -14,11 +14,11 @@ tasks {
 }
 
 dependencies {
-    paperweight.paperDevBundle("1.20.5-R0.1-SNAPSHOT")
+    paperweight.paperDevBundle("1.20.4-R0.1-SNAPSHOT")
 }
 
 java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(21))
+    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 publishing {

@@ -15,10 +15,10 @@ public class EfficiencyMechanic extends Mechanic {
         super(mechanicFactory, section);
         final int tempAmount = section.getInt("amount", 1);
         if (tempAmount < 0) {
-            type = PotionEffectTypeWrapper.MINING_FATIGUE;
+            type = PotionEffectTypeWrapper.SLOW_DIGGING;
             amount = -tempAmount;
         } else {
-            type = PotionEffectTypeWrapper.HASTE;
+            type = PotionEffectTypeWrapper.FAST_DIGGING;
             amount = tempAmount;
         }
     }

@@ -117,7 +117,7 @@ public class BreakerSystem {
                 final List<Location> furnitureBarrierLocations = furnitureBarrierLocations(furnitureMechanic, block);
 
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
-                        player.addPotionEffect(new PotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE,
+                        player.addPotionEffect(new PotionEffect(PotionEffectTypeWrapper.SLOW_DIGGING,
                                 (int) (period * 11),
                                 Integer.MAX_VALUE,
                                 false, false, false)));
@@ -149,7 +149,7 @@ public class BreakerSystem {
                             return;
                         }
 
-                        if (item.getEnchantmentLevel(EnchantmentWrapper.EFFICIENCY) >= 5)
+                        if (item.getEnchantmentLevel(EnchantmentWrapper.DIG_SPEED) >= 5)
                             value = 10;
 
                         for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
@@ -168,7 +168,7 @@ public class BreakerSystem {
                         } else stopBlockHitSound(block);
 
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
-                                player.removePotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE));
+                                player.removePotionEffect(PotionEffectTypeWrapper.SLOW_DIGGING));
 
                         stopBlockBreaker(block);
                         stopBlockHitSound(block);
@@ -184,7 +184,7 @@ public class BreakerSystem {
                 }, period, period);
             } else {
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
-                    player.removePotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE);
+                    player.removePotionEffect(PotionEffectTypeWrapper.SLOW_DIGGING);
                     if (!ProtectionLib.canBreak(player, location))
                         player.sendBlockChange(block.getLocation(), block.getBlockData());
 

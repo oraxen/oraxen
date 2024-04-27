@@ -140,17 +140,17 @@ public class EnergyBlastMechanicManager implements Listener {
     }
 
     private void spawnParticle(World world, Location location, EnergyBlastMechanic mechanic) {
-        if (mechanic.getParticle() == Particle.DUST)
-            world.spawnParticle(Particle.DUST, location, 1, 0, 0, 0, 0, mechanic.getParticleColor());
+        if (mechanic.getParticle() == Particle.REDSTONE)
+            world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, mechanic.getParticleColor());
         else
             world.spawnParticle(mechanic.getParticle(), location, 1, 0, 0, 0, 0);
     }
 
     private void spawnParticle(World world, Location location, EnergyBlastMechanic mechanic, int amount, double offsetX,
                                double offsetY, double offsetZ, double extra) {
-        if (mechanic.getParticle() == Particle.DUST)
+        if (mechanic.getParticle() == Particle.REDSTONE)
             world
-                    .spawnParticle(Particle.DUST, location, amount, offsetX, offsetY, offsetZ, extra,
+                    .spawnParticle(Particle.REDSTONE, location, amount, offsetX, offsetY, offsetZ, extra,
                             mechanic.getParticleColor());
         else
             world.spawnParticle(mechanic.getParticle(), location, amount, offsetX, offsetY, offsetZ, extra);
