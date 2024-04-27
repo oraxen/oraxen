@@ -38,7 +38,7 @@ public class FontManager {
     private final Map<Character, String> reverse;
     private final FontEvents fontEvents;
     private final Set<Font> fonts;
-    private final boolean useNmsGlyphs;
+    private boolean useNmsGlyphs;
 
     public FontManager(final ConfigsManager configsManager) {
         final Configuration fontConfiguration = configsManager.getFont();
@@ -65,7 +65,10 @@ public class FontManager {
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
 
         useNmsGlyphs = GlyphHandlers.isNms() && NMSHandlers.getHandler() != null;
-        if (useNmsGlyphs) {
+        if (NMSHandlers.getVersion().equals("V1_20_R4") && useNmsGlyphs) {
+            Logs.logError("Oraxens NMS Glyph system is not working for 1.20.5...");
+            useNmsGlyphs = false;
+        } else if (useNmsGlyphs) {
             NMSHandlers.getHandler().setupNmsGlyphs();
             Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
             Logs.logInfo("Disabling packet-based glyph systems", true);

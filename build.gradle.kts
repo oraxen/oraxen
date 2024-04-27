@@ -5,10 +5,10 @@ import java.util.*
 plugins {
     id("java")
     //id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("xyz.jpenilla.run-paper") version "2.2.0"
+    id("xyz.jpenilla.run-paper") version "2.2.4"
     id("net.minecrell.plugin-yml.bukkit") version "0.6.0" // Generates plugin.yml
-    id("io.papermc.paperweight.userdev") version "1.5.11" apply false
-    alias(libs.plugins.shadowjar)
+    id("io.papermc.paperweight.userdev") version "1.6.0" apply false
+    id("io.github.goooler.shadow") version "8.1.7"
     alias(libs.plugins.mia.publication)
 }
 
@@ -22,7 +22,8 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
     "v1_19_R3" toNms "1.19.4-R0.1-SNAPSHOT",
     "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
     "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
-    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT"
+    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
+    "v1_20_R4" toNms "1.20.5-R0.1-SNAPSHOT"
 )
 
 SUPPORTED_VERSIONS.forEach {
@@ -40,6 +41,11 @@ SUPPORTED_VERSIONS.forEach {
             compileOnly("io.papermc.paper:paper-api:" + it.serverVersion)
             implementation(project(":core"))
             paperDevBundle(it.serverVersion)
+        }
+
+        java {
+            val javaVersion = if (it.nmsVersion == "v1_20_R4") 21 else 17
+            toolchain.languageVersion.set(JavaLanguageVersion.of(javaVersion))
         }
     }
 }
@@ -87,7 +93,6 @@ allprojects {
 
     dependencies {
         val actionsVersion = "1.0.0-SNAPSHOT"
-        compileOnly("io.papermc.paper:paper-api:1.20.4-R0.1-SNAPSHOT")
         compileOnly("gs.mclo:java:2.2.1")
 
         compileOnly("net.kyori:adventure-text-minimessage:$adventureVersion")
@@ -133,10 +138,6 @@ allprojects {
 dependencies {
     implementation(project(path = ":core"))
     SUPPORTED_VERSIONS.forEach { implementation(project(path = ":${it.nmsVersion}", configuration = "reobf")) }
-}
-
-java {
-    toolchain.languageVersion.set(JavaLanguageVersion.of(17))
 }
 
 tasks {
