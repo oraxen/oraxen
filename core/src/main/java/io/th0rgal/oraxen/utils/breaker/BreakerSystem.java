@@ -19,27 +19,26 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.block.BlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMechanic;
-import io.th0rgal.oraxen.utils.*;
+import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.EventUtils;
+import io.th0rgal.oraxen.utils.ItemUtils;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.enchantments.Enchantment;
+import org.bukkit.enchantments.EnchantmentWrapper;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
-import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.Damageable;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionEffectTypeWrapper;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -118,7 +117,7 @@ public class BreakerSystem {
                 final List<Location> furnitureBarrierLocations = furnitureBarrierLocations(furnitureMechanic, block);
 
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
-                        player.addPotionEffect(new PotionEffect(PotionEffectType.SLOW_DIGGING,
+                        player.addPotionEffect(new PotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE,
                                 (int) (period * 11),
                                 Integer.MAX_VALUE,
                                 false, false, false)));
@@ -150,7 +149,7 @@ public class BreakerSystem {
                             return;
                         }
 
-                        if (item.getEnchantmentLevel(Enchantment.DIG_SPEED) >= 5)
+                        if (item.getEnchantmentLevel(EnchantmentWrapper.EFFICIENCY) >= 5)
                             value = 10;
 
                         for (final Entity entity : world.getNearbyEntities(location, 16, 16, 16)) {
@@ -169,7 +168,7 @@ public class BreakerSystem {
                         } else stopBlockHitSound(block);
 
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
-                                player.removePotionEffect(PotionEffectType.SLOW_DIGGING));
+                                player.removePotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE));
 
                         stopBlockBreaker(block);
                         stopBlockHitSound(block);
@@ -185,7 +184,7 @@ public class BreakerSystem {
                 }, period, period);
             } else {
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
-                    player.removePotionEffect(PotionEffectType.SLOW_DIGGING);
+                    player.removePotionEffect(PotionEffectTypeWrapper.MINING_FATIGUE);
                     if (!ProtectionLib.canBreak(player, location))
                         player.sendBlockChange(block.getLocation(), block.getBlockData());
 

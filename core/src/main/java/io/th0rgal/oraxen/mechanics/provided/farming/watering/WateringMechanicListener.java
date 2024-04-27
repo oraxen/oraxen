@@ -83,7 +83,7 @@ public class WateringMechanicListener implements Listener {
         } else return;
 
         player.getInventory().setItemInMainHand(OraxenItems.getItemById(mechanic.getEmptyCanItem()).build());
-        player.getWorld().spawnParticle(Particle.WATER_SPLASH, block.getLocation().add(0.5, 1, 0.5), 40);
+        player.getWorld().spawnParticle(Particle.SPLASH, block.getLocation().add(0.5, 1, 0.5), 40);
         player.getWorld().playSound(block.getLocation(), Sound.ITEM_BUCKET_EMPTY, 1.0f, 1.0f);
     }
 }

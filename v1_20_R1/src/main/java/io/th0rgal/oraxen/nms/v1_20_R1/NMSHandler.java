@@ -133,7 +133,6 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         return world.getBlockAt(pos.getX(), pos.getY(), pos.getZ()).getBlockData();
     }
 
-    @Override
     public BlockHitResult getPlayerPOVHitResult(Level world, net.minecraft.world.entity.player.Player player, ClipContext.Fluid fluidHandling) {
         float f = player.getXRot();
         float g = player.getYRot();

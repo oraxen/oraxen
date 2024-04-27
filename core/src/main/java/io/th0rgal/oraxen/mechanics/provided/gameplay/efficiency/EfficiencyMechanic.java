@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.potion.PotionEffectTypeWrapper;
 
 public class EfficiencyMechanic extends Mechanic {
 
@@ -14,10 +15,10 @@ public class EfficiencyMechanic extends Mechanic {
         super(mechanicFactory, section);
         final int tempAmount = section.getInt("amount", 1);
         if (tempAmount < 0) {
-            type = PotionEffectType.SLOW_DIGGING;
+            type = PotionEffectTypeWrapper.MINING_FATIGUE;
             amount = -tempAmount;
         } else {
-            type = PotionEffectType.FAST_DIGGING;
+            type = PotionEffectTypeWrapper.HASTE;
             amount = tempAmount;
         }
     }
