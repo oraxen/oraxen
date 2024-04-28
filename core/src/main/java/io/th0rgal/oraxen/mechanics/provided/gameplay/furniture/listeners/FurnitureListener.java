@@ -37,7 +37,6 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.util.RayTraceResult;
-import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
@@ -87,25 +86,23 @@ public class FurnitureListener implements Listener {
     public void onFurniturePlace(final PlayerInteractEvent event) {
         ItemStack item = event.getItem();
         final Player player = event.getPlayer();
-        final Block placedAgainst = event.getClickedBlock();
+        final Location targetLocation = event.getInteractionPoint();
         final EquipmentSlot hand = event.getHand();
-        Block block = getTarget(placedAgainst, event.getBlockFace());
-        if (block == null) return;
-        FurnitureMechanic mechanic = getMechanic(item, player, block.getLocation());
+        FurnitureMechanic mechanic = getMechanic(item, player, targetLocation);
 
-        if (mechanic == null || item == null || hand != EquipmentSlot.HAND) return;
-        if (block == null || !placedAgainst.canPlace(block.getBlockData())) return;
+        if (targetLocation == null || mechanic == null || item == null || hand != EquipmentSlot.HAND) return;
         if (event.useInteractedBlock() == Event.Result.DENY) return;
         if (event.useItemInHand() == Event.Result.DENY) return;
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
-        if (!player.isSneaking() && BlockHelpers.isInteractable(placedAgainst)) return;
+        if (!player.isSneaking() && BlockHelpers.isInteractable(targetLocation.getBlock())) return;
 
+        final Block block = targetLocation.getBlock();
         final BlockData currentBlockData = block.getBlockData();
 
         Block farm = block.getRelative(BlockFace.DOWN);
         if (mechanic.farmlandRequired && farm.getType() != Material.FARMLAND) return;
 
-        BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(block, block.getState(), placedAgainst, item, player, true, hand);
+        BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(block, block.getState(), block.getRelative(event.getBlockFace()), item, player, true, hand);
 
         final Rotation rotation = getRotation(player.getEyeLocation().getYaw(), mechanic);
         final float yaw = FurnitureHelpers.rotationToYaw(rotation);
@@ -131,28 +128,14 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        if (!player.getGameMode().equals(GameMode.CREATIVE))
-            item.setAmount(item.getAmount() - 1);
+        if (!player.getGameMode().equals(GameMode.CREATIVE)) item.setAmount(item.getAmount() - 1);
         event.setUseInteractedBlock(Event.Result.DENY);
         if (VersionUtil.isPaperServer()) baseEntity.getWorld().sendGameEvent(player, GameEvent.BLOCK_PLACE, baseEntity.getLocation().toVector());
     }
 
-    private Block getTarget(Block placedAgainst, BlockFace blockFace) {
-        Block target;
-        if (placedAgainst == null) return null;
-        if (BlockHelpers.isReplaceable(placedAgainst))
-            target = placedAgainst;
-        else {
-            target = placedAgainst.getRelative(blockFace);
-            if (!BlockHelpers.isReplaceable(target) && !target.getType().isAir() && !target.isLiquid() && target.getType() != Material.LIGHT)
-                return null;
-        }
-        return target;
-    }
-
-    private FurnitureMechanic getMechanic(ItemStack item, Player player, @NotNull Location placed) {
+    private FurnitureMechanic getMechanic(ItemStack item, Player player, Location placed) {
         final String itemID = OraxenItems.getIdByItem(item);
-        if (itemID == null) return null;
+        if (itemID == null || placed == null) return null;
         if (FurnitureFactory.get().isNotImplementedIn(itemID) || BlockHelpers.isStandingInside(player, placed.getBlock())) return null;
         if (!ProtectionLib.canBuild(player, placed)) return null;
         if (OraxenFurniture.isFurniture(placed)) return null;
