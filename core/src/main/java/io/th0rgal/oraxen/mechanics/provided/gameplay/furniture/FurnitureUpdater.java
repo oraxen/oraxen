@@ -6,6 +6,7 @@ import io.th0rgal.oraxen.api.OraxenFurniture;
 import io.th0rgal.oraxen.config.Settings;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.utils.VersionUtil;
+import org.bukkit.Bukkit;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 
@@ -19,6 +20,6 @@ public class FurnitureUpdater implements Listener {
     @EventHandler
     public void onLoad(EntityAddToWorldEvent event) {
         if (!Settings.UPDATE_FURNITURE.toBool() || !Settings.UPDATE_FURNITURE_ON_LOAD.toBool()) return;
-        OraxenFurniture.updateFurniture(event.getEntity());
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> OraxenFurniture.updateFurniture(event.getEntity()), 1L);
     }
 }

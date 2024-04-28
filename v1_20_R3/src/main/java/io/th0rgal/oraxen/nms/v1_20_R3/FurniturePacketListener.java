@@ -18,6 +18,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.utils.EventUtils;
+import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -105,11 +106,13 @@ public class FurniturePacketListener extends PacketAdapter implements Listener {
         if (mechanic == null) return;
         IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
 
-        for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
-            packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
-            packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
-            packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
-        }
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
+            for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
+                packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
+                packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
+                packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
+            }
+        }, 1L);
 
     }
 
@@ -179,6 +182,7 @@ public class FurniturePacketListener extends PacketAdapter implements Listener {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null) return;
 
+        Logs.logSuccess(String.valueOf(event.isAttack()));
         if (ProtectionLib.canBreak(player, baseEntity.getLocation()) && event.isAttack())
             OraxenFurniture.remove(baseEntity, player);
         else if (ProtectionLib.canInteract(player, baseEntity.getLocation()))
