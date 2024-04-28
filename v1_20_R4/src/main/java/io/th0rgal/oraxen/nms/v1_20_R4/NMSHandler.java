@@ -98,7 +98,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     static {
         Field getToId = Arrays.stream(IdDispatchCodec.class.getDeclaredFields()).filter(f -> Object2IntMap.class.isAssignableFrom(f.getType())).findFirst().orElseThrow();
         Field getById = Arrays.stream(IdDispatchCodec.class.getDeclaredFields()).filter(f -> List.class.isAssignableFrom(f.getType())).findFirst().orElseThrow();
-        Class<?> entryClass = IdDispatchCodec.class.getDeclaredClasses()[1];
+        Class<?> entryClass = IdDispatchCodec.class.getDeclaredClasses()[0];
         Field getCodec = entryClass.getDeclaredFields()[0];
         Field getType = entryClass.getDeclaredFields()[1];
 
