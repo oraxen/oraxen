@@ -26,16 +26,16 @@ public class AxiomCompatibility implements Listener {
         IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
         if (baseEntity == null || mechanic == null) return;
 
-        //packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
+        packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
 
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
-                //packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
+                packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
             }
-        }, 1L);
+        }, 2L);
     }
 }
