@@ -30,9 +30,11 @@ public class FurnitureBaseEntity {
         ItemUtils.displayName(furnitureItem, null);
         this.itemStack = furnitureItem;
         this.baseUuid = baseEntity.getUniqueId();
-        this.entityIds = Arrays.stream(FurnitureType.values()).map(type -> Map.entry(type, net.minecraft.world.entity.Entity.nextEntityId()))
+        this.entityIds = Arrays.stream(FurnitureType.values())
+                .map(type -> Map.entry(type, type.entityType() == baseEntity.getType() ? baseEntity.getEntityId() : net.minecraft.world.entity.Entity.nextEntityId()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        this.uuids = Arrays.stream(FurnitureType.values()).map(type -> Map.entry(type, UUID.randomUUID()))
+        this.uuids = Arrays.stream(FurnitureType.values())
+                .map(type -> Map.entry(type, type.entityType() == baseEntity.getType() ? baseEntity.getUniqueId() : UUID.randomUUID()))
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 

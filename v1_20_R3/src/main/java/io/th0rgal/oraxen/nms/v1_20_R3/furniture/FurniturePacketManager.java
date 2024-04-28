@@ -13,6 +13,8 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.Interactio
 import io.th0rgal.oraxen.utils.PluginUtils;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.minecraft.network.protocol.Packet;
+import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
@@ -71,7 +73,8 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
         FurnitureType type = mechanic.furnitureType(player);
         FurnitureBasePacket basePacket = new FurnitureBasePacket(furnitureBase, baseEntity, type, player);
-        ((CraftPlayer) player).getHandle().connection.send(basePacket.bundlePackets());
+        Packet<ClientGamePacketListener> packets = type.entityType() != baseEntity.getType() ? basePacket.bundlePackets() : basePacket.metadataPacket();
+        ((CraftPlayer) player).getHandle().connection.send(packets);
     }
 
     @Override

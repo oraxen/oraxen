@@ -11,7 +11,6 @@ import net.kyori.adventure.text.Component;
 import net.minecraft.core.Direction;
 import net.minecraft.network.protocol.game.ClientboundAddEntityPacket;
 import net.minecraft.network.protocol.game.ClientboundBundlePacket;
-import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
@@ -21,7 +20,6 @@ import net.minecraft.world.phys.Vec3;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
-import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
@@ -71,7 +69,7 @@ public class FurnitureBasePacket {
                 entityType, entityData(furnitureBase), Vec3.ZERO, 0.0
         );
 
-        this.metadataPacket = new ClientboundSetEntityDataPacket(entityId, dataValues(furnitureBase, baseEntity));
+        this.metadataPacket = new ClientboundSetEntityDataPacket(entityId, dataValues(furnitureBase, (ItemDisplay) baseEntity));
     }
 
     public ClientboundAddEntityPacket entityPacket() {
@@ -125,7 +123,7 @@ public class FurnitureBasePacket {
         return 0;
     }
 
-    private List<SynchedEntityData.DataValue<?>> dataValues(FurnitureBaseEntity furnitureBase, Entity baseEntity) {
+    private List<SynchedEntityData.DataValue<?>> dataValues(FurnitureBaseEntity furnitureBase, ItemDisplay baseEntity) {
         List<SynchedEntityData.DataValue<?>> data = new ArrayList<>();
         LimitedPlacing limitedPlacing = furnitureBase.mechanic().limitedPlacing();
 
@@ -147,25 +145,22 @@ public class FurnitureBasePacket {
             Optional.ofNullable(displayProp.brightness()).ifPresent(brightness -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_BRIGHTNESS_ID, EntityDataSerializers.INT, (brightness.getBlockLight() << 4 | brightness.getSkyLight() << 20))));
             Optional.ofNullable(displayProp.glowColor()).ifPresent(glow -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_GLOW_ID, EntityDataSerializers.INT, glow.asRGB())));
 
-            Optional.ofNullable((baseEntity instanceof Display display) ? display.getTransformation() : null)
-                    .ifPresent(transformation -> {
-                        data.add(new SynchedEntityData.DataValue<>(DISPLAY_TRANSLATION, EntityDataSerializers.VECTOR3, transformation.getTranslation()));
-                        data.add(new SynchedEntityData.DataValue<>(DISPLAY_SCALE_ID, EntityDataSerializers.VECTOR3, Optional.ofNullable(displayProp.scale()).orElse(transformation.getScale())));
-                        data.add(new SynchedEntityData.DataValue<>(DISPLAY_QUATERNION_LEFT, EntityDataSerializers.QUATERNION, transformation.getLeftRotation()));
-                        data.add(new SynchedEntityData.DataValue<>(DISPLAY_QUATERNION_RIGHT, EntityDataSerializers.QUATERNION, transformation.getRightRotation()));
-                    });
+            data.add(new SynchedEntityData.DataValue<>(DISPLAY_TRANSLATION, EntityDataSerializers.VECTOR3, baseEntity.getTransformation().getTranslation()));
+            data.add(new SynchedEntityData.DataValue<>(DISPLAY_SCALE_ID, EntityDataSerializers.VECTOR3, Optional.ofNullable(displayProp.scale()).orElse(baseEntity.getTransformation().getScale())));
+            data.add(new SynchedEntityData.DataValue<>(DISPLAY_QUATERNION_LEFT, EntityDataSerializers.QUATERNION, baseEntity.getTransformation().getLeftRotation()));
+            data.add(new SynchedEntityData.DataValue<>(DISPLAY_QUATERNION_RIGHT, EntityDataSerializers.QUATERNION, baseEntity.getTransformation().getRightRotation()));
 
             data.add(new SynchedEntityData.DataValue<>(ITEM_DISPLAY_ITEM_ID, EntityDataSerializers.ITEM_STACK, CraftItemStack.asNMSCopy(furnitureBase.itemStack())));
             data.add(new SynchedEntityData.DataValue<>(ITEM_DISPLAY_TRANSFORM_ID, EntityDataSerializers.BYTE, (byte) displayProp.displayTransform().ordinal()));
         } else {
             data.add(new SynchedEntityData.DataValue<>(ITEM_FRAME_ITEM_ID, EntityDataSerializers.ITEM_STACK, CraftItemStack.asNMSCopy(furnitureBase.itemStack())));
-            data.add(new SynchedEntityData.DataValue<>(ITEM_FRAME_ROTATION_ID, EntityDataSerializers.INT, limitedPlacing != null && limitedPlacing.isWall() /*&& facing.getModY() == 0*/ ? Rotation.NONE.ordinal() : FurnitureHelpers.yawToRotation(furnitureBase.baseEntity().getYaw()).ordinal()));
+            data.add(new SynchedEntityData.DataValue<>(ITEM_FRAME_ROTATION_ID, EntityDataSerializers.INT, limitedPlacing != null && limitedPlacing.isWall() ? Rotation.NONE.ordinal() : FurnitureHelpers.yawToRotation(furnitureBase.baseEntity().getYaw()).ordinal()));
         }
 
         return data;
     }
 
     public ClientboundBundlePacket bundlePackets() {
-        return new ClientboundBundlePacket(List.of(new ClientboundRemoveEntitiesPacket(entityId), entityPacket, metadataPacket));
+        return new ClientboundBundlePacket(List.of(entityPacket, metadataPacket));
     }
 }
