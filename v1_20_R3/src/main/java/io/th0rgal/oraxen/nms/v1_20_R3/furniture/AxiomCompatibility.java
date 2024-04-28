@@ -4,11 +4,13 @@ import com.moulberry.axiom.AxiomPaper;
 import com.moulberry.axiom.event.AxiomManipulateEntityEvent;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenFurniture;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.*;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureBaseEntity;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -37,16 +39,14 @@ public class AxiomCompatibility implements Listener {
 
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (baseEntity == null || mechanic == null) return;
-        if (!(baseEntity instanceof ItemDisplay itemDisplay)) return;
 
         IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
         packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
 
-        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
-            mechanic.hitbox().handleHitboxes(baseEntity, mechanic);
-        }, 1L);
+        Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
+                mechanic.hitbox().handleHitboxes(baseEntity, mechanic), 1L);
     }
 
 }
