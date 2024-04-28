@@ -18,15 +18,24 @@ public interface IFurniturePacketManager {
     BlockData BARRIER_DATA = Material.BARRIER.createBlockData();
     BlockData AIR_DATA = Material.AIR.createBlockData();
 
+    Set<FurnitureBaseEntity> furnitureBaseMap = new HashSet<>();
     Map<UUID, Set<BlockPosition>> barrierHitboxPositionMap = new HashMap<>();
     Set<FurnitureSubEntity> interactionHitboxIdMap = new HashSet<>();
 
+    default Optional<FurnitureBaseEntity> furnitureBaseFromBaseEntity(@NotNull Entity baseEntity) {
+        return furnitureBaseMap.stream().filter(f -> f.baseUUID() == baseEntity.getUniqueId()).findFirst();
+    }
+
+    @Nullable
+    default Entity baseEntityFromFurnitureBase(int furnitureBaseId) {
+        return furnitureBaseMap.stream().filter(f -> f.entityId() == furnitureBaseId)
+                .map(FurnitureBaseEntity::baseEntity).findFirst().orElse(null);
+    }
+
     @Nullable
     default Entity baseEntityFromHitbox(int interactionId) {
-        for (FurnitureSubEntity hitbox : interactionHitboxIdMap) {
-            if (hitbox.entityIds().contains(interactionId)) return hitbox.baseEntity();
-        }
-        return null;
+        return interactionHitboxIdMap.stream().filter(h -> h.entityIds().contains(interactionId))
+                .map(FurnitureSubEntity::baseEntity).findFirst().orElse(null);
     }
 
     @Nullable
@@ -37,6 +46,10 @@ public interface IFurniturePacketManager {
         return null;
     }
 
+    default void sendFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {}
+    default void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic) {}
+    default void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {}
+
     void sendInteractionEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player);
     void removeInteractionHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic);
     void removeInteractionHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player);
@@ -45,10 +58,11 @@ public interface IFurniturePacketManager {
     void removeBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic);
     void removeBarrierHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player);
 
-    default void removeAllHitboxes() {
+    default void removeAllFurniturePackets() {
         for (World world : Bukkit.getWorlds()) for (Entity entity : world.getEntities()) {
             FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
             if (mechanic == null) continue;
+            removeFurnitureEntityPacket(entity, mechanic);
             removeInteractionHitboxPacket(entity, mechanic);
             removeBarrierHitboxPacket(entity, mechanic);
         }

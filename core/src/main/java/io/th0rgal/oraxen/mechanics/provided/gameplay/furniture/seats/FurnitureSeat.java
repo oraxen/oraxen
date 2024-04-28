@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.seats;
 
 import com.jeff_media.morepersistentdatatypes.DataType;
 import io.th0rgal.oraxen.OraxenPlugin;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureHelpers;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EntityUtils;
@@ -111,7 +110,7 @@ public class FurnitureSeat {
 
     public static void spawnSeats(Entity baseEntity, FurnitureMechanic mechanic) {
         Location location = baseEntity.getLocation();
-        float yaw = FurnitureHelpers.furnitureYaw(baseEntity);
+        float yaw = baseEntity.getLocation().getYaw();
         UUID uuid = baseEntity.getUniqueId();
         List<UUID> seatUUIDs = new ArrayList<>();
         for (FurnitureSeat seat : mechanic.seats()) {
@@ -126,13 +125,7 @@ public class FurnitureSeat {
                 stand.setSilent(true);
                 stand.setCustomNameVisible(false);
                 stand.setCanPickupItems(false);
-                //TODO Maybe marker works here? Was removed for rotation issues but should be fixed
-                stand.addEquipmentLock(EquipmentSlot.HEAD, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.OFF_HAND, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.CHEST, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.LEGS, ArmorStand.LockType.ADDING_OR_CHANGING);
-                stand.addEquipmentLock(EquipmentSlot.FEET, ArmorStand.LockType.ADDING_OR_CHANGING);
+                stand.setDisabledSlots(EquipmentSlot.values());
                 stand.getPersistentDataContainer().set(FurnitureMechanic.FURNITURE_KEY, PersistentDataType.STRING, mechanic.getItemID());
                 stand.getPersistentDataContainer().set(FurnitureSeat.SEAT_KEY, DataType.UUID, uuid);
             });

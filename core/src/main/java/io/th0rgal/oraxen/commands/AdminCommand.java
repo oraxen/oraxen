@@ -9,6 +9,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
+import org.bukkit.block.BlockFace;
 
 import java.util.*;
 
@@ -74,7 +75,7 @@ public class AdminCommand {
                                 if (mechanic != null && (id.isEmpty() || id.equals("all") || mechanic.getItemID().equals(id)))
                                     OraxenFurniture.remove(block.getLocation(), null);
                             }
-                            if (type.equals("place")) OraxenFurniture.place(id, block.getLocation(), 0f, null);
+                            if (type.equals("place")) OraxenFurniture.place(id, block.getLocation(), 0f, BlockFace.NORTH);
                         }
                     }
                 });

@@ -43,18 +43,19 @@ public class FurnitureHitbox {
     }
 
     public void handleHitboxes(Entity baseEntity, FurnitureMechanic mechanic) {
-        IFurniturePacketManager packetManager = FurnitureFactory.instance.furniturePacketManager();
+        IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
 
         for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), 32.0)) {
+            packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
         }
     }
 
-    public List<Location> hitboxLocations(Location center, float rotation) {
+    public List<Location> hitboxLocations(Location center, float yaw) {
         List<Location> hitboxLocations = new ArrayList<>();
-        hitboxLocations.addAll(barrierHitboxLocations(center, rotation));
-        hitboxLocations.addAll(interactionHitboxLocations(center, rotation));
+        hitboxLocations.addAll(barrierHitboxLocations(center, yaw));
+        hitboxLocations.addAll(interactionHitboxLocations(center, yaw));
 
         return hitboxLocations;
     }

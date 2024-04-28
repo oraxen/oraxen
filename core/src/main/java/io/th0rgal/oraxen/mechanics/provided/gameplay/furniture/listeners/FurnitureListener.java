@@ -121,7 +121,7 @@ public class FurnitureListener implements Listener {
             return;
         }
 
-        Entity baseEntity = mechanic.place(block.getLocation(), item, yaw, event.getBlockFace(), true);
+        Entity baseEntity = mechanic.place(block.getLocation(), yaw, event.getBlockFace(), true);
         Utils.swingHand(player, event.getHand());
 
         final OraxenFurniturePlaceEvent furniturePlaceEvent = new OraxenFurniturePlaceEvent(mechanic, block, baseEntity, player, item, hand);
@@ -257,7 +257,8 @@ public class FurnitureListener implements Listener {
 
         mechanic.runClickActions(player);
 
-        if (mechanic.isStorage()) {
+        if (mechanic.isRotatable() && player.isSneaking()) mechanic.rotateFurniture(baseEntity);
+        else if (mechanic.isStorage() && !player.isSneaking()) {
             StorageMechanic storage = mechanic.storage();
             switch (storage.getStorageType()) {
                 case STORAGE, SHULKER -> storage.openStorage(baseEntity, player);
@@ -265,12 +266,7 @@ public class FurnitureListener implements Listener {
                 case DISPOSAL -> storage.openDisposal(player, baseEntity.getLocation(), baseEntity);
                 case ENDERCHEST -> player.openInventory(player.getEnderChest());
             }
-        }
-
-        if (mechanic.hasSeats() && mechanic.isRotatable()) {
-            if (!player.isSneaking()) FurnitureSeat.sitOnSeat(baseEntity, player, interactionPoint);
-            else mechanic.rotateFurniture(baseEntity);
-        } else if (mechanic.hasSeats()) FurnitureSeat.sitOnSeat(baseEntity, player, interactionPoint);
+        } else if (mechanic.hasSeats() && !player.isSneaking()) FurnitureSeat.sitOnSeat(baseEntity, player, interactionPoint);
         else if (mechanic.isRotatable()) mechanic.rotateFurniture(baseEntity);
     }
 

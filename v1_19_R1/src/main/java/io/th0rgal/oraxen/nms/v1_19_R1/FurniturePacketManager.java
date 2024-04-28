@@ -1,20 +1,25 @@
 package io.th0rgal.oraxen.nms.v1_19_R1;
 
+import com.ticxo.modelengine.api.ModelEngineAPI;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureBaseEntity;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureType;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
+import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
+import org.bukkit.craftbukkit.v1_19_R1.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class FurniturePacketManager implements IFurniturePacketManager {
@@ -27,6 +32,39 @@ public class FurniturePacketManager implements IFurniturePacketManager {
             Logs.logWarning("It is heavily recommended to make the upgrade to Paper");
         }
     }
+
+    @Override
+    public void sendFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+        if (baseEntity.isDead()) return;
+        if (mechanic.isModelEngine() && ModelEngineAPI.getBlueprint(mechanic.getModelEngineID()) != null) return;
+
+        FurnitureBaseEntity furnitureBase = furnitureBaseFromBaseEntity(baseEntity).orElseGet(() -> {
+            FurnitureBaseEntity base = new FurnitureBaseEntity(baseEntity, mechanic);
+            furnitureBaseMap.add(base);
+            return base;
+        });
+
+        FurnitureType type = mechanic.furnitureType(player);
+        FurnitureBasePacket basePacket = new FurnitureBasePacket(furnitureBase, baseEntity, type, player);
+        ServerGamePacketListenerImpl connection = ((CraftPlayer) player).getHandle().connection;
+        connection.send(basePacket.entityPacket());
+        connection.send(basePacket.metadataPacket());
+    }
+
+    @Override
+    public void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic) {
+        for (Player player : Bukkit.getOnlinePlayers())
+            removeFurnitureEntityPacket(baseEntity, mechanic, player);
+
+    }
+
+    @Override
+    public void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+        furnitureBaseMap.stream().filter(f -> f.baseUUID().equals(baseEntity.getUniqueId())).findFirst().ifPresent(base ->
+                ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(base.entityId()))
+        );
+    }
+
 
     @Override public void sendInteractionEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {}
     @Override public void removeInteractionHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic) {}

@@ -88,12 +88,12 @@ public class DisplayEntityProperties {
     }
 
     public boolean hasGlowColor() { return glowColor != null; }
-    public Color getGlowColor() { return glowColor; }
+    public Color glowColor() { return glowColor; }
     public boolean hasSpecifiedViewRange() {
         return viewRange != null;
     }
 
-    public int getViewRange() {
+    public Integer viewRange() {
         return viewRange;
     }
 
@@ -101,7 +101,7 @@ public class DisplayEntityProperties {
         return interpolationDuration != null;
     }
 
-    public int getInterpolationDuration() {
+    public int interpolationDuration() {
         return interpolationDuration;
     }
 
@@ -109,7 +109,7 @@ public class DisplayEntityProperties {
         return interpolationDelay != null;
     }
 
-    public int getInterpolationDelay() {
+    public int interpolationDelay() {
         return interpolationDelay;
     }
 
@@ -117,11 +117,11 @@ public class DisplayEntityProperties {
         return brightness != null;
     }
 
-    public Display.Brightness getBrightness() {
+    public Display.Brightness brightness() {
         return brightness;
     }
 
-    public ItemDisplay.ItemDisplayTransform getDisplayTransform() {
+    public ItemDisplay.ItemDisplayTransform displayTransform() {
         return displayTransform;
     }
 
@@ -129,7 +129,7 @@ public class DisplayEntityProperties {
         return trackingRotation != null;
     }
 
-    public Display.Billboard getTrackingRotation() {
+    public Display.Billboard trackingRotation() {
         return trackingRotation;
     }
 
@@ -137,7 +137,7 @@ public class DisplayEntityProperties {
         return shadowStrength != null;
     }
 
-    public float getShadowStrength() {
+    public Float shadowStrength() {
         return shadowStrength;
     }
 
@@ -145,15 +145,15 @@ public class DisplayEntityProperties {
         return shadowRadius != null;
     }
 
-    public float getShadowRadius() {
+    public Float shadowRadius() {
         return shadowRadius;
     }
 
-    public float getDisplayWidth() {
+    public Float displayWidth() {
         return displayWidth;
     }
 
-    public float getDisplayHeight() {
+    public Float displayHeight() {
         return displayHeight;
     }
 
@@ -161,7 +161,7 @@ public class DisplayEntityProperties {
         return scale != null;
     }
 
-    public Vector3f getScale() {
+    public Vector3f scale() {
         return scale;
     }
 

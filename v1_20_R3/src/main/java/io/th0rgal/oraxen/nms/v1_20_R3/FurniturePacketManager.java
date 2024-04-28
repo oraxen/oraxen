@@ -1,14 +1,14 @@
 package io.th0rgal.oraxen.nms.v1_20_R3;
 
+import com.comphenix.protocol.PacketType;
+import com.comphenix.protocol.ProtocolLibrary;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.generator.blueprint.ModelBlueprint;
 import io.papermc.paper.math.BlockPosition;
 import io.papermc.paper.math.Position;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureSubEntity;
-import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
+import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.*;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.hitbox.InteractionHitbox;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -20,6 +20,7 @@ import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.Vec3;
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
@@ -33,9 +34,15 @@ import java.util.stream.Collectors;
 public class FurniturePacketManager implements IFurniturePacketManager {
 
     public FurniturePacketManager() {
-        if (VersionUtil.isPaperServer())
-            MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", new FurniturePacketListener());
-        else {
+        if (VersionUtil.isPaperServer()) {
+            FurniturePacketListener furniturePacketListener = new FurniturePacketListener();
+            MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", furniturePacketListener);
+            ProtocolLibrary.getProtocolManager().getPacketListeners().asList().stream()
+                    .filter(l -> l.getPlugin().equals(OraxenPlugin.get()))
+                    .filter(l -> l.getSendingWhitelist().getTypes().containsAll(List.of(PacketType.Play.Server.SPAWN_ENTITY, PacketType.Play.Server.ENTITY_METADATA)))
+                    .findFirst().ifPresent(l -> ProtocolLibrary.getProtocolManager().removePacketListener(l));
+            ProtocolLibrary.getProtocolManager().addPacketListener(furniturePacketListener);
+        } else {
             Logs.logWarning("Seems that your server is a Spigot-server");
             Logs.logWarning("FurnitureHitboxes will not work due to it relying on Paper-only events");
             Logs.logWarning("It is heavily recommended to make the upgrade to Paper");
@@ -45,6 +52,37 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     private final int INTERACTION_WIDTH_ID = 8;
     private final int INTERACTION_HEIGHT_ID = 9;
     private final Map<UUID, Set<FurnitureInteractionHitboxPacket>> interactionHitboxPacketMap = new HashMap<>();
+
+    @Override
+    public void sendFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+        if (baseEntity.isDead()) return;
+        if (mechanic.isModelEngine() && ModelEngineAPI.getBlueprint(mechanic.getModelEngineID()) != null) return;
+
+        FurnitureBaseEntity furnitureBase = furnitureBaseFromBaseEntity(baseEntity).orElseGet(() -> {
+            FurnitureBaseEntity base = new FurnitureBaseEntity(baseEntity, mechanic);
+            furnitureBaseMap.add(base);
+            return base;
+        });
+
+        FurnitureType type = mechanic.furnitureType(player);
+        FurnitureBasePacket basePacket = new FurnitureBasePacket(furnitureBase, baseEntity, type, player);
+        ((CraftPlayer) player).getHandle().connection.send(basePacket.bundlePackets());
+    }
+
+    @Override
+    public void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic) {
+        for (Player player : Bukkit.getOnlinePlayers())
+            removeFurnitureEntityPacket(baseEntity, mechanic, player);
+    }
+
+    @Override
+    public void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
+        furnitureBaseMap.stream().filter(f -> f.baseUUID() == baseEntity.getUniqueId()).findFirst().ifPresent(furnitureBase ->
+                ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(furnitureBase.entityId(mechanic.furnitureType(player))))
+        );
+    }
+
+
     @Override
     public void sendInteractionEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         List<InteractionHitbox> interactionHitboxes = mechanic.hitbox().interactionHitboxes();
@@ -91,10 +129,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
                 packets.add(new FurnitureInteractionHitboxPacket(entityId, addEntityPacket, metadataPacket));
             }
             return packets;
-        }).forEach(packets -> {
-            ((CraftPlayer) player).getHandle().connection.send(packets.addEntity);
-            ((CraftPlayer) player).getHandle().connection.send(packets.metadata);
-        });
+        }).forEach(packets -> ((CraftPlayer) player).getHandle().connection.send(packets.bundlePackets()));
 
     }
 
@@ -109,12 +144,9 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void removeInteractionHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        interactionHitboxIdMap.stream().filter(subEntity -> subEntity.baseUUID().equals(baseEntity.getUniqueId()))
-                .findFirst().ifPresent(subEntity ->
-                {
-                    ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(subEntity.entityIds().toIntArray()));
-                }
-                );
+        interactionHitboxIdMap.stream().filter(s -> s.baseUUID().equals(baseEntity.getUniqueId())).findFirst().ifPresent(subEntity ->
+                ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(subEntity.entityIds().toIntArray()))
+        );
     }
 
     @Override

@@ -96,22 +96,6 @@ public class OraxenFurniture {
     }
 
     /**
-     * Places Furniture at a given location
-     * @param location The location to place the Furniture
-     * @param itemID The itemID of the Furniture to place
-     * @param rotation The rotation of the Furniture
-     * @param blockFace The blockFace of the Furniture
-     * @return true if the Furniture was placed, false otherwise
-     * @deprecated Use {@link #place(String, Location, Rotation, BlockFace)} instead
-     */
-    @Deprecated(since = "1.162.0", forRemoval = true)
-    public static boolean place(Location location, String itemID, Rotation rotation, BlockFace blockFace) {
-        FurnitureMechanic mechanic = getFurnitureMechanic(itemID);
-        if (mechanic == null) return false;
-        return mechanic.place(location, FurnitureHelpers.rotationToYaw(rotation), blockFace) != null;
-    }
-
-    /**
      * Removes Furniture at a given location, optionally by a player
      *
      * @param location The location to remove the Furniture
@@ -216,7 +200,7 @@ public class OraxenFurniture {
     public static FurnitureMechanic getFurnitureMechanic(Location location) {
         if (!FurnitureFactory.isEnabled() || location == null) return null;
         BlockPosition blockPosition = new BlockPosition(location.getBlockX(), location.getBlockY(), location.getBlockZ());
-        Entity baseEntity = FurnitureFactory.instance.furniturePacketManager().baseEntityFromHitbox(blockPosition);
+        Entity baseEntity = FurnitureFactory.instance.packetManager().baseEntityFromHitbox(blockPosition);
         if (baseEntity == null) return null;
         FurnitureMechanic mechanic = getFurnitureMechanic(baseEntity);
 
@@ -271,11 +255,15 @@ public class OraxenFurniture {
         ItemStack newItem = ItemUpdater.updateItem(FurnitureHelpers.furnitureItem(baseEntity));
         FurnitureHelpers.furnitureItem(baseEntity, newItem);
 
-        IFurniturePacketManager packetManager = FurnitureFactory.instance.furniturePacketManager();
+        //TODO Update the baseEntity from ArmorStand -> ItemDisplay if server went from 1.19.x to 1.20.x for example
+
+        IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
+        packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
 
         for (Player player : baseEntity.getLocation().getNearbyPlayers(FurnitureFactory.get().simulationRadius)) {
+            packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
             packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
             packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
         }
