@@ -115,7 +115,7 @@ public class ItemBuilder {
         if (itemMeta instanceof FireworkEffectMeta effectMeta)
             color = effectMeta.hasEffect() ? effectMeta.getEffect().getColors().get(0) : Color.WHITE;
 
-        if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && armorMeta.hasTrim())
+        if (itemMeta instanceof ArmorMeta armorMeta && armorMeta.hasTrim())
             trimPattern = armorMeta.getTrim().getMaterial().key();
 
         if (itemMeta instanceof SkullMeta skullMeta)
@@ -252,19 +252,17 @@ public class ItemBuilder {
     }
 
     public boolean hasTrimPattern() {
-        return VersionUtil.atOrAbove("1.20") && trimPattern != null && getTrimPattern() != null;
+        return trimPattern != null && getTrimPattern() != null;
     }
 
     @Nullable
     public Key getTrimPatternKey() {
-        if (!VersionUtil.atOrAbove("1.20")) return null;
         if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type)) return null;
         return trimPattern;
     }
 
     @Nullable
     public TrimPattern getTrimPattern() {
-        if (!VersionUtil.atOrAbove("1.20")) return null;
         if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type)) return null;
         if (trimPattern == null) return null;
         NamespacedKey key = NamespacedKey.fromString(trimPattern.asString());
@@ -273,7 +271,6 @@ public class ItemBuilder {
     }
 
     public ItemBuilder setTrimPattern(final Key trimKey) {
-        if (!VersionUtil.atOrAbove("1.20")) return this;
         if (!Tag.ITEMS_TRIMMABLE_ARMOR.isTagged(type)) return this;
         this.trimPattern = trimKey;
         return this;
@@ -517,7 +514,7 @@ public class ItemBuilder {
             return effectMeta;
         }
 
-        if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && hasTrimPattern()) {
+        if (itemMeta instanceof ArmorMeta armorMeta && hasTrimPattern()) {
             armorMeta.setTrim(new ArmorTrim(TrimMaterial.REDSTONE, getTrimPattern()));
             return armorMeta;
         }

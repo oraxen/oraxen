@@ -2,7 +2,6 @@ package io.th0rgal.oraxen.utils.customarmor;
 
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.config.Settings;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
@@ -102,7 +101,6 @@ public class CustomArmorListener implements Listener {
 
     private void setVanillaArmorTrim(ItemStack itemStack) {
         String armorPrefix = Settings.CUSTOM_ARMOR_TRIMS_MATERIAL.toString();
-        if (!VersionUtil.atOrAbove("1.20")) return;
         if (CustomArmorType.getSetting() != CustomArmorType.TRIMS) return;
         if (itemStack == null || !(itemStack.getItemMeta() instanceof ArmorMeta armorMeta)) return;
         if (!itemStack.getType().name().startsWith(armorPrefix)) return;

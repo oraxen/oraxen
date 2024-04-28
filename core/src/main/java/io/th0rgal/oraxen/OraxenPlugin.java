@@ -62,7 +62,6 @@ public class OraxenPlugin extends JavaPlugin {
     private ClickActionManager clickActionManager;
     private ProtocolManager protocolManager;
     private BreakerManager breakerManager;
-    public static boolean supportsDisplayEntities;
 
     public OraxenPlugin() {
         oraxen = this;
@@ -93,7 +92,6 @@ public class OraxenPlugin extends JavaPlugin {
         audience = BukkitAudiences.create(this);
         reloadConfigs();
         clickActionManager = new ClickActionManager(this);
-        supportsDisplayEntities = VersionUtil.atOrAbove("1.19.4");
         hudManager = new HudManager(configsManager);
         fontManager = new FontManager(configsManager);
         soundManager = new SoundManager(configsManager.getSounds());

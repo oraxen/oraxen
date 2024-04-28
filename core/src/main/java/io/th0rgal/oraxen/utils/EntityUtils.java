@@ -17,9 +17,7 @@ public class EntityUtils {
     private static Method spawnMethod;
 
     public static boolean isUnderWater(Entity entity) {
-        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.19")) {
-            return entity.isUnderWater();
-        } else return entity.isInWater();
+        return VersionUtil.isPaperServer() ? entity.isUnderWater() : entity.isInWater();
     }
 
     public static boolean isFixed(ItemDisplay itemDisplay) {
@@ -36,19 +34,19 @@ public class EntityUtils {
     }
 
     public void teleport(@NotNull Location location, @NotNull Entity entity, PlayerTeleportEvent.TeleportCause cause) {
-        if (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer() && VersionUtil.atOrAbove("1.19.4")) {
+        if (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer()) {
             entity.teleportAsync(location, cause);
         } else entity.teleport(location);
     }
 
     /**
      * Teleports an entity to the given location
-     * Uses teleportAsync on 1.19.4+ Paper/Folia servers and teleport on all other servers
+     * Uses teleportAsync on Paper/Folia servers and teleport on all other servers
      * @param location The location to teleport the entity to
      * @param entity The entity to teleport
      */
     public static void teleport(@NotNull Location location, @NotNull Entity entity) {
-        if (VersionUtil.atOrAbove("1.19.4") && (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer())) {
+        if (VersionUtil.isPaperServer() || VersionUtil.isFoliaServer()) {
             entity.teleportAsync(location);
         } else entity.teleport(location);
     }
@@ -90,7 +88,7 @@ public class EntityUtils {
             return entity;
         } catch (Exception e) {
            if (Settings.DEBUG.toBool()) e.printStackTrace();
-           Logs.logWarning(e.getMessage()); // Handle the exception according to your needs
+           Logs.logWarning(e.getMessage());
        }
         return null;
     }

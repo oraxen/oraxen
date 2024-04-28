@@ -69,11 +69,8 @@ public class FontEvents implements Listener {
 
     public FontEvents(FontManager manager) {
         this.manager = manager;
-        if (VersionUtil.isPaperServer()) {
-            if (VersionUtil.atOrAbove("1.19.1"))
-                paperChatHandler = new PaperChatHandler();
-            legacyPaperChatHandler = new LegacyPaperChatHandler();
-        }
+        if (VersionUtil.isPaperServer())
+            paperChatHandler = new PaperChatHandler();
         spigotChatHandler = new SpigotChatHandler();
     }
 
@@ -293,9 +290,7 @@ public class FontEvents implements Listener {
         @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
         public void onPlayerChat(AsyncChatEvent event) {
             if (!Settings.FORMAT_CHAT.toBool() || !ChatHandler.isModern() || manager.useNmsGlyphs()) return;
-            // AsyncChatDecorateEvent has formatted the component if server is 1.19.1+
-            Component message = VersionUtil.atOrAbove("1.19.1") ? event.message() : format(event.message(), event.getPlayer());
-            message = message != null ? message : Component.empty();
+            Component message = event.message();
             if (!message.equals(Component.empty())) return;
 
             event.viewers().clear();

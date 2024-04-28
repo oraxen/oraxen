@@ -158,7 +158,7 @@ public class ItemUpdater implements Listener {
                 mapMeta.setColor(oldMapMeta.getColor());
             }
 
-            if (VersionUtil.atOrAbove("1.20") && itemMeta instanceof ArmorMeta armorMeta && oldMeta instanceof ArmorMeta oldArmorMeta) {
+            if (itemMeta instanceof ArmorMeta armorMeta && oldMeta instanceof ArmorMeta oldArmorMeta) {
                 armorMeta.setTrim(oldArmorMeta.getTrim());
             }
 

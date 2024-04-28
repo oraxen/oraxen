@@ -20,7 +20,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.util.BoundingBox;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -120,12 +119,8 @@ public class BlockHelpers {
     public static final Set<Material> UNBREAKABLE_BLOCKS = Sets.newHashSet(Material.BEDROCK, Material.BARRIER, Material.NETHER_PORTAL, Material.END_PORTAL_FRAME, Material.END_PORTAL, Material.END_GATEWAY);
 
     static {
-        if (VersionUtil.atOrAbove("1.19")) UNBREAKABLE_BLOCKS.add(Material.REINFORCED_DEEPSLATE);
-        if (VersionUtil.atOrAbove("1.20")) {
-            REPLACEABLE_BLOCKS = Tag.REPLACEABLE.getValues().stream().toList();
-        } else REPLACEABLE_BLOCKS = Arrays.asList(
-                Material.SNOW, Material.VINE, Material.valueOf("GRASS"), Material.TALL_GRASS, Material.SEAGRASS, Material.FERN,
-                Material.LARGE_FERN, Material.AIR, Material.WATER, Material.LAVA, Material.LIGHT);
+        UNBREAKABLE_BLOCKS.add(Material.REINFORCED_DEEPSLATE);
+        REPLACEABLE_BLOCKS = Tag.REPLACEABLE.getValues().stream().toList();
     }
 
     public static final List<Material> REPLACEABLE_BLOCKS;

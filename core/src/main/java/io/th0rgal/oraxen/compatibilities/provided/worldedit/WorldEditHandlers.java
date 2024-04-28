@@ -20,7 +20,6 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.noteblock.NoteBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.custom_block.stringblock.StringBlockMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -48,10 +47,8 @@ public class WorldEditHandlers {
 
     static {
         furnitureTypes.add(BukkitAdapter.adapt(EntityType.ITEM_FRAME));
-        if (VersionUtil.atOrAbove("1.19.4")){
-            furnitureTypes.add(BukkitAdapter.adapt(EntityType.ITEM_DISPLAY));
-            furnitureTypes.add(BukkitAdapter.adapt(EntityType.INTERACTION));
-        }
+        furnitureTypes.add(BukkitAdapter.adapt(EntityType.ITEM_DISPLAY));
+        furnitureTypes.add(BukkitAdapter.adapt(EntityType.INTERACTION));
     }
 
 

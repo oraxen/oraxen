@@ -98,33 +98,9 @@ public class FurnitureMechanic extends Mechanic {
         farmlandRequired = section.getBoolean("farmland_required", false);
         light = new LightMechanic(section);
         restrictedRotation = RestrictedRotation.fromString(section.getString("restricted_rotation", "STRICT"));
-
-        try {
-            String defaultEntityType;
-            if (OraxenPlugin.supportsDisplayEntities)
-                defaultEntityType = Objects.requireNonNullElse(FurnitureFactory.defaultFurnitureType, FurnitureType.DISPLAY_ENTITY).name();
-            else defaultEntityType = FurnitureType.ITEM_FRAME.name();
-            furnitureType = FurnitureType.valueOf(section.getString("type", defaultEntityType));
-            if (furnitureType == FurnitureType.DISPLAY_ENTITY && !OraxenPlugin.supportsDisplayEntities) {
-                Logs.logError("Use of Display Entity on unsupported server version.");
-                Logs.logError("This EntityType is only supported on 1.19.4 and above.");
-                Logs.logWarning("Setting type to ITEM_FRAME for furniture: <i><gold>" + getItemID());
-                furnitureType = FurnitureType.ITEM_FRAME;
-            }
-        } catch (IllegalArgumentException e) {
-            Logs.logError("Use of illegal EntityType in furniture: <gold>" + getItemID());
-            Logs.logWarning("Allowed ones are: <gold>" + Arrays.stream(FurnitureType.values()).map(Enum::name).toList());
-            Logs.logWarning("Setting type to ITEM_FRAME for furniture: <gold>" + getItemID());
-            furnitureType = FurnitureType.ITEM_FRAME;
-        }
-
+        displayEntityProperties = new DisplayEntityProperties(section.getConfigurationSection("display_entity_properties"));
+        furnitureType = FurnitureType.getType(section.getString("type", FurnitureFactory.defaultFurnitureType.name()));
         section.set("type", furnitureType.name());
-
-        ConfigurationSection displayProperties = section.getConfigurationSection("display_entity_properties");
-        displayEntityProperties = OraxenPlugin.supportsDisplayEntities
-                ? displayProperties != null
-                ? new DisplayEntityProperties(displayProperties) : new DisplayEntityProperties()
-                : null;
 
         ConfigurationSection hitboxSection = section.getConfigurationSection("hitbox");
         hitbox = hitboxSection != null ? new FurnitureHitbox(hitboxSection) : FurnitureHitbox.EMPTY;
@@ -189,14 +165,6 @@ public class FurnitureMechanic extends Mechanic {
         }
 
         return null;
-    }
-
-    public boolean hasHardness() {
-        return hardness != -1;
-    }
-
-    public int getHardness() {
-        return hardness;
     }
 
     public boolean hasLimitedPlacing() {

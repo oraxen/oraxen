@@ -11,7 +11,6 @@ import io.th0rgal.oraxen.font.packets.TitlePacketListener;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.OraxenYaml;
-import io.th0rgal.oraxen.utils.VersionUtil;
 import io.th0rgal.oraxen.utils.logs.Logs;
 import net.kyori.adventure.key.Key;
 import org.bukkit.Bukkit;
@@ -206,11 +205,9 @@ public class FontManager {
                         : Arrays.stream(glyph.placeholders()))
                 .toList();
 
-        if (VersionUtil.atOrAbove("1.19.4")) {
-            player.removeCustomChatCompletions(currentGlyphCompletions.getOrDefault(player.getUniqueId(), new ArrayList<>()));
-            player.addCustomChatCompletions(completions);
-            currentGlyphCompletions.put(player.getUniqueId(), completions);
-        }
+        player.removeCustomChatCompletions(currentGlyphCompletions.getOrDefault(player.getUniqueId(), new ArrayList<>()));
+        player.addCustomChatCompletions(completions);
+        currentGlyphCompletions.put(player.getUniqueId(), completions);
     }
 
     public void clearGlyphTabCompletions(Player player) {

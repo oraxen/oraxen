@@ -8,39 +8,29 @@ import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import org.joml.Vector3f;
 
 import java.util.Arrays;
 import java.util.Objects;
 
 public class DisplayEntityProperties {
-    private final Color glowColor;
+    private Color glowColor;
     private Integer viewRange;
-    private final Display.Brightness brightness;
+    private Display.Brightness brightness;
     private ItemDisplay.ItemDisplayTransform displayTransform;
     private Display.Billboard trackingRotation;
     private Float shadowStrength;
     private Float shadowRadius;
     private Integer interpolationDuration;
     private Integer interpolationDelay;
-    private final float displayWidth;
-    private final float displayHeight;
-    private final Vector3f scale;
+    private float displayWidth;
+    private float displayHeight;
+    private Vector3f scale;
 
-    public DisplayEntityProperties() {
-        this.displayWidth = 0f;
-        this.displayHeight = 0f;
-        this.displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
-        this.scale = null;
-        this.shadowRadius = null;
-        this.shadowStrength = null;
-        this.brightness = null;
-        this.trackingRotation = null;
-        this.viewRange = null;
-        this.glowColor = null;
-    }
-
-    public DisplayEntityProperties(ConfigurationSection configSection) {
+    public DisplayEntityProperties(@Nullable ConfigurationSection configSection) {
+        this();
+        if (configSection == null) return;
         String itemID = configSection.getParent().getParent().getParent().getName();
         glowColor = Utils.toColor(configSection.getString("glow_color", ""));
         viewRange = configSection.getInt("view_range");
@@ -85,6 +75,19 @@ public class DisplayEntityProperties {
             brightness = new Display.Brightness(brightnessSection.getInt("block_light", 0), brightnessSection.getInt("sky_light", 0));
         else brightness = null;
 
+    }
+
+    public DisplayEntityProperties() {
+        this.displayWidth = 0f;
+        this.displayHeight = 0f;
+        this.displayTransform = ItemDisplay.ItemDisplayTransform.NONE;
+        this.scale = null;
+        this.shadowRadius = null;
+        this.shadowStrength = null;
+        this.brightness = null;
+        this.trackingRotation = null;
+        this.viewRange = null;
+        this.glowColor = null;
     }
 
     public boolean hasGlowColor() { return glowColor != null; }

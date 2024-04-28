@@ -55,7 +55,7 @@ public class StringBlockMechanicFactory extends MechanicFactory {
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicPaperListener());
         if (!VersionUtil.isPaperServer() || !NMSHandlers.isTripwireUpdatesDisabled())
             MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new StringBlockMechanicPhysicsListener());
-        if (VersionUtil.isPaperServer() && VersionUtil.atOrAbove("1.20.1") && !NMSHandlers.isTripwireUpdatesDisabled()) {
+        if (!NMSHandlers.isTripwireUpdatesDisabled()) {
             Logs.logError("Papers block-updates.disable-tripwire-updates is not enabled.");
             Logs.logWarning("It is recommended to enable this setting for improved performance and prevent bugs with tripwires");
             Logs.logWarning("Otherwise Oraxen needs to listen to very taxing events, which also introduces some bugs");
