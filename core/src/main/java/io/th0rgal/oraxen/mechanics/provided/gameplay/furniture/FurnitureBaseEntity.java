@@ -56,6 +56,10 @@ public class FurnitureBaseEntity {
         return entityIds.get(type);
     }
 
+    public int entityId(Player player) {
+        return entityIds.get(mechanic.furnitureType(player));
+    }
+
     public Integer entityId() {
         return entityIds.get(mechanic().furnitureType());
     }

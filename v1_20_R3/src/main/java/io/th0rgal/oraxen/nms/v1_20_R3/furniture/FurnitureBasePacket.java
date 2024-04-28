@@ -54,18 +54,20 @@ public class FurnitureBasePacket {
 
     public final FurnitureType type;
     public final Integer entityId;
+    public final UUID uuid;
     private final ClientboundAddEntityPacket entityPacket;
     private final ClientboundSetEntityDataPacket metadataPacket;
 
     public FurnitureBasePacket(FurnitureBaseEntity furnitureBase, Entity baseEntity, FurnitureType type, Player player) {
         this.type = type;
         this.entityId = furnitureBase.entityId(type);
+        this.uuid = furnitureBase.uuid(type);
         Location baseLoc = baseEntity.getLocation();
         EntityType<?> entityType = type == FurnitureType.DISPLAY_ENTITY ? EntityType.ITEM_DISPLAY : type == FurnitureType.ITEM_FRAME ? EntityType.ITEM_FRAME : EntityType.GLOW_ITEM_FRAME;
 
         this.entityPacket = new ClientboundAddEntityPacket(
-                entityId, UUID.randomUUID(),
-                baseLoc.x(), baseLoc.y(), baseLoc.z(), pitch(furnitureBase, baseLoc.getPitch(), player), yaw(furnitureBase, baseLoc.getYaw(), player),
+                entityId, uuid, baseLoc.x(), baseLoc.y(), baseLoc.z(),
+                pitch(furnitureBase, baseLoc.getPitch(), player), yaw(furnitureBase, baseLoc.getYaw(), player),
                 entityType, entityData(furnitureBase), Vec3.ZERO, 0.0
         );
 
@@ -82,6 +84,10 @@ public class FurnitureBasePacket {
 
     public int entityId() {
         return this.entityId;
+    }
+
+    public UUID uuid() {
+        return this.uuid;
     }
 
     private float pitch(FurnitureBaseEntity furnitureBase, float initialPitch, Player player) {
