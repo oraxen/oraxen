@@ -18,7 +18,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.utils.EventUtils;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -182,7 +181,6 @@ public class FurniturePacketListener extends PacketAdapter implements Listener {
         FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(baseEntity);
         if (mechanic == null) return;
 
-        Logs.logSuccess(String.valueOf(event.isAttack()));
         if (ProtectionLib.canBreak(player, baseEntity.getLocation()) && event.isAttack())
             OraxenFurniture.remove(baseEntity, player);
         else if (ProtectionLib.canInteract(player, baseEntity.getLocation()))
@@ -209,7 +207,7 @@ public class FurniturePacketListener extends PacketAdapter implements Listener {
 
     @EventHandler(priority = EventPriority.LOWEST)
     public void onPlayerInteractBarrierHitbox(PlayerInteractEvent event) {
-        if (event.getAction() == Action.PHYSICAL) return;
+        Action action = event.getAction();
         Player player = event.getPlayer();
         Block clickedBlock = event.getClickedBlock();
         Location interactionPoint = event.getInteractionPoint();
@@ -219,8 +217,12 @@ public class FurniturePacketListener extends PacketAdapter implements Listener {
 
         Entity baseEntity = Optional.ofNullable(mechanic.baseEntity(clickedBlock)).orElse(mechanic.baseEntity(interactionPoint));
         if (baseEntity == null) return;
-        if (ProtectionLib.canInteract(event.getPlayer(), baseEntity.getLocation()))
+
+
+        if (action == Action.RIGHT_CLICK_BLOCK && ProtectionLib.canInteract(player, baseEntity.getLocation()))
             EventUtils.callEvent(new OraxenFurnitureInteractEvent(mechanic, baseEntity, player, event.getItem(), event.getHand(), interactionPoint));
+        else if (action == Action.LEFT_CLICK_BLOCK && ProtectionLib.canBreak(player, baseEntity.getLocation()))
+            OraxenFurniture.remove(baseEntity, player);
 
         // Resend the hitbox as client removes the "ghost block"
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () ->
