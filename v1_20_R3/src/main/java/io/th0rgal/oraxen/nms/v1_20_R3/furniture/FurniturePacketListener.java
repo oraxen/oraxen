@@ -1,10 +1,5 @@
 package io.th0rgal.oraxen.nms.v1_20_R3.furniture;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.events.ListenerPriority;
-import com.comphenix.protocol.events.PacketAdapter;
-import com.comphenix.protocol.events.PacketContainer;
-import com.comphenix.protocol.events.PacketEvent;
 import com.destroystokyo.paper.event.entity.EntityAddToWorldEvent;
 import com.destroystokyo.paper.event.entity.EntityRemoveFromWorldEvent;
 import com.destroystokyo.paper.event.player.PlayerUseUnknownEntityEvent;
@@ -22,9 +17,7 @@ import io.th0rgal.protectionlib.ProtectionLib;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.block.Block;
-import org.bukkit.craftbukkit.v1_20_R3.entity.CraftPlayer;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
@@ -41,48 +34,7 @@ import org.bukkit.util.Vector;
 
 import java.util.Optional;
 
-public class FurniturePacketListener extends PacketAdapter implements Listener {
-
-    public FurniturePacketListener() {
-        super(OraxenPlugin.get(), ListenerPriority.MONITOR, PacketType.Play.Server.ENTITY_TELEPORT, PacketType.Play.Server.SPAWN_ENTITY);
-    }
-
-    @Override
-    public void onPacketSending(PacketEvent event) {
-        if (event.getPacketType() == PacketType.Play.Server.SPAWN_ENTITY)
-            handleEntitySpawnPacket(event);
-        else if (event.getPacketType() == PacketType.Play.Server.ENTITY_TELEPORT)
-            handleEntityTeleportPacket(event);
-    }
-
-    private void handleEntitySpawnPacket(PacketEvent event) {
-        //TODO Cancel packet if its the initial baseEntity and not the custom sent packet entity
-        PacketContainer packet = event.getPacket();
-        Player player = event.getPlayer();
-        int entityId = packet.getIntegers().read(0);
-        EntityType entityType = packet.getEntityTypeModifier().read(0);
-    }
-
-    private void handleEntityTeleportPacket(PacketEvent event) {
-        PacketContainer packet = event.getPacket();
-        Player player = event.getPlayer();
-        int entityId = packet.getIntegers().read(0);
-        Entity entity = ((CraftPlayer) player).getHandle().level().getEntity(entityId).getBukkitEntity();
-        Location newLoc = new Location(player.getWorld(), packet.getDoubles().read(0), packet.getDoubles().read(1), packet.getDoubles().read(2), entity.getYaw(), entity.getPitch());
-        IFurniturePacketManager packetManager = FurnitureFactory.instance.packetManager();
-        FurnitureMechanic mechanic = OraxenFurniture.getFurnitureMechanic(entity);
-        if (mechanic == null) return;
-
-        if (!entity.getLocation().equals(newLoc)) Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
-            packetManager.sendFurnitureEntityPacket(entity, mechanic, player);
-            packetManager.sendBarrierHitboxPacket(entity, mechanic, player);
-            packetManager.sendInteractionEntityPacket(entity, mechanic, player);
-        }, 1L);
-        else {
-            event.setReadOnly(false);
-            event.setCancelled(true);
-        }
-    }
+public class FurniturePacketListener implements Listener {
 
     @EventHandler
     public void onFurnitureFactory(OraxenNativeMechanicsRegisteredEvent event) {

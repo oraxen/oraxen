@@ -1,7 +1,5 @@
 package io.th0rgal.oraxen.nms.v1_20_R3.furniture;
 
-import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolLibrary;
 import com.ticxo.modelengine.api.ModelEngineAPI;
 import com.ticxo.modelengine.api.generator.blueprint.ModelBlueprint;
 import io.papermc.paper.math.BlockPosition;
@@ -20,6 +18,7 @@ import net.minecraft.network.protocol.game.ClientboundRemoveEntitiesPacket;
 import net.minecraft.network.protocol.game.ClientboundSetEntityDataPacket;
 import net.minecraft.network.syncher.EntityDataSerializers;
 import net.minecraft.network.syncher.SynchedEntityData;
+import net.minecraft.server.network.ServerGamePacketListenerImpl;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.phys.Vec3;
 import org.bukkit.Bukkit;
@@ -37,14 +36,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     public FurniturePacketManager() {
         if (VersionUtil.isPaperServer()) {
-            FurniturePacketListener furniturePacketListener = new FurniturePacketListener();
-            MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", furniturePacketListener);
-
-            ProtocolLibrary.getProtocolManager().getPacketListeners().asList().stream()
-                    .filter(l -> l.getPlugin().equals(OraxenPlugin.get()))
-                    .filter(l -> l.getSendingWhitelist().getTypes().containsAll(List.of(PacketType.Play.Server.SPAWN_ENTITY, PacketType.Play.Server.ENTITY_METADATA)))
-                    .findFirst().ifPresent(l -> ProtocolLibrary.getProtocolManager().removePacketListener(l));
-            ProtocolLibrary.getProtocolManager().addPacketListener(furniturePacketListener);
+            MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", new FurniturePacketListener());
 
             if (PluginUtils.isEnabled("AxiomPaper"))
                 MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", new AxiomCompatibility());
@@ -85,9 +77,13 @@ public class FurniturePacketManager implements IFurniturePacketManager {
 
     @Override
     public void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
-        furnitureBaseMap.stream().filter(f -> f.baseUUID() == baseEntity.getUniqueId()).findFirst().ifPresent(furnitureBase ->
-                ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(furnitureBase.entityIds()))
-        );
+        ServerGamePacketListenerImpl connection = ((CraftPlayer) player).getHandle().connection;
+        furnitureBaseMap.stream()
+                .filter(f -> f.baseUUID() == baseEntity.getUniqueId() && f.uuid(player) != baseEntity.getUniqueId())
+                .map(furnitureBase -> furnitureBase.entityId(player))
+                .filter(entityId -> entityId != baseEntity.getEntityId())
+                .map(ClientboundRemoveEntitiesPacket::new)
+                .findFirst().ifPresent(connection::send);
     }
 
 

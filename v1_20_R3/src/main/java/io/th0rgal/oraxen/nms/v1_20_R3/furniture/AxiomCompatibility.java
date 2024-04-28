@@ -9,7 +9,6 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketM
 import io.th0rgal.oraxen.utils.logs.Logs;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
-import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -27,16 +26,13 @@ public class AxiomCompatibility implements Listener {
         IFurniturePacketManager packetManager = FurnitureFactory.get().packetManager();
         if (baseEntity == null || mechanic == null) return;
 
-        EntityType clientSidedEntityType = mechanic.furnitureType().entityType(event.getPlayer());
-        // If player has a client-side entity, we want to remove it and resend it
-        if (baseEntity.getType() != clientSidedEntityType)
-            packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
+        //packetManager.removeFurnitureEntityPacket(baseEntity, mechanic);
         packetManager.removeInteractionHitboxPacket(baseEntity, mechanic);
         packetManager.removeBarrierHitboxPacket(baseEntity, mechanic);
 
         Bukkit.getScheduler().runTaskLater(OraxenPlugin.get(), () -> {
             for (Player player : baseEntity.getWorld().getNearbyPlayers(baseEntity.getLocation(), FurnitureFactory.get().simulationRadius)) {
-                packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
+                //packetManager.sendFurnitureEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendInteractionEntityPacket(baseEntity, mechanic, player);
                 packetManager.sendBarrierHitboxPacket(baseEntity, mechanic, player);
             }
