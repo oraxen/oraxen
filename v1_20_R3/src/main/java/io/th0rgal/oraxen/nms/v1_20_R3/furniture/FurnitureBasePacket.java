@@ -21,10 +21,10 @@ import net.minecraft.world.phys.Vec3;
 import org.bukkit.Location;
 import org.bukkit.block.BlockFace;
 import org.bukkit.craftbukkit.v1_20_R3.inventory.CraftItemStack;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemDisplay;
 import org.bukkit.entity.Player;
-import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,7 +36,10 @@ public class FurnitureBasePacket {
     private final int ITEM_FRAME_ITEM_ID = 8;
     private final int ITEM_FRAME_ROTATION_ID = 9;
 
+    private final int DISPLAY_TRANSLATION = 11;
     private final int DISPLAY_SCALE_ID = 12;
+    private final int DISPLAY_QUATERNION_LEFT = 13;
+    private final int DISPLAY_QUATERNION_RIGHT = 14;
     private final int DISPLAY_BILLBOARD_ID = 15;
     private final int DISPLAY_BRIGHTNESS_ID = 16;
     private final int DISPLAY_VIEW_RANGE_ID = 17;
@@ -66,7 +69,7 @@ public class FurnitureBasePacket {
                 entityType, entityData(furnitureBase), Vec3.ZERO, 0.0
         );
 
-        this.metadataPacket = new ClientboundSetEntityDataPacket(entityId, dataValues(furnitureBase));
+        this.metadataPacket = new ClientboundSetEntityDataPacket(entityId, dataValues(furnitureBase, baseEntity));
     }
 
     public ClientboundAddEntityPacket entityPacket() {
@@ -116,7 +119,7 @@ public class FurnitureBasePacket {
         return 0;
     }
 
-    private List<SynchedEntityData.DataValue<?>> dataValues(FurnitureBaseEntity furnitureBase) {
+    private List<SynchedEntityData.DataValue<?>> dataValues(FurnitureBaseEntity furnitureBase, Entity baseEntity) {
         List<SynchedEntityData.DataValue<?>> data = new ArrayList<>();
         LimitedPlacing limitedPlacing = furnitureBase.mechanic().limitedPlacing();
 
@@ -126,7 +129,6 @@ public class FurnitureBasePacket {
 
         if (type == FurnitureType.DISPLAY_ENTITY) {
             DisplayEntityProperties displayProp = furnitureBase.mechanic().displayEntityProperties();
-            boolean isFixed = displayProp.displayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
 
             data.add(new SynchedEntityData.DataValue<>(9, EntityDataSerializers.INT, 0));
             data.add(new SynchedEntityData.DataValue<>(DISPLAY_WIDTH_ID, EntityDataSerializers.FLOAT, displayProp.displayWidth()));
@@ -138,10 +140,14 @@ public class FurnitureBasePacket {
             Optional.ofNullable(displayProp.trackingRotation()).ifPresent(tracking -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_BILLBOARD_ID, EntityDataSerializers.BYTE, (byte) tracking.ordinal())));
             Optional.ofNullable(displayProp.brightness()).ifPresent(brightness -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_BRIGHTNESS_ID, EntityDataSerializers.INT, (brightness.getBlockLight() << 4 | brightness.getSkyLight() << 20))));
             Optional.ofNullable(displayProp.glowColor()).ifPresent(glow -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_GLOW_ID, EntityDataSerializers.INT, glow.asRGB())));
-            Optional.ofNullable(displayProp.scale()).ifPresentOrElse(
-                    scale -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_SCALE_ID, EntityDataSerializers.VECTOR3, displayProp.scale())),
-                    () -> data.add(new SynchedEntityData.DataValue<>(DISPLAY_SCALE_ID, EntityDataSerializers.VECTOR3, isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : new Vector3f(1f, 1f, 1f)))
-            );
+
+            Optional.ofNullable((baseEntity instanceof Display display) ? display.getTransformation() : null)
+                    .ifPresent(transformation -> {
+                        data.add(new SynchedEntityData.DataValue<>(DISPLAY_TRANSLATION, EntityDataSerializers.VECTOR3, transformation.getTranslation()));
+                        data.add(new SynchedEntityData.DataValue<>(DISPLAY_SCALE_ID, EntityDataSerializers.VECTOR3, Optional.ofNullable(displayProp.scale()).orElse(transformation.getScale())));
+                        data.add(new SynchedEntityData.DataValue<>(DISPLAY_QUATERNION_LEFT, EntityDataSerializers.QUATERNION, transformation.getLeftRotation()));
+                        data.add(new SynchedEntityData.DataValue<>(DISPLAY_QUATERNION_RIGHT, EntityDataSerializers.QUATERNION, transformation.getRightRotation()));
+                    });
 
             data.add(new SynchedEntityData.DataValue<>(ITEM_DISPLAY_ITEM_ID, EntityDataSerializers.ITEM_STACK, CraftItemStack.asNMSCopy(furnitureBase.itemStack())));
             data.add(new SynchedEntityData.DataValue<>(ITEM_DISPLAY_TRANSFORM_ID, EntityDataSerializers.BYTE, (byte) displayProp.displayTransform().ordinal()));
