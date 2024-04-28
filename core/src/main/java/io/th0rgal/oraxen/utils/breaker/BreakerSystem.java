@@ -22,6 +22,7 @@ import io.th0rgal.oraxen.mechanics.provided.gameplay.stringblock.StringBlockMech
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
 import io.th0rgal.oraxen.utils.ItemUtils;
+import io.th0rgal.oraxen.utils.PotionUtils;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -38,7 +39,6 @@ import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectTypeWrapper;
 import org.bukkit.scheduler.BukkitScheduler;
 import org.bukkit.scheduler.BukkitTask;
 
@@ -117,7 +117,7 @@ public class BreakerSystem {
                 final List<Location> furnitureBarrierLocations = furnitureBarrierLocations(furnitureMechanic, block);
 
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
-                        player.addPotionEffect(new PotionEffect(PotionEffectTypeWrapper.SLOW_DIGGING,
+                        player.addPotionEffect(new PotionEffect(PotionUtils.getEffectType("mining_fatigue"),
                                 (int) (period * 11),
                                 Integer.MAX_VALUE,
                                 false, false, false)));
@@ -168,7 +168,7 @@ public class BreakerSystem {
                         } else stopBlockHitSound(block);
 
                         Bukkit.getScheduler().runTask(OraxenPlugin.get(), () ->
-                                player.removePotionEffect(PotionEffectTypeWrapper.SLOW_DIGGING));
+                                player.removePotionEffect(PotionUtils.getEffectType("mining_fatigue")));
 
                         stopBlockBreaker(block);
                         stopBlockHitSound(block);
@@ -184,7 +184,7 @@ public class BreakerSystem {
                 }, period, period);
             } else {
                 Bukkit.getScheduler().runTask(OraxenPlugin.get(), () -> {
-                    player.removePotionEffect(PotionEffectTypeWrapper.SLOW_DIGGING);
+                    player.removePotionEffect(PotionUtils.getEffectType("mining_fatigue"));
                     if (!ProtectionLib.canBreak(player, location))
                         player.sendBlockChange(block.getLocation(), block.getBlockData());
 

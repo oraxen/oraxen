@@ -2,9 +2,9 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency;
 
 import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
+import io.th0rgal.oraxen.utils.PotionUtils;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.potion.PotionEffectTypeWrapper;
 
 public class EfficiencyMechanic extends Mechanic {
 
@@ -15,10 +15,10 @@ public class EfficiencyMechanic extends Mechanic {
         super(mechanicFactory, section);
         final int tempAmount = section.getInt("amount", 1);
         if (tempAmount < 0) {
-            type = PotionEffectTypeWrapper.SLOW_DIGGING;
+            type = PotionUtils.getEffectType("mining_fatigue");
             amount = -tempAmount;
         } else {
-            type = PotionEffectTypeWrapper.FAST_DIGGING;
+            type = PotionUtils.getEffectType("haste");
             amount = tempAmount;
         }
     }
