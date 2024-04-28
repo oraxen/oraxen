@@ -45,13 +45,13 @@ public class NoteBlockMechanicListener implements Listener {
         if (!player.isSneaking() && BlockHelpers.isInteractable(block)) return;
         if (event.useInteractedBlock() == Event.Result.DENY || !OraxenBlocks.isOraxenNoteBlock(block)) return;
 
-        event.setUseInteractedBlock(Event.Result.DENY);
         if (OraxenBlocks.isOraxenNoteBlock(item)) return;
         if (item == null) return;
 
         Material type = item.getType();
         if (type == Material.AIR) return;
 
+        event.setUseInteractedBlock(Event.Result.DENY);
         BlockData newData = type.isBlock() ? type.createBlockData() : null;
         CustomBlockHelpers.makePlayerPlaceBlock(player, event.getHand(), item, block, event.getBlockFace(), null, newData);
     }

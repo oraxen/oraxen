@@ -18,6 +18,7 @@ import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.block.Sign;
+import org.bukkit.block.data.Bisected;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.sign.Side;
 import org.bukkit.entity.FallingBlock;
@@ -44,6 +45,7 @@ public class CustomBlockHelpers {
             else if (Tag.DOORS.isTagged(target.getType())) return;
         }
 
+        final Block blockBelow = target.getRelative(BlockFace.DOWN);
         final Block blockAbove = target.getRelative(BlockFace.UP);
         final BlockData oldData = target.getBlockData();
         Enum<InteractionResult> result = null;
@@ -57,7 +59,7 @@ public class CustomBlockHelpers {
         }
 
         if (newData != null)
-            if (result == null) target.setBlockData(newData);
+            if (result == null) target.setBlockData(newData, false);
             else target.setBlockData(target.getBlockData(), false);
 
         final BlockPlaceEvent blockPlaceEvent = new BlockPlaceEvent(target, target.getState(), placedAgainst, item, player, true, hand);
@@ -110,9 +112,17 @@ public class CustomBlockHelpers {
                 return;
             }
 
+            BlockData blockBelowData = blockBelow.getBlockData();
+            if (oldData instanceof Bisected && blockBelowData instanceof Bisected) {
+                blockBelow.breakNaturally(true);
+            }
+
+            if (!blockBelow.canPlace(blockBelowData)) blockBelow.breakNaturally(true);
+            if (!blockAbove.canPlace(blockAbove.getBlockData())) blockAbove.breakNaturally(true);
+
             // Handle Falling NoteBlock-Mechanic blocks
             if (newMechanic instanceof NoteBlockMechanic noteMechanic) {
-                if (noteMechanic.isFalling() && target.getRelative(BlockFace.DOWN).getType().isAir()) {
+                if (noteMechanic.isFalling() && blockBelow.getType().isAir()) {
                     Location fallingLocation = BlockHelpers.toCenterBlockLocation(target.getLocation());
                     OraxenBlocks.remove(target.getLocation(), null);
                     if (fallingLocation.getNearbyEntitiesByType(FallingBlock.class, 0.25).isEmpty())

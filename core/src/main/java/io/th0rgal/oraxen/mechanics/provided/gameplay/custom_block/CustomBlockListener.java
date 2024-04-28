@@ -152,8 +152,9 @@ public class CustomBlockListener implements Listener {
     @EventHandler
     public void onEntityExplosion(EntityExplodeEvent event) {
         for (Block block : new HashSet<>(event.blockList())) {
-            if (!OraxenBlocks.isCustomBlock(block)) continue;
-            OraxenBlocks.remove(block.getLocation(), null);
+            CustomBlockMechanic mechanic = OraxenBlocks.getCustomBlockMechanic(block.getBlockData());
+            if (mechanic == null) continue;
+            else if (!mechanic.isBlastResistant()) OraxenBlocks.remove(block.getLocation(), null);
             event.blockList().remove(block);
         }
     }
@@ -162,8 +163,8 @@ public class CustomBlockListener implements Listener {
     public void onBlockExplosion(BlockExplodeEvent event) {
         for (Block block : new HashSet<>(event.blockList())) {
             CustomBlockMechanic mechanic = OraxenBlocks.getCustomBlockMechanic(block.getBlockData());
-            if (mechanic == null || mechanic.isBlastResistant()) continue;
-            OraxenBlocks.remove(block.getLocation(), null);
+            if (mechanic == null) continue;
+            else if (!mechanic.isBlastResistant()) OraxenBlocks.remove(block.getLocation(), null);
             event.blockList().remove(block);
         }
     }
