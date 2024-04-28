@@ -45,7 +45,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
             ProtocolLibrary.getProtocolManager().addPacketListener(furniturePacketListener);
 
             if (PluginUtils.isEnabled("AxiomPaper"))
-                Bukkit.getMessenger().registerIncomingPluginChannel(OraxenPlugin.get(), "axiom:manipulate_entity", new AxiomCompatibility());
+                MechanicsManager.registerListeners(OraxenPlugin.get(), "furniture", new AxiomCompatibility());
 
         } else {
             Logs.logWarning("Seems that your server is a Spigot-server");
@@ -83,7 +83,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     @Override
     public void removeFurnitureEntityPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         furnitureBaseMap.stream().filter(f -> f.baseUUID() == baseEntity.getUniqueId()).findFirst().ifPresent(furnitureBase ->
-                ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(furnitureBase.entityId(mechanic.furnitureType(player))))
+                ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(furnitureBase.entityIds()))
         );
     }
 
@@ -150,7 +150,7 @@ public class FurniturePacketManager implements IFurniturePacketManager {
     @Override
     public void removeInteractionHitboxPacket(@NotNull Entity baseEntity, @NotNull FurnitureMechanic mechanic, @NotNull Player player) {
         interactionHitboxIdMap.stream().filter(s -> s.baseUUID().equals(baseEntity.getUniqueId())).findFirst().ifPresent(subEntity ->
-                ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(subEntity.entityIds().toIntArray()))
+                ((CraftPlayer) player).getHandle().connection.send(new ClientboundRemoveEntitiesPacket(subEntity.entityIds()))
         );
     }
 
