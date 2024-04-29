@@ -45,7 +45,7 @@ public class CommandsManager {
                 .register();
     }
 
-    private Color hex2Rgb(String colorStr) {
+    private Color hex2Rgb(String colorStr) throws NumberFormatException {
         return Color.fromRGB(
                 Integer.valueOf(colorStr.substring(1, 3), 16),
                 Integer.valueOf(colorStr.substring(3, 5), 16),
@@ -61,7 +61,7 @@ public class CommandsManager {
                         Color hexColor;
                         try {
                             hexColor = hex2Rgb((String) args.get("color"));
-                        } catch (StringIndexOutOfBoundsException e) {
+                        } catch (StringIndexOutOfBoundsException | NumberFormatException e) {
                             Message.DYE_WRONG_COLOR.send(sender);
                             return;
                         }
