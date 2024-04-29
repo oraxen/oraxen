@@ -12,15 +12,15 @@ public class TitlePacketListener {
     public static final PacketListener INSTANCE = new PacketListenerBuilder()
             .add(ClientboundSetTitleTextPacket.class, ((player, textPacket) -> {
                 player.connection.send(new ClientboundSetTitleTextPacket(parse(textPacket.text())));
-                return false;
+                return true;
             }))
             .add(ClientboundSetSubtitleTextPacket.class, ((player, textPacket) -> {
                 player.connection.send(new ClientboundSetSubtitleTextPacket(parse(textPacket.text())));
-                return false;
+                return true;
             }))
             .add(ClientboundSetActionBarTextPacket.class, ((player, textPacket) -> {
                 player.connection.send(new ClientboundSetActionBarTextPacket(parse(textPacket.text())));
-                return false;
+                return true;
             }))
             .build();
 
