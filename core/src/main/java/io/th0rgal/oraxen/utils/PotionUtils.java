@@ -3,8 +3,10 @@ package io.th0rgal.oraxen.utils;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.potion.PotionEffectType;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+import java.util.Objects;
 
 public class PotionUtils {
 
@@ -23,5 +25,10 @@ public class PotionUtils {
             effectType = PotionEffectType.getByKey(effect.contains(":") ? NamespacedKey.fromString(effect) : NamespacedKey.minecraft(effect));
 
         return effectType;
+    }
+
+    public static PotionEffectType type(@NotNull String key) {
+        NamespacedKey namespacedKey = Objects.requireNonNull(NamespacedKey.fromString(key));
+        return Objects.requireNonNull(Registry.POTION_EFFECT_TYPE.get(namespacedKey));
     }
 }

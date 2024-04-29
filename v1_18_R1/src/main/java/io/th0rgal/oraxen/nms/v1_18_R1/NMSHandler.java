@@ -8,6 +8,11 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
+import io.th0rgal.oraxen.nms.PacketListenerType;
+import io.th0rgal.oraxen.nms.v1_18_R1.protocol.EfficiencyPacketListener;
+import io.th0rgal.oraxen.nms.v1_18_R1.protocol.InventoryPacketListener;
+import io.th0rgal.oraxen.nms.v1_18_R1.protocol.PacketListener;
+import io.th0rgal.oraxen.nms.v1_18_R1.protocol.TitlePacketListener;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import net.kyori.adventure.text.Component;
@@ -19,26 +24,26 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.*;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
+import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.server.network.ServerConnectionListener;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.context.BlockPlaceContext;
-import net.minecraft.world.item.context.DirectionalPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.Vec3;
-import org.bukkit.Bukkit;
-import org.bukkit.SoundCategory;
-import org.bukkit.SoundGroup;
-import org.bukkit.World;
+import org.bukkit.*;
 import org.bukkit.block.Block;
-import org.bukkit.block.data.BlockData;
 import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
 import org.bukkit.craftbukkit.v1_18_R1.inventory.CraftItemStack;
 import org.bukkit.entity.Player;
@@ -54,6 +59,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
@@ -82,31 +88,25 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     @Override
     @Nullable
-    public BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack) {
+    public InteractionResult correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack) {
         InteractionHand hand = slot == EquipmentSlot.HAND ? InteractionHand.MAIN_HAND : InteractionHand.OFF_HAND;
         net.minecraft.world.item.ItemStack nmsStack = CraftItemStack.asNMSCopy(itemStack);
         ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
-        BlockHitResult hitResult = getPlayerPOVHitResult(serverPlayer.level, serverPlayer, ClipContext.Fluid.NONE);
+        BlockHitResult hitResult = getPlayerPOVHitResult(serverPlayer.getLevel(), serverPlayer, ClipContext.Fluid.NONE);
         BlockPlaceContext placeContext = new BlockPlaceContext(new UseOnContext(serverPlayer, hand, hitResult));
 
         if (!(nmsStack.getItem() instanceof BlockItem blockItem)) {
-            nmsStack.getItem().useOn(new UseOnContext(serverPlayer, hand, hitResult));
-            if (!player.isSneaking()) serverPlayer.gameMode.useItem(serverPlayer, serverPlayer.level, nmsStack, hand);
-            return null;
+            InteractionResult result = nmsStack.getItem().useOn(new UseOnContext(serverPlayer, hand, hitResult));
+            return player.isSneaking() && player.getGameMode() != GameMode.CREATIVE ? result : serverPlayer.gameMode.useItem(
+                    serverPlayer, serverPlayer.getLevel(), nmsStack, hand
+            );
         }
 
-        // Shulker-Boxes are DirectionalPlace based unlike other directional-blocks
-        if (org.bukkit.Tag.SHULKER_BOXES.isTagged(itemStack.getType())) {
-            placeContext = new DirectionalPlaceContext(serverPlayer.level, hitResult.getBlockPos(), hitResult.getDirection(), nmsStack, hitResult.getDirection().getOpposite());
-        }
-
-        BlockPos pos = hitResult.getBlockPos();
         InteractionResult result = blockItem.place(placeContext);
         if (result == InteractionResult.FAIL) return null;
-        if (placeContext instanceof DirectionalPlaceContext && player.getGameMode() != org.bukkit.GameMode.CREATIVE) itemStack.setAmount(itemStack.getAmount() - 1);
-        World world = player.getWorld();
 
         if(!player.isSneaking()) {
+            World world = player.getWorld();
             BlockPos clickPos = placeContext.getClickedPos();
             Block block = world.getBlockAt(clickPos.getX(), clickPos.getY(), clickPos.getZ());
             SoundGroup sound = block.getBlockData().getSoundGroup();
@@ -117,7 +117,7 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             );
         }
 
-        return world.getBlockAt(pos.getX(), pos.getY(), pos.getZ()).getBlockData();
+        return result;
     }
 
     @Override
@@ -410,6 +410,17 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             }
         }
 
+        @Override
+        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+            if (player != null) {
+                ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+                for (PacketListener value : LISTENER_MAP.values()) {
+                    if (!value.listen(serverPlayer, msg)) return;
+                }
+            }
+            super.write(ctx, msg, promise);
+        }
+
         protected void setPlayer(Player player) {
             this.player = player;
         }
@@ -417,6 +428,17 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
 
     private static class CustomPacketDecoder extends ByteToMessageDecoder {
         private Player player;
+
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            if (player != null) {
+                ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+                for (PacketListener value : LISTENER_MAP.values()) {
+                    if (!value.listen(serverPlayer, msg)) return;
+                }
+            }
+            super.channelRead(ctx, msg);
+        }
 
         @Override
         protected void decode(ChannelHandlerContext ctx, ByteBuf msg, List<Object> out) throws Exception {
@@ -444,5 +466,46 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public boolean getSupported() {
         return true;
+    }
+
+    @Override
+    public boolean isTool(@NotNull ItemStack itemStack) {
+        return isTool(itemStack.getType());
+    }
+    @Override
+    public boolean isTool(@NotNull Material material) {
+        return Bukkit.getTag("items", NamespacedKey.minecraft("tools"), Material.class).getValues().contains(material);
+    }
+    @Override
+    public void applyMiningFatigue(@NotNull Player player) {
+        ServerPlayer handle = ((CraftPlayer) player).getHandle();
+        handle.connection.send(new ClientboundUpdateMobEffectPacket(handle.getId(), new MobEffectInstance(
+                MobEffects.DIG_SLOWDOWN,
+                -1,
+                -1,
+                false,
+                false,
+                false
+        )));
+    }
+    @Override
+    public void removeMiningFatigue(@NotNull Player player) {
+        ServerPlayer handle = ((CraftPlayer) player).getHandle();
+        handle.connection.send(new ClientboundRemoveMobEffectPacket(handle.getId(), MobEffects.DIG_SLOWDOWN));
+    }
+    private static final Map<PacketListenerType, PacketListener> LISTENER_MAP = new EnumMap<>(PacketListenerType.class);
+
+    @Override
+    public void addPacketListener(@NotNull PacketListenerType type) {
+        LISTENER_MAP.computeIfAbsent(type, t -> switch (type) {
+            case TITLE -> TitlePacketListener.INSTANCE;
+            case INVENTORY -> InventoryPacketListener.INSTANCE;
+            case EFFICIENCY -> EfficiencyPacketListener.INSTANCE;
+        });
+    }
+
+    @Override
+    public void removePacketListener(@NotNull PacketListenerType type) {
+        LISTENER_MAP.remove(type);
     }
 }

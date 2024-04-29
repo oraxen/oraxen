@@ -4,6 +4,7 @@ import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.EventUtils;
+import io.th0rgal.oraxen.utils.ParticleWrapper;
 import io.th0rgal.oraxen.utils.VectorUtils;
 import io.th0rgal.oraxen.utils.timers.Timer;
 import io.th0rgal.protectionlib.ProtectionLib;
@@ -88,6 +89,7 @@ public class EnergyBlastMechanicManager implements Listener {
             final double radiusShrinkage = radius / ((beamLength + 2) / 2.0);
 
             @Override
+            @SuppressWarnings({"all"})
             public void run() {
                 beamLength--;
                 if (beamLength < 1) {
@@ -139,17 +141,17 @@ public class EnergyBlastMechanicManager implements Listener {
     }
 
     private void spawnParticle(World world, Location location, EnergyBlastMechanic mechanic) {
-        if (mechanic.getParticle() == Particle.REDSTONE)
-            world.spawnParticle(Particle.REDSTONE, location, 1, 0, 0, 0, 0, mechanic.getParticleColor());
+        if (mechanic.getParticle() == ParticleWrapper.redstone())
+            world.spawnParticle(ParticleWrapper.redstone(), location, 1, 0, 0, 0, 0, mechanic.getParticleColor());
         else
             world.spawnParticle(mechanic.getParticle(), location, 1, 0, 0, 0, 0);
     }
 
     private void spawnParticle(World world, Location location, EnergyBlastMechanic mechanic, int amount, double offsetX,
                                double offsetY, double offsetZ, double extra) {
-        if (mechanic.getParticle() == Particle.REDSTONE)
+        if (mechanic.getParticle() == ParticleWrapper.redstone())
             world
-                    .spawnParticle(Particle.REDSTONE, location, amount, offsetX, offsetY, offsetZ, extra,
+                    .spawnParticle(ParticleWrapper.redstone(), location, amount, offsetX, offsetY, offsetZ, extra,
                             mechanic.getParticleColor());
         else
             world.spawnParticle(mechanic.getParticle(), location, amount, offsetX, offsetY, offsetZ, extra);

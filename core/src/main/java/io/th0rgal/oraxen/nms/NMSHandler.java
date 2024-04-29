@@ -5,6 +5,7 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.level.ClipContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.BlockHitResult;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
@@ -68,4 +69,14 @@ public interface NMSHandler {
     default boolean getSupported() {
         return false;
     }
+
+    boolean isTool(@NotNull ItemStack itemStack);
+
+    boolean isTool(@NotNull Material material);
+
+    void applyMiningFatigue(@NotNull Player player);
+    void removeMiningFatigue(@NotNull Player player);
+
+    void addPacketListener(@NotNull PacketListenerType type);
+    void removePacketListener(@NotNull PacketListenerType type);
 }

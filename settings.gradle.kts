@@ -26,14 +26,20 @@ dependencyResolutionManagement {
     }
 
     versionCatalogs {
-        create("idofrontLibs").from("com.mineinabyss:catalog:$idofrontVersion")
+        create("libs").from("com.mineinabyss:catalog:$idofrontVersion")
         create("eLibs").from(files("gradle/oraxenLibs.versions.toml"))
     }
 }
 
 include(
     "core",
+    "v1_18_R1",
+    "v1_18_R2",
+    "v1_19_R1",
+    "v1_19_R2",
+    "v1_19_R3",
     "v1_20_R1",
     "v1_20_R2",
     "v1_20_R3",
+    "v1_20_R4",
 )

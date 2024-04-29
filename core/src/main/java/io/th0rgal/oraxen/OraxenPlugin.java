@@ -1,7 +1,5 @@
 package io.th0rgal.oraxen;
 
-import com.comphenix.protocol.ProtocolLibrary;
-import com.comphenix.protocol.ProtocolManager;
 import dev.jorel.commandapi.CommandAPI;
 import dev.jorel.commandapi.CommandAPIBukkitConfig;
 import io.th0rgal.oraxen.api.OraxenItems;
@@ -10,14 +8,13 @@ import io.th0rgal.oraxen.commands.CommandsManager;
 import io.th0rgal.oraxen.compatibilities.CompatibilitiesManager;
 import io.th0rgal.oraxen.config.*;
 import io.th0rgal.oraxen.font.FontManager;
-import io.th0rgal.oraxen.font.packets.InventoryPacketListener;
-import io.th0rgal.oraxen.font.packets.TitlePacketListener;
 import io.th0rgal.oraxen.hud.HudManager;
 import io.th0rgal.oraxen.items.ItemUpdater;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.FurnitureFactory;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.nms.NMSHandlers;
+import io.th0rgal.oraxen.nms.PacketListenerType;
 import io.th0rgal.oraxen.pack.PackGenerator;
 import io.th0rgal.oraxen.pack.server.EmptyServer;
 import io.th0rgal.oraxen.pack.server.OraxenPackServer;
@@ -31,7 +28,6 @@ import io.th0rgal.oraxen.utils.armorequipevent.ArmorEquipEvent;
 import io.th0rgal.oraxen.utils.breaker.BreakerManager;
 import io.th0rgal.oraxen.utils.customarmor.CustomArmorListener;
 import io.th0rgal.oraxen.utils.inventories.InvManager;
-import io.th0rgal.oraxen.utils.logs.Logs;
 import io.th0rgal.protectionlib.ProtectionLib;
 import net.kyori.adventure.platform.bukkit.BukkitAudiences;
 import org.bstats.bukkit.Metrics;
@@ -60,7 +56,6 @@ public class OraxenPlugin extends JavaPlugin {
     private PackGenerator packGenerator;
     @Nullable private OraxenPackServer packServer;
     private ClickActionManager clickActionManager;
-    private ProtocolManager protocolManager;
     private BreakerManager breakerManager;
 
     public OraxenPlugin() {
@@ -100,12 +95,8 @@ public class OraxenPlugin extends JavaPlugin {
         if (Settings.KEEP_UP_TO_DATE.toBool())
             new SettingsUpdater().handleSettingsUpdate();
         final PluginManager pluginManager = Bukkit.getPluginManager();
-        if (pluginManager.isPluginEnabled("ProtocolLib")) {
-            protocolManager = ProtocolLibrary.getProtocolManager();
-            if (Settings.FORMAT_INVENTORY_TITLES.toBool())
-                protocolManager.addPacketListener(new InventoryPacketListener());
-            protocolManager.addPacketListener(new TitlePacketListener());
-        } else Logs.logWarning("ProtocolLib is not on your server, some features will not work");
+        NMSHandlers.handler().addPacketListener(PacketListenerType.TITLE);
+        NMSHandlers.handler().addPacketListener(PacketListenerType.INVENTORY);
         pluginManager.registerEvents(new CustomArmorListener(), this);
         NMSHandlers.setupHandler();
         packGenerator = new PackGenerator();
@@ -162,10 +153,6 @@ public class OraxenPlugin extends JavaPlugin {
 
     public Path packPath() {
         return getDataFolder().toPath().resolve("pack");
-    }
-
-    public ProtocolManager protocolManager() {
-        return protocolManager;
     }
 
     public BukkitAudiences audience() {

@@ -1,19 +1,19 @@
 package io.th0rgal.oraxen.utils;
 
+import com.ticxo.modelengine.api.nms.NMSHandler;
+import io.th0rgal.oraxen.nms.NMSHandlers;
 import io.th0rgal.oraxen.utils.drops.Drop;
 import net.kyori.adventure.text.Component;
-import org.bukkit.Color;
-import org.bukkit.Material;
-import org.bukkit.Tag;
+import org.bukkit.*;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.player.PlayerItemDamageEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 
 public class ItemUtils {
@@ -31,6 +31,11 @@ public class ItemUtils {
             if (VersionUtil.isPaperServer()) itemMeta.displayName(component);
             else itemMeta.setDisplayName(Optional.ofNullable(component).map(AdventureUtils.LEGACY_SERIALIZER::serialize).orElse(null));
         });
+    }
+
+    public static @NotNull Enchantment enchantment(@NotNull String key) {
+        NamespacedKey namespacedKey = Objects.requireNonNull(NamespacedKey.fromString(key));
+        return Objects.requireNonNull(Registry.ENCHANTMENT.get(namespacedKey));
     }
 
     public static void displayName(ItemMeta itemMeta, Component component) {
@@ -128,10 +133,10 @@ public class ItemUtils {
     }
 
     public static boolean isTool(ItemStack itemStack) {
-        return isTool(itemStack.getType());
+        return NMSHandlers.handler().isTool(itemStack);
     }
 
     public static boolean isTool(Material material) {
-        return Tag.ITEMS_TOOLS.isTagged(material);
+        return NMSHandlers.handler().isTool(material);
     }
 }

@@ -9,7 +9,12 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
+import io.th0rgal.oraxen.nms.PacketListenerType;
 import io.th0rgal.oraxen.nms.v1_19_R2.furniture.FurniturePacketManager;
+import io.th0rgal.oraxen.nms.v1_19_R2.protocol.EfficiencyPacketListener;
+import io.th0rgal.oraxen.nms.v1_19_R2.protocol.InventoryPacketListener;
+import io.th0rgal.oraxen.nms.v1_19_R2.protocol.PacketListener;
+import io.th0rgal.oraxen.nms.v1_19_R2.protocol.TitlePacketListener;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
@@ -26,6 +31,8 @@ import net.minecraft.nbt.Tag;
 import net.minecraft.network.*;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketFlow;
+import net.minecraft.network.protocol.game.ClientboundRemoveMobEffectPacket;
+import net.minecraft.network.protocol.game.ClientboundUpdateMobEffectPacket;
 import net.minecraft.network.protocol.game.ClientboundUpdateTagsPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.MinecraftServer;
@@ -36,6 +43,8 @@ import net.minecraft.tags.TagNetworkSerialization;
 import net.minecraft.util.Mth;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.item.context.UseOnContext;
@@ -62,6 +71,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unused")
 public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
@@ -452,6 +462,17 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             }
         }
 
+        @Override
+        public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) throws Exception {
+            if (player != null) {
+                ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+                for (PacketListener value : LISTENER_MAP.values()) {
+                    if (!value.listen(serverPlayer, msg)) return;
+                }
+            }
+            super.write(ctx, msg, promise);
+        }
+
         protected void setPlayer(Player player) {
             this.player = player;
         }
@@ -478,6 +499,17 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
             out.add(packet);
         }
 
+        @Override
+        public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
+            if (player != null) {
+                ServerPlayer serverPlayer = ((CraftPlayer) player).getHandle();
+                for (PacketListener value : LISTENER_MAP.values()) {
+                    if (!value.listen(serverPlayer, msg)) return;
+                }
+            }
+            super.channelRead(ctx, msg);
+        }
+
         protected void setPlayer(Player player) {
             this.player = player;
         }
@@ -486,5 +518,46 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     @Override
     public boolean getSupported() {
         return true;
+    }
+
+    @Override
+    public boolean isTool(@NotNull ItemStack itemStack) {
+        return isTool(itemStack.getType());
+    }
+    @Override
+    public boolean isTool(@NotNull Material material) {
+        return Bukkit.getTag("items", NamespacedKey.minecraft("tools"), Material.class).getValues().contains(material);
+    }
+    @Override
+    public void applyMiningFatigue(@NotNull Player player) {
+        ServerPlayer handle = ((CraftPlayer) player).getHandle();
+        handle.connection.send(new ClientboundUpdateMobEffectPacket(handle.getId(), new MobEffectInstance(
+                MobEffects.DIG_SLOWDOWN,
+                -1,
+                -1,
+                false,
+                false,
+                false
+        )));
+    }
+    @Override
+    public void removeMiningFatigue(@NotNull Player player) {
+        ServerPlayer handle = ((CraftPlayer) player).getHandle();
+        handle.connection.send(new ClientboundRemoveMobEffectPacket(handle.getId(), MobEffects.DIG_SLOWDOWN));
+    }
+    private static final Map<PacketListenerType, PacketListener> LISTENER_MAP = new EnumMap<>(PacketListenerType.class);
+
+    @Override
+    public void addPacketListener(@NotNull PacketListenerType type) {
+        LISTENER_MAP.computeIfAbsent(type, t -> switch (type) {
+            case TITLE -> TitlePacketListener.INSTANCE;
+            case INVENTORY -> InventoryPacketListener.INSTANCE;
+            case EFFICIENCY -> EfficiencyPacketListener.INSTANCE;
+        });
+    }
+
+    @Override
+    public void removePacketListener(@NotNull PacketListenerType type) {
+        LISTENER_MAP.remove(type);
     }
 }

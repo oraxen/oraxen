@@ -5,6 +5,8 @@ import io.th0rgal.oraxen.mechanics.Mechanic;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.light.LightMechanic;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.limitedplacing.LimitedPlacing;
+import io.th0rgal.oraxen.utils.EnchantmentWrapper;
+import io.th0rgal.oraxen.utils.PotionEffectTypeWrapper;
 import io.th0rgal.oraxen.utils.actions.ClickAction;
 import io.th0rgal.oraxen.utils.blocksounds.BlockSounds;
 import io.th0rgal.oraxen.utils.breaker.ToolTypeSpeedModifier;
@@ -13,11 +15,9 @@ import net.kyori.adventure.key.Key;
 import org.bukkit.Material;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.configuration.ConfigurationSection;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
-import org.bukkit.potion.PotionEffectType;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -116,18 +116,18 @@ public abstract class CustomBlockMechanic extends Mechanic {
 
         float multiplier = speedMultiplier.get();
 
-        final int efficiencyLevel = itemInMainHand.getEnchantmentLevel(Enchantment.DIG_SPEED);
+        final int efficiencyLevel = itemInMainHand.getEnchantmentLevel(EnchantmentWrapper.efficiency());
         if (multiplier > 1.0F && efficiencyLevel != 0) multiplier += (float) (Math.pow(efficiencyLevel, 2) + 1);
 
-        PotionEffect haste = player.getPotionEffect(PotionEffectType.FAST_DIGGING);
+        PotionEffect haste = player.getPotionEffect(PotionEffectTypeWrapper.fastDigging());
         if (haste != null) multiplier *= 1.0F + (float) (haste.getAmplifier() + 1) * 0.2F;
 
         // Whilst the player has this when they start digging, period is calculated before it is applied
-        PotionEffect miningFatigue = player.getPotionEffect(PotionEffectType.SLOW_DIGGING);
+        PotionEffect miningFatigue = player.getPotionEffect(PotionEffectTypeWrapper.slowDigging());
         if (miningFatigue != null) multiplier *= (float) Math.pow(0.3, Math.min(miningFatigue.getAmplifier(), 4));
 
         ItemStack helmet = player.getEquipment().getHelmet();
-        if (player.isUnderWater() && (helmet == null || !helmet.containsEnchantment(Enchantment.WATER_WORKER)))
+        if (player.isUnderWater() && (helmet == null || !helmet.containsEnchantment(EnchantmentWrapper.waterWalker())))
             multiplier /= 5;
 
         if (!player.isOnGround()) multiplier /= 5;

@@ -3,6 +3,7 @@ package io.th0rgal.oraxen.mechanics.provided.farming.smelting;
 import io.th0rgal.oraxen.api.OraxenItems;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.utils.BlockHelpers;
+import io.th0rgal.oraxen.utils.EnchantmentWrapper;
 import org.bukkit.*;
 import org.bukkit.block.Block;
 import org.bukkit.enchantments.Enchantment;
@@ -46,8 +47,8 @@ public class SmeltingMechanicListener implements Listener {
         ItemMeta itemMeta = item.getItemMeta();
         if (!item.hasItemMeta()) return;
         assert itemMeta != null;
-        if (block.getType().toString().contains("ORE") && itemMeta.hasEnchant(Enchantment.LOOT_BONUS_BLOCKS)) {
-            loot.setAmount(1 + ThreadLocalRandom.current().nextInt(itemMeta.getEnchantLevel(Enchantment.LOOT_BONUS_BLOCKS)));
+        if (block.getType().toString().contains("ORE") && itemMeta.hasEnchant(EnchantmentWrapper.fortune())) {
+            loot.setAmount(1 + ThreadLocalRandom.current().nextInt(itemMeta.getEnchantLevel(EnchantmentWrapper.fortune())));
         }
 
         event.setDropItems(false);

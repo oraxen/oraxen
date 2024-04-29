@@ -29,8 +29,8 @@ import org.bukkit.inventory.meta.trim.TrimMaterial;
 import org.bukkit.inventory.meta.trim.TrimPattern;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
-import org.bukkit.potion.PotionData;
 import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -53,7 +53,7 @@ public class ItemBuilder {
     private int durability; // Damageable
     private Color color; // LeatherArmorMeta, PotionMeta, MapMeta & FireWorkEffectMeta
     private Key trimPattern; // TrimPattern
-    private PotionData potionData;
+    private PotionType potionData;
     private List<PotionEffect> potionEffects;
     private OfflinePlayer owningPlayer; // SkullMeta
     private DyeColor bodyColor; // TropicalFishBucketMeta
@@ -105,7 +105,7 @@ public class ItemBuilder {
 
         if (itemMeta instanceof PotionMeta potionMeta) {
             color = potionMeta.getColor();
-            potionData = potionMeta.getBasePotionData();
+            potionData = potionMeta.getBasePotionType();
             potionEffects = new ArrayList<>(potionMeta.getCustomEffects());
         }
 
@@ -276,7 +276,7 @@ public class ItemBuilder {
         return this;
     }
 
-    public ItemBuilder setBasePotionData(final PotionData potionData) {
+    public ItemBuilder setBasePotionType(final PotionType potionData) {
         this.potionData = potionData;
         return this;
     }
@@ -537,8 +537,8 @@ public class ItemBuilder {
         if (color != null && !color.equals(potionMeta.getColor()))
             potionMeta.setColor(color);
 
-        if (!potionData.equals(potionMeta.getBasePotionData()))
-            potionMeta.setBasePotionData(potionData);
+        if (potionData != null && !potionData.equals(potionMeta.getBasePotionType()))
+            potionMeta.setBasePotionType(potionData);
 
         if (!potionEffects.equals(potionMeta.getCustomEffects()))
             for (final PotionEffect potionEffect : potionEffects)

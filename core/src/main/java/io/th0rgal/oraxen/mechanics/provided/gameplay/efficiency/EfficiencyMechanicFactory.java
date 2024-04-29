@@ -3,6 +3,8 @@ package io.th0rgal.oraxen.mechanics.provided.gameplay.efficiency;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.MechanicFactory;
 import io.th0rgal.oraxen.mechanics.MechanicsManager;
+import io.th0rgal.oraxen.nms.NMSHandlers;
+import io.th0rgal.oraxen.nms.PacketListenerType;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.inventory.ItemStack;
 
@@ -13,7 +15,7 @@ public class EfficiencyMechanicFactory extends MechanicFactory {
     public EfficiencyMechanicFactory(ConfigurationSection section) {
         super(section);
         instance = this;
-        MechanicsManager.registerListeners(OraxenPlugin.get(), getMechanicID(), new EfficiencyMechanicListener());
+        NMSHandlers.handler().addPacketListener(PacketListenerType.EFFICIENCY);
     }
 
     @Override
