@@ -1,7 +1,7 @@
 package io.th0rgal.oraxen.utils.breaker;
 
 import com.comphenix.protocol.PacketType;
-import com.comphenix.protocol.ProtocolManager;
+import com.comphenix.protocol.ProtocolLibrary;
 import com.comphenix.protocol.events.ListenerPriority;
 import com.comphenix.protocol.events.PacketAdapter;
 import com.comphenix.protocol.events.PacketContainer;
@@ -53,7 +53,6 @@ public class BreakerSystem {
     public static final List<HardnessModifier> MODIFIERS = new ArrayList<>();
     private final Map<Location, BukkitScheduler> breakerPerLocation = new HashMap<>();
     private final Map<Location, BukkitTask> breakerPlaySound = new HashMap<>();
-    private final ProtocolManager protocolManager;
     private final PacketAdapter listener = new PacketAdapter(OraxenPlugin.get(),
             ListenerPriority.LOW, PacketType.Play.Client.BLOCK_DIG) {
         @Override
@@ -207,10 +206,6 @@ public class BreakerSystem {
                 : Collections.singletonList(block.getLocation());
     }
 
-    public BreakerSystem() {
-        protocolManager = OraxenPlugin.get().getProtocolManager();
-    }
-
     private boolean blockDamageEventCancelled(Block block, Player player) {
 
         switch (block.getType()) {
@@ -254,11 +249,11 @@ public class BreakerSystem {
 
     private void sendBlockBreak(final Player player, final Location location, final int stage) {
         Block block = location.getBlock();
-        final PacketContainer packet = protocolManager.createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
+        final PacketContainer packet = ProtocolLibrary.getProtocolManager().createPacket(PacketType.Play.Server.BLOCK_BREAK_ANIMATION);
         packet.getIntegers().write(0, location.hashCode()).write(1, stage);
         packet.getBlockPositionModifier().write(0, new BlockPosition(location.toVector()));
 
-        protocolManager.sendServerPacket(player, packet);
+        ProtocolLibrary.getProtocolManager().sendServerPacket(player, packet);
     }
 
     private void stopBlockBreaker(Block block) {
@@ -284,7 +279,7 @@ public class BreakerSystem {
     }
 
     public void registerListener() {
-        protocolManager.addPacketListener(listener);
+        ProtocolLibrary.getProtocolManager().addPacketListener(listener);
     }
 
     private BlockSounds getBlockSounds(Block block) {

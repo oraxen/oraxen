@@ -1,5 +1,6 @@
 package io.th0rgal.oraxen.font;
 
+import com.comphenix.protocol.ProtocolLibrary;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
@@ -71,8 +72,8 @@ public class FontManager {
             Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
             Logs.logInfo("Disabling packet-based glyph systems", true);
             if (PluginUtils.isEnabled("ProtocolLib")){
-                OraxenPlugin.get().getProtocolManager().removePacketListener(new InventoryPacketListener());
-                OraxenPlugin.get().getProtocolManager().removePacketListener(new TitlePacketListener());
+                ProtocolLibrary.getProtocolManager().removePacketListener(new InventoryPacketListener());
+                ProtocolLibrary.getProtocolManager().removePacketListener(new TitlePacketListener());
             }
         }
     }
