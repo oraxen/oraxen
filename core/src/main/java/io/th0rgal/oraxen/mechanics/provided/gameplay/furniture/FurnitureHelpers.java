@@ -1,6 +1,7 @@
 package io.th0rgal.oraxen.mechanics.provided.gameplay.furniture;
 
 import io.th0rgal.oraxen.api.OraxenFurniture;
+import org.bukkit.Location;
 import org.bukkit.Rotation;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.ItemFrame;
@@ -27,6 +28,9 @@ public class FurnitureHelpers {
         if (mechanic == null) return;
 
         baseEntity.setRotation(yaw, baseEntity.getLocation().getPitch());
+        Location newLoc = baseEntity.getLocation();
+        newLoc.setYaw(yaw);
+        baseEntity.teleport(newLoc);
     }
 
     public static float rotationToYaw(Rotation rotation) {

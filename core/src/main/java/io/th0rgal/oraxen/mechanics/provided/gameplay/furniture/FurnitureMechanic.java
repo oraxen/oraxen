@@ -37,8 +37,10 @@ import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
+import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -321,6 +323,10 @@ public class FurnitureMechanic extends Mechanic {
             armorStand.setCanMove(false);
             armorStand.setCanTick(false);
             armorStand.setCanPickupItems(false);
+        } else if (baseEntity instanceof ItemDisplay itemDisplay) {
+            Transformation transformation = itemDisplay.getTransformation();
+            boolean isFixed = itemDisplay.getItemDisplayTransform() == ItemDisplay.ItemDisplayTransform.FIXED;
+            transformation.getScale().set(isFixed ? new Vector3f(0.5f, 0.5f, 0.5f) : new Vector3f(1f, 1f, 1f));
         }
 
         PersistentDataContainer pdc = baseEntity.getPersistentDataContainer();

@@ -9,6 +9,7 @@ import io.netty.handler.codec.MessageToByteEncoder;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.mechanics.provided.gameplay.furniture.IFurniturePacketManager;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
+import io.th0rgal.oraxen.nms.v1_19_R1.furniture.FurniturePacketManager;
 import io.th0rgal.oraxen.utils.AdventureUtils;
 import io.th0rgal.oraxen.utils.BlockHelpers;
 import io.th0rgal.oraxen.utils.VersionUtil;
