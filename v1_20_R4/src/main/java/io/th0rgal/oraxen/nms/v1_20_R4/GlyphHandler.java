@@ -8,7 +8,6 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 import io.netty.handler.codec.MessageToByteEncoder;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
-import io.papermc.paper.adventure.PaperAdventure;
 import io.th0rgal.oraxen.OraxenPlugin;
 import io.th0rgal.oraxen.nms.GlyphHandlers;
 import io.th0rgal.oraxen.utils.AdventureUtils;
@@ -16,9 +15,11 @@ import io.th0rgal.oraxen.utils.VersionUtil;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.kyori.adventure.text.Component;
 import net.minecraft.core.RegistryAccess;
-import net.minecraft.nbt.*;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
+import net.minecraft.nbt.Tag;
 import net.minecraft.network.*;
-import net.minecraft.network.chat.ComponentSerialization;
 import net.minecraft.network.codec.IdDispatchCodec;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.Packet;
@@ -283,17 +284,6 @@ public class GlyphHandler implements io.th0rgal.oraxen.nms.GlyphHandler {
         public CustomDataSerializer(@Nullable Player player, ByteBuf bytebuf) {
             super(bytebuf);
             this.player = player;
-        }
-
-        @NotNull
-        public FriendlyByteBuf writeComponent(@NotNull Component component) {
-            writeNbt(ComponentSerialization.CODEC.encodeStart(NbtOps.INSTANCE, PaperAdventure.asVanilla(component)).getOrThrow());
-            return this;
-        }
-
-        @NotNull
-        public net.minecraft.network.chat.Component readComponent() {
-            return PaperAdventure.asVanilla((GlyphHandlers.transform(PaperAdventure.asAdventure(ComponentSerialization.CODEC.parse(NbtOps.INSTANCE, readNbt(NbtAccounter.unlimitedHeap())).getOrThrow()), player, false)));
         }
 
         @Override

@@ -67,7 +67,10 @@ public class FontManager {
             loadFonts(fontConfiguration.getConfigurationSection("fonts"));
 
         useNmsGlyphs = GlyphHandlers.isNms() && NMSHandlers.getHandler() != null;
-        if (useNmsGlyphs) {
+        if (VersionUtil.atOrAbove("1.20.5") && useNmsGlyphs) {
+            Logs.logError("Oraxens NMS Glyph system is not working for 1.20.5...");
+            useNmsGlyphs = false;
+        } else if (useNmsGlyphs) {
             NMSHandlers.getHandler().glyphHandler().setupNmsGlyphs();
             Logs.logSuccess("Oraxens NMS Glyph system has been enabled!");
             Logs.logInfo("Disabling packet-based glyph systems", true);
