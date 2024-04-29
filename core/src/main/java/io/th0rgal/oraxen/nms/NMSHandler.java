@@ -11,6 +11,8 @@ import java.util.Set;
 
 public interface NMSHandler {
 
+    GlyphHandler glyphHandler();
+
     boolean noteblockUpdatesDisabled();
 
     boolean tripwireUpdatesDisabled();
@@ -52,12 +54,41 @@ public interface NMSHandler {
             "ChargedProjectiles", "Charged", "DebugProperty", "Fireworks", "Explosion", "Flight",
             "map", "map_scale_direction", "map_to_lock", "Decorations", "SkullOwner", "Effects", "BlockEntityTag", "BlockStateTag");
 
-    void setupNmsGlyphs();
-
-    void inject(Player player);
-    void uninject(Player player);
-
     default boolean getSupported() {
         return false;
+    }
+
+    class EmptyNMSHandler implements NMSHandler {
+
+        @Override
+        public GlyphHandler glyphHandler() {
+            return new GlyphHandler.EmptyGlyphHandler();
+        }
+
+        @Override
+        public boolean noteblockUpdatesDisabled() {
+            return false;
+        }
+
+        @Override
+        public boolean tripwireUpdatesDisabled() {
+            return false;
+        }
+
+        @Override
+        public ItemStack copyItemNBTTags(@NotNull ItemStack oldItem, @NotNull ItemStack newItem) {
+            return newItem;
+        }
+
+        @Nullable
+        @Override
+        public BlockData correctBlockStates(Player player, EquipmentSlot slot, ItemStack itemStack) {
+            return null;
+        }
+
+        @Override
+        public void customBlockDefaultTools(Player player) {
+
+        }
     }
 }
