@@ -1,4 +1,4 @@
-package io.th0rgal.oraxen.nms.v1_20_R4;
+ package io.th0rgal.oraxen.nms.v1_20_R4;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
@@ -41,12 +41,16 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.PacketType;
 import net.minecraft.network.protocol.common.ClientboundUpdateTagsPacket;
+import net.minecraft.network.protocol.common.CommonPacketTypes;
 import net.minecraft.network.protocol.configuration.ConfigurationPacketTypes;
 import net.minecraft.network.protocol.configuration.ConfigurationProtocols;
+import net.minecraft.network.protocol.cookie.CookiePacketTypes;
 import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.protocol.handshake.HandshakePacketTypes;
 import net.minecraft.network.protocol.handshake.HandshakeProtocols;
 import net.minecraft.network.protocol.login.LoginPacketTypes;
 import net.minecraft.network.protocol.login.LoginProtocols;
+import net.minecraft.network.protocol.ping.PingPacketTypes;
 import net.minecraft.network.protocol.status.StatusPacketTypes;
 import net.minecraft.network.protocol.status.StatusProtocols;
 import net.minecraft.resources.ResourceLocation;
@@ -99,25 +103,30 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
     private record ConnectionCodec(StreamCodec<ByteBuf, Packet<?>> codec, ProtocolInfo<?> protocol, int id) {
     }
 
+    private static class PacketList {
+        private final List<PacketType<?>> clientbounds = new ArrayList<>();
+        private final List<PacketType<?>> serverbounds = new ArrayList<>();
+        private PacketList(Class<?>... classes) {
+            for (Class<?> aClass : classes) {
+                for (Field field : aClass.getFields()) {
+                    try {
+                        PacketType<?> type = (PacketType<?>) field.get(null);
+                        switch (type.flow()) {
+                            case CLIENTBOUND -> clientbounds.add(type);
+                            case SERVERBOUND -> serverbounds.add(type);
+                        }
+                    } catch (Exception ignored) {}
+                }
+            }
+        }
+    }
     private static class PacketProtocol {
         private final ProtocolInfo<?> clientboundInfo;
         private final ProtocolInfo<?> serverboundInfo;
 
-        private final List<PacketType<?>> clientbounds = new ArrayList<>();
-        private final List<PacketType<?>> serverbounds = new ArrayList<>();
-
-        public PacketProtocol(ProtocolInfo<?> clientbound, ProtocolInfo<?> serverbound, Class<?> clazz) {
+        public PacketProtocol(ProtocolInfo<?> clientbound, ProtocolInfo<?> serverbound) {
             clientboundInfo = clientbound;
             serverboundInfo = serverbound;
-            for (Field field : clazz.getFields()) {
-                try {
-                    PacketType<?> type = (PacketType<?>) field.get(null);
-                    switch (type.flow()) {
-                        case CLIENTBOUND -> clientbounds.add(type);
-                        case SERVERBOUND -> serverbounds.add(type);
-                    }
-                } catch (Exception ignored) {}
-            }
         }
     }
 
@@ -132,14 +141,26 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
         getById.setAccessible(true);
         getCodec.setAccessible(true);
         getType.setAccessible(true);
+
+        PacketList list = new PacketList(
+                CommonPacketTypes.class,
+                ConfigurationPacketTypes.class,
+                CookiePacketTypes.class,
+                GamePacketTypes.class,
+                HandshakePacketTypes.class,
+                LoginPacketTypes.class,
+                PingPacketTypes.class,
+                StatusPacketTypes.class
+        );
+
         for (PacketProtocol packetProtocol : List.of(
-                new PacketProtocol(GameProtocols.CLIENTBOUND.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)), GameProtocols.SERVERBOUND.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)), GamePacketTypes.class),
-                new PacketProtocol(StatusProtocols.CLIENTBOUND, StatusProtocols.SERVERBOUND, StatusPacketTypes.class),
-                new PacketProtocol(LoginProtocols.CLIENTBOUND, LoginProtocols.SERVERBOUND, LoginPacketTypes.class),
-                new PacketProtocol(ConfigurationProtocols.CLIENTBOUND, ConfigurationProtocols.SERVERBOUND, ConfigurationPacketTypes.class),
-                new PacketProtocol(null, HandshakeProtocols.SERVERBOUND, HandshakeProtocols.class)
+                new PacketProtocol(GameProtocols.CLIENTBOUND.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY)), GameProtocols.SERVERBOUND.bind(RegistryFriendlyByteBuf.decorator(RegistryAccess.EMPTY))),
+                new PacketProtocol(StatusProtocols.CLIENTBOUND, StatusProtocols.SERVERBOUND),
+                new PacketProtocol(LoginProtocols.CLIENTBOUND, LoginProtocols.SERVERBOUND),
+                new PacketProtocol(ConfigurationProtocols.CLIENTBOUND, ConfigurationProtocols.SERVERBOUND),
+                new PacketProtocol(null, HandshakeProtocols.SERVERBOUND)
         )) {
-            for (PacketType<?> clientbound : packetProtocol.clientbounds) {
+            for (PacketType<?> clientbound : list.clientbounds) {
                 if (packetProtocol.clientboundInfo == null) break;
                 IdDispatchCodec<ByteBuf, ?, ?> codec = (IdDispatchCodec<ByteBuf, ? ,?>) packetProtocol.clientboundInfo.codec();
                 try {
@@ -147,12 +168,22 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     List<?> objects = (List<?>) getById.get(codec);
                     for (Object object : objects) {
                         if (getType.get(object).equals(clientbound)) {
-                            CODEC_MAP.put(clientbound, new ConnectionCodec((StreamCodec<ByteBuf, Packet<?>>) getCodec.get(object), packetProtocol.clientboundInfo, object2IntMap.getInt(clientbound)));
+                            StreamCodec<ByteBuf, Packet<?>> packetCodec = (StreamCodec<ByteBuf, Packet<?>>) getCodec.get(object);
+                            StreamCodec<ByteBuf, Packet<?>> finalCodec = Arrays.stream(packetCodec.decode(new DummyByteBuf()).getClass().getFields()).filter(f -> StreamCodec.class.isAssignableFrom(f.getType())).findFirst().map(f -> {
+                                try {
+                                    return (StreamCodec<ByteBuf, Packet<?>>) f.get(null);
+                                } catch (Exception e) {
+                                    return null;
+                                }
+                            }).orElseThrow();
+                            CODEC_MAP.put(clientbound, new ConnectionCodec(finalCodec, packetProtocol.clientboundInfo, object2IntMap.getInt(clientbound)));
                         }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
-            for (PacketType<?> serverbound : packetProtocol.serverbounds) {
+            for (PacketType<?> serverbound : list.serverbounds) {
                 if (packetProtocol.serverboundInfo == null) break;
                 IdDispatchCodec<ByteBuf, ?, ?> codec = (IdDispatchCodec<ByteBuf, ? ,?>) packetProtocol.serverboundInfo.codec();
                 try {
@@ -160,10 +191,20 @@ public class NMSHandler implements io.th0rgal.oraxen.nms.NMSHandler {
                     List<?> objects = (List<?>) getById.get(codec);
                     for (Object object : objects) {
                         if (getType.get(object).equals(serverbound)) {
-                            CODEC_MAP.put(serverbound, new ConnectionCodec((StreamCodec<ByteBuf, Packet<?>>) getCodec.get(object), packetProtocol.serverboundInfo, object2IntMap.getInt(serverbound)));
+                            StreamCodec<ByteBuf, Packet<?>> packetCodec = (StreamCodec<ByteBuf, Packet<?>>) getCodec.get(object);
+                            StreamCodec<ByteBuf, Packet<?>> finalCodec = Arrays.stream(packetCodec.decode(new DummyByteBuf()).getClass().getFields()).filter(f -> StreamCodec.class.isAssignableFrom(f.getType())).findFirst().map(f -> {
+                                try {
+                                    return (StreamCodec<ByteBuf, Packet<?>>) f.get(null);
+                                } catch (Exception e) {
+                                    return null;
+                                }
+                            }).orElseThrow();
+                            CODEC_MAP.put(serverbound, new ConnectionCodec(finalCodec, packetProtocol.serverboundInfo, object2IntMap.getInt(serverbound)));
                         }
                     }
-                } catch (Exception ignored) {}
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }

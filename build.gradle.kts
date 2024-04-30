@@ -22,11 +22,17 @@ val SUPPORTED_VERSIONS: List<NMSVersion> = listOf(
     "v1_19_R3" toNms "1.19.4-R0.1-SNAPSHOT",
     "v1_20_R1" toNms "1.20.1-R0.1-SNAPSHOT",
     "v1_20_R2" toNms "1.20.2-R0.1-SNAPSHOT",
-    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT",
+    "v1_20_R3" toNms "1.20.4-R0.1-SNAPSHOT"
+)
+
+val CURRENT_NMS_VERSION = listOf(
     "v1_20_R4" toNms "1.20.5-R0.1-SNAPSHOT"
 )
 
-SUPPORTED_VERSIONS.forEach {
+ArrayList<NMSVersion>().apply {
+    addAll(SUPPORTED_VERSIONS)
+    addAll(CURRENT_NMS_VERSION)
+}.forEach {
     project(":${it.nmsVersion}") {
 
         apply(plugin = "java")
@@ -206,7 +212,6 @@ bukkit {
         "WorldEdit", "WorldGuard", "Towny", "Factions", "Lands", "PlotSquared",
         "ModelEngine", "CrashClaim", "HuskClaims", "BentoBox", "AxiomPaper"
     )
-    depend = listOf("ProtocolLib")
     loadBefore = listOf("Realistic_World")
     permissions.create("oraxen.command") {
         description = "Allows the player to use the /oraxen command"
